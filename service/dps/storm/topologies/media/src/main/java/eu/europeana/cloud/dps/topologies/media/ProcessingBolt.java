@@ -132,12 +132,8 @@ public class ProcessingBolt extends BaseRichBolt {
 				mediaInfos.add(new ImageInfo(this, file, mediaData.getEdm()));
 			}
 			
-			if (isAudio(file.getMimeType())) {
-				mediaInfos.add(new AudioInfo(this, file, mediaData.getEdm()));
-			}
-			
-			if (isVideo(file.getMimeType())) {
-				mediaInfos.add(new VideoInfo(this, file, mediaData.getEdm()));
+			if (isAudioVideo(file.getMimeType())) {
+				mediaInfos.add(new AudioVideoInfo(this, file, mediaData.getEdm()));
 			}
 			
 			if (isText(file.getMimeType())) {
@@ -189,12 +185,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		return mimeType.equals("application/pdf") || mimeType.startsWith("image");
 	}
 	
-	private static boolean isAudio(String mimeType) {
-		return mimeType.startsWith("audio");
-	}
-	
-	private static boolean isVideo(String mimeType) {
-		return mimeType.startsWith("video");
+	private static boolean isAudioVideo(String mimeType) {
+		return mimeType.startsWith("audio") || mimeType.startsWith("video");
 	}
 	
 	private static boolean isText(String mimeType) {
@@ -427,8 +419,8 @@ public class ProcessingBolt extends BaseRichBolt {
 					
 					if (res.getXObject(name) instanceof PDImageXObject) {
 						PDImageXObject ob = (PDImageXObject) res.getXObject(name);
-						ob.getMetadata().createInputStream();
-						return IOUtils.toString(ob.getMetadata().createInputStream(), "UTF-8");
+						return ob.getMetadata() == null ? ""
+								: IOUtils.toString(ob.getMetadata().createInputStream(), "UTF-8");
 					}
 				}
 			}
@@ -436,13 +428,34 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 	}
 	
-	private abstract static class AudioVideoInfo extends MediaInfo {
+	private static class AudioVideoInfo extends MediaInfo {
 		
 		protected static final Pattern BIT_RATE = Pattern.compile("^bit_rate=(.*)", Pattern.MULTILINE);
 		protected static final Pattern DURATION = Pattern.compile("^duration=(.*)", Pattern.MULTILINE);
 		
+		protected static final Pattern CHANNELS = Pattern.compile("^channels=(.*)", Pattern.MULTILINE);
+		protected static final Pattern SAMPLE_RATE = Pattern.compile("^sample_rate=(.*)", Pattern.MULTILINE);
+		protected static final Pattern BITS_PER_SAMPLE = Pattern.compile("^bits_per_sample=(.*)", Pattern.MULTILINE);
+		
+		private static final Pattern CODEC_NAME = Pattern.compile("^codec_name=(.*)", Pattern.MULTILINE);
+		private static final Pattern WIDTH = Pattern.compile("^width=(.*)", Pattern.MULTILINE);
+		private static final Pattern HEIGHT = Pattern.compile("^height=(.*)", Pattern.MULTILINE);
+		private static final Pattern FRAME_RATE = Pattern.compile("^r_frame_rate=([0-9]*)/", Pattern.MULTILINE);
+		
+		private static final Pattern VIDEO_STREAM =
+				Pattern.compile("(\\[STREAM\\].*?codec_type=video.*?\\[/STREAM\\])", Pattern.DOTALL);
+		
 		double duration;
 		int bitRate;
+		
+		int channels;
+		int sampleRate;
+		int bitDepth;
+		
+		String codecName;
+		int width;
+		int height;
+		int frameRate;
 		
 		AudioVideoInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
 			super(pb, fileInfo, edm);
@@ -453,7 +466,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void doProcess() throws IOException, MediaException {
 			String path = fileInfo.getContent().getPath();
-			List<String> cmd = getCmdList(path);
+			List<String> cmd = Arrays.asList(ffprobeCmd, "-show_streams",
+					"-loglevel", "warning", path);
 			
 			Process ffprobeProcess = pb.runCommand(cmd, false);
 			String ffprobeResult = doAndClose(IOUtils::toString, ffprobeProcess.getInputStream());
@@ -474,97 +488,26 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 		}
 		
-		@Override
-		void updateResourceMetadata() {
-			super.updateResourceMetadata();
-			
-			setEbucoreValue("duration", duration * 1000, null);
-			setEbucoreValue("bitRate", bitRate, NON_NEGATIVE_INTEGER);
-		}
-		
-		abstract void extract(String ffprobeResult) throws MediaException;
-		
-		abstract List<String> getCmdList(String path);
-		
-	}
-	
-	private static class AudioInfo extends AudioVideoInfo {
-		
-		protected static final Pattern CHANNELS = Pattern.compile("^channels=(.*)", Pattern.MULTILINE);
-		protected static final Pattern SAMPLE_RATE = Pattern.compile("^sample_rate=(.*)", Pattern.MULTILINE);
-		protected static final Pattern BITS_PER_SAMPLE = Pattern.compile("^bits_per_sample=(.*)", Pattern.MULTILINE);
-		
-		int channels;
-		int sampleRate;
-		int bitDepth;
-		
-		AudioInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
-			super(pb, fileInfo, edm);
-		}
-		
-		@Override
 		void extract(String ffprobeResult) throws MediaException {
-			Matcher d = DURATION.matcher(ffprobeResult);
-			Matcher c = CHANNELS.matcher(ffprobeResult);
-			Matcher s = SAMPLE_RATE.matcher(ffprobeResult);
-			Matcher b = BITS_PER_SAMPLE.matcher(ffprobeResult);
-			Matcher br = BIT_RATE.matcher(ffprobeResult);
-			
-			if (d.find() && c.find() && s.find() && b.find() && br.find()) {
-				duration = Double.parseDouble(d.group(1));
-				channels = Integer.parseInt(c.group(1));
-				sampleRate = Integer.parseInt(s.group(1));
-				bitDepth = Integer.parseInt(b.group(1));
-				bitRate = Integer.parseInt(br.group(1));
+			Matcher vs = VIDEO_STREAM.matcher(ffprobeResult);
+			if (vs.find()) {
+				String videoResult = vs.group(0);
+				extractVideo(videoResult);
 			} else {
-				throw new MediaException("ffprobeResult result missing data: " + ffprobeResult, "CORRUPTED");
+				extractAudio(ffprobeResult);
 			}
-			
 		}
 		
-		@Override
-		void updateResourceMetadata() {
-			super.updateResourceMetadata();
+		private void extractVideo(String streamInfo) throws MediaException {
 			
-			setEbucoreValue("sampleSize", bitDepth, INTEGER_TYPE);
-			setEbucoreValue("sampleRate", sampleRate, INTEGER_TYPE);
-			setEbucoreValue("audioChannelNumber", channels, NON_NEGATIVE_INTEGER);
-		}
-		
-		@Override
-		List<String> getCmdList(String path) {
-			return Arrays.asList(ffprobeCmd, "-show_streams", "-select_streams", "a",
-					"-loglevel", "warning", path);
-		}
-	}
-	
-	private static class VideoInfo extends AudioVideoInfo {
-		
-		private static final Pattern CODEC_NAME = Pattern.compile("^codec_name=(.*)", Pattern.MULTILINE);
-		private static final Pattern WIDTH = Pattern.compile("^width=(.*)", Pattern.MULTILINE);
-		private static final Pattern HEIGHT = Pattern.compile("^height=(.*)", Pattern.MULTILINE);
-		private static final Pattern FRAME_RATE = Pattern.compile("^r_frame_rate=([0-9]*)/", Pattern.MULTILINE);
-		
-		String codecName;
-		int width;
-		int height;
-		int frameRate;
-		
-		VideoInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
-			super(pb, fileInfo, edm);
-		}
-		
-		@Override
-		void extract(String ffprobeResult) throws MediaException {
+			Matcher c = CODEC_NAME.matcher(streamInfo);
+			Matcher d = DURATION.matcher(streamInfo);
 			
-			Matcher c = CODEC_NAME.matcher(ffprobeResult);
-			Matcher d = DURATION.matcher(ffprobeResult);
+			Matcher w = WIDTH.matcher(streamInfo);
+			Matcher h = HEIGHT.matcher(streamInfo);
 			
-			Matcher w = WIDTH.matcher(ffprobeResult);
-			Matcher h = HEIGHT.matcher(ffprobeResult);
-			
-			Matcher br = BIT_RATE.matcher(ffprobeResult);
-			Matcher fr = FRAME_RATE.matcher(ffprobeResult);
+			Matcher br = BIT_RATE.matcher(streamInfo);
+			Matcher fr = FRAME_RATE.matcher(streamInfo);
 			
 			if (c.find() && d.find() && w.find() && h.find() && br.find() && fr.find()) {
 				codecName = c.group(1);
@@ -576,25 +519,45 @@ public class ProcessingBolt extends BaseRichBolt {
 				bitRate = Integer.parseInt(br.group(1));
 				frameRate = Integer.parseInt(fr.group(1));
 			} else {
-				throw new MediaException("ffprobeResult result missing data: " + ffprobeResult, "CORRUPTED");
+				throw new MediaException("ffprobeResult result missing data: " + streamInfo, "CORRUPTED");
 			}
+		}
+		
+		private void extractAudio(String streamInfo) throws MediaException {
+			Matcher d = DURATION.matcher(streamInfo);
+			Matcher c = CHANNELS.matcher(streamInfo);
+			Matcher s = SAMPLE_RATE.matcher(streamInfo);
+			Matcher b = BITS_PER_SAMPLE.matcher(streamInfo);
+			Matcher br = BIT_RATE.matcher(streamInfo);
 			
+			if (d.find() && c.find() && s.find() && b.find() && br.find()) {
+				duration = Double.parseDouble(d.group(1));
+				channels = Integer.parseInt(c.group(1));
+				sampleRate = Integer.parseInt(s.group(1));
+				bitDepth = Integer.parseInt(b.group(1));
+				bitRate = Integer.parseInt(br.group(1));
+			} else {
+				throw new MediaException("ffprobeResult result missing data: " + streamInfo, "CORRUPTED");
+			}
 		}
 		
 		@Override
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
+			setEbucoreValue("duration", duration * 1000, null);
+			setEbucoreValue("bitRate", bitRate, NON_NEGATIVE_INTEGER);
 			
-			setEdmValue("codecName", codecName, null);
-			setEbucoreValue("width", width, INTEGER_TYPE);
-			setEbucoreValue("height", height, INTEGER_TYPE);
-			setEbucoreValue("frameRate", frameRate, DOUBLE_TYPE);
-		}
-		
-		@Override
-		List<String> getCmdList(String path) {
-			return Arrays.asList(ffprobeCmd, "-show_format", "-show_streams", "-select_streams", "v",
-					"-loglevel", "warning", path);
+			if (codecName != null) {
+				setEdmValue("codecName", codecName, null);
+				setEbucoreValue("width", width, INTEGER_TYPE);
+				setEbucoreValue("height", height, INTEGER_TYPE);
+				setEbucoreValue("frameRate", frameRate, DOUBLE_TYPE);
+			} else {
+				setEbucoreValue("sampleSize", bitDepth, INTEGER_TYPE);
+				setEbucoreValue("sampleRate", sampleRate, INTEGER_TYPE);
+				setEbucoreValue("audioChannelNumber", channels, NON_NEGATIVE_INTEGER);
+			}
+			
 		}
 		
 	}
@@ -623,7 +586,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			String absolutePath = file2.getAbsolutePath();
 			
 			ArrayList<String> convertCmd = new ArrayList<>();
-			String path = fileInfo.getContent().getPath();
+			String path = fileInfo.getContent().getPath() + "[0]";
 			convertCmd.addAll(
 					Arrays.asList(magickCmd, "convert", path, "-format", "%w\n%h\n%[colorspace]\n",
 							"-write", "info:"));
@@ -740,7 +703,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			super.clenaup();
 		}
 	}
-
+	
 	private class ResultsUploader {
 		
 		class Item {
