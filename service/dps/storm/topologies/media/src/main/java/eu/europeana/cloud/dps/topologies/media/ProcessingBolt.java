@@ -479,7 +479,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		void doProcess() throws IOException, MediaException {
 			String path = fileInfo.getContent().getPath();
 			List<String> cmd = Arrays.asList(ffprobeCmd, "-show_streams",
-					"-loglevel", "warning", path);
+					"-loglevel", "error", path);
 			
 			Process ffprobeProcess = pb.runCommand(cmd, false);
 			String ffprobeResult = doAndClose(IOUtils::toString, ffprobeProcess.getInputStream());
