@@ -1,7 +1,6 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,8 +37,6 @@ abstract class HttpClientBolt extends BaseRichBolt {
 	
 	protected OutputCollector outputCollector;
 	
-	protected InetAddress localAddress;
-	
 	protected CloseableHttpAsyncClient httpClient;
 	private ConnPoolControl<HttpRoute> connPoolControl;
 	private HashMap<String, Integer> connectionLimitsPerHost = new HashMap<>();
@@ -62,8 +59,6 @@ abstract class HttpClientBolt extends BaseRichBolt {
 		} catch (IOException e) {
 			throw new RuntimeException("Could not initialize http client", e);
 		}
-		
-		localAddress = TempFileSync.startServer(stormConf);
 	}
 	
 	@Override

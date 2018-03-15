@@ -43,6 +43,7 @@ public class MediaTopology {
 				.fieldsGrouping("source", new Fields(DataSetReaderSpout.SOURCE_FIELD));
 		builder.setBolt("processingBolt", new ProcessingBolt(),
 				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_PROCESSING"))
+				.localOrShuffleGrouping("downloadBolt", DownloadBolt.STREAM_LOCAL)
 				.customGrouping("downloadBolt", new ShuffleGrouping());
 		
 		builder.setBolt("statsBolt", new StatsBolt(), 1)

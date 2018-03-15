@@ -1,6 +1,8 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -9,6 +11,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.nio.client.methods.HttpAsyncMethods;
 import org.apache.http.nio.client.methods.ZeroCopyConsumer;
 import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
@@ -19,15 +23,31 @@ import org.slf4j.LoggerFactory;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 
 public class DownloadBolt extends HttpClientBolt {
 	
+	public static final String STREAM_LOCAL = "download-local";
+	
 	private static final Logger logger = LoggerFactory.getLogger(DownloadBolt.class);
+	
+	private InetAddress localAddress;
+	
+	private long localStreamThreshold;
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields(MediaTupleData.FIELD_NAME, StatsTupleData.FIELD_NAME));
+		declarer.declareStream(STREAM_LOCAL, new Fields(MediaTupleData.FIELD_NAME, StatsTupleData.FIELD_NAME));
 		declarer.declareStream(StatsTupleData.STREAM_ID, new Fields(StatsTupleData.FIELD_NAME));
+	}
+	
+	@Override
+	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+		super.prepare(stormConf, context, collector);
+		localAddress = TempFileSync.startServer(stormConf);
+		localStreamThreshold =
+				(long) stormConf.getOrDefault("MEDIATOPOLOGY_FILE_TRANSFER_THRESHOLD_MB", 10) * 1024 * 1024;
 	}
 	
 	@Override
@@ -35,8 +55,8 @@ public class DownloadBolt extends HttpClientBolt {
 		HttpGet request = new HttpGet(fileInfo.getUrl());
 		request.setConfig(RequestConfig.custom()
 				.setMaxRedirects(2)
-				.setConnectTimeout(2000)
-				.setSocketTimeout(5000)
+				.setConnectTimeout(10000)
+				.setSocketTimeout(20000)
 				.build());
 		return HttpAsyncMethods.create(request);
 	}
@@ -99,7 +119,11 @@ public class DownloadBolt extends HttpClientBolt {
 						if (someSuccess) {
 							MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
 							data.getFileInfos().removeIf(f -> f.getContent() == null);
-							outputCollector.emit(tuple, new Values(data, stats));
+							if (stats.getDownloadedBytes() < localStreamThreshold) {
+								outputCollector.emit(tuple, new Values(data, stats));
+							} else {
+								outputCollector.emit(STREAM_LOCAL, tuple, new Values(data, stats));
+							}
 						} else {
 							outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
 						}
