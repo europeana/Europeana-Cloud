@@ -1,0 +1,13 @@
+notifications:
+  email: false
+sudo: false
+language: java
+jdk:
+  - oraclejdk8
+cache:
+  directories:
+    - $HOME/.m2
+install: true
+script:
+   - mvn clean install  -Dmaven.test.redirectTestOutputToFile -DskipITs -Dmaven.javadoc.skip=true cobertura:cobertura coveralls:report -B -V
+
