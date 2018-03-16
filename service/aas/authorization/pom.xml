@@ -26,6 +26,7 @@
                 <configuration>
                     <testFailureIgnore>true</testFailureIgnore>
                     <skipTests>${skipITs}</skipTests>
+                    <argLine>@{jacocoArgLine}</argLine>
                 </configuration>
             </plugin>
             <plugin>
