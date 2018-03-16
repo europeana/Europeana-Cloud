@@ -88,7 +88,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
-                    <argLine>-XX:MaxPermSize=128M</argLine>
+                    <argLine>@{jacocoArgLine} -XX:MaxPermSize=128M</argLine>
                 </configuration>
             </plugin>
         </plugins>

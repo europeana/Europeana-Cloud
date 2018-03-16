@@ -265,7 +265,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
-                    <argLine>-Xmx3072m</argLine>
+                    <argLine>@{jacocoArgLine} -Xmx3072m</argLine>
                 </configuration>
             </plugin>
             <plugin>
