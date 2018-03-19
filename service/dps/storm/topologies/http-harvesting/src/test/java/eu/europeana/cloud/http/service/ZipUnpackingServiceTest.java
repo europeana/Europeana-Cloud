@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 public class ZipUnpackingServiceTest {
 
     private FileUnpackingService zipUnpackingService;
-    private final static String DESTINATION_DIR = "src/test/resources/";
+    private final static String DESTINATION_DIR = "src/test/resources/__files/";
     private final static int XML_FILES_COUNT = 13;
     private final static String FILE_NAME = "zipFileWithNestedZipFiles";
     private final static String FILE_NAME2 = "zipFileWithNestedFolders";
