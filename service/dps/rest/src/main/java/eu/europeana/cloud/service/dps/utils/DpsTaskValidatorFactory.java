@@ -21,7 +21,10 @@ public class DpsTaskValidatorFactory {
 
     private static final String IC_TOPOLOGY_TASK_WITH_FILE_URLS = "ic_topology_file_urls";
     private static final String IC_TOPOLOGY_TASK_WITH_DATASETS = "ic_topology_dataset_urls";
+
     private static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
+    private static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
+
     private static final String JP2_MIME_TYPE = "image/jp2";
 
     public static DpsTaskValidator createValidator(String taskType) {
@@ -51,6 +54,11 @@ public class DpsTaskValidatorFactory {
                     .withOutputRevisionCheckingIfExists();
         } else if (taskType.equalsIgnoreCase(OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL)) {
             return new DpsTaskValidator("RepositoryUrl validator for OAI-PMH Topology")
+                    .withParameter(PluginParameterKeys.PROVIDER_ID)
+                    .withDataEntry(REPOSITORY_URLS.name(), InputDataValueType.LINK_TO_EXTERNAL_URL)
+                    .withOutputRevisionCheckingIfExists();
+        } else if (taskType.equalsIgnoreCase(HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL)) {
+            return new DpsTaskValidator("RepositoryUrl validator for HTTP Topology")
                     .withParameter(PluginParameterKeys.PROVIDER_ID)
                     .withDataEntry(REPOSITORY_URLS.name(), InputDataValueType.LINK_TO_EXTERNAL_URL)
                     .withOutputRevisionCheckingIfExists();

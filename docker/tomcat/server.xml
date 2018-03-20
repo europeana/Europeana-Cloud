@@ -95,7 +95,7 @@
         <Environment name="dps/zookeeper/address" type="java.lang.String" value="zookeeper:2181"/>
 
         <Environment name="dps/topology/nameList" type="java.lang.String"
-                     value="name1,ic_topology,xslt_topology,oai_topology,validation_topology,enrichment_topology"/>
+                     value="name1,ic_topology,xslt_topology,oai_topology,validation_topology,enrichment_topology,http_topology"/>
 
         <Environment name="dps/mcsLocation" type="java.lang.String" value="http://localhost:8080/mcs"/>
 
