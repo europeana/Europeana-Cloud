@@ -42,6 +42,14 @@ public class GzUnpackingServiceTest {
     }
 
     @Test
+    public void shouldUnpackTheTGZFilesRecursivelyWithCompressedXMLFiles() throws CompressionExtensionNotRecognizedException, IOException {
+        gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME2 + ".tgz", DESTINATION_DIR);
+        Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME2);
+        assertNotNull(files);
+        assertEquals(files.size(), XML_FILES_COUNT);
+    }
+
+    @Test
     public void shouldUnpackTheTarGzFilesRecursivelyWithMixedNestedCompressedFiles() throws CompressionExtensionNotRecognizedException, IOException {
         gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME3 + ".tar.gz", DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME3);
