@@ -36,7 +36,7 @@ public class DPSClientTest {
     private static final String ERROR_MESSAGE = "Message";
     private static final int ERROR_OCCURRENCES = 5;
     private static final String RESOURCE_ID = "Resource id ";
-    private static final String ADDITIONAL_INFORMATIONS = "Additional informations: ";
+    private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
     private static final int TASK_ID = 12345;
 
     @Rule
