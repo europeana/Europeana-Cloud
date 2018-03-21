@@ -1,11 +1,13 @@
 package migrations.service.uis.V2;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
+import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 
 import java.util.Iterator;
 import java.util.UUID;
+import com.datastax.driver.core.*;
 
 import static migrations.common.TableCopier.hasNextRow;
 

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import static migrations.common.TableCopier.hasNextRow;
+import com.datastax.driver.core.*;
 
 public class V10_4__copy_data_to_new_tables implements JavaMigration {
 
