@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.Objects;
  * Representation of a record in specific version.
  */
 @XmlRootElement
-public class Representation {
+public class Representation implements Serializable {
 
     /**
      * Identifier (cloud id) of a record this object is representation of.

@@ -3,6 +3,7 @@ package eu.europeana.cloud.common.model;
 import eu.europeana.cloud.service.mcs.Storage;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import java.net.URI;
 
 import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
@@ -11,7 +12,7 @@ import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
  * Metadata of a file (content) in a certain representation version of a record.
  */
 @XmlRootElement
-public class File {
+public class File implements Serializable {
 
 	/**
 	 * Name of a file - primary identifier of a file inside a certain representation of a record.
