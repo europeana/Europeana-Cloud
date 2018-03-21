@@ -139,7 +139,8 @@ public abstract class DefaultResourceProvider
             logger.error("Problem with file " + dpFile.getAbsolutePath(), e);
         } finally {
             try {
-                is.close();
+                if (is != null)
+                    is.close();
             } catch (IOException e) {
                 logger.error("Could not close input stream.", e);
             }
