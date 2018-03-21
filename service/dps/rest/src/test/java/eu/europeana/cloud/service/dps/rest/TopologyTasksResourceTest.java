@@ -73,6 +73,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final String[] ERROR_TYPES = {"bd0c7280-db47-11e7-ada4-e2f54b49d956", "bd0ac4d0-db47-11e7-ada4-e2f54b49d956", "4bb74640-db48-11e7-af3d-e2f54b49d956"};
     private static final int[] ERROR_COUNTS = {5, 2, 7};
     private static final String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
+    private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
 
     @Override
     protected Application configure() {
@@ -627,10 +628,10 @@ public class TopologyTasksResourceTest extends JerseyTest {
             error.setErrorType(ERROR_TYPES[i]);
             error.setOccurrences(ERROR_COUNTS[i]);
             if (specific) {
-                List<String> identifiers = new ArrayList<>();
-                error.setIdentifiers(identifiers);
+                List<ErrorDetails> errorDetails = new ArrayList<>();
+                error.setErrorDetails(errorDetails);
                 for (int j = 0; j < ERROR_COUNTS[i]; j++) {
-                    identifiers.add(ERROR_RESOURCE_IDENTIFIER + String.valueOf(j));
+                    errorDetails.add(new ErrorDetails(ERROR_RESOURCE_IDENTIFIER + String.valueOf(j),ADDITIONAL_INFORMATIONS + String.valueOf(j)));
                 }
             }
             errors.add(error);

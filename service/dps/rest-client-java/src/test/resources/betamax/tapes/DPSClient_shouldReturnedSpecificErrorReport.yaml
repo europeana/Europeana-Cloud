@@ -25,4 +25,30 @@ interactions:
       X-Content-Type-Options: nosniff
       X-Frame-Options: DENY
       X-XSS-Protection: 1; mode=block
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><taskErrorsInfo><errors><errorType>92f19f57-d173-4e07-8fc9-2a6f0df42549</errorType><identifiers>Resource id 0</identifiers><identifiers>Resource id 1</identifiers><identifiers>Resource id 2</identifiers><identifiers>Resource id 3</identifiers><identifiers>Resource id 4</identifiers><message>Message</message><occurrences>5</occurrences></errors><id>12345</id></taskErrorsInfo>
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><taskErrorsInfo>
+          <errors>    <errorDetails>
+                  <additionalInfo>Additional informations 0</additionalInfo>
+                  <identifier>Resource id 0</identifier>
+              </errorDetails>
+              <errorDetails>
+                  <additionalInfo>Additional informations 1</additionalInfo>
+                  <identifier>Resource id 1</identifier>
+              </errorDetails>
+              <errorDetails>
+                  <additionalInfo>Additional informations 2</additionalInfo>
+                  <identifier>Resource id 2</identifier>
+              </errorDetails>
+              <errorDetails>
+                  <additionalInfo>Additional informations 3</additionalInfo>
+                  <identifier>Resource id 3</identifier>
+              </errorDetails>
+              <errorDetails>
+                  <additionalInfo>Additional informations 4</additionalInfo>
+                  <identifier>Resource id 4</identifier>
+              </errorDetails>
+              <errorType>92f19f57-d173-4e07-8fc9-2a6f0df42549</errorType>
+              <message>Message</message>
+              <occurrences>5</occurrences>
+          </errors>
+          <id>12345</id>
+          </taskErrorsInfo>

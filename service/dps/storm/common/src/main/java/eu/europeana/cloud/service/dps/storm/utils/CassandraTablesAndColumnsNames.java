@@ -43,6 +43,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String ERROR_NOTIFICATION_ERROR_TYPE = "error_type";
     public static final String ERROR_NOTIFICATION_ERROR_MESSAGE = "error_message";
     public static final String ERROR_NOTIFICATION_RESOURCE = "resource";
+    public static final String ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS = "additional_informations";
 
 
     //-------- ERROR COUNTERS ----------

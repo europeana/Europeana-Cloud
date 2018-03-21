@@ -32,6 +32,7 @@ CREATE TABLE error_notifications (
     error_type timeuuid,
     error_message text,
     resource varchar,
+    additional_informations text,
     PRIMARY KEY((task_id,error_type),resource)
 );
 

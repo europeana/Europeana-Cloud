@@ -46,8 +46,9 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
                 "(" + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","
                 + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE + ","
-                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE +
-                ") VALUES (?,?,?,?)");
+                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
+                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS +
+                ") VALUES (?,?,?,?,?)");
         insertErrorStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateErrorCounterStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
@@ -81,8 +82,8 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param errorMessage error message
      * @param resource resource identifier
      */
-    public void insertError(long taskId, String errorType, String errorMessage, String resource) {
-        dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource));
+    public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
+        dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource, additionalInformations));
     }
 
     /**

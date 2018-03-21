@@ -143,8 +143,8 @@ public class CassandraReportService implements TaskExecutionReportService {
             String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString();
             String message = getErrorMessage(taskId, errorMessages, errorType);
             int occurrences = (int) row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
-            List<String> identifiers = retrieveIdentifiers(taskId, errorType, idsCount);
-            errors.add(new TaskErrorInfo(errorType, message, occurrences, identifiers));
+            List<ErrorDetails> errorDetails = retrieveErrorDetails(taskId, errorType, idsCount);
+            errors.add(new TaskErrorInfo(errorType, message, occurrences, errorDetails));
         }
         return result;
     }
@@ -162,10 +162,10 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @return list of identifiers that occurred for the specific error while processing the given task
      * @throws AccessDeniedOrObjectDoesNotExistException
      */
-    private List<String> retrieveIdentifiers(long taskId, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
-        List<String> identifiers = new ArrayList<>();
+    private List<ErrorDetails> retrieveErrorDetails(long taskId, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
+        List<ErrorDetails> errorDetails = new ArrayList<>();
         if (idsCount == 0) {
-            return identifiers;
+            return errorDetails;
         }
 
         ResultSet rs = cassandra.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType), idsCount));
@@ -175,9 +175,9 @@ public class CassandraReportService implements TaskExecutionReportService {
 
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
-            identifiers.add(row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE));
+            errorDetails.add(new ErrorDetails(row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE), row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS)));
         }
-        return identifiers;
+        return errorDetails;
     }
 
 
@@ -216,7 +216,7 @@ public class CassandraReportService implements TaskExecutionReportService {
     public TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
         long taskId = Long.valueOf(task);
         TaskErrorInfo taskErrorInfo = getTaskErrorInfo(taskId, errorType);
-        taskErrorInfo.setIdentifiers(retrieveIdentifiers(taskId, errorType, idsCount));
+        taskErrorInfo.setErrorDetails(retrieveErrorDetails(taskId, errorType, idsCount));
         String message = getErrorMessage(taskId, new HashMap<String, String>(), errorType);
         taskErrorInfo.setMessage(message);
         return new TaskErrorsInfo(taskId, Arrays.asList(taskErrorInfo));
@@ -251,7 +251,7 @@ public class CassandraReportService implements TaskExecutionReportService {
     @Override
     public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
         Row basicInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(Long.valueOf(taskId))).one();
-        if (basicInfo == null || !basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME).equals(topologyName)){
+        if (basicInfo == null || !basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME).equals(topologyName)) {
             throw new AccessDeniedOrObjectDoesNotExistException("The specified task does not exist in this service!");
         }
     }

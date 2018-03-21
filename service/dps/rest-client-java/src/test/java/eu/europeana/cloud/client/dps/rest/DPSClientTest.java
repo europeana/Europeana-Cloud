@@ -36,6 +36,7 @@ public class DPSClientTest {
     private static final String ERROR_MESSAGE = "Message";
     private static final int ERROR_OCCURRENCES = 5;
     private static final String RESOURCE_ID = "Resource id ";
+    private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
     private static final int TASK_ID = 12345;
 
     @Rule
@@ -194,11 +195,11 @@ public class DPSClientTest {
         info.setErrors(errors);
 
         if (specific) {
-            List<String> identifiers = new ArrayList<>();
-            error.setIdentifiers(identifiers);
+            List<ErrorDetails> errorDetails = new ArrayList<>();
+            error.setErrorDetails(errorDetails);
 
             for (int i = 0; i < ERROR_OCCURRENCES; i++) {
-                identifiers.add(RESOURCE_ID + String.valueOf(i));
+                errorDetails.add(new ErrorDetails(RESOURCE_ID + String.valueOf(i), ADDITIONAL_INFORMATIONS + String.valueOf(i)));
             }
         }
         return info;

@@ -1,5 +1,7 @@
 package migrator;
 
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import migrator.validators.V10_validator;
 import migrator.validators.V2_validator;
 import org.junit.Before;
