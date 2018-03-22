@@ -42,5 +42,6 @@
         <module>storm/topologies/topologies-common-helper-test</module>
         <module>storm/topologies/validation</module>
         <module>storm/topologies/dereference-enrichment</module>
+        <module>storm/topologies/http-harvesting</module>
     </modules>
 </project>
