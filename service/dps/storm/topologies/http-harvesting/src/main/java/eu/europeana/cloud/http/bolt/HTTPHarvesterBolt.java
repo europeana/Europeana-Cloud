@@ -75,8 +75,10 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException {
                 String extension = FilenameUtils.getExtension(file.toString());
-                if (!CompressionFileExtension.contains(extension))
-                    emitFileContent(stormTaskTuple, file.toString());
+                if (!CompressionFileExtension.contains(extension)) {
+                    String mimeType = Files.probeContentType(file);
+                    emitFileContent(stormTaskTuple, file.toString(), mimeType);
+                }
                 return FileVisitResult.CONTINUE;
             }
 
@@ -92,13 +94,15 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
         });
     }
 
-    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath) throws IOException {
+    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String mimeType) throws IOException {
         FileInputStream fileInputStream = null;
         try {
             StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
             File file = new File(filePath);
             fileInputStream = new FileInputStream(file);
             stormTaskTuple.setFileData(fileInputStream);
+            stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
+            stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, filePath);
             tuple.setFileUrl(file.getName());
             outputCollector.emit(inputTuple, tuple.toStormTuple());
         } finally {

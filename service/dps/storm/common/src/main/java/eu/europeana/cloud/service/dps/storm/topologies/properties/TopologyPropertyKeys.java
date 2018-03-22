@@ -74,4 +74,9 @@ public final class TopologyPropertyKeys {
     public static final String UIS_URL = "UIS_URL";
     public static final String INTERVAL = "INTERVAL";
 
+    //HTTP Parameters
+    public static final String HTTP_HARVESTING_BOLT_NUMBER_OF_TASKS = "HTTP_HARVESTING_BOLT_NUMBER_OF_TASKS";
+    public static final String HTTP_BOLT_PARALLEL = "HTTP_BOLT_PARALLEL";
+
+
 }

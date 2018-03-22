@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.examples.toplologies.builder;
 
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
-import eu.europeana.cloud.service.dps.storm.io.OAIWriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
@@ -36,7 +36,7 @@ public class SimpleStaticOAITopologyBuilder {
                 .shuffleGrouping(TopologyHelper.IDENTIFIERS_HARVESTING_BOLT);
 
 
-        builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, new OAIWriteRecordBolt(ecloudMcsAddress, uisAddress), 1).
+        builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress), 1).
                 shuffleGrouping(TopologyHelper.RECORD_HARVESTING_BOLT);
 
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt, 1).
