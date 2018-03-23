@@ -43,7 +43,7 @@ public class HTTPHarvestingTopology {
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
-    private final String REPOSITORY_STREAM = InputDataType.REPOSITORY_URLS.name();
+    private static final String REPOSITORY_STREAM = InputDataType.REPOSITORY_URLS.name();
 
     public HTTPHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();

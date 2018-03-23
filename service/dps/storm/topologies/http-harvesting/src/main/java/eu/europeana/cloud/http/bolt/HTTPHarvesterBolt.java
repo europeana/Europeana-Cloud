@@ -25,9 +25,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
 
 
+
+
 public class HTTPHarvesterBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvesterBolt.class);
     private static final int BATCH_MAX_SIZE = 1240 * 4;
+    public static final String CLOUD_SEPARATOR = "_";
 
 
     public void execute(StormTaskTuple stormTaskTuple) {
@@ -100,15 +103,21 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
             StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
             File file = new File(filePath);
             fileInputStream = new FileInputStream(file);
-            stormTaskTuple.setFileData(fileInputStream);
-            stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
-            stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, filePath);
-            tuple.setFileUrl(file.getName());
+            tuple.setFileData(fileInputStream);
+            tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
+            String readableFilePath = file.getParentFile().getName() + File.separator + file.getName();
+            String localId = formulateLocalId(readableFilePath);
+            tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, localId);
+            tuple.setFileUrl(readableFilePath);
             outputCollector.emit(inputTuple, tuple.toStormTuple());
         } finally {
             if (fileInputStream != null)
                 fileInputStream.close();
         }
+    }
+
+    private String formulateLocalId(String readableFilePath) {
+        return new StringBuilder(readableFilePath).append(CLOUD_SEPARATOR).append(UUID.randomUUID().toString()).toString();
     }
 
     private void removeTempFolder(File file) {
