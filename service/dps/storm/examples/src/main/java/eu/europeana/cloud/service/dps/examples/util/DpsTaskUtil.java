@@ -22,14 +22,14 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
 public class DpsTaskUtil {
 
     // number of data sets to be included
-    private final static int DATASETS_COUNT = 1;
-    private static String datasetURLForXSLT = "http://localhost:8080/mcs/data-providers/provider/data-sets/XSltDataset";
-    private static String xsltURL = "http://localhost:8080/mcs/records/EU6ZTUYQRZWDQTDHIQUPYQHZUSHG2IXU5RCP4F5SBSLQ25QFNJ7Q/representations/TarekRep/versions/a73d68b0-c06c-11e7-88d5-1c6f653f9042/files/00b863a9-2215-461a-9111-dcde2352c3bc";
-    private final static String REVISION_NAME = "REVISION_NAME";
-    private final static String REVISION_PROVIDER = "Tiff_tarek_final";
+    private static final int DATASETS_COUNT = 1;
+    private static final String DATASET_URL_FOR_XSLT = "http://localhost:8080/mcs/data-providers/provider/data-sets/XSltDataset";
+    private static final String XSLT_URL = "http://localhost:8080/mcs/records/EU6ZTUYQRZWDQTDHIQUPYQHZUSHG2IXU5RCP4F5SBSLQ25QFNJ7Q/representations/TarekRep/versions/a73d68b0-c06c-11e7-88d5-1c6f653f9042/files/00b863a9-2215-461a-9111-dcde2352c3bc";
+    private static final String REVISION_NAME = "REVISION_NAME";
+    private static final String REVISION_PROVIDER = "Tiff_tarek_final";
 
-    private static String datasetURLForIC = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset4";
-    private final static String REPOSITORY_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
+    private static final String DATASET_URL_FOR_IC = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset4";
+    private static final String REPOSITORY_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
     public static final String OUTPUT_DATASET = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset3";
 
 
@@ -37,7 +37,7 @@ public class DpsTaskUtil {
      * @return {@link DpsTask}
      */
     public static DpsTask generateDpsTaskForXSLT() {
-        return generateDpsTaskForXSLT(datasetURLForXSLT, xsltURL, DATASETS_COUNT);
+        return generateDpsTaskForXSLT(DATASET_URL_FOR_XSLT, XSLT_URL, DATASETS_COUNT);
     }
 
     public static DpsTask generateDpsTaskForXSLT(final String dataSetURL, final String xslt, final int recordCount) {
@@ -49,7 +49,7 @@ public class DpsTaskUtil {
         return task;
     }
 
-    public static DpsTask generateDpsTaskForIc(final String dataSetURL, final int recordCount) {
+    public static DpsTask generateDpsTaskForIC(final String dataSetURL, final int recordCount) {
 
         DpsTask task = createDpsTask(dataSetURL, recordCount);
 
@@ -112,7 +112,7 @@ public class DpsTaskUtil {
     }
 
     public static DpsTask generateDPsTaskForIC() {
-        return generateDpsTaskForIc(datasetURLForIC, DATASETS_COUNT);
+        return generateDpsTaskForIC(DATASET_URL_FOR_IC, DATASETS_COUNT);
     }
 
 

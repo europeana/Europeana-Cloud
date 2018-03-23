@@ -15,6 +15,7 @@ import org.apache.storm.topology.TopologyBuilder;
  * Created by Tarek on 3/27/2017.
  */
 public class SimpleStaticOAITopologyBuilder {
+    private static final long DEFAULT_INTERVAL = 2592000000l;
 
     public static StormTopology buildTopology(StaticDpsTaskSpout spout, String uisAddress, String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
@@ -26,7 +27,8 @@ public class SimpleStaticOAITopologyBuilder {
         // TOPOLOGY STRUCTURE!
         builder.setSpout(TopologyHelper.SPOUT, spout, 1);
 
-        builder.setBolt(TopologyHelper.TASK_SPLITTING_BOLT, new TaskSplittingBolt(2592000000l), 1)
+
+        builder.setBolt(TopologyHelper.TASK_SPLITTING_BOLT, new TaskSplittingBolt(DEFAULT_INTERVAL), 1)
                 .shuffleGrouping(TopologyHelper.SPOUT);
 
         builder.setBolt(TopologyHelper.IDENTIFIERS_HARVESTING_BOLT, new IdentifiersHarvestingBolt(), 1)
