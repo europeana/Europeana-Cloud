@@ -136,7 +136,8 @@ public class RecordHarvestingBoltTest {
         return task;
     }
 
-    /**
+     /**
+
      * Checks if emit to standard stream occured
      */
     private void verifySuccessfulEmit() {

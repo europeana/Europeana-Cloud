@@ -388,6 +388,64 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
+
+
+    @Test
+    public void shouldProperlySendTaskWithHTTPRepository() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("HTTP HarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/zipFile.zip"));
+        task.addParameter(PluginParameterKeys.PROVIDER_ID, "providerId");
+        String topologyName = "http_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        Thread.sleep(10000);
+        verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
+        verifyNoMoreInteractions(kafkaSubmitService);
+    }
+
+
+    @Test
+    public void shouldThrowExceptionWhenMissingRequiredProviderIdForHttpService() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("HTTP HarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/zipFile.zip"));
+        String topologyName = "http_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
+    @Test
+    public void shouldThrowExceptionWhenSubmittingTaskToHttpServiceWithNotValidOutputRevision() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("HTTP HarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/zipFile.zip"));
+        String topologyName = "http_topology";
+        Revision revision = new Revision(REVISION_NAME, null);
+        task.setOutputRevision(revision);
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
     @Test
     public void shouldProperlySendTaskWithDatsetEntryWithOutputRevision() throws MCSException, TaskSubmissionException {
         //given

@@ -97,6 +97,10 @@ public class TopologyTasksResource {
 
     public final static String TASK_PREFIX = "DPS_Task";
 
+    public final static String HTTP_TOPOLOGY = "http_topology";
+
+    private static final int UNKNOWN_EXPECTED_SIZE = -1;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
     /**
@@ -169,7 +173,7 @@ public class TopologyTasksResource {
                         permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         asyncResponse.resume(response);
                         LOGGER.info("The task is in a pending mode");
-                        int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
+                        int expectedSize = getFilesCountInsideTask(task, topologyName, authorizationHeader);
                         if (expectedSize == 0)
                             taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime);
                         else {
@@ -476,7 +480,9 @@ public class TopologyTasksResource {
     /**
      * @return The number of files inside the task.
      */
-    private int getFilesCountInsideTask(DpsTask submittedTask, String authorizationHeader) throws TaskSubmissionException {
+    private int getFilesCountInsideTask(DpsTask submittedTask, String topologyName, String authorizationHeader) throws TaskSubmissionException {
+        if (topologyName.equals(HTTP_TOPOLOGY))
+            return UNKNOWN_EXPECTED_SIZE;
         String taskType = getTaskType(submittedTask);
         FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
         return filesCounter.getFilesCount(submittedTask, authorizationHeader);
