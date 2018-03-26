@@ -33,7 +33,6 @@
         <module>storm/common</module>
         <module>storm/kafka</module>
         <module>storm/io</module>
-        <module>storm/transform/xslt</module>
         <module>storm/topologies/xslt</module>
         <module>storm/examples</module>
         <module>storm/topologies/ic</module>

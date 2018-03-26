@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.xslt;
+package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
 import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
