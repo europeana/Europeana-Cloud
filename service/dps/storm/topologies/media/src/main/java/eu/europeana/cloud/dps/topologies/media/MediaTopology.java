@@ -17,11 +17,11 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
 
 import eu.europeana.cloud.dps.topologies.media.support.DummySpout;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
+import eu.europeana.metis.mediaservice.UrlType;
 
 public class MediaTopology {
 	

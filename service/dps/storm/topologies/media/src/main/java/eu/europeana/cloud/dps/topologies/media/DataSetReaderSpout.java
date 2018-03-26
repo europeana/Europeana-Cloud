@@ -8,18 +8,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
@@ -34,15 +30,10 @@ import org.apache.storm.tuple.Values;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -53,6 +44,8 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.metis.mediaservice.EdmObject;
+import eu.europeana.metis.mediaservice.UrlType;
 
 /**
  * Wraps a base spout that generates tuples with JSON encoded {@link DpsTask}s
@@ -122,7 +115,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			long taskId = taskInfo.task.getTaskId();
 			
 			MediaTupleData tupleData = new MediaTupleData(taskId, edmInfo.representation);
-			tupleData.setEdm(edmInfo.edmDocument);
+			tupleData.setEdm(edmInfo.edmObject);
 			tupleData.setFileInfos(edmInfo.fileInfos);
 			tupleData.setConnectionLimitsPerSource(taskInfo.connectionLimitPerSource);
 			
@@ -226,7 +219,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	
 	private static class EdmInfo {
 		Representation representation;
-		Document edmDocument;
+		EdmObject edmObject;
 		List<FileInfo> fileInfos;
 		TaskInfo taskInfo;
 		SourceInfo sourceInfo;
@@ -260,18 +253,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		private class EdmDownloadThread extends Thread {
 			
 			FileServiceClient fileClient;
-			DocumentBuilder documentBuilder;
+			EdmObject.Parser parser;
 			
 			public EdmDownloadThread(int id) {
 				super("edm-downloader-" + id);
 				fileClient = Util.getFileServiceClient(config);
-				try {
-					DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-					dbFactory.setNamespaceAware(true);
-					documentBuilder = dbFactory.newDocumentBuilder();
-				} catch (ParserConfigurationException e) {
-					throw new RuntimeException("xml problem", e);
-				}
+				parser = new EdmObject.Parser();
 			}
 			
 			@Override
@@ -279,7 +266,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				try {
 					while (true) {
 						EdmInfo edmInfo = edmQueue.take();
-						edmInfo.edmDocument = downloadEdm(edmInfo);
+						edmInfo.edmObject = downloadEdm(edmInfo);
 						prepareEdmInfo(edmInfo);
 					}
 				} catch (InterruptedException e) {
@@ -288,13 +275,13 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				}
 			}
 			
-			Document downloadEdm(EdmInfo edmInfo) throws InterruptedException {
+			EdmObject downloadEdm(EdmInfo edmInfo) throws InterruptedException {
 				Representation rep = edmInfo.representation;
 				try {
 					File file = rep.getFiles().get(0);
 					try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(),
 							rep.getVersion(), file.getFileName())) {
-						return documentBuilder.parse(is);
+						return parser.parseXml(is);
 					}
 				} catch (Exception e) {
 					logger.error("Downloading edm failed for " + rep, e);
@@ -305,24 +292,18 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			}
 			
 			void prepareEdmInfo(EdmInfo edmInfo) {
-				Map<String, FileInfo> urls = new HashMap<>();
-				for (UrlType urlType : urlTypes) {
-					NodeList list = edmInfo.edmDocument.getElementsByTagName(urlType.tagName);
-					for (int i = 0; i < list.getLength(); i++) {
-						String url = ((Element) list.item(i)).getAttribute("rdf:resource");
-						urls.computeIfAbsent(url, FileInfo::new).getTypes().add(urlType);
-					}
-				}
+				Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
 				if (urls.isEmpty()) {
-					logger.error("edm file representation doesn't contain content urls: " + edmInfo.representation);
+					logger.error("content url missing in edm file representation: " + edmInfo.representation);
 					return;
 				}
-				edmInfo.fileInfos = new ArrayList<>(urls.values());
+				edmInfo.fileInfos = urls.stream().map(FileInfo::new).collect(Collectors.toList());
 				
-				String host = urls.keySet().stream()
-						.collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()))
-						.entrySet().stream().max(Comparator.comparing(Entry::getValue))
-						.get().getKey();
+				Map<String, Long> hostCounts = urls.stream()
+						.collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()));
+				Comparator<Entry<String, Long>> c = Comparator.comparing(Entry::getValue);
+				c = c.thenComparing(Entry::getKey); // compiler weirdness, can't do it in one call
+				String host = hostCounts.entrySet().stream().max(c).get().getKey();
 				edmInfo.sourceInfo = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
 				edmInfo.sourceInfo.addToQueue(edmInfo);
 			}

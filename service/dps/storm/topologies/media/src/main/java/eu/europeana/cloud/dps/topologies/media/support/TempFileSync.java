@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
+import eu.europeana.metis.mediaservice.MediaException;
 
 public class TempFileSync {
 	
@@ -102,7 +103,7 @@ public class TempFileSync {
 			logger.debug("Synching file ({} B) took {} ms", local.length(), System.currentTimeMillis() - start);
 		} catch (IOException e) {
 			throw new MediaException("Could not synchronize temp file with " + file.getContentSource()
-					+ "(" + remote + ")", e);
+					+ "(" + remote + ")", "TEMP-SYNCH", e);
 		}
 	}
 	
@@ -138,7 +139,7 @@ public class TempFileSync {
 	}
 	
 	private static boolean isLocal(FileInfo file) {
-		return localAddress.equals(file.getContentSource());
+		return localAddress.equals(file.getContentSource()) || file.getContent() == null;
 	}
 	
 	private static void listenerLoop() {

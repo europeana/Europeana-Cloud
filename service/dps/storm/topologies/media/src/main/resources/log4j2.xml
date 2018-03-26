@@ -7,7 +7,7 @@
   </Appenders>
   <Loggers>
     <Logger name="org.apache.zookeeper" level="WARN"/>
-    <Logger name="eu.europeana.cloud.dps.topologies.media" level="DEBUG" />
+    <Logger name="eu.europeana" level="DEBUG" />
     <Root level="info">
       <AppenderRef ref="Console"/>
     </Root>
