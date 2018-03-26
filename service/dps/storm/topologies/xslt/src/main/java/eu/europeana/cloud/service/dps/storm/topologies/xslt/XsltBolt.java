@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.xslt;
+package eu.europeana.cloud.service.dps.storm.topologies.xslt;
 
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
@@ -17,9 +17,10 @@ public class XsltBolt extends AbstractDpsBolt {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
+    private XsltTransformer transformer = new XsltTransformer();
+
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-        XsltTransformer transformer = new XsltTransformer();
 
         StringWriter writer = null;
         try {

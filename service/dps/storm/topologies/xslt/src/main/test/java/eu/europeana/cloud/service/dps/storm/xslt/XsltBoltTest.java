@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.topologies.xslt.XsltBolt;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.shade.com.google.common.io.Resources;
 import org.apache.storm.task.OutputCollector;
