@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.xslt;
+package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
