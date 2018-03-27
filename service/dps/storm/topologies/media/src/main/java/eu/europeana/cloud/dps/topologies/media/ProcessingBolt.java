@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -18,12 +19,14 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.dps.topologies.media.support.CancelChecker;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
@@ -96,6 +99,11 @@ public class ProcessingBolt extends BaseRichBolt {
 				logger.info("processing failed ({}/{}) for {}", e.reportError, e.getMessage(), file.getUrl());
 				logger.trace("failure details:", e);
 				errorsByUrl.put(file.getUrl(), e.reportError);
+				if (e.retry) {
+					cleanupRecord(mediaData, mediaProcessor.getThumbnails());
+					outputCollector.fail(input);
+					return;
+				}
 				if (e.reportError == null) {
 					logger.warn("Exception without proper report error:", e);
 					errorsByUrl.put(file.getUrl(), "UNKNOWN");
@@ -115,6 +123,16 @@ public class ProcessingBolt extends BaseRichBolt {
 		resultsUploader.stop();
 	}
 	
+	private void cleanupRecord(MediaTupleData mediaData, Map<File, String> thumbnails) {
+		for (FileInfo fileInfo : mediaData.getFileInfos()) {
+			TempFileSync.delete(fileInfo);
+		}
+		for (File thumb : thumbnails.keySet()) {
+			if (!thumb.delete())
+				logger.warn("Could not delete thumbnail from temp: {}", thumb);
+		}
+	}
+	
 	private class ResultsUploader {
 		
 		class Item {
@@ -123,7 +141,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			MediaTupleData mediaData;
 			Map<File, String> thumbnails;
 			byte[] edmContents;
-			HashMap<String, String> errorsByUrl;
+			Map<String, String> errorsByUrl;
 		}
 		
 		EdmObject.Writer edmWriter = new EdmObject.Writer();
@@ -145,7 +163,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 		
 		public void queue(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData,
-				HashMap<String, String> errorsByUrl) {
+				Map<String, String> errorsByUrl) {
 			Item item = new Item();
 			item.tuple = tuple;
 			item.mediaData = mediaData;
@@ -196,7 +214,7 @@ public class ProcessingBolt extends BaseRichBolt {
 							saveMetadata();
 							statsData.setUploadEndTime(System.currentTimeMillis());
 						} finally {
-							cleanup();
+							cleanupRecord(currentItem.mediaData, currentItem.thumbnails);
 						}
 						for (String error : currentItem.errorsByUrl.values())
 							statsData.addError(error);
@@ -206,8 +224,9 @@ public class ProcessingBolt extends BaseRichBolt {
 				} catch (InterruptedException e) {
 					logger.trace("result upload thread finishing", e);
 					Thread.currentThread().interrupt();
-					while ((currentItem = queue.poll()) != null)
-						cleanup();
+					while ((currentItem = queue.poll()) != null) {
+						cleanupRecord(currentItem.mediaData, currentItem.thumbnails);
+					}
 				}
 			}
 			
@@ -263,16 +282,6 @@ public class ProcessingBolt extends BaseRichBolt {
 				}
 				
 				logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
-			}
-			
-			void cleanup() {
-				for (FileInfo fileInfo : currentItem.mediaData.getFileInfos()) {
-					TempFileSync.delete(fileInfo);
-				}
-				for (File thumb : currentItem.thumbnails.keySet()) {
-					if (!thumb.delete())
-						logger.warn("Could not delete thumbnail from temp: {}", thumb);
-				}
 			}
 		}
 	}
