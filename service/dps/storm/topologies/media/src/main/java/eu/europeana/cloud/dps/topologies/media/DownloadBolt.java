@@ -1,5 +1,6 @@
 package eu.europeana.cloud.dps.topologies.media;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Map;
@@ -24,12 +25,15 @@ import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
+import eu.europeana.metis.mediaservice.MediaProcessor;
 
 public class DownloadBolt extends HttpClientBolt {
 	
+	private static final Logger logger = LoggerFactory.getLogger(DownloadBolt.class);
+	
 	public static final String STREAM_LOCAL = "download-local";
 	
-	private static final Logger logger = LoggerFactory.getLogger(DownloadBolt.class);
+	private static final File ERROR_FLAG = new File("a");
 	
 	private InetAddress localAddress;
 	
@@ -64,17 +68,33 @@ public class DownloadBolt extends HttpClientBolt {
 	@Override
 	protected ZeroCopyConsumer<Void> createResponseConsumer(FileInfo fileInfo, StatsTupleData stats, Tuple tuple)
 			throws IOException {
-		java.io.File content = java.io.File.createTempFile("media", null);
+		File content = File.createTempFile("media", null);
 		return new ZeroCopyConsumer<Void>(content) {
 			
 			@Override
-			protected Void process(HttpResponse response, java.io.File file, ContentType contentType) throws Exception {
+			protected void onResponseReceived(HttpResponse response) {
+				String mimeType = ContentType.get(response.getEntity()).getMimeType();
+				if (MediaProcessor.supportsLinkProcessing(mimeType)) {
+					logger.debug("Skipping download: {}", fileInfo.getUrl());
+					if (!content.delete())
+						logger.warn("Could not delete temp file: " + content);
+					fileInfo.setMimeType(mimeType);
+					statusUpdate(OK);
+					cancel();
+					return;
+				}
+				super.onResponseReceived(response);
+			}
+			
+			@Override
+			protected Void process(HttpResponse response, File file, ContentType contentType) throws Exception {
 				int status = response.getStatusLine().getStatusCode();
 				long byteCount = file.length();
 				if (status < 200 || status >= 300 || byteCount == 0) {
 					logger.info("Download error (code {}) for {}", status, fileInfo.getUrl());
 					if (file.exists() && !file.delete())
 						logger.warn("Could not remove temp file {}", file);
+					fileInfo.setContent(ERROR_FLAG);
 					statusUpdate("DOWNLOAD: STATUS CODE " + status);
 					return null;
 				}
@@ -107,6 +127,7 @@ public class DownloadBolt extends HttpClientBolt {
 					logger.trace("Download failure details:", e);
 					if (content.exists() && !content.delete())
 						logger.warn("Could not remove temp file {}", content);
+					fileInfo.setContent(ERROR_FLAG);
 					statusUpdate("CONNECTION ERROR: " + msg);
 				}
 			}
@@ -118,7 +139,7 @@ public class DownloadBolt extends HttpClientBolt {
 						boolean someSuccess = stats.getErrors().removeIf(OK::equals);
 						if (someSuccess) {
 							MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
-							data.getFileInfos().removeIf(f -> f.getContent() == null);
+							data.getFileInfos().removeIf(f -> f.getContent() == ERROR_FLAG);
 							if (stats.getDownloadedBytes() < localStreamThreshold) {
 								outputCollector.emit(tuple, new Values(data, stats));
 							} else {

@@ -108,7 +108,7 @@ public class TempFileSync {
 	}
 	
 	public static void delete(FileInfo file) {
-		if (!file.getContent().delete())
+		if (file.getContent() != null && !file.getContent().delete())
 			logger.warn("could not delete temp file: " + file.getContent());
 		if (isLocal(file))
 			return;
