@@ -67,6 +67,7 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
 
     private final static String FILE_NAME = "http://127.0.0.1:9999/zipFileTest.zip";
     private final static String FILE_NAME2 = "http://127.0.0.1:9999/zipFileTest.tar.gz";
+    public static final String SECOND_FILE = "jedit-4.1.xml";
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
@@ -136,7 +137,7 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
                 mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
                 final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"zipFileTest\\\\jedit-4.0.xml\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
-                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion2/files/FileName2\",\"resource\":\"xml\\\\jedit-4.1.xml\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion2/files/FileName2\",\"resource\":\"xml\\\\"+SECOND_FILE+"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
@@ -173,9 +174,11 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
         //then
         printDefaultStreamTuples(result);
         List actualTuples = Testing.readTuples(result, TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
+        String expected = expectedTuples.get(0);
         for (int i = 0; i < expectedTuples.size(); i++) {
             String actual = parse(selectSingle(actualTuples, i));
-            String expected = expectedTuples.get(i);
+            if (actual.contains(SECOND_FILE))
+                expected = expectedTuples.get(1);
             assertEquals(expected, actual, false);
         }
     }

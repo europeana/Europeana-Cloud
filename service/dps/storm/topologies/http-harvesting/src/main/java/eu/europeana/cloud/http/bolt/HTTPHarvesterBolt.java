@@ -25,8 +25,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
 
 
-
-
 public class HTTPHarvesterBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvesterBolt.class);
     private static final int BATCH_MAX_SIZE = 1240 * 4;
@@ -68,7 +66,8 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
         } finally {
             if (outputStream != null)
                 outputStream.close();
-            inputStream.close();
+            if (inputStream != null)
+                inputStream.close();
         }
     }
 
