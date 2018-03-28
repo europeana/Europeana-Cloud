@@ -32,6 +32,11 @@ make
 make install
 cd  ..
 
+wget https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-64bit-static.tar.xz
+tar -xf ffmpeg-git-64bit-static.tar.xz
+rm ffmpeg-git-64bit-static.tar.xz
+cp ffmpeg-git-20180314-64bit-static/ffprobe /usr/local/bin/ffprobe
+
 wget http://kakadusoftware.com/wp-content/uploads/2014/06/KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
 unzip KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
 rm KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
