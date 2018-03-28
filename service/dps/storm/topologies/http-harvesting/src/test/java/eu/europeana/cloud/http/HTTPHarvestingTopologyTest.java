@@ -74,7 +74,7 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
 
     private static final String REPOSITORY_STREAM = "REPOSITORY_URLS";
     private static final String TASK_PARAMETERS = "\"parameters\":" +
-            "{\"OUTPUT_DATA_SETS\":\"http://localhos+t:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
+            "{\"OUTPUT_DATA_SETS\":\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
             "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
             "\"taskId\":1," +
             "\"outputRevision\":" +
