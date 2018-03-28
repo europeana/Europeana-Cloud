@@ -104,7 +104,7 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
             fileInputStream = new FileInputStream(file);
             tuple.setFileData(fileInputStream);
             tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
-            String readableFilePath = file.getParentFile().getName() + File.separator + file.getName();
+            String readableFilePath = file.getParentFile().getName() + "/" + file.getName();
             String localId = formulateLocalId(readableFilePath);
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, localId);
             tuple.setFileUrl(readableFilePath);

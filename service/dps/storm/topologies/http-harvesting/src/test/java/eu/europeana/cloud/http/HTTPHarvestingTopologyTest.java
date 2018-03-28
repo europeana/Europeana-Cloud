@@ -39,6 +39,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerConfigurationException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -67,7 +68,8 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
 
     private final static String FILE_NAME = "http://127.0.0.1:9999/zipFileTest.zip";
     private final static String FILE_NAME2 = "http://127.0.0.1:9999/zipFileTest.tar.gz";
-    public static final String SECOND_FILE = "jedit-4.1.xml";
+    public static final String SECOND_FILE = "xml/jedit-4.1.xml";
+    public static final String FIRST_FILE = "zipFileTest/jedit-4.0.xml";
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
@@ -136,8 +138,8 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"zipFileTest\\\\jedit-4.0.xml\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
-                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion2/files/FileName2\",\"resource\":\"xml\\\\"+SECOND_FILE+"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"" + FIRST_FILE + "\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
+                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion2/files/FileName2\",\"resource\":\"" + SECOND_FILE + "\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
