@@ -51,9 +51,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
@@ -76,7 +74,7 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
 
     private static final String REPOSITORY_STREAM = "REPOSITORY_URLS";
     private static final String TASK_PARAMETERS = "\"parameters\":" +
-            "{\"OUTPUT_DATA_SETS\":\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
+            "{\"OUTPUT_DATA_SETS\":\"http://localhos+t:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
             "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
             "\"taskId\":1," +
             "\"outputRevision\":" +
@@ -195,16 +193,21 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
         doNothing().when(uisClient).useAuthorizationHeader(anyString());
         CloudId cloudId = new CloudId();
         cloudId.setId(CLOUD_ID);
-        when(uisClient.getCloudId(anyString(), anyString())).thenReturn(cloudId);
+        CloudId cloudId2 = new CloudId();
+        cloudId2.setId(CLOUD_ID2);
+        when(uisClient.getCloudId(anyString(), contains(FIRST_FILE))).thenReturn(cloudId);
+        when(uisClient.getCloudId(anyString(), contains(SECOND_FILE))).thenReturn(cloudId2);
 
         doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL)).thenReturn(new URI(RESULT_FILE_URL2));
+        when(recordServiceClient.createRepresentation(eq(CLOUD_ID), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL));
+        when(recordServiceClient.createRepresentation(eq(CLOUD_ID2), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL2));
         when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
         doNothing().when(dataSetClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
 
     }
+
 
     private static void buildTopology() {
         // build the test topology
