@@ -177,8 +177,11 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
         String expected = expectedTuples.get(0);
         for (int i = 0; i < expectedTuples.size(); i++) {
             String actual = parse(selectSingle(actualTuples, i));
-            if (actual.contains(SECOND_FILE))
+            if (actual.contains(SECOND_FILE)) {
                 expected = expectedTuples.get(1);
+            } else {
+                expected = expectedTuples.get(0);
+            }
             assertEquals(expected, actual, false);
         }
     }
