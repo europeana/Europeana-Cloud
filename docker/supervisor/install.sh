@@ -21,6 +21,8 @@ make
 make install
 cd ..
 
+yum -y install libpng-devel
+
 wget http://www.imagemagick.org/download/releases/ImageMagick-7.0.1-10.tar.xz
 tar -xf ImageMagick-7.0.1-10.tar.xz
 rm ImageMagick-7.0.1-10.tar.xz
