@@ -25,17 +25,12 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
  */
 public class StaticICTopology {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPsTaskForIC());
         StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(staticDpsTaskSpout, new IcBolt(), TopologyHelper.IC_BOLT, MCS_URL);
         Config conf = new Config();
         conf.setDebug(true);
         conf.put(Config.TOPOLOGY_DEBUG, true);
-        conf.put(INPUT_ZOOKEEPER_ADDRESS,
-                INPUT_ZOOKEEPER_PORT);
-        conf.put(Config.STORM_ZOOKEEPER_SERVERS,
-                Arrays.asList(STORM_ZOOKEEPER_ADDRESS));
-
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("test", conf, stormTopology);
         Utils.sleep(60000);

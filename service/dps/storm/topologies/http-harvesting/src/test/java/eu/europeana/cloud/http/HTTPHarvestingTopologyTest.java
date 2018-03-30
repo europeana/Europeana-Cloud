@@ -66,7 +66,7 @@ public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
 
     private final static String FILE_NAME = "http://127.0.0.1:9999/zipFileTest.zip";
     private final static String FILE_NAME2 = "http://127.0.0.1:9999/zipFileTest.tar.gz";
-    public static final String SECOND_FILE = "xml/jedit-4.1.xml";
+    public static final String SECOND_FILE = "zipFileTest/xml/jedit-4.1.xml";
     public static final String FIRST_FILE = "zipFileTest/jedit-4.0.xml";
 
     @Rule

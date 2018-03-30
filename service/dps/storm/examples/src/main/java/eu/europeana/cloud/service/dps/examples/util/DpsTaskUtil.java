@@ -32,6 +32,8 @@ public class DpsTaskUtil {
     private static final String REPOSITORY_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
     public static final String OUTPUT_DATASET = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset3";
 
+    private static final String REPOSITORY_URL_FOR_HTTP = "http://ftp.eanadev.org/schema_zips/europeana_schemas.zip";
+
 
     /**
      * @return {@link DpsTask}
@@ -73,13 +75,10 @@ public class DpsTaskUtil {
         return task;
     }
 
-    public static DpsTask generateDPsTaskForOAI() {
-        DpsTask task = new DpsTask();
-
-        List<String> urls = new ArrayList<>();
-        urls.add(REPOSITORY_URL);
-        task.addDataEntry(InputDataType.REPOSITORY_URLS, urls);
-        Map<String, String> parameters = buildOAITaskParameter();
+    public static DpsTask generateDPSTaskForOAI() {
+        DpsTask task = buildDPSHarvestingTask(REPOSITORY_URL);
+        Map<String, String> parameters = buildHarvestingTaskParameter();
+        parameters.put("INTERVAL", "31540000000");
         task.setParameters(parameters);
         OAIPMHHarvestingDetails harvestingDetails = configureHarvesterDetails();
         task.setHarvestingDetails(harvestingDetails);
@@ -87,15 +86,31 @@ public class DpsTaskUtil {
 
     }
 
-    private static Map<String, String> buildOAITaskParameter() {
+    public static DpsTask generateDPSTaskForHTTP() {
+        DpsTask task = buildDPSHarvestingTask(REPOSITORY_URL_FOR_HTTP);
+        Map<String, String> parameters = buildHarvestingTaskParameter();
+        task.setParameters(parameters);
+        return task;
+
+    }
+
+    private static DpsTask buildDPSHarvestingTask(String repositoryURL) {
+        DpsTask task = new DpsTask();
+        List<String> urls = new ArrayList<>();
+        urls.add(repositoryURL);
+        task.addDataEntry(InputDataType.REPOSITORY_URLS, urls);
+        return task;
+    }
+
+    private static Map<String, String> buildHarvestingTaskParameter() {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PROVIDER_ID", "provider");
-        parameters.put("INTERVAL", "31540000000");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATASET);
         String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
         return parameters;
     }
+
 
     private static OAIPMHHarvestingDetails configureHarvesterDetails() {
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
