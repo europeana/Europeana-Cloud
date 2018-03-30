@@ -108,7 +108,7 @@ public class RecordHarvestingBoltTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
-        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER, "oaiIdentifier");
+        task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
         return task;
     }
 
@@ -131,12 +131,13 @@ public class RecordHarvestingBoltTest {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
-        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER, "oaiIdentifier");
+        task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
         task.setSourceDetails(details);
         return task;
     }
 
-    /**
+     /**
+
      * Checks if emit to standard stream occured
      */
     private void verifySuccessfulEmit() {

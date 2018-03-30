@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
-import eu.europeana.cloud.service.dps.storm.io.OAIWriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
@@ -56,7 +56,7 @@ public class OAIPHMHarvestingTopology {
         routingRules.put(REPOSITORY_STREAM, REPOSITORY_STREAM);
 
 
-        WriteRecordBolt writeRecordBolt = new OAIWriteRecordBolt(ecloudMcsAddress, uisAddress);
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, oaiTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());

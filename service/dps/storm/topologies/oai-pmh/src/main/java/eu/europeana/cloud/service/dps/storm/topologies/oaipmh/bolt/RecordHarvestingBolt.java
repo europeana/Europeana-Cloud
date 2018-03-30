@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.OAI_IDENTIFIER;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.
@@ -84,7 +84,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     }
 
     private String readRecordId(StormTaskTuple stormTaskTuple) {
-        return stormTaskTuple.getParameter(OAI_IDENTIFIER);
+        return stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER);
     }
 
     private String readMetadataPrefix(StormTaskTuple stormTaskTuple) {

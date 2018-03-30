@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
-import eu.europeana.cloud.service.dps.storm.io.OAIWriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
@@ -73,7 +73,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, OAIWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class})
+@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, HarvestingWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
@@ -209,7 +209,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
     private static void buildTopology() {
         // build the test topology
-        WriteRecordBolt writeRecordBolt = new OAIWriteRecordBolt(MCS_URL, UIS_URL);
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(MCS_URL, UIS_URL);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(MCS_URL);
         TestInspectionBolt endTest = new TestInspectionBolt();
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(MCS_URL);

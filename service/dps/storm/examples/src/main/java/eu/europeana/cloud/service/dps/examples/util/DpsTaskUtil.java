@@ -22,22 +22,24 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
 public class DpsTaskUtil {
 
     // number of data sets to be included
-    private final static int DATASETS_COUNT = 1;
-    private static String datasetURLForXSLT = "http://localhost:8080/mcs/data-providers/provider/data-sets/XSltDataset";
-    private static String xsltURL = "http://localhost:8080/mcs/records/EU6ZTUYQRZWDQTDHIQUPYQHZUSHG2IXU5RCP4F5SBSLQ25QFNJ7Q/representations/TarekRep/versions/a73d68b0-c06c-11e7-88d5-1c6f653f9042/files/00b863a9-2215-461a-9111-dcde2352c3bc";
-    private final static String REVISION_NAME = "REVISION_NAME";
-    private final static String REVISION_PROVIDER = "Tiff_tarek_final";
+    private static final int DATASETS_COUNT = 1;
+    private static final String DATASET_URL_FOR_XSLT = "http://localhost:8080/mcs/data-providers/provider/data-sets/XSltDataset";
+    private static final String XSLT_URL = "http://localhost:8080/mcs/records/EU6ZTUYQRZWDQTDHIQUPYQHZUSHG2IXU5RCP4F5SBSLQ25QFNJ7Q/representations/TarekRep/versions/a73d68b0-c06c-11e7-88d5-1c6f653f9042/files/00b863a9-2215-461a-9111-dcde2352c3bc";
+    private static final String REVISION_NAME = "REVISION_NAME";
+    private static final String REVISION_PROVIDER = "Tiff_tarek_final";
 
-    private static String datasetURLForIC = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset4";
-    private final static String REPOSITORY_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
+    private static final String DATASET_URL_FOR_IC = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset4";
+    private static final String REPOSITORY_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
     public static final String OUTPUT_DATASET = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset3";
+
+    private static final String REPOSITORY_URL_FOR_HTTP = "http://ftp.eanadev.org/schema_zips/europeana_schemas.zip";
 
 
     /**
      * @return {@link DpsTask}
      */
     public static DpsTask generateDpsTaskForXSLT() {
-        return generateDpsTaskForXSLT(datasetURLForXSLT, xsltURL, DATASETS_COUNT);
+        return generateDpsTaskForXSLT(DATASET_URL_FOR_XSLT, XSLT_URL, DATASETS_COUNT);
     }
 
     public static DpsTask generateDpsTaskForXSLT(final String dataSetURL, final String xslt, final int recordCount) {
@@ -49,7 +51,7 @@ public class DpsTaskUtil {
         return task;
     }
 
-    public static DpsTask generateDpsTaskForIc(final String dataSetURL, final int recordCount) {
+    public static DpsTask generateDpsTaskForIC(final String dataSetURL, final int recordCount) {
 
         DpsTask task = createDpsTask(dataSetURL, recordCount);
 
@@ -73,13 +75,10 @@ public class DpsTaskUtil {
         return task;
     }
 
-    public static DpsTask generateDPsTaskForOAI() {
-        DpsTask task = new DpsTask();
-
-        List<String> urls = new ArrayList<>();
-        urls.add(REPOSITORY_URL);
-        task.addDataEntry(InputDataType.REPOSITORY_URLS, urls);
-        Map<String, String> parameters = buildOAITaskParameter();
+    public static DpsTask generateDPSTaskForOAI() {
+        DpsTask task = buildDPSHarvestingTask(REPOSITORY_URL);
+        Map<String, String> parameters = buildHarvestingTaskParameter();
+        parameters.put("INTERVAL", "31540000000");
         task.setParameters(parameters);
         OAIPMHHarvestingDetails harvestingDetails = configureHarvesterDetails();
         task.setHarvestingDetails(harvestingDetails);
@@ -87,15 +86,31 @@ public class DpsTaskUtil {
 
     }
 
-    private static Map<String, String> buildOAITaskParameter() {
+    public static DpsTask generateDPSTaskForHTTP() {
+        DpsTask task = buildDPSHarvestingTask(REPOSITORY_URL_FOR_HTTP);
+        Map<String, String> parameters = buildHarvestingTaskParameter();
+        task.setParameters(parameters);
+        return task;
+
+    }
+
+    private static DpsTask buildDPSHarvestingTask(String repositoryURL) {
+        DpsTask task = new DpsTask();
+        List<String> urls = new ArrayList<>();
+        urls.add(repositoryURL);
+        task.addDataEntry(InputDataType.REPOSITORY_URLS, urls);
+        return task;
+    }
+
+    private static Map<String, String> buildHarvestingTaskParameter() {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PROVIDER_ID", "provider");
-        parameters.put("INTERVAL", "31540000000");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATASET);
         String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
         return parameters;
     }
+
 
     private static OAIPMHHarvestingDetails configureHarvesterDetails() {
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
@@ -112,7 +127,7 @@ public class DpsTaskUtil {
     }
 
     public static DpsTask generateDPsTaskForIC() {
-        return generateDpsTaskForIc(datasetURLForIC, DATASETS_COUNT);
+        return generateDpsTaskForIC(DATASET_URL_FOR_IC, DATASETS_COUNT);
     }
 
 
