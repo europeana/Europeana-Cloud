@@ -23,4 +23,5 @@ public final class TopologyHelper {
     public static final String IDENTIFIERS_HARVESTING_BOLT = "identifiersHarvestingBolt";
     public static final String RECORD_HARVESTING_BOLT = "recordHarvestingBolt";
     public static final String TASK_SPLITTING_BOLT = "TaskSplittingBolt";
+    public static final String HTTP_HARVESTING_BOLT = "HTTPHarvestingBolt";
 }

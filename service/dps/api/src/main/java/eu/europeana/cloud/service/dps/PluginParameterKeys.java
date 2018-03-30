@@ -97,6 +97,7 @@ public final class PluginParameterKeys {
 
     // ---------- OAI-PMH ----------
     public static final String OAI_IDENTIFIER = "OAI_IDENTIFIER";
+    public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
 
     public static Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 

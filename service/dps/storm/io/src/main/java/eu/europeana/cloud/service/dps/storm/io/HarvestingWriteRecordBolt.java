@@ -16,25 +16,25 @@ import java.net.URI;
 
 
 /**
- * Stores a Record on the cloud for OAI-PMH topology.
+ * Stores a Record on the cloud for the harvesting topology.
  * <p/>
  * Receives a byte array representing a Record from a tuple, creates and stores
  * a new Record on the cloud, and emits the URL of the newly created record.
  */
-public class OAIWriteRecordBolt extends WriteRecordBolt {
+public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     private String ecloudUisAddress;
 
-    public OAIWriteRecordBolt(String ecloudMcsAddress, String ecloudUisAddress) {
+    public HarvestingWriteRecordBolt(String ecloudMcsAddress, String ecloudUisAddress) {
         super(ecloudMcsAddress);
         this.ecloudUisAddress = ecloudUisAddress;
-        LOGGER = LoggerFactory.getLogger(OAIWriteRecordBolt.class);
+        LOGGER = LoggerFactory.getLogger(HarvestingWriteRecordBolt.class);
     }
 
 
     @Override
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws MCSException, CloudException {
         String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-        String localId = stormTaskTuple.getParameter(PluginParameterKeys.OAI_IDENTIFIER);
+        String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId);
         String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
         if (representationName == null || representationName.isEmpty())

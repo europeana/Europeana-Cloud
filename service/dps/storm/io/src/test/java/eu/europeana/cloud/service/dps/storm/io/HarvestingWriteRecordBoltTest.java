@@ -42,8 +42,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  * Created by Tarek on 7/21/2017.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(OAIWriteRecordBolt.class)
-public class OAIWriteRecordBoltTest {
+@PrepareForTest(HarvestingWriteRecordBolt.class)
+public class HarvestingWriteRecordBoltTest {
 
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
@@ -57,7 +57,7 @@ public class OAIWriteRecordBoltTest {
 
 
     @InjectMocks
-    private OAIWriteRecordBolt oaiWriteRecordBoltT = new OAIWriteRecordBolt("http://localhost:8080/mcs", "http://localhost:8080/uis");
+    private HarvestingWriteRecordBolt oaiWriteRecordBoltT = new HarvestingWriteRecordBolt("http://localhost:8080/mcs", "http://localhost:8080/uis");
 
     @Before
     public void init() throws Exception {
@@ -107,7 +107,7 @@ public class OAIWriteRecordBoltTest {
     private HashMap<String, String> prepareStormTaskTupleParameters() throws MalformedURLException {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
-        parameters.put(PluginParameterKeys.OAI_IDENTIFIER, SOURCE + LOCAL_ID);
+        parameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE + LOCAL_ID);
         parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         return parameters;
     }

@@ -45,7 +45,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
 
     private void emitIdentifier(StormTaskTuple stormTaskTuple, String identifier) {
         StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-        tuple.addParameter(PluginParameterKeys.OAI_IDENTIFIER, identifier);
+        tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, identifier);
         // set identifier as a file URL for notifications to work correctly
         tuple.setFileUrl(identifier);
         outputCollector.emit(inputTuple, tuple.toStormTuple());

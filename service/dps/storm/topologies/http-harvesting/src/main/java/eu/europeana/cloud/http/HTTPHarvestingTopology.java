@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
+package eu.europeana.cloud.http;
 
+import eu.europeana.cloud.http.bolt.HTTPHarvesterBolt;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
@@ -10,9 +11,6 @@ import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.TaskSplittingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import org.apache.storm.Config;
@@ -32,37 +30,40 @@ import java.util.Map;
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_TO_DATA_SET_BOLT;
 import static java.lang.Integer.parseInt;
-import static java.lang.Long.parseLong;
 
 /**
- *
+ * Created by Tarek on 3/22/2018.
  */
-public class OAIPHMHarvestingTopology {
+public class HTTPHarvestingTopology {
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
-    private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
-    private final String REPOSITORY_STREAM = InputDataType.REPOSITORY_URLS.name();
+    private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
+    private static final String REPOSITORY_STREAM = InputDataType.REPOSITORY_URLS.name();
 
-    public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
+    public HTTPHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public final StormTopology buildTopology(String oaiTopic, String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology(String httpTopic, String ecloudMcsAddress, String uisAddress) {
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(REPOSITORY_STREAM, REPOSITORY_STREAM);
 
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, oaiTopic, "", "storm");
+        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, httpTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
+
         CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
@@ -78,27 +79,15 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks(getAnInt(PARSE_TASKS_BOLT_NUMBER_OF_TASKS))
                 .shuffleGrouping(SPOUT);
 
-        builder.setBolt(TASK_SPLITTING_BOLT, new TaskSplittingBolt(parseLong(topologyProperties.getProperty(INTERVAL))),
-                (getAnInt(TASK_SPLITTING_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS)))
+        builder.setBolt(HTTP_HARVESTING_BOLT, new HTTPHarvesterBolt(),
+                getAnInt(HTTP_BOLT_PARALLEL)).
+                setNumTasks((getAnInt(HTTP_HARVESTING_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(PARSE_TASK_BOLT, REPOSITORY_STREAM);
-
-
-        builder.setBolt(IDENTIFIERS_HARVESTING_BOLT, new IdentifiersHarvestingBolt(),
-                (getAnInt(IDENTIFIERS_HARVESTING_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(IDENTIFIERS_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(TASK_SPLITTING_BOLT);
-
-
-        builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(),
-                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(IDENTIFIERS_HARVESTING_BOLT);
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(RECORD_HARVESTING_BOLT);
+                .shuffleGrouping(HTTP_HARVESTING_BOLT);
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
@@ -123,11 +112,7 @@ public class OAIPHMHarvestingTopology {
                         ((int) Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TASK_SPLITTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(IDENTIFIERS_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(HTTP_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
@@ -140,8 +125,8 @@ public class OAIPHMHarvestingTopology {
         return builder.createTopology();
     }
 
-    private static int getAnInt(String parseTasksBoltParallel) {
-        return parseInt(topologyProperties.getProperty(parseTasksBoltParallel));
+    private static int getAnInt(String propertyName) {
+        return parseInt(topologyProperties.getProperty(propertyName));
     }
 
     public static void main(String[] args) throws Exception {
@@ -153,13 +138,12 @@ public class OAIPHMHarvestingTopology {
             if (args.length == 1) {
                 providedPropertyFile = args[0];
             }
-            OAIPHMHarvestingTopology oaiphmHarvestingTopology = new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
+            HTTPHarvestingTopology httpHarvestingTopology = new HTTPHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
             String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-
             String kafkaTopic = topologyName;
             String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
             String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
-            StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
+            StormTopology stormTopology = httpHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
             config.setNumWorkers(getAnInt(WORKER_COUNT));
             config.setMaxTaskParallelism(
                     getAnInt(MAX_TASK_PARALLELISM));
