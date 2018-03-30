@@ -25,7 +25,7 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
  */
 public class StaticICTopology {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPsTaskForIC());
         StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(staticDpsTaskSpout, new IcBolt(), TopologyHelper.IC_BOLT, MCS_URL);
         Config conf = new Config();

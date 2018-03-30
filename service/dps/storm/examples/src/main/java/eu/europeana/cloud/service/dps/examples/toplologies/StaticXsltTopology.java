@@ -26,7 +26,7 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
  */
 public class StaticXsltTopology {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTaskForXSLT());
         StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(staticDpsTaskSpout, new XsltBolt(), TopologyHelper.XSLT_BOLT,  MCS_URL);

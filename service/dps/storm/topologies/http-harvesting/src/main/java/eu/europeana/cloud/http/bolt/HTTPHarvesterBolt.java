@@ -71,7 +71,7 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
         }
     }
 
-    private void emitFiles(Path start, final StormTaskTuple stormTaskTuple) throws IOException {
+    private void emitFiles(final Path start, final StormTaskTuple stormTaskTuple) throws IOException {
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
@@ -79,7 +79,9 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
                 String extension = FilenameUtils.getExtension(file.toString());
                 if (!CompressionFileExtension.contains(extension)) {
                     String mimeType = Files.probeContentType(file);
-                    emitFileContent(stormTaskTuple, file.toString(), mimeType);
+                    String filePath = file.toString();
+                    String readableFileName = filePath.substring(start.toString().length()+1).replaceAll("\\\\", "/");
+                    emitFileContent(stormTaskTuple, filePath, readableFileName, mimeType);
                 }
                 return FileVisitResult.CONTINUE;
             }
@@ -96,7 +98,7 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
         });
     }
 
-    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String mimeType) throws IOException {
+    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType) throws IOException {
         FileInputStream fileInputStream = null;
         try {
             StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
@@ -104,7 +106,6 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
             fileInputStream = new FileInputStream(file);
             tuple.setFileData(fileInputStream);
             tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
-            String readableFilePath = file.getParentFile().getName() + "/" + file.getName();
             String localId = formulateLocalId(readableFilePath);
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, localId);
             tuple.setFileUrl(readableFilePath);
