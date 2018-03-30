@@ -31,11 +31,6 @@ public class StaticICTopology {
         Config conf = new Config();
         conf.setDebug(true);
         conf.put(Config.TOPOLOGY_DEBUG, true);
-        conf.put(INPUT_ZOOKEEPER_ADDRESS,
-                INPUT_ZOOKEEPER_PORT);
-        conf.put(Config.STORM_ZOOKEEPER_SERVERS,
-                Arrays.asList(STORM_ZOOKEEPER_ADDRESS));
-
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("test", conf, stormTopology);
         Utils.sleep(60000);
