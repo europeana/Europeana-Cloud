@@ -38,10 +38,11 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId);
         String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
         if (representationName == null || representationName.isEmpty()) {
-            if (stormTaskTuple.getSourceDetails() != null)
+            if (stormTaskTuple.getSourceDetails() != null) {
                 representationName = stormTaskTuple.getSourceDetails().getSchema();
-            else
-                representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+                if (representationName == null)
+                    representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+            }
         }
         return recordServiceClient.createRepresentation(cloudId, representationName, providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
 
