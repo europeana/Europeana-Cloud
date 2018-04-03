@@ -9,18 +9,13 @@ public class CassandraConnectionProviderSingleton {
 
     }
 
-    private static CassandraConnectionProvider cassandraConnectionProvider = null;
+    private static CassandraConnectionProvider cassandraConnectionProvider;
 
-    public static CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password) {
+    public static synchronized CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password) {
         if (cassandraConnectionProvider == null) {
-            synchronized (CassandraConnectionProviderSingleton.class) {
-                if (cassandraConnectionProvider == null) {
-                    cassandraConnectionProvider = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
-                }
-            }
+            cassandraConnectionProvider = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
         }
         return cassandraConnectionProvider;
     }
-
 }
 

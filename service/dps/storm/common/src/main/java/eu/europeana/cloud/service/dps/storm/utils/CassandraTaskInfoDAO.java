@@ -30,13 +30,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     private static CassandraTaskInfoDAO instance = null;
 
-    public static CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraTaskInfoDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraTaskInfoDAO(cassandra);
-                }
-            }
+            instance = new CassandraTaskInfoDAO(cassandra);
         }
         return instance;
     }

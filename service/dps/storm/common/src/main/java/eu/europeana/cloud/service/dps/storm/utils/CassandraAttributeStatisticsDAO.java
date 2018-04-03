@@ -17,13 +17,9 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
 
     private PreparedStatement selectAttributesStatement;
 
-    public static CassandraAttributeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraAttributeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraAttributeStatisticsDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraAttributeStatisticsDAO(cassandra);
-                }
-            }
+            instance = new CassandraAttributeStatisticsDAO(cassandra);
         }
         return instance;
     }
@@ -47,16 +43,16 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
         updateAttributeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectAttributesStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
-                        " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
-                        "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
-                        "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? ");
+                " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? ");
         selectAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**
      * Inserts the statistics for all the attributes in the given list.
      *
-     * @param taskId task identifier
+     * @param taskId     task identifier
      * @param attributes list of attribute statistics
      */
     public void insertAttributeStatistics(long taskId, String nodeXpath, String nodeValue, Set<AttributeStatistics> attributes) {
@@ -68,7 +64,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     /**
      * Inserts the statistics for the specified attribute.
      *
-     * @param taskId task identifier
+     * @param taskId              task identifier
      * @param attributeStatistics attribute statistics to insert
      */
     public void insertAttributeStatistics(long taskId, String nodeXpath, String nodeValue, AttributeStatistics attributeStatistics) {
@@ -83,7 +79,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     /**
      * Retrieve a list of attribute statistics for the specified task and node
      *
-     * @param taskId task identifier
+     * @param taskId    task identifier
      * @param nodeXpath node xpath that contains returned attributes
      * @return list of attribute statistics objects
      */

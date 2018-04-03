@@ -24,13 +24,9 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     private static CassandraSubTaskInfoDAO instance = null;
 
-    public static CassandraSubTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraSubTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraSubTaskInfoDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraSubTaskInfoDAO(cassandra);
-                }
-            }
+            instance = new CassandraSubTaskInfoDAO(cassandra);
         }
         return instance;
     }

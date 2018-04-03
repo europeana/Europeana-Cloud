@@ -21,13 +21,10 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
 
     private static CassandraTaskErrorsDAO instance = null;
 
-    public static CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraTaskErrorsDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraTaskErrorsDAO(cassandra);
-                }
-            }
+            instance = new CassandraTaskErrorsDAO(cassandra);
+
         }
         return instance;
     }
@@ -67,7 +64,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     /**
      * Update number of errors of the given type that occurred in the given task
      *
-     * @param taskId task identifier
+     * @param taskId    task identifier
      * @param errorType type of error
      */
     public void updateErrorCounter(long taskId, String errorType) {
@@ -77,10 +74,10 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     /**
      * Insert information about the resource and its error
      *
-     * @param taskId task identifier
-     * @param errorType type of error
+     * @param taskId       task identifier
+     * @param errorType    type of error
      * @param errorMessage error message
-     * @param resource resource identifier
+     * @param resource     resource identifier
      */
     public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
         dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource, additionalInformations));

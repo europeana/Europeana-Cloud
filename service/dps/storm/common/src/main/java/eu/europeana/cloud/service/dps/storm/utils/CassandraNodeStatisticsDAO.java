@@ -37,13 +37,9 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     private static CassandraNodeStatisticsDAO instance = null;
 
-    public static CassandraNodeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraNodeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraNodeStatisticsDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraNodeStatisticsDAO(cassandra);
-                }
-            }
+            instance = new CassandraNodeStatisticsDAO(cassandra);
         }
         return instance;
     }
@@ -117,7 +113,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      * Insert statistics for all nodes on the list
      *
      * @param taskId task identifier
-     * @param nodes list of node statistics objects
+     * @param nodes  list of node statistics objects
      */
     public void insertNodeStatistics(long taskId, List<NodeStatistics> nodes) {
         for (NodeStatistics nodeStatistics : nodes) {
@@ -127,7 +123,8 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     /**
      * Insert statistics for the specified node
-     * @param taskId task identifier
+     *
+     * @param taskId         task identifier
      * @param nodeStatistics node statistics to insert
      */
     public void insertNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
@@ -143,7 +140,8 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     /**
      * Update counter in the node statistics table
-     * @param taskId task identifier
+     *
+     * @param taskId         task identifier
      * @param nodeStatistics node statistics object to store / update
      */
     private void updateNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
@@ -152,7 +150,8 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     /**
      * It will update the counter for the specified node in general statistics table
-     * @param taskId task identifier
+     *
+     * @param taskId         task identifier
      * @param nodeStatistics node statistics object with all the necessary information
      */
     private void updateGeneralStatistics(long taskId, NodeStatistics nodeStatistics) {
@@ -206,9 +205,9 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      * node statistics will be returned. If you want to get all nodes for the whole task you should use another
      * method which takes as input just the task identifier.
      *
-     * @param taskId task identifier
+     * @param taskId      task identifier
      * @param parentXpath xpath of the parent
-     * @param nodeXpath xpath of the node
+     * @param nodeXpath   xpath of the node
      * @return list of node statistics
      */
     public List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
