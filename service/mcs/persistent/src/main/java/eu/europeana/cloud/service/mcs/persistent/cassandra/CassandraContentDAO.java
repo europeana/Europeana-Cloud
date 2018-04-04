@@ -68,11 +68,13 @@ public class CassandraContentDAO implements ContentDAO {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
             getContent(sourceObjectId, -1, -1, os);
+            checkIfObjectNotExists(trgObjectId);
+            putContent(trgObjectId, new ByteArrayInputStream(os.toByteArray()));
         } catch (FileNotExistsException e) {
             throw new FileNotExistsException(String.format("File %s not exists", sourceObjectId));
+        } finally {
+            IOUtils.closeQuietly(os);
         }
-        checkIfObjectNotExists(trgObjectId);
-        putContent(trgObjectId, new ByteArrayInputStream(os.toByteArray()));
     }
 
     /**
@@ -101,7 +103,7 @@ public class CassandraContentDAO implements ContentDAO {
         ByteBuffer wrappedBytes = row.getBytes("data");
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         streamCompressor.decompress(unwrap(wrappedBytes), os);
-        copySelectBytes(os,start,end, result);
+        copySelectBytes(os, start, end, result);
     }
 
     /**
@@ -139,14 +141,14 @@ public class CassandraContentDAO implements ContentDAO {
         } else {
             resultBytes = getSelectedBytes(input.toByteArray(), start, end);
         }
-        IOUtils.copy(new ByteArrayInputStream(resultBytes),result);
+        IOUtils.copy(new ByteArrayInputStream(resultBytes), result);
     }
 
     private byte[] unwrap(ByteBuffer wrappedBytes) {
         return Bytes.getArray(wrappedBytes);
     }
 
-    private byte[] getSelectedBytes(byte [] bytes, long start, long end) {
+    private byte[] getSelectedBytes(byte[] bytes, long start, long end) {
         byte[] outputBytes;
         final int from = start > -1 ? Ints.checkedCast(start) : 0;
         final int to = end > -1 ? Ints.checkedCast(end) + 1 : bytes.length;

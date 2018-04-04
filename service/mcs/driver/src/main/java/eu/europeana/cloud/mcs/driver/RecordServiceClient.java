@@ -310,17 +310,18 @@ public class RecordServiceClient extends MCSClient {
                                     String providerId,
                                     InputStream data,
                                     String fileName,
-                                    String mediaType) throws IOException,MCSException {
+                                    String mediaType) throws IOException, MCSException {
         WebTarget target = client.target(baseUrl).path(represtationNamePath + "/files")
                 .resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
 
-        FormDataMultiPart multipart = prepareRequestBody(providerId, data, fileName, mediaType);
+        FormDataMultiPart multipart = null;
 
         Response response = null;
         request.header("Content-Type", "multipart/form-data");
         try {
+            multipart = prepareRequestBody(providerId, data, fileName, mediaType);
             response = request.post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 URI uri = response.getLocation();
@@ -332,7 +333,8 @@ public class RecordServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            multipart.close();
+            if (multipart != null)
+                multipart.close();
 
         }
     }
@@ -354,7 +356,7 @@ public class RecordServiceClient extends MCSClient {
                                     String representationName,
                                     String providerId,
                                     InputStream data,
-                                    String mediaType) throws IOException,MCSException {
+                                    String mediaType) throws IOException, MCSException {
 
         return this.createRepresentation(cloudId, representationName, providerId, data, null, mediaType);
     }
