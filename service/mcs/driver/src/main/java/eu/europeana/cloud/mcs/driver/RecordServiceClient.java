@@ -26,6 +26,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
@@ -39,7 +40,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 public class RecordServiceClient extends MCSClient {
 
     private final Client client = ClientBuilder.newClient().register(MultiPartFeature.class);
-    private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(RecordServiceClient.class);
 
     //records/{CLOUDID}
     private static final String recordPath;
@@ -309,7 +310,7 @@ public class RecordServiceClient extends MCSClient {
                                     String providerId,
                                     InputStream data,
                                     String fileName,
-                                    String mediaType) throws MCSException {
+                                    String mediaType) throws IOException,MCSException {
         WebTarget target = client.target(baseUrl).path(represtationNamePath + "/files")
                 .resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName);
@@ -331,6 +332,8 @@ public class RecordServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
+            multipart.close();
+
         }
     }
 
@@ -351,7 +354,7 @@ public class RecordServiceClient extends MCSClient {
                                     String representationName,
                                     String providerId,
                                     InputStream data,
-                                    String mediaType) throws MCSException {
+                                    String mediaType) throws IOException,MCSException {
 
         return this.createRepresentation(cloudId, representationName, providerId, data, null, mediaType);
     }

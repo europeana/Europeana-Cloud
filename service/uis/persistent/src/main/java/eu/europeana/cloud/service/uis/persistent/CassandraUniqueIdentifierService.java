@@ -284,7 +284,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
     public CloudId createIdMapping(String cloudId, String providerId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
-        LOGGER.info("createIdMapping() cloudId='{}', providerId='{}'", providerId);
+        LOGGER.info("createIdMapping() cloudId='{}', providerId='{}'",cloudId, providerId);
         return createIdMapping(cloudId, providerId, IdGenerator.timeEncode(providerId));
     }
 

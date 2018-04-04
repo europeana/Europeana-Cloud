@@ -216,6 +216,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
+            multipart.close();
         }
     }
 
@@ -235,7 +236,7 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI uploadFile(String cloudId, String representationName, String version, InputStream data, String mediaType)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            throws IOException,RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
             MCSException {
         WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
@@ -258,6 +259,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
+            multipart.close();
         }
     }
 
@@ -278,7 +280,7 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI uploadFile(String cloudId, String representationName, String version, String fileName, InputStream data, String mediaType)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
             MCSException {
         WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
@@ -300,6 +302,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
+            multipart.close();
         }
     }
 
@@ -311,7 +314,7 @@ public class FileServiceClient extends MCSClient {
      *                   "http://ecloud.eanadev.org:8080/ecloud-service-mcs/records/L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0-11e4-8fe1-00163eefc9c8"
      */
     public URI uploadFile(String versionUrl, InputStream data, String mediaType)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
             MCSException {
 
         String filesPath = "/files";
@@ -333,6 +336,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
+            multipart.close();
         }
     }
 
@@ -380,6 +384,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
+            multipart.close();
         }
     }
 
@@ -407,6 +412,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
+            multipart.close();
         }
     }
 

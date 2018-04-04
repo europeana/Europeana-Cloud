@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 
 
@@ -32,7 +33,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
 
     @Override
-    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws MCSException, CloudException {
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws IOException, MCSException, CloudException {
         String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
         String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId);
