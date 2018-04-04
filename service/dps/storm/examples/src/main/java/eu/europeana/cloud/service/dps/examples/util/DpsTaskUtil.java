@@ -51,7 +51,7 @@ public class DpsTaskUtil {
         return task;
     }
 
-    public static DpsTask generateDpsTaskForIC(final String dataSetURL, final int recordCount) {
+    public static DpsTask generateDPSTaskForIC(final String dataSetURL, final int recordCount) {
 
         DpsTask task = createDpsTask(dataSetURL, recordCount);
 
@@ -105,6 +105,7 @@ public class DpsTaskUtil {
     private static Map<String, String> buildHarvestingTaskParameter() {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PROVIDER_ID", "provider");
+        parameters.put(PluginParameterKeys.NEW_REPRESENTATION_NAME, "NEW_REPRESENTATION_NAME");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATASET);
         String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
@@ -126,8 +127,8 @@ public class DpsTaskUtil {
         return harvestingDetails;
     }
 
-    public static DpsTask generateDPsTaskForIC() {
-        return generateDpsTaskForIC(DATASET_URL_FOR_IC, DATASETS_COUNT);
+    public static DpsTask generateDPSTaskForIC() {
+        return generateDPSTaskForIC(DATASET_URL_FOR_IC, DATASETS_COUNT);
     }
 
 

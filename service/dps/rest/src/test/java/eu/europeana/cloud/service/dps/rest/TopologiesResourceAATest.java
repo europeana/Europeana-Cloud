@@ -19,7 +19,7 @@ public class TopologiesResourceAATest extends AbstractSecurityTest {
 
     private final static String VAN_PERSIE = "Robin_Van_Persie";
     private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
-    
+
     private final static String RONALDO = "Cristiano";
     private final static String RONALD_PASSWORD = "Ronaldo";
 

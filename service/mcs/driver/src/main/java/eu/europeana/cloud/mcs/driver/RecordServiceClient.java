@@ -284,6 +284,7 @@ public class RecordServiceClient extends MCSClient {
                 URI uri = response.getLocation();
                 return uri;
             } else {
+
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
@@ -335,7 +336,6 @@ public class RecordServiceClient extends MCSClient {
             IOUtils.closeQuietly(data);
             if (multipart != null)
                 multipart.close();
-
         }
     }
 
