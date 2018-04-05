@@ -4,7 +4,9 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.net.MalformedURLException;
@@ -105,6 +107,14 @@ public class DpsTaskValidator {
         return this;
     }
 
+
+    public DpsTaskValidator withAllowedValuesParam(String paramName, Object allowedValues) {
+        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, paramName, allowedValues);
+        dpsTaskConstraints.add(constraint);
+        return this;
+    }
+
+
     /**
      * Will check if dps task contains selected name
      *
@@ -170,6 +180,17 @@ public class DpsTaskValidator {
         return this;
     }
 
+    /**
+     * Will check if dps task contains allowed TARGET_INDEXING_DATABASE parameter. Allowed are values of {@link TargetIndexingDatabase}
+     *
+     * @return
+     */
+    public DpsTaskValidator withAnyOfAllowedTargetIndexingDatabase() {
+        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.TARGET_INDEXING_DATABASE, PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
+        dpsTaskConstraints.add(constraint);
+        return this;
+    }
+
     public void validate(DpsTask task) throws DpsTaskValidationException {
         for (DpsTaskConstraint re : dpsTaskConstraints) {
             DpsTaskFieldType fieldType = re.getFieldType();
@@ -183,8 +204,17 @@ public class DpsTaskValidator {
                 validateId(task, re);
             } else if (fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)) {
                 validateOutputRevision(task, revisionMustExist);
+            } else if (fieldType.equals(DpsTaskFieldType.TARGET_INDEXING_DATABASE)) {
+                validateTargetIndexingDatabase(task, re);
             }
         }
+    }
+
+    private void validateTargetIndexingDatabase(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+        String expectedParameter = task.getParameter(constraint.getExpectedName());
+        if(EnumUtils.isValidEnum(TargetIndexingDatabase.class, expectedParameter))
+            return;
+        throw new DpsTaskValidationException("Parameter does not meet constraints. Parameter name: " + constraint.getExpectedName());
     }
 
 
@@ -372,5 +402,6 @@ enum DpsTaskFieldType {
     INPUT_DATA,
     ID,
     NAME,
-    OUTPUT_REVISION
+    OUTPUT_REVISION,
+    TARGET_INDEXING_DATABASE
 }

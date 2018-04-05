@@ -467,6 +467,106 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }
 
+
+    @Test
+    public void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws MCSException, TaskSubmissionException {
+        //given
+        String topologyName = "indexing_topology";
+        DpsTask task = new DpsTask("indexingTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        task.setOutputRevision(new Revision("REVISION_NAME", "REVISION_PROVIDER"));
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithPublishsAsTargetIndexingDatabase() throws MCSException, TaskSubmissionException {
+        //given
+        String topologyName = "indexing_topology";
+        DpsTask task = new DpsTask("indexingTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
+        task.setOutputRevision(new Revision("REVISION_NAME", "REVISION_PROVIDER"));
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithTargetIndexingDatabaseAndFileUrls() throws MCSException, TaskSubmissionException {
+        //given
+        String topologyName = "indexing_topology";
+        DpsTask task = new DpsTask("indexingTask");
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName"));
+        task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        task.setOutputRevision(new Revision("REVISION_NAME", "REVISION_PROVIDER"));
+
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+
+    @Test
+    public void shouldThrowExceptionWhenTargetIndexingDatabaseIsMissing() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("indexingTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        task.setOutputRevision(new Revision("REVISION_NAME", "REVISION_PROVIDER"));
+        String topologyName = "indexing_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenTargetIndexingDatabaseIsNotProper() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("indexingTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(OUTPUT_MIME_TYPE, "image/jp2");
+        task.addParameter(MIME_TYPE, "image/tiff");
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "wrong-value");
+        task.setOutputRevision(new Revision("REVISION_NAME", "REVISION_PROVIDER"));
+        String topologyName = "indexing_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
+
     @Test
     public void shouldNotSubmitEmptyTask() throws MCSException, TaskSubmissionException, InterruptedException {
         //given
@@ -601,7 +701,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(topologyManager.containsTopology(anyString())).thenReturn(false);
         WebTarget enrichedWebTarget = validationStatisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
         Response response = enrichedWebTarget.request().get();
-        assertEquals(response.getStatus(), 405);
+        assertEquals(405, response.getStatus());
     }
 
     @Test
@@ -703,7 +803,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         Response detailedReportResponse = enrichedWebTarget.request().get();
-        assertEquals(detailedReportResponse.getStatus(), 405);
+        assertEquals(405, detailedReportResponse.getStatus());
     }
 
     @Test
