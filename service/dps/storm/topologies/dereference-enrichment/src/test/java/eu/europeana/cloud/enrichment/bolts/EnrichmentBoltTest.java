@@ -30,8 +30,8 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_U
 @PowerMockIgnore("javax.net.ssl.*")
 public class EnrichmentBoltTest {
 
-    public static final String DEREFERENCE_URL = "http://metis-dereference-rest-acceptance.eanadev.org";
-    public static final String ENRICHMENT_URL = "http://metis-enrichment-rest-acceptance.eanadev.org";
+    public static final String DEREFERENCE_URL = "https://metis-dereference-rest-acceptance.eanadev.org";
+    public static final String ENRICHMENT_URL = "https://metis-enrichment-rest-acceptance.eanadev.org";
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
