@@ -362,8 +362,8 @@ public class RecordServiceClient extends MCSClient {
     }
 
     private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
-        FormDataMultiPart requestBody = new FormDataMultiPart()
-                .field(ParamConstants.F_PROVIDER, providerId)
+        FormDataMultiPart requestBody = new FormDataMultiPart();
+        requestBody.field(ParamConstants.F_PROVIDER, providerId)
                 .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
                 .field(ParamConstants.F_FILE_MIME, mediaType);
 
