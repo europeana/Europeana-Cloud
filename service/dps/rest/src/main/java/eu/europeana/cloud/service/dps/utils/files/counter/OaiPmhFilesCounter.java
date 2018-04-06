@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -137,7 +138,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        LOGGER.error(Throwables.getStackTraceAsString(e));
                     }
                 } else {
                     throw e;

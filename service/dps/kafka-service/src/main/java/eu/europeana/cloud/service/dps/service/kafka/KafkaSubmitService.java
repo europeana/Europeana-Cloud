@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.service.kafka;
 
+
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import kafka.consumer.ConsumerConfig;
@@ -12,6 +14,8 @@ import kafka.message.MessageAndMetadata;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,6 +38,7 @@ public class KafkaSubmitService implements TaskExecutionSubmitService {
 	private final static String ZOOKEEPER_SYNC_TIME = "200";
 	private final static String ZOOKEEPER_SESSION_TIMEOUT = "400";
 	private final static String AUTOCOMMIT_INTERVAL = "200";
+	private static final Logger LOGGER = LoggerFactory.getLogger(KafkaSubmitService.class);
 
 	public KafkaSubmitService(String kafkaBroker, String kafkaGroupId,
 			String zookeeperAddress) {
@@ -119,7 +124,7 @@ public class KafkaSubmitService implements TaskExecutionSubmitService {
 		try {
 			task = mapper.readValue(m.message(), DpsTask.class);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error(Throwables.getStackTraceAsString(e));
 		}
 		
 		return task;

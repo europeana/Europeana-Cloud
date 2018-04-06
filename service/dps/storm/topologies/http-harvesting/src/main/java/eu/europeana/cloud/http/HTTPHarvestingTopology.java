@@ -73,7 +73,7 @@ public class HTTPHarvestingTopology {
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN));
 
 
         builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
@@ -111,7 +111,7 @@ public class HTTPHarvestingTopology {
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                 Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))

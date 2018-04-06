@@ -99,7 +99,7 @@ public final class PluginParameterKeys {
     public static final String OAI_IDENTIFIER = "OAI_IDENTIFIER";
     public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
 
-    public static Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
+    public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 
     static {
         PLUGIN_PARAMETERS.put(XSLT_URL, "XSLT_URL");

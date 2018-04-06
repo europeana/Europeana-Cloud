@@ -60,7 +60,7 @@ public class EnrichmentTopology {
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_PASSWORD));
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
 
         TopologyBuilder builder = new TopologyBuilder();
 
@@ -150,7 +150,7 @@ public class EnrichmentTopology {
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                 Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         (Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))

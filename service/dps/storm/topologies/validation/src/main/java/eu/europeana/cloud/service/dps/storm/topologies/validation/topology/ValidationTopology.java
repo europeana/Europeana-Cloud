@@ -63,7 +63,7 @@ public class ValidationTopology {
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN));
 
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress);
 
@@ -120,7 +120,7 @@ public class ValidationTopology {
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN)),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
@@ -136,7 +136,7 @@ public class ValidationTopology {
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN)),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))))

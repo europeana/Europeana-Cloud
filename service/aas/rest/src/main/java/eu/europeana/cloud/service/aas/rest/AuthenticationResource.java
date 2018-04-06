@@ -36,7 +36,7 @@ public class AuthenticationResource {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Response createCloudUser(
             @QueryParam(AASParamConstants.P_USER_NAME) String username,
-            @QueryParam(AASParamConstants.P_PASSWORD) String password)
+            @QueryParam(AASParamConstants.P_PASS_TOKEN) String password)
             throws DatabaseConnectionException, UserExistsException,
             InvalidUsernameException, InvalidPasswordException {
 
@@ -68,7 +68,7 @@ public class AuthenticationResource {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Response updateCloudUser(
             @QueryParam(AASParamConstants.P_USER_NAME) String username,
-            @QueryParam(AASParamConstants.P_PASSWORD) String password)
+            @QueryParam(AASParamConstants.P_PASS_TOKEN) String password)
             throws DatabaseConnectionException, UserDoesNotExistException,
             InvalidPasswordException {
 

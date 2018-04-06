@@ -68,7 +68,7 @@ public class ICTopology {
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN));
 
 
         builder.setSpout(TopologyHelper.SPOUT, kafkaSpout,
@@ -144,7 +144,7 @@ public class ICTopology {
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN)),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))))

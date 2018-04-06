@@ -1,5 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.topologies.properties;
 
+import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.util.Properties;
 
@@ -9,6 +13,7 @@ import java.util.Properties;
  * @author Franco Maria Nardini (francomaria.nardini@isti.cnr.it)
  */
 public class PropertyFileLoader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PropertyFileLoader.class);
 
     public static void loadPropertyFile(String defaultPropertyFile, String providedPropertyFile, Properties topologyProperties) {
         try {
@@ -17,9 +22,9 @@ public class PropertyFileLoader {
             if (!providedPropertyFile.equals(""))
                 reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error(Throwables.getStackTraceAsString(e));
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(Throwables.getStackTraceAsString(e));
         }
     }
 

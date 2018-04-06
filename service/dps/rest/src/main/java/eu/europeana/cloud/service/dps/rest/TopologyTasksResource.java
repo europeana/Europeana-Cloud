@@ -184,18 +184,15 @@ public class TopologyTasksResource {
                         }
                     } catch (URISyntaxException e) {
                         LOGGER.error("Task submission failed");
-                        e.printStackTrace();
                         Response response = Response.serverError().build();
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                         asyncResponse.resume(response);
                     } catch (TaskSubmissionException e) {
                         LOGGER.error("Task submission failed" + e.getMessage());
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                        e.printStackTrace();
                     } catch (Exception e) {
                         LOGGER.error("Task submission failed." + e.getMessage());
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                        e.printStackTrace();
                         Response response = Response.serverError().build();
                         asyncResponse.resume(response);
                     }
