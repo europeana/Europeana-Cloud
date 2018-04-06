@@ -26,6 +26,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement updateTask;
     private PreparedStatement endTask;
     private PreparedStatement updateProcessedFiles;
+    private PreparedStatement killTask;
 
 
     private static CassandraTaskInfoDAO instance = null;
@@ -70,6 +71,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.ERRORS +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        killTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ?" + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        killTask.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public TaskInfo searchById(long taskId)
@@ -109,6 +113,23 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateProcessedFiles.bind(processedFilesCount, errors, taskId));
 
+    }
+
+    public void killTask(long taskId) {
+        dbService.getSession().execute(killTask.bind(String.valueOf(TaskState.CURRENTLY_DROPPING), taskId));
+    }
+
+    public boolean hasKillFlag(long taskId) {
+        String state = getTaskStatus(taskId);
+        if (state.equals(String.valueOf(TaskState.CURRENTLY_DROPPING)))
+            return true;
+        return false;
+    }
+
+    private String getTaskStatus(long taskId) {
+        ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
+        Row row = rs.one();
+        return row.getString(CassandraTablesAndColumnsNames.STATE);
     }
 
     public TaskInfo searchByIdWithSubtasks(long taskId)

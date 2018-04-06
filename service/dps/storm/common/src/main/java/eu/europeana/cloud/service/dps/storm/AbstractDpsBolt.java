@@ -1,7 +1,11 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
+
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -15,6 +19,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PASSWORD;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
+import static java.lang.Integer.parseInt;
+
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.
  *
@@ -22,7 +31,7 @@ import java.util.Map;
  */
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
-
+    protected CassandraTaskInfoDAO taskDAO;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries
@@ -49,8 +58,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
-            LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
-            execute(t);
+            if (!taskDAO.hasKillFlag(t.getTaskId())) {
+                LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
+                execute(t);
+            }
         } catch (Exception e) {
             LOGGER.info("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
             if (t != null) {
@@ -69,7 +80,19 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         this.topologyContext = tc;
         this.outputCollector = oc;
         this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
+        initTaskDao();
         prepare();
+    }
+
+    private void initTaskDao() {
+        String hosts = (String) stormConfig.get(CASSANDRA_HOSTS);
+        int port = parseInt((String) stormConfig.get(CASSANDRA_PORT));
+        String keyspaceName = (String) stormConfig.get(CASSANDRA_KEYSPACE_NAME);
+        String userName = (String) stormConfig.get(CASSANDRA_USERNAME);
+        String password = (String) stormConfig.get(CASSANDRA_PASSWORD);
+        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
+                userName, password);
+        this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
     }
 
     @Override

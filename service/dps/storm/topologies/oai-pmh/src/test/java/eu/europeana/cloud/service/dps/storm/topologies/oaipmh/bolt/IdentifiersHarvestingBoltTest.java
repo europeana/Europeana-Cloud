@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -16,6 +17,8 @@ import org.dspace.xoai.serviceprovider.ServiceProvider;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
 import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -43,6 +46,10 @@ public class IdentifiersHarvestingBoltTest {
 
     @Mock
     private ServiceProvider source;
+
+    @Mock
+    private CassandraTaskInfoDAO taskInfoDAO;
+
 
     @InjectMocks
     private IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt();
@@ -93,6 +100,11 @@ public class IdentifiersHarvestingBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), sourceDetails);
         tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, url);
         return tuple;
+    }
+
+    @Before
+    public void init() {
+        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
     }
 
     @Test
@@ -286,6 +298,27 @@ public class IdentifiersHarvestingBoltTest {
         verifyNoMoreInteractions(oc);
         verifyNoInteraction();
     }
+
+    @Test
+    public void testListIdentifierAfterKillingTheTask() {
+        //given
+        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, null, null);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
+
+        List<Values> values = captor.getAllValues();
+        assertThat(values.size(), is(1));
+
+        Set<String> identifiers = new HashSet<>();
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        verifyNoMoreInteractions(oc);
+        verifyNoInteraction();
+    }
+
 
     private void verifyNoInteraction() {
         verify(oc, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());

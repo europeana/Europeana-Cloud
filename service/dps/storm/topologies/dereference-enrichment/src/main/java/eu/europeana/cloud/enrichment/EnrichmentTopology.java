@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import org.apache.storm.Config;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.BrokerHosts;
@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -180,9 +179,6 @@ public class EnrichmentTopology {
     public static void main(String[] args) {
         try {
 
-            Config config = new Config();
-            config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
-
             if (args.length <= 1) {
 
                 String providedPropertyFile = "";
@@ -195,27 +191,15 @@ public class EnrichmentTopology {
 
                 // assuming kafka topic == topology name
                 String kafkaTopic = topologyName;
-
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-
                 StormTopology stormTopology = enrichmentTopology.buildTopology(
                         kafkaTopic,
                         ecloudMcsAddress);
-
-                config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(WORKER_COUNT)));
-                config.setMaxTaskParallelism(
-                        Integer.parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
-                config.put(Config.NIMBUS_THRIFT_PORT,
-                        Integer.parseInt(topologyProperties.getProperty(THRIFT_PORT)));
-                config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-                        topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-                config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(NIMBUS_SEEDS)}));
-                config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                        Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                StormSubmitter.submitTopology(topologyName, TopologyHelper.configureTopology(topologyProperties), stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
+
         }
     }
 }

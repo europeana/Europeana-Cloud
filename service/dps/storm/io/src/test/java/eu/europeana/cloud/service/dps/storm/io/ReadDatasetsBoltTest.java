@@ -1,4 +1,4 @@
-package eu.europeana.cloud.bolts;
+package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;

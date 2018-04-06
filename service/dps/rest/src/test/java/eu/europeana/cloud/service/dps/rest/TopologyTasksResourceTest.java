@@ -35,6 +35,7 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
@@ -51,6 +52,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget webTarget;
     private WebTarget detailedReportWebTarget;
     private WebTarget progressReportWebTarget;
+    private WebTarget killTaskWebTarget;
     private WebTarget errorsReportWebTarget;
     private WebTarget validationStatisticsReportWebTarget;
     private RecordServiceClient recordServiceClient;
@@ -62,6 +64,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private FilesCounter filesCounter;
     private KafkaSubmitService kafkaSubmitService;
     private TaskExecutionReportService reportService;
+    private TaskExecutionKillService killService;
     private ValidationStatisticsReportService validationStatisticsService;
 
     private static final String RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE";
@@ -90,6 +93,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         filesCounter = applicationContext.getBean(FilesCounter.class);
         context = applicationContext.getBean(ApplicationContext.class);
         reportService = applicationContext.getBean(TaskExecutionReportService.class);
+        killService = applicationContext.getBean(TaskExecutionKillService.class);
         validationStatisticsService = applicationContext.getBean(CassandraValidationStatisticsService.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
@@ -100,6 +104,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
         errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
         validationStatisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
+        killTaskWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/kill");
     }
 
     @Test
@@ -638,6 +643,37 @@ public class TopologyTasksResourceTest extends JerseyTest {
         Response detailedReportResponse = enrichedWebTarget.request().get();
         TaskInfo resultedTaskInfo = detailedReportResponse.readEntity(TaskInfo.class);
         assertThat(taskInfo, is(resultedTaskInfo));
+    }
+
+    @Test
+    public void shouldKillTheTask() throws Exception {
+        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(killService).killTask(eq(TASK_ID));
+        Response detailedReportResponse = enrichedWebTarget.request().post(null);
+        assertEquals(detailedReportResponse.getStatus(), 200);
+        assertEquals(detailedReportResponse.readEntity(String.class), "Task killing request was registered successfully");
+    }
+
+    @Test
+    public void killTaskShouldFailForNonExistedTopology() throws Exception {
+        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        doNothing().when(killService).killTask(eq(TASK_ID));
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
+        Response detailedReportResponse = enrichedWebTarget.request().post(null);
+        assertEquals(detailedReportResponse.getStatus(), 405);
+    }
+
+    @Test
+    public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
+        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        doNothing().when(killService).killTask(eq(TASK_ID));
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        Response detailedReportResponse = enrichedWebTarget.request().post(null);
+        assertEquals(detailedReportResponse.getStatus(), 405);
     }
 
     @Test

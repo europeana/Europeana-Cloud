@@ -8,5 +8,7 @@ public enum TaskState {
     SENT,
     CURRENTLY_PROCESSING,
     DROPPED,
-    PROCESSED;
+    PROCESSED,
+    CURRENTLY_DROPPING,
+
 }

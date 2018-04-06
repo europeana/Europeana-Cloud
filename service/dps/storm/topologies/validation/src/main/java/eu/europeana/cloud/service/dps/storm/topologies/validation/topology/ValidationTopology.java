@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.*;
@@ -23,7 +22,6 @@ import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -161,38 +159,25 @@ public class ValidationTopology {
 
     public static void main(String[] args) {
 
-        try{
-        Config config = new Config();
+        try {
+            if (args.length <= 2) {
 
-        if (args.length <= 2) {
-
-            String providedValidationPropertiesFile = "";
-            String providedPropertyFile = "";
-            if (args.length == 1)
-                providedPropertyFile = args[0];
-            else if (args.length == 2) {
-                providedPropertyFile = args[0];
-                providedValidationPropertiesFile = args[1];
+                String providedValidationPropertiesFile = "";
+                String providedPropertyFile = "";
+                if (args.length == 1)
+                    providedPropertyFile = args[0];
+                else if (args.length == 2) {
+                    providedPropertyFile = args[0];
+                    providedValidationPropertiesFile = args[1];
+                }
+                ValidationTopology validationTopology = new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
+                String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
+                // kafka topic == topology name
+                String kafkaTopic = topologyName;
+                String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
+                StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
+                StormSubmitter.submitTopology(topologyName, TopologyHelper.configureTopology(topologyProperties), stormTopology);
             }
-            ValidationTopology validationTopology = new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
-            String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
-            // kafka topic == topology name
-            String kafkaTopic = topologyName;
-            String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
-            StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
-            config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
-            config.setMaxTaskParallelism(
-                    Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
-            config.put(Config.NIMBUS_THRIFT_PORT,
-                    Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
-            config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
-                    topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(TopologyPropertyKeys.NIMBUS_SEEDS)}));
-            config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                    Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
-
-            StormSubmitter.submitTopology(topologyName, config, stormTopology);
-        }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
         }
