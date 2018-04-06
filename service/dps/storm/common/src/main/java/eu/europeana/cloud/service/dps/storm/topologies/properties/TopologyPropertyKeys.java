@@ -29,6 +29,7 @@ public final class TopologyPropertyKeys {
     public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
     public static final String REVISION_WRITER_BOLT_PARALLEL = "REVISION_WRITER_BOLT_PARALLEL";
     public static final String VALIDATION_BOLT_PARALLEL = "VALIDATION_BOLT_PARALLEL";
+    public static final String INDEXING_BOLT_PARALLEL = "INDEXING_BOLT_PARALLEL";
     public static final String STATISTICS_BOLT_PARALLEL = "STATISTICS_BOLT_PARALLEL";
 
 
@@ -53,6 +54,7 @@ public final class TopologyPropertyKeys {
     public static final String NIMBUS_SEEDS = "NIMBUS_SEEDS";
     public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
     public static final String VALIDATION_BOLT_NUMBER_OF_TASKS = "VALIDATION_BOLT_NUMBER_OF_TASKS";
+    public static final String INDEXING_BOLT_NUMBER_OF_TASKS = "INDEXING_BOLT_NUMBER_OF_TASKS";
     public static final String STATISTICS_BOLT_NUMBER_OF_TASKS = "STATISTICS_BOLT_NUMBER_OF_TASKS";
 
 
