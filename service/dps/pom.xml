@@ -31,7 +31,6 @@
         <module>rest</module>
         <module>rest-client-java</module>
         <module>storm/common</module>
-        <module>storm/kafka</module>
         <module>storm/io</module>
         <module>storm/topologies/xslt</module>
         <module>storm/examples</module>
