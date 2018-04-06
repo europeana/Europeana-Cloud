@@ -5,10 +5,8 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
-import eu.europeana.enrichment.utils.EnrichmentUtils;
-import eu.europeana.metis.dereference.DereferenceUtils;
+
 
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
@@ -35,8 +33,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         try {
             String fileContent = new String(stormTaskTuple.getFileData());
-            RDF input = DereferenceUtils.toRDF(fileContent);
-            RDF output = enrichmentWorker.process(input);
+            String output = enrichmentWorker.process(fileContent);
             emitEnrichedContent(stormTaskTuple, output);
         } catch (Exception e) {
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Remote Enrichment/dereference service caused the problem!");
@@ -44,9 +41,8 @@ public class EnrichmentBolt extends AbstractDpsBolt {
 
     }
 
-    private void emitEnrichedContent(StormTaskTuple stormTaskTuple, RDF output) throws Exception {
-        String resultString = EnrichmentUtils.convertRDFtoString(output);
-        prepareStormTaskTuple(stormTaskTuple, resultString);
+    private void emitEnrichedContent(StormTaskTuple stormTaskTuple, String output) throws Exception {
+        prepareStormTaskTuple(stormTaskTuple, output);
         outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
     }
 

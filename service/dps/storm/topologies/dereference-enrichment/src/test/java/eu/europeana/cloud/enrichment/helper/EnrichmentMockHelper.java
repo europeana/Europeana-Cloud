@@ -3,15 +3,11 @@ package eu.europeana.cloud.enrichment.helper;
 
 import eu.europeana.cloud.helper.TopologyTestHelper;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
-import eu.europeana.enrichment.utils.EnrichmentUtils;
-import eu.europeana.metis.dereference.DereferenceUtils;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.when;
 
 /**
@@ -22,18 +18,9 @@ public class EnrichmentMockHelper extends TopologyTestHelper {
     protected RepresentationIterator representationIterator;
 
     protected void mockEnrichmentService() throws Exception {
-        mockStaticEnrichmentUtils();
         enrichmentWorker = Mockito.mock(EnrichmentWorker.class);
         PowerMockito.whenNew(EnrichmentWorker.class).withAnyArguments().thenReturn(enrichmentWorker);
-        when(enrichmentWorker.process(isA(RDF.class))).thenReturn(new RDF());
-    }
-
-    private void mockStaticEnrichmentUtils() throws Exception {
-        PowerMockito.mockStatic(EnrichmentUtils.class);
-        when(EnrichmentUtils.convertRDFtoString(isA(RDF.class))).thenReturn("Converted String");
-
-        PowerMockito.mockStatic(DereferenceUtils.class);
-        when(DereferenceUtils.toRDF(anyString())).thenReturn(new RDF());
+        when(enrichmentWorker.process(anyString())).thenReturn("Converted String");
     }
 
     protected void mockRepresentationIterator() throws Exception {

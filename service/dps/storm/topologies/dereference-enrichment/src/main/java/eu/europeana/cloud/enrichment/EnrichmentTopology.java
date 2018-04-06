@@ -18,6 +18,9 @@ import org.apache.storm.kafka.ZkHosts;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.google.common.base.Throwables;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,6 +40,7 @@ public class EnrichmentTopology {
     private final static String TOPOLOGY_PROPERTIES_FILE = "enrichment-topology-config.properties";
     private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentTopology.class);
 
 
     public EnrichmentTopology(String defaultPropertyFile, String providedPropertyFile) {
@@ -173,41 +177,45 @@ public class EnrichmentTopology {
         return builder.createTopology();
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+        try {
 
-        Config config = new Config();
-        config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
+            Config config = new Config();
+            config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
-        if (args.length <= 1) {
+            if (args.length <= 1) {
 
-            String providedPropertyFile = "";
-            if (args.length == 1) {
-                providedPropertyFile = args[0];
+                String providedPropertyFile = "";
+                if (args.length == 1) {
+                    providedPropertyFile = args[0];
+                }
+
+                EnrichmentTopology enrichmentTopology = new EnrichmentTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
+                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
+
+                // assuming kafka topic == topology name
+                String kafkaTopic = topologyName;
+
+                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
+
+                StormTopology stormTopology = enrichmentTopology.buildTopology(
+                        kafkaTopic,
+                        ecloudMcsAddress);
+
+                config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(WORKER_COUNT)));
+                config.setMaxTaskParallelism(
+                        Integer.parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
+                config.put(Config.NIMBUS_THRIFT_PORT,
+                        Integer.parseInt(topologyProperties.getProperty(THRIFT_PORT)));
+                config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
+                        topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
+                config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(NIMBUS_SEEDS)}));
+                config.put(Config.STORM_ZOOKEEPER_SERVERS,
+                        Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
+                StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
-
-            EnrichmentTopology enrichmentTopology = new EnrichmentTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-            String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-
-            // assuming kafka topic == topology name
-            String kafkaTopic = topologyName;
-
-            String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-
-            StormTopology stormTopology = enrichmentTopology.buildTopology(
-                    kafkaTopic,
-                    ecloudMcsAddress);
-
-            config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(WORKER_COUNT)));
-            config.setMaxTaskParallelism(
-                    Integer.parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
-            config.put(Config.NIMBUS_THRIFT_PORT,
-                    Integer.parseInt(topologyProperties.getProperty(THRIFT_PORT)));
-            config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-                    topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(NIMBUS_SEEDS)}));
-            config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                    Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
-            StormSubmitter.submitTopology(topologyName, config, stormTopology);
+        } catch (Exception e) {
+            LOGGER.error(Throwables.getStackTraceAsString(e));
         }
     }
 }
