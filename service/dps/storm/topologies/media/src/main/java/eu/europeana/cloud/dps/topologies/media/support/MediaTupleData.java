@@ -1,16 +1,31 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.metis.mediaservice.EdmObject;
+import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
 
-public class MediaTupleData implements Serializable {
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
+import eu.europeana.metis.mediaservice.EdmObject;
+import eu.europeana.metis.mediaservice.MediaException;
+
+@DefaultSerializer(MTDSerializer.class)
+public class MediaTupleData {
 	
+	@DefaultSerializer(JavaSerializer.class)
 	public static class FileInfo implements Serializable {
 		private final String url;
 		private File content;
@@ -56,8 +71,8 @@ public class MediaTupleData implements Serializable {
 	final private Representation edmRepresentation;
 	
 	private EdmObject edm;
-	private List<FileInfo> fileInfos;
-	private Map<String, Integer> connectionLimitsPerSource;
+	private List<FileInfo> fileInfos = Collections.emptyList();
+	private Map<String, Integer> connectionLimitsPerSource = Collections.emptyMap();
 	
 	public MediaTupleData(long taskId, Representation edmRepresentation) {
 		this.taskId = taskId;
@@ -94,5 +109,35 @@ public class MediaTupleData implements Serializable {
 	
 	public void setConnectionLimitsPerSource(Map<String, Integer> connectionLimitsPerSource) {
 		this.connectionLimitsPerSource = connectionLimitsPerSource;
+	}
+	
+	public static class MTDSerializer extends com.esotericsoftware.kryo.Serializer<MediaTupleData> {
+		
+		EdmObject.Parser parser = new EdmObject.Parser();
+		EdmObject.Writer writer = new EdmObject.Writer();
+		
+		@Override
+		public void write(Kryo kryo, Output output, MediaTupleData data) {
+			output.writeLong(data.taskId);
+			kryo.writeObject(output, data.edmRepresentation);
+			kryo.writeObject(output, writer.toXmlBytes(data.edm));
+			kryo.writeObject(output, new ArrayList<>(data.fileInfos));
+			kryo.writeObject(output, new HashMap<>(data.connectionLimitsPerSource));
+		}
+		
+		@Override
+		public MediaTupleData read(Kryo kryo, Input input, Class<MediaTupleData> type) {
+			long taskId = input.readLong();
+			Representation representation = kryo.readObject(input, Representation.class);
+			MediaTupleData data = new MediaTupleData(taskId, representation);
+			try (ByteArrayInputStream byteStream = new ByteArrayInputStream(kryo.readObject(input, byte[].class))) {
+				data.edm = parser.parseXml(byteStream);
+			} catch (MediaException | IOException e) {
+				throw new RuntimeException("EDM parsing failed", e);
+			}
+			data.fileInfos = kryo.readObject(input, ArrayList.class);
+			data.connectionLimitsPerSource = kryo.readObject(input, HashMap.class);
+			return data;
+		}
 	}
 }

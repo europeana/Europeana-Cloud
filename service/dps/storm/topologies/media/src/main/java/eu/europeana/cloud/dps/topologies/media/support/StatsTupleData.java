@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
+
+@DefaultSerializer(JavaSerializer.class)
 public class StatsTupleData implements Serializable {
 	
 	public static final String FIELD_NAME = "mediaTopology.statsData";

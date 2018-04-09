@@ -2,6 +2,10 @@ package eu.europeana.cloud.dps.topologies.media.support;
 
 import java.io.Serializable;
 
+import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
+
+@DefaultSerializer(JavaSerializer.class)
 public class StatsInitTupleData implements Serializable {
 	
 	public static final String FIELD_NAME = "mediaTopology.statsInit";
