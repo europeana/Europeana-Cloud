@@ -170,7 +170,7 @@
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
-        <version.jacoco>0.8.0</version.jacoco>
+        <version.jacoco>0.8.1</version.jacoco>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
     </properties>
 
@@ -183,7 +183,7 @@
                         <plugin>
                             <groupId>org.jacoco</groupId>
                             <artifactId>jacoco-maven-plugin</artifactId>
-                            <version>0.7.6.201602180812</version>
+                            <version>${version.jacoco}</version>
                         </plugin>
                     </plugins>
                 </pluginManagement>
