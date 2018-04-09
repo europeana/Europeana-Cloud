@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -19,14 +20,17 @@ import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.memoryCacheTaskKillerUtil;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -48,7 +52,7 @@ public class IdentifiersHarvestingBoltTest {
     private ServiceProvider source;
 
     @Mock
-    private CassandraTaskInfoDAO taskInfoDAO;
+    private MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
 
 
     @InjectMocks
@@ -102,11 +106,18 @@ public class IdentifiersHarvestingBoltTest {
         return tuple;
     }
 
+
+
     @Before
-    public void init() {
-        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
+    public void init() throws Exception {
+        mockStaticField(IdentifiersHarvestingBolt.class.getField("memoryCacheTaskKillerUtil"),memoryCacheTaskKillerUtil);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(anyLong())).thenReturn(false);
     }
 
+    static void mockStaticField(Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+        field.set(null, newValue);
+    }
     @Test
     public void testRetriesFailed() {
         //given
@@ -304,7 +315,7 @@ public class IdentifiersHarvestingBoltTest {
         //given
         StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, null, null);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false, true);
         //when
         instance.execute(tuple);
         //then

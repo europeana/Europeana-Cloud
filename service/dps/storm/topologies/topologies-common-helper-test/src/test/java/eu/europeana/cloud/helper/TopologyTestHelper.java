@@ -11,6 +11,7 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
 import org.apache.storm.Config;
 import org.apache.storm.testing.CompleteTopologyParam;
 import org.apache.storm.testing.MkClusterParam;
@@ -33,6 +34,7 @@ public class TopologyTestHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected CassandraTaskErrorsDAO taskErrorsDAO;
+    protected MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
 
     protected FileServiceClient fileServiceClient;
     protected DataSetServiceClient dataSetClient;
@@ -53,6 +55,11 @@ public class TopologyTestHelper {
         taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
         PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
         when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
+
+        memoryCacheTaskKillerUtil = Mockito.mock(MemoryCacheTaskKillerUtil.class);
+        PowerMockito.mockStatic(MemoryCacheTaskKillerUtil.class);
+        when(MemoryCacheTaskKillerUtil.getMemoryCacheTaskKillerUtil(isA(CassandraConnectionProvider.class))).thenReturn(memoryCacheTaskKillerUtil);
+
         subTaskInfoDAO = Mockito.mock(CassandraSubTaskInfoDAO.class);
         PowerMockito.mockStatic(CassandraSubTaskInfoDAO.class);
         when(CassandraSubTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(subTaskInfoDAO);

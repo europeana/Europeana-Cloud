@@ -12,8 +12,8 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
+import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -28,6 +28,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -51,7 +52,7 @@ public class ReadDatasetBoltTest {
 
 
     @Mock
-    private CassandraTaskInfoDAO taskInfoDAO;
+    private MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
 
 
     @InjectMocks
@@ -68,12 +69,18 @@ public class ReadDatasetBoltTest {
 
 
     @Before
-    public void init() {
+    public void init() throws Exception {
         datasetClient = mock(DataSetServiceClient.class);
         recordServiceClient = mock(RecordServiceClient.class);
         representationIterator = mock(RepresentationIterator.class);
+        setStaticField(ReadDatasetBolt.class.getField("memoryCacheTaskKillerUtil"), memoryCacheTaskKillerUtil);
         testHelper = new TestHelper();
 
+    }
+
+    static void setStaticField(Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+        field.set(null, newValue);
     }
 
     @Captor
@@ -82,7 +89,7 @@ public class ReadDatasetBoltTest {
     @Test
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL), new Revision());
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         List<Representation> representations = new ArrayList<>();
@@ -97,7 +104,7 @@ public class ReadDatasetBoltTest {
     @Test
     public void killTaskShouldPreventEmittingRepresentation() throws MCSException, URISyntaxException {
         //given
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false, true);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL), new Revision());
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         List<Representation> representations = new ArrayList<>();
@@ -112,7 +119,7 @@ public class ReadDatasetBoltTest {
     @Test
     public void successfulStormTupleExecutionWithLatestRevisions() throws MCSException, URISyntaxException {
         //given
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
@@ -137,7 +144,8 @@ public class ReadDatasetBoltTest {
     @Test
     public void killTaskShouldPreventEmittingRepresentationWhenExecutionWithLatestRevisions() throws MCSException, URISyntaxException {
         //given
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        System.out.println(memoryCacheTaskKillerUtil);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false, true);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
@@ -178,7 +186,7 @@ public class ReadDatasetBoltTest {
     @Test
     public void successfulStormTupleExecutionWithSpecificRevisions() throws MCSException, URISyntaxException {
         //given
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
 
@@ -204,7 +212,7 @@ public class ReadDatasetBoltTest {
     @Test
     public void killTaskShouldPreventEmittingRepresentationWhenExecutionWithSpecificRevisions() throws MCSException, URISyntaxException {
         //given
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false, true);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
 

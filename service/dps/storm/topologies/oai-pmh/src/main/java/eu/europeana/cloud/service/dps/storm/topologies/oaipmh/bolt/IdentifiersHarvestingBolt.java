@@ -109,7 +109,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
         }
 
         int count = 0;
-        while (hasNext(headerIterator) && !taskDAO.hasKillFlag(stormTaskTuple.getTaskId())) {
+        while (hasNext(headerIterator) && !memoryCacheTaskKillerUtil.hasKillFlag(stormTaskTuple.getTaskId())) {
             Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier());

@@ -9,6 +9,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -42,12 +43,14 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CassandraTaskInfoDAO.class})
+@PrepareForTest({MemoryCacheTaskKillerUtil.class})
 public class ReadRepresentationBoltTest {
 
     private ReadRepresentationBolt instance;
     private OutputCollector oc;
     private CassandraTaskInfoDAO taskInfoDAO;
+
+    private MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
@@ -60,10 +63,13 @@ public class ReadRepresentationBoltTest {
     public void init() {
         oc = mock(OutputCollector.class);
         fileClient = mock(FileServiceClient.class);
-        taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
-        PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
-        when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
-        instance = getTestInstance("http://localhost:8080/mcs", oc, taskInfoDAO);
+
+        memoryCacheTaskKillerUtil = Mockito.mock(MemoryCacheTaskKillerUtil.class);
+        PowerMockito.mockStatic(MemoryCacheTaskKillerUtil.class);
+        when(MemoryCacheTaskKillerUtil.getMemoryCacheTaskKillerUtil(isA(CassandraConnectionProvider.class))).thenReturn(memoryCacheTaskKillerUtil);
+
+
+        instance = getTestInstance("http://localhost:8080/mcs", oc, memoryCacheTaskKillerUtil);
         testHelper = new TestHelper();
     }
 
@@ -76,7 +82,7 @@ public class ReadRepresentationBoltTest {
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false, false);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(anyLong())).thenReturn(false, false);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
@@ -99,7 +105,7 @@ public class ReadRepresentationBoltTest {
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false, true);
+        when(memoryCacheTaskKillerUtil.hasKillFlag(anyLong())).thenReturn(false, true);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);

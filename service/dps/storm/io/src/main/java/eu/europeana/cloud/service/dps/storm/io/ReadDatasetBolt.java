@@ -70,7 +70,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                     } else {
                         RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
                         long taskId = t.getTaskId();
-                        while (iterator.hasNext() && !taskDAO.hasKillFlag(taskId)) {
+                        while (iterator.hasNext() && !memoryCacheTaskKillerUtil.hasKillFlag(taskId)) {
                             Representation representation = iterator.next();
                             emitRepresentation(t, representationName, representation);
                         }
@@ -97,7 +97,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(datasetName, datasetProvider, revisionProvider, revisionName, representationName, false);
         long taskId = t.getTaskId();
         for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
-            if (!taskDAO.hasKillFlag(taskId)) {
+            if (!memoryCacheTaskKillerUtil.hasKillFlag(taskId)) {
                 String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
                 RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()));
                 Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
@@ -111,7 +111,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
         List<CloudTagsResponse> cloudTagsResponses = dataSetServiceClient.getDataSetRevisions(datasetProvider, datasetName, representationName, revisionName, revisionProvider, revisionTimestamp);
         long taskId = t.getTaskId();
         for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-            if (!taskDAO.hasKillFlag(taskId)) {
+            if (!memoryCacheTaskKillerUtil.hasKillFlag(taskId)) {
                 String responseCloudId = cloudTagsResponse.getCloudId();
                 RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
                 Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());

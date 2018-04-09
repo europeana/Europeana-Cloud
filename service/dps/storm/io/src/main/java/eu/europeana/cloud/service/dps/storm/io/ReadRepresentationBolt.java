@@ -10,7 +10,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
 import org.apache.storm.task.OutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +32,11 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
     /**
      * Should be used only on tests.
      */
-    public static ReadRepresentationBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,CassandraTaskInfoDAO taskInfoDAO
+    public static ReadRepresentationBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil
     ) {
         ReadRepresentationBolt instance = new ReadRepresentationBolt(ecloudMcsAddress);
         instance.outputCollector = outputCollector;
-        instance.taskDAO=taskInfoDAO;
+        instance.memoryCacheTaskKillerUtil=memoryCacheTaskKillerUtil;
         return instance;
 
     }
@@ -62,7 +62,7 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
         fileClient.useAuthorizationHeader(authorizationHeader);
         if (representation != null) {
             for (File file : representation.getFiles()) {
-                if (!taskDAO.hasKillFlag(t.getTaskId())) {
+                if (!memoryCacheTaskKillerUtil.hasKillFlag(t.getTaskId())) {
                     final String fileUrl = fileClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
                     StormTaskTuple stormTaskTuple = buildNextStormTuple(t, fileUrl);
                     outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());

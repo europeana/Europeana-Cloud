@@ -50,7 +50,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 1/25/2018.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class,CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class,CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class,MemoryCacheTaskKillerUtil.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 

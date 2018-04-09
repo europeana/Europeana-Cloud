@@ -60,7 +60,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 3/22/2018.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({HTTPHarvesterBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, HarvestingWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class})
+@PrepareForTest({HTTPHarvesterBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, HarvestingWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class,MemoryCacheTaskKillerUtil.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
 

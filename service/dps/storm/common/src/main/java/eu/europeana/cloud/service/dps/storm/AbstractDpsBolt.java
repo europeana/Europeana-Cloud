@@ -5,7 +5,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
 
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -31,7 +31,8 @@ import static java.lang.Integer.parseInt;
  */
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
-    protected CassandraTaskInfoDAO taskDAO;
+
+    public static MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries
@@ -58,7 +59,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
-            if (!taskDAO.hasKillFlag(t.getTaskId())) {
+            if (!memoryCacheTaskKillerUtil.hasKillFlag(t.getTaskId())) {
                 LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
                 execute(t);
             }
@@ -92,7 +93,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         String password = (String) stormConfig.get(CASSANDRA_PASSWORD);
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
-        this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+
+        memoryCacheTaskKillerUtil = MemoryCacheTaskKillerUtil.getMemoryCacheTaskKillerUtil(cassandraConnectionProvider);
     }
 
     @Override
