@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +28,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.dps.topologies.media.support.CancelChecker;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
@@ -123,13 +124,16 @@ public class ProcessingBolt extends BaseRichBolt {
 		resultsUploader.stop();
 	}
 	
-	private void cleanupRecord(MediaTupleData mediaData, Map<File, String> thumbnails) {
+	private void cleanupRecord(MediaTupleData mediaData, Map<String, String> thumbnails) {
 		for (FileInfo fileInfo : mediaData.getFileInfos()) {
 			TempFileSync.delete(fileInfo);
 		}
-		for (File thumb : thumbnails.keySet()) {
-			if (!thumb.delete())
-				logger.warn("Could not delete thumbnail from temp: {}", thumb);
+		for (String thumb : thumbnails.keySet()) {
+			try {
+				Files.delete(Paths.get(thumb));
+			} catch (IOException e) {
+				logger.warn("Could not delete thumbnail from temp: " + thumb, e);
+			}
 		}
 	}
 	
@@ -139,7 +143,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			Tuple tuple;
 			StatsTupleData statsData;
 			MediaTupleData mediaData;
-			Map<File, String> thumbnails;
+			Map<String, String> thumbnails;
 			byte[] edmContents;
 			Map<String, String> errorsByUrl;
 		}
@@ -263,8 +267,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			void saveThumbnails() {
 				long start = System.currentTimeMillis();
 				boolean uploaded = false;
-				for (Entry<File, String> entry : currentItem.thumbnails.entrySet()) {
-					File thumbnail = entry.getKey();
+				for (Entry<String, String> entry : currentItem.thumbnails.entrySet()) {
+					File thumbnail = new File(entry.getKey());
 					String url = entry.getValue();
 					try {
 						amazonClient.putObject(storageBucket, thumbnail.getName(), thumbnail);
