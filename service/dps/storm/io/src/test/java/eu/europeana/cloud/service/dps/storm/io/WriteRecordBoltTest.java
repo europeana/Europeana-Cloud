@@ -21,7 +21,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
@@ -30,7 +30,6 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 /**
  * Created by Tarek on 7/21/2017.

@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import com.lyncode.xoai.model.oaipmh.Verb;
-import com.lyncode.xoai.serviceprovider.client.HttpOAIClient;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
-import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
-import com.lyncode.xoai.serviceprovider.parameters.Parameters;
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.OAIResponseParseException;
+import org.dspace.xoai.model.oaipmh.Verb;
+import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
+import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
@@ -17,7 +18,6 @@ import org.xml.sax.InputSource;
 
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.*;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +138,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        LOGGER.error(Throwables.getStackTraceAsString(e));
                     }
                 } else {
                     throw e;
@@ -170,8 +170,9 @@ public class OaiPmhFilesCounter extends FilesCounter {
     }
 
     private boolean specified(Set<String> strings) {
-        if (strings == null || strings.isEmpty())
+        if (strings == null || strings.isEmpty()) {
             return false;
+        }
         return true;
     }
 

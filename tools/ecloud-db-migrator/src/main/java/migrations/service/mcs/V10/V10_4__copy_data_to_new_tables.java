@@ -1,15 +1,14 @@
 package migrations.service.mcs.V10;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
-import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
 import static migrations.common.TableCopier.hasNextRow;
+import com.datastax.driver.core.*;
 
 public class V10_4__copy_data_to_new_tables implements JavaMigration {
 

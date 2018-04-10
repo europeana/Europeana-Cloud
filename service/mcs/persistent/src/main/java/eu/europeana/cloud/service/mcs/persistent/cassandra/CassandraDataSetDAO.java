@@ -418,8 +418,9 @@ public class CassandraDataSetDAO {
         } else {
             // next token is set, parse it to retrieve paging state and bucket id (token is concatenation of paging state and bucket id using _ character
             String[] parts = nextToken.split("_");
-            if (parts.length != 2)
+            if (parts.length != 2) {
                 throw new IllegalArgumentException("nextToken format is wrong. nextToken = " + nextToken);
+            }
 
             // first element is the paging state
             state = getPagingState(parts[0]);
@@ -428,16 +429,18 @@ public class CassandraDataSetDAO {
         }
 
         // if the bucket is null it means we reached the end of data
-        if (bucket == null)
+        if (bucket == null) {
             return representationStubs;
+        }
 
         // bind parameters, set limit to max int value
         BoundStatement boundStatement = listDataSetRepresentationsStatement.bind(providerDataSetId, UUID.fromString(bucket.getBucketId()), Integer.MAX_VALUE);
         // limit page to "limit" number of results
         boundStatement.setFetchSize(limit);
         // when this is not a first page call set paging state in the statement
-        if (state != null)
+        if (state != null) {
             boundStatement.setPagingState(state);
+        }
 
         // execute query
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
@@ -554,8 +557,9 @@ public class CassandraDataSetDAO {
      */
     public Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId, String version)
             throws NoHostAvailableException, QueryExecutionException, RepresentationNotExistsException {
-        if (version == null)
+        if (version == null) {
             throw new RepresentationNotExistsException();
+        }
         BoundStatement boundStatement = getDataSetsForRepresentationVersionStatement.bind(cloudId, schemaId, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -695,8 +699,9 @@ public class CassandraDataSetDAO {
         for (Row row : rs) {
             String provider_dataset_id = row.getString("provider_dataset_id");
             String[] parts = provider_dataset_id.split("\n");
-            if (parts.length != 2)
+            if (parts.length != 2) {
                 continue;
+            }
 
             // parts[0] should contain provider id, parts[1] should contain dataset id
             providerDataSets = result.get(parts[0]);
@@ -850,8 +855,9 @@ public class CassandraDataSetDAO {
         // limit page to "limit" number of results
         boundStatement.setFetchSize(limit);
         // when this is not a first page call set paging state in the statement
-        if (nextToken != null)
+        if (nextToken != null) {
             boundStatement.setPagingState(PagingState.fromString(nextToken));
+        }
         // execute query
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -909,8 +915,9 @@ public class CassandraDataSetDAO {
         } else {
             // next token is set, parse it to retrieve paging state and bucket id (token is concatenation of paging state and bucket id using _ character
             String[] parts = nextToken.split("_");
-            if (parts.length != 2)
+            if (parts.length != 2) {
                 throw new IllegalArgumentException("nextToken format is wrong. nextToken = " + nextToken);
+            }
 
             // first element is the paging state
             state = getPagingState(parts[0]);
@@ -919,16 +926,18 @@ public class CassandraDataSetDAO {
         }
 
         // if the bucket is null it means we reached the end of data
-        if (bucketId == null)
+        if (bucketId == null) {
             return result;
+        }
 
         // bind parameters, set limit to max int value
         BoundStatement boundStatement = getDataSetCloudIdsByRepresentationPublished.bind(providerId, dataSetId, UUID.fromString(bucketId), representationName, dateFrom, Integer.MAX_VALUE);
         // limit page to "limit" number of results
         boundStatement.setFetchSize(limit);
         // when this is not a first page call set paging state in the statement
-        if (state != null)
+        if (state != null) {
             boundStatement.setPagingState(state);
+        }
 
         // execute query
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
@@ -991,13 +1000,15 @@ public class CassandraDataSetDAO {
             throws NoHostAvailableException, QueryExecutionException {
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>();
         BoundStatement boundStatement = null;
-        if (startFrom == null)
+        if (startFrom == null) {
             startFrom = "";
+        }
 
-        if (isDeleted == null)
+        if (isDeleted == null) {
             boundStatement = getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.bind(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, numberOfElementsPerPage);
-        else
+        } else
             boundStatement = getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted.bind(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, isDeleted, numberOfElementsPerPage);
+
 
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -1024,8 +1035,9 @@ public class CassandraDataSetDAO {
     private String getNextSlice(PagingState pagingState, String bucketId, String providerId, String dataSetId) {
         if (pagingState == null) {
             // we possibly reached the end of a bucket, if there are more buckets we should prepare next slice otherwise not
-            if (getNextBucket(providerId, dataSetId, bucketId) != null)
+            if (getNextBucket(providerId, dataSetId, bucketId) != null) {
                 return "_" + bucketId;
+            }
         } else
             return pagingState.toString() + "_" + bucketId;
         return null;
@@ -1080,8 +1092,9 @@ public class CassandraDataSetDAO {
      * @return null when token part is empty or null paging state otherwise
      */
     private PagingState getPagingState(String tokenPart) {
-        if (tokenPart != null && !tokenPart.isEmpty())
+        if (tokenPart != null && !tokenPart.isEmpty()) {
             return PagingState.fromString(tokenPart);
+        }
         return null;
     }
 
@@ -1093,8 +1106,9 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(bs, rs);
         Row row = rs.one();
         // there should be only one row or none
-        if (row != null)
+        if (row != null) {
             return row.getUUID("bucket_id").toString();
+        }
         return null;
     }
 
@@ -1118,8 +1132,9 @@ public class CassandraDataSetDAO {
         String bucketId = null;
         Bucket bucketCount = getCurrentProviderDatasetBucket(dataSetProviderId, dataSetId);
         // when there is no bucket or bucket rows count is max we should add another bucket
-        if (bucketCount == null || bucketCount.getRowsCount() == MAX_PROVIDER_DATASET_BUCKET_COUNT)
+        if (bucketCount == null || bucketCount.getRowsCount() == MAX_PROVIDER_DATASET_BUCKET_COUNT) {
             bucketId = createBucket();
+        }
         else
             bucketId = bucketCount.getBucketId();
         increaseBucketCount(dataSetProviderId, dataSetId, bucketId);
@@ -1269,8 +1284,9 @@ public class CassandraDataSetDAO {
                 globalId);
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);
-        if (rs.getAvailableWithoutFetching() == 0)
+        if (rs.getAvailableWithoutFetching() == 0) {
             return null;
+        }
         String version = rs.one().getUUID("version_id").toString();
         return version;
 
@@ -1294,8 +1310,9 @@ public class CassandraDataSetDAO {
                 globalId);
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);
-        if (rs.getAvailableWithoutFetching() == 0)
+        if (rs.getAvailableWithoutFetching() == 0) {
             return null;
+        }
         return rs.one().getDate("revision_timestamp");
     }
 

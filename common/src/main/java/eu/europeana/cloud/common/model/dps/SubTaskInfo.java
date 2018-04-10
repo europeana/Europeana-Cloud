@@ -85,21 +85,35 @@ public class SubTaskInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SubTaskInfo)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SubTaskInfo)) {
+            return false;
+        }
 
         SubTaskInfo that = (SubTaskInfo) o;
 
-        if (additionalInformations != null ? !additionalInformations.equals(that.additionalInformations) : that.additionalInformations != null)
+        if (additionalInformations != null ? !additionalInformations.equals(that.additionalInformations) : that.additionalInformations != null) {
             return false;
-        if (info != null ? !info.equals(that.info) : that.info != null) return false;
-        if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
-
-        if (resourceNum != that.resourceNum) return false;
-
-        if (resultResource != null ? !resultResource.equals(that.resultResource) : that.resultResource != null)
+        }
+        if (info != null ? !info.equals(that.info) : that.info != null) {
             return false;
-        if (state != that.state) return false;
+        }
+        if (resource != null ? !resource.equals(that.resource) : that.resource != null) {
+            return false;
+        }
+
+        if (resourceNum != that.resourceNum) {
+            return false;
+        }
+
+        if (resultResource != null ? !resultResource.equals(that.resultResource) : that.resultResource != null) {
+            return false;
+        }
+        if (state != that.state) {
+            return false;
+        }
 
         return true;
     }

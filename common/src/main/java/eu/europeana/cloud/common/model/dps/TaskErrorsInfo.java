@@ -46,12 +46,18 @@ public class TaskErrorsInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TaskErrorsInfo)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof TaskErrorsInfo)) {
+            return false;
+        }
 
         TaskErrorsInfo taskInfo = (TaskErrorsInfo) o;
 
-        if (id != taskInfo.id) return false;
+        if (id != taskInfo.id) {
+            return false;
+        }
 
         return errors.equals(taskInfo.errors);
     }

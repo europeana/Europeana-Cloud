@@ -1,8 +1,9 @@
 package eu.europeana.cloud.swiftmigrate;
 
-import static junit.framework.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
+
+import static junit.framework.Assert.assertEquals;
 
 public class CustomFileNameMigratorTest {
 

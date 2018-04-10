@@ -21,7 +21,6 @@ import java.net.URISyntaxException;
 
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.management.*"})

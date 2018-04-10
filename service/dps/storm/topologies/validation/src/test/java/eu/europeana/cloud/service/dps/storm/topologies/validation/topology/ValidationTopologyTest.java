@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -9,6 +10,8 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.ValidationMockHelper;
 import eu.europeana.cloud.service.dps.storm.utils.*;
@@ -26,6 +29,7 @@ import org.apache.storm.tuple.Values;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -33,20 +37,19 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
@@ -56,14 +59,15 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*"})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, StatisticsBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class ValidationTopologyTest extends ValidationMockHelper {
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
 
     private static final String DATASET_STREAM = "DATASET_URLS";
     private static final String FILE_STREAM = "FILE_URLS";
-
-
     private static final String TASK_PARAMETERS_WITH_OUTPUT_REVISION = "\"parameters\":" +
             "{\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
             "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
@@ -80,7 +84,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
 
     private static Map<String, String> routingRules;
     private static StormTopology topology;
-    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.VALIDATION_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.VALIDATION_BOLT, TopologyHelper.STATISTICS_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
 
     @BeforeClass
@@ -89,6 +93,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         routingRules.put(DATASET_STREAM, DATASET_STREAM);
         routingRules.put(FILE_STREAM, FILE_STREAM);
         buildTopology();
+
 
     }
 
@@ -101,6 +106,13 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         mockRevisionServiceClient();
         mockRepresentationIterator();
         configureMocks();
+        wireMockRule.resetAll();
+        wireMockRule.stubFor(get(urlEqualTo("/test_schema.zip"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withFixedDelay(2000)
+                        .withBodyFile("test_schema.zip")));
+
     }
 
     private void assertTopology(final String input) {
@@ -132,6 +144,32 @@ public class ValidationTopologyTest extends ValidationMockHelper {
 
     }
 
+    @Test
+    public final void testBasicTopologyExternal() throws MCSException, IOException, URISyntaxException {
+        //given
+        prepareForFileForExternalUrls();
+        String taskParametersWithEdmExternalSchema = "\"parameters\":" +
+                "{\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
+                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
+                "\"SCHEMA_NAME\":\"edm-external\"}," +
+                "\"taskId\":1," +
+                "\"outputRevision\":" +
+                "{\"revisionName\":\"revisionName\"," +
+                "\"revisionProviderId\":\"revisionProvider\"," +
+                "\"creationTimeStamp\":1490178872617," +
+                "\"published\":false," +
+                "\"acceptance\":false," +
+                "\"deleted\":false}," +
+                "\"taskName\":\"taskName\"}";
+
+        final String input = "{\"inputData\":" +
+                "{\"FILE_URLS\":" +
+                "[\"" + SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2 + "\"]}," +
+                taskParametersWithEdmExternalSchema;
+        assertTopology(input);
+
+    }
+
 
     @Test
     public final void testTopologyWithDataSetAndOutputRevision() throws MCSException, IOException, URISyntaxException {
@@ -148,10 +186,21 @@ public class ValidationTopologyTest extends ValidationMockHelper {
     }
 
     private final void prepareForFileUrls() throws URISyntaxException, IOException, MCSException {
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE2)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
+        prepareMockFileUrls();
         when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
         when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
+    }
+
+
+    private final void prepareForFileForExternalUrls() throws URISyntaxException, IOException, MCSException {
+        prepareMockFileUrls();
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473.xml"))));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473.xml"))));
+    }
+
+    private final void prepareMockFileUrls() throws URISyntaxException {
+        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
+        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE2)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
     }
 
     private final void prepareForDataset() throws URISyntaxException, IOException, MCSException {
@@ -211,6 +260,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         ReadDatasetBolt readDataSetBolt = new ReadDatasetBolt(MCS_URL);
         ReadRepresentationBolt readRepresentationBolt = new ReadRepresentationBolt(MCS_URL);
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
+        StatisticsBolt statisticsBolt = new StatisticsBolt("", 1, "", "", "");
         TestInspectionBolt endTest = new TestInspectionBolt();
         TopologyBuilder builder = new TopologyBuilder();
 
@@ -221,8 +271,9 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         builder.setBolt(TopologyHelper.READ_REPRESENTATION_BOLT, readRepresentationBolt).shuffleGrouping(TopologyHelper.READ_DATASET_BOLT);
         builder.setBolt(TopologyHelper.RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, FILE_STREAM)
                 .shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
-        builder.setBolt(TopologyHelper.VALIDATION_BOLT, new ValidationBolt()).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
-        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL)).shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
+        builder.setBolt(TopologyHelper.VALIDATION_BOLT, new ValidationBolt(readProperties("validation.properties"))).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
+        builder.setBolt(TopologyHelper.STATISTICS_BOLT, statisticsBolt).shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
+        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL)).shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
@@ -232,8 +283,15 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                 .fieldsGrouping(TopologyHelper.READ_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
         topology = builder.createTopology();
+    }
+
+    private static Properties readProperties(String propertyFilename) {
+        Properties props = new Properties();
+        PropertyFileLoader.loadPropertyFile(propertyFilename, "", props);
+        return props;
     }
 }

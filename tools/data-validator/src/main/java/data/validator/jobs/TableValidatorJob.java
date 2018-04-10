@@ -2,6 +2,7 @@ package data.validator.jobs;
 
 
 import data.validator.DataValidator;
+
 import java.util.concurrent.Callable;
 
 /**

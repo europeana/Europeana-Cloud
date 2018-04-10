@@ -3,7 +3,6 @@ package data.validator.validator;
 import data.validator.DataValidator;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.apache.log4j.Logger;
-import org.springframework.context.ApplicationContext;
 
 /**
  * Created by Tarek on 5/2/2017.

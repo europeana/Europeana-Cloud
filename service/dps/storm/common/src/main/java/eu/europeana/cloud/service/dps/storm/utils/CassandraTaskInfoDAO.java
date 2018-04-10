@@ -6,12 +6,13 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.*;
-import eu.europeana.cloud.service.dps.exception.TaskErrorsInfoDoesNotExistException;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.TaskInfo} DAO
@@ -29,13 +30,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     private static CassandraTaskInfoDAO instance = null;
 
-    public static CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraTaskInfoDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraTaskInfoDAO(cassandra);
-                }
-            }
+            instance = new CassandraTaskInfoDAO(cassandra);
         }
         return instance;
     }

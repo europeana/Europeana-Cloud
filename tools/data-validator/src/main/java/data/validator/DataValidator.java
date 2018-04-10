@@ -1,19 +1,16 @@
 package data.validator;
 
-import com.datastax.driver.core.*;
-
-import static data.validator.constants.Constants.*;
-
 import data.validator.cql.CassandraHelper;
 import data.validator.jobs.RowsValidatorJob;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.apache.log4j.Logger;
 
-import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import static data.validator.constants.Constants.*;
 
 
 /**

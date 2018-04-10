@@ -8,11 +8,13 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.sche
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
+import org.dspace.xoai.model.oaipmh.Granularity;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.INTERVAL;
 
@@ -25,6 +27,7 @@ public class Splitter {
     private OutputCollector outputCollector;
     private OAIHelper oaiHelper;
     private long interval;
+    private Granularity granularity;
 
     public Splitter(StormTaskTuple stormTaskTuple, Tuple inputTuple, OutputCollector outputCollector, OAIHelper oaiHelper, long defaultInterval) {
         this.stormTaskTuple = stormTaskTuple;
@@ -32,8 +35,11 @@ public class Splitter {
         this.outputCollector = outputCollector;
         this.oaiHelper = oaiHelper;
         this.interval = getInterval(defaultInterval);
+        initGranularity();
+    }
 
-
+    private void initGranularity() {
+        this.granularity = getOaiHelper().getGranularity();
     }
 
     public void splitBySchema() {
@@ -43,10 +49,12 @@ public class Splitter {
 
 
     public void separateSchemaBySet(String schema, Set<String> sets, Date start, Date end) {
-        if (start == null)
+        if (start == null) {
             start = oaiHelper.getEarlierDate();
-        if (end == null)
+        }
+        if (end == null) {
             end = new Date();
+        }
         if (sets == null || sets.isEmpty()) {
             emitNextTupleByDateRange(schema, null, start, end);
         } else
@@ -56,6 +64,12 @@ public class Splitter {
     }
 
     private void emitNextTupleByDateRange(String schema, String set, Date start, Date end) {
+
+        long millisecondsToAdd = 1;
+        if(granularity.equals(Granularity.Day)) {
+            convertIntervalToFullDays();
+        }
+
         Calendar startCal = Calendar.getInstance();
         startCal.setTime(start);
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new Cloner().deepClone(stormTaskTuple.getSourceDetails());
@@ -69,10 +83,15 @@ public class Splitter {
             startCal.setTimeInMillis(start.getTime() + interval);
             Date until = startCal.getTime();
             OAIPMHHarvestingDetails oaipmhHarvestingDetails1 = buildOAIPMHSourceWithDetailsDateRange(oaipmhHarvestingDetails, start, until);
-            startCal.setTimeInMillis(until.getTime() + 1); //next start = current end +1 millisecond
+            startCal.setTimeInMillis(until.getTime() + millisecondsToAdd); //next start = current end +1 millisecond
             start = startCal.getTime();
             outputCollector.emit(inputTuple, buildStormTaskTuple(stormTaskTuple, oaipmhHarvestingDetails1).toStormTuple());
         }
+    }
+
+    private void convertIntervalToFullDays() {
+        long days = TimeUnit.MILLISECONDS.toDays(interval);
+        interval = TimeUnit.MILLISECONDS.convert(days, TimeUnit.DAYS);
     }
 
     private long getInterval(long defaultInterval) {
@@ -97,6 +116,7 @@ public class Splitter {
         OAIPMHHarvestingDetails oaiPmhHarvestingDetailsCloned = new Cloner().deepClone(oaipmhHarvestingDetails);
         oaiPmhHarvestingDetailsCloned.setDateFrom(from);
         oaiPmhHarvestingDetailsCloned.setDateUntil(until);
+
         return oaiPmhHarvestingDetailsCloned;
     }
 
@@ -112,5 +132,9 @@ public class Splitter {
 
     public StormTaskTuple getStormTaskTuple() {
         return stormTaskTuple;
+    }
+
+    public Granularity getGranularity() {
+        return granularity;
     }
 }

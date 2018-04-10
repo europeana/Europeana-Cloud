@@ -1,11 +1,12 @@
 package migrations.service.dps.V2;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
-import com.datastax.driver.core.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import com.datastax.driver.core.*;
 
 public class V2_3__copy_errors_to_tables implements JavaMigration {
 

@@ -5,7 +5,8 @@ import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Rule;
 
 import java.io.IOException;
 import java.net.URI;

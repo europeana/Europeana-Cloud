@@ -4,9 +4,10 @@ import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.swiftmigrate.SwiftMigrationDAO;
 import eu.europeana.cloud.swiftmigrate.SwiftMigrator;
-import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Callable;
 
 /**
  * Job Copy single file from one container to another.

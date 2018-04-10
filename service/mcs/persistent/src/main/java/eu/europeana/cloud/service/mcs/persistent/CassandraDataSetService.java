@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.datastax.driver.core.BoundStatement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
@@ -247,8 +246,9 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private boolean isRepresentationBeingRemoved(Representation foundRepresentation, Representation removedRepresentation) {
-        if (foundRepresentation.getVersion().equals(removedRepresentation.getVersion()))
+        if (foundRepresentation.getVersion().equals(removedRepresentation.getVersion())) {
             return true;
+        }
         else
             return false;
     }
@@ -344,12 +344,14 @@ public class CassandraDataSetService implements DataSetService {
     public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
             throws ProviderNotExistsException, DataSetNotExistsException {
         // check whether provider exists
-        if (!uis.existsProvider(providerId))
+        if (!uis.existsProvider(providerId)) {
             throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
+        }
 
         // check whether data set exists
-        if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
+        if (dataSetDAO.getDataSet(providerId, dataSetId) == null) {
             throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
+        }
 
         // run the query requesting one more element than items per page to determine the starting cloud id for the next slice
         List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
@@ -420,8 +422,9 @@ public class CassandraDataSetService implements DataSetService {
             version, Revision revision)
             throws RepresentationNotExistsException {
         Representation rep = recordDAO.getRepresentation(globalId, schema, version);
-        if (rep == null)
+        if (rep == null) {
             throw new RepresentationNotExistsException(schema);
+        }
 
         // collect data sets the version is assigned to
         Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
@@ -494,8 +497,9 @@ public class CassandraDataSetService implements DataSetService {
             throws RepresentationNotExistsException {
         // check whether representation exists
         Representation rep = recordDAO.getRepresentation(globalId, schema, version);
-        if (rep == null)
+        if (rep == null) {
             throw new RepresentationNotExistsException(schema);
+        }
 
         // collect data sets the version is assigned to
         Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
@@ -539,8 +543,9 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private boolean isProviderExists(String providerId) throws ProviderNotExistsException {
-        if (!uis.existsProvider(providerId))
+        if (!uis.existsProvider(providerId)) {
             throw new ProviderNotExistsException();
+        }
         return true;
     }
 
@@ -601,11 +606,13 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private void validateRequest(String dataSetId, String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
-        if (!uis.existsProvider(providerId))
+        if (!uis.existsProvider(providerId)) {
             throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
+        }
 
-        if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
+        if (dataSetDAO.getDataSet(providerId, dataSetId) == null) {
             throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
+        }
     }
 
 

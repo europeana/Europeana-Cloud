@@ -23,8 +23,9 @@ public class ContentStreamDetector {
      * @throws IOException
      */
     public static MediaType detectMediaType(InputStream inputStream) throws IOException {
-        if (!inputStream.markSupported())
+        if (!inputStream.markSupported()) {
             throw new UnsupportedOperationException("InputStream marking support is required!");
+        }
         return new AutoDetectParser().getDetector().detect(inputStream, new Metadata());
 
     }

@@ -4,11 +4,12 @@ import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -25,9 +26,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
@@ -41,7 +40,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 public class RecordServiceClient extends MCSClient {
 
     private final Client client = ClientBuilder.newClient().register(MultiPartFeature.class);
-    private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(RecordServiceClient.class);
 
     //records/{CLOUDID}
     private static final String recordPath;
@@ -285,6 +284,7 @@ public class RecordServiceClient extends MCSClient {
                 URI uri = response.getLocation();
                 return uri;
             } else {
+
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
@@ -311,17 +311,18 @@ public class RecordServiceClient extends MCSClient {
                                     String providerId,
                                     InputStream data,
                                     String fileName,
-                                    String mediaType) throws MCSException {
+                                    String mediaType) throws IOException, MCSException {
         WebTarget target = client.target(baseUrl).path(represtationNamePath + "/files")
                 .resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
 
-        FormDataMultiPart multipart = prepareRequestBody(providerId, data, fileName, mediaType);
+        FormDataMultiPart multipart = null;
 
         Response response = null;
         request.header("Content-Type", "multipart/form-data");
         try {
+            multipart = prepareRequestBody(providerId, data, fileName, mediaType);
             response = request.post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 URI uri = response.getLocation();
@@ -332,6 +333,9 @@ public class RecordServiceClient extends MCSClient {
             }
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
+            if (multipart != null)
+                multipart.close();
         }
     }
 
@@ -352,14 +356,14 @@ public class RecordServiceClient extends MCSClient {
                                     String representationName,
                                     String providerId,
                                     InputStream data,
-                                    String mediaType) throws MCSException {
+                                    String mediaType) throws IOException, MCSException {
 
         return this.createRepresentation(cloudId, representationName, providerId, data, null, mediaType);
     }
 
     private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
-        FormDataMultiPart requestBody = new FormDataMultiPart()
-                .field(ParamConstants.F_PROVIDER, providerId)
+        FormDataMultiPart requestBody = new FormDataMultiPart();
+        requestBody.field(ParamConstants.F_PROVIDER, providerId)
                 .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
                 .field(ParamConstants.F_FILE_MIME, mediaType);
 
@@ -724,8 +728,9 @@ public class RecordServiceClient extends MCSClient {
         } else
             throw new MCSException("RevisionProviderId is required");
         // revision timestamp is optional
-        if (revisionTimestamp != null)
+        if (revisionTimestamp != null) {
             webtarget = webtarget.queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
+        }
 
         Builder request = webtarget.request();
 

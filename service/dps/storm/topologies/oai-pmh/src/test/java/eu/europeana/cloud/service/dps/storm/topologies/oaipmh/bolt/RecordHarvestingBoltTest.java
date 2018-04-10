@@ -1,10 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import com.lyncode.xml.exceptions.XmlWriteException;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
-import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -19,8 +14,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.transform.TransformerConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +36,7 @@ public class RecordHarvestingBoltTest {
     private RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
 
     @Test
-    public void harvestingForAllParametersSpecified() throws OAIRequestException, IOException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, XMLStreamException, BadArgumentException, IdDoesNotExistException, TransformerConfigurationException {
+    public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
         //given
         when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(new
                 ByteArrayInputStream(new byte[]{}));
@@ -59,8 +52,8 @@ public class RecordHarvestingBoltTest {
     }
 
     @Test
-    public void shouldEmitErrorOnHarvestingException() throws OAIRequestException, IOException,
-            HarvesterException, CannotDisseminateFormatException, XmlWriteException, XMLStreamException, BadArgumentException, IdDoesNotExistException, TransformerConfigurationException {
+    public void shouldEmitErrorOnHarvestingException() throws IOException,
+            HarvesterException {
         //given
         when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenThrow(new
                 HarvesterException("Some!"));
@@ -75,7 +68,7 @@ public class RecordHarvestingBoltTest {
     }
 
     @Test
-    public void harvestingForEmptyUrl() throws OAIRequestException {
+    public void harvestingForEmptyUrl() {
         //given
         StormTaskTuple task = taskWithoutResourceUrl();
 
@@ -115,7 +108,7 @@ public class RecordHarvestingBoltTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
-        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER, "oaiIdentifier");
+        task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
         return task;
     }
 
@@ -138,12 +131,13 @@ public class RecordHarvestingBoltTest {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
-        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER, "oaiIdentifier");
+        task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
         task.setSourceDetails(details);
         return task;
     }
 
-    /**
+     /**
+
      * Checks if emit to standard stream occured
      */
     private void verifySuccessfulEmit() {

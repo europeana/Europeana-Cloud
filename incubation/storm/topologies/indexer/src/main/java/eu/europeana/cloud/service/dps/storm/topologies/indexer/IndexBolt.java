@@ -9,20 +9,19 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.index.IndexFields;
 import eu.europeana.cloud.service.dps.index.Indexer;
 import eu.europeana.cloud.service.dps.index.IndexerFactory;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.util.LRUCache;
 import eu.europeana.cloud.service.dps.index.SupportedIndexers;
 import eu.europeana.cloud.service.dps.index.exception.IndexerException;
 import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.util.LRUCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Index document by selected {@link Indexer}.
@@ -54,7 +53,7 @@ public class IndexBolt extends AbstractDpsBolt {
         if (indexer == null) {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
-            endTask(t.getTaskId(), "No indexer. Task " + t.getTaskId() + " is dropped.", TaskState.DROPPED, new Date());
+            //endTask(t.getTaskId(), "No indexer. Task " + t.getTaskId() + " is dropped.", TaskState.DROPPED, new Date());
             outputCollector.ack(inputTuple);
             return;
         }
@@ -106,7 +105,7 @@ public class IndexBolt extends AbstractDpsBolt {
             ex.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot index data because: " + ex.getMessage(),
                     stack.toString());
-            endTask(t.getTaskId(), ex.getMessage(), TaskState.DROPPED, new Date());
+            //endTask(t.getTaskId(), ex.getMessage(), TaskState.DROPPED, new Date());
             outputCollector.ack(inputTuple);
             return;
         }

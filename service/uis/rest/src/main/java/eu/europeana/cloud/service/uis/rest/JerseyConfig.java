@@ -1,17 +1,6 @@
 package eu.europeana.cloud.service.uis.rest;
 
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordExistsExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RuntimeExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.WebApplicationsExceptionMapper;
+import eu.europeana.cloud.service.uis.exception.*;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 

@@ -1,9 +1,9 @@
 package eu.europeana.cloud.client.uis.rest.console.commands;
 
-import javax.naming.directory.InvalidAttributesException;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+
+import javax.naming.directory.InvalidAttributesException;
 
 /**
  * Delete a cloud id console command

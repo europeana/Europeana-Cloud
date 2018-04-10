@@ -87,7 +87,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                     }
                 } else {
                     LOGGER.warn("dataset url is not formulated correctly {}", dataSetUrl);
-                    emitDropNotification(t.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
+                    emitErrorNotification(t.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
                 }
             } catch (MalformedURLException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
@@ -97,11 +97,10 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                 emitErrorNotification(t.getTaskId(), dataSetUrl, ex.getMessage(), t.getParameters().toString());
             }
         } else {
-            String message = "Missing dataset URL";
-            LOGGER.warn(message);
-            emitDropNotification(t.getTaskId(), "", message, "");
+            String errorMessage = "Missing dataset URL";
+            LOGGER.warn(errorMessage);
+            emitErrorNotification(t.getTaskId(), dataSetUrl, errorMessage, "");
         }
-
     }
 
     private void handleLatestRevisions(StormTaskTuple t, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException {

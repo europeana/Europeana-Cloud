@@ -16,6 +16,8 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Values;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -28,13 +30,15 @@ import java.util.Map;
  * Created by Tarek on 11/27/2017.
  */
 public class CustomKafkaSpout extends KafkaSpout {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomKafkaSpout.class);
+
     private SpoutConfig spoutConf;
     private String hosts;
     private int port;
     private String keyspaceName;
     private String userName;
     private String password;
-    private CassandraConnectionProvider cassandraConnectionProvider;
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
     private CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO;
     private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
@@ -54,8 +58,9 @@ public class CustomKafkaSpout extends KafkaSpout {
 
     @Override
     public void open(Map conf, final TopologyContext context, final SpoutOutputCollector collector) {
+        LOGGER.info("Custom spout opened");
         super.open(conf, context, collector);
-        cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
+        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         cassandraTaskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         cassandraSubTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
@@ -64,16 +69,18 @@ public class CustomKafkaSpout extends KafkaSpout {
 
     @Override
     public void ack(Object msgId) {
+        LOGGER.info("Message acknowledgement fired");
         try {
             CustomKafkaMessage customKafkaMessage = buildCustomKafkaSpout(msgId);
             MessageAndOffset messageAndOffset = getMessageAndOffset(customKafkaMessage);
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
+            LOGGER.info("Acknowledgement fired for task: " + task.toString());
             long taskId = task.getTaskId();
             cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         } finally {
             super.ack(msgId);
         }
@@ -103,6 +110,9 @@ public class CustomKafkaSpout extends KafkaSpout {
         MessageAndOffset messageAndOffset = null;
         while (messageAndOffsetIterable.hasNext()) {
             messageAndOffset = messageAndOffsetIterable.next();
+            if(messageAndOffset.offset() == customKafkaMessage.getOffset()){
+                return messageAndOffset;
+            }
         }
         return messageAndOffset;
     }
@@ -121,16 +131,18 @@ public class CustomKafkaSpout extends KafkaSpout {
 
     @Override
     public void fail(Object msgId) {
+        LOGGER.info("Message fail method fired");
         try {
             CustomKafkaMessage customKafkaMessage = buildCustomKafkaSpout(msgId);
             MessageAndOffset messageAndOffset = getMessageAndOffset(customKafkaMessage);
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
             long taskId = task.getTaskId();
+            LOGGER.info("Failed methos fired for task: " + task.getTaskId());
             cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId),  "The task was finished without a guarantee of complete processing", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         } finally {
             super.ack(msgId);
         }

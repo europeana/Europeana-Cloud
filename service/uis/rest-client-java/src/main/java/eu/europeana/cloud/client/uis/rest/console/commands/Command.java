@@ -1,11 +1,10 @@
 package eu.europeana.cloud.client.uis.rest.console.commands;
 
-import javax.naming.directory.InvalidAttributesException;
-
+import eu.europeana.cloud.client.uis.rest.UISClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.client.uis.rest.UISClient;
+import javax.naming.directory.InvalidAttributesException;
 
 /**
  * Abstract console command

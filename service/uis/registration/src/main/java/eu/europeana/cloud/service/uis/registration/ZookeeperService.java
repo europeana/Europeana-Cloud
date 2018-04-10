@@ -1,12 +1,6 @@
 package eu.europeana.cloud.service.uis.registration;
 
-import javax.annotation.PostConstruct;
-
-//import org.apache.catalina.core.StandardServer;
-//import org.apache.catalina.Server;
-//import org.apache.catalina.ServerFactory;
-//import org.apache.catalina.Service;
-//import org.apache.catalina.connector.Connector;
+import eu.europeana.cloud.common.service.ServiceProperties;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -17,7 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.common.service.ServiceProperties;
+import javax.annotation.PostConstruct;
+
+//import org.apache.catalina.core.StandardServer;
+//import org.apache.catalina.Server;
+//import org.apache.catalina.ServerFactory;
+//import org.apache.catalina.Service;
+//import org.apache.catalina.connector.Connector;
 
 
 /**

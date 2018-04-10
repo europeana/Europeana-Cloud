@@ -32,6 +32,7 @@ CREATE TABLE error_notifications (
     error_type timeuuid,
     error_message text,
     resource varchar,
+    additional_informations text,
     PRIMARY KEY((task_id,error_type),resource)
 );
 
@@ -40,4 +41,36 @@ CREATE TABLE error_counters (
     error_type timeuuid,
     error_count counter,
     PRIMARY KEY(task_id,error_type)
+);
+
+CREATE TABLE general_statistics (
+    task_id bigint,
+    parent_xpath varchar,
+    node_xpath varchar,
+    occurrence counter,
+    PRIMARY KEY(task_id, parent_xpath, node_xpath)
+);
+
+CREATE TABLE node_statistics (
+    task_id bigint,
+    node_xpath varchar,
+    node_value varchar,
+    occurrence counter,
+    PRIMARY KEY((task_id, node_xpath), node_value)
+);
+
+CREATE TABLE attribute_statistics (
+    task_id bigint,
+    node_xpath varchar,
+    node_value varchar,
+    attribute_name varchar,
+    attribute_value varchar,
+    occurrence counter,
+    PRIMARY KEY((task_id, node_xpath, node_value), attribute_name, attribute_value)
+);
+
+CREATE TABLE statistics_reports (
+    task_id bigint,
+    report_data blob,
+    PRIMARY KEY(task_id)
 );

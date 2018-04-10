@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import com.rits.cloning.Cloner;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -9,7 +8,9 @@ import org.apache.storm.task.OutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Read datasets and emit every dataset as a separate {@link StormTaskTuple}.
@@ -45,13 +46,10 @@ public class ReadDatasetsBolt extends AbstractDpsBolt {
         if (datasets != null && !datasets.isEmpty()) {
             t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
             emitSingleDataSetFromDataSets(t, datasets);
-            return;
         } else {
-            String message = "No URL to retrieve dataset.";
-            LOGGER.warn(message);
-            emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
-            endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
-            return;
+            String errorMessage = "No URL to retrieve dataset.";
+            LOGGER.warn(errorMessage);
+            emitErrorNotification(t.getTaskId(), "", errorMessage, parameters.toString());
         }
 
     }

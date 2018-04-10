@@ -1,0 +1,17 @@
+<?xml version="1.0"  encoding="UTF-8" ?>
+<root>
+    <father1>
+        <childA livesIn="Poland">Valentine</childA>
+        Val
+    </father1>
+    <father1>
+        <childA livesIn="Netherlands">Mirjam</childA>
+        Mir
+    </father1>
+    <father3>
+        <childA livesIn="Poland">Tarek</childA>
+    </father3>
+    <father3>
+        <childA livesIn="Syria">Tarek</childA>
+    </father3>
+</root>

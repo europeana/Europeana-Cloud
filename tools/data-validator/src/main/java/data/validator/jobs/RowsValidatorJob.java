@@ -1,7 +1,5 @@
 package data.validator.jobs;
 
-import com.datastax.driver.core.*;
-
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;

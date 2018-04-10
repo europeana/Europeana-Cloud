@@ -128,7 +128,7 @@ class ValuedUrlPart {
     private UrlPart part;
     private boolean addValue;
 
-    public ValuedUrlPart(UrlPart part, boolean addValue) {
+    ValuedUrlPart(UrlPart part, boolean addValue) {
         this.part = part;
         this.addValue = addValue;
     }

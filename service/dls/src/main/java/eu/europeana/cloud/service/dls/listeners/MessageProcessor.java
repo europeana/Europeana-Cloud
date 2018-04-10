@@ -14,5 +14,5 @@ public interface MessageProcessor<T extends AbstractMessage> {
      * 
      * @param message
      */
-    public void processMessage(T message);
+    void processMessage(T message);
 }

@@ -1,10 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.InvalidOAIResponse;
-import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -15,6 +10,12 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProv
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.dspace.xoai.model.oaipmh.Granularity;
+import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -86,6 +87,7 @@ public class IdentifiersHarvestingBoltTest {
         sourceDetails.setExcludedSets(excludedSets);
         sourceDetails.setDateFrom(from);
         sourceDetails.setDateUntil(until);
+        sourceDetails.setGranularity(Granularity.Second.toString());
         initHeaders(sourceDetails);
         mockSource(iterator);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), sourceDetails);
@@ -132,8 +134,8 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(values.size(), is(2));
 
         Set<String> identifiers = new HashSet<>();
-        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
-        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
         assertTrue(identifiers.contains(ID1));
         assertTrue(identifiers.contains(ID2));
 
@@ -224,7 +226,7 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
-        assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID2);
+        assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), ID2);
         verifyNoInteraction();
     }
 
@@ -239,7 +241,7 @@ public class IdentifiersHarvestingBoltTest {
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
 
-        assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID1);
+        assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), ID1);
         verifyNoInteraction();
     }
 
@@ -255,8 +257,8 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(values.size(), is(2));
 
         Set<String> identifiers = new HashSet<>();
-        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
-        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
         assertTrue(identifiers.contains(ID1));
         assertTrue(identifiers.contains(ID2));
         verifyNoInteraction();
@@ -276,8 +278,8 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(values.size(), is(2));
 
         Set<String> identifiers = new HashSet<>();
-        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
-        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
         assertTrue(identifiers.contains(ID1));
         assertTrue(identifiers.contains(ID2));
 
@@ -301,7 +303,7 @@ public class IdentifiersHarvestingBoltTest {
 
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
-        assertThat(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), is(ID2));
+        assertThat(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), is(ID2));
 
         verifyNoMoreInteractions(oc);
         verifyNoInteraction();

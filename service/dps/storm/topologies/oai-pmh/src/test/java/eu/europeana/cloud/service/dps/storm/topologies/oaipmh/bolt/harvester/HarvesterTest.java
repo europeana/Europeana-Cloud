@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
 
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
+import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
 import org.junit.Ignore;
 import org.junit.Test;
 

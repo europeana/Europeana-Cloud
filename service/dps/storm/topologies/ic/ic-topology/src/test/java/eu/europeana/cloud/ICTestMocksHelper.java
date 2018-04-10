@@ -2,14 +2,13 @@ package eu.europeana.cloud;
 
 
 import eu.europeana.cloud.helper.TopologyTestHelper;
-import eu.europeana.cloud.mcs.driver.*;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.Converter;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ConverterContext;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.util.ImageConverterUtil;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;

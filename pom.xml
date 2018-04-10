@@ -82,7 +82,6 @@
         <module>service/aas</module>
         <module>service/commons</module>
         <module>tools</module>
-        <module>service/ips</module>
         <module>test-common</module>
     </modules>
     <repositories>
@@ -112,8 +111,21 @@
             <name>MireDot Releases</name>
             <url>http://nexus.qmino.com/content/repositories/miredot</url>
         </repository>
+        <repository>
+            <id>libs-snapshot-local</id>
+            <name>libs-snapshot-local</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
     <properties>
+        <sonar.skip>false</sonar.skip>
+        <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>1.7</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
@@ -158,6 +170,7 @@
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
+        <version.jacoco>0.8.1</version.jacoco>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
     </properties>
 
@@ -170,7 +183,7 @@
                         <plugin>
                             <groupId>org.jacoco</groupId>
                             <artifactId>jacoco-maven-plugin</artifactId>
-                            <version>0.7.6.201602180812</version>
+                            <version>${version.jacoco}</version>
                         </plugin>
                     </plugins>
                 </pluginManagement>
@@ -300,6 +313,14 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${version.jacoco}</version>
+                <configuration>
+                    <propertyName>jacocoArgLine</propertyName>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
                 <version>2.1.12</version>
@@ -343,7 +364,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
-                    <argLine>-Xmx2048m</argLine>
+                    <argLine>@{jacocoArgLine} -Xmx2048m</argLine>
                 </configuration>
             </plugin>
         </plugins>

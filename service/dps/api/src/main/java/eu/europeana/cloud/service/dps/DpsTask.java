@@ -137,8 +137,12 @@ public class DpsTask implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof DpsTask)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DpsTask)) {
+            return false;
+        }
         DpsTask dpsTask = (DpsTask) o;
         return taskId == dpsTask.taskId &&
                 com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&

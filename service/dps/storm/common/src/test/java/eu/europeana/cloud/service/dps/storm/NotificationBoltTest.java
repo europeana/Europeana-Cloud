@@ -2,9 +2,11 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-
-import eu.europeana.cloud.common.model.dps.*;
-import eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService;
+import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import org.apache.storm.Config;
@@ -24,9 +26,6 @@ import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-
-
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 
 public class NotificationBoltTest extends CassandraTestBase {
@@ -201,7 +200,7 @@ public class NotificationBoltTest extends CassandraTestBase {
             testedBolt.execute(tuple);
         }
 
-        TaskErrorsInfo errorsInfo = cassandraReportService.getGeneralTaskErrorReport(String.valueOf(taskId));
+        TaskErrorsInfo errorsInfo = cassandraReportService.getGeneralTaskErrorReport(String.valueOf(taskId), 0);
 
         //then
         assertEquals(beforeExecute.getProcessedElementCount(), 0);

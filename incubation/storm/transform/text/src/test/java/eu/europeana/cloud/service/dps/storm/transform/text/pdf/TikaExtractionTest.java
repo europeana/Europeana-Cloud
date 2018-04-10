@@ -1,8 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.transform.text.pdf;
 
+import org.junit.Test;
+
 import java.io.InputStream;
 import java.util.Map;
-import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**

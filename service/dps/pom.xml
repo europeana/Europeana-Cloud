@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -30,16 +31,15 @@
         <module>rest</module>
         <module>rest-client-java</module>
         <module>storm/common</module>
-        <module>storm/kafka</module>
         <module>storm/io</module>
-        <module>storm/transform/xslt</module>
         <module>storm/topologies/xslt</module>
         <module>storm/examples</module>
-        <module>cassandra</module>
         <module>storm/topologies/ic</module>
         <module>utils</module>
         <module>storm/topologies/oai-pmh</module>
         <module>storm/topologies/topologies-common-helper-test</module>
         <module>storm/topologies/validation</module>
+        <module>storm/topologies/dereference-enrichment</module>
+        <module>storm/topologies/http-harvesting</module>
     </modules>
 </project>

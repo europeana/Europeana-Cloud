@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author krystian.

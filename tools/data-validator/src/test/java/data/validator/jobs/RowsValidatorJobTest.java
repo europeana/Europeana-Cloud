@@ -1,6 +1,5 @@
 package data.validator.jobs;
 
-import com.datastax.driver.core.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

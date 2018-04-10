@@ -1,6 +1,5 @@
 package eu.europeana.cloud.common.selectors;
 
-import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 
 import java.util.List;

@@ -10,12 +10,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-
-import static org.junit.Assert.*;
-
 import java.io.InputStream;
 
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 

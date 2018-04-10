@@ -1,7 +1,5 @@
 package eu.europeana.cloud.common.model.dps;
 
-import sun.misc.BASE64Decoder;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +12,7 @@ public class TaskErrorInfo {
 
     private int occurrences;
 
-    private List<String> identifiers;
+    private List<ErrorDetails> errorDetails;
 
 
     public TaskErrorInfo() {
@@ -25,14 +23,14 @@ public class TaskErrorInfo {
         this(errorType, message, occurrences, null);
     }
 
-    public TaskErrorInfo(String errorType, String message, int occurrences, List<String> identifiers) {
+    public TaskErrorInfo(String errorType, String message, int occurrences, List<ErrorDetails> errorDetails) {
         this.errorType = errorType;
         this.message = message;
         this.occurrences = occurrences;
-        if (identifiers == null) {
-            this.identifiers = new ArrayList<>();
+        if (errorDetails == null) {
+            this.errorDetails = new ArrayList<>();
         } else {
-            this.identifiers = identifiers;
+            this.errorDetails = errorDetails;
         }
     }
 
@@ -53,12 +51,12 @@ public class TaskErrorInfo {
         this.occurrences = occurrences;
     }
 
-    public List<String> getIdentifiers() {
-        return identifiers;
+    public List<ErrorDetails> getErrorDetails() {
+        return errorDetails;
     }
 
-    public void setIdentifiers(List<String> identifiers) {
-        this.identifiers = identifiers;
+    public void setErrorDetails(List<ErrorDetails> errorDetails) {
+        this.errorDetails = errorDetails;
     }
 
     public String getErrorType() {
@@ -71,16 +69,28 @@ public class TaskErrorInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TaskErrorInfo)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof TaskErrorInfo)) {
+            return false;
+        }
+
 
         TaskErrorInfo taskInfo = (TaskErrorInfo) o;
 
-        if (occurrences != taskInfo.occurrences) return false;
-        if (message != null ? !message.equals(taskInfo.message) : taskInfo.message != null) return false;
-        if (errorType != null ? !errorType.equals(taskInfo.errorType) : taskInfo.errorType != null)
+        if (occurrences != taskInfo.occurrences) {
             return false;
-        if (identifiers != null ? !identifiers.equals(taskInfo.identifiers) : taskInfo.identifiers != null) return false;
+        }
+        if (message != null ? !message.equals(taskInfo.message) : taskInfo.message != null) {
+            return false;
+        }
+        if (errorType != null ? !errorType.equals(taskInfo.errorType) : taskInfo.errorType != null) {
+            return false;
+        }
+        if (errorDetails != null ? !errorDetails.equals(taskInfo.errorDetails) : taskInfo.errorDetails != null) {
+            return false;
+        }
 
         return true;
     }
@@ -91,7 +101,7 @@ public class TaskErrorInfo {
         int result = errorType != null ? errorType.hashCode() : 0;
         result = 31 * result + (message != null ? message.hashCode() : 0);
         result = 31 * result + occurrences;
-        result = 31 * result + (identifiers != null ? identifiers.hashCode() : 0);
+        result = 31 * result + (errorDetails != null ? errorDetails.hashCode() : 0);
         return result;
     }
 }

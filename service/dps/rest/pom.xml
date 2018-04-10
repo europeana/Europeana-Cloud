@@ -36,11 +36,6 @@
                     <artifactId>ecloud-service-dps-zoo</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-                <dependency>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>ecloud-service-dps-cassandra</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
             </dependencies>
         </profile>
         <profile>
@@ -414,9 +409,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.lyncode</groupId>
+            <groupId>org.dspace</groupId>
             <artifactId>xoai-service-provider</artifactId>
-            <version>4.1.0</version>
+            <version>4.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>

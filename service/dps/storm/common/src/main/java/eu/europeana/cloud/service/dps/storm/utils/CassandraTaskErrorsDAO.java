@@ -3,15 +3,10 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.*;
-import eu.europeana.cloud.service.dps.exception.TaskErrorsInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 
-import java.util.*;
+import java.util.UUID;
 
 /**
  * The {@link TaskInfo} DAO
@@ -26,13 +21,10 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
 
     private static CassandraTaskErrorsDAO instance = null;
 
-    public static CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraTaskErrorsDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraTaskErrorsDAO(cassandra);
-                }
-            }
+            instance = new CassandraTaskErrorsDAO(cassandra);
+
         }
         return instance;
     }
@@ -51,8 +43,9 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
                 "(" + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","
                 + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE + ","
-                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE +
-                ") VALUES (?,?,?,?)");
+                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
+                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS +
+                ") VALUES (?,?,?,?,?)");
         insertErrorStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateErrorCounterStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
@@ -71,7 +64,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     /**
      * Update number of errors of the given type that occurred in the given task
      *
-     * @param taskId task identifier
+     * @param taskId    task identifier
      * @param errorType type of error
      */
     public void updateErrorCounter(long taskId, String errorType) {
@@ -81,13 +74,13 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     /**
      * Insert information about the resource and its error
      *
-     * @param taskId task identifier
-     * @param errorType type of error
+     * @param taskId       task identifier
+     * @param errorType    type of error
      * @param errorMessage error message
-     * @param resource resource identifier
+     * @param resource     resource identifier
      */
-    public void insertError(long taskId, String errorType, String errorMessage, String resource) {
-        dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource));
+    public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
+        dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource, additionalInformations));
     }
 
     /**

@@ -104,16 +104,32 @@ public class Revision implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Revision)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Revision)) {
+            return false;
+        }
         Revision revision = (Revision) o;
-        if (!revisionName.equals(revision.getRevisionName())) return false;
-        if (!revisionProviderId.equals(revision.getRevisionProviderId())) return false;
-        if (acceptance != revision.acceptance) return false;
-        if (published != revision.published) return false;
-        if (deleted != revision.deleted) return false;
+        if (!revisionName.equals(revision.getRevisionName())) {
+            return false;
+        }
+        if (!revisionProviderId.equals(revision.getRevisionProviderId())) {
+            return false;
+        }
+        if (acceptance != revision.acceptance) {
+            return false;
+        }
+        if (published != revision.published) {
+            return false;
+        }
+        if (deleted != revision.deleted) {
+            return false;
+        }
         if (creationTimeStamp == null)
-            if (revision.getCreationTimeStamp() != null) return false;
+            if (revision.getCreationTimeStamp() != null) {
+                return false;
+            }
         return true;
     }
 

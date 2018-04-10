@@ -1,6 +1,5 @@
 package eu.europeana.cloud.test;
 
-import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -162,19 +162,37 @@ public class TaskInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TaskInfo)) return false;
+        if (this == o){
+            return true;
+        }
+        if (!(o instanceof TaskInfo)){
+            return false;
+        }
 
         TaskInfo taskInfo = (TaskInfo) o;
 
-        if (expectedSize != taskInfo.expectedSize) return false;
-        if (errors != taskInfo.errors) return false;
-        if (processedPercentage != taskInfo.processedPercentage) return false;
-        if (id != taskInfo.id) return false;
-        if (subtasks != null ? !subtasks.equals(taskInfo.subtasks) : taskInfo.subtasks != null) return false;
-        if (topologyName != null ? !topologyName.equals(taskInfo.topologyName) : taskInfo.topologyName != null)
+        if (expectedSize != taskInfo.expectedSize){
             return false;
-        if (state != taskInfo.state) return false;
+        }
+        if (errors != taskInfo.errors){
+            return false;
+        }
+        if (processedPercentage != taskInfo.processedPercentage){
+            return false;
+        }
+        if (id != taskInfo.id){
+            return false;
+        }
+        if (subtasks != null ? !subtasks.equals(taskInfo.subtasks) : taskInfo.subtasks != null){
+            return false;
+        }
+        if (topologyName != null ? !topologyName.equals(taskInfo.topologyName) : taskInfo.topologyName != null){
+            return false;
+        }
+
+        if (state != taskInfo.state){
+            return false;
+        }
         if (startDate == null)
             if (taskInfo.startDate != null) return false;
         if (startDate != null && taskInfo.startDate != null)

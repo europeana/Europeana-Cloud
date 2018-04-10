@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis;
 
-import org.apache.log4j.Logger;
-
 import java.util.List;
 
 

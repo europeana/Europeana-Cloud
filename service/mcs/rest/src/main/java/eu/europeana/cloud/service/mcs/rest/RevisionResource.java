@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -18,11 +15,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -181,14 +174,18 @@ public class RevisionResource {
     }
 
     private Revision setRevisionTags(Revision revision, Set<String> tags) {
-        if (tags == null || tags.isEmpty())
+        if (tags == null || tags.isEmpty()) {
             return revision;
-        if (tags.contains(Tags.ACCEPTANCE.getTag()))
+        }
+        if (tags.contains(Tags.ACCEPTANCE.getTag())) {
             revision.setAcceptance(true);
-        if (tags.contains(Tags.PUBLISHED.getTag()))
+        }
+        if (tags.contains(Tags.PUBLISHED.getTag())) {
             revision.setPublished(true);
-        if (tags.contains(Tags.DELETED.getTag()))
+        }
+        if (tags.contains(Tags.DELETED.getTag())) {
             revision.setDeleted(true);
+        }
         return revision;
     }
 

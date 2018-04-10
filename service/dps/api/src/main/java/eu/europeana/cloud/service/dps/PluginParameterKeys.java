@@ -22,6 +22,10 @@ public final class PluginParameterKeys {
     public static final String TASK_NAME = "TASK_NAME";
     public static final String ROUTING = "ROUTING";
 
+    // --------- METIS -------------
+    public static final String METIS_DATASET_ID = "METIS_DATASET_ID";
+    public static final String METIS_DATASET_ID_PARAMETER_NAME = "datasetId";
+
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String DATASET_ID = "DATASET_ID";
@@ -74,6 +78,8 @@ public final class PluginParameterKeys {
     // SCHEMA_NAME - required
 
     public static final String SCHEMA_NAME = "SCHEMA_NAME";
+    public static final String ROOT_LOCATION = "ROOT_LOCATION";
+    public static final String SCHEMATRON_LOCATION = "SCHEMATRON_LOCATION";
 
     //----------  OAI-PMH harvesting DPS task  ----
 
@@ -91,8 +97,9 @@ public final class PluginParameterKeys {
 
     // ---------- OAI-PMH ----------
     public static final String OAI_IDENTIFIER = "OAI_IDENTIFIER";
+    public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
 
-    public static Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
+    public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 
     static {
         PLUGIN_PARAMETERS.put(XSLT_URL, "XSLT_URL");
@@ -103,6 +110,8 @@ public final class PluginParameterKeys {
         PLUGIN_PARAMETERS.put(FILE_DATA, "FILE_DATA");
 
         PLUGIN_PARAMETERS.put(DPS_TASK_INPUT_DATA, "DPS_TASK_INPUT_DATA");
+
+        PLUGIN_PARAMETERS.put(METIS_DATASET_ID, "METIS_DATASET_ID");
 
         //the default value for output mimeType
         PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/plain");

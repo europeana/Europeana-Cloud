@@ -1,17 +1,15 @@
 package eu.europeana.cloud.client.uis.rest.console.commands.tests;
 
+import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.client.uis.rest.console.commands.Command;
+import org.apache.commons.io.FileUtils;
+
+import javax.naming.directory.InvalidAttributesException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-
-import javax.naming.directory.InvalidAttributesException;
-
-import org.apache.commons.io.FileUtils;
-
-import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.commands.Command;
 
 /**
  * Test Delete Identifiers

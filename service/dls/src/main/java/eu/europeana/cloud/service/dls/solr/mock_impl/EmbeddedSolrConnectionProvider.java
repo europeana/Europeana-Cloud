@@ -1,16 +1,15 @@
 package eu.europeana.cloud.service.dls.solr.mock_impl;
 
 import eu.europeana.cloud.service.dls.solr.SolrConnectionProvider;
-import java.io.File;
-import java.net.URL;
-
-import javax.annotation.PreDestroy;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.net.URL;
 
 /**
  * Establishes connection to embedded Solr.

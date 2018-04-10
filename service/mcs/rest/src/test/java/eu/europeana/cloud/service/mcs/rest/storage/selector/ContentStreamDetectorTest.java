@@ -11,8 +11,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 
-import static eu.europeana.cloud.service.mcs.rest.storage.selector.ContentStreamDetector.detectMediaType;
 import static eu.europeana.cloud.service.mcs.rest.Helper.readFully;
+import static eu.europeana.cloud.service.mcs.rest.storage.selector.ContentStreamDetector.detectMediaType;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 

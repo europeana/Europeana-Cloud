@@ -4,7 +4,9 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
 import org.apache.storm.task.OutputCollector;
+import org.dspace.xoai.model.oaipmh.Granularity;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,11 +15,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anySet;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 /**
@@ -34,9 +36,11 @@ public class SpecificSchemasSplitterTest {
     private Splitter splitter;
     private Set<String> schemas;
     private OAIPMHHarvestingDetails oaipmhHarvestingDetails;
+    private OAIHelper oaiHelper;
 
     @Before
     public void init() {
+        oaiHelper = mock(OAIHelper.class);
         outputCollector = mock(OutputCollector.class);
         splitter = mock(Splitter.class);
         oaipmhHarvestingDetails = mock(OAIPMHHarvestingDetails.class);
@@ -75,6 +79,9 @@ public class SpecificSchemasSplitterTest {
     }
 
     private void initTestScenario() {
+//        when(oaiHelper.getGranularity()).thenReturn(Granularity.Second);
+//        when(splitter.getOaiHelper()).thenReturn(oaiHelper);
+        when(splitter.getGranularity()).thenReturn(Granularity.Second);
         when(outputCollector.emit(anyList())).thenReturn(null);
         when(splitter.getStormTaskTuple()).thenReturn(stormTaskTuple);
         when(oaipmhHarvestingDetails.getSchemas()).thenReturn(schemas);

@@ -1,11 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api;
 
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.apache.tika.mime.MimeTypeException;
 
 import java.io.IOException;

@@ -6,8 +6,6 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -24,7 +22,9 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
@@ -105,10 +105,6 @@ public class NotificationBolt extends BaseRichBolt {
                 updateTask(taskId,
                         notificationTuple.getParameters());
                 break;
-            case END_TASK:
-                endTask(taskId, nCache.getProcessed(), nCache.getErrors(),
-                        notificationTuple.getParameters());
-                break;
             case NOTIFICATION:
                 notifyTask(notificationTuple, nCache, taskId);
                 break;
@@ -135,14 +131,15 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeNotificationError(long taskId, NotificationCache nCache, Map<String, Object> parameters) {
         Validate.notNull(parameters);
         String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
+        String additionalInformations = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String errorType = nCache.getErrorType(errorMessage);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         taskErrorDAO.updateErrorCounter(taskId, errorType);
-        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource);
+        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformations);
     }
 
     private boolean isError(String state) {
-        return state.equalsIgnoreCase(States.ERROR.toString()) || state.equalsIgnoreCase(States.DROPPED.toString());
+        return state.equalsIgnoreCase(States.ERROR.toString());
     }
 
     @Override
@@ -171,14 +168,6 @@ public class NotificationBolt extends BaseRichBolt {
         taskInfoDAO.updateTask(taskId, info, state, startDate);
     }
 
-
-    private void endTask(long taskId, int processeFilesCount, int errors, Map<String, Object> parameters) throws DatabaseConnectionException {
-        Validate.notNull(parameters);
-        String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
-        Date finishDate = prepareDate(parameters.get(NotificationParameterKeys.FINISH_TIME));
-        String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
-        taskInfoDAO.endTask(taskId, processeFilesCount, errors, info, state, finishDate);
-    }
 
 
     private static Date prepareDate(Object dateObject) {
@@ -218,7 +207,9 @@ public class NotificationBolt extends BaseRichBolt {
             return processed;
         }
 
-        public int getErrors() { return errors; }
+        public int getErrors() {
+            return errors;
+        }
 
         public String getErrorType(String infoText) {
             String errorType = errorTypes.get(infoText);

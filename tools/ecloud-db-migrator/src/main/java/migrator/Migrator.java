@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import com.datastax.driver.core.*;
 
 /**
  * @author krystian.

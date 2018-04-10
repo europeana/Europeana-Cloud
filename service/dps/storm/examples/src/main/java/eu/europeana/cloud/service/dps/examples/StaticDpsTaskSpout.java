@@ -54,8 +54,9 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
             LOGGER.info("taskParameters size=" + taskParameters.size());
 
             List<String> sources = task.getDataEntry(InputDataType.REPOSITORY_URLS);
-            if (sources == null)
+            if (sources == null) {
                 sources = task.getDataEntry(InputDataType.DATASET_URLS);
+            }
             LOGGER.info("Sources size" + sources.size());
 
             String dataEntry = convertListToString(sources);

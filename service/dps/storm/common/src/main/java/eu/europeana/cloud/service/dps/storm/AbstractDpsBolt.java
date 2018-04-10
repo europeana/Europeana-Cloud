@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import eu.europeana.cloud.common.model.dps.States;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -14,10 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Date;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.
@@ -85,20 +81,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
-    /**
-     * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}.
-     * Only one notification call per resource per task.
-     *
-     * @param taskId                 task ID
-     * @param resource               affected resource (e.g. file URL)
-     * @param message                short text
-     * @param additionalInformations the rest of informations (e.g. stack trace)
-     */
-    protected void emitDropNotification(long taskId, String resource, String message, String additionalInformations) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.DROPPED, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-    }
 
     /**
      * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}.
@@ -114,13 +96,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 resource, States.ERROR, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
     }
-
-
-    protected void endTask(long taskId, String info, TaskState state, Date finishTime) {
-        NotificationTuple nt = NotificationTuple.prepareEndTask(taskId, info, state, finishTime);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
-    }
-
 
     protected void logAndEmitError(StormTaskTuple t, String message) {
         LOGGER.error(message);

@@ -1,7 +1,10 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
-import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.RepresentationNames;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Tags;
@@ -10,7 +13,6 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,24 +24,11 @@ import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Set;
-
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static org.apache.commons.lang3.time.DateUtils.parseDate;
 
 /**
  * Resource to manage data sets.
@@ -151,8 +140,9 @@ public class DataSetResource {
         Tags tags = Tags.valueOf(tag.toUpperCase());
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
 
-        if (Tags.PUBLISHED.equals(tags))
+        if (Tags.PUBLISHED.equals(tags)) {
             return dataSetService.getDataSetCloudIdsByRepresentationPublished(dataSetId, providerId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
+        }
         throw new IllegalArgumentException("Only PUBLISHED tag is supported for this request.");
     }
 

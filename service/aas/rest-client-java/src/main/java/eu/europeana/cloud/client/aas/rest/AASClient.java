@@ -2,7 +2,6 @@ package eu.europeana.cloud.client.aas.rest;
 
 import eu.europeana.cloud.common.web.AASParamConstants;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ public class AASClient {
 		try {
 			resp = client.target(aasUrl + "/create-user")
 					.queryParam(AASParamConstants.P_USER_NAME, username)
-					.queryParam(AASParamConstants.P_PASSWORD, password).request()
+					.queryParam(AASParamConstants.P_PASS_TOKEN, password).request()
 					.post(null);
 
 			if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -77,7 +76,7 @@ public class AASClient {
 		try {
 			resp = client.target(aasUrl + "/update-user")
 					.queryParam(AASParamConstants.P_USER_NAME, username)
-					.queryParam(AASParamConstants.P_PASSWORD, password).request()
+					.queryParam(AASParamConstants.P_PASS_TOKEN, password).request()
 					.post(null);
 
 			if (resp.getStatus() == Status.OK.getStatusCode()) {

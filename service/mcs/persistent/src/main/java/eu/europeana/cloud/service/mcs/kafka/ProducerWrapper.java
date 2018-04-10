@@ -1,11 +1,12 @@
 package eu.europeana.cloud.service.mcs.kafka;
 
-import java.util.Properties;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.Properties;
 
 /**
  * ProducerWrapper with {@link CustomPartitioner} as routing partitions

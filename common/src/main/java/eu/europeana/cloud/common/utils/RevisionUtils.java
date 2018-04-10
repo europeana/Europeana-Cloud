@@ -8,8 +8,9 @@ public class RevisionUtils {
     }
 
     public static String getRevisionKey(Revision revision) {
-        if (revision == null)
+        if (revision == null) {
             throw new IllegalArgumentException("Cannot create key from null revision!");
+        }
 
         return getRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp().getTime());
     }

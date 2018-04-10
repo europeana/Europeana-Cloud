@@ -23,7 +23,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 
 public class ReadDatasetsBoltTest {

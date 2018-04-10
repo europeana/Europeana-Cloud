@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.net.MalformedURLException;
@@ -224,7 +225,7 @@ public class DpsTaskValidator {
         try {
             dataType = InputDataType.valueOf(constraint.getExpectedName());
         } catch (IllegalArgumentException e) {
-            throw new DpsTaskValidationException("Input data is not valid.", e);
+            throw new DpsTaskValidationException("Input data is not valid.");
         }
         List<String> expectedInputData = task.getDataEntry(dataType);
 
@@ -297,8 +298,9 @@ public class DpsTaskValidator {
     private void validateOutputRevision(DpsTask task, boolean revisionMustExist) throws DpsTaskValidationException {
         Revision outputRevision = task.getOutputRevision();
         if (revisionMustExist) {
-            if (outputRevision == null)
+            if (outputRevision == null) {
                 throw new DpsTaskValidationException("Output Revision should not be null!. It is required for this task");
+            }
             else
                 checkOutputRevisionContent(outputRevision);
         } else {
@@ -327,24 +329,24 @@ class DpsTaskConstraint {
     private InputDataValueType expectedValueType;
     private String expectedName;
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, Object expectedValue) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, Object expectedValue) {
         this.fieldType = fieldType;
         this.expectedName = expectedName;
         this.expectedValue = expectedValue;
     }
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, InputDataValueType expectedValueType) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, InputDataValueType expectedValueType) {
         this.fieldType = fieldType;
         this.expectedName = expectedName;
         this.expectedValueType = expectedValueType;
     }
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName) {
         this.fieldType = fieldType;
         this.expectedName = expectedName;
     }
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType) {
         this.fieldType = fieldType;
     }
 

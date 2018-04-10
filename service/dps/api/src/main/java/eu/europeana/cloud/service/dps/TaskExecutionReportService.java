@@ -27,29 +27,32 @@ public interface TaskExecutionReportService {
 
 
     /**
-     * Increases the amount of records that have been processed
-     * by the last bolt of a topology by 1.
-     */
-    void incrTaskProgress(String taskId);
-
-    /**
      * Retrieve all errors that occurred for the given task
      *
      * @param task task identifier
      * @return task error info object
      * @throws AccessDeniedOrObjectDoesNotExistException
      */
-    TaskErrorsInfo getGeneralTaskErrorReport(String task) throws AccessDeniedOrObjectDoesNotExistException;
+    TaskErrorsInfo getGeneralTaskErrorReport(String task, int idsCount) throws AccessDeniedOrObjectDoesNotExistException;
 
     /**
      * Retrieve sample of identifiers for the given error type
      *
-     * @param task task identifier
+     * @param task      task identifier
      * @param errorType type of error
-     *
      * @return task error info objects with sample identifiers
      */
-    TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType) throws AccessDeniedOrObjectDoesNotExistException;
+    TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException;
+
+    /**
+     * check if a Task belong to specific topology
+     * @param taskId task identifier
+     * @param taskId task identifier
+
+     * @throws AccessDeniedOrObjectDoesNotExistException
+     */
+
+    void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException;
 }
 
 

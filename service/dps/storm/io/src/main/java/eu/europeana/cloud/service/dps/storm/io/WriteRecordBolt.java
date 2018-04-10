@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -43,7 +44,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             LOGGER.info("WriteRecordBolt: persisting...");
             URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
-            t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
+            prepareEmittedTuple(t, uri.toString());
             outputCollector.emit(inputTuple, t.toStormTuple());
 
         } catch (Exception e) {
@@ -56,7 +57,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         }
     }
 
-    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MalformedURLException, MCSException, CloudException {
+    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException {
         RecordServiceClient recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
         final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         recordServiceClient.useAuthorizationHeader(authorizationHeader);
@@ -64,7 +65,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
 
-    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws MCSException, CloudException {
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws IOException, MCSException, CloudException {
         return recordServiceClient.createRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME), getProviderId(stormTaskTuple, recordServiceClient), stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
 
     }
@@ -73,6 +74,14 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         Representation rep = recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION));
         return rep.getDataProvider();
 
+    }
+
+    private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
+        stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultedResourceURL);
+        stormTaskTuple.setFileData((byte[]) null);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.CLOUD_ID);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
     }
 
 

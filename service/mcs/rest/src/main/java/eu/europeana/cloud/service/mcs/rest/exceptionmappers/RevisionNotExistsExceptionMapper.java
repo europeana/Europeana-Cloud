@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 
 import javax.ws.rs.ext.ExceptionMapper;

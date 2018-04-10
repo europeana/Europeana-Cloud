@@ -10,5 +10,5 @@ public interface DynamicPropertyListener {
     /**
      * Called when a dynamic property is updated.
      */
-    public void onUpdate(String dynamicPropertyUpdate);
+    void onUpdate(String dynamicPropertyUpdate);
 }

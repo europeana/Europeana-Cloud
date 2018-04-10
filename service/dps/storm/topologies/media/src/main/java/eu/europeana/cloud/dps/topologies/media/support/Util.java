@@ -50,7 +50,7 @@ public class Util {
 		int port = (int) (long) config.get(TopologyPropertyKeys.CASSANDRA_PORT);
 		String keyspace = (String) config.get(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME);
 		String username = (String) config.get(TopologyPropertyKeys.CASSANDRA_USERNAME);
-		String password = (String) config.get(TopologyPropertyKeys.CASSANDRA_PASSWORD);
+		String password = (String) config.get(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN);
 		return CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspace, username,
 				password);
 	}

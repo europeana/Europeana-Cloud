@@ -1,30 +1,23 @@
 package eu.europeana.cloud.service.uis.persistent;
 
-import eu.europeana.cloud.service.uis.persistent.CassandraDataProviderService;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-
+import com.google.common.io.BaseEncoding;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.google.common.io.BaseEncoding;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * DataProvider Service Test

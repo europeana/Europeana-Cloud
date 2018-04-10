@@ -1,10 +1,10 @@
 package eu.europeana.cloud.client.uis.rest.console.commands;
 
-import javax.naming.directory.InvalidAttributesException;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.LocalId;
+
+import javax.naming.directory.InvalidAttributesException;
 
 /**
  * Retrieval of record ids by provider console command

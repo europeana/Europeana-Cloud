@@ -1,6 +1,5 @@
 package data.validator.cql;
 
-import com.datastax.driver.core.*;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -11,10 +10,10 @@ import java.util.List;
 
 import static data.validator.constants.Constants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.hamcrest.Matchers.is;
 
 /**
  * Created by Tarek on 5/17/2017.

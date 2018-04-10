@@ -1,6 +1,5 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
-import eu.europeana.cloud.common.utils.UrlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

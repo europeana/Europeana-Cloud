@@ -544,11 +544,13 @@ public class CassandraRecordDAO {
     }
 
     void validateRevision(Revision revision) throws RevisionIsNotValidException {
-        if (revision == null)
+        if (revision == null) {
             throw new RevisionIsNotValidException("Revision can't be null");
+        }
         else {
-            if (revision.getRevisionProviderId() == null)
+            if (revision.getRevisionProviderId() == null) {
                 throw new RevisionIsNotValidException("Revision should include revisionProviderId");
+            }
             else if (revision.getRevisionName() == null)
                 throw new RevisionIsNotValidException("Revision should include revisionName");
             else if (revision.getCreationTimeStamp() == null)
@@ -564,9 +566,10 @@ public class CassandraRecordDAO {
         BoundStatement boundStatement;
 
         // bind parameters to statement
-        if (revisionTimestamp != null)
+        if (revisionTimestamp != null){
             boundStatement = getRepresentationRevisionStatement.bind(
                     cloudId, schema, revisionProviderId, revisionName, revisionTimestamp);
+        }
         else
             boundStatement = getLatestRepresentationRevisionStatement.bind(cloudId, schema, revisionProviderId, revisionName);
 

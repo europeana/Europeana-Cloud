@@ -16,7 +16,7 @@
             <artifactId>cassandra-driver-core</artifactId>
             <version>${version.cassandra-driver}</version>
         </dependency>
-        
+
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
@@ -11,13 +12,6 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
-
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.*;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -29,10 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Implementation of record service using Cassandra as storage.
@@ -418,7 +409,7 @@ public class CassandraRecordService implements RecordService {
                 LOGGER.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
                         schema, copiedRep.getVersion());
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error(Throwables.getStackTraceAsString(e));
             }
             recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
         }

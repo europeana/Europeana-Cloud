@@ -8,7 +8,6 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +24,9 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     private static CassandraSubTaskInfoDAO instance = null;
 
-    public static CassandraSubTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized CassandraSubTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            synchronized (CassandraSubTaskInfoDAO.class) {
-                if (instance == null) {
-                    instance = new CassandraSubTaskInfoDAO(cassandra);
-                }
-            }
+            instance = new CassandraSubTaskInfoDAO(cassandra);
         }
         return instance;
     }

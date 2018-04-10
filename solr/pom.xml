@@ -18,6 +18,7 @@
     </modules>
 
     <properties>
+        <sonar.skip>true</sonar.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <solr.home>/usr/local/tomcat/webapps/solr/WEB-INF/classes/solr</solr.home>
         <solr.replication.isMaster>true</solr.replication.isMaster>

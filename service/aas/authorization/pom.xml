@@ -21,14 +21,6 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.13</version>
-                <configuration>
-                    <testFailureIgnore>true</testFailureIgnore>
-                    <skipTests>${skipITs}</skipTests>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugin</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>

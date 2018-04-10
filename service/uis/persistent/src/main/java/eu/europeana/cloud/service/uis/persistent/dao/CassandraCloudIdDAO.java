@@ -1,14 +1,10 @@
 package eu.europeana.cloud.service.uis.persistent.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
@@ -16,6 +12,9 @@ import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Dao providing access to database operations on Cloud id database

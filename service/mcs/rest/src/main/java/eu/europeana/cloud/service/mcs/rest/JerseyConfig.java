@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.service.commons.logging.LoggingFilter;
-import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.*;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;

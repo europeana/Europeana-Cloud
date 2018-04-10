@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter;
 
-import com.lyncode.xoai.model.oaipmh.MetadataFormat;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -9,6 +8,8 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.dspace.xoai.model.oaipmh.Granularity;
+import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -21,10 +22,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 
@@ -52,17 +52,20 @@ public class SplitterTest {
         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         initTestScenarioWithTwoSchemas();
         stormTaskTuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), oaipmhHarvestingDetails);
-        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
     }
 
     @Test
     public void testSplitWithTwoSchemasAndNullSets() {
+        setGranularity(Granularity.Second);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
         splitter.splitBySchema();
         verify(outputCollector, times(2)).emit(any(Tuple.class), anyList());
     }
 
     @Test
     public void testSplitWithTwoSchemasAndEmptySets() {
+        setGranularity(Granularity.Second);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
         oaipmhHarvestingDetails.setSets(new HashSet<String>());
         splitter.splitBySchema();
         verify(outputCollector, times(2)).emit(any(Tuple.class), anyList());
@@ -71,6 +74,8 @@ public class SplitterTest {
 
     @Test
     public void testSplitWithTwoSchemasAndTwoSets() {
+        setGranularity(Granularity.Second);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
         oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
         splitter.splitBySchema();
         verify(outputCollector, times(4)).emit(any(Tuple.class), captor.capture());
@@ -80,6 +85,8 @@ public class SplitterTest {
 
     @Test
     public void testSplitWithTwoSchemasAndTwoSetsWithLessThanMonthRange() throws ParseException {
+        setGranularity(Granularity.Second);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date start = sdf.parse("15/3/2012");
         Date end = sdf.parse("1/4/2012");
@@ -95,6 +102,8 @@ public class SplitterTest {
 
     @Test
     public void testSplitWithTwoSchemasAndTwoSetsWithProvidedInterval() throws ParseException {
+        setGranularity(Granularity.Second);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date start = sdf.parse("1/3/2012");
         Date end = sdf.parse("1/4/2012");
@@ -111,7 +120,82 @@ public class SplitterTest {
 
 
     @Test
+    public void shouldSplitToDayPeriodsWhenTwoSchemasAndTwoSetsAndDayGranularityAndOneDayInterval() throws ParseException {
+        setGranularity(Granularity.Day);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date start = sdf.parse("1/3/2012");
+        Date end = sdf.parse("4/3/2012");
+        oaipmhHarvestingDetails.setDateFrom(start);
+        oaipmhHarvestingDetails.setDateUntil(end);
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
+        stormTaskTuple.getParameters().put(PluginParameterKeys.INTERVAL, "86400000");//one day
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        splitter.splitBySchema();
+        verify(outputCollector, times(12)).emit(any(Tuple.class), captor.capture());//2*2*3
+        assertEquals(captor.getAllValues().size(), 12);
+        assertTupleValues(1);
+    }
+
+    @Test
+    public void shouldSplitToDayPeriodsWhenTwoSchemasAndTwoSetsAndDayGranularityAndIntervalNotEqualToDayExactly() throws ParseException {
+        setGranularity(Granularity.Day);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date start = sdf.parse("1/3/2012");
+        Date end = sdf.parse("4/3/2012");
+        oaipmhHarvestingDetails.setDateFrom(start);
+        oaipmhHarvestingDetails.setDateUntil(end);
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
+        stormTaskTuple.getParameters().put(PluginParameterKeys.INTERVAL, "172740000");//more than one day
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        splitter.splitBySchema();
+        verify(outputCollector, times(12)).emit(any(Tuple.class), captor.capture());//2*2*3
+        assertEquals(captor.getAllValues().size(), 12);
+        assertTupleValues(1);
+    }
+
+    @Test
+    public void shouldSplitToTwoDayPeriodsWhenTwoSchemasAndTwoSetsAndDayGranularityAndIntervalSetToTwoDays() throws ParseException {
+        setGranularity(Granularity.Day);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date start = sdf.parse("1/3/2012");
+        Date end = sdf.parse("5/3/2012");
+        oaipmhHarvestingDetails.setDateFrom(start);
+        oaipmhHarvestingDetails.setDateUntil(end);
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
+        stormTaskTuple.getParameters().put(PluginParameterKeys.INTERVAL, "172800000");//two days
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        splitter.splitBySchema();
+        verify(outputCollector, times(8)).emit(any(Tuple.class), captor.capture());//2*2*4/2
+        assertEquals(captor.getAllValues().size(), 8);
+        assertTupleValues(2);
+    }
+
+    @Test
+    public void shouldSplitToTwoDayPeriodsWhenTwoSchemasAndTwoSetsAndDayGranularityAndIntervalSetToMoreThanTwoDays() throws ParseException {
+        setGranularity(Granularity.Day);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date start = sdf.parse("1/3/2012");
+        Date end = sdf.parse("5/3/2012");
+        oaipmhHarvestingDetails.setDateFrom(start);
+        oaipmhHarvestingDetails.setDateUntil(end);
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
+        stormTaskTuple.getParameters().put(PluginParameterKeys.INTERVAL, "176400000");//49hours
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
+        splitter.splitBySchema();
+        verify(outputCollector, times(8)).emit(any(Tuple.class), captor.capture());//2*2*4(days)/2(2 days periods)
+        assertEquals(captor.getAllValues().size(), 8);
+        assertTupleValues(2);
+    }
+
+
+    @Test
     public void testSplitWithTwoSchemasAndTwoSetsWithThreeMonthsRange() throws ParseException {
+        setGranularity(Granularity.Second);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date start = sdf.parse("15/1/2012");
         Date end = sdf.parse("1/4/2012");
@@ -154,7 +238,9 @@ public class SplitterTest {
         when(metadataFormat.getMetadataPrefix()).thenReturn(SCHEMA1).thenReturn(SCHEMA2);
         when(oaiHelper.listSchemas()).thenReturn(metadataFormatIterator);
         when(oaiHelper.getEarlierDate()).thenReturn(new Date());
-
     }
 
+    private void setGranularity(Granularity granularity){
+        when(oaiHelper.getGranularity()).thenReturn(granularity);
+    }
 }

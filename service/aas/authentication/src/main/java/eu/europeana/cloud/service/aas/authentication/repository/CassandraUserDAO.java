@@ -1,10 +1,5 @@
 package eu.europeana.cloud.service.aas.authentication.repository;
 
-import java.util.Set;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -12,7 +7,6 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.common.collect.ImmutableSet;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.SpringUser;
@@ -20,7 +14,11 @@ import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectio
 import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
 import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
 import eu.europeana.cloud.service.aas.authentication.status.IdentifierErrorTemplate;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+
+import java.util.Set;
 
 /**
  * Used to create / retrieve / update <code>User</code> objects from ecloud's

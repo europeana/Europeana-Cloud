@@ -1,15 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
-import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.client.OAIClient;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
-import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
-import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
-import com.lyncode.xoai.serviceprovider.parameters.Parameters;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;
@@ -19,7 +10,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
-import eu.europeana.cloud.service.dps.storm.io.OAIWriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
@@ -40,6 +31,16 @@ import org.apache.storm.testing.TestJob;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
+import org.dspace.xoai.model.oaipmh.Granularity;
+import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
+import org.dspace.xoai.serviceprovider.client.OAIClient;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
+import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
+import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -72,7 +73,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, OAIWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class})
+@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, HarvestingWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
@@ -119,9 +120,11 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         mockOAIClientProvider();
         mockDatSetClient();
         mockRevisionServiceClient();
+        mockOAIHelper();
         mockUISClient();
         configureMocks();
         mockCassandraInteraction();
+
     }
 
     private void assertTopology(final String input) {
@@ -175,6 +178,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
     }
 
     private void configureMocks() throws MCSException, IOException, URISyntaxException, BadArgumentException, OAIRequestException, CloudException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, IdDoesNotExistException, XMLStreamException, TransformerConfigurationException {
+        when(oaiHelper.getGranularity()).thenReturn(Granularity.Day);
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
         when(sourceProvider.provide(anyString())).thenReturn(serviceProvider);
         List<Header> headers = new ArrayList<>();
@@ -205,7 +209,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
     private static void buildTopology() {
         // build the test topology
-        WriteRecordBolt writeRecordBolt = new OAIWriteRecordBolt(MCS_URL, UIS_URL);
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(MCS_URL, UIS_URL);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(MCS_URL);
         TestInspectionBolt endTest = new TestInspectionBolt();
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(MCS_URL);

@@ -1,13 +1,11 @@
 package eu.europeana.cloud.service.dls.solr;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.dls.TestUtil;
+import eu.europeana.cloud.service.dls.solr.exception.SolrDocumentNotFoundException;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrException;
 import org.junit.After;
@@ -17,16 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
+import java.io.IOException;
+import java.util.*;
 
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.dls.TestUtil;
-import eu.europeana.cloud.service.dls.solr.exception.SolrDocumentNotFoundException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/solrTestContext.xml" })

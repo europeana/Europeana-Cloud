@@ -1,8 +1,7 @@
 package migrations.common;
 
-import com.datastax.driver.core.*;
-
 import java.util.Iterator;
+import com.datastax.driver.core.*;
 
 /**
  * @author krystian.

@@ -18,8 +18,9 @@ public class FileUtils {
         if (cloudId == null || cloudId.isEmpty()
                 || representationName == null || representationName.isEmpty()
                 || version == null || version.isEmpty()
-                || fileName == null || fileName.isEmpty())
+                || fileName == null || fileName.isEmpty()) {
             return null;
+        }
         return cloudId + "_" + representationName + "_" + version + "_" + fileName;
     }
 }

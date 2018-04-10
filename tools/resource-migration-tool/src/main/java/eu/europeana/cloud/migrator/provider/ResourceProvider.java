@@ -16,7 +16,7 @@ public interface ResourceProvider {
      * @param path path to resource
      * @return resource provider identifier
      */
-    public String getResourceProviderId(String path);
+    String getResourceProviderId(String path);
 
 
     /**
@@ -26,7 +26,7 @@ public interface ResourceProvider {
      * @param path path to file that may be used to determine the data provider identifier if it's not defined in configuration
      * @return data provider identifier for ECloud
      */
-    public String getDataProviderId(String path);
+    String getDataProviderId(String path);
 
     /**
      * Get basic information on data provider such as organisation name, address and others.
@@ -35,7 +35,7 @@ public interface ResourceProvider {
      * @param path path to directory where the data provider properties file is located
      * @return data provider properties
      */
-    public DataProviderProperties getDataProviderProperties(String path);
+    DataProviderProperties getDataProviderProperties(String path);
 
     /**
      * Get local identifier of the record for the specified path to file and provider identifier.
@@ -45,7 +45,7 @@ public interface ResourceProvider {
      * @param duplicate indicate whether this may be a duplicate
      * @return local identifier of the record
      */
-    public String getLocalIdentifier(String location, String path, boolean duplicate);
+    String getLocalIdentifier(String location, String path, boolean duplicate);
 
     /**
      * Return the default representation name of records added for this resource provider.
@@ -53,21 +53,21 @@ public interface ResourceProvider {
      *
      * @return default representation name
      */
-    public String getRepresentationName();
+    String getRepresentationName();
 
     /**
      * Return resource provider location as URI. This may indicate directory or remote resource URL.
      *
      * @return resource provider locaction as URI
      */
-    public List<URI> getLocations();
+    List<URI> getLocations();
 
     /**
      * Checks whether the provider location is local.
      *
      * @return true when location is local or false otherwise
      */
-    public boolean isLocal();
+    boolean isLocal();
 
     /**
      * Scan location in case it's local. Otherwise return an empty map.
@@ -75,7 +75,7 @@ public interface ResourceProvider {
      *
      * @return map of provider identifiers associated to the list of paths to files
      */
-    public Map<String, List<FilePaths>> scan();
+    Map<String, List<FilePaths>> scan();
 
     /**
      * Determines user filename from the specified path to file and location.
@@ -84,7 +84,7 @@ public interface ResourceProvider {
      * @param path     path to file either local or remote in URI syntax
      * @return filename to be stored in ECloud
      */
-    public String getFilename(String location, String path);
+    String getFilename(String location, String path);
 
     /**
      * Determine the number of files that should be added for the specified local identifier.
@@ -94,7 +94,7 @@ public interface ResourceProvider {
      * @param localId local identifier of the record
      * @return number of files the record should have or -1 if it's impossible to determine
      */
-    public int getFileCount(String localId);
+    int getFileCount(String localId);
 
     /**
      * Resource provider implementation may split the file paths that will be migrated into several parts.
@@ -104,7 +104,7 @@ public interface ResourceProvider {
      * @param paths paths to files that will be migrated
      * @return a list of lists
      */
-    public List<FilePaths> split(List<FilePaths> paths);
+    List<FilePaths> split(List<FilePaths> paths);
 
 
     /**
@@ -112,7 +112,7 @@ public interface ResourceProvider {
      *
      * @return true when paths should be stored in a file or false otherwise
      */
-    public boolean usePathsFile();
+    boolean usePathsFile();
 
 
     /**
@@ -122,5 +122,5 @@ public interface ResourceProvider {
      *
      * @return reversed mapping
      */
-    public Map<String, String> getReversedMapping();
+    Map<String, String> getReversedMapping();
 }

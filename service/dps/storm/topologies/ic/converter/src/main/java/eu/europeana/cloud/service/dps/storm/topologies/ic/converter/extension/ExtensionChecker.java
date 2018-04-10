@@ -10,6 +10,6 @@ public interface ExtensionChecker {
      * @param filePath the full path of a file
      * @return boolean value based on the checking process  .
      */
-    public boolean isGoodExtension(String filePath);
+    boolean isGoodExtension(String filePath);
 
 }

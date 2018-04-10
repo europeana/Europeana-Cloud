@@ -11,24 +11,18 @@ import org.apache.storm.utils.Utils;
 import java.util.Arrays;
 
 import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.UIS_URL;
 
 /**
  * Created by Tarek on 10/2/2017.
  */
 public class StaticOAITopology {
     public static void main(String[] args) {
-        StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPsTaskForOAI());
+        StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPSTaskForOAI());
         StormTopology stormTopology = SimpleStaticOAITopologyBuilder.buildTopology(staticDpsTaskSpout, UIS_URL, MCS_URL);
         Config conf = new Config();
         conf.setDebug(true);
         conf.put(Config.TOPOLOGY_DEBUG, true);
-        conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS,3600);
-        conf.put(INPUT_ZOOKEEPER_ADDRESS,
-                INPUT_ZOOKEEPER_PORT);
-        conf.put(Config.STORM_ZOOKEEPER_SERVERS,
-                Arrays.asList(STORM_ZOOKEEPER_ADDRESS));
-
+        conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 3600);
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("test", conf, stormTopology);
         Utils.sleep(60000);

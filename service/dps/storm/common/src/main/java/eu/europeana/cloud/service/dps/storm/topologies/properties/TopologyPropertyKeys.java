@@ -20,7 +20,7 @@ public final class TopologyPropertyKeys {
     public static final String CASSANDRA_PORT = "CASSANDRA_PORT";
     public static final String CASSANDRA_KEYSPACE_NAME = "CASSANDRA_KEYSPACE_NAME";
     public static final String CASSANDRA_USERNAME = "CASSANDRA_USERNAME";
-    public static final String CASSANDRA_PASSWORD = "CASSANDRA_PASSWORD";
+    public static final String CASSANDRA_SECRET_TOKEN = "CASSANDRA_PASSWORD";
     public static final String KAFKA_SPOUT_PARALLEL = "KAFKA_SPOUT_PARALLEL";
     public static final String PARSE_TASKS_BOLT_PARALLEL = "PARSE_TASKS_BOLT_PARALLEL";
     public static final String RETRIEVE_FILE_BOLT_PARALLEL = "RETRIEVE_FILE_BOLT_PARALLEL";
@@ -29,6 +29,8 @@ public final class TopologyPropertyKeys {
     public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
     public static final String REVISION_WRITER_BOLT_PARALLEL = "REVISION_WRITER_BOLT_PARALLEL";
     public static final String VALIDATION_BOLT_PARALLEL = "VALIDATION_BOLT_PARALLEL";
+    public static final String STATISTICS_BOLT_PARALLEL = "STATISTICS_BOLT_PARALLEL";
+
 
     public static final String READ_DATASETS_BOLT_PARALLEL = "READ_DATASETS_BOLT_PARALLEL";
     public static final String READ_DATASET_BOLT_PARALLEL = "READ_DATASET_BOLT_PARALLEL";
@@ -51,6 +53,15 @@ public final class TopologyPropertyKeys {
     public static final String NIMBUS_SEEDS = "NIMBUS_SEEDS";
     public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
     public static final String VALIDATION_BOLT_NUMBER_OF_TASKS = "VALIDATION_BOLT_NUMBER_OF_TASKS";
+    public static final String STATISTICS_BOLT_NUMBER_OF_TASKS = "STATISTICS_BOLT_NUMBER_OF_TASKS";
+
+
+
+    //Enrichment parameters
+    public static final String ENRICHMENT_BOLT_NUMBER_OF_TASKS = "ENRICHMENT_BOLT_NUMBER_OF_TASKS";
+    public static final String ENRICHMENT_BOLT_PARALLEL = "ENRICHMENT_BOLT_PARALLEL";
+    public static final String DEREFERENCE_SERVICE_URL = "DEREFERENCE_SERVICE_URL";
+    public static final String ENRICHMENT_SERVICE_URL = "ENRICHMENT_SERVICE_URL";
 
 
     //OAI-Parameters
@@ -62,5 +73,10 @@ public final class TopologyPropertyKeys {
     public static final String IDENTIFIERS_HARVESTING_BOLT_PARALLEL = "IDENTIFIERS_HARVESTING_BOLT_PARALLEL";
     public static final String UIS_URL = "UIS_URL";
     public static final String INTERVAL = "INTERVAL";
+
+    //HTTP Parameters
+    public static final String HTTP_HARVESTING_BOLT_NUMBER_OF_TASKS = "HTTP_HARVESTING_BOLT_NUMBER_OF_TASKS";
+    public static final String HTTP_BOLT_PARALLEL = "HTTP_BOLT_PARALLEL";
+
 
 }

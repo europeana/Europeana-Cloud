@@ -5,14 +5,12 @@ import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.ApplicationContextUtils;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
@@ -54,6 +52,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget detailedReportWebTarget;
     private WebTarget progressReportWebTarget;
     private WebTarget errorsReportWebTarget;
+    private WebTarget validationStatisticsReportWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -63,6 +62,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private FilesCounter filesCounter;
     private KafkaSubmitService kafkaSubmitService;
     private TaskExecutionReportService reportService;
+    private ValidationStatisticsReportService validationStatisticsService;
 
     private static final String RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE";
     private static final String RESULT_RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE";
@@ -70,9 +70,10 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final String TOPOLOGY_NAME = "ANY_TOPOLOGY";
 
     private static final String ERROR_MESSAGE = "Message";
-    private static final String[] ERROR_TYPES = { "bd0c7280-db47-11e7-ada4-e2f54b49d956", "bd0ac4d0-db47-11e7-ada4-e2f54b49d956", "4bb74640-db48-11e7-af3d-e2f54b49d956"};
-    private static final int[] ERROR_COUNTS = { 5, 2, 7};
+    private static final String[] ERROR_TYPES = {"bd0c7280-db47-11e7-ada4-e2f54b49d956", "bd0ac4d0-db47-11e7-ada4-e2f54b49d956", "4bb74640-db48-11e7-af3d-e2f54b49d956"};
+    private static final int[] ERROR_COUNTS = {5, 2, 7};
     private static final String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
+    private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
 
     @Override
     protected Application configure() {
@@ -89,6 +90,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         filesCounter = applicationContext.getBean(FilesCounter.class);
         context = applicationContext.getBean(ApplicationContext.class);
         reportService = applicationContext.getBean(TaskExecutionReportService.class);
+        validationStatisticsService = applicationContext.getBean(CassandraValidationStatisticsService.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
@@ -97,6 +99,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
         errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
+        validationStatisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
     }
 
     @Test
@@ -147,6 +150,89 @@ public class TopologyTasksResourceTest extends JerseyTest {
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToEnrichmentTopology() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("enrichmentTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/edmInternalDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "enrichment_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToEnrichmentTopology() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("enrichmentTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/edmInternalDataSets"));
+        String topologyName = "enrichment_topology";
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithWrongDataSetURL() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("enrichmentTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://wrongDataSet.com"));
+        String topologyName = "enrichment_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToEnrichmentTopologyWithNotValidOutputRevision() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("enrichmentTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        String topologyName = "enrichment_topology";
+        Revision revision = new Revision(" ", REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("enrichmentTask");
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName"));
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "enrichment_topology";
         prepareMocks(topologyName);
         WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
         //when
@@ -303,6 +389,64 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
+
+
+    @Test
+    public void shouldProperlySendTaskWithHTTPRepository() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("HTTP HarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/zipFile.zip"));
+        task.addParameter(PluginParameterKeys.PROVIDER_ID, "providerId");
+        String topologyName = "http_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        Thread.sleep(10000);
+        verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
+        verifyNoMoreInteractions(kafkaSubmitService);
+    }
+
+
+    @Test
+    public void shouldThrowExceptionWhenMissingRequiredProviderIdForHttpService() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("HTTP HarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/zipFile.zip"));
+        String topologyName = "http_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
+    @Test
+    public void shouldThrowExceptionWhenSubmittingTaskToHttpServiceWithNotValidOutputRevision() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("HTTP HarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/zipFile.zip"));
+        String topologyName = "http_topology";
+        Revision revision = new Revision(REVISION_NAME, null);
+        task.setOutputRevision(revision);
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
     @Test
     public void shouldProperlySendTaskWithDatsetEntryWithOutputRevision() throws MCSException, TaskSubmissionException {
         //given
@@ -321,6 +465,28 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
         //then
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldNotSubmitEmptyTask() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName"));
+        task.addParameter(SCHEMA_NAME, "edm-internal");
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        when(filesCounter.getFilesCount(isA(DpsTask.class), anyString())).thenReturn(0);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        Thread.sleep(10000);
+        verifyZeroInteractions(kafkaSubmitService);
     }
 
 
@@ -420,13 +586,45 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetDetailedReportForTheFirst100Resources() {
+    public void shouldGetStatisticReport() throws TaskSubmissionException, MCSException {
+        when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
+        WebTarget enrichedWebTarget = validationStatisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        Response response = enrichedWebTarget.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertEquals(TASK_ID, response.readEntity(StatisticsReport.class).getTaskId());
+    }
+
+    @Test
+    public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws AccessDeniedOrObjectDoesNotExistException {
+        when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
+        when(topologyManager.containsTopology(anyString())).thenReturn(false);
+        WebTarget enrichedWebTarget = validationStatisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        Response response = enrichedWebTarget.request().get();
+        assertEquals(response.getStatus(), 405);
+    }
+
+    @Test
+    public void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
         WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
         Response detailedReportResponse = enrichedWebTarget.request().get();
         assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
 
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
+        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
+        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
+        when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
+        Response detailedReportResponse = enrichedWebTarget.request().get();
+        assertThat(detailedReportResponse.getStatus(), is(Response.Status.METHOD_NOT_ALLOWED.getStatusCode()));
     }
 
     @Test
@@ -443,11 +641,23 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
+    public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
+        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("idsCount", 10);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
+        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(10))).thenReturn(errorsInfo);
+
+        Response response = enrichedWebTarget.request().get();
+        TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
+        assertThat(retrievedInfo, is(errorsInfo));
+    }
+
+    @Test
     public void shouldGetSpecificErrorReport() throws Exception {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("error", ERROR_TYPES[0]);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
-        when(reportService.getSpecificTaskErrorReport(eq(Long.toString(TASK_ID)), eq(ERROR_TYPES[0]))).thenReturn(errorsInfo);
+        when(reportService.getSpecificTaskErrorReport(eq(Long.toString(TASK_ID)), eq(ERROR_TYPES[0]), eq(100))).thenReturn(errorsInfo);
 
         Response response = enrichedWebTarget.request().get();
         TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
@@ -459,7 +669,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
-        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)))).thenReturn(errorsInfo);
+        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(0))).thenReturn(errorsInfo);
 
         Response response = enrichedWebTarget.request().get();
         TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
@@ -476,10 +686,10 @@ public class TopologyTasksResourceTest extends JerseyTest {
             error.setErrorType(ERROR_TYPES[i]);
             error.setOccurrences(ERROR_COUNTS[i]);
             if (specific) {
-                List<String> identifiers = new ArrayList<>();
-                error.setIdentifiers(identifiers);
+                List<ErrorDetails> errorDetails = new ArrayList<>();
+                error.setErrorDetails(errorDetails);
                 for (int j = 0; j < ERROR_COUNTS[i]; j++) {
-                    identifiers.add(ERROR_RESOURCE_IDENTIFIER + String.valueOf(j));
+                    errorDetails.add(new ErrorDetails(ERROR_RESOURCE_IDENTIFIER + String.valueOf(j),ADDITIONAL_INFORMATIONS + String.valueOf(j)));
                 }
             }
             errors.add(error);
@@ -497,10 +707,12 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetDetailedReportForSpecifiedResources() {
+    public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
         WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("from", 120).queryParam("to", 150);
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         Response detailedReportResponse = enrichedWebTarget.request().get();
         assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
     }

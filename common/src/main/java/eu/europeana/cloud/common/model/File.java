@@ -1,19 +1,17 @@
 package eu.europeana.cloud.common.model;
 
-import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
-
-import java.io.Serializable;
-import java.net.URI;
+import eu.europeana.cloud.service.mcs.Storage;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.net.URI;
 
-import eu.europeana.cloud.service.mcs.Storage;
+import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 
 /**
  * Metadata of a file (content) in a certain representation version of a record.
  */
 @XmlRootElement
-public class File implements Serializable {
+public class File {
 
 	/**
 	 * Name of a file - primary identifier of a file inside a certain representation of a record.
@@ -152,17 +150,33 @@ public class File implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof File)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof File)) {
+			return false;
+		}
 
-        File file = (File) o;
+		File file = (File) o;
 
-        if (contentLength != file.contentLength) return false;
-        if (fileStorage != file.fileStorage) return false;
-        if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) return false;
-        if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) return false;
-        if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) return false;
-        if (date != null ? !date.equals(file.date) : file.date != null) return false;
+		if (contentLength != file.contentLength) {
+			return false;
+		}
+		if (fileStorage != file.fileStorage) {
+			return false;
+		}
+		if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) {
+			return false;
+		}
+		if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) {
+			return false;
+		}
+		if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) {
+			return false;
+		}
+		if (date != null ? !date.equals(file.date) : file.date != null) {
+			return false;
+		}
         return contentUri != null ? contentUri.equals(file.contentUri) : file.contentUri == null;
 
     }
