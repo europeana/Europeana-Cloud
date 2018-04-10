@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.prepareConfig;
+
 
 /**
  * This is the Image conversion topology . The topology reads from the cloud,
@@ -174,7 +176,6 @@ public class ICTopology {
     public static void main(String[] args) {
 
         try {
-            Config config = new Config();
 
             if (args.length <= 1) {
 
@@ -188,16 +189,7 @@ public class ICTopology {
                 String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
                 StormTopology stormTopology = icTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
-                config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
-                config.setMaxTaskParallelism(
-                        Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
-                config.put(Config.NIMBUS_THRIFT_PORT,
-                        Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
-                config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
-                        topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
-                config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(TopologyPropertyKeys.NIMBUS_SEEDS)}));
-                config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                        Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
+                Config config = prepareConfig(topologyProperties);
 
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }

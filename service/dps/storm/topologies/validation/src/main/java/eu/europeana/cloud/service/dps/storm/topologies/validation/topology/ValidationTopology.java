@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.prepareConfig;
+
 /**
  * Created by Tarek on 12/5/2017.
  */
@@ -162,7 +164,6 @@ public class ValidationTopology {
     public static void main(String[] args) {
 
         try{
-        Config config = new Config();
 
         if (args.length <= 2) {
 
@@ -180,17 +181,7 @@ public class ValidationTopology {
             String kafkaTopic = topologyName;
             String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
             StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
-            config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
-            config.setMaxTaskParallelism(
-                    Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
-            config.put(Config.NIMBUS_THRIFT_PORT,
-                    Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
-            config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
-                    topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(TopologyPropertyKeys.NIMBUS_SEEDS)}));
-            config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                    Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
-
+            Config config = prepareConfig(topologyProperties);
             StormSubmitter.submitTopology(topologyName, config, stormTopology);
         }
         } catch (Exception e) {

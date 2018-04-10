@@ -179,10 +179,6 @@ public class EnrichmentTopology {
 
     public static void main(String[] args) {
         try {
-
-            Config config = new Config();
-            config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
-
             if (args.length <= 1) {
 
                 String providedPropertyFile = "";
@@ -202,21 +198,14 @@ public class EnrichmentTopology {
                         kafkaTopic,
                         ecloudMcsAddress);
 
-                config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(WORKER_COUNT)));
-                config.setMaxTaskParallelism(
-                        Integer.parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
-                config.put(Config.NIMBUS_THRIFT_PORT,
-                        Integer.parseInt(topologyProperties.getProperty(THRIFT_PORT)));
-                config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-                        topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-                config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(NIMBUS_SEEDS)}));
-                config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                        Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
+                Config config = prepareConfig(topologyProperties);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
         }
     }
+
+
 }
 

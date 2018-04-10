@@ -137,7 +137,6 @@ public class HTTPHarvestingTopology {
     public static void main(String[] args) {
 
         try {
-            Config config = new Config();
 
             if (args.length <= 1) {
 
@@ -151,16 +150,7 @@ public class HTTPHarvestingTopology {
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
                 StormTopology stormTopology = httpHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
-                config.setNumWorkers(getAnInt(WORKER_COUNT));
-                config.setMaxTaskParallelism(
-                        getAnInt(MAX_TASK_PARALLELISM));
-                config.put(Config.NIMBUS_THRIFT_PORT,
-                        getAnInt(THRIFT_PORT));
-                config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-                        topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-                config.put(Config.NIMBUS_SEEDS, Arrays.asList(topologyProperties.getProperty(NIMBUS_SEEDS)));
-                config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                        Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
+                Config config = prepareConfig(topologyProperties);
 
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
