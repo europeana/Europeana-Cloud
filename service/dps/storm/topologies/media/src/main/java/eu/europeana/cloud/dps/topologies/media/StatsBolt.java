@@ -27,12 +27,12 @@ public class StatsBolt extends BaseRichBolt {
 	
 	private static final Logger logger = LoggerFactory.getLogger(StatsBolt.class);
 	
-	private CassandraTaskInfoDAO taskInfoDao;
+	private transient CassandraTaskInfoDAO taskInfoDao;
 	
 	private String topologyName;
 	private HashMap<Long, TaskStats> taskStats = new HashMap<>();
 	
-	private OutputCollector outputCollector;
+	private transient OutputCollector outputCollector;
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -60,7 +60,7 @@ public class StatsBolt extends BaseRichBolt {
 			taskInfoDao.insert(taskId, topologyName, (int) data.getEdmCount(),
 					TaskState.CURRENTLY_PROCESSING.toString(), "", new Date(data.getStartTime()));
 			updateDao(stats);
-			logger.info("starting stats gathering for task " + taskId);
+			logger.info("starting stats gathering for task {}", taskId);
 		} else if (StatsTupleData.STREAM_ID.equals(tuple.getSourceStreamId())) {
 			StatsTupleData data = (StatsTupleData) tuple.getValueByField(StatsTupleData.FIELD_NAME);
 			long taskId = data.getTaskId();
@@ -71,7 +71,7 @@ public class StatsBolt extends BaseRichBolt {
 				taskInfoDao.endTask(taskId, (int) stats.processedEdmsCount, (int) stats.failedEdmsCount,
 						stats.toString(), TaskState.PROCESSED.toString(), new Date());
 				taskStats.remove(taskId);
-				logger.info("finished stats gathering for task " + taskId);
+				logger.info("finished stats gathering for task {}", taskId);
 			} else {
 				updateDao(stats);
 			}

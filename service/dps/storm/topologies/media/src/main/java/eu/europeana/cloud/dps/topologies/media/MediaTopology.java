@@ -32,24 +32,28 @@ public class MediaTopology {
 		
 		final boolean isTest = args.length > 0;
 		
-		TopologyBuilder builder = new TopologyBuilder();
 		String topologyName = (String) conf.computeIfAbsent(TopologyPropertyKeys.TOPOLOGY_NAME, k -> "media_topology");
+		String source = "source";
+		String downloadBolt = "downloadBolt";
+		String processingBolt = "processingBolt";
+		String statsBolt = "statsBolt";
 		
+		TopologyBuilder builder = new TopologyBuilder();
 		IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
 		Collection<UrlType> urlTypes = Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY);
-		builder.setSpout("source", new DataSetReaderSpout(baseSpout, urlTypes), 1);
+		builder.setSpout(source, new DataSetReaderSpout(baseSpout, urlTypes), 1);
 		
-		builder.setBolt("downloadBolt", new DownloadBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))
-				.fieldsGrouping("source", new Fields(DataSetReaderSpout.SOURCE_FIELD));
-		builder.setBolt("processingBolt", new ProcessingBolt(),
+		builder.setBolt(downloadBolt, new DownloadBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))
+				.fieldsGrouping(source, new Fields(DataSetReaderSpout.SOURCE_FIELD));
+		builder.setBolt(processingBolt, new ProcessingBolt(),
 				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_PROCESSING"))
-				.localOrShuffleGrouping("downloadBolt", DownloadBolt.STREAM_LOCAL)
-				.customGrouping("downloadBolt", new ShuffleGrouping());
+				.localOrShuffleGrouping(downloadBolt, DownloadBolt.STREAM_LOCAL)
+				.customGrouping(downloadBolt, new ShuffleGrouping());
 		
-		builder.setBolt("statsBolt", new StatsBolt(), 1)
-				.globalGrouping("source", StatsInitTupleData.STREAM_ID)
-				.globalGrouping("downloadBolt", StatsTupleData.STREAM_ID)
-				.globalGrouping("processingBolt", StatsTupleData.STREAM_ID);
+		builder.setBolt(statsBolt, new StatsBolt(), 1)
+				.globalGrouping(source, StatsInitTupleData.STREAM_ID)
+				.globalGrouping(downloadBolt, StatsTupleData.STREAM_ID)
+				.globalGrouping(processingBolt, StatsTupleData.STREAM_ID);
 		
 		if (isTest) {
 			LocalCluster cluster = new LocalCluster();

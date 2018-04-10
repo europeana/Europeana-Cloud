@@ -35,10 +35,10 @@ abstract class HttpClientBolt extends BaseRichBolt {
 	/** Temporary "error" value for counting successful downloads */
 	protected static final String OK = "OK";
 	
-	protected OutputCollector outputCollector;
+	protected transient OutputCollector outputCollector;
 	
-	protected CloseableHttpAsyncClient httpClient;
-	private ConnPoolControl<HttpRoute> connPoolControl;
+	protected transient CloseableHttpAsyncClient httpClient;
+	private transient ConnPoolControl<HttpRoute> connPoolControl;
 	private HashMap<String, Integer> connectionLimitsPerHost = new HashMap<>();
 	private HashMap<HttpRoute, Integer> currentClientLimits = new HashMap<>();
 	

@@ -52,6 +52,8 @@ public class LinkCheckBolt extends HttpClientBolt {
 			Tuple tuple) throws IOException {
 		return new AbstractAsyncResponseConsumer<Void>() {
 			
+			final Object lock = stats;
+			
 			@Override
 			protected void onResponseReceived(HttpResponse response) throws HttpException, IOException {
 				int status = response.getStatusLine().getStatusCode();
@@ -67,7 +69,7 @@ public class LinkCheckBolt extends HttpClientBolt {
 					statusUpdate("CONTENT TYPE " + contentType);
 					return;
 				}
-				logger.debug("Link OK: " + fileInfo.getUrl());
+				logger.debug("Link OK: {}", fileInfo.getUrl());
 				statusUpdate(OK);
 			}
 			
@@ -98,7 +100,7 @@ public class LinkCheckBolt extends HttpClientBolt {
 			}
 			
 			private void statusUpdate(String status) {
-				synchronized (stats) {
+				synchronized (lock) {
 					stats.addError(status);
 					if (stats.getErrors().size() == stats.getResourceCount()) {
 						stats.getErrors().removeIf(OK::equals);

@@ -63,7 +63,7 @@ public class TempFileSync {
 				throw new RuntimeException("could not start listening on " + localAddress + ":" + port, e);
 			}
 			threadPool = Executors.newCachedThreadPool();
-			new Thread(() -> listenerLoop(), "file-transfer-listener-loop").start();
+			new Thread(TempFileSync::listenerLoop, "file-transfer-listener-loop").start();
 			logger.info("file transfer listening on {}:{}", localAddress, port);
 		}
 		startedCount++;
@@ -109,7 +109,7 @@ public class TempFileSync {
 	
 	public static void delete(FileInfo file) {
 		if (file.getContent() != null && !file.getContent().delete())
-			logger.warn("could not delete temp file: " + file.getContent());
+			logger.warn("could not delete temp file: {}", file.getContent());
 		if (isLocal(file))
 			return;
 		File remote = localToRemoteContent.remove(file.getContent());

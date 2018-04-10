@@ -21,7 +21,7 @@ public class DummySpout extends BaseRichSpout {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DummySpout.class);
 	
-	private SpoutOutputCollector outputCollector;
+	private transient SpoutOutputCollector outputCollector;
 	
 	private DpsTask task;
 	
@@ -30,7 +30,7 @@ public class DummySpout extends BaseRichSpout {
 		outputCollector = collector;
 		
 		task = new DpsTask();
-		logger.info("Created dummy task: " + task.getTaskId());
+		logger.info("Created dummy task: {}", task.getTaskId());
 		task.setTaskName("test777");
 		String serviceUrl = (String) conf.get("MEDIATOPOLOGY_FILE_SERVICE_URL");
 		String datasetProvider = (String) conf.get("MEDIATOPOLOGY_DATASET_PROVIDER");

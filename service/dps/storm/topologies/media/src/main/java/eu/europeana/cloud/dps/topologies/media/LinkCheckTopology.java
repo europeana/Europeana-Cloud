@@ -31,20 +31,23 @@ public class LinkCheckTopology {
 		
 		final boolean isTest = args.length > 0;
 		
-		TopologyBuilder builder = new TopologyBuilder();
 		String topologyName =
 				(String) conf.computeIfAbsent(TopologyPropertyKeys.TOPOLOGY_NAME, k -> "linkcheck_topology");
+		String source = "source";
+		String linkCheckBolt = "linkCheckBolt";
+		String statsBolt = "statsBolt";
 		
+		TopologyBuilder builder = new TopologyBuilder();
 		IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
 		Collection<UrlType> urlTypes = Arrays.asList(UrlType.IS_SHOWN_AT);
-		builder.setSpout("source", new DataSetReaderSpout(baseSpout, urlTypes), 1);
+		builder.setSpout(source, new DataSetReaderSpout(baseSpout, urlTypes), 1);
 		
-		builder.setBolt("linkCheckBolt", new LinkCheckBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))
-				.fieldsGrouping("source", new Fields(DataSetReaderSpout.SOURCE_FIELD));
+		builder.setBolt(linkCheckBolt, new LinkCheckBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))
+				.fieldsGrouping(source, new Fields(DataSetReaderSpout.SOURCE_FIELD));
 		
-		builder.setBolt("statsBolt", new StatsBolt(), 1)
-				.globalGrouping("source", StatsInitTupleData.STREAM_ID)
-				.globalGrouping("linkCheckBolt", StatsTupleData.STREAM_ID);
+		builder.setBolt(statsBolt, new StatsBolt(), 1)
+				.globalGrouping(source, StatsInitTupleData.STREAM_ID)
+				.globalGrouping(linkCheckBolt, StatsTupleData.STREAM_ID);
 		
 		if (isTest) {
 			LocalCluster cluster = new LocalCluster();

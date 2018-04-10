@@ -1,8 +1,10 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
@@ -69,90 +71,112 @@ public class DownloadBolt extends HttpClientBolt {
 	protected ZeroCopyConsumer<Void> createResponseConsumer(FileInfo fileInfo, StatsTupleData stats, Tuple tuple)
 			throws IOException {
 		File content = File.createTempFile("media", null);
-		return new ZeroCopyConsumer<Void>(content) {
-			
-			@Override
-			protected void onResponseReceived(HttpResponse response) {
-				String mimeType = ContentType.get(response.getEntity()).getMimeType();
-				if (MediaProcessor.supportsLinkProcessing(mimeType)) {
-					logger.debug("Skipping download: {}", fileInfo.getUrl());
-					if (!content.delete())
-						logger.warn("Could not delete temp file: " + content);
-					fileInfo.setMimeType(mimeType);
-					statusUpdate(OK);
-					cancel();
-					return;
-				}
-				super.onResponseReceived(response);
-			}
-			
-			@Override
-			protected Void process(HttpResponse response, File file, ContentType contentType) throws Exception {
-				int status = response.getStatusLine().getStatusCode();
-				long byteCount = file.length();
-				if (status < 200 || status >= 300 || byteCount == 0) {
-					logger.info("Download error (code {}) for {}", status, fileInfo.getUrl());
-					if (file.exists() && !file.delete())
-						logger.warn("Could not remove temp file {}", file);
-					fileInfo.setContent(ERROR_FLAG);
-					statusUpdate("DOWNLOAD: STATUS CODE " + status);
-					return null;
-				}
-				fileInfo.setContent(file);
-				fileInfo.setMimeType(contentType.getMimeType());
-				fileInfo.setContentSource(localAddress);
-				
-				synchronized (stats) {
-					long now = System.currentTimeMillis();
-					stats.setDownloadEndTime(now);
-					if (stats.getDownloadStartTime() == 0) {
-						// too hard to determine actual start time, not significant for global measure
-						stats.setDownloadStartTime(now);
-					}
-					stats.setDownloadedBytes(stats.getDownloadedBytes() + byteCount);
-				}
-				
-				logger.debug("Downloaded {} bytes: {}", byteCount, fileInfo.getUrl());
+		return new DownloadConsumer(fileInfo, content, tuple, stats);
+	}
+
+	private final class DownloadConsumer extends ZeroCopyConsumer<Void> {
+		private final StatsTupleData stats;
+		private final FileInfo fileInfo;
+		private final File content;
+		private final Tuple tuple;
+		
+		private DownloadConsumer(FileInfo fileInfo, File content, Tuple tuple, StatsTupleData stats)
+				throws FileNotFoundException {
+			super(content);
+			this.stats = stats;
+			this.fileInfo = fileInfo;
+			this.content = content;
+			this.tuple = tuple;
+		}
+		
+		@Override
+		protected void onResponseReceived(HttpResponse response) {
+			String mimeType = ContentType.get(response.getEntity()).getMimeType();
+			if (MediaProcessor.supportsLinkProcessing(mimeType)) {
+				logger.debug("Skipping download: {}", fileInfo.getUrl());
+				cleanup();
+				fileInfo.setMimeType(mimeType);
 				statusUpdate(OK);
+				cancel();
+				return;
+			}
+			super.onResponseReceived(response);
+		}
+		
+		@Override
+		protected Void process(HttpResponse response, File file, ContentType contentType) throws Exception {
+			int status = response.getStatusLine().getStatusCode();
+			long byteCount = file.length();
+			if (status < 200 || status >= 300 || byteCount == 0) {
+				logger.info("Download error (code {}) for {}", status, fileInfo.getUrl());
+				cleanup();
+				fileInfo.setContent(ERROR_FLAG);
+				statusUpdate("DOWNLOAD: STATUS CODE " + status);
 				return null;
 			}
+			fileInfo.setContent(file);
+			fileInfo.setMimeType(contentType.getMimeType());
+			fileInfo.setContentSource(localAddress);
 			
-			@Override
-			protected void releaseResources() {
-				super.releaseResources();
-				Exception e = getException();
-				if (e != null) {
-					String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-					logger.info("Download exception ({}) for {}", msg, fileInfo.getUrl());
-					logger.trace("Download failure details:", e);
-					if (content.exists() && !content.delete())
-						logger.warn("Could not remove temp file {}", content);
-					fileInfo.setContent(ERROR_FLAG);
-					statusUpdate("CONNECTION ERROR: " + msg);
+			synchronized (stats) {
+				long now = System.currentTimeMillis();
+				stats.setDownloadEndTime(now);
+				if (stats.getDownloadStartTime() == 0) {
+					// too hard to determine actual start time, not significant for global measure
+					stats.setDownloadStartTime(now);
 				}
+				stats.setDownloadedBytes(stats.getDownloadedBytes() + byteCount);
 			}
 			
-			private void statusUpdate(String status) {
-				synchronized (stats) {
-					stats.addError(status);
-					if (stats.getErrors().size() == stats.getResourceCount()) {
-						boolean someSuccess = stats.getErrors().removeIf(OK::equals);
-						if (someSuccess) {
-							MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
-							data.getFileInfos().removeIf(f -> f.getContent() == ERROR_FLAG);
-							if (stats.getDownloadedBytes() < localStreamThreshold) {
-								outputCollector.emit(tuple, new Values(data, stats));
-							} else {
-								outputCollector.emit(STREAM_LOCAL, tuple, new Values(data, stats));
-							}
+			logger.debug("Downloaded {} bytes: {}", byteCount, fileInfo.getUrl());
+			statusUpdate(OK);
+			return null;
+		}
+		
+		@Override
+		protected void releaseResources() {
+			super.releaseResources();
+			Exception e = getException();
+			if (e != null) {
+				String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+				logger.info("Download exception ({}) for {}", msg, fileInfo.getUrl());
+				logger.trace("Download failure details:", e);
+				cleanup();
+				fileInfo.setContent(ERROR_FLAG);
+				statusUpdate("CONNECTION ERROR: " + msg);
+			}
+		}
+		
+		private void statusUpdate(String status) {
+			synchronized (stats) {
+				stats.addError(status);
+				if (stats.getErrors().size() == stats.getResourceCount()) {
+					boolean someSuccess = stats.getErrors().removeIf(OK::equals);
+					if (someSuccess) {
+						MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
+						data.getFileInfos().removeIf(f -> f.getContent() == ERROR_FLAG);
+						if (stats.getDownloadedBytes() < localStreamThreshold) {
+							outputCollector.emit(tuple, new Values(data, stats));
 						} else {
-							outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
+							outputCollector.emit(STREAM_LOCAL, tuple, new Values(data, stats));
 						}
-						outputCollector.ack(tuple);
+					} else {
+						outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
 					}
+					outputCollector.ack(tuple);
 				}
 			}
-		};
+		}
+		
+		private void cleanup() {
+			if (content.exists()) {
+				try {
+					Files.delete(content.toPath());
+				} catch (IOException e) {
+					logger.warn("Could not remove temp file " + content, e);
+				}
+			}
+		}
 	}
 	
 }
