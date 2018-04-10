@@ -3,7 +3,9 @@ package eu.europeana.cloud.service.dps.utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType;
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,16 +94,16 @@ public class DpsTaskValidatorFactory {
                 .withOutputRevisionCheckingIfExists()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
 
-        taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Publishing Topology")
+        taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Indexing Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
                 .withOutputRevisionCheckingIfExists()
-                .withAnyOfAllowedTargetIndexingDatabase());
+                .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, Arrays.asList(TargetIndexingDatabase.values())));
 
-        taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Publishing Topology")
+        taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Indexing Topology")
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withOutputRevisionCheckingIfExists()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
-                .withAnyOfAllowedTargetIndexingDatabase());
+                .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, Arrays.asList(TargetIndexingDatabase.values())));
 
         return taskValidatorMap;
     }

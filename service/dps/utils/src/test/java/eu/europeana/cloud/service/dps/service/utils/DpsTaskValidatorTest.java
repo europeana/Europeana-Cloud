@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;
@@ -182,7 +183,7 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
-        new DpsTaskValidator().withAnyOfAllowedTargetIndexingDatabase().validate(dpsTask);
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, Arrays.asList(TargetIndexingDatabase.values())).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
