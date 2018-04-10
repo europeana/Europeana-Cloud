@@ -57,11 +57,10 @@ public class DpsTaskValidator {
     }
 
 
-
     /**
      * Will check if dps task contains parameter with selected name and any of the allowed values
      *
-     * @param paramName parameter name
+     * @param paramName     parameter name
      * @param allowedValues list of allowed values
      * @return
      */
@@ -230,8 +229,8 @@ public class DpsTaskValidator {
         if (expectedValue == null) {  //any name
             return;
         }
-        if(expectedValue instanceof List){
-            List<String> ls = Lists.transform((List) expectedValue, Functions.toStringFunction());
+        if (expectedValue instanceof List) {
+            List<String> ls = (List) expectedValue;
             if (ls.contains(parameterValue))
                 return;
         } else {
@@ -325,8 +324,7 @@ public class DpsTaskValidator {
         if (revisionMustExist) {
             if (outputRevision == null) {
                 throw new DpsTaskValidationException("Output Revision should not be null!. It is required for this task");
-            }
-            else
+            } else
                 checkOutputRevisionContent(outputRevision);
         } else {
             if (outputRevision != null)
