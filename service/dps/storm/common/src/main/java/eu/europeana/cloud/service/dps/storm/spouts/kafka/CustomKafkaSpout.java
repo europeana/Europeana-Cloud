@@ -80,7 +80,7 @@ public class CustomKafkaSpout extends KafkaSpout {
             cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         } finally {
             super.ack(msgId);
         }
@@ -142,7 +142,7 @@ public class CustomKafkaSpout extends KafkaSpout {
             cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId),  "The task was finished without a guarantee of complete processing", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         } finally {
             super.ack(msgId);
         }

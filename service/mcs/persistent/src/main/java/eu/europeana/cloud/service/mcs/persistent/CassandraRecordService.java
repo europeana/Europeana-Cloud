@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
@@ -408,7 +409,7 @@ public class CassandraRecordService implements RecordService {
                 LOGGER.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
                         schema, copiedRep.getVersion());
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error(Throwables.getStackTraceAsString(e));
             }
             recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
         }

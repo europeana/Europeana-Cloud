@@ -194,12 +194,12 @@ public class FileServiceClient extends MCSClient {
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             DriverException, MCSException {
         Response response = null;
-        FormDataMultiPart multipart = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
         try {
             WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                     .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                     .resolveTemplate(ParamConstants.P_VER, version);
-            multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
                     ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             Builder request = target.request();
             response = request.post(Entity.entity(multipart, multipart.getMediaType()));
@@ -241,12 +241,12 @@ public class FileServiceClient extends MCSClient {
             MCSException {
 
         Response response = null;
-        FormDataMultiPart multipart = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
         try {
             WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                     .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                     .resolveTemplate(ParamConstants.P_VER, version);
-            multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
                     ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             Builder request = target.request();
             response = request.post(Entity.entity(multipart, multipart.getMediaType()));
@@ -286,12 +286,12 @@ public class FileServiceClient extends MCSClient {
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
             MCSException {
         Response response = null;
-        FormDataMultiPart multipart = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
         try {
             WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                     .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                     .resolveTemplate(ParamConstants.P_VER, version);
-            multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
                     ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, fileName);
             Invocation.Builder request = target.request();
             response = request.post(Entity.entity(multipart, multipart.getMediaType()));
@@ -305,7 +305,8 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            multipart.close();
+            if (multipart != null)
+                multipart.close();
         }
     }
 
@@ -323,9 +324,9 @@ public class FileServiceClient extends MCSClient {
         String filesPath = "/files";
 
         Response response = null;
-        FormDataMultiPart multipart = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
         try {
-            multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
                     ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             response = client.target(versionUrl + filesPath).request().post(Entity.entity(multipart, multipart.getMediaType()));
@@ -368,13 +369,13 @@ public class FileServiceClient extends MCSClient {
             DriverException, MCSException {
 
         Response response = null;
-        FormDataMultiPart multipart = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
 
         try {
             WebTarget target = client.target(baseUrl).path(filePath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                     .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                     .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
-            multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
                     ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
             if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
@@ -390,7 +391,8 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            multipart.close();
+            if (multipart != null)
+                multipart.close();
         }
     }
 
@@ -400,10 +402,10 @@ public class FileServiceClient extends MCSClient {
 
         WebTarget target = client.target(fileUrl);
 
-        FormDataMultiPart multipart = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
         Response response = null;
         try {
-            multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
                     ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));

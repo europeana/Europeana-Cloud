@@ -13,8 +13,6 @@ import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.enrichment.utils.EnrichmentUtils;
-import eu.europeana.metis.dereference.DereferenceUtils;
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -52,7 +50,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 1/25/2018.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, DereferenceUtils.class, EnrichmentUtils.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class,CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 

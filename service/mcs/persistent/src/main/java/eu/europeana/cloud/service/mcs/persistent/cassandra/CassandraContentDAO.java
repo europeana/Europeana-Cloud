@@ -100,10 +100,15 @@ public class CassandraContentDAO implements ContentDAO {
         if (row == null) {
             throw new FileNotExistsException(String.format("File %s not exists", fileName));
         }
-        ByteBuffer wrappedBytes = row.getBytes("data");
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        streamCompressor.decompress(unwrap(wrappedBytes), os);
-        copySelectBytes(os, start, end, result);
+        try {
+            ByteBuffer wrappedBytes = row.getBytes("data");
+            streamCompressor.decompress(unwrap(wrappedBytes), os);
+            copySelectBytes(os, start, end, result);
+        } finally {
+            IOUtils.closeQuietly(os);
+        }
+
     }
 
     /**

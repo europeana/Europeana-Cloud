@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -19,6 +20,8 @@ import org.apache.storm.kafka.*;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +39,7 @@ public class ValidationTopology {
     private static final String VALIDATION_PROPERTIES_FILE = "validation.properties";
     private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ValidationTopology.class);
 
     public ValidationTopology(String defaultPropertyFile, String providedPropertyFile, String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
@@ -59,7 +63,7 @@ public class ValidationTopology {
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN));
 
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress);
 
@@ -116,7 +120,7 @@ public class ValidationTopology {
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN)),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
@@ -132,7 +136,7 @@ public class ValidationTopology {
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN)),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
@@ -155,7 +159,9 @@ public class ValidationTopology {
         return builder.createTopology();
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+
+        try{
         Config config = new Config();
 
         if (args.length <= 2) {
@@ -186,6 +192,9 @@ public class ValidationTopology {
                     Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
 
             StormSubmitter.submitTopology(topologyName, config, stormTopology);
+        }
+        } catch (Exception e) {
+            LOGGER.error(Throwables.getStackTraceAsString(e));
         }
     }
 }

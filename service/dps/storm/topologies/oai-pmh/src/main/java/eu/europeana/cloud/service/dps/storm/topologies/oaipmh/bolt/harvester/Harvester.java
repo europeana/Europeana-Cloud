@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
 
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import org.dspace.xoai.model.oaipmh.Verb;
@@ -53,7 +54,7 @@ public class Harvester implements Serializable {
                     try {
                         Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        LOGGER.error(Throwables.getStackTraceAsString(ex));
                     }
                 } else {
                     throw new HarvesterException(String.format("Problem with harvesting record %1$s for endpoint %2$s",
