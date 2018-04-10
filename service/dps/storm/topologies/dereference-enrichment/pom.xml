@@ -228,13 +228,6 @@
         </resources>
 
         <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>@{jacocoArgLine} -XX:MaxPermSize=100m</argLine>
-                </configuration>
-            </plugin>
             <!-- Bind the maven-assembly-plugin to the package phase this will create
             a jar file without the storm dependencies suitable for deployment to a cluster. -->
             <plugin>
