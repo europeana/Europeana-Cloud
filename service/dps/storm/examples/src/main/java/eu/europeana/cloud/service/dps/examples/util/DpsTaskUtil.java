@@ -11,7 +11,7 @@ import net.iharder.Base64;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_PASSWORD;
+import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_SECRET_TOKEN;
 import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_USERNAME;
 
 /**
@@ -51,7 +51,7 @@ public class DpsTaskUtil {
         return task;
     }
 
-    public static DpsTask generateDpsTaskForIC(final String dataSetURL, final int recordCount) {
+    public static DpsTask generateDPSTaskForIC(final String dataSetURL, final int recordCount) {
 
         DpsTask task = createDpsTask(dataSetURL, recordCount);
 
@@ -69,7 +69,7 @@ public class DpsTaskUtil {
             dataSets.add(dataSetURL);
         }
 
-        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
+        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_SECRET_TOKEN).getBytes());
         task.addDataEntry(InputDataType.DATASET_URLS, dataSets);
         task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
         return task;
@@ -105,8 +105,9 @@ public class DpsTaskUtil {
     private static Map<String, String> buildHarvestingTaskParameter() {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PROVIDER_ID", "provider");
+        parameters.put(PluginParameterKeys.NEW_REPRESENTATION_NAME, "NEW_REPRESENTATION_NAME");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATASET);
-        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
+        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_SECRET_TOKEN).getBytes());
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
         return parameters;
     }
@@ -126,8 +127,8 @@ public class DpsTaskUtil {
         return harvestingDetails;
     }
 
-    public static DpsTask generateDPsTaskForIC() {
-        return generateDpsTaskForIC(DATASET_URL_FOR_IC, DATASETS_COUNT);
+    public static DpsTask generateDPSTaskForIC() {
+        return generateDPSTaskForIC(DATASET_URL_FOR_IC, DATASETS_COUNT);
     }
 
 

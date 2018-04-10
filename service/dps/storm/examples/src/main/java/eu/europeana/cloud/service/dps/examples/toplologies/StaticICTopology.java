@@ -10,8 +10,6 @@ import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.utils.Utils;
 
-import java.util.Arrays;
-
 import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
 
 
@@ -26,7 +24,7 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
 public class StaticICTopology {
 
     public static void main(String[] args) {
-        StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPsTaskForIC());
+        StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPSTaskForIC());
         StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(staticDpsTaskSpout, new IcBolt(), TopologyHelper.IC_BOLT, MCS_URL);
         Config conf = new Config();
         conf.setDebug(true);

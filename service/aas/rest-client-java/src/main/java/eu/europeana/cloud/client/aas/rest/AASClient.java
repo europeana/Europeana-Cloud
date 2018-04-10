@@ -53,7 +53,7 @@ public class AASClient {
 		try {
 			resp = client.target(aasUrl + "/create-user")
 					.queryParam(AASParamConstants.P_USER_NAME, username)
-					.queryParam(AASParamConstants.P_PASSWORD, password).request()
+					.queryParam(AASParamConstants.P_PASS_TOKEN, password).request()
 					.post(null);
 
 			if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -76,7 +76,7 @@ public class AASClient {
 		try {
 			resp = client.target(aasUrl + "/update-user")
 					.queryParam(AASParamConstants.P_USER_NAME, username)
-					.queryParam(AASParamConstants.P_PASSWORD, password).request()
+					.queryParam(AASParamConstants.P_PASS_TOKEN, password).request()
 					.post(null);
 
 			if (resp.getStatus() == Status.OK.getStatusCode()) {

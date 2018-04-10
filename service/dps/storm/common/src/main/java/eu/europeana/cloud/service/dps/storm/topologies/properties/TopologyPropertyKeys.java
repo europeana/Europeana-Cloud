@@ -20,7 +20,7 @@ public final class TopologyPropertyKeys {
     public static final String CASSANDRA_PORT = "CASSANDRA_PORT";
     public static final String CASSANDRA_KEYSPACE_NAME = "CASSANDRA_KEYSPACE_NAME";
     public static final String CASSANDRA_USERNAME = "CASSANDRA_USERNAME";
-    public static final String CASSANDRA_PASSWORD = "CASSANDRA_PASSWORD";
+    public static final String CASSANDRA_SECRET_TOKEN = "CASSANDRA_PASSWORD";
     public static final String KAFKA_SPOUT_PARALLEL = "KAFKA_SPOUT_PARALLEL";
     public static final String PARSE_TASKS_BOLT_PARALLEL = "PARSE_TASKS_BOLT_PARALLEL";
     public static final String RETRIEVE_FILE_BOLT_PARALLEL = "RETRIEVE_FILE_BOLT_PARALLEL";

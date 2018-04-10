@@ -12,7 +12,7 @@ public final class AASParamConstants {
 
     public static final String P_USER_NAME = "username";
 
-    public static final String P_PASSWORD = "password";
+    public static final String P_PASS_TOKEN = "password";
     
     public static final String P_PERMISSION = "permission";
 }

@@ -15,10 +15,9 @@ import java.util.Properties;
  */
 public class ConfigurationLoader extends AbstractFactoryBean<Properties> implements Watcher {
 
-	private Logger LOGGER = LoggerFactory.getLogger(ConfigurationLoader.class);
-	
+
 	private ZookeeperService zookeeperService;
-	
+
 	private String configurationSettingsPath;
 
 	@Override

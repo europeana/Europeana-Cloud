@@ -22,9 +22,12 @@ import org.apache.storm.kafka.BrokerHosts;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.StringScheme;
 import org.apache.storm.kafka.ZkHosts;
+import com.google.common.base.Throwables;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +47,7 @@ public class OAIPHMHarvestingTopology {
     private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private final String REPOSITORY_STREAM = InputDataType.REPOSITORY_URLS.name();
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
 
     public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -63,11 +67,11 @@ public class OAIPHMHarvestingTopology {
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
-        CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+        CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
 
 
         builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
@@ -117,7 +121,7 @@ public class OAIPHMHarvestingTopology {
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                 Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
@@ -144,7 +148,8 @@ public class OAIPHMHarvestingTopology {
         return parseInt(topologyProperties.getProperty(parseTasksBoltParallel));
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+        try{
         Config config = new Config();
 
         if (args.length <= 1) {
@@ -172,6 +177,9 @@ public class OAIPHMHarvestingTopology {
                     Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
 
             StormSubmitter.submitTopology(topologyName, config, stormTopology);
+        }
+        } catch (Exception e) {
+            LOGGER.error(Throwables.getStackTraceAsString(e));
         }
     }
 }
