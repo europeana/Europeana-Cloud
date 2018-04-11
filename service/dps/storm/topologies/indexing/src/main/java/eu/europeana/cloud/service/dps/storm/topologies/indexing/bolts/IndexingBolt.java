@@ -12,23 +12,25 @@ import java.io.IOException;
 public class IndexingBolt extends AbstractDpsBolt {
 
 
+    private IndexingSettings indexingSettings;
     private IndexerFactory indexerFactory;
 
-    public IndexingBolt(IndexerFactory indexingFactory) {
-        this.indexerFactory = indexingFactory;
+    public IndexingBolt(IndexingSettings indexingSettings) {
+        this.indexingSettings = indexingSettings;
     }
 
     @Override
     public void prepare() {
+        indexerFactory = new IndexerFactory(indexingSettings);
     }
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-        try(final Indexer indexer = indexerFactory.getIndexer()){
+        try (final Indexer indexer = indexerFactory.getIndexer()) {
             String document = new String(stormTaskTuple.getFileData());
             indexer.index(document);
             outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
-        }catch(IndexerConfigurationException e){
+        } catch (IndexerConfigurationException e) {
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in indexer configuration");
         } catch (IOException e) {
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while retrieving indexer");

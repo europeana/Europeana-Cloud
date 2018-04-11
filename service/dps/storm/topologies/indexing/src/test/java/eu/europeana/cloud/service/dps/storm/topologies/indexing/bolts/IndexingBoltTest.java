@@ -32,7 +32,7 @@ public class IndexingBoltTest {
     private Indexer indexer;
 
     @InjectMocks
-    private IndexingBolt indexingBolt = new IndexingBolt(factory);
+    private IndexingBolt indexingBolt = new IndexingBolt(null);
 
     @Before
     public void init() {
