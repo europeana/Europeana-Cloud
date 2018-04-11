@@ -3,11 +3,15 @@ package eu.europeana.cloud.dps.topologies.media;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -27,17 +31,22 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaservice.EdmObject;
 import eu.europeana.metis.mediaservice.MediaException;
@@ -194,6 +203,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			
 			FileServiceClient fileClient;
 			RecordServiceClient recordClient;
+			RevisionServiceClient revisionServiceClient;
+			DataSetServiceClient dataSetServiceClient;
 			
 			Item currentItem;
 			
@@ -202,6 +213,8 @@ public class ProcessingBolt extends BaseRichBolt {
 				
 				fileClient = Util.getFileServiceClient(config);
 				recordClient = Util.getRecordServiceClient(config);
+				revisionServiceClient = Util.getRevisionServiceClient(config);
+				dataSetServiceClient = Util.getDataSetServiceClient(config);
 			}
 			
 			@Override
@@ -242,13 +255,17 @@ public class ProcessingBolt extends BaseRichBolt {
 					
 					Representation r = currentItem.mediaData.getEdmRepresentation();
 					if (persistResult) {
-						URI newFileUri = recordClient.createRepresentation(r.getCloudId(), "techmetadata",
+						URI rep = recordClient.createRepresentation(r.getCloudId(), "edm",
 								r.getDataProvider(), bais, "techmetadata.xml", "text/xml");
+						addRevisionToSpecificResource(rep);
+						addRepresentationToDataSets(rep);
 						logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start,
-								newFileUri);
+								rep);
 					} else {
 						URI rep =
 								recordClient.createRepresentation(r.getCloudId(), "techmetadata", r.getDataProvider());
+						addRevisionToSpecificResource(rep);
+						addRepresentationToDataSets(rep);
 						String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
 						fileClient.uploadFile(r.getCloudId(), "techmetadata", version, "techmetadata.xml", bais,
 								"text/xml");
@@ -287,6 +304,76 @@ public class ProcessingBolt extends BaseRichBolt {
 				
 				logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
 			}
+			
+			protected void addRevisionToSpecificResource(URI affectedResourceURL)
+					throws MalformedURLException, MCSException {
+				
+				Revision outputRevision = currentItem.mediaData.getTask().getOutputRevision();
+				if (outputRevision != null) {
+					final UrlParser urlParser = new UrlParser(affectedResourceURL.toString());
+					if (outputRevision.getCreationTimeStamp() == null)
+						outputRevision.setCreationTimeStamp(new Date());
+					revisionServiceClient.addRevision(
+							urlParser.getPart(UrlPart.RECORDS),
+							urlParser.getPart(UrlPart.REPRESENTATIONS),
+							urlParser.getPart(UrlPart.VERSIONS),
+							outputRevision);
+				} else {
+					logger.info("Revisions list is empty");
+				}
+			}
+			
+			public final void addRepresentationToDataSets(URI rep) throws MalformedURLException,
+					MCSException {
+				List<String> datasets = readDataSetsList();
+				if (datasets != null) {
+					for (String datasetLocation : datasets) {
+						Representation resultRepresentation = parseResultUrl(rep.toString());
+						DataSet dataset = parseDataSetURl(datasetLocation);
+						if (dataset != null) {
+							dataSetServiceClient.assignRepresentationToDataSet(
+									dataset.getProviderId(),
+									dataset.getId(),
+									resultRepresentation.getCloudId(),
+									resultRepresentation.getRepresentationName(),
+									resultRepresentation.getVersion());
+						} else {
+							logger.info("Incorrect data set url");
+						}
+					}
+				} else {
+					logger.info("Output data sets list is empty");
+				}
+			}
+			
+			private Representation parseResultUrl(String url) throws MalformedURLException {
+				UrlParser parser = new UrlParser(url);
+				if (parser.isUrlToRepresentationVersionFile()) {
+					Representation rep = new Representation();
+					rep.setCloudId(parser.getPart(UrlPart.RECORDS));
+					rep.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
+					rep.setVersion(parser.getPart(UrlPart.VERSIONS));
+					return rep;
+				}
+				return null;
+			}
+			
+			private DataSet parseDataSetURl(String url) throws MalformedURLException {
+				DataSet dataSet = null;
+				UrlParser parser = new UrlParser(url);
+				if (parser.isUrlToDataset()) {
+					dataSet = new DataSet();
+					dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
+					dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
+				}
+				return dataSet;
+			}
+			
+			private List<String> readDataSetsList() {
+				String parameters = currentItem.mediaData.getTask().getParameter(PluginParameterKeys.OUTPUT_DATA_SETS);
+				return parameters == null ? Arrays.asList() : Arrays.asList(parameters.split(","));
+			}
+			
 		}
 	}
 }

@@ -20,6 +20,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 
 public class Util {
@@ -42,6 +43,11 @@ public class Util {
 	
 	public static RecordServiceClient getRecordServiceClient(Map<String, Object> config) {
 		return new RecordServiceClient((String) config.get(CONF_FS_URL), (String) config.get(CONF_FS_USER),
+				(String) config.get(CONF_FS_PASS));
+	}
+	
+	public static RevisionServiceClient getRevisionServiceClient(Map<String, Object> config) {
+		return new RevisionServiceClient((String) config.get(CONF_FS_URL), (String) config.get(CONF_FS_USER),
 				(String) config.get(CONF_FS_PASS));
 	}
 	

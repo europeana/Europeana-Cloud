@@ -30,20 +30,28 @@ import org.apache.storm.tuple.Values;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaservice.EdmObject;
 import eu.europeana.metis.mediaservice.UrlType;
 
@@ -118,6 +126,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			tupleData.setEdm(edmInfo.edmObject);
 			tupleData.setFileInfos(edmInfo.fileInfos);
 			tupleData.setConnectionLimitsPerSource(taskInfo.connectionLimitPerSource);
+			tupleData.setTask(taskInfo.task);
 			
 			outputCollector.emit(new Values(tupleData, source.host), edmInfo.representation.getCloudId());
 			
@@ -314,10 +323,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		
 		ArrayBlockingQueue<TaskInfo> taskQueue = new ArrayBlockingQueue<>(128);
 		DataSetServiceClient datasetClient;
+		RecordServiceClient recordClient;
 		
 		public DatasetDownloader() {
 			super("dataset-downloader");
 			datasetClient = Util.getDataSetServiceClient(config);
+			recordClient = Util.getRecordServiceClient(config);
 			start();
 		}
 		
@@ -338,7 +349,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 					try {
 						taskInfo = taskQueue.take();
 						downloadDataset(taskInfo);
-					} catch (DriverException e) {
+					} catch (DriverException | MCSException e) {
 						logger.warn("Problem downloading datasets from task " + taskInfo.task.getTaskName(), e);
 						taskQueue.put(taskInfo); // retry later
 						Thread.sleep(1000);
@@ -350,28 +361,132 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			}
 		}
 		
-		void downloadDataset(TaskInfo taskInfo) throws InterruptedException {
-			int edmCount = 0;
+		void downloadDataset(TaskInfo taskInfo)
+				throws InterruptedException, MCSException {
 			for (UrlParser datasetUrl : taskInfo.datasetUrls) {
-				RepresentationIterator representationIterator = datasetClient.getRepresentationIterator(
-						datasetUrl.getPart(UrlPart.DATA_PROVIDERS),
-						datasetUrl.getPart(UrlPart.DATA_SETS));
-				while (representationIterator.hasNext() && edmCount < emitLimit) {
-					Representation rep = representationIterator.next();
-					if (!"edm".equals(rep.getRepresentationName()))
-						continue;
-					EdmInfo edmInfo = new EdmInfo();
-					edmInfo.representation = rep;
-					edmInfo.taskInfo = taskInfo;
-					edmsByCloudId.put(rep.getCloudId(), edmInfo);
-					edmDownloader.queue(edmInfo);
-					edmCount++;
+				DatasetDownloaderConfig dConfig = new DatasetDownloaderConfig(taskInfo, datasetUrl);
+				
+				if (dConfig.revisionName != null && dConfig.revisionProvider != null) {
+					if (dConfig.revisionTimestamp != null) {
+						prepareExactRevisionsDownload(dConfig);
+					} else {
+						prepareLatestRevisionsDownload(dConfig);
+					}
+				} else {
+					prepareAllRepresentationsDownload(dConfig);
 				}
 			}
+		}
+		
+		private void prepareExactRevisionsDownload(DatasetDownloaderConfig config)
+				throws MCSException, InterruptedException {
+			int edmCount = 0;
+			TaskInfo taskInfo = config.taskInfo;
+			List<CloudTagsResponse> cloudTagsResponses =
+					datasetClient.getDataSetRevisions(config.providerId,
+							config.datasetId,
+							config.representationName, config.revisionName, config.revisionProvider,
+							config.revisionTimestamp);
+			for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
+				if (edmCount >= emitLimit)
+					break;
+				
+				String responseCloudId = cloudTagsResponse.getCloudId();
+				RepresentationRevisionResponse representationRevisionResponse =
+						recordClient.getRepresentationRevision(responseCloudId, config.representationName,
+								config.revisionName, config.revisionProvider, config.revisionTimestamp);
+				Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
+						representationRevisionResponse.getVersion());
+				
+				prepareEdmInfo(rep, taskInfo);
+				edmCount++;
+				
+			}
+			sumarizeRepresentationsDownload(taskInfo, edmCount);
+		}
+		
+		private void prepareLatestRevisionsDownload(DatasetDownloaderConfig config)
+				throws MCSException, InterruptedException {
+			int edmCount = 0;
+			TaskInfo taskInfo = config.taskInfo;
+			
+			List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = datasetClient
+					.getLatestDataSetCloudIdByRepresentationAndRevision(config.datasetId,
+							config.providerId, config.revisionProvider,
+							config.revisionName,
+							config.representationName, false);
+			for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
+				if (edmCount >= emitLimit)
+					break;
+				
+				String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
+				RepresentationRevisionResponse representationRevisionResponse =
+						recordClient.getRepresentationRevision(responseCloudId, config.representationName,
+								config.revisionName, config.revisionProvider, DateHelper.getUTCDateString(
+										cloudIdAndTimestampResponse.getRevisionTimestamp()));
+				Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
+						representationRevisionResponse.getVersion());
+				
+				prepareEdmInfo(rep, taskInfo);
+				edmCount++;
+			}
+			sumarizeRepresentationsDownload(taskInfo, edmCount);
+			
+		}
+		
+		private void prepareAllRepresentationsDownload(DatasetDownloaderConfig config) throws InterruptedException {
+			int edmCount = 0;
+			TaskInfo taskInfo = config.taskInfo;
+			RepresentationIterator iterator = datasetClient.getRepresentationIterator(
+					config.providerId, config.datasetId);
+			while (iterator.hasNext() && edmCount < emitLimit) {
+				Representation rep = iterator.next();
+				prepareEdmInfo(rep, taskInfo);
+				edmCount++;
+			}
+			
+			sumarizeRepresentationsDownload(taskInfo, edmCount);
+		}
+		
+		private void prepareEdmInfo(Representation rep, TaskInfo taskInfo) throws InterruptedException {
+			EdmInfo edmInfo = new EdmInfo();
+			edmInfo.representation = rep;
+			edmInfo.taskInfo = taskInfo;
+			edmsByCloudId.put(rep.getCloudId(), edmInfo);
+			edmDownloader.queue(edmInfo);
+		}
+		
+		private void sumarizeRepresentationsDownload(TaskInfo taskInfo, int edmCount) {
 			taskInfo.emitsTotal = edmCount;
 			logger.debug("Downloaded {} representations from datasets {}", edmCount, taskInfo.datasetUrls.stream()
 					.map(du -> du.getPart(UrlPart.DATA_SETS)).collect(Collectors.toList()));
 		}
+		
+		private class DatasetDownloaderConfig {
+			public final TaskInfo taskInfo;
+			public final String datasetId;
+			public final String providerId;
+			
+			public final String representationName;
+			public final String revisionProvider;
+			public final String revisionName;
+			public final String revisionTimestamp;
+			
+			public DatasetDownloaderConfig(TaskInfo taskInfo, UrlParser datasetUrl) {
+				DpsTask task = taskInfo.task;
+				this.taskInfo = taskInfo;
+				
+				this.datasetId = datasetUrl.getPart(UrlPart.DATA_SETS);
+				this.providerId = datasetUrl.getPart(UrlPart.DATA_PROVIDERS);
+				
+				representationName = task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+				revisionName = task.getParameter(PluginParameterKeys.REVISION_NAME);
+				revisionProvider = task.getParameter(PluginParameterKeys.REVISION_PROVIDER);
+				revisionTimestamp = task.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
+			}
+			
+		}
+		
 	}
 	
 	private class CollectorWrapper extends SpoutOutputCollector {

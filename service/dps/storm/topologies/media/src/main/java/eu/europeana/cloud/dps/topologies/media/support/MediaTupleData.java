@@ -19,6 +19,7 @@ import com.esotericsoftware.kryo.serializers.JavaSerializer;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.metis.mediaservice.EdmObject;
 import eu.europeana.metis.mediaservice.MediaException;
 
@@ -73,6 +74,8 @@ public class MediaTupleData {
 	private EdmObject edm;
 	private List<FileInfo> fileInfos = Collections.emptyList();
 	private Map<String, Integer> connectionLimitsPerSource = Collections.emptyMap();
+	
+	private DpsTask task;
 	
 	public MediaTupleData(long taskId, Representation edmRepresentation) {
 		this.taskId = taskId;
@@ -139,5 +142,14 @@ public class MediaTupleData {
 			data.connectionLimitsPerSource = kryo.readObject(input, HashMap.class);
 			return data;
 		}
+		
+	}
+	
+	public DpsTask getTask() {
+		return task;
+	}
+	
+	public void setTask(DpsTask task) {
+		this.task = task;
 	}
 }
