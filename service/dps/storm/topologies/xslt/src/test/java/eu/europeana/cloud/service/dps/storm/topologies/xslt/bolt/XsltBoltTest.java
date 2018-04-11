@@ -97,7 +97,7 @@ public class XsltBoltTest {
 
     private void assertEmittedTuple(List<Values> allValues, int expectedParametersSize) {
         assertNotNull(allValues);
-        assertEquals(allValues.size(), 1);
+        assertEquals(1,allValues.size());
 
         //parameters assertion
         assertTrue(allValues.get(0).get(4) instanceof Map);

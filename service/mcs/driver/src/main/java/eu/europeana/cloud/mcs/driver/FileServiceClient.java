@@ -204,19 +204,21 @@ public class FileServiceClient extends MCSClient {
             Builder request = target.request();
             response = request.post(Entity.entity(multipart, multipart.getMediaType()));
 
-            if (response.getStatus() == Status.CREATED.getStatusCode()) {
-                if (!expectedMd5.equals(response.getEntityTag().getValue())) {
-                    throw new IOException("Incorrect MD5 checksum");
-                }
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleResponse(expectedMd5, response, Status.CREATED.getStatusCode());
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            multipart.close();
+            closeOpenResources(data, multipart, response);
+        }
+    }
+
+    private URI handleResponse(String expectedMd5, Response response, int expectedStatusCode) throws IOException, MCSException {
+        if (response.getStatus() == expectedStatusCode) {
+            if (!expectedMd5.equals(response.getEntityTag().getValue())) {
+                throw new IOException("Incorrect MD5 checksum");
+            }
+            return response.getLocation();
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
 
@@ -258,9 +260,7 @@ public class FileServiceClient extends MCSClient {
             }
 
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            multipart.close();
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -301,9 +301,7 @@ public class FileServiceClient extends MCSClient {
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            multipart.close();
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -336,9 +334,7 @@ public class FileServiceClient extends MCSClient {
             }
 
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            multipart.close();
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -374,20 +370,11 @@ public class FileServiceClient extends MCSClient {
             multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
                     ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
-            if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-                if (!expectedMd5.equals(response.getEntityTag().getValue())) {
-                    throw new IOException("Incorrect MD5 checksum");
-                }
-                return response.getLocation();
 
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleResponse(expectedMd5, response, Status.NO_CONTENT.getStatusCode());
+
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            multipart.close();
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -414,10 +401,14 @@ public class FileServiceClient extends MCSClient {
             }
 
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            multipart.close();
+            closeOpenResources(data, multipart, response);
         }
+    }
+
+    private void closeOpenResources(InputStream data, FormDataMultiPart multipart, Response response) throws IOException {
+        closeResponse(response);
+        IOUtils.closeQuietly(data);
+        multipart.close();
     }
 
 

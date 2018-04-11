@@ -28,13 +28,11 @@ import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_TO_DATA_SET_BOLT;

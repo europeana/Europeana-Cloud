@@ -73,7 +73,7 @@ public class OAIHelper {
         }
     }
 
-    private int handleExceptionWithRetries(int retries, InvalidOAIResponse e, String message) throws InvalidOAIResponse {
+    private int handleExceptionWithRetries(int retries, InvalidOAIResponse e, String message){
         if (retries-- > 0) {
             LOGGER.warn("Error {} . Retries left: {}", message, retries);
             try {
