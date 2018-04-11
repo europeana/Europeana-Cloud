@@ -216,8 +216,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            multipart.close();
         }
     }
 
@@ -261,8 +260,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            multipart.close();
         }
     }
 
@@ -305,8 +303,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            multipart.close();
         }
     }
 
@@ -341,8 +338,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            multipart.close();
         }
     }
 
@@ -391,8 +387,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            multipart.close();
         }
     }
 
@@ -421,8 +416,7 @@ public class FileServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            multipart.close();
         }
     }
 

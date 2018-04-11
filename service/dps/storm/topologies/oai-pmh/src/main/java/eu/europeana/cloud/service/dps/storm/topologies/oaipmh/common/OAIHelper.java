@@ -39,22 +39,10 @@ public class OAIHelper {
             try {
                 ServiceProvider serviceProvider = initServiceProvider();
                 return serviceProvider.listMetadataFormats();
-            }
-            catch (InvalidOAIResponse e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error retrieving metadata schemas. Retries left: " + retries);
-                    try {
-                        Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
-                    } catch (InterruptedException ex) {
-                        LOGGER.error(ex.getMessage());
-                    }
-                }
-                else {
-                    LOGGER.error("Retrieving metadata schemas failed.");
-                    throw e;
-                }
+            } catch (InvalidOAIResponse e) {
+                retries = handleExceptionWithRetries(retries, e, "Retrieving metadata schemas");
             } catch (IdDoesNotExistException e) {
-               //will never happen in here as we don't specify "identifier" argument
+                //will never happen in here as we don't specify "identifier" argument
             }
         }
     }
@@ -66,46 +54,37 @@ public class OAIHelper {
             try {
                 ServiceProvider serviceProvider = initServiceProvider();
                 return serviceProvider.identify().getEarliestDatestamp();
-            }
-            catch (InvalidOAIResponse e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error retrieving the earliest timestamp. Retries left: " + retries);
-                    try {
-                        Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        LOGGER.error(e1.getMessage());
-                    }
-                }
-                else {
-                    LOGGER.error("Retrieving the earliest timestamp failed.");
-                    throw e;
-                }
+            } catch (InvalidOAIResponse e) {
+                retries = handleExceptionWithRetries(retries, e, "Retrieving the earliest timestamp");
             }
         }
     }
 
-    public Granularity getGranularity(){
+    public Granularity getGranularity() {
         int retries = AbstractDpsBolt.DEFAULT_RETRIES;
 
         while (true) {
             try {
                 ServiceProvider serviceProvider = initServiceProvider();
                 return serviceProvider.identify().getGranularity();
-            }
-            catch (InvalidOAIResponse e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error retrieving the granularity. Retries left: " + retries);
-                    try {
-                        Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        LOGGER.error(e1.getMessage());
-                    }
-                }
-                else {
-                    LOGGER.error("Retrieving granularity failed.");
-                    throw e;
-                }
+            } catch (InvalidOAIResponse e) {
+                retries = handleExceptionWithRetries(retries, e, "Retrieving the granularity");
             }
         }
+    }
+
+    private int handleExceptionWithRetries(int retries, InvalidOAIResponse e, String message) throws InvalidOAIResponse {
+        if (retries-- > 0) {
+            LOGGER.warn("Error {} . Retries left: {}", message, retries);
+            try {
+                Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
+            } catch (InterruptedException e1) {
+                LOGGER.error(e1.getMessage());
+            }
+        } else {
+            LOGGER.error("{} failed.", message);
+            throw e;
+        }
+        return retries;
     }
 }
