@@ -249,26 +249,32 @@ public class ProcessingBolt extends BaseRichBolt {
 			
 			void saveMetadata() {
 				long start = System.currentTimeMillis();
+				String representationName =
+						currentItem.mediaData.getTask().getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+				String filename = "techmetadata.xml";
+				String mediaType = "text/xml";
+				
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(currentItem.edmContents)) {
 					if (currentItem.edmContents.length == 0)
 						throw new IOException("Result EDM contents missing");
 					
 					Representation r = currentItem.mediaData.getEdmRepresentation();
 					if (persistResult) {
-						URI rep = recordClient.createRepresentation(r.getCloudId(), "edm",
-								r.getDataProvider(), bais, "techmetadata.xml", "text/xml");
+						URI rep = recordClient.createRepresentation(r.getCloudId(), representationName,
+								r.getDataProvider(), bais, filename, mediaType);
 						addRevisionToSpecificResource(rep);
 						addRepresentationToDataSets(rep);
 						logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start,
 								rep);
 					} else {
 						URI rep =
-								recordClient.createRepresentation(r.getCloudId(), "techmetadata", r.getDataProvider());
+								recordClient.createRepresentation(r.getCloudId(), representationName,
+										r.getDataProvider());
 						addRevisionToSpecificResource(rep);
 						addRepresentationToDataSets(rep);
 						String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
-						fileClient.uploadFile(r.getCloudId(), "techmetadata", version, "techmetadata.xml", bais,
-								"text/xml");
+						fileClient.uploadFile(r.getCloudId(), representationName, version, filename, bais,
+								mediaType);
 						recordClient.deleteRepresentation(r.getCloudId(), "techmetadata", version);
 						logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
 					}

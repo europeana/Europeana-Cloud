@@ -46,6 +46,10 @@ public class DummySpout extends BaseRichSpout {
 		String datasetProvider = (String) conf.get("MEDIATOPOLOGY_DATASET_PROVIDER");
 		String datasetId = (String) conf.get("MEDIATOPOLOGY_DATASET_ID");
 		
+//		HashMap<String, String> params = new HashMap<>();
+//		params.put("host.limit.dlibrary.ascsa.edu.gr", "3");
+//		task.setParameters(params);
+		
 		String dataset =
 				serviceUrl + "/data-providers/" + datasetProvider + "/data-sets/" + datasetId;
 		

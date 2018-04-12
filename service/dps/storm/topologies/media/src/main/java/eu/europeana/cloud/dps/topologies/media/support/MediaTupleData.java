@@ -114,6 +114,14 @@ public class MediaTupleData {
 		this.connectionLimitsPerSource = connectionLimitsPerSource;
 	}
 	
+	public DpsTask getTask() {
+		return task;
+	}
+	
+	public void setTask(DpsTask task) {
+		this.task = task;
+	}
+	
 	public static class MTDSerializer extends com.esotericsoftware.kryo.Serializer<MediaTupleData> {
 		
 		EdmObject.Parser parser = new EdmObject.Parser();
@@ -143,13 +151,5 @@ public class MediaTupleData {
 			return data;
 		}
 		
-	}
-	
-	public DpsTask getTask() {
-		return task;
-	}
-	
-	public void setTask(DpsTask task) {
-		this.task = task;
 	}
 }
