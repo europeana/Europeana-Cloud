@@ -83,6 +83,13 @@ public final class PluginParameterKeys {
     public static final String ROOT_LOCATION = "ROOT_LOCATION";
     public static final String SCHEMATRON_LOCATION = "SCHEMATRON_LOCATION";
 
+    //---------- Indexing DPS Task ----
+
+    // Input params
+    // ENVIRONMENT - required
+
+    public static final String ENVIRONMENT = "ENVIRONMENT";
+
     //----------  OAI-PMH harvesting DPS task  ----
 
     // Input params
