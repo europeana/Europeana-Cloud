@@ -144,6 +144,7 @@ public class CommandExecutor {
             }
         }
         catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.warn("Command execution interrupted: " + command, e);
         }
         catch (IOException e) {

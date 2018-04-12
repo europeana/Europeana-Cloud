@@ -132,6 +132,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
                         LOGGER.error(e1.getMessage());
                     }
                 }

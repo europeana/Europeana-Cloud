@@ -79,6 +79,7 @@ public class OAIHelper {
             try {
                 Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
             } catch (InterruptedException e1) {
+                Thread.currentThread().interrupt();
                 LOGGER.error(e1.getMessage());
             }
         } else {

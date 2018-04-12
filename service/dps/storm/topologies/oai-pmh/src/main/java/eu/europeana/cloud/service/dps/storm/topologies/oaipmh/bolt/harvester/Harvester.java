@@ -54,6 +54,7 @@ public class Harvester implements Serializable {
                     try {
                         Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
                     } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
                         LOGGER.error(Throwables.getStackTraceAsString(ex));
                     }
                 } else {

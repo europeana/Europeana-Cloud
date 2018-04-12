@@ -138,6 +138,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
                         LOGGER.error(Throwables.getStackTraceAsString(e));
                     }
                 } else {

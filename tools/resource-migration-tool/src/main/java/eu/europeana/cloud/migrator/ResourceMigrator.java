@@ -215,6 +215,7 @@ public class ResourceMigrator {
                 logger.info("Verification of local identifier part " + localIdResult.getIdentifier() + " performed successfully. Verification time: " + localIdResult.getTime() + " sec. Number of not migrated identifiers: " + localIdResult.getNotMigratedCount());
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.error("Verification processed interrupted.", e);
         } catch (ExecutionException e) {
             logger.error("Problem with verification task thread execution.", e);
@@ -283,6 +284,7 @@ public class ResourceMigrator {
                 success &= providerResult.isSuccessful();
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.error("Migration processed interrupted.", e);
         } catch (ExecutionException e) {
             logger.error("Problem with migration task thread execution.", e);
@@ -1005,6 +1007,7 @@ public class ResourceMigrator {
                 logger.info("Verification of provider " + providerResult.getProviderId() + " performed successfully. Verification time: " + providerResult.getTime() + " sec. Number of not migrated files: " + providerResult.getNotMigratedCount());
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.error("Verification processed interrupted.", e);
         } catch (ExecutionException e) {
             logger.error("Problem with verification task thread execution.", e);
@@ -1182,6 +1185,7 @@ public class ResourceMigrator {
                     if (mergeProgress)
                         saveProgressFromThreads(providerId, split);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     logger.error("Migration processed interrupted.", e);
                 } catch (ExecutionException e) {
                     logger.error("Problem with migration task thread execution.", e);
@@ -1330,6 +1334,7 @@ public class ResourceMigrator {
                         notMigrated += partResult.getNotMigratedCount();
                     }
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     logger.error("Verification processed interrupted.", e);
                 } catch (ExecutionException e) {
                     logger.error("Problem with verification task thread execution.", e);
