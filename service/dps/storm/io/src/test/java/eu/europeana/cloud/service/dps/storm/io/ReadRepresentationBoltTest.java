@@ -2,20 +2,19 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import com.google.gson.Gson;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -43,14 +42,13 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({MemoryCacheTaskKillerUtil.class})
+@PrepareForTest({TaskStatusChecker.class})
 public class ReadRepresentationBoltTest {
 
     private ReadRepresentationBolt instance;
     private OutputCollector oc;
-    private CassandraTaskInfoDAO taskInfoDAO;
 
-    private MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
+    private static TaskStatusChecker taskStatusChecker;
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
@@ -58,18 +56,18 @@ public class ReadRepresentationBoltTest {
     private FileServiceClient fileClient;
     private TestHelper testHelper;
 
+    @BeforeClass
+    public static void initTaskStatusChecker() throws Exception {
+        taskStatusChecker = Mockito.mock(TaskStatusChecker.class);
+        PowerMockito.mockStatic(TaskStatusChecker.class);
+        when(TaskStatusChecker.getTaskStatusChecker()).thenReturn(taskStatusChecker);
+    }
 
     @Before
     public void init() {
         oc = mock(OutputCollector.class);
         fileClient = mock(FileServiceClient.class);
-
-        memoryCacheTaskKillerUtil = Mockito.mock(MemoryCacheTaskKillerUtil.class);
-        PowerMockito.mockStatic(MemoryCacheTaskKillerUtil.class);
-        when(MemoryCacheTaskKillerUtil.getMemoryCacheTaskKillerUtil(isA(CassandraConnectionProvider.class))).thenReturn(memoryCacheTaskKillerUtil);
-
-
-        instance = getTestInstance("http://localhost:8080/mcs", oc, memoryCacheTaskKillerUtil);
+        instance = getTestInstance("http://localhost:8080/mcs", oc, taskStatusChecker);
         testHelper = new TestHelper();
     }
 
@@ -82,7 +80,7 @@ public class ReadRepresentationBoltTest {
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        when(memoryCacheTaskKillerUtil.hasKillFlag(anyLong())).thenReturn(false, false);
+        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, false);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
@@ -105,7 +103,7 @@ public class ReadRepresentationBoltTest {
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        when(memoryCacheTaskKillerUtil.hasKillFlag(anyLong())).thenReturn(false, true);
+        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, true);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);

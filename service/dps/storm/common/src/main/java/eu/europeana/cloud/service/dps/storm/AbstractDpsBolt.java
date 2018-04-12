@@ -5,7 +5,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
 
-import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -32,7 +32,7 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    public static MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
+    public static TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries
@@ -59,7 +59,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
-            if (!memoryCacheTaskKillerUtil.hasKillFlag(t.getTaskId())) {
+            if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
                 LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
                 execute(t);
             }
@@ -81,11 +81,11 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         this.topologyContext = tc;
         this.outputCollector = oc;
         this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
-        initTaskDao();
+        initTaskStatusChecker();
         prepare();
     }
 
-    private void initTaskDao() {
+    private void initTaskStatusChecker() {
         String hosts = (String) stormConfig.get(CASSANDRA_HOSTS);
         int port = parseInt((String) stormConfig.get(CASSANDRA_PORT));
         String keyspaceName = (String) stormConfig.get(CASSANDRA_KEYSPACE_NAME);
@@ -93,8 +93,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         String password = (String) stormConfig.get(CASSANDRA_PASSWORD);
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
-
-        memoryCacheTaskKillerUtil = MemoryCacheTaskKillerUtil.getMemoryCacheTaskKillerUtil(cassandraConnectionProvider);
+        try {
+            TaskStatusChecker.init(cassandraConnectionProvider);
+            taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+        } catch (Exception e) {
+            LOGGER.error("Problem while initializing TaskStatusChecker " + e.getMessage());
+        }
     }
 
     @Override

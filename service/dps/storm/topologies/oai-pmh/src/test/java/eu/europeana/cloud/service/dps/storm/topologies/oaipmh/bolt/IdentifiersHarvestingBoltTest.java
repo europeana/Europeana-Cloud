@@ -7,8 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.MemoryCacheTaskKillerUtil;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -20,7 +19,6 @@ import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -30,7 +28,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.memoryCacheTaskKillerUtil;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -52,7 +49,7 @@ public class IdentifiersHarvestingBoltTest {
     private ServiceProvider source;
 
     @Mock
-    private MemoryCacheTaskKillerUtil memoryCacheTaskKillerUtil;
+    private TaskStatusChecker taskStatusChecker;
 
 
     @InjectMocks
@@ -110,8 +107,8 @@ public class IdentifiersHarvestingBoltTest {
 
     @Before
     public void init() throws Exception {
-        mockStaticField(IdentifiersHarvestingBolt.class.getField("memoryCacheTaskKillerUtil"),memoryCacheTaskKillerUtil);
-        when(memoryCacheTaskKillerUtil.hasKillFlag(anyLong())).thenReturn(false);
+        mockStaticField(IdentifiersHarvestingBolt.class.getField("taskStatusChecker"),taskStatusChecker);
+        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
     }
 
     static void mockStaticField(Field field, Object newValue) throws Exception {
@@ -315,7 +312,7 @@ public class IdentifiersHarvestingBoltTest {
         //given
         StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, null, null);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-        when(memoryCacheTaskKillerUtil.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false, true);
         //when
         instance.execute(tuple);
         //then
