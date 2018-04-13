@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 import eu.europeana.indexing.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,21 +31,7 @@ public class IndexingSettingsGenerator {
     public static final String ZOOKEEPER_CHROOT = "zookeeper.chroot";
     public static final String ZOOKEEPER_DEFAULT_COLLECTION = "zookeeper.defaultCollection";
 
-    public static void main(String[] args) throws IOException, IndexerConfigurationException, URISyntaxException {
-        //
-        InputStream input = Thread.currentThread()
-                .getContextClassLoader().getResourceAsStream("indexing.properties");
-
-        // load a properties file
-        Properties prop = new Properties();
-        prop.load(input);
-        //
-        IndexingSettingsGenerator g = new IndexingSettingsGenerator();
-        IndexingSettings s1 = g.generateForPreview(prop);
-        IndexingSettings s2 = g.generateForPublish(prop);
-        System.out.println("sample");
-    }
-
+    public static final String DELIMITER = ".";
 
     public IndexingSettings generateForPreview(Properties properties) throws IndexerConfigurationException, URISyntaxException {
         IndexingSettings indexingSettings = new IndexingSettings();
@@ -68,24 +52,24 @@ public class IndexingSettingsGenerator {
     }
 
     private void prepareMongoSettings(IndexingSettings indexingSettings, Properties properties, String prefix) throws IndexerConfigurationException {
-        String mongoInstances = properties.get(prefix + "." + MONGO_INSTANCES).toString();
-        int mongoPort = Integer.parseInt(properties.get(prefix + "." + MONGO_PORT_NUMBER).toString());
+        String mongoInstances = properties.get(prefix + DELIMITER + MONGO_INSTANCES).toString();
+        int mongoPort = Integer.parseInt(properties.get(prefix + DELIMITER + MONGO_PORT_NUMBER).toString());
         String[] instances = mongoInstances.split(",");
         for (String instance : instances) {
             indexingSettings.addMongoHost(new InetSocketAddress(instance, mongoPort));
         }
-        indexingSettings.setMongoDatabaseName(properties.get(prefix + "." + MONGO_DB_NAME).toString());
+        indexingSettings.setMongoDatabaseName(properties.get(prefix + DELIMITER + MONGO_DB_NAME).toString());
         indexingSettings.setMongoCredentials(
-                properties.get(prefix + "." + MONGO_USERNAME).toString(),
-                properties.get(prefix + "." + MONGO_PASSWORD).toString(),
-                properties.get(prefix + "." + MONGO_AUTH_DB).toString());
-        if (properties.getProperty(prefix + "." + MONGO_USE_SSL) != null && properties.getProperty(prefix + "." + MONGO_USE_SSL).equalsIgnoreCase("true")) {
+                properties.get(prefix + DELIMITER + MONGO_USERNAME).toString(),
+                properties.get(prefix + DELIMITER + MONGO_PASSWORD).toString(),
+                properties.get(prefix + DELIMITER + MONGO_AUTH_DB).toString());
+        if (properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL) != null && properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL).equalsIgnoreCase("true")) {
             indexingSettings.setMongoEnableSsl();
         }
     }
 
     private void prepareSolrSetting(IndexingSettings indexingSettings, Properties properties, String prefix) throws URISyntaxException, IndexerConfigurationException {
-        String solrInstances = properties.get(prefix + "." + SOLR_INSTANCES).toString();
+        String solrInstances = properties.get(prefix + DELIMITER + SOLR_INSTANCES).toString();
         String[] instances = solrInstances.split(",");
         for (String instance : instances) {
             indexingSettings.addSolrHost(new URI(instance));
@@ -93,13 +77,13 @@ public class IndexingSettingsGenerator {
     }
 
     private void prepareZookeeperSettings(IndexingSettings indexingSettings, Properties properties, String prefix) throws IndexerConfigurationException {
-        String zookeeperInstances = properties.get(prefix + "." + ZOOKEEPER_INSTANCES).toString();
-        int zookeeperPort = Integer.parseInt(properties.get(prefix + "." + ZOOKEEPER_PORT_NUMBER).toString());
+        String zookeeperInstances = properties.get(prefix + DELIMITER + ZOOKEEPER_INSTANCES).toString();
+        int zookeeperPort = Integer.parseInt(properties.get(prefix + DELIMITER + ZOOKEEPER_PORT_NUMBER).toString());
         String[] instances = zookeeperInstances.split(",");
         for (String instance : instances) {
             indexingSettings.addZookeeperHost(new InetSocketAddress(instance, zookeeperPort));
         }
-        indexingSettings.setZookeeperChroot(properties.getProperty(prefix + "." + ZOOKEEPER_CHROOT));
-        indexingSettings.setZookeeperDefaultCollection(properties.getProperty(prefix + "." + ZOOKEEPER_DEFAULT_COLLECTION));
+        indexingSettings.setZookeeperChroot(properties.getProperty(prefix + DELIMITER + ZOOKEEPER_CHROOT));
+        indexingSettings.setZookeeperDefaultCollection(properties.getProperty(prefix + DELIMITER + ZOOKEEPER_DEFAULT_COLLECTION));
     }
 }

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.utils.IndexingSettingsGenerator;
@@ -30,9 +31,9 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         try {
-            IndexingSettingsGenerator g = new IndexingSettingsGenerator();
-            IndexingSettings indexingSettingsForPreviewEnv = g.generateForPreview(indexingProperties);
-            IndexingSettings indexingSettingsForPublishEnv = g.generateForPublish(indexingProperties);
+            IndexingSettingsGenerator settingsGenerator = new IndexingSettingsGenerator();
+            IndexingSettings indexingSettingsForPreviewEnv = settingsGenerator.generateForPreview(indexingProperties);
+            IndexingSettings indexingSettingsForPublishEnv = settingsGenerator.generateForPublish(indexingProperties);
             indexerFactoryForPreviewEnv = new IndexerFactory(indexingSettingsForPreviewEnv);
             indexerFactoryForPublishEnv = new IndexerFactory(indexingSettingsForPublishEnv);
         } catch (IndexerConfigurationException | URISyntaxException e) {
@@ -42,7 +43,7 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-        String environment = stormTaskTuple.getParameter(PluginParameterKeys.ENVIRONMENT);
+        String environment = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
         LOGGER.info("Indexing bolt executed for: {}", environment);
         IndexerFactory indexerFactory = getIndexerFor(environment);
         try (final Indexer indexer = indexerFactory.getIndexer()) {
@@ -62,9 +63,9 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private IndexerFactory getIndexerFor(String environment) {
-        if ("PREVIEW".equals(environment))
+        if (TargetIndexingDatabase.PREVIEW.toString().equals(environment))
             return indexerFactoryForPreviewEnv;
-        else if ("PUBLISH".equals(environment))
+        else if (TargetIndexingDatabase.PUBLISH.toString().equals(environment))
             return indexerFactoryForPublishEnv;
         else
             throw new RuntimeException("Specified environment is not recognized");

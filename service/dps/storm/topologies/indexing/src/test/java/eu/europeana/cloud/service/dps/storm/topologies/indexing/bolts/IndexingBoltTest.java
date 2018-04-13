@@ -15,8 +15,6 @@ import org.junit.Test;
 import org.mockito.*;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -140,14 +138,14 @@ public class IndexingBoltTest {
         Assert.assertTrue(val.get("additionalInfo").toString().contains("RuntimeException"));
     }
 
-    private Tuple mockStormTupleFor(final String environment) {
+    private Tuple mockStormTupleFor(final String targetDatabase) {
         Tuple tuple = Mockito.mock(Tuple.class);
         when(tuple.getBinaryByField(StormTupleKeys.FILE_CONTENT_TUPLE_KEY)).thenReturn(new byte[]{'a', 'b', 'c'});
         when(tuple.getStringByField(StormTupleKeys.INPUT_FILES_TUPLE_KEY)).thenReturn("sampleResourceUrl");
         when(tuple.getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY)).thenReturn(
                 new HashMap<String, String>() {
                     {
-                        put(PluginParameterKeys.ENVIRONMENT, environment);
+                        put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
                     }
                 }
         );
