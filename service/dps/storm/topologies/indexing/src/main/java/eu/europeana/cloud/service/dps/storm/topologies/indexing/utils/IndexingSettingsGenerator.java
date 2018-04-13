@@ -33,25 +33,31 @@ public class IndexingSettingsGenerator {
 
     public static final String DELIMITER = ".";
 
-    public IndexingSettings generateForPreview(Properties properties) throws IndexerConfigurationException, URISyntaxException {
+    private Properties properties;
+
+    public IndexingSettingsGenerator(Properties properties) {
+        this.properties = properties;
+    }
+
+    public IndexingSettings generateForPreview() throws IndexerConfigurationException, URISyntaxException {
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(PREVIEW_PREFIX, indexingSettings, properties);
+        prepareSettingFor(PREVIEW_PREFIX, indexingSettings);
         return indexingSettings;
     }
 
-    public IndexingSettings generateForPublish(Properties properties) throws IndexerConfigurationException, URISyntaxException {
+    public IndexingSettings generateForPublish() throws IndexerConfigurationException, URISyntaxException {
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(PUBLISH_PREFIX, indexingSettings, properties);
+        prepareSettingFor(PUBLISH_PREFIX, indexingSettings);
         return indexingSettings;
     }
 
-    private void prepareSettingFor(String environment, IndexingSettings indexingSettings, Properties properties) throws IndexerConfigurationException, URISyntaxException {
-        prepareMongoSettings(indexingSettings, properties, environment);
-        prepareSolrSetting(indexingSettings, properties, environment);
-        prepareZookeeperSettings(indexingSettings, properties, environment);
+    private void prepareSettingFor(String environment, IndexingSettings indexingSettings) throws IndexerConfigurationException, URISyntaxException {
+        prepareMongoSettings(indexingSettings, environment);
+        prepareSolrSetting(indexingSettings, environment);
+        prepareZookeeperSettings(indexingSettings, environment);
     }
 
-    private void prepareMongoSettings(IndexingSettings indexingSettings, Properties properties, String prefix) throws IndexerConfigurationException {
+    private void prepareMongoSettings(IndexingSettings indexingSettings, String prefix) throws IndexerConfigurationException {
         String mongoInstances = properties.get(prefix + DELIMITER + MONGO_INSTANCES).toString();
         int mongoPort = Integer.parseInt(properties.get(prefix + DELIMITER + MONGO_PORT_NUMBER).toString());
         String[] instances = mongoInstances.split(",");
@@ -59,16 +65,29 @@ public class IndexingSettingsGenerator {
             indexingSettings.addMongoHost(new InetSocketAddress(instance, mongoPort));
         }
         indexingSettings.setMongoDatabaseName(properties.get(prefix + DELIMITER + MONGO_DB_NAME).toString());
-        indexingSettings.setMongoCredentials(
-                properties.get(prefix + DELIMITER + MONGO_USERNAME).toString(),
-                properties.get(prefix + DELIMITER + MONGO_PASSWORD).toString(),
-                properties.get(prefix + DELIMITER + MONGO_AUTH_DB).toString());
+
+        if (mongoCredentialsProvidedFor(prefix)) {
+            indexingSettings.setMongoCredentials(
+                    properties.get(prefix + DELIMITER + MONGO_USERNAME).toString(),
+                    properties.get(prefix + DELIMITER + MONGO_PASSWORD).toString(),
+                    properties.get(prefix + DELIMITER + MONGO_AUTH_DB).toString());
+        }
+
         if (properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL) != null && properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL).equalsIgnoreCase("true")) {
             indexingSettings.setMongoEnableSsl();
         }
     }
 
-    private void prepareSolrSetting(IndexingSettings indexingSettings, Properties properties, String prefix) throws URISyntaxException, IndexerConfigurationException {
+    private boolean mongoCredentialsProvidedFor(String prefix) {
+        if (!"".equals(properties.get(prefix + DELIMITER + MONGO_USERNAME)) &&
+                !"".equals(properties.get(prefix + DELIMITER + MONGO_PASSWORD)) &&
+                !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix) throws URISyntaxException, IndexerConfigurationException {
         String solrInstances = properties.get(prefix + DELIMITER + SOLR_INSTANCES).toString();
         String[] instances = solrInstances.split(",");
         for (String instance : instances) {
@@ -76,7 +95,7 @@ public class IndexingSettingsGenerator {
         }
     }
 
-    private void prepareZookeeperSettings(IndexingSettings indexingSettings, Properties properties, String prefix) throws IndexerConfigurationException {
+    private void prepareZookeeperSettings(IndexingSettings indexingSettings, String prefix) throws IndexerConfigurationException {
         String zookeeperInstances = properties.get(prefix + DELIMITER + ZOOKEEPER_INSTANCES).toString();
         int zookeeperPort = Integer.parseInt(properties.get(prefix + DELIMITER + ZOOKEEPER_PORT_NUMBER).toString());
         String[] instances = zookeeperInstances.split(",");

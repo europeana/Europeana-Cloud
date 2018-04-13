@@ -31,9 +31,9 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         try {
-            IndexingSettingsGenerator settingsGenerator = new IndexingSettingsGenerator();
-            IndexingSettings indexingSettingsForPreviewEnv = settingsGenerator.generateForPreview(indexingProperties);
-            IndexingSettings indexingSettingsForPublishEnv = settingsGenerator.generateForPublish(indexingProperties);
+            IndexingSettingsGenerator settingsGenerator = new IndexingSettingsGenerator(indexingProperties);
+            IndexingSettings indexingSettingsForPreviewEnv = settingsGenerator.generateForPreview();
+            IndexingSettings indexingSettingsForPublishEnv = settingsGenerator.generateForPublish();
             indexerFactoryForPreviewEnv = new IndexerFactory(indexingSettingsForPreviewEnv);
             indexerFactoryForPublishEnv = new IndexerFactory(indexingSettingsForPublishEnv);
         } catch (IndexerConfigurationException | URISyntaxException e) {

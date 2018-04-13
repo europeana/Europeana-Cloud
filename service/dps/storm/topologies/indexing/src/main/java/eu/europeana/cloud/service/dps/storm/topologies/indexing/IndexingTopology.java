@@ -5,26 +5,26 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
-import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
-import eu.europeana.cloud.service.dps.storm.io.ReadDatasetsBolt;
-import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.ReadRepresentationBolt;
+import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.*;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -65,7 +65,7 @@ public class IndexingTopology {
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN));
 
 
         builder.setSpout(TopologyHelper.SPOUT, kafkaSpout,
@@ -109,24 +109,33 @@ public class IndexingTopology {
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, FILE_STREAM).shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
 
-        builder.setBolt(TopologyHelper.INDEXING_BOLT, new IndexingBolt(null),
+        try {
+            //
+            InputStream input = Thread.currentThread()
+                    .getContextClassLoader().getResourceAsStream(INDEXING_PROPERTIES_FILE);
+            Properties indexingProperties = new Properties();
+            indexingProperties.load(input);
+            //
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        builder.setBolt(TopologyHelper.INDEXING_BOLT, new IndexingBolt(indexingProperties),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.INDEXING_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.INDEXING_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
-//
-//        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, validationRevisionWriter,
-//                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
-//                .setNumTasks(
-//                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
-//                .shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
 
-        ///////////////////////////
+        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(ecloudMcsAddress),
+                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
+                .setNumTasks(
+                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_NUMBER_OF_TASKS))))
+                .shuffleGrouping(TopologyHelper.INDEXING_BOLT);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN)),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
@@ -140,9 +149,7 @@ public class IndexingTopology {
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(TopologyHelper.INDEXING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
@@ -173,16 +180,17 @@ public class IndexingTopology {
             config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
             config.setMaxTaskParallelism(
                     Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
-            config.put(Config.NIMBUS_THRIFT_PORT,
-                    Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
-            config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
-                    topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(TopologyPropertyKeys.NIMBUS_SEEDS)}));
-            config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                    Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
 
             LOGGER.info("Submitting indexing topology");
-            StormSubmitter.submitTopology(topologyName, config, stormTopology);
+            //
+            LocalCluster cluster = new LocalCluster();
+            cluster.submitTopology(topologyName, config, stormTopology);
+            LOGGER.info("sleeping");
+            Utils.sleep(2*60*1000);
+            cluster.killTopology(topologyName);
+            cluster.shutdown();
+            //
+//            StormSubmitter.submitTopology(topologyName, config, stormTopology);
         }
     }
 }
