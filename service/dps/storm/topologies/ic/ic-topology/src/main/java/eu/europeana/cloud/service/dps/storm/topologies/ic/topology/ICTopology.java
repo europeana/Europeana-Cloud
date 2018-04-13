@@ -128,7 +128,7 @@ public class ICTopology {
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt,
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
+                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
 
 

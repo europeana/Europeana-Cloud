@@ -135,7 +135,7 @@ public class EnrichmentTopology {
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (Integer.parseInt(topologyProperties.getProperty(REVISION_WRITER_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(WRITE_RECORD_BOLT);
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
