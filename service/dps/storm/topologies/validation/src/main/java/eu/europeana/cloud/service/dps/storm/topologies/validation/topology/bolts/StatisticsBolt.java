@@ -11,6 +11,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
+
 public class StatisticsBolt extends AbstractDpsBolt {
     private String hosts;
     private int port;

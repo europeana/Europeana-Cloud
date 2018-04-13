@@ -39,7 +39,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerConfigurationException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -60,7 +59,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 3/22/2018.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({HTTPHarvesterBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, HarvestingWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class})
+@PrepareForTest({HTTPHarvesterBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, HarvestingWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class,TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class HTTPHarvestingTopologyTest extends HTTPTestMocksHelper {
 

@@ -17,7 +17,6 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.apache.storm.task.OutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,16 +32,6 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
         this.ecloudMcsAddress = ecloudMcsAddress;
     }
 
-    /**
-     * Should be used only on tests.
-     */
-    public static ReadDatasetBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector
-    ) {
-        ReadDatasetBolt instance = new ReadDatasetBolt(ecloudMcsAddress);
-        instance.outputCollector = outputCollector;
-        return instance;
-
-    }
 
     @Override
     public void prepare() {
@@ -80,7 +69,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                         }
                     } else {
                         RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
-                        while (iterator.hasNext()) {
+                        long taskId = t.getTaskId();
+                        while (iterator.hasNext() && !taskStatusChecker.hasKillFlag(taskId)) {
                             Representation representation = iterator.next();
                             emitRepresentation(t, representationName, representation);
                         }
@@ -105,21 +95,29 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
 
     private void handleLatestRevisions(StormTaskTuple t, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException {
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(datasetName, datasetProvider, revisionProvider, revisionName, representationName, false);
+        long taskId = t.getTaskId();
         for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
-            String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-            RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()));
-            Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
-            emitRepresentation(t, representationName, representation);
+            if (!taskStatusChecker.hasKillFlag(taskId)) {
+                String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
+                RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()));
+                Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
+                emitRepresentation(t, representationName, representation);
+            } else
+                break;
         }
     }
 
     private void handleExactRevisions(StormTaskTuple t, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException {
         List<CloudTagsResponse> cloudTagsResponses = dataSetServiceClient.getDataSetRevisions(datasetProvider, datasetName, representationName, revisionName, revisionProvider, revisionTimestamp);
+        long taskId = t.getTaskId();
         for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-            String responseCloudId = cloudTagsResponse.getCloudId();
-            RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
-            Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
-            emitRepresentation(t, representationName, representation);
+            if (!taskStatusChecker.hasKillFlag(taskId)) {
+                String responseCloudId = cloudTagsResponse.getCloudId();
+                RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
+                Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
+                emitRepresentation(t, representationName, representation);
+            } else
+                break;
         }
     }
 

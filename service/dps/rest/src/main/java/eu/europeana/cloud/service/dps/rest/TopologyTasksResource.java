@@ -38,7 +38,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 
@@ -321,8 +320,8 @@ public class TopologyTasksResource {
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      * @summary Grant task permissions to user
-     * @summary Grant task permissions to user
      */
+
     @POST
     @Path("{taskId}/permit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -341,10 +340,6 @@ public class TopologyTasksResource {
 
     /**
      * Submit kill flag to the specific task.
-     * <p/>
-     * Side effect: remove all flags older than 5 days (per topology).
-     * <p/>
-     * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
      * <strong>Required permissions:</strong>
      * <ul>
@@ -357,85 +352,20 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Kill task
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if taskId does not belong to the specified topology
      * @summary Kill task
      */
+
     @POST
     @Path("{taskId}/kill")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
-    @ReturnType("java.lang.Void")
-    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
+        reportService.checkIfTaskExists(taskId, topologyName);
+        killService.killTask(Long.valueOf(taskId));
+        return Response.ok("Task killing request was registered successfully").build();
 
-        if (taskId != null) {
-            killService.killTask(topologyName, Long.valueOf(taskId));
-            killService.cleanOldFlags(topologyName, TimeUnit.DAYS.toMillis(5)); //side effect
-            return Response.ok().build();
-        }
-        return Response.notModified().build();
     }
-
-    /**
-     * Check kill flag for the specified task.
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @return true if provided task id has kill flag, false otherwise
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Check kill flag
-     * @summary Check kill flag
-     */
-    @GET
-    @Path("{taskId}/kill")
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public Boolean checkKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
-        assertContainTopology(topologyName);
-
-        return killService.hasKillFlag(topologyName, Long.valueOf(taskId));
-    }
-
-    /**
-     * Remove kill flag for the specified task.
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Write permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @return Status code indicating whether the operation was successful or not.
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Remove kill flag
-     * @summary Remove kill flag
-     */
-    @DELETE
-    @Path("{taskId}/kill")
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
-    @ReturnType("java.lang.Void")
-    public Response removeKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
-        assertContainTopology(topologyName);
-
-        if (taskId != null && topologyName != null) {
-            killService.removeFlag(topologyName, Long.valueOf(taskId));
-            return Response.ok().build();
-        }
-        return Response.notModified().build();
-    }
-
 
     private String buildTaskUrl(UriInfo uriInfo, DpsTask task, String topologyName) {
 

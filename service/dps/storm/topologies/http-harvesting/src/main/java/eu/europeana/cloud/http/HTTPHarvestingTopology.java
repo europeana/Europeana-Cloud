@@ -14,6 +14,7 @@ import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -148,7 +149,7 @@ public class HTTPHarvestingTopology {
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
                 StormTopology stormTopology = httpHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
-                Config config = prepareConfig(topologyProperties);
+                Config config = configureTopology(topologyProperties);
 
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }

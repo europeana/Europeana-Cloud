@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -16,11 +17,14 @@ import org.dspace.xoai.serviceprovider.ServiceProvider;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
 import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -43,6 +47,10 @@ public class IdentifiersHarvestingBoltTest {
 
     @Mock
     private ServiceProvider source;
+
+    @Mock
+    private TaskStatusChecker taskStatusChecker;
+
 
     @InjectMocks
     private IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt();
@@ -95,6 +103,18 @@ public class IdentifiersHarvestingBoltTest {
         return tuple;
     }
 
+
+
+    @Before
+    public void init() throws Exception {
+        mockStaticField(IdentifiersHarvestingBolt.class.getField("taskStatusChecker"),taskStatusChecker);
+        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
+    }
+
+    static void mockStaticField(Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+        field.set(null, newValue);
+    }
     @Test
     public void testRetriesFailed() {
         //given
@@ -286,6 +306,27 @@ public class IdentifiersHarvestingBoltTest {
         verifyNoMoreInteractions(oc);
         verifyNoInteraction();
     }
+
+    @Test
+    public void testListIdentifierAfterKillingTheTask() {
+        //given
+        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, null, null);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
+
+        List<Values> values = captor.getAllValues();
+        assertThat(values.size(), is(1));
+
+        Set<String> identifiers = new HashSet<>();
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        verifyNoMoreInteractions(oc);
+        verifyNoInteraction();
+    }
+
 
     private void verifyNoInteraction() {
         verify(oc, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());

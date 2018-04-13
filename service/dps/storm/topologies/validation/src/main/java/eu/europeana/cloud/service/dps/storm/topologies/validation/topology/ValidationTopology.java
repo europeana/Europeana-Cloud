@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.*;
@@ -27,7 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.prepareConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.configureTopology;
+
 
 /**
  * Created by Tarek on 12/5/2017.
@@ -161,28 +161,25 @@ public class ValidationTopology {
     }
 
     public static void main(String[] args) {
+        try {
+            if (args.length <= 2) {
 
-        try{
-
-        if (args.length <= 2) {
-
-            String providedValidationPropertiesFile = "";
-            String providedPropertyFile = "";
-            if (args.length == 1)
-                providedPropertyFile = args[0];
-            else if (args.length == 2) {
-                providedPropertyFile = args[0];
-                providedValidationPropertiesFile = args[1];
+                String providedValidationPropertiesFile = "";
+                String providedPropertyFile = "";
+                if (args.length == 1)
+                    providedPropertyFile = args[0];
+                else if (args.length == 2) {
+                    providedPropertyFile = args[0];
+                    providedValidationPropertiesFile = args[1];
+                }
+                ValidationTopology validationTopology = new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
+                String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
+                // kafka topic == topology name
+                String kafkaTopic = topologyName;
+                String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
+                StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
+                StormSubmitter.submitTopology(topologyName, configureTopology(topologyProperties), stormTopology);
             }
-            ValidationTopology validationTopology = new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
-            String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
-            // kafka topic == topology name
-            String kafkaTopic = topologyName;
-            String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
-            StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
-            Config config = prepareConfig(topologyProperties);
-            StormSubmitter.submitTopology(topologyName, config, stormTopology);
-        }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
         }

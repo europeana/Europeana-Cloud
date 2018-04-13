@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
+
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.BrokerHosts;
@@ -29,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.prepareConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.configureTopology;
 
 
 /**
@@ -184,6 +185,7 @@ public class XSLTTopology {
 
             if (args.length <= 1) {
 
+
                 String providedPropertyFile = "";
                 if (args.length == 1) {
                     providedPropertyFile = args[0];
@@ -196,16 +198,15 @@ public class XSLTTopology {
                 String kafkaTopic = topologyName;
 
                 String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
-
                 StormTopology stormTopology = XsltTopology.buildTopology(
                         kafkaTopic,
                         ecloudMcsAddress);
-
-                Config config = prepareConfig(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                StormSubmitter.submitTopology(topologyName, configureTopology(topologyProperties), stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
+
+
         }
     }
 }

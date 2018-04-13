@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static java.lang.Integer.parseInt;
 
 /**
  * Created by Tarek on 7/15/2016.
@@ -32,18 +33,25 @@ public final class TopologyHelper {
     public static final String TASK_SPLITTING_BOLT = "TaskSplittingBolt";
     public static final String HTTP_HARVESTING_BOLT = "HTTPHarvestingBolt";
 
-    public static Config prepareConfig(Properties topologyProperties) {
+
+    public static Config configureTopology(Properties topologyProperties) {
         Config config = new Config();
-        config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(WORKER_COUNT)));
+        config.setNumWorkers(parseInt(topologyProperties.getProperty(WORKER_COUNT)));
         config.setMaxTaskParallelism(
-                Integer.parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
+                parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
         config.put(Config.NIMBUS_THRIFT_PORT,
-                Integer.parseInt(topologyProperties.getProperty(THRIFT_PORT)));
+                parseInt(topologyProperties.getProperty(THRIFT_PORT)));
         config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
                 topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-        config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(NIMBUS_SEEDS)}));
+        config.put(Config.NIMBUS_SEEDS, Arrays.asList(topologyProperties.getProperty(NIMBUS_SEEDS)));
         config.put(Config.STORM_ZOOKEEPER_SERVERS,
                 Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
+
+        config.put(CASSANDRA_HOSTS, topologyProperties.getProperty(CASSANDRA_HOSTS));
+        config.put(CASSANDRA_PORT, topologyProperties.getProperty(CASSANDRA_PORT));
+        config.put(CASSANDRA_KEYSPACE_NAME, topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME));
+        config.put(CASSANDRA_USERNAME, topologyProperties.getProperty(CASSANDRA_USERNAME));
+        config.put(CASSANDRA_SECRET_TOKEN, topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
         return config;
     }
 }

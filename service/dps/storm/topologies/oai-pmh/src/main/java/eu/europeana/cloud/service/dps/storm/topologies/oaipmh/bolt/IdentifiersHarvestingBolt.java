@@ -109,7 +109,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
         }
 
         int count = 0;
-        while (hasNext(headerIterator)) {
+        while (hasNext(headerIterator) && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
             Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier());
@@ -125,8 +125,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
         while (true) {
             try {
                 return headerIterator.hasNext();
-            }
-            catch (InvalidOAIResponse e) {
+            } catch (InvalidOAIResponse e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error when harvesting identifiers. Retries left: " + retries);
                     try {
@@ -135,8 +134,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
                         Thread.currentThread().interrupt();
                         LOGGER.error(e1.getMessage());
                     }
-                }
-                else {
+                } else {
                     LOGGER.error("Harvesting identifiers failed.");
                     throw e;
                 }

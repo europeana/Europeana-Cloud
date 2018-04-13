@@ -17,7 +17,8 @@
     <bean id="permissionManager"
           class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
 
-    <bean id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory" scope="prototype"/>
+    <bean id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"
+          scope="prototype"/>
 
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
         <constructor-arg name="kafkaBroker">
@@ -112,12 +113,19 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
-    <bean id="validationStatisticsService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService">
+
+    <bean id="killService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+
+    <bean id="validationStatisticsService"
+          class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService">
     </bean>
     <bean id="cassandraNodeStatisticsDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
-    <bean id="cassandraAttributeStatisticsDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO">
+    <bean id="cassandraAttributeStatisticsDAO"
+          class="eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 

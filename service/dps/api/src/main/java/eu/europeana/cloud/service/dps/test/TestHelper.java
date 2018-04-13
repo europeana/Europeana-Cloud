@@ -39,9 +39,16 @@ public class TestHelper {
 
     public Representation prepareRepresentation(String cloudId, String representationName, String version, String fileUrl,
                                                 String dataProvider, boolean persistent, Date creationDate) throws URISyntaxException {
+        return prepareRepresentationWithMultipleFiles(cloudId, representationName, version, fileUrl, dataProvider, persistent, creationDate, 1);
+    }
+
+    public Representation prepareRepresentationWithMultipleFiles(String cloudId, String representationName, String version, String fileUrl,
+                                                                 String dataProvider, boolean persistent, Date creationDate, int fileCount) throws URISyntaxException {
         List<File> files = new ArrayList<>();
         List<Revision> revisions = new ArrayList<>();
-        files.add(new File("fileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
+        for (int i = 0; i < fileCount; i++) {
+            files.add(new File("fileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
+        }
         Representation representation = new Representation(cloudId, representationName, version, new URI(fileUrl), new URI(fileUrl), dataProvider, files, revisions, persistent, creationDate);
         return representation;
     }

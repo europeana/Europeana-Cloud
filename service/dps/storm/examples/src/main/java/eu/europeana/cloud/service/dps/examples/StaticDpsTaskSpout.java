@@ -1,10 +1,15 @@
 package eu.europeana.cloud.service.dps.examples;
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -14,6 +19,7 @@ import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -35,14 +41,20 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
      */
     private DpsTask task;
 
-    public StaticDpsTaskSpout(DpsTask task) {
+    public StaticDpsTaskSpout(DpsTask task, String topologyName) {
         this.task = task;
+        initTaskInfo(topologyName);
+    }
+
+    private void initTaskInfo(String topologyName) {
+        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(TopologyConstants.CASSANDRA_HOSTS, Integer.parseInt(TopologyConstants.CASSANDRA_PORT), TopologyConstants.CASSANDRA_KEYSPACE_NAME, TopologyConstants.CASSANDRA_USERNAME, TopologyConstants.CASSANDRA_SECRET_TOKEN);
+        CassandraTaskInfoDAO taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        taskInfoDAO.insert(task.getTaskId(), topologyName, 0, String.valueOf(TaskState.CURRENTLY_PROCESSING), "", new Date());
     }
 
     @Override
     public void open(Map conf, TopologyContext context,
                      SpoutOutputCollector collector) {
-
         this.collector = collector;
     }
 

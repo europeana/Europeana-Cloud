@@ -71,14 +71,19 @@ public class CustomKafkaSpout extends KafkaSpout {
     public void ack(Object msgId) {
         LOGGER.info("Message acknowledgement fired");
         try {
-            CustomKafkaMessage customKafkaMessage = buildCustomKafkaSpout(msgId);
+            CustomKafkaMessage customKafkaMessage = buildCustomKafkaMessage(msgId);
             MessageAndOffset messageAndOffset = getMessageAndOffset(customKafkaMessage);
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
             LOGGER.info("Acknowledgement fired for task: " + task.toString());
             long taskId = task.getTaskId();
-            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
-
+            String state = String.valueOf(TaskState.PROCESSED);
+            String infoMessage = "Completely processed";
+            if (cassandraTaskInfoDAO.hasKillFlag(taskId)) {
+                state = String.valueOf(TaskState.DROPPED);
+                infoMessage = "Dropped by the user";
+            }
+            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId), infoMessage, state, new Date());
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
         } finally {
@@ -110,7 +115,7 @@ public class CustomKafkaSpout extends KafkaSpout {
         MessageAndOffset messageAndOffset = null;
         while (messageAndOffsetIterable.hasNext()) {
             messageAndOffset = messageAndOffsetIterable.next();
-            if(messageAndOffset.offset() == customKafkaMessage.getOffset()){
+            if (messageAndOffset.offset() == customKafkaMessage.getOffset()) {
                 return messageAndOffset;
             }
         }
@@ -133,13 +138,13 @@ public class CustomKafkaSpout extends KafkaSpout {
     public void fail(Object msgId) {
         LOGGER.info("Message fail method fired");
         try {
-            CustomKafkaMessage customKafkaMessage = buildCustomKafkaSpout(msgId);
+            CustomKafkaMessage customKafkaMessage = buildCustomKafkaMessage(msgId);
             MessageAndOffset messageAndOffset = getMessageAndOffset(customKafkaMessage);
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
             long taskId = task.getTaskId();
             LOGGER.info("Failed methos fired for task: " + task.getTaskId());
-            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId),  "The task was finished without a guarantee of complete processing", String.valueOf(TaskState.PROCESSED), new Date());
+            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId), "The task was finished without a guarantee of complete processing", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
@@ -148,7 +153,7 @@ public class CustomKafkaSpout extends KafkaSpout {
         }
     }
 
-    private CustomKafkaMessage buildCustomKafkaSpout(Object msgId) throws NoSuchFieldException, IllegalAccessException {
+    private CustomKafkaMessage buildCustomKafkaMessage(Object msgId) throws NoSuchFieldException, IllegalAccessException {
         Class<?> clazz = msgId.getClass();
         Field partitionField = clazz.getDeclaredField("partition");
         partitionField.setAccessible(true);

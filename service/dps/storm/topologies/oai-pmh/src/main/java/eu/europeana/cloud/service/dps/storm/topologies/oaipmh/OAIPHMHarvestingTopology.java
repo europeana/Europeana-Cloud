@@ -14,7 +14,9 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHa
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.TaskSplittingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import org.apache.storm.Config;
+
+
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.BrokerHosts;
@@ -147,25 +149,22 @@ public class OAIPHMHarvestingTopology {
     }
 
     public static void main(String[] args) {
-        try{
 
-        if (args.length <= 1) {
+        try {
+            if (args.length <= 1) {
+                String providedPropertyFile = "";
+                if (args.length == 1) {
+                    providedPropertyFile = args[0];
+                }
+                OAIPHMHarvestingTopology oaiphmHarvestingTopology = new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
+                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
 
-            String providedPropertyFile = "";
-            if (args.length == 1) {
-                providedPropertyFile = args[0];
+                String kafkaTopic = topologyName;
+                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
+                String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
+                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
+                StormSubmitter.submitTopology(topologyName, TopologyHelper.configureTopology(topologyProperties), stormTopology);
             }
-            OAIPHMHarvestingTopology oaiphmHarvestingTopology = new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-            String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-
-            String kafkaTopic = topologyName;
-            String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-            String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
-            StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
-            Config config = prepareConfig(topologyProperties);
-
-            StormSubmitter.submitTopology(topologyName, config, stormTopology);
-        }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
         }
