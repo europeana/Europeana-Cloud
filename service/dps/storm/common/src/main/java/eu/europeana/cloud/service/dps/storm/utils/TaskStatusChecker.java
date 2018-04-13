@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.dps.storm.exception.ObjectAlreadyBeenInitializedException;
-import eu.europeana.cloud.service.dps.storm.exception.ObjectShouldBeInitializedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,19 +32,19 @@ public class TaskStatusChecker {
         this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
     }
 
-    public static synchronized TaskStatusChecker getTaskStatusChecker() throws ObjectShouldBeInitializedException {
+    public static synchronized TaskStatusChecker getTaskStatusChecker() {
         if (instance == null) {
-            throw new ObjectShouldBeInitializedException("TaskStatusChecker has not been initialized!. Please initialize it first");
+            throw new IllegalStateException("TaskStatusChecker has not been initialized!. Please initialize it first");
         }
         return instance;
     }
 
 
-    public static synchronized void init(CassandraConnectionProvider cassandraConnectionProvider) throws ObjectAlreadyBeenInitializedException {
+    public static synchronized void init(CassandraConnectionProvider cassandraConnectionProvider) {
         if (instance == null) {
             instance = new TaskStatusChecker(cassandraConnectionProvider);
         } else
-            throw new ObjectAlreadyBeenInitializedException("TaskStatusChecker has already been initialized");
+            throw new IllegalStateException("TaskStatusChecker has already been initialized");
     }
 
 

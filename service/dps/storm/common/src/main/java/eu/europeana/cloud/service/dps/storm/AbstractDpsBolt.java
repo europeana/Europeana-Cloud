@@ -32,7 +32,7 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    public static TaskStatusChecker taskStatusChecker;
+    protected static TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries
@@ -93,12 +93,13 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         String password = (String) stormConfig.get(CASSANDRA_PASSWORD);
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
-        try {
-            TaskStatusChecker.init(cassandraConnectionProvider);
-            taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
-        } catch (Exception e) {
-            LOGGER.error("Problem while initializing TaskStatusChecker " + e.getMessage());
-        }
+        if (taskStatusChecker == null)
+            synchronized (AbstractDpsBolt.class) {
+                if (taskStatusChecker == null) {
+                    TaskStatusChecker.init(cassandraConnectionProvider);
+                    taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+                }
+            }
     }
 
     @Override
@@ -120,6 +121,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param message                short text
      * @param additionalInformations the rest of informations (e.g. stack trace)
      */
+
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.ERROR, message, additionalInformations);

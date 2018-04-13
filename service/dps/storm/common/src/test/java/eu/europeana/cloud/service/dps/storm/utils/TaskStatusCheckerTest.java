@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.dps.storm.exception.ObjectAlreadyBeenInitializedException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,8 +64,8 @@ public class TaskStatusCheckerTest {
 
     }
 
-    @Test(expected = ObjectAlreadyBeenInitializedException.class)
-    public void TaskStatusCheckerShouldOnlyBeInitialedOnce() throws ObjectAlreadyBeenInitializedException {
+    @Test(expected = IllegalStateException.class)
+    public void TaskStatusCheckerShouldOnlyBeInitialedOnce() {
         TaskStatusChecker.init(cassandraConnectionProvider);
     }
 
