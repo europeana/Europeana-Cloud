@@ -31,7 +31,7 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    public static volatile TaskStatusChecker taskStatusChecker;
+    protected static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries

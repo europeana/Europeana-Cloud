@@ -73,7 +73,7 @@ public class ReadDatasetBoltTest {
         datasetClient = mock(DataSetServiceClient.class);
         recordServiceClient = mock(RecordServiceClient.class);
         representationIterator = mock(RepresentationIterator.class);
-        setStaticField(ReadDatasetBolt.class.getField("taskStatusChecker"), taskStatusChecker);
+        setStaticField(ReadDatasetBolt.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
 
     }
