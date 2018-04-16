@@ -18,16 +18,16 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.*;
  * Created by Tarek on 3/13/2017.
  */
 public class TestHelper {
-    public List<CloudTagsResponse> prepareCloudTagsResponsesList() {
-        List<CloudTagsResponse> CloudTagsResponseList = new ArrayList<>();
+    public final List<CloudTagsResponse> prepareCloudTagsResponsesList() {
+        List<CloudTagsResponse> cloudTagsResponseList = new ArrayList<>();
         CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID, true, false, false);
         CloudTagsResponse cloudTagsResponseResponse12 = new CloudTagsResponse(SOURCE + CLOUD_ID2, true, false, false);
-        CloudTagsResponseList.add(cloudTagsResponseResponse1);
-        CloudTagsResponseList.add(cloudTagsResponseResponse12);
-        return CloudTagsResponseList;
+        cloudTagsResponseList.add(cloudTagsResponseResponse1);
+        cloudTagsResponseList.add(cloudTagsResponseResponse12);
+        return cloudTagsResponseList;
     }
 
-    public List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date) {
+    public final List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date) {
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>();
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse2 = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID2, date);
@@ -37,20 +37,19 @@ public class TestHelper {
     }
 
 
-    public Representation prepareRepresentation(String cloudId, String representationName, String version, String fileUrl,
-                                                String dataProvider, boolean persistent, Date creationDate) throws URISyntaxException {
+    public final Representation prepareRepresentation(String cloudId, String representationName, String version, String fileUrl,
+                                                      String dataProvider, boolean persistent, Date creationDate) throws URISyntaxException {
         return prepareRepresentationWithMultipleFiles(cloudId, representationName, version, fileUrl, dataProvider, persistent, creationDate, 1);
     }
 
-    public Representation prepareRepresentationWithMultipleFiles(String cloudId, String representationName, String version, String fileUrl,
-                                                                 String dataProvider, boolean persistent, Date creationDate, int fileCount) throws URISyntaxException {
+    public final Representation prepareRepresentationWithMultipleFiles(String cloudId, String representationName, String version, String fileUrl,
+                                                                       String dataProvider, boolean persistent, Date creationDate, int fileCount) throws URISyntaxException {
         List<File> files = new ArrayList<>();
         List<Revision> revisions = new ArrayList<>();
         for (int i = 0; i < fileCount; i++) {
             files.add(new File("fileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         }
-        Representation representation = new Representation(cloudId, representationName, version, new URI(fileUrl), new URI(fileUrl), dataProvider, files, revisions, persistent, creationDate);
-        return representation;
+        return new Representation(cloudId, representationName, version, new URI(fileUrl), new URI(fileUrl), dataProvider, files, revisions, persistent, creationDate);
     }
 
 }

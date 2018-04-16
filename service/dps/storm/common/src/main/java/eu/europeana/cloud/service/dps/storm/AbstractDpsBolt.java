@@ -31,7 +31,7 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    public static TaskStatusChecker taskStatusChecker;
+    public static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries
@@ -92,13 +92,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         String password = (String) stormConfig.get(CASSANDRA_SECRET_TOKEN);
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
-        if (taskStatusChecker == null)
-            synchronized (AbstractDpsBolt.class) {
-                if (taskStatusChecker == null) {
-                    TaskStatusChecker.init(cassandraConnectionProvider);
-                    taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
-                }
+        synchronized (AbstractDpsBolt.class) {
+            if (taskStatusChecker == null) {
+                TaskStatusChecker.init(cassandraConnectionProvider);
+                taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
             }
+        }
     }
 
     @Override
