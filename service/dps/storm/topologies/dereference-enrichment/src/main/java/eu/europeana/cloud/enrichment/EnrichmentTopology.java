@@ -194,7 +194,7 @@ public class EnrichmentTopology {
                 StormTopology stormTopology = enrichmentTopology.buildTopology(
                         kafkaTopic,
                         ecloudMcsAddress);
-                StormSubmitter.submitTopology(topologyName, TopologyHelper.configureTopology(topologyProperties), stormTopology);
+                StormSubmitter.submitTopology(topologyName, configureTopology(topologyProperties), stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
