@@ -47,7 +47,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         try {
             List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
             if (datasets != null) {
-                LOGGER.info("Data-sets that will be affected: " + datasets);
+                LOGGER.info("Data-sets that will be affected: {}", datasets);
                 for (String datasetLocation : datasets) {
                     Representation resultRepresentation = parseResultUrl(resultUrl);
                     DataSet dataSet = parseDataSetURl(datasetLocation);
