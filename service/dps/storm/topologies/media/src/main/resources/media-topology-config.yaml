@@ -17,8 +17,6 @@ topology.max.spout.pending: 128
 MEDIATOPOLOGY_FILE_SERVICE_URL: "https://test-cloud.europeana.eu/api"
 MEDIATOPOLOGY_FILE_SERVICE_USER: 
 MEDIATOPOLOGY_FILE_SERVICE_PASSWORD: 
-MEDIATOPOLOGY_DATASET_PROVIDER: "mms_prov"
-MEDIATOPOLOGY_DATASET_ID: "mms_set"
 
 MEDIATOPOLOGY_FILE_TRANSFER_PORT: 4401
 MEDIATOPOLOGY_FILE_TRANSFER_THRESHOLD_MB: 10
@@ -55,6 +53,6 @@ AWS_CREDENTIALS_SECRETKEY: ""
 AWS_CREDENTIALS_ENDPOINT: "https://s3.eu-geo.objectstorage.softlayer.net"
 AWS_CREDENTIALS_BUCKET: "europeana-crf-thumbnails-test"
 
-
 # Other Storm details
 topology.kryo.factory: "eu.europeana.cloud.service.dps.storm.utils.KryoFactory"
+

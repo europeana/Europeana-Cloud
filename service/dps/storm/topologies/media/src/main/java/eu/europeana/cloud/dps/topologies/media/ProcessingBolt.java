@@ -46,6 +46,7 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaservice.EdmObject;
@@ -249,10 +250,11 @@ public class ProcessingBolt extends BaseRichBolt {
 			
 			void saveMetadata() {
 				long start = System.currentTimeMillis();
-				String representationName =
-						currentItem.mediaData.getTask().getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-				String filename = "techmetadata.xml";
-				String mediaType = "text/xml";
+				DpsTask task = currentItem.mediaData.getTask();
+				
+				String representationName = task.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+				String filename = task.getParameter(PluginParameterKeys.FILE_NAME);
+				String mediaType = task.getParameter(PluginParameterKeys.MIME_TYPE);
 				
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(currentItem.edmContents)) {
 					if (currentItem.edmContents.length == 0)
@@ -275,7 +277,7 @@ public class ProcessingBolt extends BaseRichBolt {
 						String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
 						fileClient.uploadFile(r.getCloudId(), representationName, version, filename, bais,
 								mediaType);
-						recordClient.deleteRepresentation(r.getCloudId(), "techmetadata", version);
+						recordClient.deleteRepresentation(r.getCloudId(), representationName, version);
 						logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
 					}
 				} catch (IOException | DriverException | MCSException e) {

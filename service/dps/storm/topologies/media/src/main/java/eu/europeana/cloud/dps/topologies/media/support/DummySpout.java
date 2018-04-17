@@ -1,9 +1,7 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
+import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -16,10 +14,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 
 public class DummySpout extends BaseRichSpout {
 	
@@ -33,39 +28,13 @@ public class DummySpout extends BaseRichSpout {
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		outputCollector = collector;
 		
-		task = new DpsTask();
+		String configFileName = "dummy-task.json";
+		try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFileName)) {
+			task = new ObjectMapper().readValue(is, DpsTask.class);
+		} catch (IOException e) {
+			throw new RuntimeException("Built in config could not be loaded: " + configFileName, e);
+		}
 		logger.info("Created dummy task: {}", task.getTaskId());
-		task.setTaskName("test777");
-		
-		Revision revision = new Revision("media_service_revision_test", "media_service_provider_test");
-		revision.setCreationTimeStamp(new Date());
-		task.setOutputRevision(revision);
-
-		
-		String serviceUrl = (String) conf.get("MEDIATOPOLOGY_FILE_SERVICE_URL");
-		String datasetProvider = (String) conf.get("MEDIATOPOLOGY_DATASET_PROVIDER");
-		String datasetId = (String) conf.get("MEDIATOPOLOGY_DATASET_ID");
-		
-//		HashMap<String, String> params = new HashMap<>();
-//		params.put("host.limit.dlibrary.ascsa.edu.gr", "3");
-//		task.setParameters(params);
-		
-		String dataset =
-				serviceUrl + "/data-providers/" + datasetProvider + "/data-sets/" + datasetId;
-		
-		Map<String, String> params = new HashMap<>();
-		params.put(PluginParameterKeys.OUTPUT_DATA_SETS, dataset);
-		
-//		params.put(PluginParameterKeys.REPRESENTATION_NAME, "edm");
-//		params.put(PluginParameterKeys.REVISION_PROVIDER, "media_service_provider_test");
-//		params.put(PluginParameterKeys.REVISION_NAME, "media_service_revision_test");
-//		params.put(PluginParameterKeys.REVISION_TIMESTAMP, "2018-04-11T12:30:28.810+02:00");
-		
-		task.setParameters(params);
-		
-		task.addDataEntry(InputDataType.DATASET_URLS, Arrays.asList(dataset));
-		
-		
 	}
 	
 	@Override
