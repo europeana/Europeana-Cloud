@@ -16,6 +16,8 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ import java.util.*;
  */
 @Service
 public class CassandraDataSetService implements DataSetService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataSetService.class);
 
     @Autowired
     private CassandraDataSetDAO dataSetDAO;
@@ -263,7 +266,7 @@ public class CassandraDataSetService implements DataSetService {
                 return false;
             }
         } catch (RepresentationNotExistsException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
         return false;
     }

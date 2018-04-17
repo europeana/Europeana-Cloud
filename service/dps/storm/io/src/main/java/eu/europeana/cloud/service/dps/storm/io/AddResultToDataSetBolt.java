@@ -47,7 +47,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         try {
             List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
             if (datasets != null) {
-                LOGGER.info("Data-sets that will be affected: " + datasets);
+                LOGGER.info("Data-sets that will be affected: {}", datasets);
                 for (String datasetLocation : datasets) {
                     Representation resultRepresentation = parseResultUrl(resultUrl);
                     DataSet dataSet = parseDataSetURl(datasetLocation);
@@ -83,20 +83,20 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             rep.setVersion(parser.getPart(UrlPart.VERSIONS));
             return rep;
         }
-        return null;
+        throw new MalformedURLException("The resulted output URL is not formulated correctly");
     }
 
     private DataSet parseDataSetURl(String url) throws MalformedURLException {
-        DataSet dataSet = null;
         UrlParser parser = new UrlParser(url);
         if (parser.isUrlToDataset()) {
-            dataSet = new DataSet();
+            DataSet dataSet = new DataSet();
             dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
             dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
+            return dataSet;
         }
-        return dataSet;
-    }
+        throw new MalformedURLException("The dataSet URL is not formulated correctly");
 
+    }
 
 
 }

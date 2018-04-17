@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyProper
 import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import org.apache.storm.Config;
 
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;

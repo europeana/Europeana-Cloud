@@ -104,10 +104,9 @@ public class IdentifiersHarvestingBoltTest {
     }
 
 
-
     @Before
     public void init() throws Exception {
-        mockStaticField(IdentifiersHarvestingBolt.class.getField("taskStatusChecker"),taskStatusChecker);
+        mockStaticField(IdentifiersHarvestingBolt.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
     }
 
@@ -115,6 +114,7 @@ public class IdentifiersHarvestingBoltTest {
         field.setAccessible(true);
         field.set(null, newValue);
     }
+
     @Test
     public void testRetriesFailed() {
         //given
