@@ -41,7 +41,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-cassandra-connector</artifactId>
-            <version>0.8-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -57,6 +57,11 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-zoo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
 
