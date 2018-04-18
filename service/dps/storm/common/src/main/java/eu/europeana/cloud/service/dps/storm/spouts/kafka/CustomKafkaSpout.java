@@ -75,7 +75,7 @@ public class CustomKafkaSpout extends KafkaSpout {
             MessageAndOffset messageAndOffset = getMessageAndOffset(customKafkaMessage);
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
-            LOGGER.info("Acknowledgement fired for task: " + task.toString());
+            LOGGER.info("Acknowledgement fired for task: {}", task.toString());
             long taskId = task.getTaskId();
             String state = String.valueOf(TaskState.PROCESSED);
             String infoMessage = "Completely processed";
@@ -143,7 +143,7 @@ public class CustomKafkaSpout extends KafkaSpout {
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
             long taskId = task.getTaskId();
-            LOGGER.info("Failed methos fired for task: " + task.getTaskId());
+            LOGGER.info("Failed methos fired for task: {}", task.getTaskId());
             cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId), "The task was finished without a guarantee of complete processing", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {

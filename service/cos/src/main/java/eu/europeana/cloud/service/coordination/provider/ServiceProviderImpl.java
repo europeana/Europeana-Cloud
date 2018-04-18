@@ -73,7 +73,7 @@ public class ServiceProviderImpl implements ServiceProvider {
 		final int localServicesSize = localServices.size();
 		if (localServicesSize == 0) {
 			final int randomIndex = random.nextInt(allServicesSize);
-			LOGGER.info("getRandomLocalService() no service available from datacenter={}", preferredDatacenter);
+			LOGGER.info("getRandomLocalService() no service available from data center={}", preferredDatacenter);
 			allServices.get(randomIndex);
 		}
 		final int randomIndex = random.nextInt(localServicesSize);

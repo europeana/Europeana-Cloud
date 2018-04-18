@@ -54,6 +54,7 @@ public class XsltBoltTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
+        xsltBolt.prepare();
     }
 
 
@@ -97,7 +98,7 @@ public class XsltBoltTest {
 
     private void assertEmittedTuple(List<Values> allValues, int expectedParametersSize) {
         assertNotNull(allValues);
-        assertEquals(1,allValues.size());
+        assertEquals(1, allValues.size());
 
         //parameters assertion
         assertTrue(allValues.get(0).get(4) instanceof Map);

@@ -63,26 +63,26 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
 
         try {
             Map<String, String> taskParameters = task.getParameters();
-            LOGGER.info("taskParameters size=" + taskParameters.size());
+            LOGGER.info("taskParameters size= {} ", taskParameters.size());
 
             List<String> sources = task.getDataEntry(InputDataType.REPOSITORY_URLS);
             if (sources == null) {
                 sources = task.getDataEntry(InputDataType.DATASET_URLS);
             }
-            LOGGER.info("Sources size" + sources.size());
+            LOGGER.info("Sources size {}", sources.size());
 
             String dataEntry = convertListToString(sources);
             taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
 
             for (String sourceURL : sources) {
-                LOGGER.info("emitting..." + sourceURL);
+                LOGGER.info("emitting... {}", sourceURL);
                 collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), sourceURL, null, taskParameters, task.getOutputRevision(), task.getHarvestingDetails()).toStormTuple());
             }
 
             Utils.sleep(6000000);
 
         } catch (Exception e) {
-            LOGGER.error("StaticDpsTaskSpout error:" + e.getMessage());
+            LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
         }
     }
 

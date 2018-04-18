@@ -17,7 +17,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
-    private XsltTransformer transformer = new XsltTransformer();
+    private XsltTransformer transformer;
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
@@ -61,5 +61,6 @@ public class XsltBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        transformer = new XsltTransformer();
     }
 }

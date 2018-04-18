@@ -64,7 +64,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
             try {
-                LOGGER.info("HERE THE LINK: " + file);
+                LOGGER.info("HERE THE LINK: {}", file);
                 InputStream is = fileClient.getFile(file);
                 tt.setFileData(is);
                 tt.setFileUrl(file);

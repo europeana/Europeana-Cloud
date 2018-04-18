@@ -31,7 +31,7 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    public static volatile TaskStatusChecker taskStatusChecker;
+    protected static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries
@@ -52,14 +52,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        LOGGER.info("Received tuple :" + tuple.toString());
+        LOGGER.info("Received tuple : {}", tuple.toString());
         inputTuple = tuple;
 
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
             if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
-                LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
+                LOGGER.info("Mapped to StormTaskTuple : {}", t.toStormTuple().toString());
                 execute(t);
             }
         } catch (Exception e) {

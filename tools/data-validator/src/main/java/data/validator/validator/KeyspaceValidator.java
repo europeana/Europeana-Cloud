@@ -28,7 +28,7 @@ public class KeyspaceValidator implements Validator {
                 CassandraConnectionProvider newTargetCassandraConnectionProvider = new CassandraConnectionProvider(targetCassandraConnectionProvider);
                 DataValidator dataValidator = new DataValidator(newSourceCassandraConnectionProvider, newTargetCassandraConnectionProvider);
                 TableMetadata t = tmIterator.next();
-                LOGGER.info("Checking data integrity between source table " + t.getName() + " and target table " + t.getName());
+                LOGGER.info("Checking data integrity between source table {} and target table {} ", t.getName(), t.getName());
                 tableValidatorJobs.add(new TableValidatorJob(dataValidator, t.getName(), t.getName(), threadsCount));
             }
             executorService.invokeAll(tableValidatorJobs);

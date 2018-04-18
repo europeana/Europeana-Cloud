@@ -18,7 +18,7 @@ import static java.lang.Thread.sleep;
 public final class CassandraTestInstance {
     private static final int PORT = 19142;
     private static final String CASSANDRA_CONFIG_FILE = "eu-cassandra.yaml";
-    private static final long CASSANDRA_STARTUP_TIMEOUT = 3*60*1000L; //3 minutes
+    private static final long CASSANDRA_STARTUP_TIMEOUT = 3 * 60 * 1000L; //3 minutes
     private static final int CONNECT_TIMEOUT_MILLIS = 100000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestInstance.class);
@@ -52,14 +52,15 @@ public final class CassandraTestInstance {
                 .withProtocolVersion(ProtocolVersion.V3)
                 .withQueryOptions(queryOptions)
                 .withSocketOptions(socketOptions)
-                .withRetryPolicy(new LoggingRetryPolicy(new TestRetryPolicy(20,20,20, 1000)))
+                .withRetryPolicy(new LoggingRetryPolicy(new TestRetryPolicy(20, 20, 20, 1000)))
                 .withTimestampGenerator(new AtomicMonotonicTimestampGenerator()).build();
     }
 
     /**
      * Thread safe singleton of Cassandra test instance with initialized keyspace.
+     *
      * @param keyspaceSchemaCql cql file of keyspace definition
-     * @param keyspace keyspace name
+     * @param keyspace          keyspace name
      * @return cassandra test instance
      */
     public static CassandraTestInstance getInstance(String keyspaceSchemaCql, String keyspace) {
@@ -78,6 +79,7 @@ public final class CassandraTestInstance {
 
     /**
      * Truncate all tables from all keyspaces.
+     *
      * @param hard if is true then empty tables are truncated (this slow down process because it require disk flushes)
      */
     public static synchronized void truncateAllData(boolean hard) {
@@ -94,7 +96,7 @@ public final class CassandraTestInstance {
         }
     }
 
-    public static Session getSession(String keyspace){
+    public static Session getSession(String keyspace) {
         return keyspaceSessions.get(keyspace);
     }
 
@@ -106,7 +108,7 @@ public final class CassandraTestInstance {
                         + "';");
         for (Row r : rs.all()) {
             String tableName = r.getString("columnfamily_name");
-            LOGGER.info("embedded Cassandra tuncating table: " + tableName);
+            LOGGER.info("embedded Cassandra tuncating table: {}", tableName);
             session.execute("TRUNCATE " + tableName);
         }
     }
@@ -121,9 +123,9 @@ public final class CassandraTestInstance {
             ResultSet rows = session
                     .execute("SELECT * FROM " + tableName + " LIMIT 1;");
             if (rows.one() == null) {
-                LOGGER.info("embedded Cassandra keyspace" + " table:" + tableName + " - is empty");
+                LOGGER.info("embedded Cassandra keyspace table:{} - is empty", tableName);
             } else {
-                LOGGER.info("embedded Cassandra tuncating table: " + tableName);
+                LOGGER.info("embedded Cassandra tuncating table: {}", tableName);
                 session.execute("TRUNCATE " + tableName);
             }
         }
@@ -144,8 +146,7 @@ public final class CassandraTestInstance {
                 Session session = keyspaceSessions.get(keyspaceName);
                 ResultSet rows = session
                         .execute("SELECT * FROM " + tableName + ";");
-                LOGGER.info("keyspace : " + keyspaceName + ", table : " + tableName + " have rows : " + rows
-                        .getAvailableWithoutFetching());
+                LOGGER.info("keyspace : {}, table : {}  have rows : {} ", keyspaceName, tableName, rows.getAvailableWithoutFetching());
             }
         }
     }
@@ -154,7 +155,7 @@ public final class CassandraTestInstance {
         if (!keyspaceSessions.containsKey(keyspace)) {
             initKeyspace(keyspaceSchemaCql, keyspace);
         } else {
-            LOGGER.info("embedded Cassandra keyspace " + keyspace + " is already initialized.");
+            LOGGER.info("embedded Cassandra keyspace {} is already initialized.", keyspace);
         }
     }
 
@@ -167,11 +168,11 @@ public final class CassandraTestInstance {
     }
 
     private void initKeyspace(String keyspaceSchemaCql, String keyspace) {
-        LOGGER.info("Initializing embedded Cassandra keyspace " + keyspace + " ...");
+        LOGGER.info("Initializing embedded Cassandra keyspace {} ...", keyspace);
         applyCQL(keyspaceSchemaCql, keyspace);
         Session session = cluster.connect(keyspace);
         keyspaceSessions.put(keyspace, session);
-        LOGGER.info("embedded Cassandra keyspace " + keyspace + " initialized.");
+        LOGGER.info("embedded Cassandra keyspace {} initialized.", keyspace);
     }
 
     private void applyCQL(String keyspaceSchemaCql, String keyspace) {
@@ -182,7 +183,7 @@ public final class CassandraTestInstance {
     }
 
 
-    private static final class TestRetryPolicy implements RetryPolicy{
+    private static final class TestRetryPolicy implements RetryPolicy {
         public static final Logger log = LoggerFactory.getLogger(TestRetryPolicy.class);
         private final double maxReadNbRetry;
         private final double maxWriteNbRetry;
@@ -201,16 +202,16 @@ public final class CassandraTestInstance {
         public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses,
                                            int receivedResponses, boolean dataRetrieved, int nbRetry) {
             waitForNextRetry();
-            if(dataRetrieved && receivedResponses >= requiredResponses){
+            if (dataRetrieved && receivedResponses >= requiredResponses) {
                 return RetryDecision.ignore();
-            }else if(nbRetry < maxReadNbRetry){
+            } else if (nbRetry < maxReadNbRetry) {
                 return RetryDecision.retry(cl);
-            }else {
+            } else {
                 return RetryDecision.rethrow();
             }
         }
 
-        @SuppressWarnings({"squid:S2142","InterruptedException should not be ignored"})
+        @SuppressWarnings({"squid:S2142", "InterruptedException should not be ignored"})
         private void waitForNextRetry() {
             try {
                 sleep(waitRetryTime);
@@ -234,9 +235,9 @@ public final class CassandraTestInstance {
         }
 
         private RetryDecision getRetryDecision(ConsistencyLevel cl, int required, int actual, int nbRetry, double maxNbRetry) {
-            if(actual >= required){
+            if (actual >= required) {
                 return RetryDecision.ignore();
-            } else if (nbRetry < maxNbRetry){
+            } else if (nbRetry < maxNbRetry) {
                 return RetryDecision.retry(cl);
             } else {
                 return RetryDecision.rethrow();

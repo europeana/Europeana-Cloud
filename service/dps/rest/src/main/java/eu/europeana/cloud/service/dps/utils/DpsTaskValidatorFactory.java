@@ -18,8 +18,13 @@ public class DpsTaskValidatorFactory {
     private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
     private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS = "validation_topology_file_urls";
     private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
+
     private static final String IC_TOPOLOGY_TASK_WITH_FILE_URLS = "ic_topology_file_urls";
     private static final String IC_TOPOLOGY_TASK_WITH_DATASETS = "ic_topology_dataset_urls";
+
+    private static final String NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS = "normalization_topology_file_urls";
+    private static final String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology_dataset_urls";
+
     private static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
     private static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
     private static final String JP2_MIME_TYPE = "image/jp2";
@@ -78,6 +83,17 @@ public class DpsTaskValidatorFactory {
                 .withAnyOutputRevision()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
                 .withParameter(PluginParameterKeys.SCHEMA_NAME));
+
+
+        taskValidatorMap.put(NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Normalization Topology")
+                .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
+                .withOutputRevisionCheckingIfExists());
+
+        taskValidatorMap.put(NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Normalization Topology")
+                .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
+                .withOutputRevisionCheckingIfExists()
+                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
+
 
         taskValidatorMap.put(ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Enrichment Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
