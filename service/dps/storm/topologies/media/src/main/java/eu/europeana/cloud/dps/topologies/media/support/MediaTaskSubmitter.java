@@ -1,10 +1,12 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.codehaus.jackson.map.ObjectMapper;
 
 import eu.europeana.cloud.client.dps.rest.DpsClient;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
 
 public class MediaTaskSubmitter {
 	
@@ -15,14 +17,16 @@ public class MediaTaskSubmitter {
 			String topologyName = "media_topology";
 			
 			DpsTask task = new DpsTask();
+			String configFileName = "dummy-task.json";
+			try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFileName)) {
+				task = new ObjectMapper().readValue(is, DpsTask.class);
+			} catch (IOException e) {
+				throw new RuntimeException("Built in config could not be loaded: " + configFileName, e);
+			}
+			
+			
+
 			task.setTaskName(topologyName + task.getTaskId());
-			
-			task.addDataEntry(InputDataType.DATASET_URLS,
-					Arrays.asList("https://test-cloud.europeana.eu/api/data-providers/mms_prov/data-sets/mms_set"));
-			
-//			HashMap<String, String> params = new HashMap<>();
-//			params.put("host.limit.dlibrary.ascsa.edu.gr", "3");
-//			task.setParameters(params);
 			
 			long taskId = client.submitTask(task, topologyName);
 			
