@@ -29,6 +29,8 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvesterBolt.class);
     private static final int BATCH_MAX_SIZE = 1240 * 4;
     public static final String CLOUD_SEPARATOR = "_";
+    public static final String MAC_TEMP_FOLDER = "__MACOSX";
+    public static final String MAC_TEMP_FILE = ".DS_Store";
 
 
     public void execute(StormTaskTuple stormTaskTuple) {
@@ -76,24 +78,25 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException {
+                String fileName = file.getFileName().toString();
+                if (fileName.equals(MAC_TEMP_FILE))
+                    return FileVisitResult.CONTINUE;
                 String extension = FilenameUtils.getExtension(file.toString());
                 if (!CompressionFileExtension.contains(extension)) {
                     String mimeType = Files.probeContentType(file);
                     String filePath = file.toString();
-                    String readableFileName = filePath.substring(start.toString().length()+1).replaceAll("\\\\", "/");
+                    String readableFileName = filePath.substring(start.toString().length() + 1).replaceAll("\\\\", "/");
                     emitFileContent(stormTaskTuple, filePath, readableFileName, mimeType);
                 }
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException e)
-                    throws IOException {
-                if (e == null) {
-                    return FileVisitResult.CONTINUE;
-                } else {
-                    throw e;
-                }
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                String dirName = dir.getFileName().toString();
+                if (dirName.equals(MAC_TEMP_FOLDER))
+                    return FileVisitResult.SKIP_SUBTREE;
+                return FileVisitResult.CONTINUE;
             }
         });
     }
