@@ -72,6 +72,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final String TOPOLOGY_NAME_PARAMETER_LABEL = "topologyName";
     private static final String TASK_ID_PARAMETER_LABEL = "taskId";
     private static final String EMPTY_STRING = "";
+    private static final String WRONG_DATA_SET_URL = "http://wrongDataSet.com";
 
     private TopologyManager topologyManager;
     private MutableAclService mutableAclService;
@@ -140,8 +141,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
-        String topologyName = IC_TOPOLOGY;
-        prepareMocks(topologyName);
+        prepareMocks(IC_TOPOLOGY);
 
         Response response = sendTask(task, IC_TOPOLOGY);
 
@@ -192,7 +192,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     @Test
     public void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithWrongDataSetURL() throws MCSException, TaskSubmissionException {
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(DATASET_URLS, Arrays.asList("http://wrongDataSet.com"));
+        task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
         Response response = sendTask(task, ENRICHMENT_TOPOLOGY);
@@ -254,7 +254,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     public void shouldThrowDpsWhenSendingTaskToNormalizationTopologyWithWrongDataSetURL() throws MCSException, TaskSubmissionException {
 
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(DATASET_URLS, Arrays.asList("http://wrongDataSet.com"));
+        task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
         Response response = sendTask(task, NORMALIZATION_TOPOLOGY);
@@ -328,7 +328,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision_1() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision1() throws MCSException, TaskSubmissionException {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -341,7 +341,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision_2() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision2() throws MCSException, TaskSubmissionException {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -354,7 +354,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision_3() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision3() throws MCSException, TaskSubmissionException {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -494,7 +494,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_1() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision1() throws MCSException, TaskSubmissionException {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
@@ -506,10 +506,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
 
-
-
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_2() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision2() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
@@ -521,7 +519,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_3() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision3() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
@@ -553,7 +551,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
+    public void shouldGetDetailedReportForTheFirst100Resources() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
@@ -565,7 +563,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
+    public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
@@ -576,7 +574,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetProgressReport() throws Exception {
+    public void shouldGetProgressReport() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
 
         TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, EMPTY_STRING, 100, 100, 50, new Date(), new Date(), new Date());
@@ -589,7 +587,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldKillTheTask() throws Exception {
+    public void shouldKillTheTask() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
@@ -600,7 +598,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void killTaskShouldFailForNonExistedTopology() throws Exception {
+    public void killTaskShouldFailForNonExistedTopology() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         doNothing().when(killService).killTask(eq(TASK_ID));
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
@@ -610,7 +608,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
+    public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         doNothing().when(killService).killTask(eq(TASK_ID));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
@@ -620,7 +618,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
+    public void shouldGetGeneralErrorReportWithIdentifiers() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID).queryParam("idsCount", 10);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
@@ -632,7 +630,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetSpecificErrorReport() throws Exception {
+    public void shouldGetSpecificErrorReport() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID).queryParam("error", ERROR_TYPES[0]);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
@@ -644,7 +642,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetGeneralErrorReport() throws Exception {
+    public void shouldGetGeneralErrorReport() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
@@ -657,7 +655,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldThrowExceptionIfTaskIdWasNotFound() throws Exception {
+    public void shouldThrowExceptionIfTaskIdWasNotFound() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
@@ -666,7 +664,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
+    public void shouldGetDetailedReportForSpecifiedResources() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID).queryParam("from", 120).queryParam("to", 150);
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
@@ -735,11 +733,13 @@ public class TopologyTasksResourceTest extends JerseyTest {
         });
         assertThat(resultedSubTaskInfoList.get(0), is(subTaskInfo));
     }
+
     private void prepareCompleteParametersForIcTask(DpsTask task) {
         task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
         task.addParameter(MIME_TYPE, IMAGE_TIFF);
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
     }
+
     private void setCorrectlyFormulatedOutputRevision(DpsTask task) {
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
