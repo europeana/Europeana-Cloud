@@ -78,7 +78,7 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException {
-                String fileName = file.getFileName().toString();
+                String fileName = getFileNameFromPath(file);
                 if (fileName.equals(MAC_TEMP_FILE))
                     return FileVisitResult.CONTINUE;
                 String extension = FilenameUtils.getExtension(file.toString());
@@ -93,12 +93,18 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
 
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                String dirName = dir.getFileName().toString();
+                String dirName = getFileNameFromPath(dir);
                 if (dirName.equals(MAC_TEMP_FOLDER))
                     return FileVisitResult.SKIP_SUBTREE;
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+
+    private String getFileNameFromPath(Path path) {
+        if (path != null)
+            return path.getFileName().toString();
+        throw new IllegalArgumentException("Path parameter should never be null");
     }
 
     private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType) throws IOException {

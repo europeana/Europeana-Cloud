@@ -30,7 +30,7 @@ public class GzUnpackingServiceTest {
         gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME + ".tar.gz", DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME);
         assertNotNull(files);
-        assertEquals(files.size(), XML_FILES_COUNT);
+        assertEquals(XML_FILES_COUNT,files.size());
     }
 
     @Test
@@ -38,7 +38,7 @@ public class GzUnpackingServiceTest {
         gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME2 + ".tar.gz", DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME2);
         assertNotNull(files);
-        assertEquals(files.size(), XML_FILES_COUNT);
+        assertEquals(XML_FILES_COUNT,files.size());
     }
 
     @Test
@@ -46,7 +46,7 @@ public class GzUnpackingServiceTest {
         gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME2 + ".tgz", DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME2);
         assertNotNull(files);
-        assertEquals(files.size(), XML_FILES_COUNT);
+        assertEquals(XML_FILES_COUNT,files.size());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class GzUnpackingServiceTest {
         gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME3 + ".tar.gz", DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME3);
         assertNotNull(files);
-        assertEquals(files.size(), XML_FILES_COUNT);
+        assertEquals(XML_FILES_COUNT,files.size());
     }
 
     private Collection getXMLFiles(String folderLocation) {
