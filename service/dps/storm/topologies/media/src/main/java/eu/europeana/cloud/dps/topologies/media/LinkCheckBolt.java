@@ -40,7 +40,7 @@ public class LinkCheckBolt extends HttpClientBolt {
 	protected HttpAsyncRequestProducer createRequestProducer(FileInfo fileInfo) {
 		HttpHead request = new HttpHead(fileInfo.getUrl());
 		request.setConfig(RequestConfig.custom()
-				.setMaxRedirects(1)
+				.setMaxRedirects(FOLLOW_REDIRECTS)
 				.setConnectTimeout(2000)
 				.setSocketTimeout(5000)
 				.build());

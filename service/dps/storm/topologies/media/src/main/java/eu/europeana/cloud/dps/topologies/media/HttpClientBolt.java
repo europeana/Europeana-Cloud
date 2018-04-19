@@ -32,6 +32,8 @@ abstract class HttpClientBolt extends BaseRichBolt {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HttpClientBolt.class);
 	
+	protected static final int FOLLOW_REDIRECTS = 3;
+	
 	/** Temporary "error" value for counting successful downloads */
 	protected static final String OK = "OK";
 	

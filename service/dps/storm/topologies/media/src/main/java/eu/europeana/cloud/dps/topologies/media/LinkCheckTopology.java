@@ -39,7 +39,7 @@ public class LinkCheckTopology {
 		
 		TopologyBuilder builder = new TopologyBuilder();
 		IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
-		Collection<UrlType> urlTypes = Arrays.asList(UrlType.IS_SHOWN_AT);
+		Collection<UrlType> urlTypes = Arrays.asList(UrlType.values());
 		builder.setSpout(source, new DataSetReaderSpout(baseSpout, urlTypes), 1);
 		
 		builder.setBolt(linkCheckBolt, new LinkCheckBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))

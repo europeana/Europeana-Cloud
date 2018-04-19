@@ -60,7 +60,7 @@ public class DownloadBolt extends HttpClientBolt {
 	protected HttpAsyncRequestProducer createRequestProducer(FileInfo fileInfo) {
 		HttpGet request = new HttpGet(fileInfo.getUrl());
 		request.setConfig(RequestConfig.custom()
-				.setMaxRedirects(2)
+				.setMaxRedirects(FOLLOW_REDIRECTS)
 				.setConnectTimeout(10000)
 				.setSocketTimeout(20000)
 				.build());
