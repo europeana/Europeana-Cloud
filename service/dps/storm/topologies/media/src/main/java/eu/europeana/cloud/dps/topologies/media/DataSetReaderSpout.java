@@ -170,7 +170,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		if (edmInfo.attempts > 0) {
 			logger.info("FAIL received for {}, will retry ({} attempts left)", msgId, edmInfo.attempts);
 			edmInfo.attempts--;
-			edmInfo.sourceInfo.addToQueue(edmInfo);
+			edmInfo.getSourceInfo().addToQueue(edmInfo);
 		} else {
 			logger.info("FAIL received for {}, no more retries", msgId);
 			removeEdm(edmInfo);
@@ -178,7 +178,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	}
 	
 	private void removeEdm(EdmInfo edmInfo) {
-		SourceInfo source = edmInfo.sourceInfo;
+		SourceInfo source = edmInfo.getSourceInfo();
 		source.running.remove(edmInfo);
 		if (source.running.isEmpty() && source.isEmpty()) {
 			logger.info("Finished all EDMs from source {}", source.host);
@@ -214,6 +214,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		}
 		
 		public synchronized void addToQueue(EdmInfo edmInfo) {
+			edmInfo.setSourceInfo(this);
 			queue.add(edmInfo);
 		}
 		
@@ -231,8 +232,16 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		EdmObject edmObject;
 		List<FileInfo> fileInfos;
 		TaskInfo taskInfo;
-		SourceInfo sourceInfo;
+		private SourceInfo sourceInfo;
 		int attempts = 5;
+		
+		public synchronized void setSourceInfo(SourceInfo sourceInfo) {
+			this.sourceInfo = sourceInfo;
+		}
+		
+		public synchronized SourceInfo getSourceInfo() {
+			return sourceInfo;
+		}
 	}
 	
 	private class EdmDownloader {
@@ -313,8 +322,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				Comparator<Entry<String, Long>> c = Comparator.comparing(Entry::getValue);
 				c = c.thenComparing(Entry::getKey); // compiler weirdness, can't do it in one call
 				String host = hostCounts.entrySet().stream().max(c).get().getKey();
-				edmInfo.sourceInfo = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
-				edmInfo.sourceInfo.addToQueue(edmInfo);
+				SourceInfo source = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
+				source.addToQueue(edmInfo);
 			}
 		}
 	}
