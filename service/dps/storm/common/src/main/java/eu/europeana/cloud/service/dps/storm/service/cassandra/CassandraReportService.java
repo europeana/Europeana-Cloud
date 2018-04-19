@@ -20,9 +20,8 @@ import java.util.*;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class CassandraReportService implements TaskExecutionReportService {
-    CassandraConnectionProvider cassandra;
+    private CassandraConnectionProvider cassandra;
 
-    private static final int FETCH_SIZE = 100;
     private static final int FETCH_ONE = 1;
     private PreparedStatement selectErrorsStatement;
     private PreparedStatement selectErrorStatement;
