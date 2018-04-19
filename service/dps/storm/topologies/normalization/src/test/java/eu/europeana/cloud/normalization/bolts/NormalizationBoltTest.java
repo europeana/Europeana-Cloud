@@ -1,8 +1,6 @@
 package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.normalization.Normalizer;
-import eu.europeana.normalization.NormalizerFactory;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -26,15 +24,11 @@ public class NormalizationBoltTest {
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
-    public NormalizerFactory normalizerFactory;
-
-    public Normalizer normalizer;
-
     @InjectMocks
     private NormalizationBolt normalizationBolt = new NormalizationBolt();
 
     @Before
-    public void init() throws Exception {
+    public void init() {
         MockitoAnnotations.initMocks(this);
     }
 
@@ -51,7 +45,7 @@ public class NormalizationBoltTest {
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        Assert.assertArrayEquals(expected, (byte[]) capturedValues.get(3));
+        Assert.assertEquals(new String(expected), new String((byte[]) capturedValues.get(3)).replaceAll("\r", ""));
     }
 
 
@@ -98,7 +92,6 @@ public class NormalizationBoltTest {
     }
 
     private StormTaskTuple getStormTuple(String fileUrl, byte[] inputData) {
-
         StormTaskTuple tuple = new StormTaskTuple(123, "TASK_NAME", fileUrl, inputData, new HashMap<String, String>(), null);
         return tuple;
     }
