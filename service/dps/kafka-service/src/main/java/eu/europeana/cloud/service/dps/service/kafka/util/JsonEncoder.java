@@ -29,7 +29,7 @@ public class JsonEncoder implements Encoder<Object> {
         } catch (JsonProcessingException e) {
             LOGGER.error(String.format("Json processing failed for object: %s", object.getClass().getName()), e);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Exception happened because of {} for the object {} ", e.getMessage(), object.getClass().getName());
         }
         return "".getBytes();
     }

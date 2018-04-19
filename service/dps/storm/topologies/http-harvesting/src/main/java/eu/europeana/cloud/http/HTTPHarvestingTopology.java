@@ -111,9 +111,9 @@ public class HTTPHarvestingTopology {
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
                         topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_PARALLEL)))
+                getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(HTTP_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
