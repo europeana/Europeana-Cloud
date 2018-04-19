@@ -43,6 +43,7 @@ public class IndexingTopology {
     private static final String INDEXING_PROPERTIES_FILE = "indexing.properties";
     private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
+    public static final String SUCCESS_MESSAGE = "Record is indexed correctly";
 
     public IndexingTopology(String defaultPropertyFile, String providedPropertyFile, String defaultIndexingPropertiesFile, String providedIndexingPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
@@ -125,7 +126,7 @@ public class IndexingTopology {
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.INDEXING_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
 
-        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(ecloudMcsAddress),
+        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_NUMBER_OF_TASKS))))
@@ -163,15 +164,15 @@ public class IndexingTopology {
 
         if (args.length <= 2) {
 
-            String providedValidationPropertiesFile = "";
+            String providedIndexingPropertiesFile = "";
             String providedPropertyFile = "";
             if (args.length == 1)
                 providedPropertyFile = args[0];
             else if (args.length == 2) {
                 providedPropertyFile = args[0];
-                providedValidationPropertiesFile = args[1];
+                providedIndexingPropertiesFile = args[1];
             }
-            IndexingTopology indexingTopology = new IndexingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, INDEXING_PROPERTIES_FILE, providedValidationPropertiesFile);
+            IndexingTopology indexingTopology = new IndexingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, INDEXING_PROPERTIES_FILE, providedIndexingPropertiesFile);
             String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
             // kafka topic == topology name
             String kafkaTopic = topologyName;
@@ -183,14 +184,14 @@ public class IndexingTopology {
 
             LOGGER.info("Submitting indexing topology");
             //
-            LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology(topologyName, config, stormTopology);
-            LOGGER.info("sleeping");
-            Utils.sleep(2*60*1000);
-            cluster.killTopology(topologyName);
-            cluster.shutdown();
+//            LocalCluster cluster = new LocalCluster();
+//            cluster.submitTopology(topologyName, config, stormTopology);
+//            LOGGER.info("sleeping");
+//            Utils.sleep(2*60*1000);
+//            cluster.killTopology(topologyName);
+//            cluster.shutdown();
             //
-//            StormSubmitter.submitTopology(topologyName, config, stormTopology);
+            StormSubmitter.submitTopology(topologyName, config, stormTopology);
         }
     }
 }

@@ -10,18 +10,20 @@ import java.net.MalformedURLException;
 /**
  * Created by Tarek on 12/5/2017.
  */
-
-
 public class ValidationRevisionWriter extends RevisionWriterBolt {
-    public ValidationRevisionWriter(String ecloudMcsAddress) {
+
+    private String successNotificationMessage;
+
+    public ValidationRevisionWriter(String ecloudMcsAddress, String successNotificationMessage) {
         super(ecloudMcsAddress);
+        this.successNotificationMessage = successNotificationMessage;
     }
 
     protected void addRevisionAndEmit(StormTaskTuple stormTaskTuple, RevisionServiceClient revisionsClient) {
         LOGGER.info(getClass().getSimpleName() + " executed");
         try {
             addRevisionToSpecificResource(stormTaskTuple, revisionsClient, stormTaskTuple.getFileUrl());
-            emitSuccessNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "The record is validated correctly", "", "");
+            emitSuccessNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), successNotificationMessage, "", "");
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: " + stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());

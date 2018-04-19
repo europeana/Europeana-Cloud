@@ -40,6 +40,7 @@ public class ValidationTopology {
     private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidationTopology.class);
+    public static final String SUCCESS_MESSAGE = "The record is validated correctly";
 
     public ValidationTopology(String defaultPropertyFile, String providedPropertyFile, String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
@@ -65,7 +66,7 @@ public class ValidationTopology {
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN));
 
-        ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress);
+        ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);
 
 
         builder.setSpout(TopologyHelper.SPOUT, kafkaSpout,
