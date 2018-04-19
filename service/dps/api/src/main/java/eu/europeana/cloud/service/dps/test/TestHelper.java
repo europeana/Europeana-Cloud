@@ -19,7 +19,7 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.*;
  */
 public class TestHelper {
     public final List<CloudTagsResponse> prepareCloudTagsResponsesList() {
-        List<CloudTagsResponse> cloudTagsResponseList = new ArrayList<>();
+        List<CloudTagsResponse> cloudTagsResponseList = new ArrayList<>(2);
         CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID, true, false, false);
         CloudTagsResponse cloudTagsResponseResponse12 = new CloudTagsResponse(SOURCE + CLOUD_ID2, true, false, false);
         cloudTagsResponseList.add(cloudTagsResponseResponse1);
@@ -28,7 +28,7 @@ public class TestHelper {
     }
 
     public final List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date) {
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>();
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>(2);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse2 = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID2, date);
         cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
@@ -44,8 +44,8 @@ public class TestHelper {
 
     public final Representation prepareRepresentationWithMultipleFiles(String cloudId, String representationName, String version, String fileUrl,
                                                                        String dataProvider, boolean persistent, Date creationDate, int fileCount) throws URISyntaxException {
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(fileCount);
+        List<Revision> revisions = new ArrayList<>(0);
         for (int i = 0; i < fileCount; i++) {
             files.add(new File("fileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         }

@@ -47,15 +47,15 @@ public class RepresentationVersionAddedPersistentMessageProcessorTest {
         String cloudId = "25DG622J4VM";
         String representationName = "representation01";
         String versionId = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
-        ArrayList<File> files = new ArrayList<>();
-        ArrayList<Revision> revisions = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(0);
+        ArrayList<Revision> revisions = new ArrayList<>(0);
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();
         Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files,revisions, persistent, creationDate);
 
         String dataSetId1 = "dataSet1";
         String dataSetId2 = "dataSet2";
-        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>();
+        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>(2);
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId1));
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 
@@ -123,7 +123,7 @@ public class RepresentationVersionAddedPersistentMessageProcessorTest {
         String providerId = "Provider001";
         String dataSetId1 = "dataSet1";
         String dataSetId2 = "dataSet2";
-        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>();
+        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>(2);
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId1));
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 
@@ -142,8 +142,8 @@ public class RepresentationVersionAddedPersistentMessageProcessorTest {
         String cloudId = "25DG622J4VM";
         String representationName = "representation01";
         String versionId = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
-        ArrayList<File> files = new ArrayList<>();
-        ArrayList<Revision> revisions = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(0);
+        ArrayList<Revision> revisions = new ArrayList<>(0);
 
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();

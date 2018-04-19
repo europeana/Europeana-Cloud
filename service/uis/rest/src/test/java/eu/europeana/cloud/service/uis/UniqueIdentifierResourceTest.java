@@ -277,7 +277,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public void testGetLocalIds()
             throws Exception {
         ResultSlice<CloudId> lidListWrapper = new ResultSlice<>();
-        List<CloudId> localIdList = new ArrayList<>();
+        List<CloudId> localIdList = new ArrayList<>(1);
         localIdList.add(createCloudId(providerId, recordId));
         String cloudId = createCloudId(providerId, recordId).getId();
         lidListWrapper.setResults(localIdList);

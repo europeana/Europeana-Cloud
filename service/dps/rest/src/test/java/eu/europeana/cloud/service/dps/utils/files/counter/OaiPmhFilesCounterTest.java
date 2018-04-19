@@ -202,7 +202,7 @@ public class OaiPmhFilesCounterTest {
     private DpsTask getDpsTask(OAIPMHHarvestingDetails details) {
         DpsTask task = getDpsTaskNoEndpoint(details);
 
-        List<String> urls = new ArrayList<>();
+        List<String> urls = new ArrayList<>(1);
         urls.add(OAI_PMH_ENDPOINT);
         task.addDataEntry(InputDataType.REPOSITORY_URLS, urls);
 

@@ -85,7 +85,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
                     inputFilePath = convertJpgToTiff(folderPath, inputFilePath, tempFileName);
                 }
                 converterContext.setConverter(new KakaduConverterTiffToJP2());
-                List<String> properties = new ArrayList<>();
+                List<String> properties = new ArrayList<>(1);
                 properties.add(TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
                 converterContext.convert(inputFilePath, outputFilePath, properties);
                 stormTaskTuple.setFileData(imageConverterUtil.getStream(outputFilePath));

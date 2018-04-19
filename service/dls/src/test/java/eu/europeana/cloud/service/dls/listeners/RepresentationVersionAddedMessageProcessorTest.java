@@ -47,8 +47,8 @@ public class RepresentationVersionAddedMessageProcessorTest {
         String cloudId = "25DG622J4VM";
         String representationName = "representation01";
         String versionId = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
-        ArrayList<File> files = new ArrayList<>();
-        ArrayList<Revision> revisions = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(0);
+        ArrayList<Revision> revisions = new ArrayList<>(0);
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();
 

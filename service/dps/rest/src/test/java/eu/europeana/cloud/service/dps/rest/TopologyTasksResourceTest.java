@@ -714,7 +714,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
     private TaskErrorsInfo createDummyErrorsInfo(boolean specific) {
         TaskErrorsInfo info = new TaskErrorsInfo(TASK_ID);
-        List<TaskErrorInfo> errors = new ArrayList<>();
+        List<TaskErrorInfo> errors = new ArrayList<>(3);
         info.setErrors(errors);
         for (int i = 0; i < 3; i++) {
             TaskErrorInfo error = new TaskErrorInfo();
@@ -722,7 +722,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
             error.setErrorType(ERROR_TYPES[i]);
             error.setOccurrences(ERROR_COUNTS[i]);
             if (specific) {
-                List<ErrorDetails> errorDetails = new ArrayList<>();
+                List<ErrorDetails> errorDetails = new ArrayList<>(ERROR_COUNTS[i]);
                 error.setErrorDetails(errorDetails);
                 for (int j = 0; j < ERROR_COUNTS[i]; j++) {
                     errorDetails.add(new ErrorDetails(ERROR_RESOURCE_IDENTIFIER + String.valueOf(j),ADDITIONAL_INFORMATIONS + String.valueOf(j)));
@@ -754,7 +754,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     private List<SubTaskInfo> createDummySubTaskInfoList() {
-        List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
+        List<SubTaskInfo> subTaskInfoList = new ArrayList<>(1);
         SubTaskInfo subTaskInfo = new SubTaskInfo(1, RESOURCE_URL, States.SUCCESS, "", "", RESULT_RESOURCE_URL);
         subTaskInfoList.add(subTaskInfo);
         return subTaskInfoList;

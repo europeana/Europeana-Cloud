@@ -181,7 +181,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         when(oaiHelper.getGranularity()).thenReturn(Granularity.Day);
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
         when(sourceProvider.provide(anyString())).thenReturn(serviceProvider);
-        List<Header> headers = new ArrayList<>();
+        List<Header> headers = new ArrayList<>(2);
         headers.add(new Header().withIdentifier("ID1").withSetSpec(null).withDatestamp(new Date()));
         headers.add(new Header().withIdentifier("ID2").withSetSpec(null).withDatestamp(new Date()));
         when(serviceProvider.listIdentifiers(any(ListIdentifiersParameters.class))).thenReturn(headers.iterator());

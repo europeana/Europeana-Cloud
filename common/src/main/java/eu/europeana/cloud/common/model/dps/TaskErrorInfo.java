@@ -28,7 +28,7 @@ public class TaskErrorInfo {
         this.message = message;
         this.occurrences = occurrences;
         if (errorDetails == null) {
-            this.errorDetails = new ArrayList<>();
+            this.errorDetails = new ArrayList<>(0);
         } else {
             this.errorDetails = errorDetails;
         }

@@ -67,7 +67,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     public void getRepresentationRevisionResponse(MediaType mediaType)
             throws Exception {
         RepresentationRevisionResponse expected = new RepresentationRevisionResponse(representationResponse);
-        ArrayList<File> files = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(1);
         files.add(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
                 "2013-01-01", 12345L, URI.create("http://localhost:9998/records/" + globalId
                 + "/representations/" + schema + "/versions/" + version + "/files/1.xml")));

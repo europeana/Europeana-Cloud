@@ -96,7 +96,7 @@ public class DpsTaskUtil {
 
     private static DpsTask buildDPSHarvestingTask(String repositoryURL) {
         DpsTask task = new DpsTask();
-        List<String> urls = new ArrayList<>();
+        List<String> urls = new ArrayList<>(1);
         urls.add(repositoryURL);
         task.addDataEntry(InputDataType.REPOSITORY_URLS, urls);
         return task;

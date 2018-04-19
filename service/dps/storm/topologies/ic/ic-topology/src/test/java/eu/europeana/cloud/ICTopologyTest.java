@@ -277,12 +277,12 @@ public class ICTopologyTest extends ICTestMocksHelper {
     private final void prepareForMultipleDatasets() throws URISyntaxException, IOException, MCSException {
         String fileUrl1 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
         String fileUrl2 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName";
-        List<File> firstFilesList = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> firstFilesList = new ArrayList<>(1);
+        List<Revision> revisions = new ArrayList<>(1);
         firstFilesList.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl1)));
 
         Representation firstRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, firstFilesList, revisions, false, new Date());
-        List<File> secondFilesList = new ArrayList<>();
+        List<File> secondFilesList = new ArrayList<>(1);
         secondFilesList.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl2)));
         Representation secondRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, secondFilesList, revisions, false, new Date());
         when(dataSetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
@@ -300,8 +300,8 @@ public class ICTopologyTest extends ICTestMocksHelper {
 
     private final void prepareForSingleDataset() throws URISyntaxException, IOException, MCSException {
         String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(1);
+        List<Revision> revisions = new ArrayList<>(1);
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
 
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
@@ -320,8 +320,8 @@ public class ICTopologyTest extends ICTestMocksHelper {
 
     private final void prepareForSingleDataSetWithLatestRevisions() throws URISyntaxException, IOException, MCSException {
         String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(1);
+        List<Revision> revisions = new ArrayList<>(1);
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, date);
 
@@ -347,8 +347,8 @@ public class ICTopologyTest extends ICTestMocksHelper {
 
     private final void prepareForSingleDataSetWithSpecificRevisions() throws URISyntaxException, IOException, MCSException {
         String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(1);
+        List<Revision> revisions = new ArrayList<>(1);
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, date);
         List<CloudTagsResponse> cloudIdCloudTagsResponses = prepareCloudTagsResponsesList();
@@ -419,14 +419,14 @@ public class ICTopologyTest extends ICTestMocksHelper {
     }
 
     private List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date) {
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>();
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>(1);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
         cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
         return cloudIdAndTimestampResponseList;
     }
 
     private List<CloudTagsResponse> prepareCloudTagsResponsesList() {
-        List<CloudTagsResponse> CloudTagsResponseList = new ArrayList<>();
+        List<CloudTagsResponse> CloudTagsResponseList = new ArrayList<>(1);
         CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID, true, false, false);
         CloudTagsResponseList.add(cloudTagsResponseResponse1);
         return CloudTagsResponseList;

@@ -204,8 +204,8 @@ public class ValidationTopologyTest extends ValidationMockHelper {
     }
 
     private final void prepareForDataset() throws URISyntaxException, IOException, MCSException {
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(2);
+        List<Revision> revisions = new ArrayList<>(0);
         files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL)));
         files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL_FILE2)));
 

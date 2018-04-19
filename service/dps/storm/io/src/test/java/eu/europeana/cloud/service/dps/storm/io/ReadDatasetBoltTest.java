@@ -92,7 +92,7 @@ public class ReadDatasetBoltTest {
         when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL), new Revision());
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>();
+        List<Representation> representations = new ArrayList<>(1);
         representations.add(representation);
         when(datasetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
@@ -107,7 +107,7 @@ public class ReadDatasetBoltTest {
         when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false, true);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL), new Revision());
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>();
+        List<Representation> representations = new ArrayList<>(1);
         representations.add(representation);
         when(datasetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, true, false);
@@ -123,7 +123,7 @@ public class ReadDatasetBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>();
+        List<Representation> representations = new ArrayList<>(2);
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
@@ -148,7 +148,7 @@ public class ReadDatasetBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>();
+        List<Representation> representations = new ArrayList<>(2);
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
 
@@ -191,7 +191,7 @@ public class ReadDatasetBoltTest {
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>();
+        List<Representation> representations = new ArrayList<>(2);
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
 
@@ -217,7 +217,7 @@ public class ReadDatasetBoltTest {
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>();
+        List<Representation> representations = new ArrayList<>(2);
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
 

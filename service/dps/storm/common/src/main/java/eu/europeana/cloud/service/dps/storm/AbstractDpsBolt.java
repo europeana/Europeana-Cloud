@@ -52,14 +52,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        LOGGER.info("Received tuple : {}", tuple.toString());
+        LOGGER.info("Received tuple : {}", tuple);
         inputTuple = tuple;
 
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
             if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
-                LOGGER.info("Mapped to StormTaskTuple : {}", t.toStormTuple().toString());
+                LOGGER.info("Mapped to StormTaskTuple : {}", t.toStormTuple());
                 execute(t);
             }
         } catch (Exception e) {

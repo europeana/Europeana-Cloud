@@ -164,7 +164,7 @@ public class DPSClientTest {
     public final void shouldReturnedDetailsReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", States.SUCCESS, "", "", "result");
-        List<SubTaskInfo> taskInfoList = new ArrayList<>();
+        List<SubTaskInfo> taskInfoList = new ArrayList<>(1);
         taskInfoList.add(subTaskInfo);
         assertThat(dpsClient.getDetailedTaskReport(TOPOLOGY_NAME, TASK_ID), is(taskInfoList));
 
@@ -215,7 +215,7 @@ public class DPSClientTest {
     private TaskErrorsInfo createErrorInfo(long taskId, boolean specific) {
         TaskErrorsInfo info = new TaskErrorsInfo();
         info.setId(taskId);
-        List<TaskErrorInfo> errors = new ArrayList<>();
+        List<TaskErrorInfo> errors = new ArrayList<>(1);
         TaskErrorInfo error = new TaskErrorInfo();
         error.setOccurrences(ERROR_OCCURRENCES);
         error.setErrorType(ERROR_TYPE);
@@ -224,7 +224,7 @@ public class DPSClientTest {
         info.setErrors(errors);
 
         if (specific) {
-            List<ErrorDetails> errorDetails = new ArrayList<>();
+            List<ErrorDetails> errorDetails = new ArrayList<>(1);
             error.setErrorDetails(errorDetails);
 
             for (int i = 0; i < ERROR_OCCURRENCES; i++) {

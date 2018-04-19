@@ -142,8 +142,8 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
 
     private final void prepareForTask() throws URISyntaxException, IOException, MCSException {
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(2);
+        List<Revision> revisions = new ArrayList<>(1);
         files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL)));
         files.add(new File("sourceFileName2", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL_FILE2)));
 

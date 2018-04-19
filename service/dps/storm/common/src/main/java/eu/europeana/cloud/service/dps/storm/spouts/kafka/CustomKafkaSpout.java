@@ -75,7 +75,7 @@ public class CustomKafkaSpout extends KafkaSpout {
             MessageAndOffset messageAndOffset = getMessageAndOffset(customKafkaMessage);
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
-            LOGGER.info("Acknowledgement fired for task: {}", task.toString());
+            LOGGER.info("Acknowledgement fired for task: {}", task);
             long taskId = task.getTaskId();
             String state = String.valueOf(TaskState.PROCESSED);
             String infoMessage = "Completely processed";
