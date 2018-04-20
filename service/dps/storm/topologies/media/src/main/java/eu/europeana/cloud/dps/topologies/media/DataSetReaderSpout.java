@@ -71,7 +71,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	private SpoutOutputCollector outputCollector;
 	private Map<String, Object> config;
 	
-	private ConcurrentHashMap<String, EdmInfo> edmsByCloudId = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String, EdmInfo> edmsByStormMsgId = new ConcurrentHashMap<>();
 	
 	private ConcurrentHashMap<String, SourceInfo> sourcesByHost = new ConcurrentHashMap<>();
 	
@@ -128,7 +128,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			tupleData.setConnectionLimitsPerSource(taskInfo.connectionLimitPerSource);
 			tupleData.setTask(taskInfo.task);
 			
-			outputCollector.emit(new Values(tupleData, source.host), edmInfo.representation.getCloudId());
+			outputCollector.emit(new Values(tupleData, source.host), toStormMsgId(edmInfo));
 			
 			taskInfo.running.add(edmInfo);
 			taskInfo.emitCount++;
@@ -150,7 +150,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	
 	@Override
 	public void ack(Object msgId) {
-		EdmInfo edmInfo = edmsByCloudId.get(msgId);
+		EdmInfo edmInfo = edmsByStormMsgId.get(msgId);
 		if (edmInfo == null) {
 			logger.warn("Unrecognied ACK: {}", msgId);
 			return;
@@ -161,7 +161,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	
 	@Override
 	public void fail(Object msgId) {
-		EdmInfo edmInfo = edmsByCloudId.get(msgId);
+		EdmInfo edmInfo = edmsByStormMsgId.get(msgId);
 		if (edmInfo == null) {
 			logger.warn("Unrecognied FAIL: {}", msgId);
 			return;
@@ -170,15 +170,19 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		if (edmInfo.attempts > 0) {
 			logger.info("FAIL received for {}, will retry ({} attempts left)", msgId, edmInfo.attempts);
 			edmInfo.attempts--;
-			edmInfo.getSourceInfo().addToQueue(edmInfo);
+			edmInfo.sourceInfo.addToQueue(edmInfo);
 		} else {
 			logger.info("FAIL received for {}, no more retries", msgId);
 			removeEdm(edmInfo);
 		}
 	}
 	
+	private String toStormMsgId(EdmInfo edmInfo) {
+		return Integer.toString(System.identityHashCode(edmInfo));
+	}
+	
 	private void removeEdm(EdmInfo edmInfo) {
-		SourceInfo source = edmInfo.getSourceInfo();
+		SourceInfo source = edmInfo.sourceInfo;
 		source.running.remove(edmInfo);
 		if (source.running.isEmpty() && source.isEmpty()) {
 			logger.info("Finished all EDMs from source {}", source.host);
@@ -214,7 +218,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		}
 		
 		public synchronized void addToQueue(EdmInfo edmInfo) {
-			edmInfo.setSourceInfo(this);
+			edmInfo.sourceInfo = this;
 			queue.add(edmInfo);
 		}
 		
@@ -232,16 +236,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		EdmObject edmObject;
 		List<FileInfo> fileInfos;
 		TaskInfo taskInfo;
-		private SourceInfo sourceInfo;
+		SourceInfo sourceInfo;
 		int attempts = 5;
-		
-		public synchronized void setSourceInfo(SourceInfo sourceInfo) {
-			this.sourceInfo = sourceInfo;
-		}
-		
-		public synchronized SourceInfo getSourceInfo() {
-			return sourceInfo;
-		}
 	}
 	
 	private class EdmDownloader {
@@ -469,7 +465,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			EdmInfo edmInfo = new EdmInfo();
 			edmInfo.representation = rep;
 			edmInfo.taskInfo = taskInfo;
-			edmsByCloudId.put(rep.getCloudId(), edmInfo);
+			edmsByStormMsgId.put(toStormMsgId(edmInfo), edmInfo);
 			edmDownloader.queue(edmInfo);
 		}
 		
