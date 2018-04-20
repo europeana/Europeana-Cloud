@@ -294,6 +294,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				} catch (InterruptedException e) {
 					logger.trace("edm download thread finishing", e);
 					Thread.currentThread().interrupt();
+				} catch (Throwable t) {
+					logger.error("edm download thread failure", t);
 				}
 			}
 			
@@ -371,6 +373,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			} catch (InterruptedException e) {
 				logger.trace("dataset download thread finishing", e);
 				Thread.currentThread().interrupt();
+			} catch (Exception t) {
+				logger.error("dataset downlaod thread failure", t);
 			}
 		}
 		

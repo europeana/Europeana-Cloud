@@ -219,9 +219,9 @@ public class ProcessingBolt extends BaseRichBolt {
 				try {
 					while (true) {
 						StatsTupleData statsData;
+						DpsTask previousTask = currentItem == null ? null : currentItem.mediaData.getTask();
+						currentItem = queue.take();
 						try {
-							DpsTask previousTask = currentItem == null ? null : currentItem.mediaData.getTask();
-							currentItem = queue.take();
 							DpsTask currentTask = currentItem.mediaData.getTask();
 							if (!currentTask.equals(previousTask)) {
 								fileClient = Util.getFileServiceClient(config, currentTask);
@@ -249,6 +249,8 @@ public class ProcessingBolt extends BaseRichBolt {
 					while ((currentItem = queue.poll()) != null) {
 						cleanupRecord(currentItem.mediaData, currentItem.thumbnails);
 					}
+				} catch (Throwable t) {
+					logger.error("result upload thread failure", t);
 				}
 			}
 			
