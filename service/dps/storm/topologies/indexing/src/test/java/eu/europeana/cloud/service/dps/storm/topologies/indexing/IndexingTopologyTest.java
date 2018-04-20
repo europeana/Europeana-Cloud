@@ -45,8 +45,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
@@ -71,7 +69,6 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     private static final String TASK_PARAMETERS_WITH_OUTPUT_REVISION = "\"parameters\":" +
             "{\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
             "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
-            "\"SCHEMA_NAME\":\"edm-internal\"," +
             "\"TARGET_INDEXING_DATABASE\":\"PREVIEW\"}," +
             "\"taskId\":1," +
             "\"outputRevision\":" +
@@ -141,7 +138,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
 
     @Test
     public final void shouldProcessMultipleFiles() throws Exception {
-        //mokowanie
+        //mocking
         IndexerFactory indexerFactory = Mockito.mock(IndexerFactory.class);
         Indexer indexer = Mockito.mock(Indexer.class);
         PowerMockito.whenNew(IndexerFactory.class).withAnyArguments().thenReturn(indexerFactory);
@@ -154,8 +151,8 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         revisionServiceClient = Mockito.mock(RevisionServiceClient.class);
         PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);
         //
-        //given
 
+        //given
         final String input = "{\"inputData\":" +
                 "{\"FILE_URLS\":" +
                 "[\"" + SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2 + "\"]}," +
@@ -168,7 +165,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     public final void shouldProcessDatasetFiles() throws Exception {
         prepareForDataset();
 
-        //mokowanie
+        //mocking
         IndexerFactory indexerFactory = Mockito.mock(IndexerFactory.class);
         Indexer indexer = Mockito.mock(Indexer.class);
         PowerMockito.whenNew(IndexerFactory.class).withAnyArguments().thenReturn(indexerFactory);
@@ -181,15 +178,14 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         revisionServiceClient = Mockito.mock(RevisionServiceClient.class);
         PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);
         //
-        //given
 
+        //given
         final String input = "{\"inputData\":" +
                 "{\"DATASET_URLS\":" +
                 "[\"" + SOURCE_DATASET_URL + "\"]}," +
                 TASK_PARAMETERS_WITH_OUTPUT_REVISION;
 
         assertTopology(input);
-
     }
 
     private final void prepareForDataset() throws URISyntaxException, IOException, MCSException {
@@ -255,24 +251,4 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     private List selectSingle(List actualTuples, int index) {
         return Arrays.asList(actualTuples.get(index));
     }
-
-    protected CompleteTopologyParam prepareCompleteTopologyParam(MockedSources mockedSources) {
-        Config conf = new Config();
-        conf.setNumWorkers(NUM_WORKERS);
-        CompleteTopologyParam completeTopologyParam = new CompleteTopologyParam();
-        completeTopologyParam.setMockedSources(mockedSources);
-        completeTopologyParam.setStormConf(conf);
-        return completeTopologyParam;
-    }
-
-    protected static MkClusterParam prepareMKClusterParm() {
-        MkClusterParam mkClusterParam = new MkClusterParam();
-        int SUPERVISORS = 4;
-        mkClusterParam.setSupervisors(SUPERVISORS);
-        Config daemonConf = new Config();
-        daemonConf.put(Config.STORM_LOCAL_MODE_ZMQ, false);
-        mkClusterParam.setDaemonConf(daemonConf);
-        return mkClusterParam;
-    }
-
 }

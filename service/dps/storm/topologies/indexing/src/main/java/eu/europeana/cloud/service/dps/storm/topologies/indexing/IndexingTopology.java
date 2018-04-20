@@ -12,19 +12,15 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.*;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
-import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -110,17 +106,6 @@ public class IndexingTopology {
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, FILE_STREAM).shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
 
-        try {
-            //
-            InputStream input = Thread.currentThread()
-                    .getContextClassLoader().getResourceAsStream(INDEXING_PROPERTIES_FILE);
-            Properties indexingProperties = new Properties();
-            indexingProperties.load(input);
-            //
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         builder.setBolt(TopologyHelper.INDEXING_BOLT, new IndexingBolt(indexingProperties),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.INDEXING_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.INDEXING_BOLT_NUMBER_OF_TASKS))))
@@ -183,16 +168,7 @@ public class IndexingTopology {
                     Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
 
             LOGGER.info("Submitting indexing topology");
-            //
-//            LocalCluster cluster = new LocalCluster();
-//            cluster.submitTopology(topologyName, config, stormTopology);
-//            LOGGER.info("sleeping");
-//            Utils.sleep(2*60*1000);
-//            cluster.killTopology(topologyName);
-//            cluster.shutdown();
-            //
             StormSubmitter.submitTopology(topologyName, config, stormTopology);
         }
     }
 }
-
