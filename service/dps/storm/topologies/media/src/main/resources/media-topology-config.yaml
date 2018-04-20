@@ -14,9 +14,7 @@ topology.max.spout.pending: 128
 #topology.backpressure.enable: true
 
 # Media topology specific
-MEDIATOPOLOGY_FILE_SERVICE_URL: "https://test-cloud.europeana.eu/api"
-MEDIATOPOLOGY_FILE_SERVICE_USER: 
-MEDIATOPOLOGY_FILE_SERVICE_PASSWORD: 
+MCS_URL: "https://test-cloud.europeana.eu/api"
 
 MEDIATOPOLOGY_FILE_TRANSFER_PORT: 4401
 MEDIATOPOLOGY_FILE_TRANSFER_THRESHOLD_MB: 10

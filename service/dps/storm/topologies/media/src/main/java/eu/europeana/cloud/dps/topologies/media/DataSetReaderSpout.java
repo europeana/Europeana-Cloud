@@ -270,12 +270,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		
 		private class EdmDownloadThread extends Thread {
 			
+			DpsTask currentTask;
 			FileServiceClient fileClient;
 			EdmObject.Parser parser;
 			
 			public EdmDownloadThread(int id) {
 				super("edm-downloader-" + id);
-				fileClient = Util.getFileServiceClient(config);
 				parser = new EdmObject.Parser();
 			}
 			
@@ -284,6 +284,10 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				try {
 					while (true) {
 						EdmInfo edmInfo = edmQueue.take();
+						if (!edmInfo.taskInfo.task.equals(currentTask)) {
+							currentTask = edmInfo.taskInfo.task;
+							fileClient = Util.getFileServiceClient(config, currentTask);
+						}
 						edmInfo.edmObject = downloadEdm(edmInfo);
 						prepareEdmInfo(edmInfo);
 					}
@@ -336,8 +340,6 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		
 		public DatasetDownloader() {
 			super("dataset-downloader");
-			datasetClient = Util.getDataSetServiceClient(config);
-			recordClient = Util.getRecordServiceClient(config);
 			start();
 		}
 		
@@ -357,6 +359,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 					TaskInfo taskInfo = null;
 					try {
 						taskInfo = taskQueue.take();
+						datasetClient = Util.getDataSetServiceClient(config, taskInfo.task);
+						recordClient = Util.getRecordServiceClient(config, taskInfo.task);
 						downloadDataset(taskInfo);
 					} catch (DriverException | MCSException e) {
 						logger.warn("Problem downloading datasets from task " + taskInfo.task.getTaskName(), e);

@@ -5,6 +5,7 @@
 		]
 	},
 	"parameters": {
+		"AUTHORIZATION_HEADER": "Basic xxxxxxxxxxxxx=",
 		"REPRESENTATION_NAME": "edm",
 		"#REVISION_PROVIDER": "media_service_provider_test",
 		"#REVISION_NAME": "media_service_revision_test",

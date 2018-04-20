@@ -212,10 +212,6 @@ public class ProcessingBolt extends BaseRichBolt {
 			ResultsUploadThread(int id) {
 				super("result-uploader-" + id);
 				
-				fileClient = Util.getFileServiceClient(config);
-				recordClient = Util.getRecordServiceClient(config);
-				revisionServiceClient = Util.getRevisionServiceClient(config);
-				dataSetServiceClient = Util.getDataSetServiceClient(config);
 			}
 			
 			@Override
@@ -224,9 +220,17 @@ public class ProcessingBolt extends BaseRichBolt {
 					while (true) {
 						StatsTupleData statsData;
 						try {
+							DpsTask previousTask = currentItem == null ? null : currentItem.mediaData.getTask();
 							currentItem = queue.take();
-							statsData = currentItem.statsData;
+							DpsTask currentTask = currentItem.mediaData.getTask();
+							if (!currentTask.equals(previousTask)) {
+								fileClient = Util.getFileServiceClient(config, currentTask);
+								recordClient = Util.getRecordServiceClient(config, currentTask);
+								revisionServiceClient = Util.getRevisionServiceClient(config, currentTask);
+								dataSetServiceClient = Util.getDataSetServiceClient(config, currentTask);
+							}
 							
+							statsData = currentItem.statsData;
 							statsData.setUploadStartTime(System.currentTimeMillis());
 							saveThumbnails();
 							saveMetadata();
