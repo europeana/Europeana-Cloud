@@ -61,7 +61,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             }
             emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
         } catch (MCSException e) {
-            LOGGER.warn("Error while communicating with MCS", e.getMessage());
+            LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
         } catch (MalformedURLException e) {
             emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());

@@ -597,7 +597,7 @@ public class ResourceMigrator {
         connection.setRequestMethod("HEAD");
         if (isRedirect(connection.getResponseCode())) {
             String newUrl = connection.getHeaderField("Location"); // get redirect url from "location" header field
-            logger.warn("Original request URL: " + url.toString() + " redirected to: " + newUrl);
+            logger.warn("Original request URL: " + url + " redirected to: " + newUrl);
             return getContentType(new URL(newUrl));
         }
         return connection.getContentType();

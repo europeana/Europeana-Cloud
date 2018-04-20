@@ -80,10 +80,10 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                     emitErrorNotification(t.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
                 }
             } catch (MalformedURLException ex) {
-                LOGGER.error("ReadFileBolt error:" + ex.getMessage());
+                LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSetUrl, ex.getMessage(), t.getParameters().toString());
             } catch (MCSException ex) {
-                LOGGER.error("ReadFileBolt error:" + ex.getMessage());
+                LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSetUrl, ex.getMessage(), t.getParameters().toString());
             }
         } else {

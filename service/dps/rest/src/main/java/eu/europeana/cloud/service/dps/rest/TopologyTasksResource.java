@@ -187,10 +187,10 @@ public class TopologyTasksResource {
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                         asyncResponse.resume(response);
                     } catch (TaskSubmissionException e) {
-                        LOGGER.error("Task submission failed" + e.getMessage());
+                        LOGGER.error("Task submission failed: {}", e.getMessage());
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                     } catch (Exception e) {
-                        LOGGER.error("Task submission failed." + e.getMessage());
+                        LOGGER.error("Task submission failed: {}", e.getMessage());
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                         Response response = Response.serverError().build();
                         asyncResponse.resume(response);

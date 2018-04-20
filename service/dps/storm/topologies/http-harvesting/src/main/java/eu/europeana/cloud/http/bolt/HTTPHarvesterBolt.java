@@ -125,7 +125,7 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
             try {
                 FileUtils.deleteDirectory(new File(file.getParent()));
             } catch (IOException e) {
-                LOGGER.error("ERROR while removing the temp Folder", e.getMessage());
+                LOGGER.error("ERROR while removing the temp Folder: {}", e.getMessage());
             }
     }
 

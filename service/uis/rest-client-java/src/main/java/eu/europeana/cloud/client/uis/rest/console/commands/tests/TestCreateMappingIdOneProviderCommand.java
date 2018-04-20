@@ -36,7 +36,7 @@ public class TestCreateMappingIdOneProviderCommand extends Command {
 			List<String> str = new ArrayList<>();
 			Date now = new Date();
 			long start = now.getTime();
-			System.out.println("Test started at: " + now.toString());
+			System.out.println("Test started at: " + now);
 			
 			while(i<Long.parseLong(input[0])){
 				client.createMapping(cId.getId(),providerId,recordId+i);

@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 
  * Kafka listener receive message from broker and pass them to
  * {@link messageDispatcher#routeMessage}.
  */
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class KafkaMessageListener implements IKafkaMessageListener {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(KafkaMessageListener.class);
+            .getLogger(KafkaMessageListener.class);
 
     @Autowired
     private MessageDispatcher messageDispatcher;
@@ -30,17 +29,16 @@ public class KafkaMessageListener implements IKafkaMessageListener {
      */
     @Override
     public void onMessage(String topic, int partition, long offset, byte[] key,
-	    byte[] messageBytes) {
-	try {
-	    AbstractMessage message = (AbstractMessage) SerializationUtils
-		    .deserialize(decoder.fromBytes(messageBytes));
-	    messageDispatcher.routeMessage(message);
-	} catch (Exception e) {
-	    // when message is malformed
-	    LOGGER.error("Message rejected! Cause:" + e + "\n" + e.getMessage());
-	    if (messageBytes != null)
-		LOGGER.error("\nRejected message body:"
-			+ new String(messageBytes));
-	}
+                          byte[] messageBytes) {
+        try {
+            AbstractMessage message = (AbstractMessage) SerializationUtils
+                    .deserialize(decoder.fromBytes(messageBytes));
+            messageDispatcher.routeMessage(message);
+        } catch (Exception e) {
+            // when message is malformed
+            LOGGER.error("Message rejected! Cause: {} \n {}", e, e.getMessage());
+            if (messageBytes != null)
+                LOGGER.error("\nRejected message body: {}", new String(messageBytes));
+        }
     }
 }

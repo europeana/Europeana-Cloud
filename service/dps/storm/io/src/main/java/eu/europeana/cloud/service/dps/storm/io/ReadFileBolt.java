@@ -74,7 +74,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
                 LOGGER.warn("Can not retrieve file at {}", file);
                 emitErrorNotification(t.getTaskId(), file, "Can not retrieve file", "");
             } catch (DriverException | MCSException | IOException ex) {
-                LOGGER.error("ReadFileBolt error:" + ex.getMessage());
+                LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
             }
         }

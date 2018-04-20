@@ -33,7 +33,7 @@ public class TestReadWriteManyProvidersWithIdCommand extends Command {
 			Date now = new Date();
 			long start = now.getTime();
 			
-			System.out.println("Test started at: " + now.toString());
+			System.out.println("Test started at: " + now);
 			while(i<Long.parseLong(input[0])){
 				client.createProvider(providerId+threadNo+"_"+i, new DataProviderProperties());
 				CloudId cId = client.createCloudId(providerId+threadNo+"_"+i,recordId+i);

@@ -18,15 +18,15 @@ public class ValidationRevisionWriter extends RevisionWriterBolt {
     }
 
     protected void addRevisionAndEmit(StormTaskTuple stormTaskTuple, RevisionServiceClient revisionsClient) {
-        LOGGER.info(getClass().getSimpleName() + " executed");
+        LOGGER.info("{} executed",getClass().getSimpleName());
         try {
             addRevisionToSpecificResource(stormTaskTuple, revisionsClient, stormTaskTuple.getFileUrl());
             emitSuccessNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "The record is validated correctly", "", "");
         } catch (MalformedURLException e) {
-            LOGGER.error("URL is malformed: " + stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
+            LOGGER.error("URL is malformed: {}" + stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
         } catch (MCSException e) {
-            LOGGER.warn("Error while communicating with MCS", e.getMessage());
+            LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
         }
     }

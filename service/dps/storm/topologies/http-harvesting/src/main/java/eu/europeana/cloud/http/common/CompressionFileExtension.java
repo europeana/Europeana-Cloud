@@ -29,7 +29,7 @@ public enum CompressionFileExtension {
     }
 
     public static String[] getExtensionValues() {
-        List<String> values = new ArrayList<>();
+        List<String> values = new ArrayList<>(CompressionFileExtension.values().length);
         for (CompressionFileExtension extension : CompressionFileExtension.values())
             values.add(extension.getExtension());
         String[] arrayOfValues = new String[values.size()];

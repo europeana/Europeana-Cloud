@@ -32,7 +32,7 @@ public class TopologyManager {
 
     private void logResult() {
         for (String topologyName : topologies) {
-            logger.info("Topology registered -> topologyName=" + topologyName);
+            logger.info("Topology registered -> topologyName= {}", topologyName);
         }
     }
 
