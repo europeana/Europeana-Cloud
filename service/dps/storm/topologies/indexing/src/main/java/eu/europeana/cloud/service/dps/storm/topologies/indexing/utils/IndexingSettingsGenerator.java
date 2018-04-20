@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
-import eu.europeana.indexing.IndexerConfigurationException;
+import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
 
 import java.net.InetSocketAddress;

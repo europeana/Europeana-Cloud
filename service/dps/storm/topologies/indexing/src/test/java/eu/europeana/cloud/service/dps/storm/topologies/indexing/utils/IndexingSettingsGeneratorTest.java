@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
 import com.mongodb.ServerAddress;
-import eu.europeana.indexing.IndexerConfigurationException;
+import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
 import org.junit.Test;
 
