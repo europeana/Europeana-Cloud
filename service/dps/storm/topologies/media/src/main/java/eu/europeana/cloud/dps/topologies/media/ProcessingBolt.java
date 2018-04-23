@@ -8,14 +8,13 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -258,9 +257,9 @@ public class ProcessingBolt extends BaseRichBolt {
 				long start = System.currentTimeMillis();
 				DpsTask task = currentItem.mediaData.getTask();
 				
-				String representationName = task.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-				String filename = task.getParameter(PluginParameterKeys.FILE_NAME);
-				String mediaType = task.getParameter(PluginParameterKeys.MIME_TYPE);
+				String representationName = getParamOrDefault(task, PluginParameterKeys.NEW_REPRESENTATION_NAME);
+				String filename = getParamOrDefault(task, PluginParameterKeys.OUTPUT_FILE_NAME);
+				String mediaType = getParamOrDefault(task, PluginParameterKeys.OUTPUT_MIME_TYPE);
 				
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(currentItem.edmContents)) {
 					if (currentItem.edmContents.length == 0)
@@ -339,9 +338,10 @@ public class ProcessingBolt extends BaseRichBolt {
 			
 			public final void addRepresentationToDataSets(URI rep) throws MalformedURLException,
 					MCSException {
-				List<String> datasets = readDataSetsList();
-				if (datasets != null) {
-					for (String datasetLocation : datasets) {
+				String datasets =
+						getParamOrDefault(currentItem.mediaData.getTask(), PluginParameterKeys.OUTPUT_DATA_SETS);
+				if (!StringUtils.isBlank(datasets)) {
+					for (String datasetLocation : datasets.split(",")) {
 						Representation resultRepresentation = parseResultUrl(rep.toString());
 						DataSet dataset = parseDataSetURl(datasetLocation);
 						if (dataset != null) {
@@ -358,6 +358,11 @@ public class ProcessingBolt extends BaseRichBolt {
 				} else {
 					logger.info("Output data sets list is empty");
 				}
+			}
+			
+			private String getParamOrDefault(DpsTask task, String paramKey) {
+				String param = task.getParameter(paramKey);
+				return param != null ? param : PluginParameterKeys.PLUGIN_PARAMETERS.get(paramKey);
 			}
 			
 			private Representation parseResultUrl(String url) throws MalformedURLException {
@@ -382,12 +387,6 @@ public class ProcessingBolt extends BaseRichBolt {
 				}
 				return dataSet;
 			}
-			
-			private List<String> readDataSetsList() {
-				String parameters = currentItem.mediaData.getTask().getParameter(PluginParameterKeys.OUTPUT_DATA_SETS);
-				return parameters == null ? Arrays.asList() : Arrays.asList(parameters.split(","));
-			}
-			
 		}
 	}
 }
