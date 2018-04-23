@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.commons.lang3.StringUtils;
@@ -257,7 +258,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				DpsTask task = currentItem.mediaData.getTask();
 				
 				String representationName = getParamOrDefault(task, PluginParameterKeys.NEW_REPRESENTATION_NAME);
-				String filename = getParamOrDefault(task, PluginParameterKeys.OUTPUT_FILE_NAME);
+				String fileName = getParamOrDefault(task, PluginParameterKeys.OUTPUT_FILE_NAME);
 				String mediaType = getParamOrDefault(task, PluginParameterKeys.OUTPUT_MIME_TYPE);
 				
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(currentItem.edmContents)) {
@@ -267,19 +268,20 @@ public class ProcessingBolt extends BaseRichBolt {
 					Representation r = currentItem.mediaData.getEdmRepresentation();
 					if (persistResult) {
 						URI rep = recordClient.createRepresentation(r.getCloudId(), representationName,
-								r.getDataProvider(), bais, filename, mediaType);
+								r.getDataProvider(), bais, fileName, mediaType);
 						addRevisionToSpecificResource(rep);
 						addRepresentationToDataSets(rep);
 						logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start,
 								rep);
 					} else {
-						URI rep =
-								recordClient.createRepresentation(r.getCloudId(), representationName,
-										r.getDataProvider());
+						URI rep = recordClient.createRepresentation(r.getCloudId(), representationName,
+								r.getDataProvider());
 						addRevisionToSpecificResource(rep);
 						addRepresentationToDataSets(rep);
 						String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
-						fileClient.uploadFile(r.getCloudId(), representationName, version, filename, bais,
+						if (StringUtils.isBlank(fileName))
+							fileName = UUID.randomUUID().toString();
+						fileClient.uploadFile(r.getCloudId(), representationName, version, fileName, bais,
 								mediaType);
 						recordClient.deleteRepresentation(r.getCloudId(), representationName, version);
 						logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
