@@ -1,17 +1,15 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +49,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaservice.EdmObject;
 import eu.europeana.metis.mediaservice.MediaException;
 import eu.europeana.metis.mediaservice.MediaProcessor;
+import eu.europeana.metis.mediaservice.MediaProcessor.Thumbnail;
 
 public class ProcessingBolt extends BaseRichBolt {
 	
@@ -133,15 +132,15 @@ public class ProcessingBolt extends BaseRichBolt {
 		resultsUploader.stop();
 	}
 	
-	private void cleanupRecord(MediaTupleData mediaData, Map<String, String> thumbnails) {
+	private void cleanupRecord(MediaTupleData mediaData, List<Thumbnail> thumbnails) {
 		for (FileInfo fileInfo : mediaData.getFileInfos()) {
 			TempFileSync.delete(fileInfo);
 		}
-		for (String thumb : thumbnails.keySet()) {
+		for (Thumbnail thumb : thumbnails) {
 			try {
-				Files.delete(Paths.get(thumb));
+				Files.delete(thumb.content.toPath());
 			} catch (IOException e) {
-				logger.warn("Could not delete thumbnail from temp: " + thumb, e);
+				logger.warn("Could not delete thumbnail from temp: " + thumb.content, e);
 			}
 		}
 	}
@@ -152,7 +151,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			Tuple tuple;
 			StatsTupleData statsData;
 			MediaTupleData mediaData;
-			Map<String, String> thumbnails;
+			List<Thumbnail> thumbnails;
 			byte[] edmContents;
 			Map<String, String> errorsByUrl;
 		}
@@ -297,17 +296,14 @@ public class ProcessingBolt extends BaseRichBolt {
 			void saveThumbnails() {
 				long start = System.currentTimeMillis();
 				boolean uploaded = false;
-				for (Entry<String, String> entry : currentItem.thumbnails.entrySet()) {
-					File thumbnail = new File(entry.getKey());
-					String url = entry.getValue();
+				for (Thumbnail t : currentItem.thumbnails) {
 					try {
-						amazonClient.putObject(storageBucket, thumbnail.getName(), thumbnail);
-						logger.debug("thumbnail saved: {} b, md5({}) = {}", thumbnail.length(), url,
-								thumbnail.getName());
+						amazonClient.putObject(storageBucket, t.targetName, t.content);
+						logger.debug("thumbnail saved: {} b, md5({}) = {}", t.content.length(), t.url, t.targetName);
 						uploaded = true;
 					} catch (AmazonClientException e) {
-						logger.error("Could not save thumbnails for " + url, e);
-						currentItem.errorsByUrl.putIfAbsent(url, "THUMBNAIL SAVING");
+						logger.error("Could not save thumbnails for " + t.url, e);
+						currentItem.errorsByUrl.putIfAbsent(t.url, "THUMBNAIL SAVING");
 					}
 				}
 				if (!uploaded) {
