@@ -32,6 +32,9 @@ public class DpsTaskUtil {
     private static final String REPOSITORY_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
     public static final String OUTPUT_DATASET = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset3";
 
+    private static final String NORMALIZATION_DATASET = "http://localhost:8080/mcs/data-providers/provider/data-sets/NormalizationDataset";
+    private static final String OUTPUT_NORMALIZATION_DATASET = "http://localhost:8080/mcs/data-providers/provider/data-sets/OutputNormalizationDataset";
+
     private static final String REPOSITORY_URL_FOR_HTTP = "http://ftp.eanadev.org/schema_zips/europeana_schemas.zip";
 
 
@@ -92,6 +95,18 @@ public class DpsTaskUtil {
         task.setParameters(parameters);
         return task;
 
+    }
+
+    public static DpsTask generateDpsTaskForNormalization() {
+        return generateDpsTaskForNormalization(NORMALIZATION_DATASET, DATASETS_COUNT, OUTPUT_NORMALIZATION_DATASET);
+    }
+
+    public static DpsTask generateDpsTaskForNormalization(final String dataSetURL, final int recordCount, String outputNormalizationDataset) {
+
+        DpsTask task = createDpsTask(dataSetURL, recordCount);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, outputNormalizationDataset);
+
+        return task;
     }
 
     private static DpsTask buildDPSHarvestingTask(String repositoryURL) {
