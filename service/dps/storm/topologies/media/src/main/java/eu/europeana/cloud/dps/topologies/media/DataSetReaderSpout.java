@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.storm.kafka.KafkaSpout;
@@ -39,6 +40,7 @@ import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -53,6 +55,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaservice.EdmObject;
+import eu.europeana.metis.mediaservice.MediaException;
 import eu.europeana.metis.mediaservice.UrlType;
 
 /**
@@ -89,6 +92,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields(MediaTupleData.FIELD_NAME, SOURCE_FIELD));
 		declarer.declareStream(StatsInitTupleData.STREAM_ID, new Fields(StatsInitTupleData.FIELD_NAME));
+		declarer.declareStream(StatsTupleData.STREAM_ID, new Fields(StatsTupleData.FIELD_NAME));
 	}
 	
 	@Override
@@ -130,13 +134,6 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			
 			outputCollector.emit(new Values(tupleData, source.host), toStormMsgId(edmInfo));
 			
-			taskInfo.running.add(edmInfo);
-			taskInfo.emitCount++;
-			if (taskInfo.emitCount == taskInfo.emitsTotal) {
-				outputCollector.emit(StatsInitTupleData.STREAM_ID,
-						new Values(new StatsInitTupleData(taskId, taskInfo.startTime, taskInfo.emitsTotal)));
-			}
-			
 			source.running.add(edmInfo);
 		} else {
 			// nothing to do
@@ -156,7 +153,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			return;
 		}
 		
-		removeEdm(edmInfo);
+		edmProcessed(edmInfo);
 	}
 	
 	@Override
@@ -173,7 +170,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			edmInfo.sourceInfo.addToQueue(edmInfo);
 		} else {
 			logger.info("FAIL received for {}, no more retries", msgId);
-			removeEdm(edmInfo);
+			edmProcessed(edmInfo);
 		}
 	}
 	
@@ -181,17 +178,20 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		return Integer.toString(System.identityHashCode(edmInfo));
 	}
 	
-	private void removeEdm(EdmInfo edmInfo) {
+	private void edmProcessed(EdmInfo edmInfo) {
 		SourceInfo source = edmInfo.sourceInfo;
 		source.running.remove(edmInfo);
 		if (source.running.isEmpty() && source.isEmpty()) {
 			logger.info("Finished all EDMs from source {}", source.host);
 			sourcesByHost.remove(source.host);
 		}
-		
+		edmFinished(edmInfo);
+	}
+	
+	private void edmFinished(EdmInfo edmInfo) {
 		TaskInfo task = edmInfo.taskInfo;
-		task.running.remove(edmInfo);
-		if (task.running.isEmpty() && task.emitCount == task.emitsTotal) {
+		int completed = task.edmsComplete.incrementAndGet();
+		if (completed == task.edmsInDataset) {
 			logger.info("Task {} finished", task.task.getTaskName());
 			baseSpout.ack(task.baseMsgId);
 		}
@@ -202,9 +202,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		Map<String, Integer> connectionLimitPerSource;
 		Object baseMsgId;
 		List<UrlParser> datasetUrls = new ArrayList<>();
-		ConcurrentHashSet<EdmInfo> running = new ConcurrentHashSet<>();
-		int emitCount = 0;
-		int emitsTotal;
+		volatile int edmsInDataset = -1;
+		AtomicInteger edmsComplete = new AtomicInteger(0);
 		long startTime;
 	}
 	
@@ -284,8 +283,9 @@ public class DataSetReaderSpout extends BaseRichSpout {
 							currentTask = edmInfo.taskInfo.task;
 							fileClient = Util.getFileServiceClient(config, currentTask);
 						}
-						edmInfo.edmObject = downloadEdm(edmInfo);
-						prepareEdmInfo(edmInfo);
+						downloadEdm(edmInfo);
+						if (edmInfo.edmObject != null)
+							queueEdmInfo(edmInfo);
 					}
 				} catch (InterruptedException e) {
 					logger.trace("edm download thread finishing", e);
@@ -295,23 +295,29 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				}
 			}
 			
-			EdmObject downloadEdm(EdmInfo edmInfo) throws InterruptedException {
+			void downloadEdm(EdmInfo edmInfo) throws InterruptedException {
 				Representation rep = edmInfo.representation;
 				try {
 					File file = rep.getFiles().get(0);
 					try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(),
 							rep.getVersion(), file.getFileName())) {
-						return parser.parseXml(is);
+						edmInfo.edmObject = parser.parseXml(is);
+					} catch (MediaException e) {
+						logger.info("EDM loading failed ({}/{}) for {}", e.reportError, e.getMessage(), rep.getFiles());
+						StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
+						stats.addError(e.reportError);
+						outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
+						
+						edmFinished(edmInfo);
 					}
 				} catch (Exception e) {
 					logger.error("Downloading edm failed for " + rep, e);
 					edmQueue.put(edmInfo); // retry later
 					Thread.sleep(1000);
-					return null;
 				}
 			}
 			
-			void prepareEdmInfo(EdmInfo edmInfo) {
+			void queueEdmInfo(EdmInfo edmInfo) {
 				Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
 				if (urls.isEmpty()) {
 					logger.error("content url missing in edm file representation: " + edmInfo.representation);
@@ -376,22 +382,24 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		
 		void downloadDataset(TaskInfo taskInfo)
 				throws InterruptedException, MCSException {
+			int edmCount = 0;
 			for (UrlParser datasetUrl : taskInfo.datasetUrls) {
 				DatasetDownloaderConfig dConfig = new DatasetDownloaderConfig(taskInfo, datasetUrl);
 				
 				if (dConfig.revisionName != null && dConfig.revisionProvider != null) {
 					if (dConfig.revisionTimestamp != null) {
-						prepareExactRevisionsDownload(dConfig);
+						edmCount += prepareExactRevisionsDownload(dConfig);
 					} else {
-						prepareLatestRevisionsDownload(dConfig);
+						edmCount += prepareLatestRevisionsDownload(dConfig);
 					}
 				} else {
-					prepareAllRepresentationsDownload(dConfig);
+					edmCount += prepareAllRepresentationsDownload(dConfig);
 				}
 			}
+			datasetDownloaded(taskInfo, edmCount);
 		}
 		
-		private void prepareExactRevisionsDownload(DatasetDownloaderConfig config)
+		private int prepareExactRevisionsDownload(DatasetDownloaderConfig config)
 				throws MCSException, InterruptedException {
 			int edmCount = 0;
 			TaskInfo taskInfo = config.taskInfo;
@@ -413,12 +421,11 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				
 				prepareEdmInfo(rep, taskInfo);
 				edmCount++;
-				
 			}
-			sumarizeRepresentationsDownload(taskInfo, edmCount);
+			return edmCount;
 		}
 		
-		private void prepareLatestRevisionsDownload(DatasetDownloaderConfig config)
+		private int prepareLatestRevisionsDownload(DatasetDownloaderConfig config)
 				throws MCSException, InterruptedException {
 			int edmCount = 0;
 			TaskInfo taskInfo = config.taskInfo;
@@ -443,11 +450,10 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				prepareEdmInfo(rep, taskInfo);
 				edmCount++;
 			}
-			sumarizeRepresentationsDownload(taskInfo, edmCount);
-			
+			return edmCount;
 		}
 		
-		private void prepareAllRepresentationsDownload(DatasetDownloaderConfig config) throws InterruptedException {
+		private int prepareAllRepresentationsDownload(DatasetDownloaderConfig config) throws InterruptedException {
 			int edmCount = 0;
 			TaskInfo taskInfo = config.taskInfo;
 			RepresentationIterator iterator = datasetClient.getRepresentationIterator(
@@ -457,8 +463,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				prepareEdmInfo(rep, taskInfo);
 				edmCount++;
 			}
-			
-			sumarizeRepresentationsDownload(taskInfo, edmCount);
+			return edmCount;
 		}
 		
 		private void prepareEdmInfo(Representation rep, TaskInfo taskInfo) throws InterruptedException {
@@ -469,10 +474,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			edmDownloader.queue(edmInfo);
 		}
 		
-		private void sumarizeRepresentationsDownload(TaskInfo taskInfo, int edmCount) {
-			taskInfo.emitsTotal = edmCount;
+		private void datasetDownloaded(TaskInfo taskInfo, int edmCount) {
 			logger.debug("Downloaded {} representations from datasets {}", edmCount, taskInfo.datasetUrls.stream()
 					.map(du -> du.getPart(UrlPart.DATA_SETS)).collect(Collectors.toList()));
+			outputCollector.emit(StatsInitTupleData.STREAM_ID, new Values(
+					new StatsInitTupleData(taskInfo.task.getTaskId(), taskInfo.startTime, edmCount)));
+			taskInfo.edmsInDataset = edmCount;
 		}
 		
 		private class DatasetDownloaderConfig {

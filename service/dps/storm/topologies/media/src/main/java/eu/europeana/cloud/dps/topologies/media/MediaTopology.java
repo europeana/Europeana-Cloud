@@ -52,6 +52,7 @@ public class MediaTopology {
 		
 		builder.setBolt(statsBolt, new StatsBolt(), 1)
 				.globalGrouping(source, StatsInitTupleData.STREAM_ID)
+				.globalGrouping(source, StatsTupleData.STREAM_ID)
 				.globalGrouping(downloadBolt, StatsTupleData.STREAM_ID)
 				.globalGrouping(processingBolt, StatsTupleData.STREAM_ID);
 		
