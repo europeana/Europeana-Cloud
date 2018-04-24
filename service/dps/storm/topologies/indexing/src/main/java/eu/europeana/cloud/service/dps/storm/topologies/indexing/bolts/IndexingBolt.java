@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.utils.IndexingSettingsGenerator;
@@ -64,9 +65,9 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private IndexerFactory getIndexerFor(String environment) {
-        if ("PREVIEW".toString().equals(environment))
+        if (TargetIndexingDatabase.PREVIEW.toString().equals(environment))
             return indexerFactoryForPreviewEnv;
-        else if ("PUBLISH".toString().equals(environment))
+        else if (TargetIndexingDatabase.PUBLISH.toString().equals(environment))
             return indexerFactoryForPublishEnv;
         else
             throw new RuntimeException("Specified environment is not recognized");
