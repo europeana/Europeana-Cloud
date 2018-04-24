@@ -33,9 +33,16 @@ public class DownloadBolt extends HttpClientBolt {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DownloadBolt.class);
 	
+	/**
+	 * Tuple stream dedicated for records with large downloaded resources. Goes to
+	 * bolts on the same machine to save network traffic.
+	 * @see #localStreamThreshold
+	 */
 	public static final String STREAM_LOCAL = "download-local";
 	
 	private static final File ERROR_FLAG = new File("a");
+	
+	private transient RequestConfig requestConfig;
 	
 	private InetAddress localAddress;
 	
@@ -54,16 +61,17 @@ public class DownloadBolt extends HttpClientBolt {
 		localAddress = TempFileSync.startServer(stormConf);
 		localStreamThreshold =
 				(long) stormConf.getOrDefault("MEDIATOPOLOGY_FILE_TRANSFER_THRESHOLD_MB", 10) * 1024 * 1024;
+		requestConfig = RequestConfig.custom()
+				.setMaxRedirects(FOLLOW_REDIRECTS)
+				.setConnectTimeout(10000)
+				.setSocketTimeout(20000)
+				.build();
 	}
 	
 	@Override
 	protected HttpAsyncRequestProducer createRequestProducer(FileInfo fileInfo) {
 		HttpGet request = new HttpGet(fileInfo.getUrl());
-		request.setConfig(RequestConfig.custom()
-				.setMaxRedirects(FOLLOW_REDIRECTS)
-				.setConnectTimeout(10000)
-				.setSocketTimeout(20000)
-				.build());
+		request.setConfig(requestConfig);
 		return HttpAsyncMethods.create(request);
 	}
 	
