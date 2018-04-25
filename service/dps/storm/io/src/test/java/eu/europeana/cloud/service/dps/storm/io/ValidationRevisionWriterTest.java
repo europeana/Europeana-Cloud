@@ -36,7 +36,7 @@ public class ValidationRevisionWriterTest {
     private RevisionServiceClient revisionServiceClient;
 
     @InjectMocks
-    private ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter("http://sample.ecloud.com/");
+    private ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter("http://sample.ecloud.com/", "sampleMessage");
 
 
     @Test

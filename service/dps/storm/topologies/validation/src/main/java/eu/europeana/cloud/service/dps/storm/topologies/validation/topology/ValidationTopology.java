@@ -43,6 +43,7 @@ public class ValidationTopology {
     private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidationTopology.class);
+    public static final String SUCCESS_MESSAGE = "The record is validated correctly";
 
     public ValidationTopology(String defaultPropertyFile, String providedPropertyFile, String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
@@ -68,7 +69,7 @@ public class ValidationTopology {
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
 
-        ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress);
+        ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);
 
 
         builder.setSpout(SPOUT, kafkaSpout,
@@ -126,7 +127,7 @@ public class ValidationTopology {
         builder.setBolt(REVISION_WRITER_BOLT, validationRevisionWriter,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (getAnInt(Revision_WRITER_BOLT_NUMBER_OF_TASKS)))
+                        (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(STATISTICS_BOLT);
 
 

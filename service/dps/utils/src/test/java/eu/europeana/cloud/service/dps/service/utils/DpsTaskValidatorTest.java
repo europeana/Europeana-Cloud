@@ -3,8 +3,10 @@ package eu.europeana.cloud.service.dps.service.utils;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;
@@ -52,6 +54,7 @@ public class DpsTaskValidatorTest {
         dpsTask.setTaskName(TASK_NAME);
         dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
         dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
+        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
         dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
         dpsTask.setOutputRevision(correctRevision);
         //
@@ -176,6 +179,11 @@ public class DpsTaskValidatorTest {
     @Test
     public void validatorShouldValidateThatThereIsSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
         new DpsTaskValidator().withEmptyParameter(EMPTY_PARAMETER_NAME).validate(dpsTask);
+    }
+
+    @Test
+    public void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, Arrays.asList(TargetIndexingDatabase.values())).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)

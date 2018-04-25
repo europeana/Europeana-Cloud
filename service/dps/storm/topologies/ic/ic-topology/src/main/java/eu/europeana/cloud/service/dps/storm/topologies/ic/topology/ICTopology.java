@@ -123,7 +123,7 @@ public class ICTopology {
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (getAnInt(Revision_WRITER_BOLT_NUMBER_OF_TASKS)))
+                        (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(WRITE_RECORD_BOLT);
 
 
