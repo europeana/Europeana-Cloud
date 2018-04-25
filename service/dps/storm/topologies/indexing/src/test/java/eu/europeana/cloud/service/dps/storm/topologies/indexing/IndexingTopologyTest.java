@@ -19,7 +19,6 @@ import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
-import org.apache.storm.Config;
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -48,14 +47,13 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IndexingBolt.class, NotificationBolt.class, ValidationRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IndexingBolt.class, NotificationBolt.class, ValidationRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class IndexingTopologyTest extends TopologyTestHelper {
 
@@ -188,7 +186,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         assertTopology(input);
     }
 
-    private final void prepareForDataset() throws URISyntaxException, IOException, MCSException {
+    private void prepareForDataset() throws URISyntaxException, IOException, MCSException {
         representationIterator = Mockito.mock(RepresentationIterator.class);
         List<File> files = new ArrayList<>();
         List<Revision> revisions = new ArrayList<>();
@@ -209,7 +207,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);
     }
 
-    private final void prepareMockFileUrls() throws URISyntaxException {
+    private void prepareMockFileUrls() throws URISyntaxException {
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE2)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
     }

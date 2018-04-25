@@ -1,7 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexerFactory;
@@ -48,7 +49,7 @@ public class IndexingBoltTest {
     @Test
     public void shouldIndexFileForPreviewEnv() throws Exception {
         //given
-        Tuple tuple = mockStormTupleFor("PREVIEW");
+        StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
         mockIndexerFactoryFor(null);
         //when
         indexingBolt.execute(tuple);
@@ -62,7 +63,7 @@ public class IndexingBoltTest {
     @Test
     public void shouldIndexFilePublishEnv() throws Exception {
         //given
-        Tuple tuple = mockStormTupleFor("PUBLISH");
+        StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
         mockIndexerFactoryFor(null);
         //when
         indexingBolt.execute(tuple);
@@ -77,7 +78,7 @@ public class IndexingBoltTest {
     @Test
     public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException, IndexerConfigurationException {
         //given
-        Tuple tuple = mockStormTupleFor("PREVIEW");
+        StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
         mockIndexerFactoryFor(IndexerConfigurationException.class);
         //when
         indexingBolt.execute(tuple);
@@ -93,7 +94,7 @@ public class IndexingBoltTest {
     @Test
     public void shouldEmitErrorNotificationForIOException() throws IndexerConfigurationException, IndexingException {
         //given
-        Tuple tuple = mockStormTupleFor("PUBLISH");
+        StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
         mockIndexerFactoryFor(IOException.class);
         //when
         indexingBolt.execute(tuple);
@@ -109,7 +110,7 @@ public class IndexingBoltTest {
     @Test
     public void shouldEmitErrorNotificationForIndexing() throws IndexerConfigurationException, IndexingException {
         //given
-        Tuple tuple = mockStormTupleFor("PUBLISH");
+        StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
         mockIndexerFactoryFor(IndexingException.class);
         //when
         indexingBolt.execute(tuple);
@@ -122,34 +123,27 @@ public class IndexingBoltTest {
         Assert.assertEquals("Error while indexing", val.get("additionalInfo"));
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void shouldThrowExceptionForUnknownEnv() throws IndexerConfigurationException, IndexingException {
         //given
-        Tuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
+        StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
         mockIndexerFactoryFor(IndexingException.class);
         //when
         indexingBolt.execute(tuple);
-        //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), Mockito.any(Tuple.class), captor.capture());
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
-
-        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertTrue(val.get("additionalInfo").toString().contains("RuntimeException"));
     }
 
-    private Tuple mockStormTupleFor(final String targetDatabase) {
-        Tuple tuple = Mockito.mock(Tuple.class);
-        when(tuple.getBinaryByField(StormTupleKeys.FILE_CONTENT_TUPLE_KEY)).thenReturn(new byte[]{'a', 'b', 'c'});
-        when(tuple.getStringByField(StormTupleKeys.INPUT_FILES_TUPLE_KEY)).thenReturn("sampleResourceUrl");
-        when(tuple.getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY)).thenReturn(
+    private StormTaskTuple mockStormTupleFor(final String targetDatabase) {
+        //
+        return new StormTaskTuple(
+                1,
+                "taskName",
+                "sampleResourceUrl",
+                new byte[]{'a', 'b', 'c'},
                 new HashMap<String, String>() {
                     {
                         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
                     }
-                }
-        );
-        return tuple;
+                }, new Revision());
     }
 
     private void mockIndexerFactoryFor(Class clazz) throws IndexerConfigurationException, IndexingException {
