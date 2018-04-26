@@ -157,9 +157,9 @@ public class DownloadBolt extends HttpClientBolt {
 		
 		private void statusUpdate(String status) {
 			synchronized (stats) {
-				stats.addError(status);
+				stats.addError(fileInfo.getUrl(), status);
 				if (stats.getErrors().size() == stats.getResourceCount()) {
-					boolean someSuccess = stats.getErrors().removeIf(OK::equals);
+					boolean someSuccess = stats.getErrors().removeIf(e -> e.message.equals(OK));
 					if (someSuccess) {
 						MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
 						data.getFileInfos().removeIf(f -> f.getContent() == ERROR_FLAG);

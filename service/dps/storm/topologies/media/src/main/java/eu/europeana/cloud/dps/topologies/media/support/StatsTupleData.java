@@ -2,6 +2,8 @@ package eu.europeana.cloud.dps.topologies.media.support;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import com.esotericsoftware.kryo.DefaultSerializer;
@@ -10,12 +12,24 @@ import com.esotericsoftware.kryo.serializers.JavaSerializer;
 @DefaultSerializer(JavaSerializer.class)
 public class StatsTupleData implements Serializable {
 	
+	public static class Error implements Serializable {
+		public final String resourceUrl;
+		public final String message;
+		public final Date date;
+		
+		public Error(String resourceUrl, String message, Date date) {
+			this.resourceUrl = resourceUrl;
+			this.message = message;
+			this.date = date;
+		}
+	}
+	
 	public static final String FIELD_NAME = "mediaTopology.statsData";
 	public static final String STREAM_ID = "stats";
 	
 	private final long taskId;
 	private final int resourceCount;
-	private ArrayList<String> errors = new ArrayList<>();
+	private HashMap<String, Error> errors = new HashMap<>();
 	
 	private long downloadStartTime;
 	private long downloadEndTime;
@@ -64,12 +78,16 @@ public class StatsTupleData implements Serializable {
 		return downloadedBytes;
 	}
 	
-	public void addError(String error) {
-		errors.add(error);
+	public void addError(String resourceUrl, String message) {
+		errors.put(resourceUrl, new Error(resourceUrl, message, new Date()));
 	}
 	
-	public List<String> getErrors() {
-		return errors;
+	public void addErrorIfAbsent(String resourceUrl, String message) {
+		errors.putIfAbsent(resourceUrl, new Error(resourceUrl, message, new Date()));
+	}
+	
+	public List<Error> getErrors() {
+		return new ArrayList<>(errors.values());
 	}
 	
 	public void setProcessingStartTime(long processingStartTime) {
@@ -91,7 +109,7 @@ public class StatsTupleData implements Serializable {
 	public void setUploadStartTime(long uploadStartTime) {
 		this.uploadStartTime = uploadStartTime;
 	}
-
+	
 	public long getUploadStartTime() {
 		return uploadStartTime;
 	}
@@ -99,7 +117,7 @@ public class StatsTupleData implements Serializable {
 	public void setUploadEndTime(long uploadEndTime) {
 		this.uploadEndTime = uploadEndTime;
 	}
-
+	
 	public long getUploadEndTime() {
 		return uploadEndTime;
 	}

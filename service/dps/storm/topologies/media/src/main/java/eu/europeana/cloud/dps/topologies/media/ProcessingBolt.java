@@ -7,7 +7,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -97,7 +96,6 @@ public class ProcessingBolt extends BaseRichBolt {
 		StatsTupleData statsData = (StatsTupleData) input.getValueByField(StatsTupleData.FIELD_NAME);
 		
 		statsData.setProcessingStartTime(System.currentTimeMillis());
-		HashMap<String, String> errorsByUrl = new HashMap<>();
 		EdmObject edm = mediaData.getEdm();
 		mediaProcessor.setEdm(edm);
 		for (FileInfo file : mediaData.getFileInfos()) {
@@ -108,21 +106,22 @@ public class ProcessingBolt extends BaseRichBolt {
 			} catch (MediaException e) {
 				logger.info("processing failed ({}/{}) for {}", e.reportError, e.getMessage(), file.getUrl());
 				logger.trace("failure details:", e);
-				errorsByUrl.put(file.getUrl(), e.reportError);
 				if (e.retry) {
 					cleanupRecord(mediaData, mediaProcessor.getThumbnails());
 					outputCollector.fail(input);
-					return;
-				}
-				if (e.reportError == null) {
-					logger.warn("Exception without proper report error:", e);
-					errorsByUrl.put(file.getUrl(), "UNKNOWN");
+				} else {
+					String message = e.reportError;
+					if (message == null) {
+						logger.warn("Exception without proper report error:", e);
+						message = "UNKNOWN";
+					}
+					statsData.addError(file.getUrl(), message);
 				}
 			} finally {
 				logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
 			}
 		}
-		resultsUploader.queue(input, mediaData, statsData, errorsByUrl);
+		resultsUploader.queue(input, mediaData, statsData);
 		statsData.setProcessingEndTime(System.currentTimeMillis());
 		
 	}
@@ -154,7 +153,6 @@ public class ProcessingBolt extends BaseRichBolt {
 			MediaTupleData mediaData;
 			List<Thumbnail> thumbnails;
 			byte[] edmContents;
-			Map<String, String> errorsByUrl;
 		}
 		
 		EdmObject.Writer edmWriter = new EdmObject.Writer();
@@ -175,13 +173,11 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 		}
 		
-		public void queue(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData,
-				Map<String, String> errorsByUrl) {
+		public void queue(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData) {
 			Item item = new Item();
 			item.tuple = tuple;
 			item.mediaData = mediaData;
 			item.statsData = statsData;
-			item.errorsByUrl = errorsByUrl;
 			item.thumbnails = mediaProcessor.getThumbnails();
 			item.edmContents = edmWriter.toXmlBytes(mediaProcessor.getEdm());
 			try {
@@ -237,8 +233,7 @@ public class ProcessingBolt extends BaseRichBolt {
 						} finally {
 							cleanupRecord(currentItem.mediaData, currentItem.thumbnails);
 						}
-						for (String error : currentItem.errorsByUrl.values())
-							statsData.addError(error);
+						
 						outputCollector.emit(StatsTupleData.STREAM_ID, currentItem.tuple, new Values(statsData));
 						outputCollector.ack(currentItem.tuple);
 					}
@@ -290,7 +285,7 @@ public class ProcessingBolt extends BaseRichBolt {
 					logger.error("Could not store tech metadata representation in "
 							+ currentItem.mediaData.getEdmRepresentation().getCloudId(), e);
 					for (FileInfo file : currentItem.mediaData.getFileInfos()) {
-						currentItem.errorsByUrl.putIfAbsent(file.getUrl(), "TECH METADATA SAVING");
+						currentItem.statsData.addErrorIfAbsent(file.getUrl(), "TECH METADATA SAVING");
 					}
 				}
 			}
@@ -305,7 +300,7 @@ public class ProcessingBolt extends BaseRichBolt {
 						uploaded = true;
 					} catch (AmazonClientException e) {
 						logger.error("Could not save thumbnails for " + t.url, e);
-						currentItem.errorsByUrl.putIfAbsent(t.url, "THUMBNAIL SAVING");
+						currentItem.statsData.addErrorIfAbsent(t.url, "THUMBNAIL SAVING");
 					}
 				}
 				if (!uploaded) {

@@ -299,13 +299,14 @@ public class DataSetReaderSpout extends BaseRichSpout {
 				Representation rep = edmInfo.representation;
 				try {
 					File file = rep.getFiles().get(0);
-					try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(),
-							rep.getVersion(), file.getFileName())) {
+					String fileUri = fileClient.getFileUri(rep.getCloudId(), rep.getRepresentationName(),
+							rep.getVersion(), file.getFileName()).toString();
+					try (InputStream is = fileClient.getFile(fileUri)) {
 						edmInfo.edmObject = parser.parseXml(is);
 					} catch (MediaException e) {
 						logger.info("EDM loading failed ({}/{}) for {}", e.reportError, e.getMessage(), rep.getFiles());
 						StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
-						stats.addError(e.reportError);
+						stats.addError(fileUri, e.reportError);
 						outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
 						
 						edmFinished(edmInfo);

@@ -3,7 +3,6 @@ package eu.europeana.cloud.dps.topologies.media;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -17,8 +16,10 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Error;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 
 public class StatsBolt extends BaseRichBolt {
@@ -28,9 +29,11 @@ public class StatsBolt extends BaseRichBolt {
 	private static final Logger logger = LoggerFactory.getLogger(StatsBolt.class);
 	
 	private transient CassandraTaskInfoDAO taskInfoDao;
+	private transient CassandraTaskErrorsDAO taskErrorsDao;
 	
 	private String topologyName;
 	private HashMap<Long, TaskStats> taskStats = new HashMap<>();
+	private HashMap<String, String> errorToType = new HashMap<>();
 	
 	private transient OutputCollector outputCollector;
 	
@@ -42,6 +45,7 @@ public class StatsBolt extends BaseRichBolt {
 		
 		CassandraConnectionProvider connectionProvider = Util.getCassandraConnectionProvider(stormConf);
 		taskInfoDao = CassandraTaskInfoDAO.getInstance(connectionProvider);
+		taskErrorsDao = CassandraTaskErrorsDAO.getInstance(connectionProvider);
 	}
 	
 	@Override
@@ -52,31 +56,51 @@ public class StatsBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple tuple) {
 		if (StatsInitTupleData.STREAM_ID.equals(tuple.getSourceStreamId())) {
-			StatsInitTupleData data = (StatsInitTupleData) tuple.getValueByField(StatsInitTupleData.FIELD_NAME);
-			long taskId = data.getTaskId();
-			TaskStats stats = taskStats.computeIfAbsent(taskId, TaskStats::new);
-			stats.init(data.getEdmCount(), data.getStartTime());
-			
-			taskInfoDao.insert(taskId, topologyName, (int) data.getEdmCount(),
-					TaskState.CURRENTLY_PROCESSING.toString(), "", new Date(data.getStartTime()));
-			updateDao(stats);
-			logger.info("starting stats gathering for task {}", taskId);
+			handleStatsInit(tuple);
 		} else if (StatsTupleData.STREAM_ID.equals(tuple.getSourceStreamId())) {
-			StatsTupleData data = (StatsTupleData) tuple.getValueByField(StatsTupleData.FIELD_NAME);
-			long taskId = data.getTaskId();
-			TaskStats stats = taskStats.computeIfAbsent(taskId, TaskStats::new);
-			stats.update(data);
-			
-			if (stats.processedEdmsCount == stats.totalEdmsCount) {
-				taskInfoDao.endTask(taskId, (int) stats.processedEdmsCount, (int) stats.failedEdmsCount,
-						stats.toString(), TaskState.PROCESSED.toString(), new Date());
-				taskStats.remove(taskId);
-				logger.info("finished stats gathering for task {}", taskId);
-			} else {
-				updateDao(stats);
-			}
+			handleStats(tuple);
+		} else {
+			logger.error("Received tuple from unrecognized stream id: {}", tuple.getSourceStreamId());
 		}
 		outputCollector.ack(tuple);
+	}
+
+	private void handleStatsInit(Tuple tuple) {
+		StatsInitTupleData data = (StatsInitTupleData) tuple.getValueByField(StatsInitTupleData.FIELD_NAME);
+		long taskId = data.getTaskId();
+		TaskStats stats = taskStats.computeIfAbsent(taskId, TaskStats::new);
+		stats.init(data.getEdmCount(), data.getStartTime());
+		
+		taskInfoDao.insert(taskId, topologyName, (int) data.getEdmCount(),
+				TaskState.CURRENTLY_PROCESSING.toString(), "", new Date(data.getStartTime()));
+		updateDao(stats);
+		logger.info("starting stats gathering for task {}", taskId);
+	}
+
+	private void handleStats(Tuple tuple) {
+		StatsTupleData data = (StatsTupleData) tuple.getValueByField(StatsTupleData.FIELD_NAME);
+		long taskId = data.getTaskId();
+		TaskStats stats = taskStats.computeIfAbsent(taskId, TaskStats::new);
+		stats.update(data);
+		
+		if (stats.processedEdmsCount == stats.totalEdmsCount) {
+			taskInfoDao.endTask(taskId, (int) stats.processedEdmsCount, (int) stats.failedEdmsCount,
+					stats.toString(), TaskState.PROCESSED.toString(), new Date());
+			taskStats.remove(taskId);
+			logger.info("finished stats gathering for task {}", taskId);
+		} else {
+			updateDao(stats);
+		}
+		
+		for (Error error : data.getErrors()) {
+			String errorType = getErrorType(error.message);
+			taskErrorsDao.updateErrorCounter(taskId, errorType);
+			taskErrorsDao.insertError(taskId, errorType, error.message, error.resourceUrl, error.date.toString());
+		}
+	}
+	
+	private String getErrorType(String error) {
+		return errorToType.computeIfAbsent(error, k -> new com.eaio.uuid.UUID().toString());
 	}
 	
 	private void updateDao(TaskStats stats) {
@@ -129,8 +153,8 @@ public class StatsBolt extends BaseRichBolt {
 			totalResourcesCount += data.getResourceCount();
 			failedResourcesCount += data.getErrors().size();
 			
-			for (String error : data.getErrors())
-				errorsCount.merge(error, 1L, Long::sum);
+			for (Error error : data.getErrors())
+				errorsCount.merge(error.message, 1L, Long::sum);
 			
 			if (data.getDownloadedBytes() > 0) {
 				bytesDownloaded += data.getDownloadedBytes();

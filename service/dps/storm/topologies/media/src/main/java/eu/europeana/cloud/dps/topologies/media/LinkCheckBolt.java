@@ -124,9 +124,9 @@ public class LinkCheckBolt extends HttpClientBolt {
 		
 		private void statusUpdate(String status) {
 			synchronized (stats) {
-				stats.addError(status);
+				stats.addError(fileInfo.getUrl(), status);
 				if (stats.getErrors().size() == stats.getResourceCount()) {
-					stats.getErrors().removeIf(OK::equals);
+					stats.getErrors().removeIf(e -> e.message.equals(OK));
 					outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
 					outputCollector.ack(tuple);
 				}
