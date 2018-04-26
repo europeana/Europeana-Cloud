@@ -3,7 +3,6 @@ package eu.europeana.cloud.dps.topologies.media;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
@@ -17,7 +16,6 @@ import org.apache.http.nio.client.methods.HttpAsyncMethods;
 import org.apache.http.nio.protocol.AbstractAsyncResponseConsumer;
 import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import org.apache.http.nio.protocol.HttpAsyncResponseConsumer;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -82,13 +80,6 @@ public class LinkCheckBolt extends HttpClientBolt {
 			if (status < 200 || status >= 300) {
 				logger.info("Link error (code {}) for {}", status, fileInfo.getUrl());
 				statusUpdate("STATUS CODE " + status);
-				return;
-			}
-			Header[] contentTypeHeader = response.getHeaders(HTTP.CONTENT_TYPE);
-			String contentType = contentTypeHeader.length == 1 ? contentTypeHeader[0].getValue() : "[NONE]";
-			if (!contentType.startsWith("text/")) {
-				logger.info("Invaild content type {} for {}", contentType, fileInfo.getUrl());
-				statusUpdate("CONTENT TYPE " + contentType);
 				return;
 			}
 			logger.debug("Link OK: {}", fileInfo.getUrl());
