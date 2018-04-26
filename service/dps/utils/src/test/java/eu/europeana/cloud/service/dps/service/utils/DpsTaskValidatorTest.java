@@ -183,7 +183,7 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
-        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, Arrays.asList(TargetIndexingDatabase.values())).validate(dpsTask);
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues()).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
