@@ -25,6 +25,7 @@ public final class PluginParameterKeys {
     // --------- METIS -------------
     public static final String METIS_DATASET_ID = "METIS_DATASET_ID";
     public static final String METIS_DATASET_ID_PARAMETER_NAME = "datasetId";
+    public static final String METIS_TARGET_INDEXING_DATABASE = "TARGET_INDEXING_DATABASE";
 
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
@@ -39,6 +40,7 @@ public final class PluginParameterKeys {
     public static final String OUTPUT_MIME_TYPE = "OUTPUT_MIME_TYPE";
     public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
     public static final String OUTPUT_DATA_SETS = "OUTPUT_DATA_SETS";
+
 
 
     // ---------  Messages  -----------

@@ -40,5 +40,6 @@
         <module>storm/topologies/validation</module>
         <module>storm/topologies/dereference-enrichment</module>
         <module>storm/topologies/http-harvesting</module>
+        <module>storm/topologies/indexing</module>
     </modules>
 </project>

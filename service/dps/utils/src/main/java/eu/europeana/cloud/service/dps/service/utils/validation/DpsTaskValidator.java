@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.Lists;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -54,6 +56,20 @@ public class DpsTaskValidator {
         return this;
     }
 
+
+    /**
+     * Will check if dps task contains parameter with selected name and any of the allowed values
+     *
+     * @param paramName     parameter name
+     * @param allowedValues list of allowed values
+     * @return
+     */
+    public DpsTaskValidator withParameter(String paramName, List allowedValues) {
+        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, paramName, allowedValues);
+        dpsTaskConstraints.add(constraint);
+        return this;
+    }
+
     /**
      * Will check if dps task contains parameter with selected name (value of this parameter will not be validated)
      *
@@ -104,6 +120,7 @@ public class DpsTaskValidator {
         dpsTaskConstraints.add(constraint);
         return this;
     }
+
 
     /**
      * Will check if dps task contains selected name
@@ -204,18 +221,25 @@ public class DpsTaskValidator {
     }
 
     private void validateParameter(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-        String expectedParameter = task.getParameter(constraint.getExpectedName());
-        if (expectedParameter == null) {
+        String parameterValue = task.getParameter(constraint.getExpectedName());
+        if (parameterValue == null) {
             throw new DpsTaskValidationException("Expected parameter does not exist in dpsTask. Parameter name: " + constraint.getExpectedName());
         }
-        if (constraint.getExpectedValue() == null) {  //any name
+        Object expectedValue = constraint.getExpectedValue();
+        if (expectedValue == null) {  //any name
             return;
         }
-        if ("".equals(constraint.getExpectedValue()) && "".equals(expectedParameter)) {  //empty value
-            return;
-        }
-        if (expectedParameter.equals(constraint.getExpectedValue())) {  //exact value
-            return;
+        if (expectedValue instanceof List) {
+            List<String> ls = (List) expectedValue;
+            if (ls.contains(parameterValue))
+                return;
+        } else {
+            if ("".equals(expectedValue) && "".equals(parameterValue)) {  //empty value
+                return;
+            }
+            if (parameterValue.equals(expectedValue)) {  //exact value
+                return;
+            }
         }
         throw new DpsTaskValidationException("Parameter does not meet constraints. Parameter name: " + constraint.getExpectedName());
     }
@@ -300,8 +324,7 @@ public class DpsTaskValidator {
         if (revisionMustExist) {
             if (outputRevision == null) {
                 throw new DpsTaskValidationException("Output Revision should not be null!. It is required for this task");
-            }
-            else
+            } else
                 checkOutputRevisionContent(outputRevision);
         } else {
             if (outputRevision != null)

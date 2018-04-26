@@ -12,9 +12,6 @@ import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
-
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -95,7 +92,7 @@ public class HTTPHarvestingTopology {
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(Revision_WRITER_BOLT_NUMBER_OF_TASKS)))
+                .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(WRITE_RECORD_BOLT);
 
 
