@@ -24,7 +24,7 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataV
 @RunWith(JUnitParamsRunner.class)
 public class DpsTaskValidatorTest {
 
-    private static final long TASK_ID = 121212;
+
     private DpsTask dpsTask;
     private DpsTask icTopologyTask;
     private DpsTask dpsTaskWithIncorrectRevision_1;
@@ -183,7 +183,7 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
-        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, Arrays.asList(TargetIndexingDatabase.values())).validate(dpsTask);
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues()).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
