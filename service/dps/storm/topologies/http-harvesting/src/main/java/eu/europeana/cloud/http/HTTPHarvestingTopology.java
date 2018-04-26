@@ -1,20 +1,16 @@
 package eu.europeana.cloud.http;
 
-import eu.europeana.cloud.http.bolt.HTTPHarvesterBolt;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
+import eu.europeana.cloud.http.spout.HttpKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -68,30 +64,21 @@ public class HTTPHarvestingTopology {
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
 
-        CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
+        HttpKafkaSpout httpKafkaSpout = new HttpKafkaSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
 
 
-        builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
+        builder.setSpout(SPOUT, httpKafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules),
-                getAnInt(PARSE_TASKS_BOLT_PARALLEL))
-                .setNumTasks(getAnInt(PARSE_TASKS_BOLT_NUMBER_OF_TASKS))
-                .shuffleGrouping(SPOUT);
-
-        builder.setBolt(HTTP_HARVESTING_BOLT, new HTTPHarvesterBolt(),
-                getAnInt(HTTP_BOLT_PARALLEL)).
-                setNumTasks((getAnInt(HTTP_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(PARSE_TASK_BOLT, REPOSITORY_STREAM);
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(HTTP_HARVESTING_BOLT);
+                .shuffleGrouping(SPOUT);
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
@@ -114,10 +101,6 @@ public class HTTPHarvestingTopology {
                 getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
                         (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-                .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(HTTP_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,

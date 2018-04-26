@@ -19,6 +19,8 @@ import java.util.Set;
 
 public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
+    private static final int BATCH_SIZE = 50000;
+    private static final int TIME_INTERVAL = 300000;
 
     private SourceProvider sourceProvider;
 
@@ -115,9 +117,9 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier());
                 count++;
-                if (count % 50000 == 0)
+                if (count % BATCH_SIZE == 0)
                     try {
-                        Thread.sleep(300000 + times * 300000);
+                        Thread.sleep(TIME_INTERVAL + times * TIME_INTERVAL);
                         if (times < 5)
                             times++;
                     } catch (InterruptedException e) {

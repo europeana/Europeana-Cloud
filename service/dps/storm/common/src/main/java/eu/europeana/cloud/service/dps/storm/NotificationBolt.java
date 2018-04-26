@@ -6,6 +6,8 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -107,6 +109,7 @@ public class NotificationBolt extends BaseRichBolt {
                 break;
             case NOTIFICATION:
                 notifyTask(notificationTuple, nCache, taskId);
+                storeFinishState(notificationTuple.getTaskId());
                 break;
         }
     }
@@ -169,12 +172,23 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
 
-
     private static Date prepareDate(Object dateObject) {
         Date date = null;
         if (dateObject instanceof Date)
             return (Date) dateObject;
         return date;
+    }
+
+    private void storeFinishState(long taskId) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+        TaskInfo task = taskInfoDAO.searchById(taskId);
+        if (task != null) {
+            NotificationCache nCache = cache.get(taskId);
+            int count = nCache.getProcessed();
+            int expectedSize = task.getExpectedSize();
+            if (count == expectedSize) {
+                taskInfoDAO.endTask(taskId, count, nCache.getErrors(), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+            }
+        }
     }
 
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {

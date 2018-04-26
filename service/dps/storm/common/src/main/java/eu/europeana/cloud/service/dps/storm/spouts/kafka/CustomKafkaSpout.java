@@ -39,7 +39,7 @@ public class CustomKafkaSpout extends KafkaSpout {
     private String keyspaceName;
     private String userName;
     private String password;
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    protected CassandraTaskInfoDAO cassandraTaskInfoDAO;
     private CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO;
     private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
 
