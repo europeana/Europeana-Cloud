@@ -60,7 +60,7 @@ public class IndexingSettingsGenerator {
     private void prepareMongoSettings(IndexingSettings indexingSettings, String prefix) throws IndexerConfigurationException {
         String mongoInstances = properties.get(prefix + DELIMITER + MONGO_INSTANCES).toString();
         int mongoPort = Integer.parseInt(properties.get(prefix + DELIMITER + MONGO_PORT_NUMBER).toString());
-        String[] instances = mongoInstances.split(",");
+        String[] instances = mongoInstances.trim().split(",");
         for (String instance : instances) {
             indexingSettings.addMongoHost(new InetSocketAddress(instance, mongoPort));
         }
@@ -89,7 +89,7 @@ public class IndexingSettingsGenerator {
     }
     private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix) throws URISyntaxException, IndexerConfigurationException {
         String solrInstances = properties.get(prefix + DELIMITER + SOLR_INSTANCES).toString();
-        String[] instances = solrInstances.split(",");
+        String[] instances = solrInstances.trim().split(",");
         for (String instance : instances) {
             indexingSettings.addSolrHost(new URI(instance));
         }
@@ -98,7 +98,7 @@ public class IndexingSettingsGenerator {
     private void prepareZookeeperSettings(IndexingSettings indexingSettings, String prefix) throws IndexerConfigurationException {
         String zookeeperInstances = properties.get(prefix + DELIMITER + ZOOKEEPER_INSTANCES).toString();
         int zookeeperPort = Integer.parseInt(properties.get(prefix + DELIMITER + ZOOKEEPER_PORT_NUMBER).toString());
-        String[] instances = zookeeperInstances.split(",");
+        String[] instances = zookeeperInstances.trim().split(",");
         for (String instance : instances) {
             indexingSettings.addZookeeperHost(new InetSocketAddress(instance, zookeeperPort));
         }
