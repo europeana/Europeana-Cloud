@@ -149,15 +149,7 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-storm-topologies-dereference-enrichment</artifactId>
-            <version>0.8-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
-
     <build>
         <plugins>
             <!-- Bind the maven-assembly-plugin to the package phase this will create

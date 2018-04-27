@@ -30,6 +30,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_TO_DATA_SET_BOLT;
+import static java.lang.Integer.parseInt;
 
 public class NormalizationTopology {
 
@@ -55,7 +56,7 @@ public class NormalizationTopology {
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                getAnInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
@@ -73,84 +74,79 @@ public class NormalizationTopology {
 
         // TOPOLOGY STRUCTURE!
         builder.setSpout(SPOUT, kafkaSpout,
-                (Integer.parseInt(topologyProperties.getProperty(KAFKA_SPOUT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(KAFKA_SPOUT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(KAFKA_SPOUT_NUMBER_OF_TASKS))));
+                        (getAnInt(topologyProperties.getProperty(KAFKA_SPOUT_NUMBER_OF_TASKS))));
 
         builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(PARSE_TASKS_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(PARSE_TASKS_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(PARSE_TASKS_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(SPOUT);
 
 
         builder.setBolt(READ_DATASETS_BOLT, new ReadDatasetsBolt(),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(READ_DATASETS_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(READ_DATASETS_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(READ_DATASETS_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(READ_DATASETS_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(PARSE_TASK_BOLT, DATASET_STREAM);
 
         builder.setBolt(READ_DATASET_BOLT, new ReadDatasetBolt(ecloudMcsAddress),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(READ_DATASET_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(READ_DATASET_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(READ_DATASET_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(READ_DATASET_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(READ_DATASETS_BOLT);
 
 
         builder.setBolt(READ_REPRESENTATION_BOLT, new ReadRepresentationBolt(ecloudMcsAddress),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(READ_REPRESENTATION_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(READ_REPRESENTATION_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(READ_DATASET_BOLT);
 
 
         builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
-                (Integer
-                        .parseInt(topologyProperties.getProperty(RETRIEVE_FILE_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(RETRIEVE_FILE_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(PARSE_TASK_BOLT, FILE_STREAM).shuffleGrouping(READ_REPRESENTATION_BOLT);
 
 
         builder.setBolt(NORMALIZATION_BOLT, normalizationBolt,
-                (Integer.parseInt(topologyProperties.getProperty(NORMALIZATION_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(NORMALIZATION_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(NORMALIZATION_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(NORMALIZATION_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(RETRIEVE_FILE_BOLT);
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
-                (Integer.parseInt(topologyProperties.getProperty(WRITE_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(WRITE_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(WRITE_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(WRITE_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(NORMALIZATION_BOLT);
 
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
-                (Integer.parseInt(topologyProperties.getProperty(REVISION_WRITER_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(REVISION_WRITER_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(WRITE_RECORD_BOLT);
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                (Integer.parseInt(topologyProperties.getProperty(ADD_TO_DATASET_BOLT_PARALLEL))))
+                (getAnInt(topologyProperties.getProperty(ADD_TO_DATASET_BOLT_PARALLEL))))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(REVISION_WRITER_BOLT);
 
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                        getAnInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
                         topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_PARALLEL)))
+                getAnInt(topologyProperties.getProperty(NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
                 .fieldsGrouping(PARSE_TASK_BOLT, NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, NOTIFICATION_STREAM_NAME,
@@ -198,5 +194,9 @@ public class NormalizationTopology {
             LOGGER.error(Throwables.getStackTraceAsString(e));
 
         }
+    }
+
+    private static int getAnInt(String propertyName) {
+        return parseInt(topologyProperties.getProperty(propertyName));
     }
 }
