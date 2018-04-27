@@ -71,15 +71,15 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	
 	private final IRichSpout baseSpout;
 	private final Collection<UrlType> urlTypes;
-	private SpoutOutputCollector outputCollector;
-	private Map<String, Object> config;
+	private transient SpoutOutputCollector outputCollector;
+	private transient Map<String, Object> config;
 	
-	private ConcurrentHashMap<String, EdmInfo> edmsByStormMsgId = new ConcurrentHashMap<>();
+	private transient ConcurrentHashMap<String, EdmInfo> edmsByStormMsgId;
 	
-	private ConcurrentHashMap<String, SourceInfo> sourcesByHost = new ConcurrentHashMap<>();
+	private transient ConcurrentHashMap<String, SourceInfo> sourcesByHost;
 	
-	private DatasetDownloader datasetDownloader;
-	private EdmDownloader edmDownloader;
+	private transient DatasetDownloader datasetDownloader;
+	private transient EdmDownloader edmDownloader;
 	
 	private long emitLimit;
 	
@@ -100,6 +100,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		outputCollector = collector;
 		config = conf;
 		
+		edmsByStormMsgId = new ConcurrentHashMap<>();
+		sourcesByHost = new ConcurrentHashMap<>();
 		datasetDownloader = new DatasetDownloader();
 		edmDownloader = new EdmDownloader();
 		
@@ -239,7 +241,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		int attempts = 5;
 	}
 	
-	private class EdmDownloader {
+	private final class EdmDownloader {
 		
 		ArrayBlockingQueue<EdmInfo> edmQueue = new ArrayBlockingQueue<>(1024 * 128);
 		ArrayList<EdmDownloadThread> threads;
@@ -305,6 +307,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 						edmInfo.edmObject = parser.parseXml(is);
 					} catch (MediaException e) {
 						logger.info("EDM loading failed ({}/{}) for {}", e.reportError, e.getMessage(), rep.getFiles());
+						logger.trace("full exception:", e);
 						StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
 						stats.addError(fileUri, e.reportError);
 						outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
@@ -321,7 +324,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			void queueEdmInfo(EdmInfo edmInfo) {
 				Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
 				if (urls.isEmpty()) {
-					logger.error("content url missing in edm file representation: " + edmInfo.representation);
+					logger.error("content url missing in edm file representation: {}", edmInfo.representation);
 					return;
 				}
 				edmInfo.fileInfos = urls.stream().map(FileInfo::new).collect(Collectors.toList());
@@ -337,7 +340,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		}
 	}
 	
-	private class DatasetDownloader extends Thread {
+	private final class DatasetDownloader extends Thread {
 		
 		ArrayBlockingQueue<TaskInfo> taskQueue = new ArrayBlockingQueue<>(128);
 		DataSetServiceClient datasetClient;
@@ -361,9 +364,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		public void run() {
 			try {
 				while (true) {
-					TaskInfo taskInfo = null;
+					TaskInfo taskInfo = taskQueue.take();
 					try {
-						taskInfo = taskQueue.take();
 						datasetClient = Util.getDataSetServiceClient(config, taskInfo.task);
 						recordClient = Util.getRecordServiceClient(config, taskInfo.task);
 						downloadDataset(taskInfo);

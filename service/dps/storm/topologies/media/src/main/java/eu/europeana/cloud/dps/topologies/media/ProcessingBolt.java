@@ -28,7 +28,6 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
@@ -58,11 +57,17 @@ public class ProcessingBolt extends BaseRichBolt {
 	private static AmazonS3 amazonClient;
 	private static String storageBucket = "";
 	
-	private OutputCollector outputCollector;
-	private Map<String, Object> config;
+	private transient OutputCollector outputCollector;
+	private transient Map<String, Object> config;
 	
-	private MediaProcessor mediaProcessor;
-	private ResultsUploader resultsUploader;
+	private transient MediaProcessor mediaProcessor;
+	
+	private transient EdmObject.Writer edmWriter;
+	
+	private ArrayList<ResultsUploadThread> threads = new ArrayList<>();
+	private ArrayBlockingQueue<Item> queue = new ArrayBlockingQueue<>(100);
+	
+	private boolean persistResult;
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -70,7 +75,16 @@ public class ProcessingBolt extends BaseRichBolt {
 		this.config = stormConf;
 		
 		mediaProcessor = new MediaProcessor();
-		resultsUploader = new ResultsUploader();
+		edmWriter = new EdmObject.Writer();
+		
+		persistResult = (Boolean) config.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
+		
+		int threadCount = (int) (long) config.getOrDefault("MEDIATOPOLOGY_RESULT_UPLOAD_THREADS", 2);
+		for (int i = 0; i < threadCount; i++) {
+			ResultsUploadThread thread = new ResultsUploadThread(i);
+			thread.start();
+			threads.add(thread);
+		}
 		
 		TempFileSync.init(stormConf);
 		
@@ -121,7 +135,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
 			}
 		}
-		resultsUploader.queue(input, mediaData, statsData);
+		queueUpload(input, mediaData, statsData);
 		statsData.setProcessingEndTime(System.currentTimeMillis());
 		
 	}
@@ -129,7 +143,8 @@ public class ProcessingBolt extends BaseRichBolt {
 	@Override
 	public void cleanup() {
 		mediaProcessor.close();
-		resultsUploader.stop();
+		for (ResultsUploadThread thread : threads)
+			thread.interrupt();
 	}
 	
 	private void cleanupRecord(MediaTupleData mediaData, List<Thumbnail> thumbnails) {
@@ -145,241 +160,190 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 	}
 	
-	private class ResultsUploader {
-		
-		class Item {
-			Tuple tuple;
-			StatsTupleData statsData;
-			MediaTupleData mediaData;
-			List<Thumbnail> thumbnails;
-			byte[] edmContents;
+	private void queueUpload(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData) {
+		Item item = new Item();
+		item.tuple = tuple;
+		item.mediaData = mediaData;
+		item.statsData = statsData;
+		item.thumbnails = mediaProcessor.getThumbnails();
+		item.edmContents = edmWriter.toXmlBytes(mediaProcessor.getEdm());
+		try {
+			if (queue.remainingCapacity() == 0)
+				logger.warn("Results upload queue full");
+			queue.put(item);
+		} catch (InterruptedException e) {
+			logger.trace("Thread interrupted", e);
+			Thread.currentThread().interrupt();
 		}
+	}
+	
+	private static class Item {
+		Tuple tuple;
+		StatsTupleData statsData;
+		MediaTupleData mediaData;
+		List<Thumbnail> thumbnails;
+		byte[] edmContents;
+	}
+	
+	private class ResultsUploadThread extends Thread {
 		
-		EdmObject.Writer edmWriter = new EdmObject.Writer();
+		FileServiceClient fileClient;
+		RecordServiceClient recordClient;
+		RevisionServiceClient revisionServiceClient;
+		DataSetServiceClient dataSetServiceClient;
 		
-		ArrayBlockingQueue<Item> queue = new ArrayBlockingQueue<>(100);
-		ArrayList<ResultsUploadThread> threads = new ArrayList<>();
+		Item currentItem;
 		
-		boolean persistResult;
-		
-		public ResultsUploader() {
-			persistResult = (Boolean) config.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
+		ResultsUploadThread(int id) {
+			super("result-uploader-" + id);
 			
-			int threadCount = (int) (long) config.getOrDefault("MEDIATOPOLOGY_RESULT_UPLOAD_THREADS", 2);
-			for (int i = 0; i < threadCount; i++) {
-				ResultsUploadThread thread = new ResultsUploadThread(i);
-				thread.start();
-				threads.add(thread);
-			}
 		}
 		
-		public void queue(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData) {
-			Item item = new Item();
-			item.tuple = tuple;
-			item.mediaData = mediaData;
-			item.statsData = statsData;
-			item.thumbnails = mediaProcessor.getThumbnails();
-			item.edmContents = edmWriter.toXmlBytes(mediaProcessor.getEdm());
+		@Override
+		public void run() {
 			try {
-				if (queue.remainingCapacity() == 0)
-					logger.warn("Results upload queue full");
-				queue.put(item);
-			} catch (InterruptedException e) {
-				logger.trace("Thread interrupted", e);
-				Thread.currentThread().interrupt();
-			}
-		}
-		
-		public void stop() {
-			for (ResultsUploadThread thread : threads)
-				thread.interrupt();
-		}
-		
-		class ResultsUploadThread extends Thread {
-			
-			FileServiceClient fileClient;
-			RecordServiceClient recordClient;
-			RevisionServiceClient revisionServiceClient;
-			DataSetServiceClient dataSetServiceClient;
-			
-			Item currentItem;
-			
-			ResultsUploadThread(int id) {
-				super("result-uploader-" + id);
-				
-			}
-			
-			@Override
-			public void run() {
-				try {
-					while (true) {
-						StatsTupleData statsData;
-						DpsTask previousTask = currentItem == null ? null : currentItem.mediaData.getTask();
-						currentItem = queue.take();
-						try {
-							DpsTask currentTask = currentItem.mediaData.getTask();
-							if (!currentTask.equals(previousTask)) {
-								fileClient = Util.getFileServiceClient(config, currentTask);
-								recordClient = Util.getRecordServiceClient(config, currentTask);
-								revisionServiceClient = Util.getRevisionServiceClient(config, currentTask);
-								dataSetServiceClient = Util.getDataSetServiceClient(config, currentTask);
-							}
-							
-							statsData = currentItem.statsData;
-							statsData.setUploadStartTime(System.currentTimeMillis());
-							saveThumbnails();
-							saveMetadata();
-							statsData.setUploadEndTime(System.currentTimeMillis());
-						} finally {
-							cleanupRecord(currentItem.mediaData, currentItem.thumbnails);
+				while (true) {
+					StatsTupleData statsData;
+					DpsTask previousTask = currentItem == null ? null : currentItem.mediaData.getTask();
+					currentItem = queue.take();
+					try {
+						DpsTask currentTask = currentItem.mediaData.getTask();
+						if (!currentTask.equals(previousTask)) {
+							fileClient = Util.getFileServiceClient(config, currentTask);
+							recordClient = Util.getRecordServiceClient(config, currentTask);
+							revisionServiceClient = Util.getRevisionServiceClient(config, currentTask);
+							dataSetServiceClient = Util.getDataSetServiceClient(config, currentTask);
 						}
 						
-						outputCollector.emit(StatsTupleData.STREAM_ID, currentItem.tuple, new Values(statsData));
-						outputCollector.ack(currentItem.tuple);
-					}
-				} catch (InterruptedException e) {
-					logger.trace("result upload thread finishing", e);
-					Thread.currentThread().interrupt();
-					while ((currentItem = queue.poll()) != null) {
+						statsData = currentItem.statsData;
+						statsData.setUploadStartTime(System.currentTimeMillis());
+						saveThumbnails();
+						saveMetadata();
+						statsData.setUploadEndTime(System.currentTimeMillis());
+					} finally {
 						cleanupRecord(currentItem.mediaData, currentItem.thumbnails);
 					}
-				} catch (Throwable t) {
-					logger.error("result upload thread failure", t);
-				}
-			}
-			
-			void saveMetadata() {
-				long start = System.currentTimeMillis();
-				DpsTask task = currentItem.mediaData.getTask();
-				
-				String representationName = getParamOrDefault(task, PluginParameterKeys.NEW_REPRESENTATION_NAME);
-				String fileName = getParamOrDefault(task, PluginParameterKeys.OUTPUT_FILE_NAME);
-				String mediaType = getParamOrDefault(task, PluginParameterKeys.OUTPUT_MIME_TYPE);
-				
-				try (ByteArrayInputStream bais = new ByteArrayInputStream(currentItem.edmContents)) {
-					if (currentItem.edmContents.length == 0)
-						throw new IOException("Result EDM contents missing");
 					
-					Representation r = currentItem.mediaData.getEdmRepresentation();
-					if (persistResult) {
-						URI rep = recordClient.createRepresentation(r.getCloudId(), representationName,
-								r.getDataProvider(), bais, fileName, mediaType);
-						addRevisionToSpecificResource(rep);
-						addRepresentationToDataSets(rep);
-						logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start,
-								rep);
-					} else {
-						URI rep = recordClient.createRepresentation(r.getCloudId(), representationName,
-								r.getDataProvider());
-						addRevisionToSpecificResource(rep);
-						addRepresentationToDataSets(rep);
-						String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
-						if (StringUtils.isBlank(fileName))
-							fileName = UUID.randomUUID().toString();
-						fileClient.uploadFile(r.getCloudId(), representationName, version, fileName, bais,
-								mediaType);
-						recordClient.deleteRepresentation(r.getCloudId(), representationName, version);
-						logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
-					}
-				} catch (IOException | DriverException | MCSException e) {
-					logger.error("Could not store tech metadata representation in "
-							+ currentItem.mediaData.getEdmRepresentation().getCloudId(), e);
-					for (FileInfo file : currentItem.mediaData.getFileInfos()) {
-						currentItem.statsData.addErrorIfAbsent(file.getUrl(), "TECH METADATA SAVING");
-					}
+					outputCollector.emit(StatsTupleData.STREAM_ID, currentItem.tuple, new Values(statsData));
+					outputCollector.ack(currentItem.tuple);
 				}
+			} catch (InterruptedException e) {
+				logger.trace("result upload thread finishing", e);
+				Thread.currentThread().interrupt();
+				while ((currentItem = queue.poll()) != null) {
+					cleanupRecord(currentItem.mediaData, currentItem.thumbnails);
+				}
+			} catch (Throwable t) {
+				logger.error("result upload thread failure", t);
 			}
+		}
+		
+		void saveMetadata() {
+			long start = System.currentTimeMillis();
+			DpsTask task = currentItem.mediaData.getTask();
 			
-			void saveThumbnails() {
-				long start = System.currentTimeMillis();
-				boolean uploaded = false;
-				for (Thumbnail t : currentItem.thumbnails) {
-					try {
-						amazonClient.putObject(storageBucket, t.targetName, t.content);
-						logger.debug("thumbnail saved: {} b, md5({}) = {}", t.content.length(), t.url, t.targetName);
-						uploaded = true;
-					} catch (AmazonClientException e) {
-						logger.error("Could not save thumbnails for " + t.url, e);
-						currentItem.statsData.addErrorIfAbsent(t.url, "THUMBNAIL SAVING");
-					}
-				}
-				if (!uploaded) {
-					logger.info("No thumbnails were uploaded for {}",
-							currentItem.mediaData.getEdmRepresentation().getCloudId());
-				}
+			String representationName = getParamOrDefault(task, PluginParameterKeys.NEW_REPRESENTATION_NAME);
+			String fileName = getParamOrDefault(task, PluginParameterKeys.OUTPUT_FILE_NAME);
+			String mediaType = getParamOrDefault(task, PluginParameterKeys.OUTPUT_MIME_TYPE);
+			
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(currentItem.edmContents)) {
+				if (currentItem.edmContents.length == 0)
+					throw new IOException("Result EDM contents missing");
 				
-				logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
-			}
-			
-			protected void addRevisionToSpecificResource(URI affectedResourceURL)
-					throws MalformedURLException, MCSException {
-				
-				Revision outputRevision = currentItem.mediaData.getTask().getOutputRevision();
-				if (outputRevision != null) {
-					final UrlParser urlParser = new UrlParser(affectedResourceURL.toString());
-					if (outputRevision.getCreationTimeStamp() == null)
-						outputRevision.setCreationTimeStamp(new Date());
-					revisionServiceClient.addRevision(
-							urlParser.getPart(UrlPart.RECORDS),
-							urlParser.getPart(UrlPart.REPRESENTATIONS),
-							urlParser.getPart(UrlPart.VERSIONS),
-							outputRevision);
+				Representation r = currentItem.mediaData.getEdmRepresentation();
+				if (persistResult) {
+					URI rep = recordClient.createRepresentation(r.getCloudId(), representationName, r.getDataProvider(),
+							bais, fileName, mediaType);
+					addRevisionToSpecificResource(rep);
+					addRepresentationToDataSets(rep);
+					logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start, rep);
 				} else {
-					logger.info("Revisions list is empty");
+					URI rep =
+							recordClient.createRepresentation(r.getCloudId(), representationName, r.getDataProvider());
+					addRevisionToSpecificResource(rep);
+					addRepresentationToDataSets(rep);
+					String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
+					if (StringUtils.isBlank(fileName))
+						fileName = UUID.randomUUID().toString();
+					fileClient.uploadFile(r.getCloudId(), representationName, version, fileName, bais,
+							mediaType);
+					recordClient.deleteRepresentation(r.getCloudId(), representationName, version);
+					logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
+				}
+			} catch (IOException | DriverException | MCSException e) {
+				logger.error("Could not store tech metadata representation in "
+						+ currentItem.mediaData.getEdmRepresentation().getCloudId(), e);
+				for (FileInfo file : currentItem.mediaData.getFileInfos()) {
+					currentItem.statsData.addErrorIfAbsent(file.getUrl(), "TECH METADATA SAVING");
 				}
 			}
-			
-			public final void addRepresentationToDataSets(URI rep) throws MalformedURLException,
-					MCSException {
-				String datasets =
-						getParamOrDefault(currentItem.mediaData.getTask(), PluginParameterKeys.OUTPUT_DATA_SETS);
-				if (!StringUtils.isBlank(datasets)) {
-					for (String datasetLocation : datasets.split(",")) {
-						Representation resultRepresentation = parseResultUrl(rep.toString());
-						DataSet dataset = parseDataSetURl(datasetLocation);
-						if (dataset != null) {
-							dataSetServiceClient.assignRepresentationToDataSet(
-									dataset.getProviderId(),
-									dataset.getId(),
-									resultRepresentation.getCloudId(),
-									resultRepresentation.getRepresentationName(),
-									resultRepresentation.getVersion());
-						} else {
-							logger.info("Incorrect data set url");
-						}
-					}
-				} else {
-					logger.info("Output data sets list is empty");
+		}
+		
+		void saveThumbnails() {
+			long start = System.currentTimeMillis();
+			boolean uploaded = false;
+			for (Thumbnail t : currentItem.thumbnails) {
+				try {
+					amazonClient.putObject(storageBucket, t.targetName, t.content);
+					logger.debug("thumbnail saved: {} b, md5({}) = {}", t.content.length(), t.url, t.targetName);
+					uploaded = true;
+				} catch (AmazonClientException e) {
+					logger.error("Could not save thumbnails for " + t.url, e);
+					currentItem.statsData.addErrorIfAbsent(t.url, "THUMBNAIL SAVING");
 				}
 			}
-			
-			private String getParamOrDefault(DpsTask task, String paramKey) {
-				String param = task.getParameter(paramKey);
-				return param != null ? param : PluginParameterKeys.PLUGIN_PARAMETERS.get(paramKey);
+			if (!uploaded) {
+				logger.info("No thumbnails were uploaded for {}",
+						currentItem.mediaData.getEdmRepresentation().getCloudId());
 			}
-			
-			private Representation parseResultUrl(String url) throws MalformedURLException {
-				UrlParser parser = new UrlParser(url);
-				if (parser.isUrlToRepresentationVersionFile()) {
-					Representation rep = new Representation();
-					rep.setCloudId(parser.getPart(UrlPart.RECORDS));
-					rep.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
-					rep.setVersion(parser.getPart(UrlPart.VERSIONS));
-					return rep;
+			logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
+		}
+		
+		void addRevisionToSpecificResource(URI affectedResourceURL) throws MalformedURLException, MCSException {
+			Revision outputRevision = currentItem.mediaData.getTask().getOutputRevision();
+			if (outputRevision != null) {
+				final UrlParser urlParser = new UrlParser(affectedResourceURL.toString());
+				if (outputRevision.getCreationTimeStamp() == null)
+					outputRevision.setCreationTimeStamp(new Date());
+				revisionServiceClient.addRevision(
+						urlParser.getPart(UrlPart.RECORDS),
+						urlParser.getPart(UrlPart.REPRESENTATIONS),
+						urlParser.getPart(UrlPart.VERSIONS),
+						outputRevision);
+			} else {
+				logger.info("Revisions list is empty");
+			}
+		}
+		
+		void addRepresentationToDataSets(URI rep) throws MalformedURLException, MCSException {
+			String datasets = getParamOrDefault(currentItem.mediaData.getTask(), PluginParameterKeys.OUTPUT_DATA_SETS);
+			if (StringUtils.isBlank(datasets)) {
+				logger.info("Output data sets list is empty");
+				return;
+			}
+			UrlParser fileUrl = new UrlParser(rep.toString());
+			if (!fileUrl.isUrlToRepresentationVersionFile()) {
+				logger.error("invalid representation file url: {}", rep);
+				return;
+			}
+			for (String datasetLocation : datasets.split(",")) {
+				UrlParser datasetUrl = new UrlParser(datasetLocation);
+				if (!datasetUrl.isUrlToDataset()) {
+					logger.error("invalid target dataset url: {}", datasetLocation);
+					continue;
 				}
-				return null;
+				dataSetServiceClient.assignRepresentationToDataSet(
+						datasetUrl.getPart(UrlPart.DATA_PROVIDERS),
+						datasetUrl.getPart(UrlPart.DATA_SETS),
+						fileUrl.getPart(UrlPart.RECORDS),
+						fileUrl.getPart(UrlPart.REPRESENTATIONS),
+						fileUrl.getPart(UrlPart.VERSIONS));
 			}
-			
-			private DataSet parseDataSetURl(String url) throws MalformedURLException {
-				DataSet dataSet = null;
-				UrlParser parser = new UrlParser(url);
-				if (parser.isUrlToDataset()) {
-					dataSet = new DataSet();
-					dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
-					dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
-				}
-				return dataSet;
-			}
+		}
+		
+		String getParamOrDefault(DpsTask task, String paramKey) {
+			String param = task.getParameter(paramKey);
+			return param != null ? param : PluginParameterKeys.PLUGIN_PARAMETERS.get(paramKey);
 		}
 	}
 }
