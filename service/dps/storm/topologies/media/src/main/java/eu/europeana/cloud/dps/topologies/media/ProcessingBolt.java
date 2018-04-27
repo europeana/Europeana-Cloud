@@ -6,9 +6,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -51,6 +54,7 @@ import eu.europeana.metis.mediaservice.EdmObject;
 import eu.europeana.metis.mediaservice.MediaException;
 import eu.europeana.metis.mediaservice.MediaProcessor;
 import eu.europeana.metis.mediaservice.MediaProcessor.Thumbnail;
+import eu.europeana.metis.mediaservice.UrlType;
 
 public class ProcessingBolt extends BaseRichBolt {
 	
@@ -137,6 +141,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
 			}
 		}
+		updateEdmPreview(edm);
 		queueUpload(input, mediaData, statsData);
 		statsData.setProcessingEndTime(System.currentTimeMillis());
 		
@@ -177,6 +182,21 @@ public class ProcessingBolt extends BaseRichBolt {
 			logger.trace("Thread interrupted", e);
 			Thread.currentThread().interrupt();
 		}
+	}
+	
+	private void updateEdmPreview(EdmObject edm) {
+		Set<String> objectUrls = edm.getResourceUrls(Arrays.asList(UrlType.OBJECT)).keySet();
+		
+		Optional<Thumbnail> thumbnail = mediaProcessor.getThumbnails().stream()
+				.filter(t -> t.targetName.contains("-LARGE") && objectUrls.contains(t.url))
+				.findFirst();
+		
+		if (thumbnail.isPresent()) {
+			String url = String.format("%s/%s/%s", config.get("AWS_CREDENTIALS_ENDPOINT"),
+					config.get("AWS_CREDENTIALS_BUCKET"), thumbnail.get().targetName);
+			edm.updateEdmPreview(url);
+		}
+		
 	}
 	
 	private static class Item {
