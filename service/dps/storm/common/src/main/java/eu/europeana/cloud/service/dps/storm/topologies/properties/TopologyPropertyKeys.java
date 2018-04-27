@@ -65,6 +65,10 @@ public final class TopologyPropertyKeys {
     public static final String DEREFERENCE_SERVICE_URL = "DEREFERENCE_SERVICE_URL";
     public static final String ENRICHMENT_SERVICE_URL = "ENRICHMENT_SERVICE_URL";
 
+    //Normalization parameters
+    public static final String NORMALIZATION_BOLT_NUMBER_OF_TASKS = "NORMALIZATION_BOLT_NUMBER_OF_TASKS";
+    public static final String NORMALIZATION_BOLT_PARALLEL = "NORMALIZATION_BOLT_PARALLEL";
+
 
     //OAI-Parameters
     public static final String TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS = "TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS";
