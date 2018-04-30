@@ -44,7 +44,6 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     public static final String MAC_TEMP_FOLDER = "__MACOSX";
     public static final String MAC_TEMP_FILE = ".DS_Store";
 
-    private DpsTask dpsTask;
 
     private transient ConcurrentHashMap<Long, TaskInfo> cache;
 
@@ -73,6 +72,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 if (!currentTask.isStarted) {
                     LOGGER.info("Start progressing for Task{}", currentTask);
                     startProgress(currentTask);
+                    DpsTask dpsTask = currentTask.getDpsTask();
                     StormTaskTuple stormTaskTuple = new StormTaskTuple(
                             dpsTask.getTaskId(),
                             dpsTask.getTaskName(),
@@ -218,7 +218,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             try {
-                dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
+                DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
                     long taskId = dpsTask.getTaskId();
                     if (cache.get(taskId) == null)

@@ -4,15 +4,13 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.TaskSplittingBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.OAISpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 
 
@@ -38,7 +36,6 @@ import java.util.Properties;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 import static java.lang.Integer.parseInt;
-import static java.lang.Long.parseLong;
 
 /**
  *
@@ -63,12 +60,14 @@ public class OAIPHMHarvestingTopology {
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, oaiTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
-        CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
+
+        CustomKafkaSpout kafkaSpout = new OAISpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
@@ -78,27 +77,10 @@ public class OAIPHMHarvestingTopology {
         builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules),
-                getAnInt(PARSE_TASKS_BOLT_PARALLEL))
-                .setNumTasks(getAnInt(PARSE_TASKS_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(SPOUT, new ShuffleGrouping());
-
-        builder.setBolt(TASK_SPLITTING_BOLT, new TaskSplittingBolt(parseLong(topologyProperties.getProperty(INTERVAL))),
-                (getAnInt(TASK_SPLITTING_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(PARSE_TASK_BOLT, REPOSITORY_STREAM);
-
-
-        builder.setBolt(IDENTIFIERS_HARVESTING_BOLT, new IdentifiersHarvestingBolt(),
-                (getAnInt(IDENTIFIERS_HARVESTING_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(IDENTIFIERS_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(TASK_SPLITTING_BOLT, new ShuffleGrouping());
-
-
         builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(),
                 (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(IDENTIFIERS_HARVESTING_BOLT, new ShuffleGrouping());
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
@@ -125,13 +107,7 @@ public class OAIPHMHarvestingTopology {
                 getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
                         (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-                .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TASK_SPLITTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(IDENTIFIERS_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                 .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))

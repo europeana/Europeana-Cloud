@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Harvester;
@@ -88,7 +89,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     }
 
     private String readMetadataPrefix(StormTaskTuple stormTaskTuple) {
-        return stormTaskTuple.getSourceDetails().getSchema();
+        return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
     }
 
 
