@@ -41,5 +41,6 @@
         <module>storm/topologies/dereference-enrichment</module>
         <module>storm/topologies/http-harvesting</module>
         <module>storm/topologies/indexing</module>
+        <module>storm/topologies/normalization</module>
     </modules>
 </project>

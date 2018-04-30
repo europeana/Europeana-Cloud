@@ -9,6 +9,7 @@ RUN apt-get update && apt-get --yes install \
     gnupg \
     python \
     tar \
+    libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV STORM_USER=storm \
@@ -24,8 +25,8 @@ RUN adduser "$STORM_USER" \
 ARG DISTRO_NAME=apache-storm-1.0.2
 
 # Download Apache Storm, verify its PGP signature, untar and clean up
-RUN set -x && wget -q "http://www.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz" \
-    && wget -q "http://www.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz.asc" \
+RUN set -x && wget -q "https://archive.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz" \
+    && wget -q "https://archive.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz.asc" \
     && export GNUPGHOME="$(mktemp -d)" \
     && wget -q  "http://www.apache.org/dist/storm/KEYS" \
     && gpg --import KEYS \

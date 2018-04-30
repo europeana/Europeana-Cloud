@@ -24,7 +24,7 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataV
 @RunWith(JUnitParamsRunner.class)
 public class DpsTaskValidatorTest {
 
-    private static final long TASK_ID = 121212;
+
     private DpsTask dpsTask;
     private DpsTask icTopologyTask;
     private DpsTask dpsTaskWithIncorrectRevision_1;
