@@ -5,6 +5,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -273,7 +274,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                 .shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
         builder.setBolt(TopologyHelper.VALIDATION_BOLT, new ValidationBolt(readProperties("validation.properties"))).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
         builder.setBolt(TopologyHelper.STATISTICS_BOLT, statisticsBolt).shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
-        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL)).shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
+        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL, ValidationTopology.SUCCESS_MESSAGE)).shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)

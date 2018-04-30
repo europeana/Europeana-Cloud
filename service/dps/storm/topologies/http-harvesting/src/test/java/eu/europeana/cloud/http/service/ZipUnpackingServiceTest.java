@@ -35,7 +35,7 @@ public class ZipUnpackingServiceTest {
         zipUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME + ZIP_EXTENSION, DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + DEFAULT_DESTINATION_NAME);
         assertNotNull(files);
-        assertEquals(files.size(), XML_FILES_COUNT);
+        assertEquals(XML_FILES_COUNT,files.size());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class ZipUnpackingServiceTest {
         zipUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME2 + ZIP_EXTENSION, DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + DEFAULT_DESTINATION_NAME);
         assertNotNull(files);
-        assertEquals(files.size(), XML_FILES_COUNT);
+        assertEquals(XML_FILES_COUNT,files.size());
     }
 
     @Test
@@ -51,7 +51,7 @@ public class ZipUnpackingServiceTest {
         zipUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME3 + ZIP_EXTENSION, DESTINATION_DIR);
         Collection files = getXMLFiles(DESTINATION_DIR + DEFAULT_DESTINATION_NAME);
         assertNotNull(files);
-        assertEquals(files.size(), XML_FILES_COUNT);
+        assertEquals(XML_FILES_COUNT,files.size());
     }
 
 

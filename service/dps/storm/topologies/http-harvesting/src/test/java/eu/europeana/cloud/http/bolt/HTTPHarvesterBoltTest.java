@@ -44,6 +44,7 @@ public class HTTPHarvesterBoltTest {
     private final static String FILE_NAME = "http://127.0.0.1:9999/ZipFilesWithMixedCompressedFiles.zip";
     private final static String FILE_NAME2 = "http://127.0.0.1:9999/gzFilesWithMixedCompressedFiles.tar.gz";
     private final static String FILE_NAME3 = "http://127.0.0.1:9999/gzFileWithCompressedGZFiles.tgz";
+    private final static String FILE_NAME4 = "http://127.0.0.1:9999/zipFileFromMac.zip";
 
 
     @InjectMocks
@@ -73,6 +74,12 @@ public class HTTPHarvesterBoltTest {
                         .withStatus(200)
                         .withFixedDelay(2000)
                         .withBodyFile("gzFileWithCompressedGZFiles.tgz")));
+
+        wireMockRule.stubFor(get(urlEqualTo("/zipFileFromMac.zip"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withFixedDelay(2000)
+                        .withBodyFile("zipFileFromMac.zip")));
     }
 
     @Test
@@ -92,6 +99,13 @@ public class HTTPHarvesterBoltTest {
     @Test
     public void shouldHarvesshouldTGZFileRecursivelyWithCompressedXMLFiles() throws Exception {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, null, prepareStormTaskTupleParameters(FILE_NAME3), new Revision());
+        httpHarvesterBolt.execute(tuple);
+        assertSuccessfulHarvesting();
+    }
+
+    @Test
+    public void shouldHarvesshouldZipFileFromMacIgnoringExtraCopies() throws Exception {
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, null, prepareStormTaskTupleParameters(FILE_NAME4), new Revision());
         httpHarvesterBolt.execute(tuple);
         assertSuccessfulHarvesting();
     }
