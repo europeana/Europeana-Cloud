@@ -73,6 +73,8 @@ public class HTTPHarvesterBolt extends AbstractDpsBolt {
         }
     }
 
+
+
     private void emitFiles(final Path start, final StormTaskTuple stormTaskTuple) throws IOException {
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
             @Override

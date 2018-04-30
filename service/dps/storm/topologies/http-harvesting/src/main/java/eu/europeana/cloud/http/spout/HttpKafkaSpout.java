@@ -41,6 +41,8 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
     private static final int BATCH_MAX_SIZE = 1240 * 4;
     public static final String CLOUD_SEPARATOR = "_";
+    public static final String MAC_TEMP_FOLDER = "__MACOSX";
+    public static final String MAC_TEMP_FILE = ".DS_Store";
 
     private DpsTask dpsTask;
 
@@ -138,11 +140,15 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         }
     }
 
+
     private void emitFiles(final Path start, final StormTaskTuple stormTaskTuple) throws IOException {
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException {
+                String fileName = getFileNameFromPath(file);
+                if (fileName.equals(MAC_TEMP_FILE))
+                    return FileVisitResult.CONTINUE;
                 String extension = FilenameUtils.getExtension(file.toString());
                 if (!CompressionFileExtension.contains(extension)) {
                     String mimeType = Files.probeContentType(file);
@@ -155,15 +161,20 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException e)
-                    throws IOException {
-                if (e == null) {
-                    return FileVisitResult.CONTINUE;
-                } else {
-                    throw e;
-                }
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                String dirName = getFileNameFromPath(dir);
+                if (dirName.equals(MAC_TEMP_FOLDER))
+                    return FileVisitResult.SKIP_SUBTREE;
+                return FileVisitResult.CONTINUE;
             }
         });
+    }
+
+
+    private String getFileNameFromPath(Path path) {
+        if (path != null)
+            return path.getFileName().toString();
+        throw new IllegalArgumentException("Path parameter should never be null");
     }
 
     private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType) throws IOException {
