@@ -177,7 +177,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             String localId = formulateLocalId(readableFilePath);
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, localId);
             tuple.setFileUrl(readableFilePath);
-            collector.emit(stormTaskTuple.toStormTuple());
+            collector.emit(tuple.toStormTuple());
         } finally {
             if (fileInputStream != null)
                 fileInputStream.close();
@@ -208,8 +208,6 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             try {
                 dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
-                System.out.println("we are here");
-                System.out.println(dpsTask);
                 if (dpsTask != null) {
                     long taskId = dpsTask.getTaskId();
                     if (cache.get(taskId) == null)
