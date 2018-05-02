@@ -2,6 +2,8 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -13,6 +15,8 @@ import java.util.Properties;
  */
 public class IndexingSettingsGenerator {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(IndexingSettingsGenerator.class);
+
     public static final String PREVIEW_PREFIX = "preview";
     public static final String PUBLISH_PREFIX = "publish";
 
@@ -20,7 +24,7 @@ public class IndexingSettingsGenerator {
     public static final String MONGO_PORT_NUMBER = "mongo.portNumber";
     public static final String MONGO_DB_NAME = "mongo.dbName";
     public static final String MONGO_USERNAME = "mongo.username";
-    public static final String MONGO_PASSWORD = "mongo.password";
+    public static final String MONGO_SECRET = "mongo.password";
     public static final String MONGO_USE_SSL = "mongo.useSSL";
     public static final String MONGO_AUTH_DB = "mongo.authDB";
     //
@@ -69,8 +73,10 @@ public class IndexingSettingsGenerator {
         if (mongoCredentialsProvidedFor(prefix)) {
             indexingSettings.setMongoCredentials(
                     properties.get(prefix + DELIMITER + MONGO_USERNAME).toString(),
-                    properties.get(prefix + DELIMITER + MONGO_PASSWORD).toString(),
+                    properties.get(prefix + DELIMITER + MONGO_SECRET).toString(),
                     properties.get(prefix + DELIMITER + MONGO_AUTH_DB).toString());
+        } else {
+            LOGGER.info("Mongo credentials not provided");
         }
 
         if (properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL) != null && properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL).equalsIgnoreCase("true")) {
@@ -80,7 +86,7 @@ public class IndexingSettingsGenerator {
 
     private boolean mongoCredentialsProvidedFor(String prefix) {
         if (!"".equals(properties.get(prefix + DELIMITER + MONGO_USERNAME)) &&
-                !"".equals(properties.get(prefix + DELIMITER + MONGO_PASSWORD)) &&
+                !"".equals(properties.get(prefix + DELIMITER + MONGO_SECRET)) &&
                 !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB))) {
             return true;
         } else {
