@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 
 
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
@@ -107,7 +108,7 @@ public class OAIPHMHarvestingTopology {
                 getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
                         (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-                 .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
@@ -139,7 +140,9 @@ public class OAIPHMHarvestingTopology {
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
                 StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
-                StormSubmitter.submitTopology(topologyName, TopologyHelper.configureTopology(topologyProperties), stormTopology);
+                Config config = configureTopology(topologyProperties);
+                config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
+                StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));

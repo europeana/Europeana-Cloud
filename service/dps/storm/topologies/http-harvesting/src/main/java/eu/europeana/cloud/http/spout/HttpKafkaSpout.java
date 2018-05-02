@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -40,12 +41,12 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpKafkaSpout.class);
 
     private static final int BATCH_MAX_SIZE = 1240 * 4;
-    public static final String CLOUD_SEPARATOR = "_";
-    public static final String MAC_TEMP_FOLDER = "__MACOSX";
-    public static final String MAC_TEMP_FILE = ".DS_Store";
+    private static final String CLOUD_SEPARATOR = "_";
+    private static final String MAC_TEMP_FOLDER = "__MACOSX";
+    private static final String MAC_TEMP_FILE = ".DS_Store";
 
 
-    private transient ConcurrentHashMap<Long, TaskInfo> cache;
+    private transient ConcurrentHashMap<Long, TaskSpoutInfo> cache;
 
     public HttpKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password) {
@@ -61,6 +62,10 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         cache = new ConcurrentHashMap<>(50);
         super.open(conf, context, new CollectorWrapper(collector));
     }
+    @Override
+    public void fail(Object msgId) {
+    }
+
 
     @Override
     public void nextTuple() {
@@ -68,8 +73,8 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         try {
             super.nextTuple();
             for (long taskId : cache.keySet()) {
-                TaskInfo currentTask = cache.get(taskId);
-                if (!currentTask.isStarted) {
+                TaskSpoutInfo currentTask = cache.get(taskId);
+                if (!currentTask.isStarted()) {
                     LOGGER.info("Start progressing for Task{}", currentTask);
                     startProgress(currentTask);
                     DpsTask dpsTask = currentTask.getDpsTask();
@@ -87,8 +92,8 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         }
     }
 
-    private void startProgress(TaskInfo taskInfo) {
-        taskInfo.isStarted = true;
+    private void startProgress(TaskSpoutInfo taskInfo) {
+        taskInfo.startTheTask();
         DpsTask task = taskInfo.getDpsTask();
         cassandraTaskInfoDAO.updateTask(task.getTaskId(), "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
 
@@ -211,7 +216,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
     private class CollectorWrapper extends SpoutOutputCollector {
 
-        public CollectorWrapper(ISpoutOutputCollector delegate) {
+        CollectorWrapper(ISpoutOutputCollector delegate) {
             super(delegate);
         }
 
@@ -222,7 +227,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 if (dpsTask != null) {
                     long taskId = dpsTask.getTaskId();
                     if (cache.get(taskId) == null)
-                        cache.put(taskId, new TaskInfo(dpsTask));
+                        cache.put(taskId, new TaskSpoutInfo(dpsTask));
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
@@ -231,39 +236,4 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             return Collections.emptyList();
         }
     }
-
-    private static class TaskInfo {
-        int fileCount;
-        boolean isStarted;
-        DpsTask dpsTask;
-
-        TaskInfo(DpsTask dpsTask) {
-            this.fileCount = 0;
-            isStarted = false;
-            this.dpsTask = dpsTask;
-        }
-
-        void inc() {
-            fileCount++;
-        }
-
-        void startTheTask() {
-            isStarted = true;
-        }
-
-        int getFileCount() {
-            return fileCount;
-        }
-
-        boolean isStarted() {
-            return isStarted;
-        }
-
-        DpsTask getDpsTask() {
-            return dpsTask;
-        }
-
-    }
-
-
 }

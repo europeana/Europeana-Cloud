@@ -163,4 +163,6 @@ public class CustomKafkaSpout extends KafkaSpout {
         long offset = (Long) offsetField.get(clazz.cast(msgId));
         return new CustomKafkaMessage(partition, offset);
     }
+
+
 }

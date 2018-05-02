@@ -24,7 +24,6 @@ public class AllSchemasHandler extends SchemaHandler {
         while (metadataFormatIterator.hasNext()) {
             String schema = metadataFormatIterator.next().getMetadataPrefix();
             if (excludedSchemas == null || !excludedSchemas.contains(schema)) {
-//                splitter.separateSchemaBySet(schema, oaipmhHarvestingDetails.getSets(), oaipmhHarvestingDetails.getDateFrom(), oaipmhHarvestingDetails.getDateUntil());
                 schemas.add(schema);
             }
         }

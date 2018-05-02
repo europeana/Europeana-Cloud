@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
+import org.apache.storm.grouping.ShuffleGrouping;
 import org.apache.storm.kafka.BrokerHosts;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.StringScheme;
@@ -77,19 +78,19 @@ public class HTTPHarvestingTopology {
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(SPOUT);
+                .customGrouping(SPOUT,new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(WRITE_RECORD_BOLT);
+                .customGrouping(WRITE_RECORD_BOLT,new ShuffleGrouping());
 
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
                 (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(REVISION_WRITER_BOLT);
+                .customGrouping(REVISION_WRITER_BOLT,new ShuffleGrouping());
 
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
@@ -132,6 +133,7 @@ public class HTTPHarvestingTopology {
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
                 StormTopology stormTopology = httpHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
                 Config config = configureTopology(topologyProperties);
+                config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE,true);
 
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
