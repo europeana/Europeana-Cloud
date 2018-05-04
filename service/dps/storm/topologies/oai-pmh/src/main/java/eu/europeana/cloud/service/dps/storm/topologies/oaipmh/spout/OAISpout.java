@@ -21,7 +21,6 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
-import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +36,6 @@ public class OAISpout extends CustomKafkaSpout {
 
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
-    private static final int SLEEP_TIME = 5000;
-    private static final int DEFAULT_RETRIES = 10;
     private SourceProvider sourceProvider;
 
     private DpsTask dpsTask;
@@ -110,17 +107,18 @@ public class OAISpout extends CustomKafkaSpout {
             OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
             OAIHelper oaiHelper = new OAIHelper(stormTaskTuple.getFileUrl());
             int count = 0;
-            for (String schema : schemas) {
-                Date fromDate = oaipmhHarvestingDetails.getDateFrom();
-                if (fromDate == null) {
-                    fromDate = oaiHelper.getEarlierDate();
-                }
-                Date untilDate = oaipmhHarvestingDetails.getDateFrom();
-                if (untilDate == null) {
-                    untilDate = new Date();
-                }
-                Set<String> sets = oaipmhHarvestingDetails.getSets();
+            Date fromDate = oaipmhHarvestingDetails.getDateFrom();
 
+            if (fromDate == null) {
+                fromDate = oaiHelper.getEarlierDate();
+            }
+            Date untilDate = oaipmhHarvestingDetails.getDateFrom();
+            if (untilDate == null) {
+                untilDate = new Date();
+            }
+            Set<String> sets = oaipmhHarvestingDetails.getSets();
+
+            for (String schema : schemas) {
                 if (sets == null || sets.isEmpty()) {
                     count += harvestIdentifiers(schema, null, fromDate, untilDate, oaiHelper.getGranularity().toString(), stormTaskTuple);
                 } else
@@ -186,7 +184,7 @@ public class OAISpout extends CustomKafkaSpout {
         }
 
         int count = 0;
-        while (hasNext(headerIterator)) {
+        while (headerIterator.hasNext()) {
             Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier(), schema);
@@ -195,29 +193,6 @@ public class OAISpout extends CustomKafkaSpout {
         }
 
         return count;
-    }
-
-    private boolean hasNext(Iterator<Header> headerIterator) {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
-            try {
-                return headerIterator.hasNext();
-            } catch (InvalidOAIResponse e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error when harvesting identifiers. Retries left: " + retries);
-                    try {
-                        Thread.sleep(SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        Thread.currentThread().interrupt();
-                        LOGGER.error(e1.getMessage());
-                    }
-                } else {
-                    LOGGER.error("Harvesting identifiers failed.");
-                    throw e;
-                }
-            }
-        }
     }
 
     /**

@@ -105,10 +105,11 @@ public class RecordHarvestingBoltTest {
 
     private StormTaskTuple taskWithAllNeededParameters() {
         StormTaskTuple task = new StormTaskTuple();
-        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
         task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
+        task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
         return task;
     }
 
@@ -121,15 +122,16 @@ public class RecordHarvestingBoltTest {
 
     private StormTaskTuple taskWithoutRecordId() {
         StormTaskTuple task = new StormTaskTuple();
-        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
+        task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
         return task;
     }
 
     private StormTaskTuple taskWithoutPrefix() {
         StormTaskTuple task = new StormTaskTuple();
-        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null);
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
         task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
         task.setSourceDetails(details);

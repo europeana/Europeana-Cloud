@@ -17,10 +17,8 @@ public class SpecificSchemasHandler extends SchemaHandler {
      */
     public Set<String> getSchemas(StormTaskTuple stormTaskTuple) {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
-        OAIHelper oaiHelper = new OAIHelper(stormTaskTuple.getFileUrl());
         Set<String> schemas = oaipmhHarvestingDetails.getSchemas();
         Set<String> excludedSchemas = oaipmhHarvestingDetails.getExcludedSchemas();
-        oaipmhHarvestingDetails.setGranularity(oaiHelper.getGranularity().toString());
         if (excludedSchemas != null) {
             schemas.removeAll(excludedSchemas);
         }
