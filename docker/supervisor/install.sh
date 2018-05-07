@@ -36,7 +36,7 @@ cd ffmpeg-3.4.2
 ./configure --disable-x86asm
 make
 cp ffprobe /usr/local/bin/ffprobe
-cd..
+cd ..
 
 wget http://kakadusoftware.com/wp-content/uploads/2014/06/KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
 unzip KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
