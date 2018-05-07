@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 import eu.europeana.metis.mediaservice.MediaProcessor;
 
@@ -104,7 +105,7 @@ public class DownloadBolt extends HttpClientBolt {
 				logger.debug("Skipping download: {}", fileInfo.getUrl());
 				cleanup();
 				fileInfo.setMimeType(mimeType);
-				statusUpdate(OK);
+				statusUpdate(Status.STATUS_OK);
 				cancel();
 				return;
 			}
@@ -137,7 +138,7 @@ public class DownloadBolt extends HttpClientBolt {
 			}
 			
 			logger.debug("Downloaded {} bytes: {}", byteCount, fileInfo.getUrl());
-			statusUpdate(OK);
+			statusUpdate(Status.STATUS_OK);
 			return null;
 		}
 		
@@ -157,9 +158,9 @@ public class DownloadBolt extends HttpClientBolt {
 		
 		private void statusUpdate(String status) {
 			synchronized (stats) {
-				stats.addError(fileInfo.getUrl(), status);
-				if (stats.getErrors().size() == stats.getResourceCount()) {
-					boolean someSuccess = stats.getErrors().removeIf(e -> e.message.equals(OK));
+				stats.addStatus(fileInfo.getUrl(), status);
+				if (stats.getStatuses().size() == stats.getResourceCount()) {
+					boolean someSuccess = stats.getErrors().size() < stats.getResourceCount();
 					if (someSuccess) {
 						MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
 						data.getFileInfos().removeIf(f -> f.getContent() == ERROR_FLAG);

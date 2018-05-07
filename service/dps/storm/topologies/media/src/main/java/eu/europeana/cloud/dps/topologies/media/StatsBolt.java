@@ -16,7 +16,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Error;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
@@ -92,7 +92,7 @@ public class StatsBolt extends BaseRichBolt {
 			updateDao(stats);
 		}
 		
-		for (Error error : data.getErrors()) {
+		for (Status error : data.getErrors()) {
 			String errorType = getErrorType(error.message);
 			taskErrorsDao.updateErrorCounter(taskId, errorType);
 			taskErrorsDao.insertError(taskId, errorType, error.message, error.resourceUrl, error.date.toString());
@@ -153,7 +153,7 @@ public class StatsBolt extends BaseRichBolt {
 			totalResourcesCount += data.getResourceCount();
 			failedResourcesCount += data.getErrors().size();
 			
-			for (Error error : data.getErrors())
+			for (Status error : data.getErrors())
 				errorsCount.merge(error.message, 1L, Long::sum);
 			
 			if (data.getDownloadedBytes() > 0) {

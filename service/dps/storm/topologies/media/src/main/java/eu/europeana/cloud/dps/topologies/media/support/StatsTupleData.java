@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.esotericsoftware.kryo.DefaultSerializer;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
@@ -12,15 +13,25 @@ import com.esotericsoftware.kryo.serializers.JavaSerializer;
 @DefaultSerializer(JavaSerializer.class)
 public class StatsTupleData implements Serializable {
 	
-	public static class Error implements Serializable {
+	public static class Status implements Serializable {
+		/** Special value for {@link Status} message if there was no error */
+		public static final String STATUS_OK = "OK";
+		
 		public final String resourceUrl;
 		public final String message;
 		public final Date date;
 		
-		public Error(String resourceUrl, String message, Date date) {
+		/**
+		 * @param message error message or {@link #STATUS_OK} if there was no error.
+		 */
+		public Status(String resourceUrl, String message, Date date) {
 			this.resourceUrl = resourceUrl;
 			this.message = message;
 			this.date = date;
+		}
+		
+		public boolean isError() {
+			return !STATUS_OK.equals(message);
 		}
 	}
 	
@@ -29,7 +40,7 @@ public class StatsTupleData implements Serializable {
 	
 	private final long taskId;
 	private final int resourceCount;
-	private HashMap<String, Error> errors = new HashMap<>();
+	private HashMap<String, Status> status = new HashMap<>();
 	
 	private long downloadStartTime;
 	private long downloadEndTime;
@@ -78,16 +89,20 @@ public class StatsTupleData implements Serializable {
 		return downloadedBytes;
 	}
 	
-	public void addError(String resourceUrl, String message) {
-		errors.put(resourceUrl, new Error(resourceUrl, message, new Date()));
+	public void addStatus(String resourceUrl, String message) {
+		status.put(resourceUrl, new Status(resourceUrl, message, new Date()));
 	}
 	
-	public void addErrorIfAbsent(String resourceUrl, String message) {
-		errors.putIfAbsent(resourceUrl, new Error(resourceUrl, message, new Date()));
+	public void addStatusIfAbsent(String resourceUrl, String message) {
+		status.putIfAbsent(resourceUrl, new Status(resourceUrl, message, new Date()));
 	}
 	
-	public List<Error> getErrors() {
-		return new ArrayList<>(errors.values());
+	public List<Status> getStatuses() {
+		return new ArrayList<>(status.values());
+	}
+	
+	public List<Status> getErrors() {
+		return status.values().stream().filter(Status::isError).collect(Collectors.toList());
 	}
 	
 	public void setProcessingStartTime(long processingStartTime) {

@@ -309,7 +309,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 						logger.info("EDM loading failed ({}/{}) for {}", e.reportError, e.getMessage(), rep.getFiles());
 						logger.trace("full exception:", e);
 						StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
-						stats.addError(fileUri, e.reportError);
+						stats.addStatus(fileUri, e.reportError);
 						outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
 						
 						edmFinished(edmInfo);

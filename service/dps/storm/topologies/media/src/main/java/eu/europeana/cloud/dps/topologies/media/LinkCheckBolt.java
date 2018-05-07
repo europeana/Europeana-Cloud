@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 
 public class LinkCheckBolt extends HttpClientBolt {
 	
@@ -83,7 +84,7 @@ public class LinkCheckBolt extends HttpClientBolt {
 				return;
 			}
 			logger.debug("Link OK: {}", fileInfo.getUrl());
-			statusUpdate(OK);
+			statusUpdate(Status.STATUS_OK);
 		}
 		
 		@Override
@@ -115,9 +116,8 @@ public class LinkCheckBolt extends HttpClientBolt {
 		
 		private void statusUpdate(String status) {
 			synchronized (stats) {
-				stats.addError(fileInfo.getUrl(), status);
-				if (stats.getErrors().size() == stats.getResourceCount()) {
-					stats.getErrors().removeIf(e -> e.message.equals(OK));
+				stats.addStatus(fileInfo.getUrl(), status);
+				if (stats.getStatuses().size() == stats.getResourceCount()) {
 					outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
 					outputCollector.ack(tuple);
 				}

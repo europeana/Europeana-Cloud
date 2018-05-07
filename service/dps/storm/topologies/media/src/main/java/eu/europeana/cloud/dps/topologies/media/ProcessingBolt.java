@@ -129,7 +129,7 @@ public class ProcessingBolt extends BaseRichBolt {
 						logger.warn("Exception without proper report error:", e);
 						message = "UNKNOWN";
 					}
-					statsData.addError(file.getUrl(), message);
+					statsData.addStatus(file.getUrl(), message);
 				}
 			} finally {
 				logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
@@ -274,7 +274,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				logger.error("Could not store tech metadata representation in "
 						+ currentItem.mediaData.getEdmRepresentation().getCloudId(), e);
 				for (FileInfo file : currentItem.mediaData.getFileInfos()) {
-					currentItem.statsData.addErrorIfAbsent(file.getUrl(), "TECH METADATA SAVING");
+					currentItem.statsData.addStatusIfAbsent(file.getUrl(), "TECH METADATA SAVING");
 				}
 			}
 		}
@@ -289,7 +289,7 @@ public class ProcessingBolt extends BaseRichBolt {
 					uploaded = true;
 				} catch (AmazonClientException e) {
 					logger.error("Could not save thumbnails for " + t.url, e);
-					currentItem.statsData.addErrorIfAbsent(t.url, "THUMBNAIL SAVING");
+					currentItem.statsData.addStatusIfAbsent(t.url, "THUMBNAIL SAVING");
 				}
 			}
 			if (!uploaded) {

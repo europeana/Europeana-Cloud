@@ -34,9 +34,6 @@ abstract class HttpClientBolt extends BaseRichBolt {
 	
 	protected static final int FOLLOW_REDIRECTS = 3;
 	
-	/** Temporary "error" value for counting successful downloads */
-	protected static final String OK = "OK";
-	
 	protected transient OutputCollector outputCollector;
 	
 	protected transient CloseableHttpAsyncClient httpClient;
