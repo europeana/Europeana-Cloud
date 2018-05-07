@@ -16,8 +16,12 @@ topology.max.spout.pending: 128
 # Media topology specific
 MCS_URL: "https://test-cloud.europeana.eu/api"
 
+# File transfer of downloaded files between workers:
 MEDIATOPOLOGY_FILE_TRANSFER_PORT: 4401
 MEDIATOPOLOGY_FILE_TRANSFER_THRESHOLD_MB: 10
+# If private IPs cannot be used for communication across the cluster, add mapping for public IPs
+#MEDIATOPOLOGY_FILE_TRANSFER_HOSTS:
+#    "192.168.0.10" : "150.254.1.10"
 
 MEDIATOPOLOGY_EDM_DOWNLOAD_THREADS: 4
 MEDIATOPOLOGY_CONNECTIONS_PER_SOURCE: 4

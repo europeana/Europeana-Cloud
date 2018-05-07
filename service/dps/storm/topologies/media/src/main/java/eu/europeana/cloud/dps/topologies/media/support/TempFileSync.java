@@ -14,6 +14,7 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -39,6 +40,7 @@ public class TempFileSync {
 	
 	private static volatile int startedCount = 0;
 	private static InetAddress localAddress;
+	private static InetAddress publicAddress;
 	private static int port;
 	private static ServerSocket serverSocket;
 	private static ExecutorService threadPool;
@@ -50,11 +52,18 @@ public class TempFileSync {
 	}
 	
 	public static synchronized void init(Map<String, Object> config) {
-		if (tempDir == null) {
-			localAddress = getLocalAddress();
-			port = (int) (long) config.get("MEDIATOPOLOGY_FILE_TRANSFER_PORT");
-			tempDir = new File(System.getProperty("java.io.tmpdir"));
+		if (tempDir != null)
+			return;
+		localAddress = getLocalAddress();
+		Map<?, ?> hostMapping = (Map<?, ?>) config.get("MEDIATOPOLOGY_FILE_TRANSFER_HOSTS");
+		String host = (String) hostMapping.get(localAddress.getHostAddress());
+		try {
+			publicAddress = host == null ? localAddress : InetAddress.getByName(host);
+		} catch (UnknownHostException e) {
+			throw new RuntimeException("Invalid public host configuration for " + localAddress, e);
 		}
+		port = (int) (long) config.get("MEDIATOPOLOGY_FILE_TRANSFER_PORT");
+		tempDir = new File(System.getProperty("java.io.tmpdir"));
 	}
 	
 	public static synchronized InetAddress startServer(Map<String, Object> config) {
@@ -66,7 +75,7 @@ public class TempFileSync {
 				} catch (BindException e) {
 					if (testLocalInstance()) {
 						logger.warn("File transfer started by another process");
-						return localAddress;
+						return publicAddress;
 					} else {
 						throw e;
 					}
@@ -76,10 +85,10 @@ public class TempFileSync {
 			}
 			threadPool = Executors.newCachedThreadPool();
 			new Thread(TempFileSync::listenerLoop, "file-transfer-listener-loop").start();
-			logger.info("file transfer listening on {}:{}", localAddress, port);
+			logger.info("file transfer listening on {}:{} (public: {})", localAddress, port, publicAddress);
 		}
 		startedCount++;
-		return localAddress;
+		return publicAddress;
 	}
 	
 	public static synchronized void stopServer() {
@@ -151,7 +160,8 @@ public class TempFileSync {
 	}
 	
 	private static boolean isLocal(FileInfo file) {
-		return localAddress.equals(file.getContentSource()) || file.getContent() == null;
+		return localAddress.equals(file.getContentSource()) || publicAddress.equals(file.getContentSource())
+				|| file.getContent() == null;
 	}
 	
 	private static boolean testLocalInstance() throws IOException {
