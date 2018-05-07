@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.OAISpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 
 
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;

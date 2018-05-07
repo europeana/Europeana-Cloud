@@ -43,6 +43,11 @@ public class CustomKafkaSpout extends KafkaSpout {
     private CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO;
     private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
 
+    protected CustomKafkaSpout(SpoutConfig spoutConf)
+    {
+        super(spoutConf);
+    }
+
     public CustomKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                             String userName, String password) {
 

@@ -48,6 +48,10 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
     private transient ConcurrentHashMap<Long, TaskSpoutInfo> cache;
 
+    HttpKafkaSpout(SpoutConfig spoutConf) {
+        super(spoutConf);
+    }
+
     public HttpKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
@@ -62,6 +66,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         cache = new ConcurrentHashMap<>(50);
         super.open(conf, context, new CollectorWrapper(collector));
     }
+
     @Override
     public void fail(Object msgId) {
     }
