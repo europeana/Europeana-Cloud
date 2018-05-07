@@ -134,6 +134,7 @@ public class MediaTupleData {
 			kryo.writeObject(output, writer.toXmlBytes(data.edm));
 			kryo.writeObject(output, new ArrayList<>(data.fileInfos));
 			kryo.writeObject(output, new HashMap<>(data.connectionLimitsPerSource));
+			kryo.writeObject(output, data.task);
 		}
 		
 		@Override
@@ -148,6 +149,8 @@ public class MediaTupleData {
 			}
 			data.fileInfos = kryo.readObject(input, ArrayList.class);
 			data.connectionLimitsPerSource = kryo.readObject(input, HashMap.class);
+			data.task = kryo.readObject(input, DpsTask.class);
+			
 			return data;
 		}
 		
