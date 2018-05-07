@@ -7,12 +7,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.net.BindException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,7 +61,16 @@ public class TempFileSync {
 		if (startedCount == 0) {
 			init(config);
 			try {
-				serverSocket = new ServerSocket(port, 100, localAddress);
+				try {
+					serverSocket = new ServerSocket(port, 100, localAddress);
+				} catch (BindException e) {
+					if (testLocalInstance()) {
+						logger.warn("File transfer started by another process");
+						return localAddress;
+					} else {
+						throw e;
+					}
+				}
 			} catch (IOException e) {
 				throw new RuntimeException("could not start listening on " + localAddress + ":" + port, e);
 			}
@@ -72,7 +84,7 @@ public class TempFileSync {
 	
 	public static synchronized void stopServer() {
 		startedCount--;
-		if (startedCount == 0) {
+		if (startedCount == 0 && threadPool != null) {
 			threadPool.shutdown();
 			try {
 				serverSocket.close();
@@ -140,6 +152,24 @@ public class TempFileSync {
 	
 	private static boolean isLocal(FileInfo file) {
 		return localAddress.equals(file.getContentSource()) || file.getContent() == null;
+	}
+	
+	private static boolean testLocalInstance() throws IOException {
+		byte[] content = "230823048103".getBytes("UTF-8");
+		File tempFile = File.createTempFile("test", ".tmp");
+		try {
+			try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+				fos.write(content);
+			}
+			try (Socket socket = new Socket(localAddress, port)) {
+				PrintStream out = new PrintStream(socket.getOutputStream(), true);
+				out.println(GET + tempFile.getAbsolutePath());
+				byte[] response = IOUtils.toByteArray(socket.getInputStream());
+				return Arrays.equals(content, response);
+			}
+		} finally {
+			Files.delete(tempFile.toPath());
+		}
 	}
 	
 	private static void listenerLoop() {
