@@ -93,8 +93,10 @@ public class StatsTupleData implements Serializable {
 		status.put(resourceUrl, new Status(resourceUrl, message, new Date()));
 	}
 	
-	public void addStatusIfAbsent(String resourceUrl, String message) {
-		status.putIfAbsent(resourceUrl, new Status(resourceUrl, message, new Date()));
+	public void addErrorIfAbsent(String resourceUrl, String message) {
+		Status old = status.get(resourceUrl);
+		if (old == null || !old.isError())
+			status.put(resourceUrl, new Status(resourceUrl, message, new Date()));
 	}
 	
 	public List<Status> getStatuses() {

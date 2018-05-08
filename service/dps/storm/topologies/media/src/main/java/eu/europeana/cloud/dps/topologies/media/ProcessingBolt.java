@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import javax.ws.rs.ProcessingException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -270,11 +272,11 @@ public class ProcessingBolt extends BaseRichBolt {
 					recordClient.deleteRepresentation(r.getCloudId(), representationName, version);
 					logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
 				}
-			} catch (IOException | DriverException | MCSException e) {
+			} catch (IOException | DriverException | MCSException | ProcessingException e) {
 				logger.error("Could not store tech metadata representation in "
 						+ currentItem.mediaData.getEdmRepresentation().getCloudId(), e);
 				for (FileInfo file : currentItem.mediaData.getFileInfos()) {
-					currentItem.statsData.addStatusIfAbsent(file.getUrl(), "TECH METADATA SAVING");
+					currentItem.statsData.addErrorIfAbsent(file.getUrl(), "TECH METADATA SAVING");
 				}
 			}
 		}
@@ -289,7 +291,7 @@ public class ProcessingBolt extends BaseRichBolt {
 					uploaded = true;
 				} catch (AmazonClientException e) {
 					logger.error("Could not save thumbnails for " + t.url, e);
-					currentItem.statsData.addStatusIfAbsent(t.url, "THUMBNAIL SAVING");
+					currentItem.statsData.addErrorIfAbsent(t.url, "THUMBNAIL SAVING");
 				}
 			}
 			if (!uploaded) {
