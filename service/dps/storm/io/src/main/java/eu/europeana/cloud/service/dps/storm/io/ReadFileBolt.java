@@ -45,9 +45,12 @@ public class ReadFileBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple t) {
         Map<String, String> parameters = t.getParameters();
         List<String> files = Arrays.asList(parameters.get(PluginParameterKeys.DPS_TASK_INPUT_DATA).split("\\s*,\\s*"));
+        FileServiceClient fileClient = new FileServiceClient(ecloudMcsAddress);
+        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        fileClient.useAuthorizationHeader(authorizationHeader);
         if (files != null && !files.isEmpty()) {
             t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-            emitFiles(t, files);
+            emitFiles(fileClient, t, files);
             return;
         } else {
             String errorMessage = "No URL for retrieve file.";
@@ -56,16 +59,13 @@ public class ReadFileBolt extends AbstractDpsBolt {
         }
     }
 
-    private void emitFiles(StormTaskTuple t, List<String> files) {
+     void emitFiles(FileServiceClient fileClient, StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
-        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        FileServiceClient fileClient = new FileServiceClient(ecloudMcsAddress);
-        fileClient.useAuthorizationHeader(authorizationHeader);
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
             try {
                 LOGGER.info("HERE THE LINK: {}", file);
-                InputStream is = fileClient.getFile(file);
+                InputStream is = getFile(fileClient, file);
                 tt.setFileData(is);
                 tt.setFileUrl(file);
                 outputCollector.emit(inputTuple, tt.toStormTuple());
@@ -76,6 +76,23 @@ public class ReadFileBolt extends AbstractDpsBolt {
             } catch (DriverException | MCSException | IOException ex) {
                 LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
+            }
+        }
+    }
+
+    private InputStream getFile(FileServiceClient fileClient, String file) throws MCSException, IOException, DriverException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                return fileClient.getFile(file);
+            } catch (MCSException | DriverException e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while getting a file. Retries left:{} ", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while getting a file.");
+                    throw e;
+                }
             }
         }
     }

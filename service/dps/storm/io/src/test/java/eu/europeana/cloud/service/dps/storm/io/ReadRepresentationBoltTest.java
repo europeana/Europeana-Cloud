@@ -14,16 +14,14 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
@@ -31,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.storm.io.ReadRepresentationBolt.getTestInstance;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
@@ -42,33 +40,39 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskStatusChecker.class})
+@PrepareForTest({ReadRepresentationBolt.class})
 public class ReadRepresentationBoltTest {
 
-    private ReadRepresentationBolt instance;
-    private OutputCollector oc;
 
-    private static TaskStatusChecker taskStatusChecker;
+    @Mock(name = "outputCollector")
+    private OutputCollector outputCollector;
+
+    @Mock(name = "fileServiceClient")
+    private FileServiceClient fileServiceClient;
+
+    @Mock(name = "taskStatusChecker")
+    private TaskStatusChecker taskStatusChecker;
+
+    @InjectMocks
+    private ReadRepresentationBolt instance;
+
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
     private final byte[] FILE_DATA = null;
-    private FileServiceClient fileClient;
-    private TestHelper testHelper;
 
-    @BeforeClass
-    public static void initTaskStatusChecker() throws Exception {
-        taskStatusChecker = Mockito.mock(TaskStatusChecker.class);
-        PowerMockito.mockStatic(TaskStatusChecker.class);
-        when(TaskStatusChecker.getTaskStatusChecker()).thenReturn(taskStatusChecker);
-    }
+    private TestHelper testHelper = new TestHelper();
+
 
     @Before
-    public void init() {
-        oc = mock(OutputCollector.class);
-        fileClient = mock(FileServiceClient.class);
-        instance = getTestInstance("http://localhost:8080/mcs", oc, taskStatusChecker);
-        testHelper = new TestHelper();
+    public void init() throws Exception {
+        MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
+        mockStaticField(ReadRepresentationBolt.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
+    }
+
+    private static void mockStaticField(Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+        field.set(null, newValue);
     }
 
     @Captor
@@ -79,45 +83,59 @@ public class ReadRepresentationBoltTest {
         //given
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
-        when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, false);
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
+        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
+        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
-        instance.execute(tuple);
+        instance.readRepresentationBolt(fileServiceClient, tuple);
         //then
-        String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/fileName";
-        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
+
+        verify(outputCollector, times(2)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(2));
         List<Values> allValues = captor.getAllValues();
         for (Values values : allValues) {
             assertNotNull(values);
             assertTrue(values.size() >= 4);
-            assertFile(exptectedFileUrl, values);
+            assertFile(FILE_URL, values);
         }
-        verifyNoMoreInteractions(oc);
     }
+
+
+    @Test
+    public void shouldRetry10TimesBeforeFailing() throws MCSException, URISyntaxException {
+        //given
+        Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date());
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
+        doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
+        when(outputCollector.emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.readRepresentationBolt(fileServiceClient, tuple);
+        //then
+        verify(outputCollector, times(0)).emit(any(Tuple.class), anyList());
+        //verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+    }
+
 
     @Test
     public void NoFilesShouldBeEmittedIfTaskWasKilled() throws MCSException, URISyntaxException {
         //given
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
-        when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
+        when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, true);
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
-        instance.execute(tuple);
+        instance.readRepresentationBolt(fileServiceClient, tuple);
         //then
-        String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/fileName";
-        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         for (Values values : allValues) {
             assertNotNull(values);
             assertTrue(values.size() >= 4);
-            assertFile(exptectedFileUrl, values);
+            assertFile(FILE_URL, values);
         }
-        verifyNoMoreInteractions(oc);
     }
 
 

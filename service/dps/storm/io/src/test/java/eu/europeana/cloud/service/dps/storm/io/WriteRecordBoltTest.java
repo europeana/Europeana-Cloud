@@ -3,8 +3,10 @@ package eu.europeana.cloud.service.dps.storm.io;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -80,6 +82,38 @@ public class WriteRecordBoltTest {
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(parameters.get(PluginParameterKeys.OUTPUT_URL), SOURCE_VERSION_URL);
 
+    }
+
+    @Test
+    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
+        RecordServiceClient recordServiceClient = mock(RecordServiceClient.class);
+        whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
+        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        Representation representation = mock(Representation.class);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
+        when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
+
+
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
+        writeRecordBolt.execute(tuple);
+        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
+    }
+
+    @Test
+    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
+        RecordServiceClient recordServiceClient = mock(RecordServiceClient.class);
+        whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
+        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        Representation representation = mock(Representation.class);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
+        when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
+
+
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
+        writeRecordBolt.execute(tuple);
+        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
     }
 
     @Captor

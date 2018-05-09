@@ -19,6 +19,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
+import org.apache.storm.grouping.ShuffleGrouping;
 import org.apache.storm.kafka.BrokerHosts;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.StringScheme;
@@ -80,41 +81,41 @@ public class OAIPHMHarvestingTopology {
         builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules),
                 getAnInt(PARSE_TASKS_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(PARSE_TASKS_BOLT_NUMBER_OF_TASKS))
-                .shuffleGrouping(SPOUT);
+                .customGrouping(SPOUT,new ShuffleGrouping());
 
         builder.setBolt(TASK_SPLITTING_BOLT, new TaskSplittingBolt(parseLong(topologyProperties.getProperty(INTERVAL))),
                 (getAnInt(TASK_SPLITTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(PARSE_TASK_BOLT, REPOSITORY_STREAM);
+                .customGrouping(PARSE_TASK_BOLT, REPOSITORY_STREAM,new ShuffleGrouping());
 
 
         builder.setBolt(IDENTIFIERS_HARVESTING_BOLT, new IdentifiersHarvestingBolt(),
                 (getAnInt(IDENTIFIERS_HARVESTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(IDENTIFIERS_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(TASK_SPLITTING_BOLT);
+                .customGrouping(TASK_SPLITTING_BOLT,new ShuffleGrouping());
 
 
         builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(),
                 (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(IDENTIFIERS_HARVESTING_BOLT);
+                .customGrouping(IDENTIFIERS_HARVESTING_BOLT,new ShuffleGrouping());
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(RECORD_HARVESTING_BOLT);
+                .customGrouping(RECORD_HARVESTING_BOLT,new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(WRITE_RECORD_BOLT);
+                .customGrouping(WRITE_RECORD_BOLT,new ShuffleGrouping());
 
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
                 (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(REVISION_WRITER_BOLT);
+                .customGrouping(REVISION_WRITER_BOLT,new ShuffleGrouping());
 
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),

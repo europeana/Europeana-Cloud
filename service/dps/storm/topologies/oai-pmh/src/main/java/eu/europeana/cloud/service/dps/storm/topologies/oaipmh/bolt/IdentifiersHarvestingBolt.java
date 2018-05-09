@@ -127,13 +127,8 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
                 return headerIterator.hasNext();
             } catch (InvalidOAIResponse e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error when harvesting identifiers. Retries left: " + retries);
-                    try {
-                        Thread.sleep(SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        Thread.currentThread().interrupt();
-                        LOGGER.error(e1.getMessage());
-                    }
+                    LOGGER.warn("Error when harvesting identifiers. Retries left: {}", retries);
+                    waitForSpecificTime();
                 } else {
                     LOGGER.error("Harvesting identifiers failed.");
                     throw e;

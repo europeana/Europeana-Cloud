@@ -24,14 +24,15 @@ public class Harvester implements Serializable {
 
     private static final String METADATA_XPATH = "/*[local-name()='OAI-PMH']" +
             "/*[local-name()='GetRecord']" +
-            "/*[local-name()='record']"+
+            "/*[local-name()='record']" +
             "/*[local-name()='metadata']" +
             "/child::*";
 
     /**
      * Harvest record
+     *
      * @param oaiPmhEndpoint OAI-PMH endpoint
-     * @param recordId record id
+     * @param recordId       record id
      * @param metadataPrefix metadata prefix
      * @return return metadata
      * @throws HarvesterException
@@ -50,7 +51,7 @@ public class Harvester implements Serializable {
                 return new XmlXPath(record).xpath(METADATA_XPATH);
             } catch (OAIRequestException e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error harvesting record " + recordId + ". Retries left: " + retries);
+                    LOGGER.warn("Error harvesting record " + recordId + ". Retries left:{} ", retries);
                     try {
                         Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
                     } catch (InterruptedException ex) {
