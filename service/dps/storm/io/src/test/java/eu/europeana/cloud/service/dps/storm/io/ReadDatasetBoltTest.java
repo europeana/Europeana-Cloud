@@ -141,6 +141,38 @@ public class ReadDatasetBoltTest {
         assertBoltExecutionResults(tuple, representations);
     }
 
+
+    @Test
+    public void shouldRetry10TimesThenFailWhenStormTupleExecutionWithLatestRevision() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        doThrow(MCSException.class).when(datasetClient).getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(oc, times(0)).emit(any(Tuple.class), anyList());
+        verify(datasetClient, times(11)).getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+
+
+    }
+
+    @Test
+    public void shouldRetry10TimesThenFailWhenStormTupleExecutionWithSpecificRevision() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
+
+        doThrow(MCSException.class).when(datasetClient).getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(oc, times(0)).emit(any(Tuple.class), anyList());
+        verify(datasetClient, times(11)).getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+
+    }
+
     @Test
     public void killTaskShouldPreventEmittingRepresentationWhenExecutionWithLatestRevisions() throws MCSException, URISyntaxException {
         //given
