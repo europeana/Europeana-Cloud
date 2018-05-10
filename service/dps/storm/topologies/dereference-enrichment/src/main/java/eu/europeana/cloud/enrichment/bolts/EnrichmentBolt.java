@@ -34,7 +34,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
 
     private void emitEnrichedContent(StormTaskTuple stormTaskTuple, String output) throws Exception {
         prepareStormTaskTupleForEmission(stormTaskTuple, output);
-        outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+        outputCollector.emit(stormTaskTuple.toStormTuple());
     }
 
     @Override

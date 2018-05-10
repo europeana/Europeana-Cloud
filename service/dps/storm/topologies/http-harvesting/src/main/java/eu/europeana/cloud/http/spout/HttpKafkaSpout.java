@@ -68,11 +68,6 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     }
 
     @Override
-    public void fail(Object msgId) {
-    }
-
-
-    @Override
     public void nextTuple() {
 
         try {

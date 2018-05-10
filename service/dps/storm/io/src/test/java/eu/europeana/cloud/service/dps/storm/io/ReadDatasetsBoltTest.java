@@ -46,12 +46,12 @@ public class ReadDatasetsBoltTest {
         //given
         String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls),new Revision());
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
         //then
         String expectedDataSetUrl = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
-        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(oc, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertDpsTaskInputData(expectedDataSetUrl, allValues, 0);
@@ -67,13 +67,13 @@ public class ReadDatasetsBoltTest {
         //given
         String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet,http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2";
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls),new Revision());
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
         //then
         String expectedDataSetUrl = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         String expectedDataSetUrl2 = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2";
-        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
+        verify(oc, times(2)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(2));
         List<Values> allValues = captor.getAllValues();
         assertDpsTaskInputData(expectedDataSetUrl, allValues, 0);

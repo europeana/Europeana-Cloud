@@ -49,7 +49,7 @@ public class RevisionWriterBoltTest {
         testMock.addRevisionAndEmit(new StormTaskTuple(), revisionServiceClient);
 
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
     }
 
     @Test
@@ -57,7 +57,7 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.addRevisionAndEmit(prepareTuple(), revisionServiceClient);
         Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.addRevisionAndEmit(prepareTupleWithMalformedURL(), revisionServiceClient);
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
     }
 
     @Test
@@ -74,7 +74,7 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.addRevisionAndEmit(prepareTuple(), revisionServiceClient);
         Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),Mockito.any(List.class));
     }
 
     private StormTaskTuple prepareTuple() {

@@ -54,7 +54,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
         Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
@@ -68,7 +68,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
         Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
@@ -83,7 +83,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
@@ -99,7 +99,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
@@ -115,7 +115,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 

@@ -152,8 +152,10 @@ public class IndexingTopology {
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = indexingTopology.buildTopology(topologyName, ecloudMcsAddress);
 
+                Config config = configureTopology(topologyProperties);
+                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
                 LOGGER.info("Submitting indexing topology");
-                StormSubmitter.submitTopology(topologyName, configureTopology(topologyProperties), stormTopology);
+                StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));

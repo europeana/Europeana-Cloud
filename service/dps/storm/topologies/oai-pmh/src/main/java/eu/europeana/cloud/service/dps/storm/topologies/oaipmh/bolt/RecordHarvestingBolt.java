@@ -48,7 +48,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 final InputStream record = harvester.harvestRecord(endpointLocation, recordId,
                         metadataPrefix);
                 stormTaskTuple.setFileData(record);
-                outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+                outputCollector.emit(stormTaskTuple.toStormTuple());
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
             } catch (HarvesterException | IOException e) {
                 LOGGER.error("Exception on harvesting", e);

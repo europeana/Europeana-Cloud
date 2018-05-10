@@ -143,7 +143,7 @@ public class RecordHarvestingBoltTest {
      * Checks if emit to standard stream occured
      */
     private void verifySuccessfulEmit() {
-        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(1)).emit(Mockito.anyList());
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
     }
 
@@ -152,8 +152,8 @@ public class RecordHarvestingBoltTest {
      */
     private void verifyErrorEmit() {
 
-        verify(outputCollector, times(1)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
-        verify(outputCollector, times(0)).emit(Mockito.any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(Mockito.anyList());
     }
 
 }

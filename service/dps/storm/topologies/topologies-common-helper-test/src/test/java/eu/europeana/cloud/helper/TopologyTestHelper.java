@@ -110,6 +110,7 @@ public class TopologyTestHelper {
         conf.put(CASSANDRA_KEYSPACE_NAME, CASSANDRA_KEYSPACE_NAME);
         conf.put(CASSANDRA_USERNAME, CASSANDRA_USERNAME);
         conf.put(CASSANDRA_SECRET_TOKEN, CASSANDRA_SECRET_TOKEN);
+        conf.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
         return conf;
     }
 

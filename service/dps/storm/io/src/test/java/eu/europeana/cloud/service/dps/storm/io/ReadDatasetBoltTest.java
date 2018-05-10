@@ -164,12 +164,12 @@ public class ReadDatasetBoltTest {
 
     private void assertBoltExecutionResults(StormTaskTuple tuple, List<Representation> representations) {
 
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
         //then
         int expectedExecutionTimes = representations.size();
-        verify(oc, times(expectedExecutionTimes)).emit(any(Tuple.class), captor.capture());
+        verify(oc, times(expectedExecutionTimes)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(expectedExecutionTimes));
         List<Values> allValues = captor.getAllValues();
         for (int i = 0; i < expectedExecutionTimes; i++) {

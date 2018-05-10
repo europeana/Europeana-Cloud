@@ -44,8 +44,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     public static final int SLEEP_TIME = 5000;
 
-    protected Tuple inputTuple;
-
     protected Map stormConfig;
     protected TopologyContext topologyContext;
     protected OutputCollector outputCollector;
@@ -57,7 +55,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        inputTuple = tuple;
 
         StormTaskTuple t = null;
         try {
@@ -73,8 +70,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 e.printStackTrace(new PrintWriter(stack));
                 emitErrorNotification(t.getTaskId(), t.getFileUrl(), e.getMessage(), stack.toString());
             }
-        } finally {
-            outputCollector.ack(tuple);
         }
     }
 
@@ -127,7 +122,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.ERROR, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
     protected void logAndEmitError(StormTaskTuple t, String message) {
@@ -136,10 +131,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
 
     protected void emitSuccessNotification(long taskId, String resource,
-                                           String message, String additionalInformations, String resultResource) {
+                                           String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.SUCCESS, message, additionalInformations, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
+                resource, States.SUCCESS, message, additionalInformation, resultResource);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {

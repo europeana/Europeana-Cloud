@@ -32,11 +32,11 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
     /**
      * Should be used only on tests.
      */
-    public static ReadRepresentationBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,TaskStatusChecker taskStatusChecker
+    public static ReadRepresentationBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector, TaskStatusChecker taskStatusChecker
     ) {
         ReadRepresentationBolt instance = new ReadRepresentationBolt(ecloudMcsAddress);
         instance.outputCollector = outputCollector;
-        instance.taskStatusChecker=taskStatusChecker;
+        instance.taskStatusChecker = taskStatusChecker;
         return instance;
 
     }
@@ -65,7 +65,7 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
                 if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
                     final String fileUrl = fileClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
                     StormTaskTuple stormTaskTuple = buildNextStormTuple(t, fileUrl);
-                    outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+                    outputCollector.emit(stormTaskTuple.toStormTuple());
                 } else
                     break;
             }

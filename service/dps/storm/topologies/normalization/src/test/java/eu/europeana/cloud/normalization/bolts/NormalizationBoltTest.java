@@ -43,7 +43,7 @@ public class NormalizationBoltTest {
         normalizationBolt.execute(getCorrectStormTuple(inputData));
 
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals(new String(expected), new String((byte[]) capturedValues.get(3)).replaceAll("\r", ""));
     }
@@ -59,7 +59,7 @@ public class NormalizationBoltTest {
         normalizationBolt.execute(getCorrectStormTuple(inputData));
 
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
         Assert.assertEquals("Error during normalization.", val.get("additionalInfo"));
@@ -77,7 +77,7 @@ public class NormalizationBoltTest {
         normalizationBolt.execute(getMalformedStormTuple(inputData));
 
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
         Assert.assertEquals("Cannot prepare output storm tuple.", val.get("additionalInfo"));

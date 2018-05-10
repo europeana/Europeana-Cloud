@@ -23,7 +23,7 @@ public class ValidationBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         ValidationResult result = validateFile(stormTaskTuple);
         if (result.isSuccess()) {
-            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+            outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
         }
