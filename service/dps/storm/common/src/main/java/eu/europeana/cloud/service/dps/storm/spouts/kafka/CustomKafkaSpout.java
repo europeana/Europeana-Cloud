@@ -10,6 +10,7 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
@@ -56,12 +57,15 @@ public class CustomKafkaSpout extends KafkaSpout {
         cassandraTaskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         synchronized (CustomKafkaSpout.class) {
             if (taskStatusChecker == null) {
-                TaskStatusChecker.init(cassandraConnectionProvider);
+                try {
+                    TaskStatusChecker.init(cassandraConnectionProvider);
+                } catch (IllegalStateException e) {
+                    LOGGER.info("It was already initialized");
+                }
                 taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
             }
         }
     }
-
 
 
     @Override

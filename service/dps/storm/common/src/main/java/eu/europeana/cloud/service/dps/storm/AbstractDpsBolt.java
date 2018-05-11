@@ -93,10 +93,15 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 userName, password);
         synchronized (AbstractDpsBolt.class) {
             if (taskStatusChecker == null) {
-                TaskStatusChecker.init(cassandraConnectionProvider);
+                try {
+                    TaskStatusChecker.init(cassandraConnectionProvider);
+                } catch (IllegalStateException e) {
+                    LOGGER.info("It was already initialized Before");
+                }
                 taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
             }
         }
+
     }
 
     @Override
