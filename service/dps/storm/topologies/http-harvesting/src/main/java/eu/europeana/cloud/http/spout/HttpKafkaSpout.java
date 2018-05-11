@@ -151,6 +151,8 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException {
+                if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                    return FileVisitResult.TERMINATE;
                 String fileName = getFileNameFromPath(file);
                 if (fileName.equals(MAC_TEMP_FILE))
                     return FileVisitResult.CONTINUE;

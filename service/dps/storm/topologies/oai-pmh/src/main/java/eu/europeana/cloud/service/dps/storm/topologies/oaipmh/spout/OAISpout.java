@@ -180,7 +180,7 @@ public class OAISpout extends CustomKafkaSpout {
         }
 
         int count = 0;
-        while (headerIterator.hasNext()) {
+        while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
             Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier(), schema);

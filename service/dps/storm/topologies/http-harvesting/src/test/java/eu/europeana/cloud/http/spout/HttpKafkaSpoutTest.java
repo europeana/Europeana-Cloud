@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,6 +20,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,6 +52,10 @@ public class HttpKafkaSpoutTest {
     @Mock(name = "cassandraTaskInfoDAO")
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
 
+
+    @Mock
+    private TaskStatusChecker taskStatusChecker;
+
     @Mock(name = "cache")
     private ConcurrentHashMap<Long, TaskSpoutInfo> cache;
 
@@ -70,7 +76,7 @@ public class HttpKafkaSpoutTest {
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
 
     @Before
-    public void init() {
+    public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
         wireMockRule.resetAll();
         wireMockRule.stubFor(get(urlEqualTo("/ZipFilesWithMixedCompressedFiles.zip"))
@@ -100,31 +106,66 @@ public class HttpKafkaSpoutTest {
         TaskSpoutInfo taskSpoutInfo = mock(TaskSpoutInfo.class);
         when(cache.get(anyLong())).thenReturn(taskSpoutInfo);
         doNothing().when(taskSpoutInfo).inc();
+        setStaticField(HttpKafkaSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
+    }
+
+    static void setStaticField(Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+        field.set(null, newValue);
     }
 
     @Test
     public void shouldHarvestTheZipFilesWithNestedMixedCompressedFiles() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME, null, prepareStormTaskTupleParameters(), new Revision());
         httpKafkaSpout.execute(tuple);
         assertSuccessfulHarvesting();
     }
 
     @Test
+    public void shouldCancelTheTaskForTheZipFilesWithNestedMixedCompressedFiles() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false,false,true);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME, null, prepareStormTaskTupleParameters(), new Revision());
+        httpKafkaSpout.execute(tuple);
+        Mockito.verify(collector, Mockito.atMost(2)).emit(any(List.class));
+    }
+
+    @Test
     public void shouldHarvestTarGzFilesRecursivelyWithMixedNestedCompressedFiles() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME2, null, prepareStormTaskTupleParameters(), new Revision());
         httpKafkaSpout.execute(tuple);
         assertSuccessfulHarvesting();
     }
 
     @Test
-    public void shouldHarvesshouldTGZFileRecursivelyWithCompressedXMLFiles() throws Exception {
+    public void shouldCancelTheTaskForTarGzFilesRecursivelyWithMixedNestedCompressedFiles() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false,false,true);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME2, null, prepareStormTaskTupleParameters(), new Revision());
+        httpKafkaSpout.execute(tuple);
+        Mockito.verify(collector, Mockito.atMost(2)).emit(any(List.class));
+    }
+
+    @Test
+    public void shouldHarvestTGZFileRecursivelyWithCompressedXMLFiles() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME3, null, prepareStormTaskTupleParameters(), new Revision());
         httpKafkaSpout.execute(tuple);
         assertSuccessfulHarvesting();
     }
 
     @Test
-    public void shouldHarvesshouldZipFileFromMacIgnoringExtraCopies() throws Exception {
+    public void shouldCancelTheTaskForTForTGZFileRecursivelyWithCompressedXMLFiles() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false,false,true);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME3, null, prepareStormTaskTupleParameters(), new Revision());
+        httpKafkaSpout.execute(tuple);
+        Mockito.verify(collector, Mockito.atMost(2)).emit(any(List.class));
+    }
+
+
+    @Test
+    public void shouldHarvestZipFileFromMacIgnoringExtraCopies() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME4, null, prepareStormTaskTupleParameters(), new Revision());
         httpKafkaSpout.execute(tuple);
         assertSuccessfulHarvesting();
@@ -132,6 +173,7 @@ public class HttpKafkaSpoutTest {
 
     @Test
     public void TheHarvestingShouldFailForNonExistedURL() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, "UNDEFINED_URL", null, prepareStormTaskTupleParameters(), new Revision());
         httpKafkaSpout.execute(tuple);
         assertFailedHarvesting();
@@ -151,8 +193,6 @@ public class HttpKafkaSpoutTest {
 
     private void assertFailedHarvesting() {
         Mockito.verify(collector, Mockito.times(0)).emit(any(List.class));
-
     }
-
 
 }

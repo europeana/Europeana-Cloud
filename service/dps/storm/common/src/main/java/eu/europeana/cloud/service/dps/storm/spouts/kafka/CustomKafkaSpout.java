@@ -2,7 +2,9 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.kafka.*;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -10,12 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
+import static java.lang.Integer.parseInt;
+
 /**
  * Created by Tarek on 11/27/2017.
  */
 public class CustomKafkaSpout extends KafkaSpout {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomKafkaSpout.class);
+    protected static volatile TaskStatusChecker taskStatusChecker;
 
     private String hosts;
     private int port;
@@ -47,7 +54,15 @@ public class CustomKafkaSpout extends KafkaSpout {
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         cassandraTaskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        synchronized (CustomKafkaSpout.class) {
+            if (taskStatusChecker == null) {
+                TaskStatusChecker.init(cassandraConnectionProvider);
+                taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+            }
+        }
     }
+
+
 
     @Override
     public void ack(Object msgId) {

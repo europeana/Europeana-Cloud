@@ -69,7 +69,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.ERRORS +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        killTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ?" + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        killTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , "+CassandraTablesAndColumnsNames.INFO +" = ? , "  + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         killTask.setConsistencyLevel(dbService.getConsistencyLevel());
         updateExpectedSize = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + " = ?  WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateExpectedSize.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -126,12 +126,12 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     public void killTask(long taskId) {
-        dbService.getSession().execute(killTask.bind(String.valueOf(TaskState.CURRENTLY_DROPPING), taskId));
+        dbService.getSession().execute(killTask.bind(String.valueOf(TaskState.DROPPED), "Dropped by the user", new Date(), taskId));
     }
 
     public boolean hasKillFlag(long taskId) {
         String state = getTaskStatus(taskId);
-        if (state.equals(String.valueOf(TaskState.CURRENTLY_DROPPING)))
+        if (state.equals(String.valueOf(TaskState.DROPPED)))
             return true;
         return false;
     }
