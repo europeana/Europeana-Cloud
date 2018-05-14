@@ -59,7 +59,7 @@ public class WriteRecordBoltTest {
     @Test
     public void successfullyExecuteWriteBolt() throws Exception {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
-        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(outputCollector.emit(anyList())).thenReturn(null);
         RecordServiceClient recordServiceClient = mock(RecordServiceClient.class);
         whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
@@ -71,7 +71,7 @@ public class WriteRecordBoltTest {
 
         writeRecordBolt.execute(tuple);
 
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(value.size(), 7);

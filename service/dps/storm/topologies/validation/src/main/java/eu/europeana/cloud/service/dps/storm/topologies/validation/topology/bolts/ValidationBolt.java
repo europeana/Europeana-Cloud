@@ -54,7 +54,7 @@ public class ValidationBolt extends AbstractDpsBolt {
         String document = new String(stormTaskTuple.getFileData());
         ValidationResult result = validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematromLocation(stormTaskTuple), document);
         if (result.isSuccess()) {
-            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+            outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
         }

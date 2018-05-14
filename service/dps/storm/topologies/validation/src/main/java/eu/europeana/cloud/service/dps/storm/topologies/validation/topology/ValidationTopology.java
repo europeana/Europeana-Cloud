@@ -14,6 +14,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import com.google.common.base.Throwables;
+import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.*;
@@ -180,7 +181,9 @@ public class ValidationTopology {
                 String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
-                StormSubmitter.submitTopology(topologyName, configureTopology(topologyProperties), stormTopology);
+                Config config = configureTopology(topologyProperties);
+                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
+                StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));

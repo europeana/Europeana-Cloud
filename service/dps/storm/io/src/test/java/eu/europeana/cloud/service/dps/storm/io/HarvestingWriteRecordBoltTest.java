@@ -61,7 +61,7 @@ public class HarvestingWriteRecordBoltTest {
 
     @Before
     public void init() throws Exception {
-        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(outputCollector.emit(anyList())).thenReturn(null);
         MockitoAnnotations.initMocks(this);
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         oaipmhHarvestingDetails.setSchemas(new HashSet<String>(Arrays.asList(SOURCE + REPRESENTATION_NAME)));
@@ -125,7 +125,7 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     private void assertExecutionResults() {
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(value.size(), 7);

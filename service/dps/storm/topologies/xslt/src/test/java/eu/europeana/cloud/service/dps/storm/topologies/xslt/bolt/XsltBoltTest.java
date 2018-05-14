@@ -62,8 +62,8 @@ public class XsltBoltTest {
     public void executeBolt() throws IOException {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
         xsltBolt.execute(tuple);
-        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        when(outputCollector.emit(anyList())).thenReturn(null);
+        verify(outputCollector, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 4);
@@ -127,8 +127,8 @@ public class XsltBoltTest {
 
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), parameters, new Revision());
         xsltBolt.execute(tuple);
-        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        when(outputCollector.emit(anyList())).thenReturn(null);
+        verify(outputCollector, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 5);

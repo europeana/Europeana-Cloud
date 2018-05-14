@@ -67,7 +67,6 @@ public class ParseTaskBolt extends BaseRichBolt {
             task = mapper.readValue(tuple.getString(0), DpsTask.class);
         } catch (IOException e) {
             LOGGER.error("Message '{}' rejected because: {}", tuple.getString(0), e.getMessage());
-            outputCollector.ack(tuple);
             return;
         }
         Map<String, String> taskParameters = task.getParameters();
@@ -85,11 +84,10 @@ public class ParseTaskBolt extends BaseRichBolt {
             String dataEntry = convertListToString(task.getDataEntry(InputDataType.valueOf(stream)));
             stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
             updateTask(task.getTaskId(), "", TaskState.CURRENTLY_PROCESSING, startTime);
-            outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
+            outputCollector.emit(stream, stormTaskTuple.toStormTuple());
         } else {
             LOGGER.warn("The taskType is not recognised!");
         }
-        outputCollector.ack(tuple);
     }
 
     private void updateTask(long taskId, String info, TaskState state, Date startTime) {
@@ -100,11 +98,8 @@ public class ParseTaskBolt extends BaseRichBolt {
     private String getStream(DpsTask task) {
         if (task.getInputData().get(FILE_URLS) != null) {
             return FILE_URLS.name();
-        }
-        else if (task.getInputData().get(DATASET_URLS) != null)
+        } else if (task.getInputData().get(DATASET_URLS) != null)
             return DATASET_URLS.name();
-        else if (task.getInputData().get(REPOSITORY_URLS) != null)
-            return REPOSITORY_URLS.name();
         return null;
 
     }

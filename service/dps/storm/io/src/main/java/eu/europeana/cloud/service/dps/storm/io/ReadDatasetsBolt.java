@@ -58,7 +58,7 @@ public class ReadDatasetsBolt extends AbstractDpsBolt {
         for (String dataSet : dataSets) {
             StormTaskTuple stormTaskTuple = new Cloner().deepClone(t);
             stormTaskTuple.getParameters().put(PluginParameterKeys.DATASET_URL, dataSet);
-            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+            outputCollector.emit(stormTaskTuple.toStormTuple());
         }
     }
 }

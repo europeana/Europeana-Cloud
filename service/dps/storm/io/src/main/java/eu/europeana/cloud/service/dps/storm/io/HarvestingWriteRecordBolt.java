@@ -40,7 +40,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
         if (representationName == null || representationName.isEmpty()) {
             if (stormTaskTuple.getSourceDetails() != null) {
-                representationName = stormTaskTuple.getSourceDetails().getSchema();
+                representationName = stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
                 if (representationName == null)
                     representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
             }

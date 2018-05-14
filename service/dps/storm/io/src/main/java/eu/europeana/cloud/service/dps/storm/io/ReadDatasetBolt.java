@@ -124,7 +124,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
     private void emitRepresentation(StormTaskTuple t, String representationName, Representation representation) {
         if (representationName == null || representation.getRepresentationName().equals(representationName)) {
             StormTaskTuple next = buildStormTaskTuple(t, representation);
-            outputCollector.emit(inputTuple, next.toStormTuple());
+            outputCollector.emit(next.toStormTuple());
         }
     }
 

@@ -81,12 +81,12 @@ public class ReadRepresentationBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, false);
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
         //then
         String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/fileName";
-        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
+        verify(oc, times(2)).emit( captor.capture());
         assertThat(captor.getAllValues().size(), is(2));
         List<Values> allValues = captor.getAllValues();
         for (Values values : allValues) {
@@ -104,12 +104,12 @@ public class ReadRepresentationBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, true);
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
         //then
         String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/fileName";
-        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(oc, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         for (Values values : allValues) {

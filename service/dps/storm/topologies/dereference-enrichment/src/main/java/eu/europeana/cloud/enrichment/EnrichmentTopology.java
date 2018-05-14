@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.BrokerHosts;
@@ -193,7 +194,9 @@ public class EnrichmentTopology {
                 StormTopology stormTopology = enrichmentTopology.buildTopology(
                         kafkaTopic,
                         ecloudMcsAddress);
-                StormSubmitter.submitTopology(topologyName, configureTopology(topologyProperties), stormTopology);
+                Config config = configureTopology(topologyProperties);
+                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
+                StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
