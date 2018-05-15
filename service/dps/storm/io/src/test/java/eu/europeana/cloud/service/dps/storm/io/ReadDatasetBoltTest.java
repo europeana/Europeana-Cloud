@@ -174,7 +174,7 @@ public class ReadDatasetBoltTest {
 
         when(datasetClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
         doThrow(DriverException.class).when(recordServiceClient).getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date));
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
         verify(datasetClient, times(1)).getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
@@ -212,7 +212,7 @@ public class ReadDatasetBoltTest {
         when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         doThrow(MCSException.class).when(datasetClient).getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
         verify(oc, times(0)).emit(anyList());
@@ -229,7 +229,7 @@ public class ReadDatasetBoltTest {
         tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
 
         doThrow(MCSException.class).when(datasetClient).getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(oc.emit(anyList())).thenReturn(null);
         //when
         instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
         verify(oc, times(0)).emit(anyList());

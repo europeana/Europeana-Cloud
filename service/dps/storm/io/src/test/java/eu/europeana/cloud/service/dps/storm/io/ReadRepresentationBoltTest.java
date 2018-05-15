@@ -11,7 +11,6 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,13 +81,12 @@ public class ReadRepresentationBoltTest {
         //given
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
+        when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, false);
         when(outputCollector.emit(anyList())).thenReturn(null);
        //when
         instance.readRepresentationBolt(fileServiceClient, tuple);
         //then
-
 
         verify(outputCollector, times(2)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(2));
@@ -108,12 +106,11 @@ public class ReadRepresentationBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
-        when(outputCollector.emit(eq(NOTIFICATION_STREAM_NAME),anyList())).thenReturn(null);
+        when(outputCollector.emit(eq(NOTIFICATION_STREAM_NAME), anyList())).thenReturn(null);
         //when
         instance.readRepresentationBolt(fileServiceClient, tuple);
         //then
-        verify(outputCollector, times(0)).emit(any(Tuple.class), anyList());
-        //verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(outputCollector, times(0)).emit(anyList());
     }
 
 

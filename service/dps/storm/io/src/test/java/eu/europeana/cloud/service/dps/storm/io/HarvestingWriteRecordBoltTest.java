@@ -142,7 +142,7 @@ public class HarvestingWriteRecordBoltTest {
         oaiWriteRecordBoltT.execute(tuple);
         verify(outputCollector, times(0)).emit(anyList());
         verify(uisClient, times(11)).createCloudId(anyString(), anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }
 
