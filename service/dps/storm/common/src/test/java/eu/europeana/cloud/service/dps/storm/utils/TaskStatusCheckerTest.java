@@ -54,13 +54,16 @@ public class TaskStatusCheckerTest {
             if (i < 3)
                 assertFalse(task2killedFlag);
             task1killedFlag = taskStatusChecker.hasKillFlag(TASK_ID);
-            task2killedFlag = taskStatusChecker.hasKillFlag(TASK_ID2);
+            if (i < 5)
+                task2killedFlag = taskStatusChecker.hasKillFlag(TASK_ID2);
             Thread.sleep(6000);
         }
-        verify(taskInfoDAO, times(4)).hasKillFlag(eq(TASK_ID));
-        verify(taskInfoDAO, times(3)).hasKillFlag(eq(TASK_ID2));
+        verify(taskInfoDAO, times(8)).hasKillFlag(eq(TASK_ID));
+        verify(taskInfoDAO, times(5)).hasKillFlag(eq(TASK_ID2));
         assertTrue(task1killedFlag);
         assertTrue(task2killedFlag);
+        Thread.sleep(20000);
+        verifyNoMoreInteractions(taskInfoDAO);
 
     }
 
