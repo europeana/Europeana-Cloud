@@ -76,7 +76,6 @@ public class OAIPHMHarvestingTopology {
 
         builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
-
         builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(),
                 (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
@@ -90,7 +89,7 @@ public class OAIPHMHarvestingTopology {
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
-                .shuffleGrouping(WRITE_RECORD_BOLT);
+                .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
@@ -141,7 +140,7 @@ public class OAIPHMHarvestingTopology {
                 StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
                 Config config = configureTopology(topologyProperties);
                 config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
-                config.put(Config.TOPOLOGY_ACKER_EXECUTORS,0);
+                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {

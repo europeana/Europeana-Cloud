@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -43,7 +44,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
-        } catch (MCSException e) {
+        } catch (MCSException|DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
         }
@@ -56,14 +57,32 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             Revision revisionToBeApplied = stormTaskTuple.getRevisionToBeApplied();
             if (revisionToBeApplied.getCreationTimeStamp() == null)
                 revisionToBeApplied.setCreationTimeStamp(new Date());
-            revisionsClient.addRevision(
-                    urlParser.getPart(UrlPart.RECORDS),
-                    urlParser.getPart(UrlPart.REPRESENTATIONS),
-                    urlParser.getPart(UrlPart.VERSIONS),
-                    revisionToBeApplied);
+            addRevision(revisionsClient, urlParser, revisionToBeApplied);
             stormTaskTuple.setRevisionToBeApplied(null);
         } else {
             LOGGER.info("Revisions list is empty");
+        }
+    }
+
+    private void addRevision(RevisionServiceClient revisionsClient, UrlParser urlParser, Revision revisionToBeApplied) throws MCSException, DriverException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                revisionsClient.addRevision(
+                        urlParser.getPart(UrlPart.RECORDS),
+                        urlParser.getPart(UrlPart.REPRESENTATIONS),
+                        urlParser.getPart(UrlPart.VERSIONS),
+                        revisionToBeApplied);
+                break;
+            } catch (MCSException | DriverException e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while adding Revisions. Retries left {}", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while getting Revisions from data set.");
+                    throw e;
+                }
+            }
         }
     }
 

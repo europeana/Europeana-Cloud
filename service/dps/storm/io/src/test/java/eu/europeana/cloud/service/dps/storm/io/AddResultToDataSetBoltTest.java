@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -85,7 +86,19 @@ public class AddResultToDataSetBoltTest {
     public void shouldEmmitNotificationWrongDatasetUrl() throws MCSException {
         stormTaskTuple = prepareTupleWithWrongDatasetUrl();
         verifyMethodExecutionNumber(0, 1);
+    }
 
+    @Test
+    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
+        stormTaskTuple = prepareTupleWithSingleDataSet();
+        doThrow(MCSException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
+        verifyMethodExecutionNumber(11, 1);
+    }
+    @Test
+    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
+        stormTaskTuple = prepareTupleWithSingleDataSet();
+        doThrow(DriverException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
+        verifyMethodExecutionNumber(11, 1);
     }
 
 

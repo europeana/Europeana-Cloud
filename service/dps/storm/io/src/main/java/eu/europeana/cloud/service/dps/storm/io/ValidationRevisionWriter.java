@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -27,7 +28,7 @@ public class ValidationRevisionWriter extends RevisionWriterBolt {
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {}" + stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
-        } catch (MCSException e) {
+        } catch (MCSException|DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
         }

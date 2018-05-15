@@ -60,7 +60,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
             if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
-                LOGGER.info("Mapped to StormTaskTuple with this parameter: {}", t.getParameters());
+                LOGGER.info("Mapped to StormTaskTuple with taskId {} and parameters list : {}", t.getTaskId(), t.getParameters());
                 execute(t);
             }
         } catch (Exception e) {
@@ -150,4 +150,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
     }
 
+    protected void waitForSpecificTime() {
+        try {
+            Thread.sleep(SLEEP_TIME);
+        } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(e1.getMessage());
+        }
+    }
 }

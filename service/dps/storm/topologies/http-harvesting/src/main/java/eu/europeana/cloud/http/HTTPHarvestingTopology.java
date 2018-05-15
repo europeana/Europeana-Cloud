@@ -78,19 +78,19 @@ public class HTTPHarvestingTopology {
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT,new ShuffleGrouping());
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(WRITE_RECORD_BOLT,new ShuffleGrouping());
+                .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
                 (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(REVISION_WRITER_BOLT,new ShuffleGrouping());
+                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
 
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
@@ -133,8 +133,8 @@ public class HTTPHarvestingTopology {
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
                 StormTopology stormTopology = httpHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
                 Config config = configureTopology(topologyProperties);
-                config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE,true);
-                config.put(Config.TOPOLOGY_ACKER_EXECUTORS,0);
+                config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
+                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
 
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }

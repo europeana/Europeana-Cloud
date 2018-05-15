@@ -144,7 +144,7 @@ public class RecordHarvestingBoltTest {
      */
     private void verifySuccessfulEmit() {
         verify(outputCollector, times(1)).emit(Mockito.anyList());
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"),Mockito.anyList());
     }
 
     /**

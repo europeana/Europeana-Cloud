@@ -69,12 +69,13 @@ public class RevisionWriterBoltTest {
     }
 
     @Test
-    public void mcsExceptionShouldBeHandled() throws MalformedURLException, MCSException {
+    public void mcsExceptionShouldBeHandledWithRetries() throws MalformedURLException, MCSException {
         Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class))).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.addRevisionAndEmit(prepareTuple(), revisionServiceClient);
-        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
+        Mockito.verify(revisionServiceClient, Mockito.times(11)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),Mockito.any(List.class));
+
     }
 
     private StormTaskTuple prepareTuple() {
