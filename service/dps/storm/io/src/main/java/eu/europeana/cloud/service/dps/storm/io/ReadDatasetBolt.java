@@ -83,7 +83,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             } catch (MalformedURLException ex) {
                 LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSetUrl, ex.getMessage(), t.getParameters().toString());
-            } catch (MCSException|DriverException ex) {
+            } catch (MCSException | DriverException ex) {
                 LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSetUrl, ex.getMessage(), t.getParameters().toString());
             }
@@ -100,8 +100,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
         for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
             if (!taskStatusChecker.hasKillFlag(taskId)) {
                 String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-                RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()));
-                Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
+                RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
+                Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
                 emitRepresentation(t, representationName, representation);
             } else
                 break;
@@ -113,9 +113,9 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
         while (true) {
             try {
                 return dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(datasetName, datasetProvider, revisionProvider, revisionName, representationName, false);
-            } catch (MCSException|DriverException e) {
+            } catch (MCSException | DriverException e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while getting latest cloud Id from data set " + retries);
+                    LOGGER.warn("Error while getting latest cloud Id from data set. Retries left{} ", retries);
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while getting latest cloud Id from data set.");
@@ -131,20 +131,54 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
         for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
             if (!taskStatusChecker.hasKillFlag(taskId)) {
                 String responseCloudId = cloudTagsResponse.getCloudId();
-                RepresentationRevisionResponse representationRevisionResponse = recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
-                Representation representation = recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
+                RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, responseCloudId);
+                Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
                 emitRepresentation(t, representationName, representation);
             } else
                 break;
         }
     }
 
-    private List<CloudTagsResponse> getDataSetRevisions(DataSetServiceClient dataSetServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException,DriverException {
+    private Representation getRepresentation(RecordServiceClient recordServiceClient, String representationName, String responseCloudId, RepresentationRevisionResponse representationRevisionResponse) throws MCSException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                return recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
+            } catch (MCSException | DriverException e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while getting Representation. Retries left{}", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while getting Representation.");
+                    throw e;
+                }
+            }
+        }
+    }
+
+    private RepresentationRevisionResponse getRepresentationRevision(RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String responseCloudId) throws MCSException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                return recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
+            } catch (MCSException | DriverException e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while getting representation revision. Retries Left{} ", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while getting representation revision.");
+                    throw e;
+                }
+            }
+        }
+    }
+
+    private List<CloudTagsResponse> getDataSetRevisions(DataSetServiceClient dataSetServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException, DriverException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
                 return dataSetServiceClient.getDataSetRevisions(datasetProvider, datasetName, representationName, revisionName, revisionProvider, revisionTimestamp);
-            } catch (MCSException|DriverException e) {
+            } catch (MCSException | DriverException e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting Revisions from data set.Retries Left{} ", retries);
                     waitForSpecificTime();

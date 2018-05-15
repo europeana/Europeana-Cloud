@@ -10,6 +10,7 @@ import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
@@ -59,7 +60,7 @@ public class ReadDatasetBoltTest {
     private ReadDatasetBolt instance = new ReadDatasetBolt("http://localhost:8080/mcs");
 
 
-    private final int TASK_ID = 1;
+    private final static int TASK_ID = 1;
     private final byte[] FILE_DATA = "Data".getBytes();
     private DataSetServiceClient datasetClient;
     private RepresentationIterator representationIterator;
@@ -139,6 +140,69 @@ public class ReadDatasetBoltTest {
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
         assertBoltExecutionResults(tuple, representations);
+    }
+
+    @Test
+    public void shouldRetry10TimesAndFailForWhenGetRepresentationRevisionThrowsMCSException() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
+
+        when(datasetClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
+        doThrow(MCSException.class).when(recordServiceClient).getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date));
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(datasetClient, times(1)).getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+        verify(recordServiceClient, times(11)).getRepresentationRevision(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(REVISION_NAME), eq(REVISION_PROVIDER), anyString());
+        verifyNoMoreInteractions(datasetClient);
+    }
+
+    @Test
+    public void shouldRetry10TimesAndFailForWhenGetRepresentationRevisionThrowsDriveException() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
+
+        when(datasetClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
+        doThrow(DriverException.class).when(recordServiceClient).getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date));
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(datasetClient, times(1)).getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+        verify(recordServiceClient, times(11)).getRepresentationRevision(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(REVISION_NAME), eq(REVISION_PROVIDER), anyString());
+        verifyNoMoreInteractions(datasetClient);
+    }
+
+    @Test
+    public void shouldRetry10TimesAndFailForWhenGetRepresentationFails() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
+
+        when(datasetClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
+        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
+        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);;
+        doThrow(MCSException.class).when(recordServiceClient).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
+
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(datasetClient, times(1)).getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
+        verifyNoMoreInteractions(datasetClient);
     }
 
 
@@ -241,6 +305,76 @@ public class ReadDatasetBoltTest {
     }
 
     @Test
+    public void shouldRetry10TimesAndFailForSpecificRevisionsWhenGetRepresentationRevisionThrowsMCSException() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
+
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+        List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
+
+        when(datasetClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
+
+        doThrow(MCSException.class).when(recordServiceClient).getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date));
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
+
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(datasetClient, times(1)).getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(),anyString());
+        verify(recordServiceClient, times(11)).getRepresentationRevision(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(REVISION_NAME), eq(REVISION_PROVIDER), anyString());
+        verifyNoMoreInteractions(datasetClient);
+    }
+
+    @Test
+    public void shouldRetry10TimesAndFailForSpecificRevisionsWhenGetRepresentationRevisionThrowsDriverException() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
+
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+        List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
+
+        when(datasetClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
+
+        doThrow(DriverException.class).when(recordServiceClient).getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date));
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
+
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(datasetClient, times(1)).getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(),anyString());
+        verify(recordServiceClient, times(11)).getRepresentationRevision(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(REVISION_NAME), eq(REVISION_PROVIDER), anyString());
+        verifyNoMoreInteractions(datasetClient);
+    }
+
+    @Test
+    public void shouldRetry10TimesAndFailForSpecificRevisionsWhenGetRepresentationFails() throws MCSException, URISyntaxException {
+        //given
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
+
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+        List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
+
+        when(datasetClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
+        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
+
+        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
+        doThrow(DriverException.class).when(recordServiceClient).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
+
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
+        verify(datasetClient, times(1)).getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(),anyString());
+        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
+        verifyNoMoreInteractions(datasetClient);
+    }
+
+    @Test
     public void killTaskShouldPreventEmittingRepresentationWhenExecutionWithSpecificRevisions() throws MCSException, URISyntaxException {
         //given
         when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false, true);
@@ -273,16 +407,16 @@ public class ReadDatasetBoltTest {
 
     }
 
-    private HashMap<String, String> prepareStormTaskTupleParameters(String dataSetUrl) {
-        HashMap<String, String> parameters = new HashMap<>();
+    private Map<String, String> prepareStormTaskTupleParameters(String dataSetUrl) {
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.DATASET_URL, dataSetUrl);
         return parameters;
     }
 
-    private HashMap<String, String> prepareStormTaskTupleParametersForRevision(String dataSetUrl) {
-        HashMap<String, String> parameters = new HashMap<>();
+    private Map<String, String> prepareStormTaskTupleParametersForRevision(String dataSetUrl) {
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.DATASET_URL, dataSetUrl);
         parameters.put(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
