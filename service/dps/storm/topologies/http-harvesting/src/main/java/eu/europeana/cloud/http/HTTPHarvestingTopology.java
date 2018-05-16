@@ -42,7 +42,6 @@ public class HTTPHarvestingTopology {
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
-    private static final String REPOSITORY_STREAM = InputDataType.REPOSITORY_URLS.name();
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvestingTopology.class);
 
     public HTTPHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
@@ -52,9 +51,6 @@ public class HTTPHarvestingTopology {
     }
 
     public final StormTopology buildTopology(String httpTopic, String ecloudMcsAddress, String uisAddress) {
-        Map<String, String> routingRules = new HashMap<>();
-        routingRules.put(REPOSITORY_STREAM, REPOSITORY_STREAM);
-
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);

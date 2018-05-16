@@ -44,7 +44,6 @@ public class OAIPHMHarvestingTopology {
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
-    private final String REPOSITORY_STREAM = InputDataType.REPOSITORY_URLS.name();
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
 
     public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
@@ -54,10 +53,6 @@ public class OAIPHMHarvestingTopology {
     }
 
     public final StormTopology buildTopology(String oaiTopic, String ecloudMcsAddress, String uisAddress) {
-        Map<String, String> routingRules = new HashMap<>();
-        routingRules.put(REPOSITORY_STREAM, REPOSITORY_STREAM);
-
-
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
 

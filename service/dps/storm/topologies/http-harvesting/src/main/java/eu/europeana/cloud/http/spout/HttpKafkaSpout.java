@@ -228,8 +228,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
                     long taskId = dpsTask.getTaskId();
-                    if (cache.get(taskId) == null)
-                        cache.put(taskId, new TaskSpoutInfo(dpsTask));
+                    cache.putIfAbsent(taskId, new TaskSpoutInfo(dpsTask));
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());

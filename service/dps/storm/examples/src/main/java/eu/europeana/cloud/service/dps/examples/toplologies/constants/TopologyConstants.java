@@ -13,7 +13,7 @@ public class TopologyConstants {
     public static final String CASSANDRA_KEYSPACE_NAME = "ecloud_dps";
     public static final String CASSANDRA_USERNAME = "cassandra";
     public static final String CASSANDRA_SECRET_TOKEN = "cassandra";
-    public static final String ZOOKEEPER_HOST = "195.216.97.110";
+    public static final String ZOOKEEPER_HOST = "localhost";
 
 
 }

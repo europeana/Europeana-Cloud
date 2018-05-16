@@ -34,7 +34,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
 
     @Override
-    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws IOException, MCSException, CloudException {
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws IOException, MCSException, CloudException,DriverException {
         String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
         String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId);
