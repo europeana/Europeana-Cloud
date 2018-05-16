@@ -38,7 +38,7 @@ public class ValidationBolt extends AbstractDpsBolt {
             validateFile(stormTaskTuple);
         } catch (Exception e) {
             LOGGER.error("XsltBolt error: {}", e.getMessage());
-            emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(), stormTaskTuple
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stormTaskTuple
                     .getParameters().toString());
         }
     }
