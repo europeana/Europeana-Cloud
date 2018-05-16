@@ -135,7 +135,7 @@ public class OAIPHMHarvestingTopology {
                 StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
                 Config config = configureTopology(topologyProperties);
                 config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
-                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
+                config.setNumAckers(0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {

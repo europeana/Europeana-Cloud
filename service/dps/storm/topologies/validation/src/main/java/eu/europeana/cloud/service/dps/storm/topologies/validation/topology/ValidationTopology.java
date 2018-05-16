@@ -182,7 +182,7 @@ public class ValidationTopology {
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
+                config.setNumAckers(0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {

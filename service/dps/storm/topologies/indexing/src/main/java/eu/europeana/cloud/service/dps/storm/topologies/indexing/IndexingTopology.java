@@ -153,7 +153,7 @@ public class IndexingTopology {
                 StormTopology stormTopology = indexingTopology.buildTopology(topologyName, ecloudMcsAddress);
 
                 Config config = configureTopology(topologyProperties);
-                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
+                config.setNumAckers(0);
                 LOGGER.info("Submitting indexing topology");
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }

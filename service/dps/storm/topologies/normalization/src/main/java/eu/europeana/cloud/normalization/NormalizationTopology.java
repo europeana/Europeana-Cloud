@@ -190,7 +190,7 @@ public class NormalizationTopology {
                         kafkaTopic,
                         ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
+                config.setNumAckers(0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
