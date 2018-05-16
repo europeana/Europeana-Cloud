@@ -14,8 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -24,8 +23,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.anyString;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.management.*"})
+@RunWith(MockitoJUnitRunner.class)
 public class RevisionWriterBoltTest {
 
     @Mock(name = "outputCollector")

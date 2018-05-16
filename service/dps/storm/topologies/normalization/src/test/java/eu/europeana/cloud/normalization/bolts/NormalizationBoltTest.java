@@ -2,7 +2,6 @@ package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;

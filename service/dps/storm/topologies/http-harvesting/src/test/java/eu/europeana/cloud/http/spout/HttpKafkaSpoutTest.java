@@ -11,15 +11,10 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.util.Date;
@@ -42,9 +37,6 @@ import static org.mockito.Mockito.when;
  * Created by Tarek on 5/4/2018.
  */
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(HttpKafkaSpout.class)
-@PowerMockIgnore("javax.net.ssl.*")
 public class HttpKafkaSpoutTest {
     @Mock(name = "collector")
     private SpoutOutputCollector collector;

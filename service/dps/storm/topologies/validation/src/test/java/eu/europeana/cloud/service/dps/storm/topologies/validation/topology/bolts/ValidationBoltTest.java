@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,10 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
+import org.mockito.runners.MockitoJUnitRunner;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,9 +31,7 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_U
  * Created by Tarek on 1/16/2018.
  */
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ValidationBolt.class)
-@PowerMockIgnore("javax.net.ssl.*")
+@RunWith(MockitoJUnitRunner.class)
 public class ValidationBoltTest {
 
 

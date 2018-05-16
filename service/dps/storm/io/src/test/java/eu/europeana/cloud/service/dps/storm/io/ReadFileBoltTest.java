@@ -12,8 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -21,15 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.*;
 
 /**
  * Created by Tarek on 5/9/2018.
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.management.*"})
+@RunWith(MockitoJUnitRunner.class)
 public class ReadFileBoltTest {
 
     @Mock(name = "outputCollector")

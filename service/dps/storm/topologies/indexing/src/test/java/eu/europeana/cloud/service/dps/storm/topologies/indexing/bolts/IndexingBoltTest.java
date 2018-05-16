@@ -8,7 +8,6 @@ import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.exception.IndexingException;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
