@@ -498,6 +498,9 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException {
+        if(!revision.isPublished()){
+            return;
+        }
         // check whether representation exists
         Representation rep = recordDAO.getRepresentation(globalId, schema, version);
         if (rep == null) {

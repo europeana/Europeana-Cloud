@@ -302,7 +302,7 @@ public class CassandraDataSetDAO {
         getDataSetCloudIdsByRepresentationPublished = connectionProvider.getSession().prepare("SELECT " //
                 + "cloud_id, version_id, revision_id, published, mark_deleted, acceptance " //
                 + "FROM provider_dataset_representation " //
-                + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? AND revision_timestamp > ? AND published = true LIMIT ?;");
+                + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? AND revision_timestamp > ? LIMIT ?;");
         getDataSetCloudIdsByRepresentationPublished.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation = connectionProvider.getSession().prepare("SELECT cloud_id, revision_timestamp " //
