@@ -1,6 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -18,7 +22,7 @@ public class TestSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("str"));
+        outputFieldsDeclarer.declare(StormTaskTuple.getFields());
     }
 
 
@@ -31,7 +35,13 @@ public class TestSpout extends BaseRichSpout {
     @Override
     public void nextTuple() {
         Utils.sleep(100);
-        collector.emit(new Values("test1"));
+
+        StormTaskTuple stormTaskTuple = new StormTaskTuple(
+                1,
+               "taskName",
+                null, null, null, new Revision(), new OAIPMHHarvestingDetails());
+
+        collector.emit(stormTaskTuple.toStormTuple());
 
     }
 

@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.dps.examples.toplologies.builder;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.topology.TopologyBuilder;
@@ -12,7 +14,7 @@ import org.apache.storm.topology.TopologyBuilder;
  */
 public class SimpleStaticTopologyBuilder {
 
-    public static StormTopology buildTopology(StaticDpsTaskSpout spout, AbstractDpsBolt mainBolt, String mainBoltName, String ecloudMcsAddress) {
+    public static StormTopology buildTopology(MCSReaderSpout spout, AbstractDpsBolt mainBolt, String mainBoltName, String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
@@ -23,20 +25,8 @@ public class SimpleStaticTopologyBuilder {
 
         // TOPOLOGY STRUCTURE!
         builder.setSpout(TopologyHelper.SPOUT, spout, 1);
-
-        builder.setBolt(TopologyHelper.READ_DATASETS_BOLT, new ReadDatasetsBolt(), 1)
-                .shuffleGrouping(TopologyHelper.SPOUT);
-
-        builder.setBolt(TopologyHelper.READ_DATASET_BOLT, new ReadDatasetBolt(ecloudMcsAddress), 1)
-                .shuffleGrouping(TopologyHelper.READ_DATASETS_BOLT);
-
-
-        builder.setBolt(TopologyHelper.READ_REPRESENTATION_BOLT, new ReadRepresentationBolt(ecloudMcsAddress), 1)
-                .shuffleGrouping(TopologyHelper.READ_DATASET_BOLT);
-
-
         builder.setBolt(TopologyHelper.RETRIEVE_FILE_BOLT, retrieveFileBolt, 1)
-                .shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
+                .shuffleGrouping(TopologyHelper.SPOUT);
 
         builder.setBolt(mainBoltName, mainBolt, 1)
                 .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
