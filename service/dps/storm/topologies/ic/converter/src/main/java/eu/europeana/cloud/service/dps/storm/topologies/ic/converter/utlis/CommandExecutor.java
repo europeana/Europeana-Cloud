@@ -13,7 +13,7 @@ import java.io.InputStreamReader;
  * Executes a shell command
  */
 public class CommandExecutor {
-    private final static Logger LOGGER = Logger.getLogger(CommandExecutor.class);
+    private static final Logger LOGGER = Logger.getLogger(CommandExecutor.class);
 
     /**
      * Executes a shell command and logs the output message

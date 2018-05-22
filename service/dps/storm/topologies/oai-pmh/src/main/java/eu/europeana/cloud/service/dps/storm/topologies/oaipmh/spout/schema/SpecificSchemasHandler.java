@@ -2,9 +2,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema;
 
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
-
-import java.util.List;
 import java.util.Set;
 
 /**

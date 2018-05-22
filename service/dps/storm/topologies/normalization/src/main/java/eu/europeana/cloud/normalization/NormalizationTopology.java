@@ -29,7 +29,7 @@ public class NormalizationTopology {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationTopology.class);
 
-    private final static String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
+    private static final String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
     private static Properties topologyProperties;
 
     public NormalizationTopology(String defaultPropertyFile, String providedPropertyFile) {
