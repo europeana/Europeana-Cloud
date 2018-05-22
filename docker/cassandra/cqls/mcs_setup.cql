@@ -111,15 +111,8 @@ CREATE TABLE latest_provider_dataset_representation_revision (
     acceptance boolean,
     published boolean,
     mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id),representation_id,revision_name,revision_provider,cloud_id)
+    PRIMARY KEY ((provider_id, dataset_id),representation_id,revision_name,revision_provider,mark_deleted,cloud_id)
 );
-
-CREATE INDEX latest_provider_dataset_representation_revision_acceptance ON latest_provider_dataset_representation_revision (acceptance);
-
-CREATE INDEX latest_provider_dataset_representation_revision_publishe ON latest_provider_dataset_representation_revision (published);
-
-CREATE INDEX latest_provider_dataset_representation_revision_delete ON latest_provider_dataset_representation_revision (mark_deleted);
-
 
 CREATE TABLE latest_revisions_for_dataset_assignment (
        provider_id varchar,
