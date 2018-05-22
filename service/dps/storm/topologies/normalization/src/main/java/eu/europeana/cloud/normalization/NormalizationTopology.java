@@ -11,15 +11,11 @@ import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.BrokerHosts;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
-import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -35,25 +31,15 @@ public class NormalizationTopology {
 
     private final static String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
     private static Properties topologyProperties;
-    private final BrokerHosts brokerHosts;
 
     public NormalizationTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
     }
 
     public StormTopology buildTopology(String normalizationTopic, String ecloudMcsAddress) {
 
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, normalizationTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        MCSReaderSpout mcsReaderSpout = new MCSReaderSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
+        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, normalizationTopic, ecloudMcsAddress);
 
         TopologyBuilder builder = new TopologyBuilder();
 
@@ -73,26 +59,26 @@ public class NormalizationTopology {
                 getAnInt(RETRIEVE_FILE_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(SPOUT,new ShuffleGrouping());
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
         builder.setBolt(NORMALIZATION_BOLT, normalizationBolt,
                 getAnInt(NORMALIZATION_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(NORMALIZATION_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(RETRIEVE_FILE_BOLT,new ShuffleGrouping());
+                .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 getAnInt(WRITE_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(WRITE_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(NORMALIZATION_BOLT,new ShuffleGrouping());
+                .customGrouping(NORMALIZATION_BOLT, new ShuffleGrouping());
 
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 getAnInt(REVISION_WRITER_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(WRITE_RECORD_BOLT,new ShuffleGrouping());
+                .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,

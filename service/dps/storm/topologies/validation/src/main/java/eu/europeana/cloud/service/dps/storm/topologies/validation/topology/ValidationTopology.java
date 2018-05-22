@@ -16,12 +16,11 @@ import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.*;
-import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
@@ -34,7 +33,6 @@ import static java.lang.Integer.parseInt;
 public class ValidationTopology {
     private static Properties topologyProperties = new Properties();
     private static Properties validationProperties = new Properties();
-    private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "validation-topology-config.properties";
     private static final String VALIDATION_PROPERTIES_FILE = "validation.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidationTopology.class);
@@ -43,24 +41,14 @@ public class ValidationTopology {
     public ValidationTopology(String defaultPropertyFile, String providedPropertyFile, String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         PropertyFileLoader.loadPropertyFile(defaultValidationPropertiesFile, providedValidationPropertiesFile, validationProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
     }
 
 
     public final StormTopology buildTopology(String validationTopic, String ecloudMcsAddress) {
 
+        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, validationTopic, ecloudMcsAddress);
+
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
-
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, validationTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        MCSReaderSpout mcsReaderSpout = new MCSReaderSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
-
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);
         TopologyBuilder builder = new TopologyBuilder();
 
@@ -73,12 +61,12 @@ public class ValidationTopology {
                 (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT,new ShuffleGrouping());
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
         builder.setBolt(VALIDATION_BOLT, new ValidationBolt(validationProperties),
                 (getAnInt(VALIDATION_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(VALIDATION_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(RETRIEVE_FILE_BOLT,new ShuffleGrouping());
+                .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
         builder.setBolt(STATISTICS_BOLT, new StatisticsBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
@@ -87,13 +75,13 @@ public class ValidationTopology {
                         topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                 (getAnInt(STATISTICS_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(STATISTICS_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(VALIDATION_BOLT,new ShuffleGrouping());
+                .customGrouping(VALIDATION_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, validationRevisionWriter,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(STATISTICS_BOLT,new ShuffleGrouping());
+                .customGrouping(STATISTICS_BOLT, new ShuffleGrouping());
 
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
@@ -108,7 +96,7 @@ public class ValidationTopology {
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-               .fieldsGrouping(VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))

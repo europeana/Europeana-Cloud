@@ -1,6 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import org.apache.storm.Config;
+import org.apache.storm.kafka.BrokerHosts;
+import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.StringScheme;
+import org.apache.storm.kafka.ZkHosts;
+import org.apache.storm.spout.SchemeAsMultiScheme;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -13,11 +19,7 @@ import static java.lang.Integer.parseInt;
  */
 public final class TopologyHelper {
     public static final String SPOUT = "spout";
-    public static final String PARSE_TASK_BOLT = "parseTaskBolt";
     public static final String RETRIEVE_FILE_BOLT = "retrieveFileBolt";
-    public static final String READ_DATASETS_BOLT = "readDatasetsBolt";
-    public static final String READ_DATASET_BOLT = "readDatasetBolt";
-    public static final String READ_REPRESENTATION_BOLT = "readRepresentationBolt";
     public static final String IC_BOLT = "icBolt";
     public static final String NOTIFICATION_BOLT = "notificationBolt";
     public static final String WRITE_RECORD_BOLT = "writeRecordBolt";
@@ -29,11 +31,7 @@ public final class TopologyHelper {
     public static final String STATISTICS_BOLT = "statisticsBolt";
     public static final String ENRICHMENT_BOLT = "enrichmentBolt";
     public static final String NORMALIZATION_BOLT = "normalizationBolt";
-
-    public static final String IDENTIFIERS_HARVESTING_BOLT = "identifiersHarvestingBolt";
     public static final String RECORD_HARVESTING_BOLT = "recordHarvestingBolt";
-    public static final String TASK_SPLITTING_BOLT = "TaskSplittingBolt";
-    public static final String HTTP_HARVESTING_BOLT = "HTTPHarvestingBolt";
 
 
     public static Config configureTopology(Properties topologyProperties) {
@@ -55,5 +53,18 @@ public final class TopologyHelper {
         config.put(CASSANDRA_USERNAME, topologyProperties.getProperty(CASSANDRA_USERNAME));
         config.put(CASSANDRA_SECRET_TOKEN, topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
         return config;
+    }
+
+    public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
+        BrokerHosts brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
+        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, topic, "", "storm");
+        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+        kafkaConfig.ignoreZkOffsets = true;
+        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
+        return new MCSReaderSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
     }
 }

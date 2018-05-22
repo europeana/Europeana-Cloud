@@ -16,15 +16,11 @@ import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.BrokerHosts;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
-import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
@@ -41,7 +37,6 @@ import static java.lang.Integer.parseInt;
 public class XSLTTopology {
 
     private static Properties topologyProperties;
-    private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
@@ -49,21 +44,12 @@ public class XSLTTopology {
     public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
+
     }
 
     public StormTopology buildTopology(String xsltTopic, String ecloudMcsAddress) {
 
-
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        MCSReaderSpout mcsReaderSpout = new MCSReaderSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
+        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, xsltTopic, ecloudMcsAddress);
 
         TopologyBuilder builder = new TopologyBuilder();
 
@@ -83,34 +69,34 @@ public class XSLTTopology {
                 (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT,new ShuffleGrouping());
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
 
         builder.setBolt(XSLT_BOLT, new XsltBolt(),
                 (getAnInt(XSLT_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(XSLT_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(RETRIEVE_FILE_BOLT,new ShuffleGrouping());
+                .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(XSLT_BOLT,new ShuffleGrouping());
+                .customGrouping(XSLT_BOLT, new ShuffleGrouping());
 
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(WRITE_RECORD_BOLT,new ShuffleGrouping());
+                .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
                 (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(REVISION_WRITER_BOLT,new ShuffleGrouping());
+                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
 
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),

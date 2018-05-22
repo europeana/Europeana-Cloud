@@ -33,7 +33,6 @@ public class IndexingTopology {
 
     private static Properties topologyProperties = new Properties();
     private static Properties indexingProperties = new Properties();
-    private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "indexing-topology-config.properties";
     private static final String INDEXING_PROPERTIES_FILE = "indexing.properties";
     public static final String SUCCESS_MESSAGE = "Record is indexed correctly";
@@ -41,22 +40,13 @@ public class IndexingTopology {
     private IndexingTopology(String defaultPropertyFile, String providedPropertyFile, String defaultIndexingPropertiesFile, String providedIndexingPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         PropertyFileLoader.loadPropertyFile(defaultIndexingPropertiesFile, providedIndexingPropertiesFile, indexingProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
     }
 
     private StormTopology buildTopology(String indexingTopic, String ecloudMcsAddress) {
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
 
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, indexingTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        MCSReaderSpout mcsReaderSpout = new MCSReaderSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
+        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, indexingTopic, ecloudMcsAddress);
         TopologyBuilder builder = new TopologyBuilder();
 
 
@@ -67,17 +57,17 @@ public class IndexingTopology {
         builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
                 getAnInt(RETRIEVE_FILE_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(SPOUT,new ShuffleGrouping());
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
         builder.setBolt(INDEXING_BOLT, new IndexingBolt(indexingProperties),
                 getAnInt(INDEXING_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(INDEXING_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(RETRIEVE_FILE_BOLT,new ShuffleGrouping());
+                .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE),
                 getAnInt(REVISION_WRITER_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(INDEXING_BOLT,new ShuffleGrouping());
+                .customGrouping(INDEXING_BOLT, new ShuffleGrouping());
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         getAnInt(CASSANDRA_PORT),
