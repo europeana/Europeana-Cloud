@@ -117,7 +117,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
     @Test
     public void shouldProperlyReturnCloudIdAndTimestamp() throws Exception {
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(null);
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(true);
         assertEquals(cloudIdAndTimestampResponseList.get(0).getCloudId(), rep.getCloudId());
     }
 
