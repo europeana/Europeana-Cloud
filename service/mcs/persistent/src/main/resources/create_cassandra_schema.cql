@@ -110,10 +110,7 @@ CREATE TABLE provider_dataset_representation (
     mark_deleted boolean,
     PRIMARY KEY ((provider_id, dataset_id, bucket_id), representation_id, revision_timestamp, cloud_id)
 )WITH comment='Retrieve cloud Ids based on the revision_timestamp that is greater from a specific value. Used for full and incremental updates';
-CREATE INDEX provider_dataset_representation_acceptance ON provider_dataset_representation (acceptance);
-CREATE INDEX dataset_representation_published ON provider_dataset_representation (published);
-CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_representation (mark_deleted);
-CREATE INDEX provider_dataset_representation_revision_id ON provider_dataset_representation (revision_id);
+
 
 
 
