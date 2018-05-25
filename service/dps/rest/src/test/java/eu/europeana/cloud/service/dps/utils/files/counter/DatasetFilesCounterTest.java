@@ -24,10 +24,10 @@ public class DatasetFilesCounterTest {
 
     private DatasetFilesCounter datasetFilesCounter;
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
-    private final static long TASK_ID = 1234;
-    private final static int EXPECTED_SIZE = 100;
-    private final static int DEFAULT_FILES_COUNT = -1;
-    private final static String TOPOLOGY_NAME = "TOPOLOGY_NAME";
+    private static final long TASK_ID = 1234;
+    private static final int EXPECTED_SIZE = 100;
+    private static final int DEFAULT_FILES_COUNT = -1;
+    private static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
     private DpsTask dpsTask;
 
 
