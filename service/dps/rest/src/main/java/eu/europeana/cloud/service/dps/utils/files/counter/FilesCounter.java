@@ -10,5 +10,5 @@ public abstract class FilesCounter {
     /**
      * @return The number of records inside the task.
      */
-    public abstract int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException;
+    public abstract int getFilesCount(DpsTask task) throws TaskSubmissionException;
 }

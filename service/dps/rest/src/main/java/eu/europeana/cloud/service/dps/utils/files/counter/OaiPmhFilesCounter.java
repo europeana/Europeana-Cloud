@@ -55,12 +55,11 @@ public class OaiPmhFilesCounter extends FilesCounter {
      * In case any of them happens, -1 is returned.
      *
      * @param task                dps task
-     * @param authorizationHeader authorization header
      * @return total number of records for given parameters or -1 if no value available in OAI
      * @throws TaskSubmissionException
      */
     @Override
-    public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
+    public int getFilesCount(DpsTask task) throws TaskSubmissionException {
 
         OAIPMHHarvestingDetails harvestingDetails = task.getHarvestingDetails();
         if (harvestingDetails != null) {

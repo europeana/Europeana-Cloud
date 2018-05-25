@@ -19,6 +19,8 @@ public final class PluginParameterKeys {
 
     public static final String DPS_TASK_INPUT_DATA = "DPS_TASK_INPUT_DATA";
 
+    public static final String PREVIOUS_TASK_ID = "PREVIOUS_TASK_ID";
+
     public static final String TASK_NAME = "TASK_NAME";
     public static final String ROUTING = "ROUTING";
 
