@@ -64,7 +64,7 @@ public class SolrRepresentationIndexerTest {
         String versionId
                 = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
         int partitionKey = 32151;
-        ArrayList<File> files = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(0);
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();
 
@@ -88,8 +88,8 @@ public class SolrRepresentationIndexerTest {
         String versionId
                 = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
         int partitionKey = 32151;
-        ArrayList<File> files = new ArrayList<>();
-        ArrayList<Revision> revisions = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(0);
+        ArrayList<Revision> revisions = new ArrayList<>(0);
         boolean persistent = true;
         Date creationDate = Calendar.getInstance().getTime();
         Representation representation = new Representation(cloudId, representationName,
@@ -97,7 +97,7 @@ public class SolrRepresentationIndexerTest {
 
         String dataSetId1 = "dataSet1";
         String dataSetId2 = "dataSet2";
-        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>();
+        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>(2);
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId1));
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 

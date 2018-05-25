@@ -82,7 +82,7 @@ public class UISHandlerTest {
         CloudId cl = new CloudId();
         cl.setId("66666");
         ResultSlice<CloudId> result = new ResultSlice<>();
-        List<CloudId> resultList = new ArrayList<>();
+        List<CloudId> resultList = new ArrayList<>(1);
         resultList.add(cl);
         result.setResults(resultList);
 
@@ -98,7 +98,7 @@ public class UISHandlerTest {
         CloudId cl = new CloudId();
         cl.setId(cloudId);
         ResultSlice<CloudId> result = new ResultSlice<>();
-        List<CloudId> resultList = new ArrayList<>();
+        List<CloudId> resultList = new ArrayList<>(1);
         resultList.add(cl);
         result.setResults(resultList);
 

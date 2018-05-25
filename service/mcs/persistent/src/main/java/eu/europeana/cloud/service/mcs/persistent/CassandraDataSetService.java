@@ -16,6 +16,8 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ import java.util.*;
  */
 @Service
 public class CassandraDataSetService implements DataSetService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataSetService.class);
 
     @Autowired
     private CassandraDataSetDAO dataSetDAO;
@@ -144,7 +147,7 @@ public class CassandraDataSetService implements DataSetService {
         if (!latestRevisions.isEmpty()) {
             for (String revisionKey : latestRevisions.keySet()) {
                 Revision latestRevision = latestRevisions.get(revisionKey);
-                Date latestStoredRevisionTimestamp = dataSetDAO.getLatestRevisionTimeStamp(dataSetId, providerId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), recordId);
+                Date latestStoredRevisionTimestamp = dataSetDAO.getLatestRevisionTimeStamp(dataSetId, providerId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.isDeleted(), recordId);
                 if (latestStoredRevisionTimestamp == null || latestStoredRevisionTimestamp.getTime() < latestRevision.getCreationTimeStamp().getTime()) {
                     dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
                             recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.getCreationTimeStamp(), version,
@@ -201,7 +204,7 @@ public class CassandraDataSetService implements DataSetService {
                 String revisionId = revisionName + "_" + revisionProvider;
                 if (!deletedRevisions.contains(revisionId)) {
                     dataSetDAO.deleteLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
-                            recordId, schema, revisionName, revisionProvider);
+                            recordId, schema, revisionName, revisionProvider, revision.isDeleted());
                     deletedRevisions.add(revision);
                 }
                 dataSetDAO.removeDataSetsRevision(providerId, dataSetId, revision, schema, recordId);
@@ -263,7 +266,7 @@ public class CassandraDataSetService implements DataSetService {
                 return false;
             }
         } catch (RepresentationNotExistsException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
         return false;
     }

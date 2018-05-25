@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -47,26 +48,46 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         try {
             List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
             if (datasets != null) {
-                LOGGER.info("Data-sets that will be affected: " + datasets);
+                LOGGER.info("Data-sets that will be affected: {}", datasets);
                 for (String datasetLocation : datasets) {
                     Representation resultRepresentation = parseResultUrl(resultUrl);
                     DataSet dataSet = parseDataSetURl(datasetLocation);
-                    datasetClient.assignRepresentationToDataSet(
-                            dataSet.getProviderId(),
-                            dataSet.getId(),
-                            resultRepresentation.getCloudId(),
-                            resultRepresentation.getRepresentationName(),
-                            resultRepresentation.getVersion());
+                    assignRepresentationToDataSet(datasetClient, dataSet, resultRepresentation);
                 }
             }
             emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
-        } catch (MCSException e) {
-            LOGGER.warn("Error while communicating with MCS", e.getMessage());
+        } catch (MCSException | DriverException e) {
+            LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
         } catch (MalformedURLException e) {
             emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
         }
     }
+
+
+    private void assignRepresentationToDataSet(DataSetServiceClient dataSetServiceClient, DataSet dataSet, Representation resultRepresentation) throws MCSException, DriverException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                dataSetServiceClient.assignRepresentationToDataSet(
+                        dataSet.getProviderId(),
+                        dataSet.getId(),
+                        resultRepresentation.getCloudId(),
+                        resultRepresentation.getRepresentationName(),
+                        resultRepresentation.getVersion());
+                break;
+            } catch (MCSException | DriverException e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while assigning record to dataset. Retries left: {}", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while assigning record to dataset.");
+                    throw e;
+                }
+            }
+        }
+    }
+
 
     private List<String> readDataSetsList(String listParameter) {
         if (listParameter == null)
@@ -83,20 +104,20 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             rep.setVersion(parser.getPart(UrlPart.VERSIONS));
             return rep;
         }
-        return null;
+        throw new MalformedURLException("The resulted output URL is not formulated correctly");
     }
 
     private DataSet parseDataSetURl(String url) throws MalformedURLException {
-        DataSet dataSet = null;
         UrlParser parser = new UrlParser(url);
         if (parser.isUrlToDataset()) {
-            dataSet = new DataSet();
+            DataSet dataSet = new DataSet();
             dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
             dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
+            return dataSet;
         }
-        return dataSet;
-    }
+        throw new MalformedURLException("The dataSet URL is not formulated correctly");
 
+    }
 
 
 }

@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -22,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -30,6 +30,7 @@ import java.util.Properties;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
+import static java.lang.Integer.parseInt;
 
 /**
  * Created by Tarek on 1/24/2018.
@@ -37,7 +38,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 public class EnrichmentTopology {
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
-    private final static String TOPOLOGY_PROPERTIES_FILE = "enrichment-topology-config.properties";
+    private static final String TOPOLOGY_PROPERTIES_FILE = "enrichment-topology-config.properties";
     private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
     private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentTopology.class);
@@ -76,84 +77,78 @@ public class EnrichmentTopology {
 
         // TOPOLOGY STRUCTURE!
         builder.setSpout(SPOUT, kafkaSpout,
-                (Integer.parseInt(topologyProperties.getProperty(KAFKA_SPOUT_PARALLEL))))
+                (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(KAFKA_SPOUT_NUMBER_OF_TASKS))));
+                        (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
         builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(PARSE_TASKS_BOLT_PARALLEL))))
+                (getAnInt(PARSE_TASKS_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(PARSE_TASKS_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(PARSE_TASKS_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(SPOUT);
 
 
         builder.setBolt(READ_DATASETS_BOLT, new ReadDatasetsBolt(),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(READ_DATASETS_BOLT_PARALLEL))))
-                .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(READ_DATASETS_BOLT_NUMBER_OF_TASKS))))
+                (getAnInt(READ_DATASETS_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(READ_DATASETS_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(PARSE_TASK_BOLT, DATASET_STREAM);
 
         builder.setBolt(READ_DATASET_BOLT, new ReadDatasetBolt(ecloudMcsAddress),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(READ_DATASET_BOLT_PARALLEL))))
+                (getAnInt(READ_DATASET_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(READ_DATASET_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(READ_DATASET_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(READ_DATASETS_BOLT);
 
 
         builder.setBolt(READ_REPRESENTATION_BOLT, new ReadRepresentationBolt(ecloudMcsAddress),
-                (Integer
-                        .parseInt(topologyProperties.getProperty(READ_REPRESENTATION_BOLT_PARALLEL))))
+                (getAnInt(READ_REPRESENTATION_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(READ_DATASET_BOLT);
 
 
         builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
-                (Integer
-                        .parseInt(topologyProperties.getProperty(RETRIEVE_FILE_BOLT_PARALLEL))))
+                (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(PARSE_TASK_BOLT, FILE_STREAM).shuffleGrouping(READ_REPRESENTATION_BOLT);
 
 
         builder.setBolt(ENRICHMENT_BOLT, enrichmentBolt,
-                (Integer.parseInt(topologyProperties.getProperty(ENRICHMENT_BOLT_PARALLEL))))
+                (getAnInt(ENRICHMENT_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(ENRICHMENT_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(ENRICHMENT_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(RETRIEVE_FILE_BOLT);
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
-                (Integer.parseInt(topologyProperties.getProperty(WRITE_BOLT_PARALLEL))))
+                (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(WRITE_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(ENRICHMENT_BOLT);
 
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
-                (Integer.parseInt(topologyProperties.getProperty(REVISION_WRITER_BOLT_PARALLEL))))
+                (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(WRITE_RECORD_BOLT);
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                (Integer.parseInt(topologyProperties.getProperty(ADD_TO_DATASET_BOLT_PARALLEL))))
+                (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
                 .shuffleGrouping(REVISION_WRITER_BOLT);
 
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                        getAnInt(CASSANDRA_PORT),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
                         topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_PARALLEL)))
+                getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
-                        (Integer.parseInt(topologyProperties.getProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
+                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(PARSE_TASK_BOLT, NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, NOTIFICATION_STREAM_NAME,
@@ -177,12 +172,12 @@ public class EnrichmentTopology {
         return builder.createTopology();
     }
 
+    private static int getAnInt(String propertyName) {
+        return parseInt(topologyProperties.getProperty(propertyName));
+    }
+
     public static void main(String[] args) {
         try {
-
-            Config config = new Config();
-            config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
-
             if (args.length <= 1) {
 
                 String providedPropertyFile = "";
@@ -195,28 +190,20 @@ public class EnrichmentTopology {
 
                 // assuming kafka topic == topology name
                 String kafkaTopic = topologyName;
-
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-
                 StormTopology stormTopology = enrichmentTopology.buildTopology(
                         kafkaTopic,
                         ecloudMcsAddress);
-
-                config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(WORKER_COUNT)));
-                config.setMaxTaskParallelism(
-                        Integer.parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
-                config.put(Config.NIMBUS_THRIFT_PORT,
-                        Integer.parseInt(topologyProperties.getProperty(THRIFT_PORT)));
-                config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-                        topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-                config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{topologyProperties.getProperty(NIMBUS_SEEDS)}));
-                config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                        Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
+                Config config = configureTopology(topologyProperties);
+                config.put(Config.TOPOLOGY_ACKER_EXECUTORS, 0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
+
         }
     }
+
+
 }
 

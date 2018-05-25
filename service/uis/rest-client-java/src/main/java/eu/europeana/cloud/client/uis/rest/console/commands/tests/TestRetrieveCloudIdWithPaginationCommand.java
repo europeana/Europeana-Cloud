@@ -29,7 +29,7 @@ public class TestRetrieveCloudIdWithPaginationCommand extends Command {
 			int window = Integer.parseInt(input[0]);
 			Date now = new Date();
 
-			System.out.println("Starting test at: " + now.toString());
+			System.out.println("Starting test at: " + now);
 			List<CloudId> paginated = client.getCloudIdsByProviderWithPagination(columns[1], cloudIds.get(0)
 					.getId(), window).getResults();
 			while (paginated.size()==window){

@@ -24,7 +24,7 @@ public class TestDeleteCommand extends Command {
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[0]));
 			Date now = new Date();
-			System.out.println("Starting test at: " + now.toString());
+			System.out.println("Starting test at: " + now);
 			for (String id : ids) {
 				String[] columns = id.split(" ");
 				client.deleteCloudId(columns[0]);

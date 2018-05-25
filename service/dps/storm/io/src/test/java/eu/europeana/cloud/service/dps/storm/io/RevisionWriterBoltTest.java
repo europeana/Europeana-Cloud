@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,8 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -25,8 +23,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.anyString;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.management.*"})
+@RunWith(MockitoJUnitRunner.class)
 public class RevisionWriterBoltTest {
 
     @Mock(name = "outputCollector")
@@ -49,7 +46,7 @@ public class RevisionWriterBoltTest {
         testMock.addRevisionAndEmit(new StormTaskTuple(), revisionServiceClient);
 
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
     }
 
     @Test
@@ -57,7 +54,7 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.addRevisionAndEmit(prepareTuple(), revisionServiceClient);
         Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
     }
 
     @Test
@@ -65,16 +62,17 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.addRevisionAndEmit(prepareTupleWithMalformedURL(), revisionServiceClient);
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
     }
 
     @Test
-    public void mcsExceptionShouldBeHandled() throws MalformedURLException, MCSException {
+    public void mcsExceptionShouldBeHandledWithRetries() throws MalformedURLException, MCSException {
         Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class))).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.addRevisionAndEmit(prepareTuple(), revisionServiceClient);
-        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(revisionServiceClient, Mockito.times(11)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),Mockito.any(List.class));
+
     }
 
     private StormTaskTuple prepareTuple() {

@@ -10,10 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
+import org.mockito.runners.MockitoJUnitRunner;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -27,9 +24,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Tarek on 1/23/2018.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(EnrichmentBolt.class)
-@PowerMockIgnore("javax.net.ssl.*")
+@RunWith(MockitoJUnitRunner.class)
 public class EnrichmentBoltTest {
 
     public static final String DEREFERENCE_URL = "https:/dereference.org";
@@ -69,13 +64,13 @@ public class EnrichmentBoltTest {
     }
 
     private void assertSuccessfulValidation() {
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
     }
 
     private void assertFailedValidation() {
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit( Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
     }
 
 }

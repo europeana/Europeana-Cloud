@@ -17,11 +17,8 @@ import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundExceptio
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.*;
 import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -176,17 +173,7 @@ public class RecordServiceClient extends MCSClient {
         WebTarget target = client.target(baseUrl).path(recordPath).resolveTemplate(P_CLOUDID, cloudId);
         Builder request = target.request();
 
-        Response response = null;
-        try {
-            response = request.delete();
-
-            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        handleDeleteRequest(request);
     }
 
     /**
@@ -278,19 +265,7 @@ public class RecordServiceClient extends MCSClient {
         form.param("providerId", providerId);
 
         Response response = null;
-        try {
-            response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                URI uri = response.getLocation();
-                return uri;
-            } else {
-
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        return handleRepresentationResponse(form, request, response);
     }
 
     /**
@@ -324,13 +299,7 @@ public class RecordServiceClient extends MCSClient {
         try {
             multipart = prepareRequestBody(providerId, data, fileName, mediaType);
             response = request.post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                URI uri = response.getLocation();
-                return uri;
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleResponse(response);
         } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
@@ -393,16 +362,7 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
 
-        Response response = null;
-        try {
-            response = request.delete();
-            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        handleDeleteRequest(request);
     }
 
     /**
@@ -500,6 +460,10 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
 
+        handleDeleteRequest(request);
+    }
+
+    private void handleDeleteRequest(Builder request) throws MCSException {
         Response response = null;
         try {
             response = request.delete();
@@ -573,17 +537,25 @@ public class RecordServiceClient extends MCSClient {
         Builder request = target.request();
 
         Response response = null;
+        return handleRepresentationResponse(form, request, response);
+    }
+
+    private URI handleRepresentationResponse(Form form, Builder request, Response response) throws MCSException {
         try {
             response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                URI uri = response.getLocation();
-                return uri;
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleResponse(response);
         } finally {
             closeResponse(response);
+        }
+    }
+
+    private URI handleResponse(Response response) throws MCSException {
+        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+            URI uri = response.getLocation();
+            return uri;
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
 
@@ -638,16 +610,7 @@ public class RecordServiceClient extends MCSClient {
 
         Builder request = target.request();
 
-        Response response = null;
-        try {
-            response = request.delete();
-            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        handleDeleteRequest(request);
     }
 
     /**

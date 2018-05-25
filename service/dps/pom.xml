@@ -27,7 +27,6 @@
     <modules>
         <module>api</module>
         <module>kafka-service</module>
-        <module>zoo-service</module>
         <module>rest</module>
         <module>rest-client-java</module>
         <module>storm/common</module>
@@ -41,6 +40,8 @@
         <module>storm/topologies/validation</module>
         <module>storm/topologies/dereference-enrichment</module>
         <module>storm/topologies/http-harvesting</module>
+        <module>storm/topologies/indexing</module>
+        <module>storm/topologies/normalization</module>
         <module>storm/topologies/media</module>
     </modules>
 </project>

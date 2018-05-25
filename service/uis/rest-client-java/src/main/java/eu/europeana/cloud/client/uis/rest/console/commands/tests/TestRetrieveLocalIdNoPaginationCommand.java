@@ -25,7 +25,7 @@ public class TestRetrieveLocalIdNoPaginationCommand extends Command {
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[0]));
 			Date now = new Date();
-			System.out.println("Starting test at: " + now.toString());
+			System.out.println("Starting test at: " + now);
 			
 			String[] columns = ids.get(0).split(" ");
 			List<LocalId> cloudIds = client.getRecordIdsByProvider(columns[1]).getResults();

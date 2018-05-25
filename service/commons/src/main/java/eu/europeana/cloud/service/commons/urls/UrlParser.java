@@ -40,7 +40,6 @@ public class UrlParser {
 
     private URL resourceUrl;
     private String appLocation;
-    private UrlBuilder ecloudUrlBuilder;
 
     public UrlParser(String url) throws MalformedURLException {
         resourceUrl = new URL(url);
@@ -106,7 +105,6 @@ public class UrlParser {
             }
         }
 
-        ecloudUrlBuilder = new UrlBuilder(parts);
     }
 
     /**
@@ -267,7 +265,7 @@ public class UrlParser {
     }
 
     public String getDataSetsUrl() throws UrlBuilderException {
-        ecloudUrlBuilder = new UrlBuilder(parts);
+        UrlBuilder ecloudUrlBuilder = new UrlBuilder(parts);
         String result = ecloudUrlBuilder
                 .clear()
                 .withDataProvider()

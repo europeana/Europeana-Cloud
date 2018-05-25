@@ -50,7 +50,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 1/25/2018.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class,CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class,CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class,TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
@@ -142,8 +142,8 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
 
     private final void prepareForTask() throws URISyntaxException, IOException, MCSException {
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(2);
+        List<Revision> revisions = new ArrayList<>(1);
         files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL)));
         files.add(new File("sourceFileName2", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL_FILE2)));
 

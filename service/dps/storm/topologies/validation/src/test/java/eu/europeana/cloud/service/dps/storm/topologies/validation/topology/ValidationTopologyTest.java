@@ -5,6 +5,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -59,7 +60,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, StatisticsBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, StatisticsBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class,TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class ValidationTopologyTest extends ValidationMockHelper {
 
@@ -204,8 +205,8 @@ public class ValidationTopologyTest extends ValidationMockHelper {
     }
 
     private final void prepareForDataset() throws URISyntaxException, IOException, MCSException {
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
+        List<File> files = new ArrayList<>(2);
+        List<Revision> revisions = new ArrayList<>(0);
         files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL)));
         files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL_FILE2)));
 
@@ -273,7 +274,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                 .shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
         builder.setBolt(TopologyHelper.VALIDATION_BOLT, new ValidationBolt(readProperties("validation.properties"))).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
         builder.setBolt(TopologyHelper.STATISTICS_BOLT, statisticsBolt).shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
-        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL)).shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
+        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL, ValidationTopology.SUCCESS_MESSAGE)).shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)

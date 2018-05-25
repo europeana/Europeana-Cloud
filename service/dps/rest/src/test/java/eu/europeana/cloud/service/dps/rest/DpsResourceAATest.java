@@ -29,16 +29,20 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 
@@ -93,7 +97,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
     private final static String ADMIN = "admin";
     private final static String ADMIN_PASSWORD = "admin";
-    private final static long TASK_ID=12345;
+    private final static long TASK_ID = 12345;
     private final static String SAMPLE_METIS_DATASET_ID = "ORG_DSID_DSNAME";
 
     private final static String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
@@ -126,7 +130,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         URI_INFO = Mockito.mock(UriInfo.class);
         asyncResponse = Mockito.mock(AsyncResponse.class);
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "",100, 100, 0, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, 0, new Date(), new Date(), new Date());
         Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
@@ -370,7 +374,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 
     @Test
-    public void vanPersieShouldNotBeAbleKillTaskoNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
+    public void UserShouldNotBeAbleKillTaskToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
@@ -387,45 +391,42 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         }
     }
 
-
     @Test
-    public void vanPersieShouldNotBeAbleCheckKillFlagNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
+    public void UserShouldNotBeAbleKillTaskHeDidNotSend() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //given
         Mockito.reset(topologyManager);
-        Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
+        Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, true);
         login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
-        login(RONALDO, RONALD_PASSWORD);
+        topologiesResource.grantPermissionsToTopology(ADMIN, SAMPLE_TOPOLOGY_NAME);
         submitTaskAndWait(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        login(RONALDO, RONALD_PASSWORD);
 
         //when
         try {
-            topologyTasksResource.checkKillFlag(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
+            topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
             fail();
             //then
-        } catch (AccessDeniedOrTopologyDoesNotExistException e) {
+        } catch (AccessDeniedException e) {
         }
     }
 
     @Test
-    public void vanPersieShouldNotBeRemoveKillFlagNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
+    public void UserShouldBeAbleKillTaskHeSent() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //given
-
         Mockito.reset(topologyManager);
-        Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
+        Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, true);
         login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
-        login(RONALDO, RONALD_PASSWORD);
+        topologiesResource.grantPermissionsToTopology(ADMIN, SAMPLE_TOPOLOGY_NAME);
         submitTaskAndWait(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         //when
         try {
-            topologyTasksResource.removeKillFlag(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
+            Response response = topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
+            assertNotNull(response);
+            assertEquals(response.getStatus(), 200);
+        } catch (Exception e) {
             fail();
-            //then
-        } catch (AccessDeniedOrTopologyDoesNotExistException e) {
         }
     }
-
 
     void submitTaskAndWait(AsyncResponse asyncResponse, DpsTask dpsTask, String topologyName, UriInfo uriInfo, String authHeader) throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException {
         topologyTasksResource.submitTask(asyncResponse, dpsTask, topologyName, uriInfo, authHeader);

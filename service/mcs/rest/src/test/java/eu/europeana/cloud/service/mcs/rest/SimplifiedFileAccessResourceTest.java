@@ -148,7 +148,7 @@ public class SimplifiedFileAccessResourceTest {
 
     private void setupRecordService() throws RepresentationNotExistsException, FileNotExistsException {
 
-        List<Representation> representationsList = new ArrayList<>();
+        List<Representation> representationsList = new ArrayList<>(1);
         Representation r1 = new Representation();
         r1.setPersistent(true);
         r1.setVersion("123");
@@ -156,7 +156,7 @@ public class SimplifiedFileAccessResourceTest {
         r1.setCloudId("sampleCloudID");
         representationsList.add(r1);
         //
-        List<Representation> representationsListWithoutPersistentRepresentations = new ArrayList<>();
+        List<Representation> representationsListWithoutPersistentRepresentations = new ArrayList<>(1);
         Representation r2 = new Representation();
         r2.setPersistent(false);
         representationsListWithoutPersistentRepresentations.add(r2);

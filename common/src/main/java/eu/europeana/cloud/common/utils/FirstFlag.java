@@ -8,7 +8,7 @@ package eu.europeana.cloud.common.utils;
  */
 public class FirstFlag {
 
-    private Boolean first = true;
+    private boolean first = true;
 
     /**
      * Creates instance of FirstFlag.
@@ -30,7 +30,7 @@ public class FirstFlag {
      * @return value indicating whether this is the first call of this method or
      * not
      */
-    public Boolean unpack() {
+    public boolean unpack() {
         if (!first) {
             return false;
         }

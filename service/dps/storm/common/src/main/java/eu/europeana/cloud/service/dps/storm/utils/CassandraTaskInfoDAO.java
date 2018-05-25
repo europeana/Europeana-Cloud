@@ -6,7 +6,6 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
@@ -22,10 +21,11 @@ import java.util.List;
 public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskSearchStatement;
     private PreparedStatement taskInsertStatement;
-    private CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO;
+    private PreparedStatement updateExpectedSize;
     private PreparedStatement updateTask;
     private PreparedStatement endTask;
     private PreparedStatement updateProcessedFiles;
+    private PreparedStatement killTask;
 
 
     private static CassandraTaskInfoDAO instance = null;
@@ -43,7 +43,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
      */
     private CassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
-        cassandraSubTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(dbService);
     }
 
     @Override
@@ -70,6 +69,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.ERRORS +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        killTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , "+CassandraTablesAndColumnsNames.INFO +" = ? , "  + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        killTask.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateExpectedSize = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + " = ?  WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateExpectedSize.setConsistencyLevel(dbService.getConsistencyLevel());
+
     }
 
     public TaskInfo searchById(long taskId)
@@ -95,6 +99,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updateTask.bind(state, startDate, info, taskId));
     }
 
+    public void setUpdateExpectedSize(long taskId, int expectedSize)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(updateExpectedSize.bind(expectedSize, taskId));
+    }
+
     public void endTask(long taskId, int processeFilesCount, int errors, String info, String state, Date finishDate)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(endTask.bind(processeFilesCount, errors, state, finishDate, info, taskId));
@@ -105,19 +114,31 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         insert(taskId, topologyName, expectedSize, 0, state, info, sentTime, null, null, 0);
     }
 
+    public void startProgress(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime)
+            throws NoHostAvailableException, QueryExecutionException {
+        insert(taskId, topologyName, expectedSize, 0, state, info, sentTime, null, null, 0);
+    }
+
     public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateProcessedFiles.bind(processedFilesCount, errors, taskId));
 
     }
 
-    public TaskInfo searchByIdWithSubtasks(long taskId)
-            throws NoHostAvailableException, QueryExecutionException, TaskInfoDoesNotExistException {
-        TaskInfo result = searchById(taskId);
-        List<SubTaskInfo> subTasks = cassandraSubTaskInfoDAO.searchById(taskId);
-        for (SubTaskInfo subTask : subTasks) {
-            result.addSubtask(subTask);
-        }
-        return result;
+    public void killTask(long taskId) {
+        dbService.getSession().execute(killTask.bind(String.valueOf(TaskState.DROPPED), "Dropped by the user", new Date(), taskId));
+    }
+
+    public boolean hasKillFlag(long taskId) {
+        String state = getTaskStatus(taskId);
+        if (state.equals(String.valueOf(TaskState.DROPPED)))
+            return true;
+        return false;
+    }
+
+    private String getTaskStatus(long taskId) {
+        ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
+        Row row = rs.one();
+        return row.getString(CassandraTablesAndColumnsNames.STATE);
     }
 }

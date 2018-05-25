@@ -11,6 +11,7 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.Config;
 import org.apache.storm.testing.CompleteTopologyParam;
 import org.apache.storm.testing.MkClusterParam;
@@ -20,6 +21,7 @@ import org.powermock.api.mockito.PowerMockito;
 
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.test.TestConstants.NUM_WORKERS;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
@@ -31,6 +33,7 @@ public class TopologyTestHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected CassandraTaskErrorsDAO taskErrorsDAO;
+    protected TaskStatusChecker taskStatusChecker;
 
     protected FileServiceClient fileServiceClient;
     protected DataSetServiceClient dataSetClient;
@@ -51,12 +54,18 @@ public class TopologyTestHelper {
         taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
         PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
         when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
+
+        taskStatusChecker = Mockito.mock(TaskStatusChecker.class);
+        PowerMockito.mockStatic(TaskStatusChecker.class);
+        when(TaskStatusChecker.getTaskStatusChecker()).thenReturn(taskStatusChecker);
+
         subTaskInfoDAO = Mockito.mock(CassandraSubTaskInfoDAO.class);
         PowerMockito.mockStatic(CassandraSubTaskInfoDAO.class);
         when(CassandraSubTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(subTaskInfoDAO);
         taskErrorsDAO = Mockito.mock(CassandraTaskErrorsDAO.class);
         PowerMockito.mockStatic(CassandraTaskErrorsDAO.class);
         when(CassandraTaskErrorsDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskErrorsDAO);
+        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
         PowerMockito.mockStatic(CassandraConnectionProviderSingleton.class);
         when(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(anyString(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Mockito.mock(CassandraConnectionProvider.class));
     }
@@ -86,12 +95,23 @@ public class TopologyTestHelper {
     }
 
     protected CompleteTopologyParam prepareCompleteTopologyParam(MockedSources mockedSources) {
-        Config conf = new Config();
-        conf.setNumWorkers(NUM_WORKERS);
+
         CompleteTopologyParam completeTopologyParam = new CompleteTopologyParam();
         completeTopologyParam.setMockedSources(mockedSources);
-        completeTopologyParam.setStormConf(conf);
+        completeTopologyParam.setStormConf(buildConfig());
         return completeTopologyParam;
+    }
+
+    private Config buildConfig() {
+        Config conf = new Config();
+        conf.setNumWorkers(NUM_WORKERS);
+        conf.put(CASSANDRA_HOSTS, CASSANDRA_HOSTS);
+        conf.put(CASSANDRA_PORT, "9042");
+        conf.put(CASSANDRA_KEYSPACE_NAME, CASSANDRA_KEYSPACE_NAME);
+        conf.put(CASSANDRA_USERNAME, CASSANDRA_USERNAME);
+        conf.put(CASSANDRA_SECRET_TOKEN, CASSANDRA_SECRET_TOKEN);
+        conf.setNumAckers(0);
+        return conf;
     }
 
 

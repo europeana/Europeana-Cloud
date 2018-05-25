@@ -65,7 +65,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
         OAIPMHHarvestingDetails harvestingDetails = task.getHarvestingDetails();
         if (harvestingDetails != null) {
             if (specified(harvestingDetails.getExcludedSets()) || specified(harvestingDetails.getExcludedSchemas())) {
-                LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Excluded sets or schemas are not supported");
+                LOGGER.info("Cannot count completeListSize for taskId= {} . Excluded sets or schemas are not supported", task.getTaskId());
                 return DEFAULT_LIST_SIZE;
             }
 
@@ -82,7 +82,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                     if (sets.size() == 1) {
                         params.withSetSpec(sets.iterator().next());
                     } else {
-                        LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Specifying multiple sets is not supported");
+                        LOGGER.info("Cannot count completeListSize for taskId= {} . Specifying multiple sets is not supported ", task.getTaskId());
                         return DEFAULT_LIST_SIZE;
                     }
                 }
@@ -90,7 +90,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                 try {
                     return getListSizeForSchemasAndSet(repositoryUrl, params, schemas);
                 } catch (OAIResponseParseException e) {
-                    LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId(), e);
+                    LOGGER.info("Cannot count completeListSize for taskId= {}", task.getTaskId(), e);
                     return DEFAULT_LIST_SIZE;
                 } catch (OAIRequestException e) {
                     String logMessage = "Cannot complete the request for the following repository URL " + repositoryUrl;
@@ -138,6 +138,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
                         LOGGER.error(Throwables.getStackTraceAsString(e));
                     }
                 } else {

@@ -32,7 +32,7 @@ public class TestReadWriteOneProviderWithIdCommand extends Command{
 			List<String> str = new ArrayList<>();
 			Date now = new Date();
 			long start = now.getTime();
-			System.out.println("Test started at: " + now.toString());
+			System.out.println("Test started at: " + now);
 			client.createProvider(providerId, new DataProviderProperties());
 			while(i<Long.parseLong(input[0])){
 				

@@ -6,9 +6,12 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -20,6 +23,7 @@ import org.mockito.*;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -61,13 +65,15 @@ public class HarvestingWriteRecordBoltTest {
 
     @Before
     public void init() throws Exception {
-        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
+        MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
+        when(outputCollector.emit(anyList())).thenReturn(null);
         MockitoAnnotations.initMocks(this);
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         oaipmhHarvestingDetails.setSchemas(new HashSet<String>(Arrays.asList(SOURCE + REPRESENTATION_NAME)));
         tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision(), oaipmhHarvestingDetails);
         mockUisClient();
         mockRecordServiceClient();
+
     }
 
 
@@ -86,6 +92,33 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     @Test
+    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+        CloudId cloudId = mock(CloudId.class);
+        when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
+        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
+        oaiWriteRecordBoltT.execute(tuple);
+        assertFailingExpectationWhenCreatingRepresentation();
+    }
+
+    @Test
+    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+        CloudId cloudId = mock(CloudId.class);
+        when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
+        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
+        oaiWriteRecordBoltT.execute(tuple);
+        assertFailingExpectationWhenCreatingRepresentation();
+    }
+
+    private void assertFailingExpectationWhenCreatingRepresentation() throws MCSException, IOException {
+        verify(outputCollector, times(0)).emit(anyList());
+        verify(recordServiceClient, times(11)).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),anyListOf(Object.class));
+
+    }
+
+    @Test
     public void successfulExecuteStormTupleWithCreatingNewCloudId() throws Exception {
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         CloudId cloudId = mock(CloudId.class);
@@ -98,6 +131,18 @@ public class HarvestingWriteRecordBoltTest {
         oaiWriteRecordBoltT.execute(tuple);
 
         assertExecutionResults();
+
+    }
+
+    @Test
+    public void shouldRetry10TimesBeforeFailingWhenCreatingNewCloudId() throws Exception {
+        CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
+        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenThrow(exception);
+        doThrow(CloudException.class).when(uisClient).createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID);
+        oaiWriteRecordBoltT.execute(tuple);
+        verify(outputCollector, times(0)).emit(anyList());
+        verify(uisClient, times(11)).createCloudId(anyString(), anyString());
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }
 
@@ -125,7 +170,7 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     private void assertExecutionResults() {
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(value.size(), 7);

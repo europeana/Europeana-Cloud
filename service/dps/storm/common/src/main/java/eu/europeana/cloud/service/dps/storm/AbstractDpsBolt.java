@@ -1,7 +1,14 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
+
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -13,7 +20,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.nio.charset.Charset;
 import java.util.Map;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
+import static java.lang.Integer.parseInt;
 
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.
@@ -23,14 +36,13 @@ import java.util.Map;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
+    protected static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
     // default number of retries
     public static final int DEFAULT_RETRIES = 10;
 
     public static final int SLEEP_TIME = 5000;
-
-    protected Tuple inputTuple;
 
     protected Map stormConfig;
     protected TopologyContext topologyContext;
@@ -43,14 +55,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        LOGGER.info("Received tuple :" + tuple.toString());
-        inputTuple = tuple;
 
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
-            LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
-            execute(t);
+            if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
+                LOGGER.info("Mapped to StormTaskTuple with taskId {} and parameters list : {}", t.getTaskId(), t.getParameters());
+                execute(t);
+            }
         } catch (Exception e) {
             LOGGER.info("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
             if (t != null) {
@@ -58,8 +70,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 e.printStackTrace(new PrintWriter(stack));
                 emitErrorNotification(t.getTaskId(), t.getFileUrl(), e.getMessage(), stack.toString());
             }
-        } finally {
-            outputCollector.ack(tuple);
         }
     }
 
@@ -69,7 +79,29 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         this.topologyContext = tc;
         this.outputCollector = oc;
         this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
+        initTaskStatusChecker();
         prepare();
+    }
+
+    private void initTaskStatusChecker() {
+        String hosts = (String) stormConfig.get(CASSANDRA_HOSTS);
+        int port = parseInt((String) stormConfig.get(CASSANDRA_PORT));
+        String keyspaceName = (String) stormConfig.get(CASSANDRA_KEYSPACE_NAME);
+        String userName = (String) stormConfig.get(CASSANDRA_USERNAME);
+        String password = (String) stormConfig.get(CASSANDRA_SECRET_TOKEN);
+        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
+                userName, password);
+        synchronized (AbstractDpsBolt.class) {
+            if (taskStatusChecker == null) {
+                try {
+                    TaskStatusChecker.init(cassandraConnectionProvider);
+                } catch (IllegalStateException e) {
+                    LOGGER.info("It was already initialized Before");
+                }
+                taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+            }
+        }
+
     }
 
     @Override
@@ -91,10 +123,11 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param message                short text
      * @param additionalInformations the rest of informations (e.g. stack trace)
      */
+
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.ERROR, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
     protected void logAndEmitError(StormTaskTuple t, String message) {
@@ -103,11 +136,26 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
 
     protected void emitSuccessNotification(long taskId, String resource,
-                                           String message, String additionalInformations, String resultResource) {
+                                           String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.SUCCESS, message, additionalInformations, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
+                resource, States.SUCCESS, message, additionalInformation, resultResource);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
+    protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {
+        stormTaskTuple.setFileData(resultString.getBytes(Charset.forName("UTF-8")));
+        final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
+        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
+        stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
+        stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
+    }
 
+    protected void waitForSpecificTime() {
+        try {
+            Thread.sleep(SLEEP_TIME);
+        } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(e1.getMessage());
+        }
+    }
 }

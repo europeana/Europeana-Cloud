@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:dcterms="http://purl.org/dc/terms/"
+        xmlns:doap="http://usefulinc.com/ns/doap#"
+        xmlns:edm="http://www.europeana.eu/schemas/edm/"
+        xmlns:ore="http://www.openarchives.org/ore/terms/"
+        xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+        xmlns:svcs="http://rdfs.org/sioc/services#"
+>
+    <edm:ProvidedCHO rdf:about="https://data.ucd.ie/data/ucdlib:38556">
+        <dc:contributor rdf:resource="http://id.loc.gov/authorities/names/n84175522#concept"/>
+        <dc:description xml:lang="en">Physical location: UCD Library, UCD Library Special Collections,
+            Poet Arch0032
+        </dc:description>
+        <dc:description xml:lang="en">Handwritten presentation copy of the poem 'My Father percieved as
+            a vision of St. Francis'.
+        <dc:format xml:lang="en">2 leaves</dc:format>
+        <dcterms:extent>21 x 30 cm</dcterms:extent>
+        <dc:identifier>c0099_o0068</dc:identifier>
+        <dc:identifier>https://data.ucd.ie/data/ucdlib:38556</dc:identifier>
+        <dc:identifier>https://digital.ucd.ie/view/ucdlib:38556</dc:identifier>
+        <dc:identifier>doi:10.7925/drs1.ucdlib_38556</dc:identifier>
+        <dc:language1>Inglês</dc:language1>
+        <dc:publisher>UCD Library, University College Dublin</dc:publisher>
+        <dc:rights xml:lang="en">To use for commercial purposes, please contact the UCD Digital
+            Library
+        </dc:rights>
+        <dc:rights xml:lang="en">University College Dublin</dc:rights>
+        <dc:rights xml:lang="en">Paula Meehan</dc:rights>
+        <dc:rights xml:lang="en">Suggested credit: "Manuscript of Paula Meehan's poem 'My Father
+            percieved as a vision of St. Francis'," held by UCD Library Special Collections. © Paula
+            Meehan. Digital content: © University College Dublin, published by UCD Library, University
+            College Dublin &lt;http://digital.ucd.ie/view/ucdlib:38556&gt;
+        </dc:rights>
+        <dc:rights rdf:resource="http://creativecommons.org/licenses/by-nc-sa/4.0/"/>
+        <dc:rights>Use of this resource is governed by the Creative Commons - Attribution,
+            Non-Commercial, ShareAlike (BY-NC-SA) license.
+        </dc:rights>
+        <dc:source xml:lang="en">UCD Library, University College Dublin</dc:source>
+        <dc:subject xml:lang="en">Meehan, Paula</dc:subject>
+        <dc:subject xml:lang="en">English poetry--Irish authors</dc:subject>
+        <dc:title xml:lang="en">Manuscript of Paula Meehan's poem 'My Father percieved as a vision of
+            St. Francis'
+        </dc:title>
+        <dc:type xml:lang="en">text</dc:type>
+        <dc:type xml:lang="en">poetry</dc:type>
+        <dc:type xml:lang="en"></dc:type>
+        <dcterms:isPartOf rdf:resource="ucdlib:38488"/>
+        <edm:type>TEXT</edm:type>
+    </edm:ProvidedCHO>
+    <edm:Agent rdf:about="http://id.loc.gov/authorities/names/n84175522#concept">
+        <skos:prefLabel>   Meehan,  Paula   </skos:prefLabel>
+        <rdaGr2:professionOrOccupation>Author</rdaGr2:professionOrOccupation>
+        <edm:language>Inglês</edm:language>
+    </edm:Agent>
+    <ore:Aggregation rdf:about="https://data.ucd.ie/data/ucdlib:38556_Aggregation">
+        <edm:aggregatedCHO rdf:resource="https://data.ucd.ie/data/ucdlib:38556"/>
+        <edm:dataProvider>UCD Library</edm:dataProvider>
+        <edm:isShownAt rdf:resource="http://dx.doi.org/10.7925/drs1.ucdlib_38556"/>
+        <edm:isShownBy rdf:resource="https://iiif.ucd.ie/loris/ucdlib:38658/full/full/0/default.jpg"/>
+        <edm:object rdf:resource="https://iiif.ucd.ie/loris/ucdlib:38658/full/600,/0/default.jpg"/>
+        <edm:provider>University College Dublin</edm:provider>
+        <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nc-sa/4.0/"/>
+    </ore:Aggregation>
+    <svcs:Service rdf:about="https://iiif.ucd.ie/loris/ucdlib:38658">
+        <dcterms:conformsTo rdf:resource="http://iiif.io/api/image"/>
+        <doap:implements rdf:resource="http://iiif.io/api/image/2/level2.json"/>
+    </svcs:Service>
+</rdf:RDF>

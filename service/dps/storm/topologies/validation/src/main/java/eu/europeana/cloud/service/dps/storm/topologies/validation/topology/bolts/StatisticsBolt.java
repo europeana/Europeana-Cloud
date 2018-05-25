@@ -11,6 +11,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
+
 public class StatisticsBolt extends AbstractDpsBolt {
     private String hosts;
     private int port;
@@ -35,7 +36,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
             countStatistics(stormTaskTuple);
             // we can remove the file content before emitting further
             stormTaskTuple.setFileData((byte[]) null);
-            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+            outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (Exception e) {
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.");
         }

@@ -137,7 +137,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         long taskId = 1;
         int expectedSize = 330;
         int errors = 5;
-        int middle = (int)(Math.random() * expectedSize);
+        int middle = (int) (Math.random() * expectedSize);
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
@@ -168,12 +168,12 @@ public class NotificationBoltTest extends CassandraTestBase {
         if (middleExecute != null) {
             assertEquals(middleExecute.getProcessedElementCount(), (middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL);
             assertThat(middleExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-            assertEquals(middleExecute.getProcessedPercentage(), 100 * ((middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL)/ expectedSize);
+            assertEquals(middleExecute.getProcessedPercentage(), 100 * ((middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL) / expectedSize);
         }
-
-        assertEquals(afterExecute.getProcessedElementCount(), (expectedSize / PROCESSED_INTERVAL) * PROCESSED_INTERVAL);
-        assertThat(afterExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-        assertEquals(afterExecute.getProcessedPercentage(), 100 * ((afterExecute.getProcessedElementCount() / PROCESSED_INTERVAL) * PROCESSED_INTERVAL)/ expectedSize);
+        int totalProcessed = (expectedSize / PROCESSED_INTERVAL) * PROCESSED_INTERVAL;
+        assertEquals(afterExecute.getProcessedElementCount(), totalProcessed+(expectedSize - totalProcessed) );
+        assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
+        assertEquals(afterExecute.getProcessedPercentage(), 100 * ((afterExecute.getProcessedElementCount() / (totalProcessed+(expectedSize - totalProcessed)))));
     }
 
 

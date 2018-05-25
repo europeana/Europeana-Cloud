@@ -47,7 +47,7 @@ public class RepresentationRevisionFilesTestCase implements TestCase {
         System.out.println("RepresentationRevisionFilesTestCase started ..");
         try {
 
-            List<String> tags = new ArrayList<>();
+            List<String> tags = new ArrayList<>(1);
             tags.add(Tags.PUBLISHED.getTag());
 
             String cloudId = sourceDatasetHelper.prepareCloudId(SOURCE_PROVIDER_ID);

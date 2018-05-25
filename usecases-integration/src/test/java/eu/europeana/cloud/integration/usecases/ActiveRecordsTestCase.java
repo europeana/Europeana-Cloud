@@ -83,7 +83,7 @@ public class ActiveRecordsTestCase implements TestCase {
 
     private List<CloudIdAndTimestampResponse> getLatestCloudIdAndTimestampResponsesForPublishRevision() throws MCSException, MalformedURLException, CloudException {
         List<String> tags;
-        tags = new ArrayList<>();
+        tags = new ArrayList<>(1);
         tags.add(Tags.PUBLISHED.getTag());
         Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
         //prepare test case for one shared cloudId
@@ -93,7 +93,7 @@ public class ActiveRecordsTestCase implements TestCase {
     }
 
     private List<CloudIdAndTimestampResponse> getLatestCloudIdAndTimestampResponsesForDereferenceRevision() throws MCSException, MalformedURLException, CloudException {
-        List<String> tags = new ArrayList<>();
+        List<String> tags = new ArrayList<>(2);
         tags.add(Tags.PUBLISHED.getTag());
         tags.add(Tags.DELETED.getTag());
 

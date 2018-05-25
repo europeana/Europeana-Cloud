@@ -20,9 +20,6 @@ cd tiff-4.0.6
 make
 make install
 cd ..
-
-yum -y install libpng-devel
-
 wget http://www.imagemagick.org/download/releases/ImageMagick-7.0.1-10.tar.xz
 tar -xf ImageMagick-7.0.1-10.tar.xz
 rm ImageMagick-7.0.1-10.tar.xz
@@ -32,10 +29,14 @@ make
 make install
 cd  ..
 
-wget https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-64bit-static.tar.xz
-tar -xf ffmpeg-git-64bit-static.tar.xz
-rm ffmpeg-git-64bit-static.tar.xz
-cp ffmpeg-git-20180314-64bit-static/ffprobe /usr/local/bin/ffprobe
+wget https://www.ffmpeg.org/releases/ffmpeg-3.4.2.tar.xz
+tar -xf ffmpeg-3.4.2.tar.xz
+rm ffmpeg-3.4.2.tar.xz
+cd ffmpeg-3.4.2
+./configure --disable-x86asm
+make
+cp ffprobe /usr/local/bin/ffprobe
+cd ..
 
 wget http://kakadusoftware.com/wp-content/uploads/2014/06/KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
 unzip KDU77_Demo_Apps_for_Linux-x86-64_150710.zip

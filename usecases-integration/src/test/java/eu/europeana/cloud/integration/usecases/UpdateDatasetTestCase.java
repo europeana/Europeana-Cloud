@@ -75,7 +75,7 @@ public class UpdateDatasetTestCase implements TestCase {
 
 
     private void prepareTestCase() throws MCSException, MalformedURLException, CloudException {
-        List<String> tags = new ArrayList<>();
+        List<String> tags = new ArrayList<>(2);
         tags.add(Tags.PUBLISHED.getTag());
         tags.add(Tags.DELETED.getTag());
         sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS, null);

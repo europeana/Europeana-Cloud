@@ -131,11 +131,40 @@ public class DPSClientTest {
     }
 
     @Test
+    @Betamax(tape = "DPSClient/killTaskTest")
+    public final void shouldKillTask() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        String responseMessage = dpsClient.killTask(TOPOLOGY_NAME, TASK_ID);
+        assertEquals(responseMessage, "Task killing request was registered successfully");
+
+
+    }
+
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    @Betamax(tape = "DPSClient/shouldThrowExceptionWhenKillingNonExistingTaskTest")
+    public final void shouldThrowExceptionWhenKillingNonExistingTaskTest() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        long nonExistedTaskId = 1111l;
+        dpsClient.killTask(TOPOLOGY_NAME, nonExistedTaskId);
+
+
+    }
+
+    @Test(expected = AccessDeniedOrTopologyDoesNotExistException.class)
+    @Betamax(tape = "DPSClient/shouldThrowExceptionWhenKillingTaskForNonExistedTopologyTest")
+    public final void shouldThrowExceptionWhenKillingTaskForNonExistedTopologyTest() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        dpsClient.killTask(NOT_DEFINED_TOPOLOGY_NAME, TASK_ID);
+
+
+    }
+
+    @Test
     @Betamax(tape = "DPSClient_getTaskDetailsReportTest")
     public final void shouldReturnedDetailsReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", States.SUCCESS, "", "", "result");
-        List<SubTaskInfo> taskInfoList = new ArrayList<>();
+        List<SubTaskInfo> taskInfoList = new ArrayList<>(1);
         taskInfoList.add(subTaskInfo);
         assertThat(dpsClient.getDetailedTaskReport(TOPOLOGY_NAME, TASK_ID), is(taskInfoList));
 
@@ -186,7 +215,7 @@ public class DPSClientTest {
     private TaskErrorsInfo createErrorInfo(long taskId, boolean specific) {
         TaskErrorsInfo info = new TaskErrorsInfo();
         info.setId(taskId);
-        List<TaskErrorInfo> errors = new ArrayList<>();
+        List<TaskErrorInfo> errors = new ArrayList<>(1);
         TaskErrorInfo error = new TaskErrorInfo();
         error.setOccurrences(ERROR_OCCURRENCES);
         error.setErrorType(ERROR_TYPE);
@@ -195,7 +224,7 @@ public class DPSClientTest {
         info.setErrors(errors);
 
         if (specific) {
-            List<ErrorDetails> errorDetails = new ArrayList<>();
+            List<ErrorDetails> errorDetails = new ArrayList<>(1);
             error.setErrorDetails(errorDetails);
 
             for (int i = 0; i < ERROR_OCCURRENCES; i++) {

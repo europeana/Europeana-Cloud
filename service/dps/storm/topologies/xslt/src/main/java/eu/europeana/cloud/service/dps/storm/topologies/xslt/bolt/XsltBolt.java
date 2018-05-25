@@ -17,7 +17,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
-    private XsltTransformer transformer = new XsltTransformer();
+    private XsltTransformer transformer;
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
@@ -40,7 +40,7 @@ public class XsltBolt extends AbstractDpsBolt {
             }
             stormTaskTuple.getParameters().remove(PluginParameterKeys.XSLT_URL);
 
-            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+            outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (Exception e) {
             LOGGER.error("XsltBolt error:" + e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(), stormTaskTuple
@@ -61,5 +61,6 @@ public class XsltBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        transformer = new XsltTransformer();
     }
 }

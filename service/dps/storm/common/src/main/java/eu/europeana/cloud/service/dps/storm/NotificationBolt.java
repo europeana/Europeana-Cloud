@@ -6,6 +6,8 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -53,6 +55,10 @@ public class NotificationBolt extends BaseRichBolt {
     private static CassandraTaskErrorsDAO taskErrorDAO;
     private static final int PROCESSED_INTERVAL = 100;
 
+    private static final int DEFAULT_RETRIES = 10;
+
+    private static final int SLEEP_TIME = 5000;
+
     /**
      * Constructor of notification bolt.
      *
@@ -93,8 +99,6 @@ public class NotificationBolt extends BaseRichBolt {
             LOGGER.error("Problem with store notification because: {}",
                     ex.getMessage());
             return;
-        } finally {
-            outputCollector.ack(tuple);
         }
     }
 
@@ -107,6 +111,7 @@ public class NotificationBolt extends BaseRichBolt {
                 break;
             case NOTIFICATION:
                 notifyTask(notificationTuple, nCache, taskId);
+                storeFinishState(notificationTuple.getTaskId());
                 break;
         }
     }
@@ -131,12 +136,60 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeNotificationError(long taskId, NotificationCache nCache, Map<String, Object> parameters) {
         Validate.notNull(parameters);
         String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
-        String additionalInformations = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
+        String additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String errorType = nCache.getErrorType(errorMessage);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
-        taskErrorDAO.updateErrorCounter(taskId, errorType);
-        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformations);
+        updateErrorCounter(taskId, errorType);
+        insertError(taskId, errorMessage, additionalInformation, errorType, resource);
     }
+
+    private void updateErrorCounter(long taskId, String errorType) {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                taskErrorDAO.updateErrorCounter(taskId, errorType);
+                break;
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while updating Error counter. Retries left: {}", retries);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
+                        LOGGER.error(e1.getMessage());
+                    }
+                } else {
+                    LOGGER.error("Error while updating Error counter.");
+                    throw e;
+                }
+            }
+        }
+    }
+
+    private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
+        int retries = DEFAULT_RETRIES;
+
+        while (true) {
+            try {
+                taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
+                break;
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while inserting Error to cassandra. Retries left: {}", retries);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
+                        LOGGER.error(e1.getMessage());
+                    }
+                } else {
+                    LOGGER.error("Error while inserting Error to cassandra.");
+                    throw e;
+                }
+            }
+        }
+    }
+
 
     private boolean isError(String state) {
         return state.equalsIgnoreCase(States.ERROR.toString());
@@ -165,16 +218,50 @@ public class NotificationBolt extends BaseRichBolt {
         String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
         String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
         Date startDate = prepareDate(parameters.get(NotificationParameterKeys.START_TIME));
-        taskInfoDAO.updateTask(taskId, info, state, startDate);
+        updateTask(taskId, state, info, startDate);
     }
 
+    private void updateTask(long taskId, String state, String info, Date startDate) {
+        int retries = DEFAULT_RETRIES;
 
+        while (true) {
+            try {
+                taskInfoDAO.updateTask(taskId, info, state, startDate);
+                break;
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while Updating the task info. Retries left: {}", retries);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
+                        LOGGER.error(e1.getMessage());
+                    }
+                } else {
+                    LOGGER.error("Error while Updating the task info.");
+                    throw e;
+                }
+            }
+        }
+    }
 
     private static Date prepareDate(Object dateObject) {
         Date date = null;
         if (dateObject instanceof Date)
             return (Date) dateObject;
         return date;
+    }
+
+    private void storeFinishState(long taskId) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+        TaskInfo task = taskInfoDAO.searchById(taskId);
+        if (task != null) {
+            NotificationCache nCache = cache.get(taskId);
+            int count = nCache.getProcessed();
+            int expectedSize = task.getExpectedSize();
+            if (count == expectedSize) {
+                taskInfoDAO.endTask(taskId, count, nCache.getErrors(), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+            }
+        }
     }
 
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
@@ -184,7 +271,31 @@ public class NotificationBolt extends BaseRichBolt {
         String infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
         String additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
-        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
+        insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
+    }
+
+    private void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
+        int retries = DEFAULT_RETRIES;
+
+        while (true) {
+            try {
+                subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
+                break;
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while inserting detailed record information to cassandra. Retries left: {}", retries);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
+                        LOGGER.error(e1.getMessage());
+                    }
+                } else {
+                    LOGGER.error("Error while inserting detailed record information to cassandra.");
+                    throw e;
+                }
+            }
+        }
     }
 
     private static class NotificationCache {
