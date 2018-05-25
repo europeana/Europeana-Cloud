@@ -21,42 +21,42 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyProper
 import eu.europeana.metis.mediaservice.UrlType;
 
 public class LinkCheckTopology {
-	
-	public static void main(String[] args) {
-		try {
-			Config conf = Util.loadConfig();
-			
-			final boolean isTest = args.length > 0;
-			
-			String topologyName =
-					(String) conf.computeIfAbsent(TopologyPropertyKeys.TOPOLOGY_NAME, k -> "linkcheck_topology");
-			String source = "source";
-			String linkCheckBolt = "linkCheckBolt";
-			String statsBolt = "statsBolt";
-			
-			TopologyBuilder builder = new TopologyBuilder();
-			IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
-			Collection<UrlType> urlTypes = Arrays.asList(UrlType.values());
-			builder.setSpout(source, new DataSetReaderSpout(baseSpout, urlTypes), 1);
-			
-			builder.setBolt(linkCheckBolt, new LinkCheckBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))
-					.fieldsGrouping(source, new Fields(DataSetReaderSpout.SOURCE_FIELD));
-			
-			builder.setBolt(statsBolt, new StatsBolt(), 1)
-					.globalGrouping(source, StatsInitTupleData.STREAM_ID)
-					.globalGrouping(linkCheckBolt, StatsTupleData.STREAM_ID);
-			
-			if (isTest) {
-				LocalCluster cluster = new LocalCluster();
-				cluster.submitTopology(topologyName, conf, builder.createTopology());
-				Utils.sleep(600000);
-				cluster.killTopology(topologyName);
-				cluster.shutdown();
-			} else {
-				StormSubmitter.submitTopology(topologyName, conf, builder.createTopology());
-			}
-		} catch (Exception e) {
-			LoggerFactory.getLogger(LinkCheckTopology.class).error("unexpected error", e);
-		}
-	}
+
+    public static void main(String[] args) {
+        try {
+            Config conf = Util.loadConfig();
+
+            final boolean isTest = args.length > 0;
+
+            String topologyName =
+                    (String) conf.computeIfAbsent(TopologyPropertyKeys.TOPOLOGY_NAME, k -> "linkcheck_topology");
+            String source = "source";
+            String linkCheckBolt = "linkCheckBolt";
+            String statsBolt = "statsBolt";
+
+            TopologyBuilder builder = new TopologyBuilder();
+            IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
+            Collection<UrlType> urlTypes = Arrays.asList(UrlType.values());
+            builder.setSpout(source, new DataSetReaderSpout(baseSpout, urlTypes), 1);
+
+            builder.setBolt(linkCheckBolt, new LinkCheckBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))
+                    .fieldsGrouping(source, new Fields(DataSetReaderSpout.SOURCE_FIELD));
+
+            builder.setBolt(statsBolt, new StatsBolt(), 1)
+                    .globalGrouping(source, StatsInitTupleData.STREAM_ID)
+                    .globalGrouping(linkCheckBolt, StatsTupleData.STREAM_ID);
+
+            if (isTest) {
+                LocalCluster cluster = new LocalCluster();
+                cluster.submitTopology(topologyName, conf, builder.createTopology());
+                Utils.sleep(600000);
+                cluster.killTopology(topologyName);
+                cluster.shutdown();
+            } else {
+                StormSubmitter.submitTopology(topologyName, conf, builder.createTopology());
+            }
+        } catch (Exception e) {
+            LoggerFactory.getLogger(LinkCheckTopology.class).error("unexpected error", e);
+        }
+    }
 }
