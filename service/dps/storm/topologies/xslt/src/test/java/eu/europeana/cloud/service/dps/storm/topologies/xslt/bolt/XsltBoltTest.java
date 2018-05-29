@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.shade.com.google.common.io.Resources;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +25,6 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 

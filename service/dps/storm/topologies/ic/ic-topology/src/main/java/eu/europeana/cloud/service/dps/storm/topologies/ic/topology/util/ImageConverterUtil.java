@@ -13,8 +13,7 @@ public class ImageConverterUtil {
 
     public InputStream getStream(String filePath) throws IOException {
         File file = new File(filePath);
-        InputStream inputStream = new FileInputStream(file);
-        return inputStream;
+        return new FileInputStream(file);
     }
 
     public static String persistStreamToTemporaryStorage(ByteArrayInputStream inputStream, String fileName, String extension) throws IOException, RuntimeException {

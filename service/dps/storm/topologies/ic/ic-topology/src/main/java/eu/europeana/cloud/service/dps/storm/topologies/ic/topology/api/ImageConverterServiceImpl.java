@@ -36,7 +36,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
 
     private ConverterContext converterContext;
     private ImageConverterUtil imageConverterUtil;
-    private final static Logger LOGGER = Logger.getLogger(ImageConverterServiceImpl.class);
+    private static final Logger LOGGER = Logger.getLogger(ImageConverterServiceImpl.class);
     private static final String TIFF_EXTENSION = ".tiff";
     private static final String JPEG_EXTENSION = ".jpg";
     private static final String JPEG_MIME_TYPE = "image/jpeg";

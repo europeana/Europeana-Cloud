@@ -62,6 +62,11 @@ public class DpsTask implements Serializable {
         harvestingDetails = null;
     }
 
+    public void setTaskId(long taskId)
+    {
+        this.taskId=taskId;
+    }
+
     public Revision getOutputRevision() {
         return outputRevision;
     }

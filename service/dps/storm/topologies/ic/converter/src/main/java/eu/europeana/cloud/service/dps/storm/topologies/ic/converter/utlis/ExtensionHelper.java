@@ -36,9 +36,7 @@ public class ExtensionHelper {
 
         TikaConfig config = TikaConfig.getDefaultConfig();
         MimeType mimeType = config.getMimeRepository().forName(type);
-        String extension = mimeType.getExtension();
-        return extension;
-
+        return mimeType.getExtension();
     }
 
 }
