@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;
@@ -55,6 +56,7 @@ public class DpsTaskValidatorTest {
         dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
         dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
         dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_ENVIRONMENT, "TEST");
         dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
         dpsTask.setOutputRevision(correctRevision);
         //
@@ -184,6 +186,7 @@ public class DpsTaskValidatorTest {
     @Test
     public void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
         new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues()).validate(dpsTask);
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_ENVIRONMENT, TargetIndexingEnvironment.getStringValues()).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
