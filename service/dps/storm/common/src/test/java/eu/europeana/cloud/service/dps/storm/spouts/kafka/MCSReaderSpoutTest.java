@@ -137,7 +137,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test
-    public void shouldTry10TimesAndFailPerEachFileWhenReadFileThrowMCSExceptionWhenNoRevisionIsSpecified() throws Exception {
+    public void shouldFailWhenReadFileThrowMCSExceptionWhenNoRevisionIsSpecified() throws Exception {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -157,12 +157,12 @@ public class MCSReaderSpoutTest {
 
         mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
         verify(collector, times(0)).emit(anyListOf(Object.class));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
     }
 
     @Test
-    public void shouldTry10TimesAndFailPerEachFileWhenReadFileThrowDriverExceptionWhenNoRevisionIsSpecified() throws Exception {
+    public void shouldFailPerEachFileWhenReadFileThrowDriverExceptionWhenNoRevisionIsSpecified() throws Exception {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -182,7 +182,7 @@ public class MCSReaderSpoutTest {
 
         mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
         verify(collector, times(0)).emit(anyListOf(Object.class));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
     }
 
@@ -228,7 +228,7 @@ public class MCSReaderSpoutTest {
 
 
     @Test
-    public void shouldTry10TimesAndFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
+    public void shouldFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -263,13 +263,13 @@ public class MCSReaderSpoutTest {
         mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(2)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
     }
 
     @Test
-    public void shouldTry10TimesAndFailWhenReadFileThrowMCSExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
+    public void shouldFailWhenReadFileThrowMCSExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -304,8 +304,8 @@ public class MCSReaderSpoutTest {
         mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(2)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
     }
 
@@ -349,7 +349,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test
-    public void shouldTry10TimesAndFailPerEachFileWhenGettingFileThrowMCSEXceptionWhenTaskWithLatestRevision() throws MCSException, URISyntaxException {
+    public void shouldFailWhenGettingFileThrowMCSExceptionWhenTaskWithLatestRevision() throws MCSException, URISyntaxException {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -382,8 +382,8 @@ public class MCSReaderSpoutTest {
         mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
-        verify(fileServiceClient, times(11)).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
+        verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(2)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }

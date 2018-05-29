@@ -104,7 +104,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         } catch (Exception e) {
             LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
-
         }
     }
 
@@ -182,9 +181,12 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                     emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
                 }
             } catch (MalformedURLException ex) {
-                LOGGER.error("MCSReaderSpout error: {}" + ex.getMessage());
+                LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}" + ex.getMessage());
                 emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             } catch (MCSException | DriverException ex) {
+                LOGGER.error("MCSReaderSpout error:, Error while communicating with MCS {}" + ex.getMessage());
+                emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
+            } catch (Exception ex) {
                 LOGGER.error("MCSReaderSpout error: {}" + ex.getMessage());
                 emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             }
@@ -216,7 +218,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 String fileUrl = "";
                 if (!taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                     try {
-                        fileUrl = getFileUri(fileServiceClient, representation, file);
+                        fileUrl = fileServiceClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
                         StormTaskTuple fileTuple = buildNextStormTuple(stormTaskTuple, fileUrl);
                         cache.get(stormTaskTuple.getTaskId()).inc();
                         collector.emit(fileTuple.toStormTuple());
@@ -310,23 +312,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while getting Revisions from data set.");
-                    throw e;
-                }
-            }
-        }
-    }
-
-    private String getFileUri(FileServiceClient fileClient, Representation representation, eu.europeana.cloud.common.model.File file) throws Exception {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                return fileClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while getting a file URI. Retries left:{} ", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while getting a file URI.");
                     throw e;
                 }
             }
