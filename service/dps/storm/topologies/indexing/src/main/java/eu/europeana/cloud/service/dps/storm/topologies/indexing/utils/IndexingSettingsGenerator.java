@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
+import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,12 @@ public class IndexingSettingsGenerator {
     public static final String DELIMITER = ".";
 
     private Properties properties;
+    private String environmentPrefix;
+
+    public IndexingSettingsGenerator(String environment, Properties properties) {
+        this.environmentPrefix = environment;
+        this.properties = properties;
+    }
 
     public IndexingSettingsGenerator(Properties properties) {
         this.properties = properties;
@@ -45,15 +52,30 @@ public class IndexingSettingsGenerator {
 
     public IndexingSettings generateForPreview() throws IndexerConfigurationException, URISyntaxException {
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(PREVIEW_PREFIX, indexingSettings);
+        prepareSettingFor(preparePreviewPrefix(), indexingSettings);
         return indexingSettings;
     }
 
     public IndexingSettings generateForPublish() throws IndexerConfigurationException, URISyntaxException {
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(PUBLISH_PREFIX, indexingSettings);
+        prepareSettingFor(preparePublishPrefix(), indexingSettings);
         return indexingSettings;
     }
+
+    private String preparePreviewPrefix() {
+        if (!TextUtils.isEmpty(environmentPrefix)) {
+            return environmentPrefix + DELIMITER + PREVIEW_PREFIX;
+        }
+        return PREVIEW_PREFIX;
+    }
+
+    private String preparePublishPrefix() {
+        if (!TextUtils.isEmpty(environmentPrefix)) {
+            return environmentPrefix + DELIMITER + PUBLISH_PREFIX;
+        }
+        return PUBLISH_PREFIX;
+    }
+
 
     private void prepareSettingFor(String environment, IndexingSettings indexingSettings) throws IndexerConfigurationException, URISyntaxException {
         prepareMongoSettings(indexingSettings, environment);
@@ -93,6 +115,7 @@ public class IndexingSettingsGenerator {
             return false;
         }
     }
+
     private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix) throws URISyntaxException, IndexerConfigurationException {
         String solrInstances = properties.get(prefix + DELIMITER + SOLR_INSTANCES).toString();
         String[] instances = solrInstances.trim().split(",");
