@@ -95,8 +95,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"The record is validated correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
-                        "[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL_FILE2 + "\",\"info_text\":\"The record is validated correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"The record is validated correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
@@ -113,7 +112,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
         taskParameters.put(PluginParameterKeys.SCHEMA_NAME, "edm-internal");
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2);
+        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
 
 
         dpsTask.setParameters(taskParameters);
@@ -141,7 +140,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
         taskParameters.put(PluginParameterKeys.SCHEMA_NAME, "edm-external");
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2);
+        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
 
 
         dpsTask.setParameters(taskParameters);
@@ -163,19 +162,16 @@ public class ValidationTopologyTest extends ValidationMockHelper {
     private final void prepareForFileUrls() throws URISyntaxException, IOException, MCSException {
         prepareMockFileUrls();
         when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
     }
 
 
     private final void prepareForFileForExternalUrls() throws URISyntaxException, IOException, MCSException {
         prepareMockFileUrls();
         when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473.xml"))));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473.xml"))));
     }
 
     private final void prepareMockFileUrls() throws URISyntaxException {
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE2)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
     }
 
 

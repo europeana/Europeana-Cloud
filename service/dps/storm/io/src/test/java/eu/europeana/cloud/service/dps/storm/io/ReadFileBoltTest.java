@@ -16,8 +16,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Matchers.anyListOf;
@@ -46,12 +44,11 @@ public class ReadFileBoltTest {
         MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
     }
 
-    private final void verifyMethodExecutionNumber(int expectedCalls, int expectedEmitCallTimes, List<String> files) throws MCSException, IOException {
+    private final void verifyMethodExecutionNumber(int expectedCalls, int expectedEmitCallTimes, String file) throws MCSException, IOException {
         when(outputCollector.emit(anyList())).thenReturn(null);
-        System.out.println(files.get(0));
-        readFileBolt.emitFiles(fileServiceClient, stormTaskTuple, files);
-        verify(fileServiceClient, times(expectedCalls)).getFile(eq(files.get(0)));
-        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),anyListOf(Object.class));
+        readFileBolt.emitFile(stormTaskTuple, fileServiceClient, file);
+        verify(fileServiceClient, times(expectedCalls)).getFile(eq(file));
+        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }
 
@@ -59,34 +56,25 @@ public class ReadFileBoltTest {
     @Test
     public void shouldEmmitNotificationWhenDataSetListHasOneElement() throws MCSException, IOException {
         //given
-        List<String> files = prepareFiles();
-        when(fileServiceClient.getFile(eq(files.get(0)))).thenReturn(null);
+        when(fileServiceClient.getFile(eq(FILE_URL))).thenReturn(null);
         stormTaskTuple = new StormTaskTuple();
-        verifyMethodExecutionNumber(1, 0, files);
+        verifyMethodExecutionNumber(1, 0, FILE_URL);
     }
 
     @Test
     public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
         //given
-        List<String> files = prepareFiles();
-        doThrow(MCSException.class).when(fileServiceClient).getFile(eq(files.get(0)));
+        doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL));
         stormTaskTuple = new StormTaskTuple();
-        verifyMethodExecutionNumber(11, 1, files);
+        verifyMethodExecutionNumber(11, 1, FILE_URL);
     }
 
     @Test
     public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
         //given
-        List<String> files = prepareFiles();
-        doThrow(DriverException.class).when(fileServiceClient).getFile(eq(files.get(0)));
+        doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL));
         stormTaskTuple = new StormTaskTuple();
-        verifyMethodExecutionNumber(11, 1, files);
-    }
-
-    private List<String> prepareFiles() {
-        List<String> files = new ArrayList<>(1);
-        files.add(FILE_URL);
-        return files;
+        verifyMethodExecutionNumber(11, 1, FILE_URL);
     }
 
 

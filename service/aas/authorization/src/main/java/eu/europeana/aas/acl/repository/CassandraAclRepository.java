@@ -172,7 +172,7 @@ public final class CassandraAclRepository implements AclRepository {
         }
         return resultMap;
     }
-
+M
     @Override
     public AclObjectIdentity findAclObjectIdentity(AclObjectIdentity objectId) {
 	assertAclObjectIdentity(objectId);

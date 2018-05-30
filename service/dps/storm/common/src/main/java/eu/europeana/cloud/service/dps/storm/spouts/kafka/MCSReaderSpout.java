@@ -93,10 +93,12 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                                 dpsTask.getTaskId(),
                                 dpsTask.getTaskName(),
                                 null, null, dpsTask.getParameters(), dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
-                        String dataEntry = convertListToString(dpsTask.getDataEntry(InputDataType.valueOf(stream)));
-                        StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
-                        fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
-                        collector.emit(fileTuple.toStormTuple());
+                        List<String> files = dpsTask.getDataEntry(InputDataType.valueOf(stream));
+                        for (String file : files) {
+                            StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
+                            fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
+                            collector.emit(fileTuple.toStormTuple());
+                        }
                     } else // For data Sets
                         execute(stream, dpsTask);
                     cache.remove(taskId);
@@ -113,12 +115,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         } else if (task.getInputData().get(DATASET_URLS) != null)
             return DATASET_URLS.name();
         return null;
-    }
-
-    private String convertListToString(List<String> list) {
-        String listString = list.toString();
-        return listString.substring(1, listString.length() - 1);
-
     }
 
     private void startProgress(TaskSpoutInfo taskInfo) {

@@ -82,15 +82,14 @@ public class NormalizationTopologyTest extends TopologyTestHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
-                        "[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL_FILE2 + "\",\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
     }
 
     @Test
-    public final void testTopologyWithMultipleFiles() throws MCSException, IOException, URISyntaxException {
+    public final void shouldTestSuccessfulExecution() throws MCSException, IOException, URISyntaxException {
         //given
         prepareForTask();
 
@@ -99,7 +98,7 @@ public class NormalizationTopologyTest extends TopologyTestHelper {
         Map<String, String> taskParameters = new HashMap<>();
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2);
+        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
         dpsTask.setOutputRevision(new Revision());
@@ -117,14 +116,12 @@ public class NormalizationTopologyTest extends TopologyTestHelper {
 
 
     private final void prepareForTask() throws URISyntaxException, IOException, MCSException {
-        List<File> files = new ArrayList<>(2);
+        List<File> files = new ArrayList<>(1);
         List<Revision> revisions = new ArrayList<>(1);
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
         when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/edm.xml"))));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/edm.xml"))));
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE2)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
 
     }
 
