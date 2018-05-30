@@ -547,9 +547,9 @@ public class DataSetServiceClient extends MCSClient {
      * Lists cloudIds and tags from data set for specific revision.
      *
      * @param providerId         provider identifier (required)
-     * @param dataSetId          data set identifier (requred)
+     * @param dataSetId          data set identifier (required)
      * @param representationName name of the representation (required)
-     * @param revisionName       revision naem (required)
+     * @param revisionName       revision name (required)
      * @param revisionProviderId revision provider id (required)
      * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
      * @return chunk of representation cloud identifier list from data set together with revision tags
