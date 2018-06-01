@@ -1,11 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout;
 
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
@@ -29,6 +31,8 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+
 /**
  * Created by Tarek on 4/30/2018.
  */
@@ -38,7 +42,9 @@ public class OAISpout extends CustomKafkaSpout {
     private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
     private SourceProvider sourceProvider;
 
-    private DpsTask dpsTask;
+    public static final int DEFAULT_RETRIES = 10;
+
+    public static final int SLEEP_TIME = 5000;
 
     private transient ConcurrentHashMap<Long, TaskSpoutInfo> cache;
 
@@ -60,24 +66,32 @@ public class OAISpout extends CustomKafkaSpout {
 
     @Override
     public void nextTuple() {
+        DpsTask dpsTask = null;
 
         try {
             super.nextTuple();
             for (long taskId : cache.keySet()) {
                 TaskSpoutInfo currentTask = cache.get(taskId);
                 if (!currentTask.isStarted()) {
-                    LOGGER.info("Start progressing for Task{}", currentTask);
+                    LOGGER.info("Start progressing for Task with id {}", currentTask.getDpsTask().getTaskId());
                     startProgress(currentTask);
+                    dpsTask = currentTask.getDpsTask();
+                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
+                    System.out.println("Th oai harvesting details " + oaipmhHarvestingDetails);
+                    if (oaipmhHarvestingDetails == null)
+                        oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
                     StormTaskTuple stormTaskTuple = new StormTaskTuple(
-                            currentTask.getDpsTask().getTaskId(),
-                            currentTask.getDpsTask().getTaskName(),
-                            currentTask.getDpsTask().getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentTask.getDpsTask().getParameters(), currentTask.getDpsTask().getOutputRevision(), currentTask.getDpsTask().getHarvestingDetails());
+                            dpsTask.getTaskId(),
+                            dpsTask.getTaskName(),
+                            dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, dpsTask.getParameters(), dpsTask.getOutputRevision(), oaipmhHarvestingDetails);
                     execute(stormTaskTuple);
                     cache.remove(taskId);
                 }
             }
         } catch (Exception e) {
             LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
+            if (dpsTask != null)
+                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
     }
 
@@ -92,6 +106,7 @@ public class OAISpout extends CustomKafkaSpout {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(StormTaskTuple.getFields());
+        declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
 
@@ -125,8 +140,10 @@ public class OAISpout extends CustomKafkaSpout {
             LOGGER.debug("Harvested " + count + " identifiers for source (" + stormTaskTuple.getSourceDetails() + ")");
             cache.get(stormTaskTuple.getTaskId()).setFileCount(count);
             cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), count);
-        } catch (Exception e) {
+        } catch (BadArgumentException e) {
             LOGGER.error("OAI Harvesting Spout error: {} ", e.getMessage());
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while Harvesting identifiers " + e.getMessage(), "");
+
         }
     }
 
@@ -180,7 +197,7 @@ public class OAISpout extends CustomKafkaSpout {
         }
 
         int count = 0;
-        while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
+        while (hasNext(headerIterator) && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
             Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier(), schema);
@@ -191,12 +208,40 @@ public class OAISpout extends CustomKafkaSpout {
         return count;
     }
 
+    private boolean hasNext(Iterator<Header> headerIterator) {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                return headerIterator.hasNext();
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while getting the next batch: {}", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while getting the next batch");
+                    throw e;
+                }
+            }
+        }
+    }
+
+    protected void waitForSpecificTime() {
+        try {
+            Thread.sleep(SLEEP_TIME);
+        } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(e1.getMessage());
+        }
+    }
+
+
     /**
      * Filter header by checking whether it belongs to any of excluded sets.
      *
      * @param header       header to filter
      * @param excludedSets sets to exclude
      */
+
     private boolean filterHeader(Header header, Set<String> excludedSets) {
         if (excludedSets != null && !excludedSets.isEmpty()) {
             for (String set : excludedSets) {
@@ -208,6 +253,12 @@ public class OAISpout extends CustomKafkaSpout {
         return true;
     }
 
+    private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.ERROR, message, additionalInformations);
+        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
     private class CollectorWrapper extends SpoutOutputCollector {
 
         CollectorWrapper(ISpoutOutputCollector delegate) {
@@ -217,7 +268,7 @@ public class OAISpout extends CustomKafkaSpout {
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             try {
-                dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
+                DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
                     long taskId = dpsTask.getTaskId();
                     cache.putIfAbsent(taskId, new TaskSpoutInfo(dpsTask));

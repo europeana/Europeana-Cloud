@@ -77,15 +77,15 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     @Override
     public void nextTuple() {
-
+        DpsTask dpsTask = null;
         try {
             super.nextTuple();
             for (long taskId : cache.keySet()) {
                 TaskSpoutInfo currentTask = cache.get(taskId);
                 if (!currentTask.isStarted()) {
-                    LOGGER.info("Start progressing for Task{}", currentTask);
+                    LOGGER.info("Start progressing for Task with id {}", currentTask.getDpsTask().getTaskId());
                     startProgress(currentTask);
-                    DpsTask dpsTask = currentTask.getDpsTask();
+                    dpsTask = currentTask.getDpsTask();
                     String stream = getStream(dpsTask);
 
                     if (stream.equals(FILE_URLS.name())) {
@@ -104,6 +104,8 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         } catch (Exception e) {
             LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
+            if (dpsTask != null)
+                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
     }
 
@@ -185,9 +187,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             } catch (MCSException | DriverException ex) {
                 LOGGER.error("MCSReaderSpout error:, Error while communicating with MCS {}" + ex.getMessage());
-                emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
-            } catch (Exception ex) {
-                LOGGER.error("MCSReaderSpout error: {}" + ex.getMessage());
                 emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             }
         }

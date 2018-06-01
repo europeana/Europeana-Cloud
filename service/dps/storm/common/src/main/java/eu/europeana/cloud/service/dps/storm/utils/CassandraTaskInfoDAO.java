@@ -23,6 +23,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskInsertStatement;
     private PreparedStatement updateExpectedSize;
     private PreparedStatement updateTask;
+    private PreparedStatement dropTask;
     private PreparedStatement endTask;
     private PreparedStatement updateProcessedFiles;
     private PreparedStatement killTask;
@@ -69,10 +70,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.ERRORS +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        killTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , "+CassandraTablesAndColumnsNames.INFO +" = ? , "  + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        killTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         killTask.setConsistencyLevel(dbService.getConsistencyLevel());
         updateExpectedSize = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + " = ?  WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateExpectedSize.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        dropTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        dropTask.setConsistencyLevel(dbService.getConsistencyLevel());
 
     }
 
@@ -97,6 +101,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     public void updateTask(long taskId, String info, String state, Date startDate)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateTask.bind(state, startDate, info, taskId));
+    }
+
+    public void dropTask(long taskId, String info, String state)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(dropTask.bind(state, info, taskId));
     }
 
     public void setUpdateExpectedSize(long taskId, int expectedSize)

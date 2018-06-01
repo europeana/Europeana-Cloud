@@ -75,7 +75,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             for (long taskId : cache.keySet()) {
                 TaskSpoutInfo currentTask = cache.get(taskId);
                 if (!currentTask.isStarted()) {
-                    LOGGER.info("Start progressing for Task{}", currentTask);
+                    LOGGER.info("Start progressing for Task with id {}", currentTask.getDpsTask().getTaskId());
                     startProgress(currentTask);
                     DpsTask dpsTask = currentTask.getDpsTask();
                     StormTaskTuple stormTaskTuple = new StormTaskTuple(
