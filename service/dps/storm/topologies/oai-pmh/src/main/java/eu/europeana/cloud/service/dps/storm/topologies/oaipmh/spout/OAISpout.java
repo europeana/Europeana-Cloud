@@ -77,7 +77,6 @@ public class OAISpout extends CustomKafkaSpout {
                     startProgress(currentTask);
                     dpsTask = currentTask.getDpsTask();
                     OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
-                    System.out.println("Th oai harvesting details " + oaipmhHarvestingDetails);
                     if (oaipmhHarvestingDetails == null)
                         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
                     StormTaskTuple stormTaskTuple = new StormTaskTuple(

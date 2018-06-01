@@ -1,14 +1,17 @@
 package eu.europeana.cloud.http.spout;
 
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.http.common.CompressionFileExtension;
 import eu.europeana.cloud.http.common.UnpackingServiceFactory;
+import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
 import eu.europeana.cloud.http.service.FileUnpackingService;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
@@ -31,6 +34,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
 /**
  * Created by Tarek on 4/27/2018.
@@ -69,7 +74,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
     @Override
     public void nextTuple() {
-
+        DpsTask dpsTask = null;
         try {
             super.nextTuple();
             for (long taskId : cache.keySet()) {
@@ -77,7 +82,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 if (!currentTask.isStarted()) {
                     LOGGER.info("Start progressing for Task with id {}", currentTask.getDpsTask().getTaskId());
                     startProgress(currentTask);
-                    DpsTask dpsTask = currentTask.getDpsTask();
+                    dpsTask = currentTask.getDpsTask();
                     StormTaskTuple stormTaskTuple = new StormTaskTuple(
                             dpsTask.getTaskId(),
                             dpsTask.getTaskName(),
@@ -88,6 +93,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             }
         } catch (Exception e) {
             LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
+            if (dpsTask != null)
+                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
+
 
         }
     }
@@ -103,10 +111,16 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(StormTaskTuple.getFields());
+        declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.ERROR, message, additionalInformations);
+        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
 
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(StormTaskTuple stormTaskTuple) throws CompressionExtensionNotRecognizedException {
         File file = null;
         try {
             String httpURL = stormTaskTuple.getFileUrl();
@@ -117,8 +131,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             Path start = Paths.get(new File(file.getParent()).toURI());
             emitFiles(start, stormTaskTuple);
             cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), cache.get(stormTaskTuple.getTaskId()).getFileCount());
-        } catch (Exception e) {
+        } catch (IOException e) {
             LOGGER.error("HTTPHarvesterBolt error: {} ", e.getMessage());
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while reading the files because of " + e.getMessage(), "");
         } finally {
             removeTempFolder(file);
         }

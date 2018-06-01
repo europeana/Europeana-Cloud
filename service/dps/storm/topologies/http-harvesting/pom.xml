@@ -12,6 +12,13 @@
     <artifactId>ecloud-service-dps-storm-topologies-http-harvester</artifactId>
     <name>Europeana Cloud: DPS Storm Topology for HTTP Harvesting</name>
     <dependencies>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${version.jersey}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.zeroturnaround</groupId>
             <artifactId>zt-zip</artifactId>
