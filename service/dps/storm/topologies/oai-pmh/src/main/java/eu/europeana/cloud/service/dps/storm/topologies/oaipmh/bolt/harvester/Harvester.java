@@ -51,7 +51,7 @@ public class Harvester implements Serializable {
                 return new XmlXPath(record).xpath(METADATA_XPATH);
             } catch (OAIRequestException e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error harvesting record " + recordId + ". Retries left:{} ", retries);
+                    LOGGER.warn("Error harvesting record {}. Retries left:{} ", recordId, retries);
                     try {
                         Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
                     } catch (InterruptedException ex) {

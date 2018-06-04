@@ -110,11 +110,9 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     }
 
     private String getStream(DpsTask task) {
-        if (task.getInputData().get(FILE_URLS) != null) {
+        if (task.getInputData().get(FILE_URLS) != null)
             return FILE_URLS.name();
-        } else if (task.getInputData().get(DATASET_URLS) != null)
-            return DATASET_URLS.name();
-        return null;
+        return DATASET_URLS.name();
     }
 
     private String convertListToString(List<String> list) {
@@ -183,10 +181,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                     emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
                 }
             } catch (MalformedURLException ex) {
-                LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}" + ex.getMessage());
+                LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
                 emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             } catch (MCSException | DriverException ex) {
-                LOGGER.error("MCSReaderSpout error:, Error while communicating with MCS {}" + ex.getMessage());
+                LOGGER.error("MCSReaderSpout error:, Error while communicating with MCS {}", ex.getMessage());
                 emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             }
         }

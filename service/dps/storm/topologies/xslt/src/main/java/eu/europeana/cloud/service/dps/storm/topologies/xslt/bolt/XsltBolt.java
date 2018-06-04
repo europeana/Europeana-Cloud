@@ -17,7 +17,6 @@ public class XsltBolt extends AbstractDpsBolt {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
-    private XsltTransformer transformer;
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
@@ -28,7 +27,8 @@ public class XsltBolt extends AbstractDpsBolt {
             String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
             LOGGER.info("processing file: {} with xslt schema:{}", fileUrl, xsltUrl);
             String datasetValue = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-            writer = transformer.transform(xsltUrl, fileToTransform(stormTaskTuple), datasetValue);
+            XsltTransformer transformer = new XsltTransformer(xsltUrl, datasetValue);
+            writer = transformer.transform(fileToTransform(stormTaskTuple));
             LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
             stormTaskTuple.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
 
@@ -61,6 +61,5 @@ public class XsltBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        transformer = new XsltTransformer();
     }
 }

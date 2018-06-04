@@ -45,8 +45,7 @@ public class ValidationBolt extends AbstractDpsBolt {
 
     private void reorderFileContent(StormTaskTuple stormTaskTuple) throws TransformationException {
         LOGGER.info("Reordering the file");
-        URL url = getClass().getClassLoader().getResource(XSLT_SORTER_FILE_NAME);
-        StringWriter writer = transformer.transform(url.toString(), stormTaskTuple.getFileData());
+        StringWriter writer = transformer.transform(stormTaskTuple.getFileData());
         stormTaskTuple.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
     }
 
@@ -63,11 +62,15 @@ public class ValidationBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         validationService = new ValidationExecutionService(properties);
-        transformer = new XsltTransformer();
+        URL url = getClass().getClassLoader().getResource(XSLT_SORTER_FILE_NAME);
+        try {
+            transformer = new XsltTransformer(url.toString());
+        } catch (TransformationException ex) {
+            LOGGER.info("Exception while initializing the transformer");
+        }
     }
 
     private String getAdditionalInfo(ValidationResult vr) {
-        String additionalInfo = null;
         StringBuilder sb = new StringBuilder();
         if (vr.getRecordId() != null) {
             sb.append("recordId: ");
@@ -78,7 +81,7 @@ public class ValidationBolt extends AbstractDpsBolt {
             sb.append("nodeId: ");
             sb.append(vr.getNodeId());
         }
-        additionalInfo = sb.toString();
+        String additionalInfo = sb.toString();
 
         return !additionalInfo.isEmpty() ? additionalInfo : null;
     }

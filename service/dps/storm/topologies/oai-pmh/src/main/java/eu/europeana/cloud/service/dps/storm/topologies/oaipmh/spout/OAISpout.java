@@ -136,7 +136,7 @@ public class OAISpout extends CustomKafkaSpout {
                         count += harvestIdentifiers(schema, set, fromDate, untilDate, oaiHelper.getGranularity().toString(), stormTaskTuple);
                     }
             }
-            LOGGER.debug("Harvested " + count + " identifiers for source (" + stormTaskTuple.getSourceDetails() + ")");
+            LOGGER.debug("Harvested {} identifiers for source ( {} )", count, stormTaskTuple.getSourceDetails());
             cache.get(stormTaskTuple.getTaskId()).setFileCount(count);
             cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), count);
         } catch (BadArgumentException e) {
