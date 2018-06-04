@@ -73,7 +73,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
 
         builder.setSpout(TopologyHelper.SPOUT, new TestSpout(), 1);
         builder.setBolt(TopologyHelper.RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(TopologyHelper.SPOUT);
-        builder.setBolt(TopologyHelper.INDEXING_BOLT, new IndexingBolt(readProperties("indexing.properties"))).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
+        builder.setBolt(TopologyHelper.INDEXING_BOLT, new IndexingBolt(readProperties("indexing_with_env_prefix.properties"))).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL, IndexingTopology.SUCCESS_MESSAGE)).shuffleGrouping(TopologyHelper.INDEXING_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
@@ -113,6 +113,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
         taskParameters.put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        taskParameters.put(PluginParameterKeys.METIS_TARGET_INDEXING_ENVIRONMENT, "TEST");
         taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2);
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
