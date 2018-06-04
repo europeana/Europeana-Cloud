@@ -55,7 +55,7 @@
     <edm:Agent rdf:about="http://id.loc.gov/authorities/names/n84175522#concept">
         <skos:prefLabel>   Meehan,  Paula   </skos:prefLabel>
         <rdaGr2:professionOrOccupation>Author</rdaGr2:professionOrOccupation>
-        <edm:language>Inglês</edm:language>
+        <edm:language>eng</edm:language>
     </edm:Agent>
     <ore:Aggregation rdf:about="https://data.ucd.ie/data/ucdlib:38556_Aggregation">
         <edm:aggregatedCHO rdf:resource="https://data.ucd.ie/data/ucdlib:38556"/>
