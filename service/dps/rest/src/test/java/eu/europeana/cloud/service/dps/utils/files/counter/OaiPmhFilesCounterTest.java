@@ -37,7 +37,7 @@ public class OaiPmhFilesCounterTest {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null);
         DpsTask task = getDpsTask(details);
-        assertEquals(2932, counter.getFilesCount(task, null));
+        assertEquals(2932, counter.getFilesCount(task));
     }
 
     @Test
@@ -48,7 +48,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null,null );
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
 
@@ -71,7 +71,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
     @Test
@@ -82,7 +82,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
     @Test(expected = TaskSubmissionException.class)
@@ -93,7 +93,7 @@ public class OaiPmhFilesCounterTest {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null);
         DpsTask task = getDpsTask(details);
-        counter.getFilesCount(task, null);
+        counter.getFilesCount(task);
     }
 
     @Test
@@ -105,7 +105,7 @@ public class OaiPmhFilesCounterTest {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null);
         DpsTask task = getDpsTask(details);
-        assertEquals(2932, counter.getFilesCount(task, null));
+        assertEquals(2932, counter.getFilesCount(task));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(Sets.newHashSet(schema1, schema2), Sets.newHashSet(set1), null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(2934, counter.getFilesCount(task, null));
+        assertEquals(2934, counter.getFilesCount(task));
     }
 
     @Test
@@ -142,7 +142,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(Sets.newHashSet(schema1, schema2), null, null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(2934, counter.getFilesCount(task, null));
+        assertEquals(2934, counter.getFilesCount(task));
     }
 
     @Test
@@ -151,7 +151,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, Sets.newHashSet("a", "b", "c"), null, null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
 
@@ -163,7 +163,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, new HashSet<String>(), null, null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(2932, counter.getFilesCount(task, null));
+        assertEquals(2932, counter.getFilesCount(task));
     }
 
     @Test
@@ -172,14 +172,14 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, Sets.newHashSet("a", "b", "c"), null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
     @Test
     public void shouldReturnMinusOneWheHarvestingDetailsIsNotProvided() throws Exception {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         DpsTask task = getDpsTask(null);
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
     @Test
@@ -188,7 +188,7 @@ public class OaiPmhFilesCounterTest {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, Sets.newHashSet("a", "b", "c"), null, null, null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(-1, counter.getFilesCount(task));
     }
 
     @Test(expected = TaskSubmissionException.class)
@@ -196,7 +196,7 @@ public class OaiPmhFilesCounterTest {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null, null, null);
         DpsTask task = getDpsTaskNoEndpoint(details);
-        counter.getFilesCount(task, null);
+        counter.getFilesCount(task);
     }
 
     private DpsTask getDpsTask(OAIPMHHarvestingDetails details) {

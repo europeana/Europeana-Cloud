@@ -549,7 +549,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         task.addParameter(SCHEMA_NAME, "edm-internal");
         setCorrectlyFormulatedOutputRevision(task);
         prepareMocks(VALIDATION_TOPOLOGY);
-        when(filesCounter.getFilesCount(isA(DpsTask.class), anyString())).thenReturn(0);
+        when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
 
         Response response = sendTask(task, VALIDATION_TOPOLOGY);
 
@@ -851,7 +851,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
         when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
-        when(filesCounter.getFilesCount(isA(DpsTask.class), anyString())).thenReturn(1);
+        when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(1);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(eu.europeana.cloud.common.model.Permission.class));
