@@ -67,7 +67,8 @@ public class TempFileSync {
     }
 
     public static synchronized InetAddress startServer(Map<String, Object> config) {
-        if (startedCount == 0) {
+        startedCount++;
+        if (startedCount == 1) {
             init(config);
             try {
                 try {
@@ -87,7 +88,6 @@ public class TempFileSync {
             new Thread(TempFileSync::listenerLoop, "file-transfer-listener-loop").start();
             logger.info("file transfer listening on {}:{} (public: {})", localAddress, port, publicAddress);
         }
-        startedCount++;
         return publicAddress;
     }
 
@@ -184,7 +184,7 @@ public class TempFileSync {
 
     private static void listenerLoop() {
         try {
-            while (true) {
+            while (startedCount > 0) {
                 @SuppressWarnings("resource")
                 Socket socket = serverSocket.accept();
                 threadPool.execute(() -> handleRequest(socket));
