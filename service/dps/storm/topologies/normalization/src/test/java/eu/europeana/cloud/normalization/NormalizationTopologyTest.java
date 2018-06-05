@@ -50,6 +50,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, NormalizationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class})
@@ -147,7 +148,7 @@ public class NormalizationTopologyTest extends TopologyTestHelper {
         for (int i = 0; i < expectedTuples.size(); i++) {
             String actual = parse(selectSingle(actualTuples, i));
             String expected = expectedTuples.get(i);
-            assertEquals("tuple not equal " + i, expected, actual);
+            assertEquals(expected, actual,false);
         }
     }
 
