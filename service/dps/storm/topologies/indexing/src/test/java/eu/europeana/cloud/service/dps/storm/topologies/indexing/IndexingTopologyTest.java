@@ -92,7 +92,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     }
 
     @Test
-    public final void shouldProcessMultipleFiles() throws Exception {
+    public final void shouldTestSuccessfulExecution() throws Exception {
         //mocking
         IndexerFactory indexerFactory = Mockito.mock(IndexerFactory.class);
         Indexer indexer = Mockito.mock(Indexer.class);
@@ -101,7 +101,6 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         //
 
         when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(new byte[]{'b', 'c', 'd'}));
         //
         revisionServiceClient = Mockito.mock(RevisionServiceClient.class);
         PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);
@@ -113,7 +112,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
         taskParameters.put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2);
+        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
         dpsTask.setOutputRevision(new Revision());
@@ -144,8 +143,8 @@ public class IndexingTopologyTest extends TopologyTestHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"Record is indexed correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
-                        "[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL_FILE2 + "\",\"info_text\":\"Record is indexed correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"Record is indexed correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
