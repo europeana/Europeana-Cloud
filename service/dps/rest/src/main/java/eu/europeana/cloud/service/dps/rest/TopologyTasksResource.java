@@ -299,7 +299,7 @@ public class TopologyTasksResource {
     public StatisticsReport getTaskStatisticsReport(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        return validationStatisticsService.getTaskStatisticsReport(Long.valueOf(taskId));
+        return validationStatisticsService.getTaskStatisticsReport(Long.parseLong(taskId));
     }
 
 
@@ -362,7 +362,7 @@ public class TopologyTasksResource {
     public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        killService.killTask(Long.valueOf(taskId));
+        killService.killTask(Long.parseLong(taskId));
         return Response.ok("Task killing request was registered successfully").build();
 
     }

@@ -65,7 +65,7 @@ public class CassandraReportService implements TaskExecutionReportService {
 
     @Override
     public TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
-        long taskIdValue = Long.valueOf(taskId);
+        long taskIdValue = Long.parseLong(taskId);
         Statement selectFromBasicInfo = QueryBuilder.select().all()
                 .from(CassandraTablesAndColumnsNames.BASIC_INFO_TABLE)
                 .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.BASIC_TASK_ID, taskIdValue));
@@ -92,7 +92,7 @@ public class CassandraReportService implements TaskExecutionReportService {
     public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(String taskId, int from, int to) {
         Statement selectFromNotification = QueryBuilder.select()
                 .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
-                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.valueOf(taskId))).and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, from)).and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, to));
+                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.parseLong(taskId))).and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, from)).and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, to));
 
         ResultSet detailedTaskReportResultSet = cassandra.getSession().execute(selectFromNotification);
 
@@ -125,7 +125,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      */
     @Override
     public TaskErrorsInfo getGeneralTaskErrorReport(String task, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
-        long taskId = Long.valueOf(task);
+        long taskId = Long.parseLong(task);
         List<TaskErrorInfo> errors = new ArrayList<>();
         TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
@@ -213,7 +213,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      */
     @Override
     public TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
-        long taskId = Long.valueOf(task);
+        long taskId = Long.parseLong(task);
         TaskErrorInfo taskErrorInfo = getTaskErrorInfo(taskId, errorType);
         taskErrorInfo.setErrorDetails(retrieveErrorDetails(taskId, errorType, idsCount));
         String message = getErrorMessage(taskId, new HashMap<String, String>(), errorType);
@@ -249,7 +249,7 @@ public class CassandraReportService implements TaskExecutionReportService {
 
     @Override
     public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
-        Row basicInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(Long.valueOf(taskId))).one();
+        Row basicInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(Long.parseLong(taskId))).one();
         if (basicInfo == null || !basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME).equals(topologyName)) {
             throw new AccessDeniedOrObjectDoesNotExistException("The specified task does not exist in this service!");
         }

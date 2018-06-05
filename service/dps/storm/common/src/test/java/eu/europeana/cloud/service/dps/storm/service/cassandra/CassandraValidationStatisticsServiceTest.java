@@ -39,7 +39,7 @@ public class CassandraValidationStatisticsServiceTest {
         Mockito.when(cassandraNodeStatisticsDAO.getStatisticsReport(TASK_ID)).thenReturn(null);
 
         // when
-        StatisticsReport actual = cassandraStatisticsService.getTaskStatisticsReport(Long.valueOf(TASK_ID));
+        StatisticsReport actual = cassandraStatisticsService.getTaskStatisticsReport(TASK_ID);
 
         // then
         Mockito.verify(cassandraNodeStatisticsDAO, Mockito.times(1)).storeStatisticsReport(eq(TASK_ID), Mockito.any(StatisticsReport.class));
@@ -66,7 +66,7 @@ public class CassandraValidationStatisticsServiceTest {
         Mockito.when(cassandraNodeStatisticsDAO.getStatisticsReport(TASK_ID)).thenReturn(report);
 
         // when
-        StatisticsReport actual = cassandraStatisticsService.getTaskStatisticsReport(Long.valueOf(TASK_ID));
+        StatisticsReport actual = cassandraStatisticsService.getTaskStatisticsReport(TASK_ID);
 
         // then
         Mockito.verify(cassandraNodeStatisticsDAO, Mockito.times(0)).storeStatisticsReport(eq(TASK_ID), Mockito.any(StatisticsReport.class));
