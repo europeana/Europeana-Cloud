@@ -12,14 +12,13 @@ import java.util.NoSuchElementException;
 
 /**
  * Class for iterating through Representations of given data set.
- *
+ * <p>
  * The best way to initialise iterator is to obtain it by calling
  * {@link DataSetServiceClient#getRepresentationIteratorForProvider(String providerId, String dataSetId)}
  * method.
- *
+ * <p>
  * Iterator obtains {@link Representation} objects in chunks, obtaining new
  * chunk only if needed, inside overridden {@link Iterator} class methods.
- *
  */
 public class RepresentationIterator implements Iterator<Representation> {
 
@@ -35,10 +34,10 @@ public class RepresentationIterator implements Iterator<Representation> {
     /**
      * Creates instance of RepresentationIterator.
      *
-     * @param client properly initialised client for internal communication with
-     * MCS server (required)
+     * @param client     properly initialised client for internal communication with
+     *                   MCS server (required)
      * @param providerId id of the provider (required)
-     * @param dataSetId data set identifier (required)
+     * @param dataSetId  data set identifier (required)
      */
     public RepresentationIterator(DataSetServiceClient client, String providerId, String dataSetId) {
         if (client == null) {
@@ -60,10 +59,10 @@ public class RepresentationIterator implements Iterator<Representation> {
 
     /**
      * Returns <code>true</code> if the iteration has more elements.
-     *
-     * The first call to this method might take longer time than the others, as
-     * there might be a need to obtain first chunk of data. If data set does not
-     * exists, first call to this method will throw {@link DriverException} with
+     * <p>
+     * Some calls to this method might take longer time than the others, if the
+     * new chunk of data has to be obtained. If data set does not exists,
+     * first call to this method will throw {@link DriverException} with
      * inner exception: {@link DataSetNotExistsException}.
      *
      * @return {@code true} if the iteration has more elements, false if not.
@@ -73,13 +72,19 @@ public class RepresentationIterator implements Iterator<Representation> {
         if (firstTime.unpack()) {
             obtainNextChunk();
         }
-
-        return (representationListIterator.hasNext() || nextSlice != null);
+        if (representationListIterator.hasNext()) {
+            return representationListIterator.hasNext();
+        }
+        if (nextSlice != null) {
+            obtainNextChunk();
+            return representationListIterator.hasNext();
+        }
+        return false;
     }
 
     /**
      * Returns next element in the iteration.
-     *
+     * <p>
      * Some calls to this method might take longer time than the others, if the
      * new chunk of data has to be obtained. If data set does not exists, first
      * call to this method will throw {@link DriverException} with inner
