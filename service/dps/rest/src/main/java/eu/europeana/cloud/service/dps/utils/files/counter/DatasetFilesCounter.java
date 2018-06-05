@@ -14,8 +14,10 @@ import org.slf4j.LoggerFactory;
  * File counters inside a dataset task
  */
 public class DatasetFilesCounter extends FilesCounter {
+    public static final int UNKNOWN_EXPECTED_SIZE = -1;
     private CassandraTaskInfoDAO taskDAO;
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
+
 
     DatasetFilesCounter(CassandraTaskInfoDAO taskDAO) {
         this.taskDAO = taskDAO;
@@ -24,16 +26,18 @@ public class DatasetFilesCounter extends FilesCounter {
 
     public int getFilesCount(DpsTask task) throws TaskSubmissionException {
         String providedTaskId = task.getParameter(PluginParameterKeys.PREVIOUS_TASK_ID);
+        if (providedTaskId==null)
+            return UNKNOWN_EXPECTED_SIZE;
         try {
             long taskId = Long.parseLong(providedTaskId);
             TaskInfo taskInfo = taskDAO.searchById(taskId);
             return taskInfo.getProcessedElementCount();
         } catch (NumberFormatException e) {
             LOGGER.error("The provided previous task id {} is not long  ", providedTaskId);
-            return -1;
+            return UNKNOWN_EXPECTED_SIZE;
         } catch (TaskInfoDoesNotExistException e) {
             LOGGER.error("Task with taskId {} doesn't exist ", providedTaskId);
-            return -1;
+            return UNKNOWN_EXPECTED_SIZE;
         } catch (Exception e) {
             LOGGER.error("he task was dropped because of {} ", e.getMessage());
             throw new TaskSubmissionException("The task was dropped while counting the files number because of " + e.getMessage());
