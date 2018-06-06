@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
 import org.apache.http.util.TextUtils;
@@ -39,38 +40,50 @@ public class IndexingSettingsGenerator {
     public static final String DELIMITER = ".";
 
     private Properties properties;
-    private String environmentPrefix;
+    private TargetIndexingEnvironment environmentPrefix;
 
-    public IndexingSettingsGenerator(String environment, Properties properties) {
+    public IndexingSettingsGenerator(TargetIndexingEnvironment environment, Properties properties) {
         this.environmentPrefix = environment;
         this.properties = properties;
     }
 
     public IndexingSettingsGenerator(Properties properties) {
-        this.properties = properties;
+        this(TargetIndexingEnvironment.DEFAULT, properties);
     }
 
     public IndexingSettings generateForPreview() throws IndexerConfigurationException, URISyntaxException {
+        if(!isDefinedFor(preparePreviewPrefix()))
+            throw new IndexerConfigurationException("missing configuration for given environment");
         IndexingSettings indexingSettings = new IndexingSettings();
         prepareSettingFor(preparePreviewPrefix(), indexingSettings);
         return indexingSettings;
     }
 
     public IndexingSettings generateForPublish() throws IndexerConfigurationException, URISyntaxException {
+        if(!isDefinedFor(preparePublishPrefix()))
+            throw new IndexerConfigurationException("missing configuration for given environment");
         IndexingSettings indexingSettings = new IndexingSettings();
         prepareSettingFor(preparePublishPrefix(), indexingSettings);
         return indexingSettings;
     }
 
+    private boolean isDefinedFor(String prefix){
+        if (properties.get(prefix + DELIMITER + MONGO_INSTANCES) != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private String preparePreviewPrefix() {
-        if (!TextUtils.isEmpty(environmentPrefix)) {
+        if (environmentPrefix != TargetIndexingEnvironment.DEFAULT) {
             return environmentPrefix + DELIMITER + PREVIEW_PREFIX;
         }
         return PREVIEW_PREFIX;
     }
 
     private String preparePublishPrefix() {
-        if (!TextUtils.isEmpty(environmentPrefix)) {
+        if (environmentPrefix != TargetIndexingEnvironment.DEFAULT) {
             return environmentPrefix + DELIMITER + PUBLISH_PREFIX;
         }
         return PUBLISH_PREFIX;

@@ -63,47 +63,46 @@ public class IndexingBolt extends AbstractDpsBolt {
         }
     }
 
-    private class IndexerFactoryWrapper{
+    protected class IndexerFactoryWrapper{
 
-        private transient IndexerFactory indexerFactoryForPreviewDbInTestEnv;
-        private transient IndexerFactory indexerFactoryForPublishDbInTestEnv;
+        private transient IndexerFactory indexerFactoryForPreviewDbInDefaultEnv;
+        private transient IndexerFactory indexerFactoryForPublishDbInDefaultEnv;
 
-        private transient IndexerFactory indexerFactoryForPreviewDbInAcceptanceEnv;
-        private transient IndexerFactory indexerFactoryForPublishDbInAcceptanceEnv;
+        private transient IndexerFactory indexerFactoryForPreviewDbInAnotherEnv;
+        private transient IndexerFactory indexerFactoryForPublishDbInAnotherEnv;
 
         public IndexerFactoryWrapper() throws IndexerConfigurationException, URISyntaxException {
             init();
         }
 
         private void init() throws IndexerConfigurationException, URISyntaxException {
-            IndexingSettingsGenerator settingsGeneratorForTestEnv = new IndexingSettingsGenerator(TargetIndexingEnvironment.TEST.toString(), indexingProperties);
-            IndexingSettingsGenerator settingsGeneratorForAcceptanceEnv = new IndexingSettingsGenerator(TargetIndexingEnvironment.ACCEPTANCE.toString(), indexingProperties);
+            IndexingSettingsGenerator settingsGeneratorForDefaultEnv = new IndexingSettingsGenerator(indexingProperties);
+            IndexingSettingsGenerator settingsGeneratorForAnotherEnv = new IndexingSettingsGenerator(TargetIndexingEnvironment.ANOTHER, indexingProperties);
 
-            IndexingSettings indexingSettingsForPreviewDbInTestEnv = settingsGeneratorForTestEnv.generateForPreview();
-            IndexingSettings indexingSettingsForPublishDbInTestEnv = settingsGeneratorForTestEnv.generateForPublish();
+            IndexingSettings indexingSettingsForPreviewDbInDefaultEnv = settingsGeneratorForDefaultEnv.generateForPreview();
+            IndexingSettings indexingSettingsForPublishDbInDefaultEnv = settingsGeneratorForDefaultEnv.generateForPublish();
 
-            IndexingSettings indexingSettingsForPreviewDbInAcceptanceEnv = settingsGeneratorForAcceptanceEnv.generateForPreview();
-            IndexingSettings indexingSettingsForPublishDbInAcceptanceEnv = settingsGeneratorForAcceptanceEnv.generateForPublish();
+            IndexingSettings indexingSettingsForPreviewDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPreview();
+            IndexingSettings indexingSettingsForPublishDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPublish();
 
-            indexerFactoryForPreviewDbInTestEnv = new IndexerFactory(indexingSettingsForPreviewDbInTestEnv);
-            indexerFactoryForPublishDbInTestEnv = new IndexerFactory(indexingSettingsForPublishDbInTestEnv);
+            indexerFactoryForPreviewDbInDefaultEnv = new IndexerFactory(indexingSettingsForPreviewDbInDefaultEnv);
+            indexerFactoryForPublishDbInDefaultEnv = new IndexerFactory(indexingSettingsForPublishDbInDefaultEnv);
 
-            indexerFactoryForPreviewDbInAcceptanceEnv = new IndexerFactory(indexingSettingsForPreviewDbInAcceptanceEnv);
-            indexerFactoryForPublishDbInAcceptanceEnv = new IndexerFactory(indexingSettingsForPublishDbInAcceptanceEnv);
+            indexerFactoryForPreviewDbInAnotherEnv = new IndexerFactory(indexingSettingsForPreviewDbInAnotherEnv);
+            indexerFactoryForPublishDbInAnotherEnv = new IndexerFactory(indexingSettingsForPublishDbInAnotherEnv);
         }
 
-        public IndexerFactory getIndexerFactory(String environment, String database){
-            if (TargetIndexingEnvironment.TEST.toString().equals(environment)) {
+        public IndexerFactory getIndexerFactory(String environment, String database) {
+            if (environment != null) {
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
-                    return indexerFactoryForPreviewDbInTestEnv;
+                    return indexerFactoryForPreviewDbInAnotherEnv;
                 else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
-                    return indexerFactoryForPublishDbInTestEnv;
-
-            } else if (TargetIndexingEnvironment.ACCEPTANCE.toString().equals(environment)) {
+                    return indexerFactoryForPublishDbInAnotherEnv;
+            } else {
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
-                    return indexerFactoryForPreviewDbInAcceptanceEnv;
+                    return indexerFactoryForPreviewDbInDefaultEnv;
                 else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
-                    return indexerFactoryForPublishDbInAcceptanceEnv;
+                    return indexerFactoryForPublishDbInDefaultEnv;
             }
             throw new RuntimeException("Specified environment and/or database is not recognized");
         }

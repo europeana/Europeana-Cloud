@@ -8,8 +8,8 @@ import java.util.List;
  */
 public enum TargetIndexingEnvironment {
 
-    TEST,
-    ACCEPTANCE;
+    DEFAULT,
+    ANOTHER;
 
     public static List<String> getStringValues() {
         List<String> result = new ArrayList<>();
