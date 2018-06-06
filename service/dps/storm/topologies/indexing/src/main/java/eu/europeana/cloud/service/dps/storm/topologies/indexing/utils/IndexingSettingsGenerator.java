@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
-import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +52,7 @@ public class IndexingSettingsGenerator {
 
     public IndexingSettings generateForPreview() throws IndexerConfigurationException, URISyntaxException {
         if(!isDefinedFor(preparePreviewPrefix()))
-            throw new IndexerConfigurationException("missing configuration for given environment");
+            return null;
         IndexingSettings indexingSettings = new IndexingSettings();
         prepareSettingFor(preparePreviewPrefix(), indexingSettings);
         return indexingSettings;
@@ -61,18 +60,14 @@ public class IndexingSettingsGenerator {
 
     public IndexingSettings generateForPublish() throws IndexerConfigurationException, URISyntaxException {
         if(!isDefinedFor(preparePublishPrefix()))
-            throw new IndexerConfigurationException("missing configuration for given environment");
+            return null;
         IndexingSettings indexingSettings = new IndexingSettings();
         prepareSettingFor(preparePublishPrefix(), indexingSettings);
         return indexingSettings;
     }
 
-    private boolean isDefinedFor(String prefix){
-        if (properties.get(prefix + DELIMITER + MONGO_INSTANCES) != null) {
-            return true;
-        } else {
-            return false;
-        }
+    private boolean isDefinedFor(String prefix) {
+        return properties.get(prefix + DELIMITER + MONGO_INSTANCES) != null;
     }
 
     private String preparePreviewPrefix() {

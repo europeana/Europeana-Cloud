@@ -63,13 +63,13 @@ public class IndexingBolt extends AbstractDpsBolt {
         }
     }
 
-    protected class IndexerFactoryWrapper{
+    class IndexerFactoryWrapper{
 
-        private transient IndexerFactory indexerFactoryForPreviewDbInDefaultEnv;
-        private transient IndexerFactory indexerFactoryForPublishDbInDefaultEnv;
+        private IndexerFactory indexerFactoryForPreviewDbInDefaultEnv;
+        private IndexerFactory indexerFactoryForPublishDbInDefaultEnv;
 
-        private transient IndexerFactory indexerFactoryForPreviewDbInAnotherEnv;
-        private transient IndexerFactory indexerFactoryForPublishDbInAnotherEnv;
+        private IndexerFactory indexerFactoryForPreviewDbInAnotherEnv;
+        private IndexerFactory indexerFactoryForPublishDbInAnotherEnv;
 
         public IndexerFactoryWrapper() throws IndexerConfigurationException, URISyntaxException {
             init();
@@ -92,7 +92,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             indexerFactoryForPublishDbInAnotherEnv = new IndexerFactory(indexingSettingsForPublishDbInAnotherEnv);
         }
 
-        public IndexerFactory getIndexerFactory(String environment, String database) {
+        IndexerFactory getIndexerFactory(String environment, String database) {
             if (environment != null) {
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
                     return indexerFactoryForPreviewDbInAnotherEnv;
