@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -51,6 +52,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(MCSReaderSpout.class)
 public class MCSReaderSpoutTest {
+    public static final String DATASET_URL = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
     @Mock(name = "collector")
     private SpoutOutputCollector collector;
 
@@ -68,9 +70,9 @@ public class MCSReaderSpoutTest {
     private static Date date = new Date();
 
 
-    private final String TASK_NAME = "TASK_NAME";
-    private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-    private final String FILE_URL2 = "http://localhost:8080/mcs/records/sourceCloudId2/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName2";
+    private final static String TASK_NAME = "TASK_NAME";
+    private final static String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
+    private final static String FILE_URL2 = "http://localhost:8080/mcs/records/sourceCloudId2/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName2";
     private DataSetServiceClient dataSetServiceClient;
     private RecordServiceClient recordServiceClient;
     private FileServiceClient fileServiceClient;
@@ -83,6 +85,7 @@ public class MCSReaderSpoutTest {
     @Before
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
+
         representationIterator = mock(RepresentationIterator.class);
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
         TaskSpoutInfo taskSpoutInfo = mock(TaskSpoutInfo.class);
@@ -94,6 +97,7 @@ public class MCSReaderSpoutTest {
     }
 
     private void mockMCSClient() throws Exception {
+
         recordServiceClient = mock(RecordServiceClient.class);
         whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
@@ -109,7 +113,7 @@ public class MCSReaderSpoutTest {
 
     }
 
-    static void setStaticField(Field field, Object newValue) throws Exception {
+    private static void setStaticField(Field field, Object newValue) throws Exception {
         field.setAccessible(true);
         field.set(null, newValue);
     }
@@ -120,7 +124,7 @@ public class MCSReaderSpoutTest {
         when(collector.emit(anyList())).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
+        dataSets.add(DATASET_URL);
         DpsTask dpsTask = prepareDpsTask(dataSets, prepareStormTaskTupleParameters());
         //when
 
@@ -142,7 +146,7 @@ public class MCSReaderSpoutTest {
         when(collector.emit(anyList())).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
+        dataSets.add(DATASET_URL);
         DpsTask dpsTask = prepareDpsTask(dataSets, prepareStormTaskTupleParameters());
         //when
 
@@ -167,7 +171,7 @@ public class MCSReaderSpoutTest {
         when(collector.emit(anyList())).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
+        dataSets.add(DATASET_URL);
         DpsTask dpsTask = prepareDpsTask(dataSets, prepareStormTaskTupleParameters());
         //when
 
@@ -192,11 +196,7 @@ public class MCSReaderSpoutTest {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
-        List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
-        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
-        parametersWithRevision.put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
-        DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+        DpsTask dpsTask = getDpsTask();
         //when
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
@@ -207,7 +207,10 @@ public class MCSReaderSpoutTest {
 
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
-        when(dataSetServiceClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
+        ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
+        resultSlice.setResults(cloudIdCloudTagsResponses);
+        resultSlice.setNextSlice(null);
+        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
         RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
@@ -232,11 +235,7 @@ public class MCSReaderSpoutTest {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
-        List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
-        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
-        parametersWithRevision.put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
-        DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+        DpsTask dpsTask = getDpsTask();
         //when
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
@@ -247,7 +246,10 @@ public class MCSReaderSpoutTest {
 
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
-        when(dataSetServiceClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
+        ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
+        resultSlice.setResults(cloudIdCloudTagsResponses);
+        resultSlice.setNextSlice(null);
+        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
         RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
@@ -273,11 +275,7 @@ public class MCSReaderSpoutTest {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
-        List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
-        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
-        parametersWithRevision.put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
-        DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+        DpsTask dpsTask = getDpsTask();
         //when
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
@@ -288,7 +286,10 @@ public class MCSReaderSpoutTest {
 
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
-        when(dataSetServiceClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
+        ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
+        resultSlice.setResults(cloudIdCloudTagsResponses);
+        resultSlice.setNextSlice(null);
+        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
         RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
@@ -316,7 +317,7 @@ public class MCSReaderSpoutTest {
         when(collector.emit(anyList())).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
+        dataSets.add(DATASET_URL);
         Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
 
@@ -325,10 +326,16 @@ public class MCSReaderSpoutTest {
         List<Representation> representations = new ArrayList<>(2);
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
         RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
+
+
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
+        ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
+        resultSlice.setResults(cloudIdAndTimestampResponseList);
+        resultSlice.setNextSlice(null);
+        when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), eq(false), anyString())).thenReturn(resultSlice);
 
 
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
@@ -354,7 +361,7 @@ public class MCSReaderSpoutTest {
         when(collector.emit(anyList())).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
+        dataSets.add(DATASET_URL);
         Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
 
@@ -363,13 +370,18 @@ public class MCSReaderSpoutTest {
         List<Representation> representations = new ArrayList<>(2);
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
+
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
         RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
 
 
-        when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
+        ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
+        resultSlice.setResults(cloudIdAndTimestampResponseList);
+        resultSlice.setNextSlice(null);
+        when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), eq(false), anyString())).thenReturn(resultSlice);
+
         when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
         when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentationRevisionResponse);
 
@@ -388,13 +400,76 @@ public class MCSReaderSpoutTest {
 
     }
 
+    @Test(expected = MCSException.class)
+    public void shouldTry10TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws MCSException {
+        //given
+        when(collector.emit(anyList())).thenReturn(null);
+        List<String> dataSets = new ArrayList<>();
+        dataSets.add(DATASET_URL);
+        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
+        DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+        doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
+
+        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+
+    }
+
+    @Test(expected = MCSException.class)
+    public void shouldTry10TimesAndFailWhenSpecificRevisionThrowMCSException() throws MCSException {
+        //given
+        when(collector.emit(anyList())).thenReturn(null);
+        //given
+        DpsTask dpsTask = getDpsTask();
+        //when
+
+        doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
+
+        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+    }
+
+    @Test(expected = DriverException.class)
+    public void shouldTry10TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws MCSException {
+        //given
+        when(collector.emit(anyList())).thenReturn(null);
+        List<String> dataSets = new ArrayList<>();
+        dataSets.add(DATASET_URL);
+        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
+        DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+        doThrow(DriverException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
+
+        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+
+    }
+
+    @Test(expected = DriverException.class)
+    public void shouldTry10TimesAndFailWhenSpecificRevisionThrowDriverException() throws MCSException {
+        //given
+        when(collector.emit(anyList())).thenReturn(null);
+        //given
+        DpsTask dpsTask = getDpsTask();
+        //when
+
+        doThrow(DriverException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
+
+        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+    }
+
+    private DpsTask getDpsTask() {
+        List<String> dataSets = new ArrayList<>();
+        dataSets.add(DATASET_URL);
+        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
+        parametersWithRevision.put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
+        return prepareDpsTask(dataSets, parametersWithRevision);
+    }
+
+
     @Test
     public void shouldStopEmittingFilesWhenTaskIsKilled() throws Exception {
-        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false,false,true);
+        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, false, true);
         when(collector.emit(anyList())).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
+        dataSets.add(DATASET_URL);
         DpsTask dpsTask = prepareDpsTask(dataSets, prepareStormTaskTupleParameters());
         //when
 
@@ -416,7 +491,7 @@ public class MCSReaderSpoutTest {
         when(collector.emit(anyList())).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
-        dataSets.add("http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
+        dataSets.add(DATASET_URL);
         DpsTask dpsTask = prepareDpsTask(dataSets, prepareStormTaskTupleParameters());
         //when
 
@@ -433,9 +508,8 @@ public class MCSReaderSpoutTest {
     }
 
 
-
-    private HashMap<String, String> prepareStormTaskTupleParameters() {
-        HashMap<String, String> parameters = new HashMap<>();
+    private Map<String, String> prepareStormTaskTupleParameters() {
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         return parameters;
