@@ -115,25 +115,18 @@ public class OAISpout extends CustomKafkaSpout {
             SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
             Set<String> schemas = schemaHandler.getSchemas(stormTaskTuple);
             OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
-            OAIHelper oaiHelper = new OAIHelper(stormTaskTuple.getFileUrl());
             int count = 0;
             Date fromDate = oaipmhHarvestingDetails.getDateFrom();
+            Date untilDate = oaipmhHarvestingDetails.getDateUntil();
 
-            if (fromDate == null) {
-                fromDate = oaiHelper.getEarlierDate();
-            }
-            Date untilDate = oaipmhHarvestingDetails.getDateFrom();
-            if (untilDate == null) {
-                untilDate = new Date();
-            }
             Set<String> sets = oaipmhHarvestingDetails.getSets();
 
             for (String schema : schemas) {
                 if (sets == null || sets.isEmpty()) {
-                    count += harvestIdentifiers(schema, null, fromDate, untilDate, oaiHelper.getGranularity().toString(), stormTaskTuple);
+                    count += harvestIdentifiers(schema, null, fromDate, untilDate, stormTaskTuple);
                 } else
                     for (String set : sets) {
-                        count += harvestIdentifiers(schema, set, fromDate, untilDate, oaiHelper.getGranularity().toString(), stormTaskTuple);
+                        count += harvestIdentifiers(schema, set, fromDate, untilDate, stormTaskTuple);
                     }
             }
             LOGGER.debug("Harvested {} identifiers for source ( {} )", count, stormTaskTuple.getSourceDetails());
@@ -142,16 +135,15 @@ public class OAISpout extends CustomKafkaSpout {
         } catch (BadArgumentException e) {
             LOGGER.error("OAI Harvesting Spout error: {} ", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while Harvesting identifiers " + e.getMessage(), "");
-
         }
     }
 
 
-    private int harvestIdentifiers(String schema, String dataset, Date fromDate, Date untilDate, String granularity, StormTaskTuple stormTaskTuple)
+    private int harvestIdentifiers(String schema, String dataset, Date fromDate, Date untilDate, StormTaskTuple stormTaskTuple)
             throws BadArgumentException {
         OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
         String url = stormTaskTuple.getFileUrl();
-        ListIdentifiersParameters parameters = configureParameters(schema, dataset, fromDate, untilDate, granularity);
+        ListIdentifiersParameters parameters = configureParameters(schema, dataset, fromDate, untilDate);
         return parseHeaders(sourceProvider.provide(url).listIdentifiers(parameters), sourceDetails.getExcludedSets(), stormTaskTuple, schema);
     }
 
@@ -160,12 +152,14 @@ public class OAISpout extends CustomKafkaSpout {
      *
      * @return object representing parameters for ListIdentifiers request
      */
-    private ListIdentifiersParameters configureParameters(String schema, String dataset, Date fromDate, Date untilDate, String granularity) {
+    private ListIdentifiersParameters configureParameters(String schema, String dataset, Date fromDate, Date untilDate) {
         ListIdentifiersParameters parameters = ListIdentifiersParameters.request()
                 .withMetadataPrefix(schema);
-        parameters.withGranularity(granularity);
-        parameters.withFrom(fromDate);
-        parameters.withUntil(untilDate);
+
+        if (fromDate != null)
+            parameters.withFrom(fromDate);
+        if (untilDate != null)
+            parameters.withUntil(untilDate);
         if (dataset != null)
             parameters.withSetSpec(dataset);
 
