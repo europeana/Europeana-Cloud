@@ -76,8 +76,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     private boolean parametersAreValid(String endpointLocation, String recordId, String metadataPrefix) {
         if (endpointLocation != null && recordId != null && metadataPrefix != null)
             return true;
-        else
-            return false;
+        return false;
     }
 
     private String readEndpointLocation(StormTaskTuple stormTaskTuple) {

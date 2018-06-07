@@ -58,7 +58,7 @@ public class HarvesterTest extends WiremockHelper {
             fail();
         }catch (HarvesterException e){
             //then
-            assertThat(e.getMessage(),is("Problem with harvesting record oai:mediateka.centrumzamenhofa.pl:19 for endpoint http://localhost:8181/oai-phm/"));
+            assertThat(e.getMessage(),is("Problem with harvesting record oai:mediateka.centrumzamenhofa.pl:19 for endpoint http://localhost:8181/oai-phm/ because of: Error querying service. Returned HTTP Status Code: 404"));
         }
     }
 

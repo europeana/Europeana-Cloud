@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.Harvest
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
 import org.dspace.xoai.serviceprovider.client.OAIClient;
-import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
 import org.dspace.xoai.serviceprovider.parameters.GetRecordParameters;
 import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import org.slf4j.Logger;
@@ -49,7 +48,7 @@ public class Harvester implements Serializable {
                 OAIClient client = new HttpOAIClient(oaiPmhEndpoint);
                 final InputStream record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
                 return new XmlXPath(record).xpath(METADATA_XPATH);
-            } catch (OAIRequestException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error harvesting record {}. Retries left:{} ", recordId, retries);
                     try {
@@ -59,8 +58,8 @@ public class Harvester implements Serializable {
                         LOGGER.error(Throwables.getStackTraceAsString(ex));
                     }
                 } else {
-                    throw new HarvesterException(String.format("Problem with harvesting record %1$s for endpoint %2$s",
-                            recordId, oaiPmhEndpoint), e);
+                    throw new HarvesterException(String.format("Problem with harvesting record %1$s for endpoint %2$s because of: %3$s",
+                            recordId, oaiPmhEndpoint,e.getMessage()), e);
                 }
             }
         }
