@@ -70,7 +70,7 @@ public class TaskStatusChecker {
      */
     private Boolean isTaskKilled(long taskId) {
         boolean isKilled = false;
-        LOGGER.info("Checking the task status for the task id from backend: " + taskId);
+        LOGGER.info("Checking the task status for the task id from backend: {}" , taskId);
         if (taskDAO.hasKillFlag(taskId)) {
             isKilled = true;
         }
