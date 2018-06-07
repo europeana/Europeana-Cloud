@@ -9,7 +9,7 @@ import java.util.List;
 public enum TargetIndexingEnvironment {
 
     DEFAULT,
-    ANOTHER;
+    ALTERNATIVE;
 
     public static List<String> getStringValues() {
         List<String> result = new ArrayList<>();

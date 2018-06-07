@@ -50,30 +50,30 @@ public class IndexingSettingsGeneratorTest {
     public void shouldGenerateProperSettingsForPreviewDBAndAnotherEnv() throws IOException, IndexerConfigurationException, URISyntaxException {
         Properties prop = loadProperties("indexing.properties");
         //
-        IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ANOTHER, prop);
+        IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, prop);
         IndexingSettings settings = generator.generateForPreview();
-        assertEquals(settings.getMongoDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
+        assertEquals(settings.getMongoDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
         List<ServerAddress> mongos = settings.getMongoHosts();
         for (ServerAddress mongo : mongos) {
-            assertTrue(prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
-            assertTrue(prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_PORT_NUMBER).equals(mongo.getPort() + ""));
+            assertTrue(prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
+            assertTrue(prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_PORT_NUMBER).equals(mongo.getPort() + ""));
         }
-        assertTrue(settings.getZookeeperHosts().size() == prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.ZOOKEEPER_INSTANCES).split(",").length);
+        assertTrue(settings.getZookeeperHosts().size() == prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.ZOOKEEPER_INSTANCES).split(",").length);
     }
 
     @Test
     public void shouldGenerateProperSettingsForPublishDBAndAnotherEnv() throws IOException, IndexerConfigurationException, URISyntaxException {
         Properties prop = loadProperties("indexing.properties");
         //
-        IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ANOTHER, prop);
+        IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, prop);
         IndexingSettings settings = generator.generateForPublish();
-        assertEquals(settings.getMongoDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
+        assertEquals(settings.getMongoDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
         List<ServerAddress> mongos = settings.getMongoHosts();
         for (ServerAddress mongo : mongos) {
-            assertTrue(prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
-            assertTrue(prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_PORT_NUMBER).equals(mongo.getPort() + ""));
+            assertTrue(prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
+            assertTrue(prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_PORT_NUMBER).equals(mongo.getPort() + ""));
         }
-        assertTrue(settings.getZookeeperHosts().size() == prop.getProperty(TargetIndexingEnvironment.ANOTHER + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.ZOOKEEPER_INSTANCES).split(",").length);
+        assertTrue(settings.getZookeeperHosts().size() == prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.ZOOKEEPER_INSTANCES).split(",").length);
     }
 
     private Properties loadProperties(String fileName) throws IOException {
