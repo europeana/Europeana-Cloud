@@ -25,14 +25,14 @@ public class IndexingBoltTest {
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
 
-    @Mock(name = "indexerFactoryForPreviewEnv")
-    private IndexerFactory previewFactory;
-
-    @Mock(name = "indexerFactoryForPublishEnv")
-    private IndexerFactory publishFactory;
+    @Mock(name = "indexerFactoryWrapper")
+    private IndexingBolt.IndexerFactoryWrapper indexerFactoryWrapper;
 
     @Mock
     private Indexer indexer;
+
+    @Mock
+    private IndexerFactory indexerFactory;
 
     @InjectMocks
     private IndexingBolt indexingBolt = new IndexingBolt(null);
@@ -126,7 +126,7 @@ public class IndexingBoltTest {
     public void shouldThrowExceptionForUnknownEnv() throws IndexerConfigurationException, IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
-        mockIndexerFactoryFor(IndexingException.class);
+        mockIndexerFactoryFor(RuntimeException.class);
         //when
         indexingBolt.execute(tuple);
     }
@@ -146,8 +146,9 @@ public class IndexingBoltTest {
     }
 
     private void mockIndexerFactoryFor(Class clazz) throws IndexerConfigurationException, IndexingException {
-        when(previewFactory.getIndexer()).thenReturn(indexer);
-        when(publishFactory.getIndexer()).thenReturn(indexer);
+        when(indexerFactoryWrapper.getIndexerFactory(Mockito.anyString(),Mockito.anyString())).thenReturn(indexerFactory);
+        when(indexerFactory.getIndexer()).thenReturn(indexer);
+
         if (clazz != null) {
             doThrow(clazz).when(indexer).index(Mockito.anyString());
         }

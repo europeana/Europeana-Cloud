@@ -23,6 +23,7 @@ public final class PluginParameterKeys {
     // --------- METIS -------------
     public static final String METIS_DATASET_ID = "METIS_DATASET_ID";
     public static final String METIS_TARGET_INDEXING_DATABASE = "TARGET_INDEXING_DATABASE";
+    public static final String METIS_TARGET_INDEXING_ENVIRONMENT = "TARGET_INDEXING_ENVIRONMENT";
 
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";

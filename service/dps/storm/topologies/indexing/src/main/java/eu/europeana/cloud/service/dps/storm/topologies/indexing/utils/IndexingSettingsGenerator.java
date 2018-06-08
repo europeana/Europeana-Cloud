@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
 import org.slf4j.Logger;
@@ -38,22 +39,51 @@ public class IndexingSettingsGenerator {
     public static final String DELIMITER = ".";
 
     private Properties properties;
+    private TargetIndexingEnvironment environmentPrefix;
 
-    public IndexingSettingsGenerator(Properties properties) {
+    public IndexingSettingsGenerator(TargetIndexingEnvironment environment, Properties properties) {
+        this.environmentPrefix = environment;
         this.properties = properties;
     }
 
+    public IndexingSettingsGenerator(Properties properties) {
+        this(TargetIndexingEnvironment.DEFAULT, properties);
+    }
+
     public IndexingSettings generateForPreview() throws IndexerConfigurationException, URISyntaxException {
+        if(!isDefinedFor(preparePreviewPrefix()))
+            return null;
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(PREVIEW_PREFIX, indexingSettings);
+        prepareSettingFor(preparePreviewPrefix(), indexingSettings);
         return indexingSettings;
     }
 
     public IndexingSettings generateForPublish() throws IndexerConfigurationException, URISyntaxException {
+        if(!isDefinedFor(preparePublishPrefix()))
+            return null;
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(PUBLISH_PREFIX, indexingSettings);
+        prepareSettingFor(preparePublishPrefix(), indexingSettings);
         return indexingSettings;
     }
+
+    private boolean isDefinedFor(String prefix) {
+        return properties.get(prefix + DELIMITER + MONGO_INSTANCES) != null;
+    }
+
+    private String preparePreviewPrefix() {
+        if (environmentPrefix != TargetIndexingEnvironment.DEFAULT) {
+            return environmentPrefix + DELIMITER + PREVIEW_PREFIX;
+        }
+        return PREVIEW_PREFIX;
+    }
+
+    private String preparePublishPrefix() {
+        if (environmentPrefix != TargetIndexingEnvironment.DEFAULT) {
+            return environmentPrefix + DELIMITER + PUBLISH_PREFIX;
+        }
+        return PUBLISH_PREFIX;
+    }
+
 
     private void prepareSettingFor(String environment, IndexingSettings indexingSettings) throws IndexerConfigurationException, URISyntaxException {
         prepareMongoSettings(indexingSettings, environment);
@@ -93,6 +123,7 @@ public class IndexingSettingsGenerator {
             return false;
         }
     }
+
     private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix) throws URISyntaxException, IndexerConfigurationException {
         String solrInstances = properties.get(prefix + DELIMITER + SOLR_INSTANCES).toString();
         String[] instances = solrInstances.trim().split(",");
