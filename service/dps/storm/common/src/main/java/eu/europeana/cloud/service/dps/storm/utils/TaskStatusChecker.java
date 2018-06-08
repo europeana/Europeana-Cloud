@@ -1,19 +1,21 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentMap;
-
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Tarek on 4/9/2018.
  */
 public class TaskStatusChecker {
-    public static final int CHECKING_INTERVAL = 5000;
+
+    public static final int CHECKING_INTERVAL_IN_SECONDS = 5;
     public static final int CONCURRENCY_LEVEL = 1000;
     public static final int SIZE = 100;
 
@@ -21,14 +23,19 @@ public class TaskStatusChecker {
     private CassandraTaskInfoDAO taskDAO;
 
 
-    private static volatile Cache<Long, CacheItem> cache;
+    private static volatile LoadingCache<Long, Boolean> cache;
+
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusChecker.class);
 
     private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
 
-        cache = CacheBuilder.newBuilder().concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
-                .build();
+        cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
+                .build(new CacheLoader<Long, Boolean>() {
+                    public Boolean load(Long taskId) throws ExecutionException {
+                        return isTaskKilled(taskId);
+                    }
+                });
         this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
     }
 
@@ -49,33 +56,25 @@ public class TaskStatusChecker {
 
 
     public boolean hasKillFlag(long taskId) {
-        CacheItem cacheItem = getCacheItem(taskId);
-        if (!cacheItem.hasKilledFlag && cacheItem.lastCheck + CHECKING_INTERVAL < System.currentTimeMillis()) {
-            synchronized (instance) {
-                if (cacheItem.lastCheck + CHECKING_INTERVAL < System.currentTimeMillis()) {
-                    LOGGER.info("Checking the cancellation from the backend database for task id {}", taskId);
-                    cacheItem.lastCheck = System.currentTimeMillis();
-                    if (taskDAO.hasKillFlag(taskId)) {
-                        cacheItem.hasKilledFlag = true;
-                        cache.put(taskId, cacheItem);
-                    }
-                }
-            }
-
+        try {
+            return cache.get(taskId);
+        } catch (ExecutionException e) {
+            LOGGER.info(e.getMessage());
+            return false;
         }
-        return cacheItem.hasKilledFlag;
     }
 
-
-    private CacheItem getCacheItem(long taskId) {
-        ConcurrentMap<Long, CacheItem> map = cache.asMap();
-        map.putIfAbsent(taskId, new CacheItem());
-        return map.get(taskId);
-    }
-
-    private static class CacheItem {
-        volatile boolean hasKilledFlag = false;
-        volatile long lastCheck = 0;
+    /*
+       This method will only be executed if there is no VALUE for KEY taskId inside cache or if refresh method was triggered.
+       In the current implementation it will be triggered every 5 seconds if it was queried.
+     */
+    private Boolean isTaskKilled(long taskId) {
+        boolean isKilled = false;
+        LOGGER.info("Checking the task status for the task id from backend: {}" , taskId);
+        if (taskDAO.hasKillFlag(taskId)) {
+            isKilled = true;
+        }
+        return isKilled;
     }
 }
 
