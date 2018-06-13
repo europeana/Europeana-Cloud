@@ -255,7 +255,7 @@ public enum IdentifierErrorTemplate {
 		    "ID_HAS_BEEN_MAPPED",
 		    String.format(
 			    "The supplied %s id for provider %s has already been assigned to the cloud identifier %s",
-			    args[0], args[1], args[2]));
+			    args[1], args[0], args[2]));
 	}
 
 	@Override
