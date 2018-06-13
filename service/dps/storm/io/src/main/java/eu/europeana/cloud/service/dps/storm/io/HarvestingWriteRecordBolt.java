@@ -70,13 +70,18 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
     private String getCloudId(String authorizationHeader, String providerId, String localId) throws CloudException {
         UISClient uisClient = new UISClient(ecloudUisAddress);
-        uisClient.useAuthorizationHeader(authorizationHeader);
-        CloudId cloudId;
-        cloudId = getCloudId(providerId, localId, uisClient);
-        if (cloudId != null) {
-            return cloudId.getId();
+        try {
+            uisClient.useAuthorizationHeader(authorizationHeader);
+            CloudId cloudId;
+            cloudId = getCloudId(providerId, localId, uisClient);
+            if (cloudId != null) {
+                return cloudId.getId();
+            }
+            return createCloudId(providerId, localId, uisClient);
         }
-        return createCloudId(providerId, localId, uisClient);
+        finally {
+            uisClient.close();
+        }
     }
 
     private CloudId getCloudId(String providerId, String localId, UISClient uisClient) throws CloudException {

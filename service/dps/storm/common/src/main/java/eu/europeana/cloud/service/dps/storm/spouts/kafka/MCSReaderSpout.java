@@ -154,37 +154,43 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         FileServiceClient fileClient = new FileServiceClient(mcsClientURL);
         fileClient.useAuthorizationHeader(authorizationHeader);
 
-        for (String dataSetUrl : dataSets) {
-            try {
-                final UrlParser urlParser = new UrlParser(dataSetUrl);
-                if (urlParser.isUrlToDataset()) {
-                    if (revisionName != null && revisionProvider != null) {
-                        String revisionTimestamp = dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
-                        if (revisionTimestamp != null) {
-                            handleExactRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+        try {
+            for (String dataSetUrl : dataSets) {
+                try {
+                    final UrlParser urlParser = new UrlParser(dataSetUrl);
+                    if (urlParser.isUrlToDataset()) {
+                        if (revisionName != null && revisionProvider != null) {
+                            String revisionTimestamp = dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
+                            if (revisionTimestamp != null) {
+                                handleExactRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                            } else {
+                                handleLatestRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+                            }
                         } else {
-                            handleLatestRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+                            RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                            while (iterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                                Representation representation = iterator.next();
+                                emitFilesFromRepresentation(dpsTask, fileClient, representation);
+                            }
                         }
                     } else {
-                        RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
-                        while (iterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
-                            Representation representation = iterator.next();
-                            emitFilesFromRepresentation(dpsTask, fileClient, representation);
-                        }
+                        LOGGER.warn("dataset url is not formulated correctly {}", dataSetUrl);
+                        emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
                     }
-                } else {
-                    LOGGER.warn("dataset url is not formulated correctly {}", dataSetUrl);
-                    emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
+                } catch (MalformedURLException ex) {
+                    LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
+                    emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
+                } catch (MCSException | DriverException ex) {
+                    LOGGER.error("MCSReaderSpout error:, Error while communicating with MCS {}", ex.getMessage());
+                    emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
                 }
-            } catch (MalformedURLException ex) {
-                LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
-                emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
-            } catch (MCSException | DriverException ex) {
-                LOGGER.error("MCSReaderSpout error:, Error while communicating with MCS {}", ex.getMessage());
-                emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             }
+            cassandraTaskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), cache.get(dpsTask.getTaskId()).getFileCount());
+        } finally {
+            fileClient.close();
+            dataSetServiceClient.close();
+            recordServiceClient.close();
         }
-        cassandraTaskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), cache.get(dpsTask.getTaskId()).getFileCount());
     }
 
     private void handleLatestRevisions(DpsTask dpsTask, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException {

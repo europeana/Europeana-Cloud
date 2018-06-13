@@ -109,15 +109,14 @@ public class OAISpout extends CustomKafkaSpout {
 
 
     public void execute(StormTaskTuple stormTaskTuple) {
-
+        int count = 0;
         try {
             SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
             Set<String> schemas = schemaHandler.getSchemas(stormTaskTuple);
             OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
-            int count = 0;
+
             Date fromDate = oaipmhHarvestingDetails.getDateFrom();
             Date untilDate = oaipmhHarvestingDetails.getDateUntil();
-
             Set<String> sets = oaipmhHarvestingDetails.getSets();
 
             for (String schema : schemas) {
@@ -130,11 +129,17 @@ public class OAISpout extends CustomKafkaSpout {
             }
             LOGGER.debug("Harvested {} identifiers for source ( {} )", count, stormTaskTuple.getSourceDetails());
             cache.get(stormTaskTuple.getTaskId()).setFileCount(count);
-            cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), count);
+            if (count > 0)
+                cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), count);
+            else
+                cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         } catch (BadArgumentException e) {
             LOGGER.error("OAI Harvesting Spout error: {} ", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while Harvesting identifiers " + e.getMessage(), "");
+            if (count == 0)
+                cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The submitted parameters generated an exception while listing the records ids", TaskState.DROPPED.toString());
         }
+
     }
 
 

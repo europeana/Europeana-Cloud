@@ -57,11 +57,15 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         }
     }
 
-    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException,DriverException {
+    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException, DriverException {
         RecordServiceClient recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
-        final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        recordServiceClient.useAuthorizationHeader(authorizationHeader);
-        return createRepresentationAndUploadFile(stormTaskTuple, recordServiceClient);
+        try {
+            final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+            recordServiceClient.useAuthorizationHeader(authorizationHeader);
+            return createRepresentationAndUploadFile(stormTaskTuple, recordServiceClient);
+        } finally {
+            recordServiceClient.close();
+        }
     }
 
 

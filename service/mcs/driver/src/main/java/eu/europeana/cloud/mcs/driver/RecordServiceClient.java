@@ -663,6 +663,10 @@ public class RecordServiceClient extends MCSClient {
         client.close();
     }
 
+    public void close() {
+        client.close();
+    }
+
 
     /**
      * Returns representation in specified version.

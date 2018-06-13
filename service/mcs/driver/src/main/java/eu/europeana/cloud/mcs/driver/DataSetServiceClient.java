@@ -592,6 +592,10 @@ public class DataSetServiceClient extends MCSClient {
         client.close();
     }
 
+    public void close() {
+        client.close();
+    }
+
 
     /**
      * Returns chunk of cloud identifiers list of specified provider in specified data set having specific representation name

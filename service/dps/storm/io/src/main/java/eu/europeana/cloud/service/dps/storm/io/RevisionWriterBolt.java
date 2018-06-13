@@ -31,9 +31,13 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
         RevisionServiceClient revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
-        final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        revisionsClient.useAuthorizationHeader(authorizationHeader);
-        addRevisionAndEmit(stormTaskTuple, revisionsClient);
+        try {
+            final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+            revisionsClient.useAuthorizationHeader(authorizationHeader);
+            addRevisionAndEmit(stormTaskTuple, revisionsClient);
+        } finally {
+            revisionsClient.close();
+        }
     }
 
     protected void addRevisionAndEmit(StormTaskTuple stormTaskTuple, RevisionServiceClient revisionsClient) {
@@ -44,7 +48,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
-        } catch (MCSException|DriverException e) {
+        } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
         }

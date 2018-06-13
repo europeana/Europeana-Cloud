@@ -121,4 +121,8 @@ public class AASClient {
     protected void finalize() throws Throwable {
         client.close();
     }
+
+	public void close() {
+			client.close();
+	}
 }
