@@ -227,7 +227,7 @@
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>
-        		ecloud-service-dps-storm-transform-xslt
+				ecloud-service-dps-storm-topologies-xslt
         	</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
