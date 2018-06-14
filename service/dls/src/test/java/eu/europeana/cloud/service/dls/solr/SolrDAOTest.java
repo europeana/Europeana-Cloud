@@ -1,13 +1,11 @@
 package eu.europeana.cloud.service.dls.solr;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.dls.TestUtil;
+import eu.europeana.cloud.service.dls.solr.exception.SolrDocumentNotFoundException;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrException;
 import org.junit.After;
@@ -17,16 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
+import java.io.IOException;
+import java.util.*;
 
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.dls.TestUtil;
-import eu.europeana.cloud.service.dls.solr.exception.SolrDocumentNotFoundException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/solrTestContext.xml" })
@@ -42,9 +35,9 @@ public class SolrDAOTest {
     @Test
     public void shouldInsertAndReturnRepresentation()
             throws Exception {
-        Representation rep = new Representation("cloud1", "schema1", "version1", null, null, "dataProvider", null,
+        Representation rep = new Representation("cloud1", "schema1", "version1", null, null, "dataProvider", null,null,
                 true, new Date());
-        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>(2);
         dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
         dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
         solrDAO.insertRepresentation(rep, dataSets);
@@ -59,7 +52,7 @@ public class SolrDAOTest {
     @Test(expected = SolrException.class)
     public void shouldThrowExceptionWhenRequiredFieldMissing()
             throws Exception {
-        Representation rep = new Representation(null, "schema", "version", null, null, "dataProvider", null, true,
+        Representation rep = new Representation(null, "schema", "version", null, null, "dataProvider", null,null, true,
                 new Date());
         solrDAO.insertRepresentation(rep, null);
     }
@@ -68,9 +61,9 @@ public class SolrDAOTest {
     @Test
     public void shouldAddAssignment()
             throws Exception {
-        Representation rep = new Representation("cloud2", "schema1", "version2", null, null, "dataProvider", null,
+        Representation rep = new Representation("cloud2", "schema1", "version2", null, null, "dataProvider", null,null,
                 true, new Date());
-        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>(3);
         dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
         dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
 
@@ -99,9 +92,9 @@ public class SolrDAOTest {
     public void shouldMakeOneSolrEntryIfAssignedMoreThanOnce()
             throws Exception {
 
-        Representation rep = new Representation("cloud333", "schema1", "version2", null, null, "dataProvider", null,
+        Representation rep = new Representation("cloud333", "schema1", "version2", null, null, "dataProvider", null,null,
                 true, new Date());
-        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>(2);
         dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
         dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
 
@@ -131,7 +124,7 @@ public class SolrDAOTest {
     @Test
     public void shouldRemoveRepresentation()
             throws Exception {
-        Representation rep = new Representation("cloud1", "schema1", "version4", null, null, "dataProvider", null,
+        Representation rep = new Representation("cloud1", "schema1", "version4", null, null, "dataProvider", null,null,
                 true, new Date());
         solrDAO.insertRepresentation(rep, null);
         //check if doc got inserted
@@ -158,9 +151,9 @@ public class SolrDAOTest {
         CompoundDataSetId dataSet2 = new CompoundDataSetId("provider", "dataSet2");
         CompoundDataSetId dataSet3 = new CompoundDataSetId("provider", "dataSet3");
 
-        Representation rep = new Representation("cloud2", "schema1", "version123", null, null, "dataProvider", null,
+        Representation rep = new Representation("cloud2", "schema1", "version123", null, null, "dataProvider", null,null,
                 true, new Date());
-        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>(3);
 
         dataSets.add(dataSet1);
         dataSets.add(dataSet2);
@@ -189,11 +182,11 @@ public class SolrDAOTest {
         //create versions
         String schema = "commonSchema";
         String cloudId = "commonCloudId";
-        Representation rep1 = new Representation(cloudId, schema, "v1.1", null, null, "dataProvider", null, true,
+        Representation rep1 = new Representation(cloudId, schema, "v1.1", null, null, "dataProvider", null,null, true,
                 new Date());
-        Representation rep2 = new Representation(cloudId, schema, "v1.2", null, null, "dataProvider", null, true,
+        Representation rep2 = new Representation(cloudId, schema, "v1.2", null, null, "dataProvider", null,null, true,
                 new Date());
-        Representation rep3 = new Representation(cloudId, schema, "v1.3", null, null, "dataProvider", null, true,
+        Representation rep3 = new Representation(cloudId, schema, "v1.3", null, null, "dataProvider", null,null, true,
                 new Date());
         solrDAO.insertRepresentation(rep1, null);
         solrDAO.insertRepresentation(rep2, null);
@@ -232,11 +225,11 @@ public class SolrDAOTest {
         CompoundDataSetId ds4 = new CompoundDataSetId("provider", "dataSet4");
 
         // insert persistent representation with 2 data sets
-        Representation rep = new Representation("1", "dc", "v1", null, null, "dataProvider", null, true, new Date());
+        Representation rep = new Representation("1", "dc", "v1", null, null, "dataProvider", null,null, true, new Date());
         solrDAO.insertRepresentation(rep, Arrays.asList(ds1, ds2));
 
         // insert new temporary version of representation with 2 other data sets
-        Representation repNew = new Representation("1", "dc", "v2", null, null, "dataProvider", null, false, new Date());
+        Representation repNew = new Representation("1", "dc", "v2", null, null, "dataProvider", null,null, false, new Date());
         solrDAO.insertRepresentation(repNew, Arrays.asList(ds3, ds4));
 
         // now, persist the most recent version. Rewrite dataset ds2 to the newer version

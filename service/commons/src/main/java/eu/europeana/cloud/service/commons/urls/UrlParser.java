@@ -28,7 +28,7 @@ import java.util.Map;
  * http://www.example.com/records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/FILENAME/
  */
 public class UrlParser {
-
+    private static final char DIR_SEPARATOR = '/';
     private static final List<UrlPart> CLOUD_ID_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS);
     private static final List<UrlPart> REPRESENTATIONS_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS);
     private static final List<UrlPart> REPRESENTATION_VERSION_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS, UrlPart.VERSIONS);
@@ -40,7 +40,6 @@ public class UrlParser {
 
     private URL resourceUrl;
     private String appLocation;
-    private UrlBuilder ecloudUrlBuilder;
 
     public UrlParser(String url) throws MalformedURLException {
         resourceUrl = new URL(url);
@@ -77,8 +76,11 @@ public class UrlParser {
                 }
             } else if (values[i].equalsIgnoreCase(UrlPart.FILES.getValue())) {
                 if (values.length > i + 1) {
-                    parts.put(UrlPart.FILES, values[i + 1]);
-                    i++;
+                    final StringBuilder filePath = new StringBuilder();
+                    do {
+                        filePath.append(DIR_SEPARATOR + values[i + 1]);
+                    } while (++i < values.length - 1);
+                    parts.put(UrlPart.FILES, filePath.toString());
                 } else {
                     parts.put(UrlPart.FILES, null);
                 }
@@ -103,7 +105,6 @@ public class UrlParser {
             }
         }
 
-        ecloudUrlBuilder = new UrlBuilder(parts);
     }
 
     /**
@@ -224,10 +225,6 @@ public class UrlParser {
         return true;
     }
 
-    //////////////////////
-    //
-    //////////////////////
-
     /**
      * Returns one part of given URL. If requested part does not exist, null will be returned
      *
@@ -268,7 +265,7 @@ public class UrlParser {
     }
 
     public String getDataSetsUrl() throws UrlBuilderException {
-        ecloudUrlBuilder = new UrlBuilder(parts);
+        UrlBuilder ecloudUrlBuilder = new UrlBuilder(parts);
         String result = ecloudUrlBuilder
                 .clear()
                 .withDataProvider()

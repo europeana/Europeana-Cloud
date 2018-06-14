@@ -14,7 +14,9 @@ The infrastructure of the project is developed jointly by [The Poznań Supercomp
 
 Deliverable 2.2 of the project provides technical specification of the infrastructure along with the requirement gathering process. The recent version of the deliverable is available [here](http://pro.europeana.eu/files/Europeana_Professional/Projects/Project_list/Europeana_Cloud/Deliverables/D2.2%20Europeana%20Cloud%20Architectural%20Design.pdf).
 
+##Documentation
+Please visit our [documentation website]( https://confluence.man.poznan.pl/community/display/ECLOUD/Europeana+Cloud+User+Documentation)
 
 ## REST API
-Please check out the tutorial for the Europeana Cloud API - https://github.com/europeana/Europeana-Cloud/wiki/Europeana-Cloud-API
+Please check out the [tutorial for the Europeana Cloud API] (https://confluence.man.poznan.pl/community/display/ECLOUD/Using+the+API+-+user+tutorial)
 

@@ -1,19 +1,11 @@
 package eu.europeana.cloud.service.uis.status;
 
-import javax.ws.rs.core.Response.Status;
-
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.*;
+
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Status Messages returned by all methods
@@ -263,7 +255,7 @@ public enum IdentifierErrorTemplate {
 		    "ID_HAS_BEEN_MAPPED",
 		    String.format(
 			    "The supplied %s id for provider %s has already been assigned to the cloud identifier %s",
-			    args[0], args[1], args[2]));
+			    args[1], args[0], args[2]));
 	}
 
 	@Override

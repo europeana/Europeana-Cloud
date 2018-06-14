@@ -1,7 +1,7 @@
 package eu.europeana.cloud.common.web;
 
 /**
- * Constants for the UIS.
+ * constants for the UIS.
  * 
  * Shared between the Wrapper and the Rest API.
  */
@@ -19,5 +19,5 @@ public final class UISParamConstants {
 	
     public static final String Q_FROM = "from";
 
-    public static final String Q_TO = "to";
+    public static final String Q_LIMIT = "limit";
 }

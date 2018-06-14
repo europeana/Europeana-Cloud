@@ -1,15 +1,13 @@
 package eu.europeana.cloud.service.dls.services;
 
-import com.github.ddth.kafka.IKafkaMessageListener;
-import com.github.ddth.kafka.KafkaConsumer;
-import java.util.List;
-import org.springframework.stereotype.Service;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.dls.RepresentationSearchParams;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Search service using Solr as storage.

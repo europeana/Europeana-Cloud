@@ -142,6 +142,16 @@
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree>
+      <DNSCacheManager guiclass="DNSCachePanel" testclass="DNSCacheManager" testname="DNS Cache Manager" enabled="true">
+        <collectionProp name="DNSCacheManager.servers">
+          <stringProp name="-1778743663">150.254.173.3</stringProp>
+          <stringProp name="-1778743662">150.254.173.2</stringProp>
+          <stringProp name="-469317610">8.8.8.8</stringProp>
+        </collectionProp>
+        <boolProp name="DNSCacheManager.clearEachIteration">true</boolProp>
+        <boolProp name="DNSCacheManager.isCustomResolver">true</boolProp>
+      </DNSCacheManager>
+      <hashTree/>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
         <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
           <collectionProp name="Arguments.arguments"/>
@@ -181,6 +191,10 @@
           <elementProp name="" elementType="Header">
             <stringProp name="Header.name">Authorization</stringProp>
             <stringProp name="Header.value">Basic ${__BeanShell(import org.apache.jmeter.protocol.http.util.Base64Encoder; Base64Encoder.encode(new String(vars.get(&quot;user&quot;)+  &quot;:&quot; + vars.get(&quot;password&quot;)));)}</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Accept</stringProp>
+            <stringProp name="Header.value">application/xml</stringProp>
           </elementProp>
         </collectionProp>
       </HeaderManager>
@@ -1172,7 +1186,7 @@
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -2548,12 +2562,12 @@
             <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="add large file to copied Representation Request ${largeFileSize} MB" enabled="true">
               <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
                 <collectionProp name="Arguments.arguments">
-                  <elementProp name="mimeTypeLargeFile" elementType="HTTPArgument">
+                  <elementProp name="mimeType" elementType="HTTPArgument">
                     <boolProp name="HTTPArgument.always_encode">false</boolProp>
                     <stringProp name="Argument.value">${mimeTypeLargeFile}</stringProp>
                     <stringProp name="Argument.metadata">=</stringProp>
                     <boolProp name="HTTPArgument.use_equals">true</boolProp>
-                    <stringProp name="Argument.name">mimeTypeLargeFile</stringProp>
+                    <stringProp name="Argument.name">mimeType</stringProp>
                   </elementProp>
                 </collectionProp>
               </elementProp>

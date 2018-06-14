@@ -1,34 +1,30 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import backtype.storm.Config;
-import backtype.storm.StormSubmitter;
-import backtype.storm.generated.StormTopology;
-import backtype.storm.spout.SchemeAsMultiScheme;
-import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.EndBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
+import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import storm.kafka.BrokerHosts;
-import storm.kafka.KafkaSpout;
-import storm.kafka.SpoutConfig;
-import storm.kafka.StringScheme;
-import storm.kafka.ZkHosts;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+
+import com.google.common.base.Throwables;
+import org.apache.storm.Config;
+import org.apache.storm.StormSubmitter;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.grouping.ShuffleGrouping;
+import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+;
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
+import static java.lang.Integer.parseInt;
+
 
 /**
  * This is the Image conversion topology . The topology reads from the cloud,
@@ -39,149 +35,116 @@ import storm.kafka.ZkHosts;
 public class ICTopology {
 
     private static Properties topologyProperties;
-    private final BrokerHosts brokerHosts;
-    private final static String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
-    public static final Logger LOGGER = LoggerFactory.getLogger(ICTopology.class);
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+    private static final String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ICTopology.class);
 
     public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public StormTopology buildTopology(String icTopic, String ecloudMcsAddress, String username, String password) {
-        Map<String, String> routingRules = new HashMap<>();
-        routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
-        routingRules.put(PluginParameterKeys.DATASET_URLS, fileStream);
+    public final StormTopology buildTopology(String icTopic, String ecloudMcsAddress) {
 
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
+        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
 
-        GrantPermissionsToFileBolt grantPermBolt = new GrantPermissionsToFileBolt(ecloudMcsAddress, username, password);
-        RemovePermissionsToFileBolt removePermBolt = new RemovePermissionsToFileBolt(ecloudMcsAddress, username,
-                password);
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, icTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.forceFromStart = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
+        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, icTopic, ecloudMcsAddress);
+
         TopologyBuilder builder = new TopologyBuilder();
-        KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
-        builder.setSpout("kafkaReader", kafkaSpout,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL))))
+
+
+        builder.setSpout(SPOUT, mcsReaderSpout,
+                (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
+                        (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules, null),
-                ((int) Integer
-                        .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
+        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
+                (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("kafkaReader");
+                        (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
+        builder.setBolt(IC_BOLT, new IcBolt(),
+                (getAnInt(IC_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(IC_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
-        builder.setBolt("RetrieveDatasetBolt", new ReadDatasetBolt(ecloudMcsAddress, username, password),
-                ((int) Integer
-                        .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
+        builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
+                (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("parseKafkaInput", datasetStream);
+                        (getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(IC_BOLT, new ShuffleGrouping());
 
-        builder.setBolt("retrieveFileBolt", retrieveFileBolt,
-                ((int) Integer
-                        .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
+        builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
+                (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("parseKafkaInput", fileStream);
+                        (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        builder.setBolt("imageConversionBolt", new IcBolt(),
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.IC_BOLT_PARALLEL))))
-                .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("RetrieveDatasetBolt")
-                .shuffleGrouping("retrieveFileBolt");
 
-        builder.setBolt("writeRecordBolt", writeRecordBolt,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_PARALLEL))))
+        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
+        builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
+                (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("imageConversionBolt");
+                        (getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
 
-        builder.setBolt("grantPermBolt", grantPermBolt,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.GRANT_BOLT_PARALLEL))))
+
+        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                        topologyProperties.getProperty(CASSANDRA_USERNAME),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("writeRecordBolt");
-
-        builder.setBolt("removePermBolt", removePermBolt,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REMOVE_BOLT_PARALLEL))))
-                .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("grantPermBolt");
-
-        builder.setBolt("endBolt", new EndBolt(),
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.END_BOLT_PARALLEL))))
-                .shuffleGrouping("removePermBolt");
-
-        builder.setBolt("notificationBolt",
-                new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
-                        Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD), true),
-                Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
-                .fieldsGrouping("parseKafkaInput", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
+                .fieldsGrouping(SPOUT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("retrieveFileBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("RetrieveDatasetBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("imageConversionBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("grantPermBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("removePermBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("endBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
+
 
         return builder.createTopology();
     }
 
-    public static void main(String[] args) throws Exception {
-        Config config = new Config();
-        config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
+    private static int getAnInt(String propertyName) {
+        return parseInt(topologyProperties.getProperty(propertyName));
+    }
 
-        if (args.length <= 1) {
+    public static void main(String[] args) {
 
-            String providedPropertyFile = "";
-            if (args.length == 1) {
-                providedPropertyFile = args[0];
+        try {
+
+            if (args.length <= 1) {
+
+                String providedPropertyFile = "";
+                if (args.length == 1) {
+                    providedPropertyFile = args[0];
+                }
+
+                ICTopology icTopology = new ICTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
+                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
+                // kafka topic == topology name
+                String kafkaTopic = topologyName;
+                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
+                StormTopology stormTopology = icTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
+                Config config = configureTopology(topologyProperties);
+                config.setNumAckers(0);
+                StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
-            ICTopology icTopology = new ICTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-            String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
-
-            // kafka topic == topology name
-            String kafkaTopic = topologyName;
-
-            String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
-            String username = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_NAME);
-            String password = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_PASS);
-            StormTopology stormTopology = icTopology.buildTopology(kafkaTopic, ecloudMcsAddress, username, password);
-            config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
-            config.setMaxTaskParallelism(
-                    Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
-            config.put(Config.NIMBUS_THRIFT_PORT,
-                    Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
-            config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
-                    topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_HOST, "localhost");
-            config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                    Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
-
-            StormSubmitter.submitTopology(topologyName, config, stormTopology);
+        } catch (Exception e) {
+            LOGGER.error(Throwables.getStackTraceAsString(e));
         }
     }
 }
+

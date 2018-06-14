@@ -3,6 +3,8 @@ package eu.europeana.cloud.client.uis.rest.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
+
 /**
  * URL provider for UIS client
  * 
@@ -24,7 +26,7 @@ public class StaticUrlProvider implements UrlProvider {
 	 */
 	public StaticUrlProvider(final String serviceUrl) {
 		LOGGER.info("StaticUrlProvider: starting UrlProvider with serviceUrl='{}'", serviceUrl);
-		baseUrl = serviceUrl;
+		baseUrl = removeLastSlash(serviceUrl);
 		LOGGER.info("StaticUrlProvider: urlProvider started successfully.");
 	}
 	

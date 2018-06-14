@@ -30,14 +30,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Implementation of <code>AclRepository</code> using the DataStax Java Driver.
@@ -98,35 +92,7 @@ public final class CassandraAclRepository implements AclRepository {
 	this.keyspace = keyspace;
     }
 
-    // /**
-    // * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
-    // * creates the Cassandra keyspace and schema for storing ACLs.
-    // *
-    // * @param session the <code>Session</code> to use for connectivity with
-    // * Cassandra.
-    // * @param initSchema whether the keyspace and schema for storing ACLs
-    // should
-    // * be created.
-    // * @param replicationStrategy the replication strategy to use when
-    // creating
-    // * the keyspace.
-    // * @param replicationFactor the replication factor to use when creating
-    // the
-    // * keyspace.
-    // */
-    // public CassandraAclRepository(Session session, String keyspace, boolean
-    // initSchema, String replicationStrategy, int replicationFactor) {
-    // this(session, keyspace);
-    // if (initSchema) {
-    // // this.replicationFactor = replicationFactor;
-    // // this.replicationStrategy = replicationStrategy;
-    //
-    // // createkeyspace();
-    // createAoisTable();
-    // createChilrenTable();
-    // createAclsTable();
-    // }
-    // }
+
     /**
      * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
      * creates the Cassandra keyspace and schema for storing ACLs.
@@ -454,7 +420,6 @@ public final class CassandraAclRepository implements AclRepository {
      */
     public void createAoisTable() {
 	try {
-	    // session.execute("CREATE TABLE " + keyspace + ".aois ("
 	    session.execute("CREATE TABLE aois (" + "id varchar PRIMARY KEY,"
 		    + "objId varchar," + "objClass varchar,"
 		    + "isInheriting boolean," + "owner varchar,"
@@ -471,7 +436,6 @@ public final class CassandraAclRepository implements AclRepository {
      */
     public void createChilrenTable() {
 	try {
-	    // session.execute("CREATE TABLE " + keyspace + ".children ("
 	    session.execute("CREATE TABLE children (" + "id varchar,"
 		    + "childId varchar," + "objId varchar,"
 		    + "objClass varchar," + "PRIMARY KEY (id, childId)" + ");");
@@ -486,7 +450,6 @@ public final class CassandraAclRepository implements AclRepository {
      */
     public void createAclsTable() {
 	try {
-	    // session.execute("CREATE TABLE " + keyspace + ".acls ("
 	    session.execute("CREATE TABLE acls (" + "id varchar,"
 		    + "sid varchar," + "aclOrder int," + "mask int,"
 		    + "isSidPrincipal boolean," + "isGranting boolean,"
@@ -497,19 +460,5 @@ public final class CassandraAclRepository implements AclRepository {
 	}
     }
 
-    // /**
-    // * Creates the schema for the 'SpringSecurityAclCassandra' keyspace.
-    // */
-    // public void createkeyspace() {
-    // try {
-    // session.execute("CREATE keyspace " + keyspace
-    // + " WITH replication " + "= {'class':'" + replicationStrategy +
-    // "', 'replication_factor':" + replicationFactor + "};");
-    // } catch (AlreadyExistsException e) {
-    // LOG.warn(e);
-    // }
-    // }
-    // public Session getSession() {
-    // return session;
-    // }
+
 }

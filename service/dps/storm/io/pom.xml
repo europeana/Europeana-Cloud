@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>0.5.3</version>
+        <version>1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -18,6 +18,13 @@
     </properties>
 
     <dependencies>
+
+
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${version.jersey}</version>
+        </dependency>
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

@@ -3,20 +3,23 @@ package eu.europeana.cloud.service.mcs.persistent;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 
 /**
  *
@@ -53,7 +56,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 		.putContent(anyString(), any(InputStream.class));
 	// given representation
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null);
+	File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
 	Representation r = cassandraRecordService.createRepresentation("id",
 		"dc", providerId);
 

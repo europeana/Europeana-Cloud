@@ -4,7 +4,7 @@ interactions:
 - recorded: 2015-11-06T07:12:29.086Z
   request:
     method: POST
-    uri: http://localhost:8080/dps/topologies/NotDefinedTopologyName/permit
+    uri: http://localhost:8080/services/NotDefinedTopologyName/permit
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Authorization: Basic YWRtaW46ZWNsb3VkX2FkbWlu
@@ -13,7 +13,7 @@ interactions:
       Host: localhost:18080
       Proxy-Connection: keep-alive
       User-Agent: Jersey/2.4 (HttpUrlConnection 1.7.0_60)
-    body: userneme=user
+    body: username=user
   response:
     status: 405
     headers:
@@ -26,4 +26,4 @@ interactions:
       X-Content-Type-Options: nosniff
       X-Frame-Options: DENY
       X-XSS-Protection: 1; mode=block
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>ACCESS_DENIED_OR_TOPOLOGY_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>The topology doesn't exist</details><errorCode>ACCESS_DENIED_OR_TOPOLOGY_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>

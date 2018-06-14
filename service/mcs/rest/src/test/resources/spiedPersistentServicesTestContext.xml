@@ -19,6 +19,10 @@
 
     <context:annotation-config/>
 
+    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
+        <constructor-arg value="524288" />
+    </bean>
+
 	<!--connection provider - with options the same as in embedded cassandra-->
 	<bean id="dbService"
 		  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
@@ -32,6 +36,18 @@
     <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
     <bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
     <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
+
+    <bean id="dynamicContentDAO"
+          class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO">
+        <constructor-arg>
+            <map key-type="eu.europeana.cloud.service.mcs.Storage">
+                <entry key="OBJECT_STORAGE"  value-ref="swiftContentDAO"/>
+                <entry key="DATA_BASE" value-ref="cassandraContentDAO"/>
+            </map>
+        </constructor-arg>
+    </bean>
+    <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
+
     <bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
         <constructor-arg name="provider" type="java.lang.String" value="transient"/>
         <constructor-arg name="container" type="java.lang.String" value="test_container"/>
@@ -41,7 +57,10 @@
     </bean>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <bean id="permissionGrantingManager" class="eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager"/>
-            
+
+    <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
+        <constructor-arg name="session" value="#{dbService.session}"/>
+    </bean>
     
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
     <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>

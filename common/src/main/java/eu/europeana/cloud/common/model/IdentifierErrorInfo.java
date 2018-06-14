@@ -1,8 +1,8 @@
 package eu.europeana.cloud.common.model;
 
-import javax.ws.rs.core.Response.Status;
-
 import eu.europeana.cloud.common.response.ErrorInfo;
+
+import javax.ws.rs.core.Response.Status;
 
 /**
  * ErrorInfo wrapper with HTTP code information

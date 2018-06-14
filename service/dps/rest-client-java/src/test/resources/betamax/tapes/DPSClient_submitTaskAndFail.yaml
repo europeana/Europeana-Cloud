@@ -1,0 +1,29 @@
+!tape
+name: DPSClient/submitTaskAndFail
+interactions:
+- recorded: 2017-12-12T12:00:05.691Z
+  request:
+    method: POST
+    uri: http://localhost:8080/services/TopologyName/tasks
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic dXNlcjplY2xvdWRfdXNlcg==
+      Content-Length: '206'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.7.0_80)
+    body: '{"harvestingDetails":{"schemas":["Schema"]},"inputData":{"entry":[{"key":"REPOSITORY_URLS","value":"http://example.com/oai-pmh-repository.xml"}]},"parameters":{"entry":[]},"taskName":"oaiPmhHarvestingTask"}'
+  response:
+    status: 405
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Tue, 12 Dec 2017 12:00:05 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>

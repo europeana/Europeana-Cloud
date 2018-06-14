@@ -7,5 +7,7 @@ performanceTest/p*
 *.csv
 *.log
 *.parms
+records-downloader-tool/target
+ecloud-db-migrator/target
 
 

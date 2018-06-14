@@ -11,31 +11,30 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
+
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import junitparams.JUnitParamsRunner;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+
 import static junitparams.JUnitParamsRunner.$;
-import junitparams.Parameters;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import org.springframework.context.ApplicationContext;
+import static org.mockito.Mockito.*;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationResourceTest extends JerseyTest {
@@ -48,7 +47,7 @@ public class RepresentationResourceTest extends JerseyTest {
     static final private String providerID = "DLF";
     static final private Representation representation = new Representation(globalId, schema, version, null, null,
             "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
-                            null)), true, new Date());
+                            null)),null, true, new Date());
     static final private Form form = new Form(ParamConstants.F_PROVIDER, providerID);
     
     @Override
@@ -79,7 +78,7 @@ public class RepresentationResourceTest extends JerseyTest {
         expected.setUri(URITools.getVersionUri(getBaseUri(), globalId, schema, version));
         expected.setAllVersionsUri(URITools.getAllVersionsUri(getBaseUri(), globalId, schema));
         
-        ArrayList<File> files = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(1);
         files.add(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
                 "2013-01-01", 12345L, URI.create("http://localhost:9998/records/" + globalId
                         + "/representations/" + schema + "/versions/" + version + "/files/1.xml")));

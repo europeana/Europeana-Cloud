@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>0.5.3</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>ecloud-service-mcs-persistent</artifactId>
@@ -41,6 +41,12 @@
         </dependency>
 
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <scope>compile</scope>
@@ -73,17 +79,17 @@
         <dependency>
             <groupId>org.apache.jclouds</groupId>
             <artifactId>jclouds-blobstore</artifactId>
-            <version>1.7.3</version>
+            <version>${version.swift}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.jclouds.api</groupId>
             <artifactId>openstack-keystone</artifactId>
-            <version>1.7.3</version>
+            <version>${version.swift}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.jclouds.api</groupId>
-            <artifactId>swift</artifactId>
-            <version>1.7.3</version>
+            <artifactId>openstack-swift</artifactId>
+            <version>${version.swift}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -145,6 +151,12 @@
         
         <!--tests -->
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <scope>test</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
@@ -156,12 +168,6 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>     
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>${version.cassandra-unit}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kubek2k</groupId>

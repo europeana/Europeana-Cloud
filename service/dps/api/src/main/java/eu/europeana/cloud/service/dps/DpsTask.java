@@ -1,116 +1,168 @@
 package eu.europeana.cloud.service.dps;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import com.google.common.base.Objects;
+import eu.europeana.cloud.common.model.Revision;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.*;
 
 @XmlRootElement()
 public class DpsTask implements Serializable {
 
-	/* Dataset Key */
-	public static final String DATASET_URLS = "DATASET_URLS";
-	
-	/* File URL Key */
-	public static final String FILE_URLS = "FILE_URLS";
 
-	/* List of input data (cloud-records or cloud-datasets) */
-	private Map<String, List<String>> inputData;
-	
-	/* List of parameters (specific for each dps-topology) */
-	private Map<String, String> parameters;
+    /* Map of input data:
+    cloud-records - InputDataType.FILE_URLS
+    cloud-datasets - InputDataType.DATASET_URLS
+    cloud-repositoryurl - InputDataType.REPOSITORY_URLS
+    */
+    private Map<InputDataType, List<String>> inputData;
 
-	/* Task start time */
-	private Date startTime = null;
+    /* List of parameters (specific for each dps-topology) */
+    private Map<String, String> parameters;
 
-	/* Task create time */
-	private Date createTime = new Date(System.currentTimeMillis());
+    /* output revision*/
+    private Revision outputRevision;
 
-	/* Task end time*/
-	private Date endTime = null;
-	
-	/* Unique id for this task */
-	private long taskId;
-	
-	/* Name for the task */
-	private String taskName;
+    /* Task start time */
+    private Date startTime = null;
+
+    /* Task create time */
+    private Date createTime = new Date(System.currentTimeMillis());
+
+    /* Task end time*/
+    private Date endTime = null;
+
+    /* Unique id for this task */
+    private long taskId;
+
+    /* Name for the task */
+    private String taskName;
+
+    /** Details of harvesting process */
+    private OAIPMHHarvestingDetails harvestingDetails;
 
 
-	public DpsTask() {
-            this("");
-	}
-	
-	/**
-	 * @param taskName
-	 */
-	public DpsTask(String taskName) {
-		
-            this.taskName = taskName;
+    public DpsTask() {
+        this("");
+    }
 
-            inputData = new HashMap();
-            parameters = new HashMap();
+    /**
+     * @param taskName
+     */
+    public DpsTask(String taskName) {
 
-            taskId = UUID.randomUUID().getMostSignificantBits();
-	}
+        this.taskName = taskName;
 
-	/**
-	 * @return Unique id for this task
-	 */
-	public long getTaskId() {
-            return taskId;
-	}
-        
-	public void setTaskName(String taskName) {
-            this.taskName = taskName;
-	}
+        inputData = new HashMap();
+        parameters = new HashMap();
 
-	/**
-	 * @return Name for the task
-	 */
-	public String getTaskName() {
-            return taskName;
-	}
+        taskId = UUID.randomUUID().getMostSignificantBits();
 
-	public void addDataEntry(String dataType, List<String> data) {  
-            inputData.put(dataType, data);
-	}
-        
-        public List<String> getDataEntry(String dataType) { 
-            return inputData.get(dataType);
-	}
+        harvestingDetails = null;
+    }
 
-	public void addParameter(String parameterKey, String parameterValue) {
-            parameters.put(parameterKey, parameterValue);
-	}
+    public void setTaskId(long taskId)
+    {
+        this.taskId=taskId;
+    }
 
-	public String getParameter(String parameterKey) {
-            return parameters.get(parameterKey);
-	}
+    public Revision getOutputRevision() {
+        return outputRevision;
+    }
 
-	/**
-	 * @return List of parameters (specific for each dps-topology)
-	 */
-	public Map<String, String> getParameters() {
-		return parameters;
-	}
+    public void setOutputRevision(Revision outputRevision) {
+        this.outputRevision = outputRevision;
+    }
 
-	public void setParameters(Map<String, String> parameters) {
-            this.parameters = parameters;
-	}
 
-	/**
-	 * @return List of input data (cloud-records or cloud-datasets)
-	 */
-	public Map<String, List<String>> getInputData() {
-		return inputData;
-	}
+    /**
+     * @return Unique id for this task
+     */
+    public long getTaskId() {
+        return taskId;
+    }
 
-	public void setInputData(Map<String, List<String>> inputData) {
-            this.inputData = inputData;
-	}
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
+    /**
+     * @return Name for the task
+     */
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void addDataEntry(InputDataType dataType, List<String> data) {
+        inputData.put(dataType, data);
+    }
+
+    public List<String> getDataEntry(InputDataType dataType) {
+        return inputData.get(dataType);
+    }
+
+    public void addParameter(String parameterKey, String parameterValue) {
+        parameters.put(parameterKey, parameterValue);
+    }
+
+    public String getParameter(String parameterKey) {
+        return parameters.get(parameterKey);
+    }
+
+    /**
+     * @return List of parameters (specific for each dps-topology)
+     */
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
+    /**
+     * @return List of input data (cloud-records or cloud-datasets)
+     */
+    public Map<InputDataType, List<String>> getInputData() {
+        return inputData;
+    }
+
+    public void setInputData(Map<InputDataType, List<String>> inputData) {
+        this.inputData = inputData;
+    }
+
+    public OAIPMHHarvestingDetails getHarvestingDetails() {
+        return harvestingDetails;
+    }
+
+    public void setHarvestingDetails(OAIPMHHarvestingDetails harvestingDetails) {
+        this.harvestingDetails = harvestingDetails;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DpsTask)) {
+            return false;
+        }
+        DpsTask dpsTask = (DpsTask) o;
+        return taskId == dpsTask.taskId &&
+                com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
+                Objects.equal(parameters, dpsTask.parameters) &&
+                Objects.equal(outputRevision, dpsTask.outputRevision) &&
+                Objects.equal(startTime, dpsTask.startTime) &&
+                Objects.equal(createTime, dpsTask.createTime) &&
+                Objects.equal(endTime, dpsTask.endTime) &&
+                Objects.equal(taskName, dpsTask.taskName) &&
+                Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(inputData, parameters, outputRevision, startTime, createTime, endTime, taskId, taskName, harvestingDetails);
+    }
 }
+

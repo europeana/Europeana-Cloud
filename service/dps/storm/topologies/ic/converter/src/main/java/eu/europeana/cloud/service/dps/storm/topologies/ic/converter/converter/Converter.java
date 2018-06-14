@@ -20,6 +20,6 @@ public interface Converter {
      * @throws UnexpectedExtensionsException : throws when providing invalid or inconsistent extensions
      * @throws IOException
      */
-    public void convert(String inputFilePath, String outputFilePath, List<String> properties) throws UnexpectedExtensionsException,ConversionException, IOException;
+    void convert(String inputFilePath, String outputFilePath, List<String> properties) throws UnexpectedExtensionsException,ConversionException, IOException;
 
 }

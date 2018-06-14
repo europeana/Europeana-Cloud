@@ -1,18 +1,16 @@
 package eu.europeana.cloud.service.uis;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.service.uis.exception.*;
+import eu.europeana.cloud.service.uis.rest.DataProviderResource;
+import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -22,30 +20,17 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.MutableAclService;
 
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
-import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistExceptionMapper;
-import eu.europeana.cloud.service.uis.rest.DataProviderResource;
-import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 /**
  * UniqueIdResource unit test
@@ -292,7 +277,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public void testGetLocalIds()
             throws Exception {
         ResultSlice<CloudId> lidListWrapper = new ResultSlice<>();
-        List<CloudId> localIdList = new ArrayList<>();
+        List<CloudId> localIdList = new ArrayList<>(1);
         localIdList.add(createCloudId(providerId, recordId));
         String cloudId = createCloudId(providerId, recordId).getId();
         lidListWrapper.setResults(localIdList);

@@ -1,25 +1,23 @@
 package eu.europeana.cloud.service.coordination.configuration;
 
-import java.io.ByteArrayInputStream;
-import java.util.Properties;
-
+import eu.europeana.cloud.service.coordination.ZookeeperService;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
-import eu.europeana.cloud.service.coordination.ZookeeperService;
+import java.io.ByteArrayInputStream;
+import java.util.Properties;
 
 /**
  * Loads properties from a Zookeeper node (specified in {@link #configurationSettingsPath}).
  */
 public class ConfigurationLoader extends AbstractFactoryBean<Properties> implements Watcher {
 
-	private Logger LOGGER = LoggerFactory.getLogger(ConfigurationLoader.class);
-	
+
 	private ZookeeperService zookeeperService;
-	
+
 	private String configurationSettingsPath;
 
 	@Override

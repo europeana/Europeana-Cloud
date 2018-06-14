@@ -1,10 +1,17 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static eu.europeana.cloud.common.web.ParamConstants.H_RANGE;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
+import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.mcs.exception.*;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -14,36 +21,24 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static eu.europeana.cloud.common.web.ParamConstants.H_RANGE;
+
 /**
  * Exposes API related to files.
  */
-public class FileServiceClient {
+public class FileServiceClient extends MCSClient {
 
     private final Client client;
-    private final String baseUrl;
     private static final Logger logger = LoggerFactory.getLogger(FileServiceClient.class);
     //records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/
     private static final String filesPath = "records/{" + ParamConstants.P_CLOUDID + "}/representations/{"
@@ -58,8 +53,8 @@ public class FileServiceClient {
      * @param baseUrl url of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl) {
+        super(baseUrl);
         client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
-        this.baseUrl = baseUrl;
     }
 
     /**
@@ -69,10 +64,10 @@ public class FileServiceClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl, final String username, final String password) {
+        super(baseUrl);
         client = JerseyClientBuilder.newClient()
                 .register(MultiPartFeature.class)
-                .register(new HttpBasicAuthFilter(username, password));
-        this.baseUrl = baseUrl;
+                .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
     }
 
     /**
@@ -89,19 +84,26 @@ public class FileServiceClient {
      * @throws MCSException                     on unexpected situations.
      */
     public InputStream getFile(String cloudId, String representationName, String version, String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException, DriverException, MCSException {
+            throws RepresentationNotExistsException, FileNotExistsException, DriverException, MCSException, IOException {
         WebTarget target = client.target(baseUrl).path(filePath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
         Builder requset = target.request();
 
-        Response response = requset.get();
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            InputStream contentResponse = response.readEntity(InputStream.class);
-            return contentResponse;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        Response response = null;
+
+        try {
+            response = requset.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                InputStream contentResponse = response.readEntity(InputStream.class);
+
+                return copiedInputStream(contentResponse);
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -124,19 +126,26 @@ public class FileServiceClient {
      */
     public InputStream getFile(String cloudId, String representationName, String version, String fileName, String range)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException,
-            DriverException, MCSException {
+            DriverException, MCSException, IOException {
         WebTarget target = client.target(baseUrl).path(filePath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
-        Builder requset = target.request().header(H_RANGE, range);
+        Builder request = target.request().header(H_RANGE, range);
 
-        Response response = requset.get();
-        if (response.getStatus() == Response.Status.PARTIAL_CONTENT.getStatusCode()) {
-            InputStream contentResponse = response.readEntity(InputStream.class);
-            return contentResponse;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        Response response = null;
+
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.PARTIAL_CONTENT.getStatusCode()) {
+                InputStream contentResponse = response.readEntity(InputStream.class);
+                return copiedInputStream(contentResponse);
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -147,14 +156,20 @@ public class FileServiceClient {
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException,
             DriverException, MCSException, IOException {
 
-        Response response = client.target(fileUrl).request().get();
+        Response response = null;
 
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            InputStream contentResponse = response.readEntity(InputStream.class);
-            return contentResponse;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        try {
+            response = client.target(fileUrl).request().get();
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                InputStream contentResponse = response.readEntity(InputStream.class);
+                return copiedInputStream(contentResponse);
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -178,16 +193,25 @@ public class FileServiceClient {
                           String mediaType, String expectedMd5)
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             DriverException, MCSException {
-        WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.P_VER, version);
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
-                ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        Builder request = target.request();
+        Response response = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
+        try {
+            WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                    .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                    .resolveTemplate(ParamConstants.P_VER, version);
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
+                    ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            Builder request = target.request();
+            response = request.post(Entity.entity(multipart, multipart.getMediaType()));
 
-        Response response = request.post(Entity.entity(multipart, multipart.getMediaType()));
+            return handleResponse(expectedMd5, response, Status.CREATED.getStatusCode());
+        } finally {
+            closeOpenResources(data, multipart, response);
+        }
+    }
 
-        if (response.getStatus() == Status.CREATED.getStatusCode()) {
+    private URI handleResponse(String expectedMd5, Response response, int expectedStatusCode) throws IOException, MCSException {
+        if (response.getStatus() == expectedStatusCode) {
             if (!expectedMd5.equals(response.getEntityTag().getValue())) {
                 throw new IOException("Incorrect MD5 checksum");
             }
@@ -214,22 +238,29 @@ public class FileServiceClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI uploadFile(String cloudId, String representationName, String version, InputStream data, String mediaType)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
             MCSException {
-        WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.P_VER, version);
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
-                ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        Builder request = target.request();
 
-        Response response = request.post(Entity.entity(multipart, multipart.getMediaType()));
+        Response response = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
+        try {
+            WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                    .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                    .resolveTemplate(ParamConstants.P_VER, version);
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
+                    ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            Builder request = target.request();
+            response = request.post(Entity.entity(multipart, multipart.getMediaType()));
 
-        if (response.getStatus() == Status.CREATED.getStatusCode()) {
-            return response.getLocation();
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            if (response.getStatus() == Status.CREATED.getStatusCode()) {
+                return response.getLocation();
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+
+        } finally {
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -250,22 +281,27 @@ public class FileServiceClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI uploadFile(String cloudId, String representationName, String version, String fileName, InputStream data, String mediaType)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
             MCSException {
-        WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.P_VER, version);
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
-                ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, fileName);
-        Invocation.Builder request = target.request();
+        Response response = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
+        try {
+            WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                    .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                    .resolveTemplate(ParamConstants.P_VER, version);
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
+                    ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, fileName);
+            Invocation.Builder request = target.request();
+            response = request.post(Entity.entity(multipart, multipart.getMediaType()));
 
-        Response response = request.post(Entity.entity(multipart, multipart.getMediaType()));
-
-        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-            return response.getLocation();
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return response.getLocation();
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -277,21 +313,28 @@ public class FileServiceClient {
      *                   "http://ecloud.eanadev.org:8080/ecloud-service-mcs/records/L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0-11e4-8fe1-00163eefc9c8"
      */
     public URI uploadFile(String versionUrl, InputStream data, String mediaType)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
             MCSException {
 
         String filesPath = "/files";
 
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
-                ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        Response response = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
+        try {
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
+                    ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-        Response response = client.target(versionUrl + filesPath).request().post(Entity.entity(multipart, multipart.getMediaType()));
+            response = client.target(versionUrl + filesPath).request().post(Entity.entity(multipart, multipart.getMediaType()));
 
-        if (response.getStatus() == Status.CREATED.getStatusCode()) {
-            return response.getLocation();
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            if (response.getStatus() == Status.CREATED.getStatusCode()) {
+                return response.getLocation();
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+
+        } finally {
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -316,21 +359,22 @@ public class FileServiceClient {
                            String mediaType, String fileName, String expectedMd5)
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             DriverException, MCSException {
-        WebTarget target = client.target(baseUrl).path(filePath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
-                ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        Response response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
-        if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-            if (!expectedMd5.equals(response.getEntityTag().getValue())) {
-                throw new IOException("Incorrect MD5 checksum");
-            }
-            return response.getLocation();
 
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        Response response = null;
+        FormDataMultiPart multipart = new FormDataMultiPart();
+
+        try {
+            WebTarget target = client.target(baseUrl).path(filePath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                    .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                    .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
+                    ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
+
+            return handleResponse(expectedMd5, response, Status.NO_CONTENT.getStatusCode());
+
+        } finally {
+            closeOpenResources(data, multipart, response);
         }
     }
 
@@ -340,17 +384,31 @@ public class FileServiceClient {
 
         WebTarget target = client.target(fileUrl);
 
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
-                ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        Response response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
+        FormDataMultiPart multipart = new FormDataMultiPart();
+        Response response = null;
+        try {
+            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
+                    ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-        if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-            return response.getLocation();
+            response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
 
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
+                return response.getLocation();
+
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+
+        } finally {
+            closeOpenResources(data, multipart, response);
         }
+    }
+
+    private void closeOpenResources(InputStream data, FormDataMultiPart multipart, Response response) throws IOException {
+        closeResponse(response);
+        IOUtils.closeQuietly(data);
+        multipart.close();
     }
 
 
@@ -373,10 +431,16 @@ public class FileServiceClient {
         WebTarget target = client.target(baseUrl).path(filePath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
-        Response response = target.request().delete();
-        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+
+        Response response = null;
+        try {
+            response = target.request().delete();
+            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -443,8 +507,30 @@ public class FileServiceClient {
      * @param headerValue authorization header value
      * @return
      */
-    public FileServiceClient useAuthorizationHeader(final String headerValue){
+    public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
-        return this;
+    }
+
+    private InputStream copiedInputStream(InputStream originIS) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[16384];
+        while ((nRead = originIS.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+        IOUtils.closeQuietly(originIS);
+        return new ByteArrayInputStream(buffer.toByteArray());
+    }
+
+    private void closeResponse(Response response) {
+        if (response != null) {
+            response.close();
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        client.close();
     }
 }

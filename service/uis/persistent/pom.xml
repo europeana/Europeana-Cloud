@@ -5,16 +5,13 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-uis</artifactId>
-        <version>0.5.3</version>
+        <version>1.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>ecloud-service-uis-persistent</artifactId>
     <packaging>jar</packaging>
     <name>Europeana Cloud: Unique Identifier Service Persistent</name>
-    <properties>
-        <version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -25,6 +22,11 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
          <dependency>
@@ -97,6 +99,12 @@
         </dependency>
         <!-- Testing -->
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <scope>test</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
@@ -113,18 +121,6 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>${version.cassandra-unit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit-spring</artifactId>
-            <version>${version.cassandra-unit}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.jpountz.lz4</groupId>

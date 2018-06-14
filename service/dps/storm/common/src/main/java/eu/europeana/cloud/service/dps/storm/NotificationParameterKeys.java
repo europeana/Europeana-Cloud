@@ -7,9 +7,12 @@ package eu.europeana.cloud.service.dps.storm;
  */
 public class NotificationParameterKeys {
     //------- for BASIC INFO -------
-    public static final String EXPECTED_SIZE = "expectedSize";
     public static final String TASK_STATE = "state";
     public static final String INFO = "info";
+    public static final String START_TIME = "start_time";
+    public static final String FINISH_TIME = "finish_time";
+    public static final String TOPOLOGY_NAME = "topology_name";
+
 
     //------- for RELATION -------
     public static final String CHILD_TASK_ID = "childTaskId";

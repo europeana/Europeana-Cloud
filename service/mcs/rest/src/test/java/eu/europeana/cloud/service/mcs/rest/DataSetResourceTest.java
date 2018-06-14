@@ -5,31 +5,31 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
-import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import java.io.ByteArrayInputStream;
-import java.util.List;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
-import org.glassfish.jersey.test.JerseyTest;
+import java.io.ByteArrayInputStream;
+import java.util.List;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
 
 /**
  * DataSetResourceTest
@@ -153,6 +153,55 @@ public class DataSetResourceTest extends JerseyTest {
         }
         assertEquals(r1_2, r1FromDataset);
         assertEquals(r2_1, r2FromDataset);
+    }
+
+    @Test
+    public void shouldReturnErrorForMissingParameters() throws Exception {
+        String dataSetId = "dataset";
+
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+                P_DATASET, dataSetId).path("/latelyRevisionedVersion");
+        Response response = dataSetWebTarget.request().get();
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        //
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+                P_DATASET, dataSetId).queryParam(P_CLOUDID,"sampleCloudID");
+        response = dataSetWebTarget.request().get();
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        //
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+                P_DATASET, dataSetId).queryParam(P_REPRESENTATIONNAME,"sampleRepName");
+        response = dataSetWebTarget.request().get();
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        //
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+                P_DATASET, dataSetId).queryParam(P_REVISION_NAME,"sampleRevisionName");
+        response = dataSetWebTarget.request().get();
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnPropperVersionValue() throws DataSetNotExistsException {
+        Mockito.doReturn("sample").when(dataSetService).getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        String dataSetId = "dataset";
+
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+                P_DATASET, dataSetId).path("/latelyRevisionedVersion").queryParam(F_CLOUDID,"sampleCloudID").queryParam(F_REPRESENTATIONNAME,"sampleRepName").queryParam(F_REVISION_NAME,"sampleRevisionName").queryParam(F_REVISION_PROVIDER_ID,"samplerevProvider");
+        Response response = dataSetWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals("sample",response.readEntity(String.class));
+    }
+
+    @Test
+    public void shouldReturnNoContent() throws DataSetNotExistsException {
+        Mockito.doReturn(null).when(dataSetService)
+                .getLatestVersionForGivenRevision(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        String dataSetId = "dataset";
+
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+                P_DATASET, dataSetId).path("/latelyRevisionedVersion").queryParam(F_CLOUDID,"sampleCloudID").queryParam(F_REPRESENTATIONNAME,"sampleRepName").queryParam(F_REVISION_NAME,"sampleRevisionName").queryParam(F_REVISION_PROVIDER_ID,"samplerevProvider");
+        Response response = dataSetWebTarget.request().get();
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     }
 
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)

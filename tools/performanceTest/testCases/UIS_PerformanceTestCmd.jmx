@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="2.6" jmeter="2.11 r1554548">
+<jmeterTestPlan version="1.2" properties="2.7" jmeter="2.12 r1636949">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test plan (requires Standard Set of plugins)" enabled="true">
       <stringProp name="TestPlan.comments">Please configure variables below. This test requires Standard Set of plugins from http://jmeter-plugins.org. </stringProp>
@@ -107,6 +107,16 @@
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree>
+      <DNSCacheManager guiclass="DNSCachePanel" testclass="DNSCacheManager" testname="DNS Cache Manager" enabled="true">
+        <collectionProp name="DNSCacheManager.servers">
+          <stringProp name="-1778743663">150.254.173.3</stringProp>
+          <stringProp name="-1778743662">150.254.173.2</stringProp>
+          <stringProp name="-469317610">8.8.8.8</stringProp>
+        </collectionProp>
+        <boolProp name="DNSCacheManager.clearEachIteration">true</boolProp>
+        <boolProp name="DNSCacheManager.isCustomResolver">true</boolProp>
+      </DNSCacheManager>
+      <hashTree/>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
         <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
           <collectionProp name="Arguments.arguments"/>
@@ -145,6 +155,10 @@
           <elementProp name="" elementType="Header">
             <stringProp name="Header.name">Authorization</stringProp>
             <stringProp name="Header.value">Basic ${__BeanShell(import org.apache.jmeter.protocol.http.util.Base64Encoder; Base64Encoder.encode(new String(vars.get(&quot;user&quot;)+  &quot;:&quot; + vars.get(&quot;password&quot;)));)}</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Accept</stringProp>
+            <stringProp name="Header.value">application/xml</stringProp>
           </elementProp>
         </collectionProp>
       </HeaderManager>

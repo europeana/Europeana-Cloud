@@ -2,6 +2,7 @@
 package eu.europeana.cloud.service.uis.persistent.util;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+
 import java.util.List;
 
 

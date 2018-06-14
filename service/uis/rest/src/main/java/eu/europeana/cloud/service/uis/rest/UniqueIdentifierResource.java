@@ -1,15 +1,13 @@
 package eu.europeana.cloud.service.uis.rest;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.qmino.miredot.annotations.ReturnType;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,22 +19,9 @@ import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import com.qmino.miredot.annotations.ReturnType;
-
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
-import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -100,7 +85,7 @@ public class UniqueIdentifierResource {
      *             Cloud identifier was created previously
      */
     @POST
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({  MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
     public Response createCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
@@ -158,7 +143,7 @@ public class UniqueIdentifierResource {
      *             dataset is empty
      */
     @GET
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     public Response getCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
             @QueryParam(UISParamConstants.Q_RECORD_ID) String recordId)
@@ -193,7 +178,7 @@ public class UniqueIdentifierResource {
      */
     @GET
     @Path("{" + CLOUDID + "}")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public Response getLocalIds(@PathParam(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
@@ -237,7 +222,7 @@ public class UniqueIdentifierResource {
      */
     @DELETE
     @Path("{" + CLOUDID + "}")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Response deleteCloudId(@PathParam(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,

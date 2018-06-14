@@ -4,9 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -15,59 +13,44 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class TopologyManager {
     public static final String separatorChar = ",";
-    private Map<String, String> topologies = new HashMap<>();
+    private List<String> topologies = new ArrayList<>();
     public static final Logger logger = LoggerFactory.getLogger(TopologyManager.class);
 
     /**
      * Construct {@link eu.europeana.cloud.service.dps.service.utils.TopologyManager}.
+     *
      * @param nameList list of topology names (without white characters)
-     * @param userNameList list of topology userNames (without white characters)
      */
-    public TopologyManager(final String nameList, final String userNameList) {
+    public TopologyManager(final String nameList) {
         String[] names = nameList.split(separatorChar);
-        String[] userNames = userNameList.split(separatorChar);
-        assertEqualsLength(names, userNames);
+        assertNotEmpty(names);
         for (int i = 0; i < names.length; i++) {
-            topologies.put(names[i],userNames[i]);
+            topologies.add(names[i]);
         }
         logResult();
     }
 
     private void logResult() {
-        for(Map.Entry<String,String> entry : topologies.entrySet()){
-            logger.info("Topology registered -> topologyName=" + entry.getKey() + " topologyUserName=" + entry.getKey());
+        for (String topologyName : topologies) {
+            logger.info("Topology registered -> topologyName= {}", topologyName);
         }
     }
 
     /**
-     * Method returns list of topology userNames.
-     * @return topology userNames
-     */
-    public List<String> getUserNames() {
-        return new ArrayList<>(topologies.values());
-    }
-
-    /**
      * Method return list of topology names.
+     *
      * @return topology names
      */
     public List<String> getNames() {
-        return new ArrayList<>(topologies.keySet());
-    }
-
-    /**
-     * Method return mapping between topology names and topology users.
-     * @return topology mapping name2userName
-     */
-    public Map<String, String> getNameToUserMap() {
         return topologies;
     }
 
-    private void assertEqualsLength(String[] names, String[] users) {
-        checkArgument(names.length == users.length,"Different number of elements on nameList and userNameList.");
+
+    private void assertNotEmpty(String[] names) {
+        checkArgument(names.length > 0, "No registered topologies");
     }
 
     public boolean containsTopology(String topologyName) {
-        return topologies.containsKey(topologyName);
+        return topologies.contains(topologyName);
     }
 }

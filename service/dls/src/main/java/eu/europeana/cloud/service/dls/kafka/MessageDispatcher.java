@@ -1,14 +1,14 @@
 package eu.europeana.cloud.service.dls.kafka;
 
 import eu.europeana.cloud.common.exceptions.NoAppropriateMessageProcessorException;
-import eu.europeana.cloud.service.dls.kafka.Dispatcher;
 import eu.europeana.cloud.service.dls.listeners.MessageProcessor;
 import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * MessageDispatcher routes message to an appropriate {@link MessageProcessor} based on message class.

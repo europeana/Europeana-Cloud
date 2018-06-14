@@ -5,26 +5,21 @@ import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import eu.europeana.cloud.service.mcs.messages.InsertRepresentationPersistentMessage;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.*;
+
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
@@ -52,14 +47,15 @@ public class RepresentationVersionAddedPersistentMessageProcessorTest {
         String cloudId = "25DG622J4VM";
         String representationName = "representation01";
         String versionId = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
-        ArrayList<File> files = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(0);
+        ArrayList<Revision> revisions = new ArrayList<>(0);
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();
-        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
+        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files,revisions, persistent, creationDate);
 
         String dataSetId1 = "dataSet1";
         String dataSetId2 = "dataSet2";
-        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>();
+        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>(2);
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId1));
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 
@@ -127,7 +123,7 @@ public class RepresentationVersionAddedPersistentMessageProcessorTest {
         String providerId = "Provider001";
         String dataSetId1 = "dataSet1";
         String dataSetId2 = "dataSet2";
-        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>();
+        Collection<CompoundDataSetId> dataSetIds = new ArrayList<>(2);
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId1));
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 
@@ -146,11 +142,13 @@ public class RepresentationVersionAddedPersistentMessageProcessorTest {
         String cloudId = "25DG622J4VM";
         String representationName = "representation01";
         String versionId = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
-        ArrayList<File> files = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>(0);
+        ArrayList<Revision> revisions = new ArrayList<>(0);
+
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();
 
-        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
+        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files,revisions, persistent, creationDate);
         InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(prepareInsertPersistentRepresentationMessage(representation, null));
 
         //when

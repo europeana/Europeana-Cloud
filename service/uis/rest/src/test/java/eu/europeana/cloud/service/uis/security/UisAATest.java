@@ -1,7 +1,11 @@
 package eu.europeana.cloud.service.uis.security;
 
-import java.net.URISyntaxException;
-
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.exception.*;
+import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,19 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 

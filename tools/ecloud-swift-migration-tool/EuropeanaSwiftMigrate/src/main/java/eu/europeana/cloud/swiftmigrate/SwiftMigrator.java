@@ -1,12 +1,13 @@
 package eu.europeana.cloud.swiftmigrate;
 
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import eu.europeana.cloud.swiftmigrate.multitread.JobsController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Class copy all files from source container to target container.

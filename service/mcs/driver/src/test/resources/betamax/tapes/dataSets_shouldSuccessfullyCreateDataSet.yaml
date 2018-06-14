@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-02-17T16:06:15.446Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider001/data-sets
+    uri: http://localhost:8080/mcs/data-providers/Provider001/data-sets
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Content-Length: '49'
@@ -17,6 +17,6 @@ interactions:
     status: 201
     headers:
       Date: Mon, 17 Feb 2014 16:06:15 GMT
-      Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider001/data-sets/dataset000008
+      Location: http://localhost:8080/mcs/data-providers/Provider001/data-sets/dataset000008
       Server: Apache-Coyote/1.1
     body: !!binary ""

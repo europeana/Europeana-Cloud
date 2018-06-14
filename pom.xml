@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.5.3</version>
+    <version>1.0</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,7 +16,7 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-        <tag>v0.5.3</tag>
+        <tag>v1.0</tag>
     </scm>
     <developers>
         <developer>
@@ -82,8 +82,7 @@
         <module>service/aas</module>
         <module>service/commons</module>
         <module>tools</module>
-        <module>integration</module>
-        <module>service/ips</module>
+        <module>test-common</module>
     </modules>
     <repositories>
         <repository>
@@ -112,13 +111,27 @@
             <name>MireDot Releases</name>
             <url>http://nexus.qmino.com/content/repositories/miredot</url>
         </repository>
+        <repository>
+            <id>libs-snapshot-local</id>
+            <name>libs-snapshot-local</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
     <properties>
+        <sonar.skip>false</sonar.skip>
+        <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>1.7</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
         <version.powermock-mockito>1.5.3</version.powermock-mockito>
-        <version.jersey>2.4</version.jersey>
+        <version.jersey>2.23.1</version.jersey>
+        <version.org.glassfish.jersey.test-framework>2.23.1</version.org.glassfish.jersey.test-framework>
         <version.slf4j>1.7.12</version.slf4j>
         <version.spring-framework>3.2.4.RELEASE</version.spring-framework>
         <version.servlet>2.5</version.servlet>
@@ -126,14 +139,12 @@
         <version.commonscodec>1.10</version.commonscodec>
         <version.commonio>2.4</version.commonio>
         <version.uuid>3.4</version.uuid>
-        <version.blobstore>1.6.0</version.blobstore>
-        <version.swift>1.6.0</version.swift>
-        <version.keystone>1.6.3</version.keystone>
+        <version.swift>1.9.2</version.swift>
         <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>0.8.1.1</version.kafka>
         <version.cassandra-unit>2.1.3.1</version.cassandra-unit>
-        <version.storm>0.10.0-beta1</version.storm>
+        <version.storm>1.0.2</version.storm>
         <!-- 0.10.0 is minimum -->
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -147,19 +158,20 @@
         <spring-security.version>3.1.4.RELEASE</spring-security.version>
 
         <commons-logging.version>1.2</commons-logging.version>
-        <version.cassandra-driver>2.1.4</version.cassandra-driver>
-
+        <version.cassandra-driver>2.1.10.3</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
         <version.lucene>4.10.4</version.lucene>
 
-        <version.tika>1.9</version.tika>
+        <version.tika>1.14</version.tika>
         <version.zookeeper>3.4.6</version.zookeeper>
         <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
+        <version.jacoco>0.8.1</version.jacoco>
+        <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
     </properties>
 
     <profiles>
@@ -171,7 +183,7 @@
                         <plugin>
                             <groupId>org.jacoco</groupId>
                             <artifactId>jacoco-maven-plugin</artifactId>
-                            <version>0.7.6.201602180812</version>
+                            <version>${version.jacoco}</version>
                         </plugin>
                     </plugins>
                 </pluginManagement>
@@ -301,6 +313,14 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${version.jacoco}</version>
+                <configuration>
+                    <propertyName>jacocoArgLine</propertyName>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
                 <version>2.1.12</version>
@@ -330,7 +350,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.16</version>
+                <version>2.19.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -339,6 +359,13 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>@{jacocoArgLine} -Xmx2048m</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -373,6 +400,11 @@
             <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>
                 <artifactId>jersey-container-servlet-core</artifactId>
+                <version>${version.jersey}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.ext</groupId>
+                <artifactId>jersey-bean-validation</artifactId>
                 <version>${version.jersey}</version>
             </dependency>
             <dependency>
@@ -425,11 +457,6 @@
                 <artifactId>log4j</artifactId>
                 <version>1.2.17</version>
             </dependency>
-            <!--            <dependency>
-                            <groupId>com.datastax.cassandra</groupId>
-                            <artifactId>cassandra-driver-core</artifactId>
-                            <version>2.0.7</version>
-                        </dependency>-->
             <dependency>
                 <!-- forked kafka with fixed appender, KAFKA-847 -->
                 <!-- TODO ECL-317 -->

@@ -5,20 +5,20 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import eu.europeana.cloud.service.mcs.messages.InsertRepresentationPersistentMessage;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Collection;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Collection;
 
 /**
  * Processor that processes messages about adding a new persistent

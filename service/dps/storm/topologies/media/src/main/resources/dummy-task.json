@@ -1,0 +1,29 @@
+{
+	"inputData": {
+		"DATASET_URLS": [
+			"https://test-cloud.europeana.eu/api/data-providers/mms_prov/data-sets/mms_set"
+		]
+	},
+	"parameters": {
+		"AUTHORIZATION_HEADER": "Basic xxxxxxxxxxxxx=",
+		"REPRESENTATION_NAME": "edm",
+		"#REVISION_PROVIDER": "media_service_provider_test",
+		"#REVISION_NAME": "media_service_revision_test",
+		"#REVISION_TIMESTAMP": "2018-01-31T11:33:30.842+01:00",
+		"NEW_REPRESENTATION_NAME": "edm",
+		"#OUTPUT_FILE_NAME": "techmetadata.xml",
+		"#OUTPUT_MIME_TYPE": "text/xml",
+		"#OUTPUT_DATA_SETS": "https://test-cloud.europeana.eu/api/data-providers/mms_prov/data-sets/mms_set",
+		"#host.limit.dlibrary.ascsa.edu.gr": "3"
+	},
+	"outputRevision": {
+		"revisionName": "media_service_revision_name_test",
+		"revisionProviderId": "media_service_provider_id_test",
+		"creationTimeStamp": null,
+		"published": false,
+		"acceptance": false,
+		"deleted": false
+	},
+	"taskName": "test777"
+}
+

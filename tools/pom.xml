@@ -4,13 +4,17 @@
   <parent>
     <artifactId>ecloud-parent</artifactId>
     <groupId>eu.europeana.cloud</groupId>
-    <version>0.5.3</version>
+    <version>1.0</version>
   </parent>
   <groupId>eu.europeana.cloud</groupId>
   <artifactId>ecloud-tools</artifactId>
-  <version>0.5.3</version>
+  <version>1.0</version>
   <packaging>pom</packaging>
   <name>Europeana Cloud: Tools</name>
+  <properties>
+    <!-- skipped as those are just helper/tools projects-->
+    <sonar.skip>true</sonar.skip>
+  </properties>
   <modules>
       <!--<module>ecloud-dlf-ingestion-tool</module>-->
     <module>resource-migration-tool</module>

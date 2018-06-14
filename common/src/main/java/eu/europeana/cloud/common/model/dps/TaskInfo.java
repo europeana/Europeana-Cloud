@@ -1,15 +1,95 @@
 package eu.europeana.cloud.common.model.dps;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+@XmlRootElement()
 public class TaskInfo {
-    private final long id;
-    private final String topologyName;
-    private int containsElements;
+
+    private static final int DEFAULT_PROGRESS_PERCENTAGE = -1;
+
+    private long id;
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setTopologyName(String topologyName) {
+        this.topologyName = topologyName;
+    }
+
+    private String topologyName;
+    private int expectedSize;
+    private int processedElementCount;
     private TaskState state;
     private String info;
+
+    private Date finishDate;
+    private Date startDate;
+    private Date sentDate;
+
+    private int processedPercentage;
+    private int errors;
+
+    public TaskInfo() {
+
+    }
+
+    public Date getFinishDate() {
+        return finishDate;
+    }
+
+    public void setFinishDate(Date finishDate) {
+        this.finishDate = finishDate;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getSentDate() {
+        return sentDate;
+    }
+
+    public void setSentDate(Date sentDate) {
+        this.sentDate = sentDate;
+    }
+
+    public void setSubtasks(List<SubTaskInfo> subtasks) {
+        this.subtasks = subtasks;
+    }
+
+    public int getProcessedElementCount() {
+        return processedElementCount;
+    }
+
+    public void setProcessedElementCount(int processedElementCount) {
+        this.processedElementCount = processedElementCount;
+    }
+
+    public int getProcessedPercentage() {
+        return processedPercentage;
+    }
+
+    public void setProcessedPercentage(int processedPercentage) {
+        this.processedPercentage = processedPercentage;
+    }
+
+    public int getErrors() {
+        return errors;
+    }
+
+    public void setErrors(int errors) {
+        this.errors = errors;
+    }
+
     private List<SubTaskInfo> subtasks = new ArrayList<>();
 
     public TaskState getState() {
@@ -28,19 +108,33 @@ public class TaskInfo {
         this.info = info;
     }
 
+    private void calculateProgress() {
+        if (expectedSize < 0) {
+            processedPercentage = DEFAULT_PROGRESS_PERCENTAGE;
+        }
+        else {
+            processedPercentage = expectedSize > 0 ? 100 * processedElementCount / expectedSize : 0;
+        }
+    }
 
-    public TaskInfo(long id, String topologyName, TaskState state, String info) {
+    public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate, Date finishDate) {
+        this(id, topologyName, state, info, 0, 0, 0, sentDate, startDate, finishDate);
+    }
+
+    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, int errors, Date sentDate, Date startDate, Date finishDate) {
         this.id = id;
         this.topologyName = topologyName;
         this.state = state;
         this.info = info;
-
+        this.expectedSize = containsElements;
+        this.processedElementCount = processedElementCount;
+        this.sentDate = sentDate;
+        this.startDate = startDate;
+        this.finishDate = finishDate;
+        this.errors = errors;
+        calculateProgress();
     }
 
-    public TaskInfo(long id, String topologyName, TaskState state) {
-        this(id, topologyName, state, "");
-
-    }
 
     public long getId() {
         return id;
@@ -50,12 +144,12 @@ public class TaskInfo {
         return topologyName;
     }
 
-    public int getContainsElements() {
-        return containsElements;
+    public int getExpectedSize() {
+        return expectedSize;
     }
 
-    public void setContainsElements(int containsElements) {
-        this.containsElements = containsElements;
+    public void setExpectedSize(int expectedSize) {
+        this.expectedSize = expectedSize;
     }
 
     public List<SubTaskInfo> getSubtasks() {
@@ -68,26 +162,65 @@ public class TaskInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TaskInfo)) return false;
+        if (this == o){
+            return true;
+        }
+        if (!(o instanceof TaskInfo)){
+            return false;
+        }
 
         TaskInfo taskInfo = (TaskInfo) o;
 
-        if (containsElements != taskInfo.containsElements) return false;
-        if (id != taskInfo.id) return false;
-        if (subtasks != null ? !subtasks.equals(taskInfo.subtasks) : taskInfo.subtasks != null) return false;
-        if (topologyName != null ? !topologyName.equals(taskInfo.topologyName) : taskInfo.topologyName != null)
+        if (expectedSize != taskInfo.expectedSize){
             return false;
+        }
+        if (errors != taskInfo.errors){
+            return false;
+        }
+        if (processedPercentage != taskInfo.processedPercentage){
+            return false;
+        }
+        if (id != taskInfo.id){
+            return false;
+        }
+        if (subtasks != null ? !subtasks.equals(taskInfo.subtasks) : taskInfo.subtasks != null){
+            return false;
+        }
+        if (topologyName != null ? !topologyName.equals(taskInfo.topologyName) : taskInfo.topologyName != null){
+            return false;
+        }
+
+        if (state != taskInfo.state){
+            return false;
+        }
+        if (startDate == null)
+            if (taskInfo.startDate != null) return false;
+        if (startDate != null && taskInfo.startDate != null)
+            if (startDate.getTime() != taskInfo.startDate.getTime()) return false;
+        if (sentDate == null)
+            if (taskInfo.sentDate != null) return false;
+        if (sentDate != null && taskInfo.sentDate != null)
+            if (sentDate.getTime() != taskInfo.sentDate.getTime()) return false;
+        if (finishDate == null)
+            if (taskInfo.finishDate != null) return false;
+        if (finishDate != null && taskInfo.finishDate != null)
+            if (finishDate.getTime() != taskInfo.finishDate.getTime()) return false;
 
         return true;
     }
+
 
     @Override
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (topologyName != null ? topologyName.hashCode() : 0);
-        result = 31 * result + containsElements;
+        result = 31 * result + expectedSize;
+        result = 31 * result + errors;
+        result = 31 * result + processedPercentage;
         result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);
+        result = 31 * result + (state != null ? state.hashCode() : 0);
+        result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
+        result = 31 * result + (sentDate != null ? sentDate.hashCode() : 0);
         return result;
     }
 }

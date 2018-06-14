@@ -20,162 +20,180 @@
      Documentation at /docs/config/server.html
  -->
 <Server port="8005" shutdown="SHUTDOWN">
-  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
-  <!-- Security listener. Documentation at /docs/config/listeners.html
-  <Listener className="org.apache.catalina.security.SecurityListener" />
-  -->
-  <!--APR library loader. Documentation at /docs/apr.html -->
-  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
-  <!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html -->
-  <Listener className="org.apache.catalina.core.JasperListener" />
-  <!-- Prevent memory leaks due to use of particular java/javax APIs-->
-  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
-  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
-  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
-
-  <!-- Global JNDI resources
-       Documentation at /docs/jndi-resources-howto.html
-  -->
-  <GlobalNamingResources>
-    <!-- Editable user database that can also be used by
-         UserDatabaseRealm to authenticate users
+    <Listener className="org.apache.catalina.startup.VersionLoggerListener"/>
+    <!-- Security listener. Documentation at /docs/config/listeners.html
+    <Listener className="org.apache.catalina.security.SecurityListener" />
     -->
-    <Resource name="UserDatabase" auth="Container"
-              type="org.apache.catalina.UserDatabase"
-              description="User database that can be updated and saved"
-              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
-              pathname="conf/tomcat-users.xml" />
-     
-    <!-- UIS local specific configuration -->
-    <Environment name="uis/cassandra/hosts" type="java.lang.String" value="cassandra"/>
-    <Environment name="uis/cassandra/port" type="java.lang.Integer" value="9042"/>
-    <Environment name="uis/cassandra/user" type="java.lang.String" value="ecloud_uis"/>
-    <Environment name="uis/cassandra/password" type="java.lang.String" value="password"/>
-    <Environment name="uis/cassandra/keyspace" type="java.lang.String" value="ecloud_uis"/>
-    <Environment name="uis/cassandra/autoCreateTables" type="java.lang.Boolean" value="false"/>
+    <!--APR library loader. Documentation at /docs/apr.html -->
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on"/>
+    <!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html -->
+    <Listener className="org.apache.catalina.core.JasperListener"/>
+    <!-- Prevent memory leaks due to use of particular java/javax APIs-->
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"/>
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"/>
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener"/>
 
-    <!-- MCS local Cassandra specific configuration -->
-    <Environment name="mcs/cassandra/hosts" type="java.lang.String" value="cassandra"/>
-    <Environment name="mcs/cassandra/port" type="java.lang.Integer" value="9042"/>
-    <Environment name="mcs/cassandra/user" type="java.lang.String" value="ecloud_mcs"/>
-    <Environment name="mcs/cassandra/password" type="java.lang.String" value="password"/>
-    <Environment name="mcs/cassandra/keyspace" type="java.lang.String" value="ecloud_mcs"/>
-    <!-- MCS Swift specific configuration -->
-    <Environment name="mcs/swift/provider" type="java.lang.String" value="swift" />
-    <Environment name="mcs/swift/container" type="java.lang.String" value="ecloud" />
-    <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin" />
-    <Environment name="mcs/swift/password" type="java.lang.String" value="admin" />
-    <Environment name="mcs/swift/endpointList" type="java.lang.String" value="http://swift:8888/auth/v1.0" />
-    <!-- MCS Solr specific configuration -->
-    <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/" />
-    <Environment name="mcs/uis-url" value="http://localhost:8080/uis/" type="java.lang.String" override="false" />
-    <!-- Kafka local specific configuration -->
-    <Environment name="kafka/brokerList" type="java.lang.String" value="kafka:9092" />
-    <Environment name="kafka/zookeeperList" type="java.lang.String" value="zk:2181" />
-    <Environment name="kafka/topic" type="java.lang.String" value="topic" />
-    <!-- AAS local specific configuration -->
-    <Environment name="aas/cassandra/hosts" type="java.lang.String" value="cassandra" />
-    <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042" />
-    <Environment name="aas/cassandra/user" type="java.lang.String" value="ecloud_aas" />
-    <Environment name="aas/cassandra/password" type="java.lang.String" value="password" />
-    <Environment name="aas/cassandra/authorization-keyspace" type="java.lang.String" value="ecloud_aas" />
-    <Environment name="aas/cassandra/authentication-keyspace" type="java.lang.String" value="ecloud_aas" />
-    <Environment name="aas/cassandra/autoCreateTables" type="java.lang.Boolean" value="false" />
-
-  </GlobalNamingResources>
-
-  <!-- A "Service" is a collection of one or more "Connectors" that share
-       a single "Container" Note:  A "Service" is not itself a "Container",
-       so you may not define subcomponents such as "Valves" at this level.
-       Documentation at /docs/config/service.html
-   -->
-  <Service name="Catalina">
-
-    <!--The connectors can use a shared executor, you can define one or more named thread pools-->
-    <!--
-    <Executor name="tomcatThreadPool" namePrefix="catalina-exec-"
-        maxThreads="150" minSpareThreads="4"/>
+    <!-- Global JNDI resources
+         Documentation at /docs/jndi-resources-howto.html
     -->
+    <GlobalNamingResources>
+        <!-- Editable user database that can also be used by
+             UserDatabaseRealm to authenticate users
+        -->
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database that can be updated and saved"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml"/>
+
+        <!-- UIS local specific configuration -->
+        <Environment name="uis/cassandra/hosts" type="java.lang.String" value="cassandra"/>
+        <Environment name="uis/cassandra/port" type="java.lang.Integer" value="9042"/>
+        <Environment name="uis/cassandra/user" type="java.lang.String" value="ecloud_uis"/>
+        <Environment name="uis/cassandra/password" type="java.lang.String" value="password"/>
+        <Environment name="uis/cassandra/keyspace" type="java.lang.String" value="ecloud_uis"/>
+        <Environment name="uis/cassandra/autoCreateTables" type="java.lang.Boolean" value="false"/>
+
+        <!-- MCS local Cassandra specific configuration -->
+        <Environment name="mcs/cassandra/hosts" type="java.lang.String" value="cassandra"/>
+        <Environment name="mcs/cassandra/port" type="java.lang.Integer" value="9042"/>
+        <Environment name="mcs/cassandra/user" type="java.lang.String" value="ecloud_mcs"/>
+        <Environment name="mcs/cassandra/password" type="java.lang.String" value="password"/>
+        <Environment name="mcs/cassandra/keyspace" type="java.lang.String" value="ecloud_mcs"/>
+        <!-- MCS Swift specific configuration -->
+        <Environment name="mcs/swift/provider" type="java.lang.String" value="openstack-swift"/>
+        <Environment name="mcs/swift/container" type="java.lang.String" value="ecloud"/>
+        <Environment name="mcs/swift/user" type="java.lang.String" value="service:swift"/>
+        <Environment name="mcs/swift/password" type="java.lang.String" value="swift"/>
+        <Environment name="mcs/swift/endpoint" type="java.lang.String"
+                     value="http://swift:5000/v2.0"/>
+        <!-- MCS Solr specific configuration -->
+        <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/"/>
+        <Environment name="mcs/uis-url" value="http://localhost:8080/uis/" type="java.lang.String" override="false"/>
+        <!-- Kafka local specific configuration -->
+        <Environment name="kafka/brokerList" type="java.lang.String" value="kafka:9092"/>
+        <Environment name="kafka/zookeeperList" type="java.lang.String" value="zookeeper:2181"/>
+        <Environment name="kafka/topic" type="java.lang.String" value="indexing"/>
+        <!-- AAS local specific configuration -->
+        <Environment name="aas/cassandra/hosts" type="java.lang.String" value="cassandra"/>
+        <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042"/>
+        <Environment name="aas/cassandra/user" type="java.lang.String" value="ecloud_aas"/>
+        <Environment name="aas/cassandra/password" type="java.lang.String" value="password"/>
+        <Environment name="aas/cassandra/authorization-keyspace" type="java.lang.String" value="ecloud_aas"/>
+        <Environment name="aas/cassandra/authentication-keyspace" type="java.lang.String" value="ecloud_aas"/>
+        <Environment name="aas/cassandra/autoCreateTables" type="java.lang.Boolean" value="false"/>
+
+        <!--DPS local specyfic configuration -->
+        <Environment name="dps/cassandra/hosts" type="java.lang.String" value="cassandra"/>
+        <Environment name="dps/cassandra/port" type="java.lang.Integer" value="9042"/>
+        <Environment name="dps/cassandra/keyspace" type="java.lang.String" value="ecloud_dps"/>
+        <Environment name="dps/cassandra/user" type="java.lang.String" value="ecloud_dps"/>
+        <Environment name="dps/cassandra/password" type="java.lang.String" value="password"/>
+
+        <Environment name="dps/kafka/brokerLocation" type="java.lang.String" value="kafka:9092"/>
+        <Environment name="dps/kafka/groupId" type="java.lang.String" value="someGroupId"/>
+        <Environment name="dps/zookeeper/address" type="java.lang.String" value="zookeeper:2181"/>
+
+        <Environment name="dps/topology/nameList" type="java.lang.String"
+                     value="name1,ic_topology,xslt_topology,oai_topology,validation_topology,enrichment_topology,http_topology,indexing_topology,normalization_topology"/>
+
+        <Environment name="dps/mcsLocation" type="java.lang.String" value="http://localhost:8080/mcs"/>
 
 
-    <!-- A "Connector" represents an endpoint by which requests are received
-         and responses are returned. Documentation at :
-         Java HTTP Connector: /docs/config/http.html (blocking & non-blocking)
-         Java AJP  Connector: /docs/config/ajp.html
-         APR (HTTP/AJP) Connector: /docs/apr.html
-         Define a non-SSL HTTP/1.1 Connector on port 8080
-    -->
-    <Connector port="8080" protocol="HTTP/1.1"
-               connectionTimeout="20000"
-               redirectPort="8443" />
-    <!-- A "Connector" using the shared thread pool-->
-    <!--
-    <Connector executor="tomcatThreadPool"
-               port="8080" protocol="HTTP/1.1"
-               connectionTimeout="20000"
-               redirectPort="8443" />
-    -->
-    <!-- Define a SSL HTTP/1.1 Connector on port 8443
-         This connector uses the BIO implementation that requires the JSSE
-         style configuration. When using the APR/native implementation, the
-         OpenSSL style configuration is required as described in the APR/native
-         documentation -->
-    <!--
-    <Connector port="8443" protocol="org.apache.coyote.http11.Http11Protocol"
-               maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
-               clientAuth="false" sslProtocol="TLS" />
-    -->
+    </GlobalNamingResources>
 
-    <!-- Define an AJP 1.3 Connector on port 8009 -->
-    <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />
+    <!-- A "Service" is a collection of one or more "Connectors" that share
+         a single "Container" Note:  A "Service" is not itself a "Container",
+         so you may not define subcomponents such as "Valves" at this level.
+         Documentation at /docs/config/service.html
+     -->
+    <Service name="Catalina">
 
-
-    <!-- An Engine represents the entry point (within Catalina) that processes
-         every request.  The Engine implementation for Tomcat stand alone
-         analyzes the HTTP headers included with the request, and passes them
-         on to the appropriate Host (virtual host).
-         Documentation at /docs/config/engine.html -->
-
-    <!-- You should set jvmRoute to support load-balancing via AJP ie :
-    <Engine name="Catalina" defaultHost="localhost" jvmRoute="jvm1">
-    -->
-    <Engine name="Catalina" defaultHost="localhost">
-
-      <!--For clustering, please take a look at documentation at:
-          /docs/cluster-howto.html  (simple how to)
-          /docs/config/cluster.html (reference documentation) -->
-      <!--
-      <Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"/>
-      -->
-
-      <!-- Use the LockOutRealm to prevent attempts to guess user passwords
-           via a brute-force attack -->
-      <Realm className="org.apache.catalina.realm.LockOutRealm">
-        <!-- This Realm uses the UserDatabase configured in the global JNDI
-             resources under the key "UserDatabase".  Any edits
-             that are performed against this UserDatabase are immediately
-             available for use by the Realm.  -->
-        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
-               resourceName="UserDatabase"/>
-      </Realm>
-
-      <Host name="localhost"  appBase="webapps"
-            unpackWARs="true" autoDeploy="true">
-
-        <!-- SingleSignOn valve, share authentication between web applications
-             Documentation at: /docs/config/valve.html -->
+        <!--The connectors can use a shared executor, you can define one or more named thread pools-->
         <!--
-        <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
+        <Executor name="tomcatThreadPool" namePrefix="catalina-exec-"
+            maxThreads="150" minSpareThreads="4"/>
         -->
 
-        <!-- Access log processes all example.
-             Documentation at: /docs/config/valve.html
-             Note: The pattern used is equivalent to using pattern="common" -->
-        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
-               prefix="localhost_access_log." suffix=".txt"
-               pattern="%h %l %u %t &quot;%r&quot; %s %b" />
 
-      </Host>
-    </Engine>
-  </Service>
+        <!-- A "Connector" represents an endpoint by which requests are received
+             and responses are returned. Documentation at :
+             Java HTTP Connector: /docs/config/http.html (blocking & non-blocking)
+             Java AJP  Connector: /docs/config/ajp.html
+             APR (HTTP/AJP) Connector: /docs/apr.html
+             Define a non-SSL HTTP/1.1 Connector on port 8080
+        -->
+        <Connector port="8080" protocol="HTTP/1.1"
+                   connectionTimeout="20000"
+                   redirectPort="8443"/>
+        <!-- A "Connector" using the shared thread pool-->
+        <!--
+        <Connector executor="tomcatThreadPool"
+                   port="8080" protocol="HTTP/1.1"
+                   connectionTimeout="20000"
+                   redirectPort="8443" />
+        -->
+        <!-- Define a SSL HTTP/1.1 Connector on port 8443
+             This connector uses the BIO implementation that requires the JSSE
+             style configuration. When using the APR/native implementation, the
+             OpenSSL style configuration is required as described in the APR/native
+             documentation -->
+        <!--
+        <Connector port="8443" protocol="org.apache.coyote.http11.Http11Protocol"
+                   maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
+                   clientAuth="false" sslProtocol="TLS" />
+        -->
+
+        <!-- Define an AJP 1.3 Connector on port 8009 -->
+        <Connector port="8009" protocol="AJP/1.3" redirectPort="8443"/>
+
+
+        <!-- An Engine represents the entry point (within Catalina) that processes
+             every request.  The Engine implementation for Tomcat stand alone
+             analyzes the HTTP headers included with the request, and passes them
+             on to the appropriate Host (virtual host).
+             Documentation at /docs/config/engine.html -->
+
+        <!-- You should set jvmRoute to support load-balancing via AJP ie :
+        <Engine name="Catalina" defaultHost="localhost" jvmRoute="jvm1">
+        -->
+        <Engine name="Catalina" defaultHost="localhost">
+
+            <!--For clustering, please take a look at documentation at:
+                /docs/cluster-howto.html  (simple how to)
+                /docs/config/cluster.html (reference documentation) -->
+            <!--
+            <Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"/>
+            -->
+
+            <!-- Use the LockOutRealm to prevent attempts to guess user passwords
+                 via a brute-force attack -->
+            <Realm className="org.apache.catalina.realm.LockOutRealm">
+                <!-- This Realm uses the UserDatabase configured in the global JNDI
+                     resources under the key "UserDatabase".  Any edits
+                     that are performed against this UserDatabase are immediately
+                     available for use by the Realm.  -->
+                <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                       resourceName="UserDatabase"/>
+            </Realm>
+
+            <Host name="localhost" appBase="webapps"
+                  unpackWARs="true" autoDeploy="true">
+
+                <!-- SingleSignOn valve, share authentication between web applications
+                     Documentation at: /docs/config/valve.html -->
+                <!--
+                <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
+                -->
+
+                <!-- Access log processes all example.
+                     Documentation at: /docs/config/valve.html
+                     Note: The pattern used is equivalent to using pattern="common" -->
+                <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+                       prefix="localhost_access_log." suffix=".txt"
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
+
+            </Host>
+        </Engine>
+    </Service>
 </Server>

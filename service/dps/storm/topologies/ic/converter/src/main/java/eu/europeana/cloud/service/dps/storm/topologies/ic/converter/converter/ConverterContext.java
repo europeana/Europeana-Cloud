@@ -25,4 +25,8 @@ public class ConverterContext {
         converter.convert(inputFilePath, outputFilePath, properties);
     }
 
+    public void setConverter(Converter converter) {
+        this.converter = converter;
+    }
+
 }

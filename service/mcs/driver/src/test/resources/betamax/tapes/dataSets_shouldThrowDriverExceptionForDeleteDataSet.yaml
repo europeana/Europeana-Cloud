@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-02-18T15:16:53.958Z
   request:
     method: DELETE
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider002/data-sets/dataset000033
+    uri: http://localhost:8080/mcs/data-providers/Provider002/data-sets/dataset000033
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Host: localhost:8080

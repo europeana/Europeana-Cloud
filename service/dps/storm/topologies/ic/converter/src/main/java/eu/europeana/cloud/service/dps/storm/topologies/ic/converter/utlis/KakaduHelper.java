@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis;
 
-import org.apache.log4j.Logger;
-
 import java.util.List;
 
 
@@ -9,7 +7,6 @@ import java.util.List;
  * Utility for kakadu.
  */
 public class KakaduHelper {
-    private final static Logger LOGGER = Logger.getLogger(KakaduHelper.class);
 
     /**
      * Build full kakadu shell command based on input parameters
@@ -20,8 +17,8 @@ public class KakaduHelper {
      * @param properties           List of properties attached to the kakadu command
      * @return the full-fledged Kakadu command .
      */
-    public String constructCommand(String kakaduConsoleCommand, String inputFilePath,
-                                   String outputFilePath, List<String> properties) {
+    public static String constructCommand(String kakaduConsoleCommand, String inputFilePath,
+                                          String outputFilePath, List<String> properties) {
 
         if (inputFilePath != null && outputFilePath != null) {
             StringBuffer command = new StringBuffer();

@@ -67,12 +67,11 @@ public class UrlBuilder {
             String value = entry.getValue();
             if (shouldBeIncludedInResult(entry.getKey())) {
                 ValuedUrlPart currentPart = removeFromPartsToInclude(entry.getKey());
-                //
                 if (currentPart.isAddValue()) {
                     if (value != null) {
-                        if("".equals(key.getPart().getValue())){
-                            result += "/" + value;    
-                        }else{
+                        if ("".equals(key.getPart().getValue())) {
+                            result += "/" + value;
+                        } else {
                             result += "/" + key.getPart().getValue() + "/" + value;
                         }
                     } else {
@@ -100,7 +99,7 @@ public class UrlBuilder {
         return false;
     }
 
-    private ValuedUrlPart removeFromPartsToInclude(UrlPart urlPart) {
+    private ValuedUrlPart removeFromPartsToInclude(UrlPart urlPart) throws UrlBuilderException {
         Iterator<ValuedUrlPart> it = partsToInclude.iterator();
         while (it.hasNext()) {
             ValuedUrlPart currentPart = it.next();
@@ -109,15 +108,16 @@ public class UrlBuilder {
                 return currentPart;
             }
         }
-        return null;
+        throw new UrlBuilderException("The provided parts are not sufficient to build the correct URL");
     }
-    private String createErrorMessage(Set<ValuedUrlPart> leftParts){
+
+    private String createErrorMessage(Set<ValuedUrlPart> leftParts) {
         String result = "";
         for (ValuedUrlPart leftPart : leftParts) {
             result += leftPart.getPart() + " ";
         }
         return result;
-        
+
     }
 }
 
@@ -128,7 +128,7 @@ class ValuedUrlPart {
     private UrlPart part;
     private boolean addValue;
 
-    public ValuedUrlPart(UrlPart part, boolean addValue) {
+    ValuedUrlPart(UrlPart part, boolean addValue) {
         this.part = part;
         this.addValue = addValue;
     }

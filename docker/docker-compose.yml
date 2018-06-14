@@ -1,13 +1,27 @@
+management:
+  image: portainer/portainer
+  ports:
+      - "80:9000"
+  volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  command: --no-auth -H unix:///var/run/docker.sock
+
 tomcat:
   build: tomcat
   ports:
     - "8080:8080"
+    - "8000:8000"
+    - "8009:8009"
   links:
     - cassandra:cassandra
     - swift:swift
-    - zookeeper:zk
+    - zookeeper:zookeeper
     - kafka:kafka
-
+  volumes:
+    - ./tomcat/webapps/:/usr/local/tomcat/webapps/
+  environment:
+    JAVA_OPTS: "-Xmx3064m -Xms3064m -XX:MaxPermSize=512m"
+    CATALINA_OPTS: "-DlogsDir=/usr/local/tomcat/"        
 cassandra:
   build: cassandra
   ports:
@@ -15,9 +29,10 @@ cassandra:
     - "9160:9160"
 
 swift:
-  build: docker-swift-onlyone
+  build: swift
   ports:
     - "8888:8888"
+    - "5000:5000"
   volumes:
     - /srv
 
@@ -27,49 +42,52 @@ zookeeper:
     - "2182:2181"
 
 kafka:
-  image: wurstmeister/kafka:0.8.2.0
+  image: akrystian/kafka-docker
   links:
-   - zookeeper:zk
+   - zookeeper:zookeeper
   environment:
-    KAFKA_CREATE_TOPICS: "topic:1:1"
+    KAFKA_CREATE_TOPICS: "logging:1:1,indexing:1:1,ic_topology:1:1,xslt_topology:1:1,oai_topology:1:1,validation_topology:1:1,enrichment_topology:1:1,http_topology:1:1,indexing_topology:1:1,normalization_topology:1:1"
+    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    HOSTNAME_COMMAND: "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $$1}'"
   ports:
    - "9092:9092"
   volumes:
    - /var/run/docker.sock:/var/run/docker.sock
+  restart: always
 
+nimbus:
+  build: storm
+  command: storm nimbus
+  hostname: nimbus
+  links:
+    - zookeeper:zookeeper
+  ports:
+    - "3773"
+    - "3772"
+    - "6627"
+  restart: always
 
+supervisor:
+  build: supervisor
+  command: storm supervisor
+  hostname: supervisor
+  ports:
+    - "8000"
+    - "1044:1044"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zookeeper
+    - cassandra:cassandra
+    - tomcat:tomcat
+    - kafka:kafka
+  restart: always
 
-
-#nimbus:
-#  image: wurstmeister/storm-nimbus
-#  ports:
-#    - "3773"
-#    - "3772"
-#    - "6627"
-#    - "22"
-#  links:
-#    - zookeeper:zk
-#supervisor:
-#  image: wurstmeister/storm-supervisor
-#  ports:
-#    - "8000"
-#    - "22"
-#  links:
-#    - nimbus:nimbus
-#    - zookeeper:zk
-#ui:
-#  image: wurstmeister/storm-ui
-#  ports:
-#    - "49080:8080"
-#    - "22"
-#  links:
-#    - nimbus:nimbus
-#    - zookeeper:zk
-#
-#elasticsearch:
-#  image: tutum/elasticsearch
-#  ports:
-#    - "9200:9200"
-#  environment:
-#    ELASTICSEARCH_USER: admin
-#    ELASTICSEARCH_PASS: password
+ui:
+  build: storm
+  command: storm ui
+  ports:
+    - "49080:8080"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zookeeper
+  restart: always

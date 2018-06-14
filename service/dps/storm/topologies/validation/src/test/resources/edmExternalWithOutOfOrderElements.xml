@@ -1,0 +1,40 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:rdaGr2="http://rdvocab.info/ElementsGr2" xmlns:oai="http://www.openarchives.org/OAI/2.0/" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dcterms="http://purl.org/dc/terms/">
+<edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/fe3c97d7-f950-4632-87cf-64844b040e71/PDF">
+<dcterms:extent>54405 KB</dcterms:extent>
+</edm:WebResource>
+<edm:WebResource rdf:about="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/8fa28f63-2af4-4189-9071-95026de84187/TEXT">
+<dcterms:extent>138 KB</dcterms:extent>
+</edm:WebResource>
+<edm:ProvidedCHO rdf:about="URN:NBN:SI:doc-35SZSOCF">
+<dcterms:issued>1826</dcterms:issued>
+<dc:creator>Stanič, Valentin</dc:creator>
+<dc:format xml:lang="sl">148 str., 12° (16 cm)</dc:format>
+<dc:identifier>COBISSID:5081952</dc:identifier>
+<dc:identifier>URN:URN:NBN:SI:doc-35SZSOCF</dc:identifier>
+<dc:language>sl</dc:language>
+<dc:publisher xml:lang="sl">per bukvah niemshkih şhol</dc:publisher>
+<dc:source xml:lang="sl">knjige</dc:source>
+<dc:subject xml:lang="sl">19. st.</dc:subject>
+<dc:subject xml:lang="sl">cerkvene pesmarice</dc:subject>
+<dc:subject xml:lang="sl">krščanska duhovnost</dc:subject>
+<dc:subject xml:lang="sl">molitve</dc:subject>
+<dc:subject xml:lang="sl">poezija</dc:subject>
+<dc:title xml:lang="sl">
+Molitve in premishlovanja per objiskovanju shtirih k' sadoblenju odpustika svetiga-leta odlozhenih zerkva; katerim je spredpostavljen kratki nauk od svetiga léta 1826; s' perstav'kam 41 zerkvenih ino drugih pesm sa kmete ino mlade ljudi
+</dc:title>
+<dc:description xml:lang="sl">
+Perstavik nekterih zerkvenih in drugih pesem, h' molitvam in premishlovanjam sa sveto-léto 1826. - Str. 51-148
+</dc:description>
+<edm:type>TEXT</edm:type>
+<dc:type xml:lang="sl">knjige</dc:type>
+</edm:ProvidedCHO>
+<ore:Aggregation rdf:about="http://www.dlib.si/?URN=URN:NBN:SI:doc-35SZSOCF">
+<edm:aggregatedCHO rdf:resource="URN:NBN:SI:doc-35SZSOCF"/>
+<edm:isShownBy rdf:resource="http://www.dlib.si/stream/URN:NBN:SI:doc-35SZSOCF/fe3c97d7-f950-4632-87cf-64844b040e71/PDF"/>
+<edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+<edm:provider>Slovenian National E-content Aggregator</edm:provider>
+<edm:dataProvider xml:lang="en">National and University Library of Slovenia</edm:dataProvider>
+<edm:object rdf:resource="http://www.dlib.si/streamdb/URN:NBN:SI:doc-35SZSOCF/maxi/edm"/>
+<edm:isShownAt rdf:resource="http://www.dlib.si/details/URN:NBN:SI:doc-35SZSOCF"/>
+</ore:Aggregation>
+</rdf:RDF>

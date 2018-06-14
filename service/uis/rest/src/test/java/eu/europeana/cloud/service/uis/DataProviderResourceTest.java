@@ -1,22 +1,16 @@
 package eu.europeana.cloud.service.uis;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.service.uis.exception.*;
+import eu.europeana.cloud.service.uis.rest.DataProviderResource;
+import eu.europeana.cloud.service.uis.rest.JerseyConfig;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
@@ -24,26 +18,23 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
-import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.rest.DataProviderResource;
-import eu.europeana.cloud.service.uis.rest.JerseyConfig;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 /**
  * DataProviderResourceTest
@@ -298,13 +289,16 @@ public class DataProviderResourceTest extends JerseyTest {
     @Test
     public void testGetCloudIdsByProvider()
             throws Exception {
+        //given
         ResultSlice<CloudId> cloudIdListWrapper = new ResultSlice<>();
         List<CloudId> cloudIdList = new ArrayList<>();
         cloudIdList.add(createCloudId("providerId", "recordId"));
         cloudIdListWrapper.setResults(cloudIdList);
-        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 10000)).thenReturn(cloudIdList);
+        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 10001)).thenReturn(cloudIdList);
+        //when
         Response response = target("/data-providers/providerId/cloudIds").queryParam("from", "recordId").request()
                 .get();
+        //then
         assertThat(response.getStatus(), is(200));
         ResultSlice<CloudId> retList = response.readEntity(ResultSlice.class);
         assertThat(retList.getResults().size(), is(cloudIdListWrapper.getResults().size()));
@@ -313,6 +307,72 @@ public class DataProviderResourceTest extends JerseyTest {
                 .getLocalId().getProviderId());
         assertEquals(retList.getResults().get(0).getLocalId().getRecordId(), cloudIdListWrapper.getResults().get(0)
                 .getLocalId().getRecordId());
+    }
+
+    /**
+     * The the retrieval of cloud ids based on a provider with specified limit
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetCloudIdsByProviderWithLimit()
+            throws Exception {
+        //given
+        final int limit = 1;
+        ResultSlice<CloudId> resultSlice = new ResultSlice<>();
+        CloudId cloudId = createCloudId("providerId", "recordId");
+        CloudId nextSliceCloudId = createCloudId("providerId", "recordId2");
+        List<CloudId> cloudIds = new ArrayList<>(Arrays.asList(cloudId, nextSliceCloudId));
+        resultSlice.setResults(cloudIds);
+        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 2)).thenReturn(cloudIds);
+        //when
+        Response response = target("/data-providers/providerId/cloudIds").queryParam(UISParamConstants.Q_FROM, "recordId").queryParam(UISParamConstants.Q_LIMIT, limit).request()
+                .get();
+        //then
+        assertThat(response.getStatus(), is(200));
+        ResultSlice<CloudId> result = response.readEntity(ResultSlice.class);
+        assertThat(result.getResults().size(), is(limit));
+        CloudId firstEntryFromResultSlice = result.getResults().get(0);
+        assertEquals(firstEntryFromResultSlice.getId(), cloudId.getId());
+        assertEquals(firstEntryFromResultSlice.getLocalId().getProviderId(), cloudId
+                .getLocalId().getProviderId());
+        assertEquals(firstEntryFromResultSlice.getLocalId().getRecordId(), cloudId
+                .getLocalId().getRecordId());
+        assertThat(result.getNextSlice(), is(nextSliceCloudId.getLocalId().getRecordId()));
+    }
+
+    /**
+     * The the retrieval of cloud ids based on a provider with less than specified limit
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetCloudIdsByProviderWithLessThanLimit()
+            throws Exception {
+        //given
+        final int limit = 3;
+        ResultSlice<CloudId> resultSlice = new ResultSlice<>();
+        CloudId cloudId = createCloudId("providerId", "recordId");
+        CloudId nextSliceCloudId = createCloudId("providerId", "recordId2");
+        List<CloudId> cloudIds = new ArrayList<>(Arrays.asList(cloudId, nextSliceCloudId));
+        resultSlice.setResults(cloudIds);
+        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 4)).thenReturn(cloudIds);
+        //when
+        Response response = target("/data-providers/providerId/cloudIds").queryParam(UISParamConstants.Q_FROM, "recordId").queryParam(UISParamConstants.Q_LIMIT, limit).request()
+                .get();
+        //then
+        assertThat(response.getStatus(), is(200));
+        ResultSlice<CloudId> result = response.readEntity(ResultSlice.class);
+        assertThat(result.getResults().size(), is(2));
+        CloudId firstEntryFromResultSlice = result.getResults().get(0);
+        assertEquals(firstEntryFromResultSlice.getId(), cloudId.getId());
+        assertEquals(firstEntryFromResultSlice.getLocalId().getProviderId(), cloudId
+                .getLocalId().getProviderId());
+        assertEquals(firstEntryFromResultSlice.getLocalId().getRecordId(), cloudId
+                .getLocalId().getRecordId());
+        assertThat(result.getNextSlice(), nullValue());
     }
 
     /**
@@ -333,7 +393,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
 	when(
 		uniqueIdentifierService.getCloudIdsByProvider("providerId",
-			"recordId", 10000)).thenThrow(exception);
+			"recordId", 10001)).thenThrow(exception);
 
 	Response resp = target("/data-providers/providerId/cloudIds")
 		.queryParam("from", "recordId").request().get();
@@ -371,7 +431,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
 	when(
 		uniqueIdentifierService.getCloudIdsByProvider("providerId",
-			"recordId", 10000)).thenThrow(exception);
+			"recordId", 10001)).thenThrow(exception);
 
 	Response resp = target("/data-providers/providerId/cloudIds")
 		.queryParam("from", "recordId").request().get();
@@ -403,7 +463,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
 	when(
 		uniqueIdentifierService.getCloudIdsByProvider("providerId",
-			"recordId", 10000)).thenThrow(exception);
+			"recordId", 10001)).thenThrow(exception);
 
 	Response resp = target("/data-providers/providerId/cloudIds")
 		.queryParam("from", "recordId").request().get();

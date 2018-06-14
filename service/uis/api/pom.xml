@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
 		<artifactId>ecloud-service-uis</artifactId>
-		<version>0.5.3</version>
+		<version>1.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>ecloud-service-uis-api</artifactId>
@@ -20,6 +20,12 @@
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	 <dependency>
 	  <groupId>commons-codec</groupId>

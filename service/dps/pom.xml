@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-parent</artifactId>
-        <version>0.5.3</version>
+        <version>1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -16,7 +16,7 @@
 
     <properties>
 
-        <version.storm_kafka>0.9.2-incubating</version.storm_kafka>
+        <version.storm_kafka>1.0.2</version.storm_kafka>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.directory>${project.parent.basedir}</main.directory>
@@ -26,17 +26,21 @@
     <modules>
         <module>api</module>
         <module>kafka-service</module>
-        <module>zoo-service</module>
         <module>rest</module>
         <module>rest-client-java</module>
         <module>storm/common</module>
-        <module>storm/kafka</module>
         <module>storm/io</module>
-        <module>storm/transform/xslt</module>
         <module>storm/topologies/xslt</module>
         <module>storm/examples</module>
-        <module>cassandra</module>
         <module>storm/topologies/ic</module>
         <module>utils</module>
+        <module>storm/topologies/oai-pmh</module>
+        <module>storm/topologies/topologies-common-helper-test</module>
+        <module>storm/topologies/validation</module>
+        <module>storm/topologies/dereference-enrichment</module>
+        <module>storm/topologies/http-harvesting</module>
+        <module>storm/topologies/indexing</module>
+        <module>storm/topologies/normalization</module>
+        <module>storm/topologies/media</module>
     </modules>
 </project>

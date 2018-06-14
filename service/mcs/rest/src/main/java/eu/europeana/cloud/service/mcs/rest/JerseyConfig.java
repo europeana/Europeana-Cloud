@@ -8,7 +8,6 @@ import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
 /**
  * Jersey Configuration for Exception Mappers and Resources
- * 
  */
 public class JerseyConfig extends ResourceConfig {
 
@@ -39,6 +38,8 @@ public class JerseyConfig extends ResourceConfig {
         register(ProviderNotExistsExceptionMapper.class);
         register(WebApplicationExceptionMapper.class);
         register(RuntimeExceptionMapper.class);
+        registerClasses(RevisionIsNotValidExceptionMapper.class);
+        register(RevisionNotExistsExceptionMapper.class);
 
         // resources
         register(RecordsResource.class);
@@ -49,11 +50,15 @@ public class JerseyConfig extends ResourceConfig {
         register(RepresentationAuthorizationResource.class);
         register(FilesResource.class);
         register(FileResource.class);
+        register(FileUploadResource.class);
         register(DataSetResource.class);
         register(DataSetsResource.class);
         register(DataSetAssignmentsResource.class);
+        register(DataSetRevisionsResource.class);
         register(SimplifiedFileAccessResource.class);
         register(SimplifiedRecordsResource.class);
         register(SimplifiedRepresentationResource.class);
+        registerClasses(RevisionResource.class);
+        registerClasses(RepresentationRevisionsResource.class);
     }
 }

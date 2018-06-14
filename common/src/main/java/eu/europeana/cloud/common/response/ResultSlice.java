@@ -1,17 +1,12 @@
 package eu.europeana.cloud.common.response;
 
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.model.Representation;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import eu.europeana.cloud.common.model.*;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Result slice for methods that would return possibly huge collections of objects that must be divided into paged to
@@ -20,7 +15,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
  * @param <T> Class of returned objects.
  */
 @XmlRootElement
-@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class}) // references to all classes that might be used as generics parameters
+@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class, String.class, CloudVersionRevisionResponse.class, CloudIdAndTimestampResponse.class, CloudTagsResponse.class}) // references to all classes that might be used as generics parameters
 public class ResultSlice<T> {
 
 	/**

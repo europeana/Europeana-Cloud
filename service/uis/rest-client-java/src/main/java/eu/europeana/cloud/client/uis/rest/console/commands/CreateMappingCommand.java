@@ -1,10 +1,10 @@
 package eu.europeana.cloud.client.uis.rest.console.commands;
 
-import javax.naming.directory.InvalidAttributesException;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+
+import javax.naming.directory.InvalidAttributesException;
 
 /**
  * Create a new mapping console command

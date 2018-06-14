@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
 /**
  * Content storage DAOs interface .
@@ -23,7 +23,7 @@ public interface ContentDAO {
      *             if source object does not exist in the storage
      */
     void copyContent(String sourceObjectId, String trgObjectId)
-            throws FileNotExistsException, FileAlreadyExistsException;
+            throws FileNotExistsException, FileAlreadyExistsException, IOException;
 
 
     /**

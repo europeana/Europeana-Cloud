@@ -1,16 +1,17 @@
 #!/bin/bash
 
 array=(
-dls
+dps
 mcs
 uis
 aas
-solr
 )
+#solr, dls disabled for now
 
 success=0
-pass=`sed -nr 's/.*tomcat-admin.*password="(.*)" roles.*/\1/p' ~/tomcat/conf/tomcat-users.xml`
-cmd=`curl http://tomcat-admin:$pass@localhost:9090/manager/text/list`
+#it's only for docker purposes!
+pass=admin
+cmd=`curl http://admin:$pass@localhost:8080/manager/text/list`
 echo $cmd
 for i in "${array[@]}"
 do

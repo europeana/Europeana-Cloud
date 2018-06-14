@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import java.util.ArrayList;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import java.util.Collection;
 import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class TestUtil {
 

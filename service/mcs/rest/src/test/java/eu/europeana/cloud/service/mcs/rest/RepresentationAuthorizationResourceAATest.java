@@ -13,7 +13,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -26,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -63,7 +63,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     private static final String COPIED_REPRESENTATION_VERSION = "KIT_KAT_COPIED";
 
     private static final String FILE_NAME = "FILE_NAME";
-    private static final String MIME_TYPE = "CLOWN";
+    private static final String MIME_TYPE = APPLICATION_OCTET_STREAM_TYPE.toString();
 
     private static final String READ_PERMISSION = "read";
     private static final String WRITE_PERMISSION = "write";
@@ -147,6 +147,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
         File f = new File();
         f.setFileName(FILE_NAME);
+        f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
@@ -175,6 +176,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
         File f = new File();
         f.setFileName(FILE_NAME);
+        f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
@@ -200,6 +202,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
         File f = new File();
         f.setFileName(FILE_NAME);
+        f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
         try {
@@ -240,6 +243,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
         File f = new File();
         f.setFileName(FILE_NAME);
+        f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
@@ -264,6 +268,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
         File f = new File();
         f.setFileName(FILE_NAME);
+        f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
@@ -309,6 +314,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
         File f = new File();
         f.setFileName(FILE_NAME);
+        f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);

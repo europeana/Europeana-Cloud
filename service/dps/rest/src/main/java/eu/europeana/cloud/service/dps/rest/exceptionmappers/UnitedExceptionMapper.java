@@ -3,9 +3,9 @@ package eu.europeana.cloud.service.dps.rest.exceptionmappers;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TopologyAlreadyExistsException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.status.DpsErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,14 +20,11 @@ import javax.ws.rs.core.Response;
  */
 public class UnitedExceptionMapper {
 
-    static final int UNPROCESSABLE_ENTITY = 422;
 
     private final static Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
 
     /**
-     * Maps {@link CannotModifyPersistentRepresentationException} to {@link Response}. Returns a response with HTTP
-     * status code 405 - "Method Not Allowed" and a {@link ErrorInfo} with exception details as a message body.
-     * 
+     *
      * @param exception
      *            the exception to map to a response
      * @return a response mapped from the supplied exception
@@ -89,6 +86,10 @@ public class UnitedExceptionMapper {
 
     public Response toResponse(TaskSubmissionException exception) {
         return buildResponse(Response.Status.BAD_REQUEST, DpsErrorCode.OTHER, exception);
+    }
+
+    public Response toResponse(AccessDeniedOrObjectDoesNotExistException exception) {
+        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
     }
     
     private static Response buildResponse(Response.Status httpStatus, DpsErrorCode errorCode, Exception e) {

@@ -8,32 +8,31 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import junitparams.JUnitParamsRunner;
-import static junitparams.JUnitParamsRunner.$;
 import junitparams.Parameters;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 import org.springframework.context.ApplicationContext;
+
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import static junitparams.JUnitParamsRunner.$;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.*;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationsResourceTest extends JerseyTest {
@@ -45,7 +44,7 @@ public class RepresentationsResourceTest extends JerseyTest {
     static final private String version = "1.0";
     static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
             version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-                    "2013-01-01", 12345, null)), true, new Date())));
+                    "2013-01-01", 12345, null)),null, true, new Date())));
 
 
     @Override

@@ -12,24 +12,22 @@ import javax.naming.NamingException;
 import java.util.Enumeration;
 
 /**
- * 
  * Inserts unique instance name into log message based on machine hostname;<br/>
- *
  */
 public class SimpleLoggingConfigurator extends LoggingConfigurator {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(SimpleLoggingConfigurator.class);
-    
-    private static final String EUROPEANA_CLOUD_LOGGER_NAME ="eu.europeana.cloud.service.commons.logging.LoggingFilter";
+
+    private static final String EUROPEANA_CLOUD_LOGGER_NAME = "eu.europeana.cloud.service.commons.logging.LoggingFilter";
     private static final String KAFKA_APPENDER_NAME = "KAFKA";
     private static final String KAFKA_BROKER_LIST_JNDI_NAME = "java:comp/env/logging/kafka/brokerList";
-    
+
     @Override
     @PostConstruct
     public void configure() {
         LOGGER.info("Start configuring logging system");
         String hostname = readHostname(null);
-        
+
         configureKafkaLogger(hostname);
         configureRootLogger(hostname);
 
@@ -38,13 +36,13 @@ public class SimpleLoggingConfigurator extends LoggingConfigurator {
 
     private void configureKafkaLogger(String hostname) {
         Logger europeanaLogger = Logger.getLogger(EUROPEANA_CLOUD_LOGGER_NAME);
-        try{
-            if(isKafkaAppenderDefined(europeanaLogger)){
+        try {
+            if (isKafkaAppenderDefined(europeanaLogger)) {
                 configureKafkaAppender(europeanaLogger);
             }
-        }catch(NamingException ex){
+        } catch (NamingException ex) {
             removeKafkaAppenderFromLogger(europeanaLogger);
-            LOGGER.error("Name " +KAFKA_BROKER_LIST_JNDI_NAME +" not found in JNDI.");
+            LOGGER.error("Name " + KAFKA_BROKER_LIST_JNDI_NAME + " not found in JNDI.");
         }
         turnOnLogger(europeanaLogger);
         loggerUpdater.update(europeanaLogger, APPLICATION_INSTANCE_NAME_MARKER, hostname);
@@ -63,24 +61,24 @@ public class SimpleLoggingConfigurator extends LoggingConfigurator {
             } else {
                 return false;
             }
-        }else{
+        } else {
             return false;
         }
     }
-    
+
     private void configureKafkaAppender(Logger logger) throws NamingException {
         Enumeration<Appender> appenderEnumerator = logger.getAllAppenders();
         while (appenderEnumerator.hasMoreElements()) {
             Appender appender = appenderEnumerator.nextElement();
-            if(appender instanceof KafkaLog4jAppender){
-                KafkaLog4jAppender kafkaAppender = (KafkaLog4jAppender)appender;
+            if (appender instanceof KafkaLog4jAppender) {
+                KafkaLog4jAppender kafkaAppender = (KafkaLog4jAppender) appender;
                 String brokerList = readKafkaBrokerListFromJNDI();
                 kafkaAppender.setBrokerList(brokerList);
                 kafkaAppender.activateOptions();
             }
         }
     }
-    
+
     private String readKafkaBrokerListFromJNDI() throws NamingException {
         JndiTemplate jndi = new JndiTemplate();
         return jndi.lookup(KAFKA_BROKER_LIST_JNDI_NAME).toString();
@@ -91,6 +89,7 @@ public class SimpleLoggingConfigurator extends LoggingConfigurator {
     }
 
     private void turnOnLogger(Logger logger) {
-        logger.setLevel(Level.INFO);
+        if (logger != null)
+            logger.setLevel(Level.INFO);
     }
 }

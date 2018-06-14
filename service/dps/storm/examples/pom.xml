@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
 		<artifactId>ecloud-service-dps</artifactId>
-		<version>0.5.3</version>
+		<version>1.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -20,13 +20,47 @@
 	<dependencies>
 
 		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.saxon</groupId>
+			<artifactId>Saxon-HE</artifactId>
+			<version>9.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+
+		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>
 				ecloud-service-dps-storm-topologies-ic-topology
 			</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-	
+
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>
+				ecloud-service-dps-storm-topologies-normalization-cleaning
+			</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.iharder</groupId>
+			<artifactId>base64</artifactId>
+			<version>2.3.8</version>
+		</dependency>
+
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
@@ -40,7 +74,7 @@
             	</exclusion>
             </exclusions>
         </dependency>
-        
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-dps-api</artifactId>
@@ -148,13 +182,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>
-        		ecloud-service-dps-storm-transform-xslt
-        	</artifactId>
-			<version>0.5.1</version>
+			<artifactId>ecloud-service-dps-storm-topologies-oai-pmh-harvester</artifactId>
+			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>jcl-over-slf4j</artifactId>
@@ -170,65 +202,49 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>
-				ecloud-service-dps-storm-transform-text
-			</artifactId>
-			<version>0.5.1</version>
+			<artifactId>ecloud-service-dps-storm-topologies-http-harvester</artifactId>
+			<version>${project.version}</version>
 			<exclusions>
+				<exclusion>
+					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
 				<exclusion>
 					<artifactId>log4j</artifactId>
 					<groupId>log4j</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>slf4j-log4j12</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
 			</exclusions>
 		</dependency>
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>
-				ecloud-service-dps-storm-topologies-text
-			</artifactId>
-			<version>0.5.1</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>kafka_2.9.2</artifactId>
-					<groupId>org.apache.kafka</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>slf4j-log4j12</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>
-				ecloud-service-dps-storm-topologies-indexer
-			</artifactId>
-			<version>0.5.1</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-dps-similarity</artifactId>
-			<version>0.5.1</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-dps-storm-kafka</artifactId>
+				ecloud-service-dps-storm-topologies-xslt
+        	</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
+					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
 					<artifactId>slf4j-log4j12</artifactId>
 					<groupId>org.slf4j</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
-
-
 		<!--logging -->
 		<dependency>
 			<groupId>com.github.danielwegener</groupId>
@@ -239,7 +255,7 @@
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-kafka</artifactId>
-			<version>0.9.2-incubating</version>
+			<version>${version.storm_kafka}</version>
 		</dependency>
 
 		<dependency>
@@ -265,7 +281,7 @@
 			<version>${version.spring-framework}</version>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<sourceDirectory>src/main/java</sourceDirectory>
@@ -277,7 +293,7 @@
 		</resources>
 
 		<plugins>
-			<!-- Bind the maven-assembly-plugin to the package phase this will create 
+			<!-- Bind the maven-assembly-plugin to the package phase this will create
 				a jar file without the storm dependencies suitable for deployment to a cluster. -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -344,7 +360,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
+				<!--This plugin's configuration is used to store Eclipse m2e settings
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>

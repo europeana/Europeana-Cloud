@@ -1,35 +1,20 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.rits.cloning.Cloner;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.util.Map;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.mcs.exception.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+
 
 /**
  * Read file/files from MCS and every file emits as separate {@link StormTaskTuple}.
@@ -43,71 +28,56 @@ public class ReadFileBolt extends AbstractDpsBolt {
      * Properties to connect to eCloud
      */
     private final String ecloudMcsAddress;
-    private final String username;
-    private final String password;
 
-    private FileServiceClient fileClient;
-    private DataSetServiceClient dataSetClient;
-
-    public ReadFileBolt(String ecloudMcsAddress, String username, String password) {
+    public ReadFileBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-        this.username = username;
-        this.password = password;
     }
 
     @Override
     public void prepare() {
-        fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
-        dataSetClient = new DataSetServiceClient(ecloudMcsAddress, username, password);
     }
 
     @Override
     public void execute(StormTaskTuple t) {
-        String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-        if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
-            Type type = new TypeToken<Map<String, List<String>>>() {
-            }.getType();
-            Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
-            if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
-                List<String> files = fromJson.get(DpsTask.FILE_URLS);
-                if (!files.isEmpty()) {
-                    emitFiles(t, files);
-                    emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
-                    outputCollector.ack(inputTuple);
-                    return;
-                }
-            }
-        } else {
-
-            String message = "No URL for retrieve file.";
-            LOGGER.warn(message);
-            emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 0, TaskState.DROPPED, message);
-            outputCollector.ack(inputTuple);
-            return;
-        }
-
+        String file = t.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        FileServiceClient fileClient = new FileServiceClient(ecloudMcsAddress);
+        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        fileClient.useAuthorizationHeader(authorizationHeader);
+        t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        emitFile(t, fileClient, file);
     }
 
-    private void emitFiles(StormTaskTuple t, List<String> files) {
-        StormTaskTuple tt;
+    void emitFile(StormTaskTuple t, FileServiceClient fileClient, String file) {
+        try {
+            LOGGER.info("HERE THE LINK: {}", file);
+            InputStream is = getFile(fileClient, file);
+            t.setFileData(is);
+            t.setFileUrl(file);
+            outputCollector.emit(t.toStormTuple());
+        } catch (RepresentationNotExistsException | FileNotExistsException |
+                WrongContentRangeException ex) {
+            LOGGER.warn("Can not retrieve file at {}", file);
+            emitErrorNotification(t.getTaskId(), file, "Can not retrieve file", "");
+        } catch (DriverException | MCSException | IOException ex) {
+            LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
+            emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
+        }
+    }
 
-        for (String file : files) {
-            tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
 
+    private InputStream getFile(FileServiceClient fileClient, String file) throws MCSException, IOException, DriverException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
             try {
-                LOGGER.info("HERE THE LINK: " + file);
-                InputStream is = fileClient.getFile(file);
-                tt.setFileData(is);
-                tt.setFileUrl(file);
-                outputCollector.emit(inputTuple, tt.toStormTuple());
-            } catch (RepresentationNotExistsException | FileNotExistsException |
-                    WrongContentRangeException ex) {
-                LOGGER.warn("Can not retrieve file at {}", file);
-                emitDropNotification(t.getTaskId(), file, "Can not retrieve file", "");
-            } catch (DriverException | MCSException | IOException ex) {
-                LOGGER.error("ReadFileBolt error:" + ex.getMessage());
-                emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
+                return fileClient.getFile(file);
+            } catch (MCSException | DriverException e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while getting a file. Retries left:{} ", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while getting a file.");
+                    throw e;
+                }
             }
         }
     }

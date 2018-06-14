@@ -2,19 +2,22 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.test.CassandraTestRunner;
-import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.RequestEntityProcessing;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
@@ -22,47 +25,25 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 
 import static org.junit.Assert.assertEquals;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.springframework.context.ApplicationContext;
-
 /**
  * This tests checks if content is streamed (not put entirely into memory) when uploading file.
  */
-@RunWith(CassandraTestRunner.class)
 public class HugeFileResourceUploadIT extends JerseyTest {
 
     private static RecordService recordService;
 
     private static final int HUGE_FILE_SIZE = 1 << 30;
-
-
-    @BeforeClass
-    public static void cleanUpAfterPreviousTest()
-            throws InterruptedException {
-        // not sure why it's needed - but without it, this test fails (something isn't cleaned after previous test)
-        TimeUnit.SECONDS.sleep(5);
-    }
 
 
     @Before
@@ -82,15 +63,15 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:hugeFileResourceTestContext.xml");
     }
 
 
     @Override
     protected void configureClient(ClientConfig config) {
         config.register(MultiPartFeature.class);
-        config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 1024);
-        config.connector(new ChunkedHttpUrlConnector(config));
+        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
+                RequestEntityProcessing.CHUNKED);
     }
 
 

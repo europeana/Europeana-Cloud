@@ -4,23 +4,21 @@ import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.net.URI;
-import java.util.List;
-import java.util.NoSuchElementException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import eu.europeana.cloud.service.mcs.exception.*;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import java.net.URI;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.*;
 
 public class DataSetServiceClientTest {
 
@@ -29,7 +27,7 @@ public class DataSetServiceClientTest {
 
     //TODO clean
     //this is only needed for recording tests
-    private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
+    private final String baseUrl = "http://localhost:8080/mcs";
 
     @Betamax(tape = "dataSets_shouldRetrieveDataSetsFirstChunk")
     @Test
@@ -523,9 +521,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000002";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema66";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
         assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
     }
@@ -539,10 +538,11 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000002";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema66";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 
@@ -554,9 +554,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000023";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema66";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
         assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
 
     }
@@ -570,9 +571,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000007";
         String cloudId = "1DZ6HTS415W";
         String representationName = "noSuchSchema";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 
@@ -584,9 +586,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000058";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema77";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 
@@ -598,9 +601,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "noSuchDataSet";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema77";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 
@@ -765,5 +769,136 @@ public class DataSetServiceClientTest {
         iterator.next();
     }
 
+    @Betamax(tape = "dataSets_shouldRetrieveDataSetCloudIdsByRepresentationFirstChunk")
+    @Test
+    public void shouldRetrieveDataSetCloudIdsByRepresentationFirstChunk()
+            throws MCSException {
+        String providerId = "provider";
+        String dataSet = "dataset";
+        String representationName = "representation";
+        String dateFrom = "2016-08-21T11:08:28.059";
+
+        //the tape was recorded when the result chunk was 100
+        int resultSize = 5;
+        String startFrom = "005a00100015000870726f76696465720000076461746173657400003d000e726570726573656e746174696f6e00000800000156b1580d280000087265766973696f6e000007636c6f75645f350000097075626c6973686564007ffffffa76a6db9eb099834f7db2bad6a99690e10003";
+
+        DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
+        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", null);
+
+        assertNotNull(result.getResults());
+        assertEquals(result.getResults().size(), resultSize);
+        assertEquals(result.getNextSlice(), startFrom);
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrieveDataSetCloudIdsByRepresentationAllChunks")
+    @Test
+    public void shouldRetrieveDataSetCloudIdsByRepresentationAllChunks()
+            throws MCSException {
+        String providerId = "provider";
+        String dataSet = "dataset";
+        String representationName = "representation";
+        String dateFrom = "2016-08-21T11:08:28.059";
+
+        //the tape was recorded when the result chunk was 100
+        int resultSize = 5;
+        String startFrom = null;
+
+        DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
+        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
+
+        while (result.getNextSlice() != null) {
+            assertNotNull(result.getResults());
+            assertEquals(result.getResults().size(), resultSize);
+            startFrom = result.getNextSlice();
+            result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
+        }
+
+        // this is the last chunk
+        assertNotNull(result.getResults());
+        assertTrue(result.getResults().size() <= resultSize);
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrieveCloudIdsForSpecificRevision")
+    @Test
+    public void shouldRetrieveCloudIdsForSpecificRevision()
+            throws MCSException {
+        //given
+        String providerId = "LFT";
+        String dataSetId = "set1";
+        String representationName = "t1";
+        String revisionName = "IMPORT";
+        String revisionProviderId = "EU";
+        String revisionTimestamp = "2017-01-09T08:16:47.824";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        List<CloudTagsResponse> cloudIds = instance.getDataSetRevisions(providerId, dataSetId, representationName,
+                revisionName, revisionProviderId, revisionTimestamp);
+        //then
+        assertThat(cloudIds.size(), is(2));
+        CloudTagsResponse cid = cloudIds.get(0);
+        assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
+        assertTrue(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertFalse(cid.isPublished());
+
+        cid = cloudIds.get(1);
+        assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
+        assertFalse(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertTrue(cid.isPublished());
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrievCloudIdsChunkForSpecificRevision")
+    @Test
+    public void shouldRetrievCloudIdsChunkForSpecificRevision()
+            throws MCSException {
+        //given
+        String providerId = "LFT";
+        String dataSetId = "set1";
+        String representationName = "t1";
+        String revisionName = "IMPORT";
+        String revisionProviderId = "EU";
+        String revisionTimestamp = "2017-01-09T08:16:47.824";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        ResultSlice<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
+                revisionName, revisionProviderId, revisionTimestamp, null, null);
+        //then
+        assertThat(cloudIds.getNextSlice(), nullValue());
+        assertThat(cloudIds.getResults().size(), is(2));
+        CloudTagsResponse cid = cloudIds.getResults().get(0);
+        assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
+        assertTrue(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertFalse(cid.isPublished());
+
+        cid = cloudIds.getResults().get(1);
+        assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
+        assertFalse(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertTrue(cid.isPublished());
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrieveLatelyTaggedRecordsVersion")
+    @Test
+    public void shouldReturnSpecificVersion()
+            throws MCSException {
+
+
+        String providerId = "provider";
+        String dataSetId = "dataset";
+        String cloudId = "cloudId";
+        String representationName = "representation";
+        String revisionName = "revision";
+        String revisionProviderId = "revisionProvider";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        String version = instance.getLatelyTaggedRecords(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
+        //then
+        assertNotNull(version);
+        assertEquals(version, "ef240330-f783-11e6-a0f6-1c6f653f9042");
+
+    }
 
 }

@@ -2,7 +2,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>0.5.3</version>
+        <version>1.0</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -69,14 +69,11 @@
             <artifactId>log4j</artifactId>
         </dependency>
 
-
-
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
-            <version>1.10</version>
+            <version>${version.tika}</version>
         </dependency>
-
 
         <dependency>
             <groupId>junit</groupId>
@@ -85,4 +82,15 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>@{jacocoArgLine} -XX:MaxPermSize=128M</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

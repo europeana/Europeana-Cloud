@@ -1,7 +1,10 @@
 package eu.europeana.cloud.service.aas.authentication;
 
-import static org.junit.Assert.assertEquals;
-
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.User;
+import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
+import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
+import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,12 +14,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.common.model.User;
-import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
-import org.junit.After;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Authentication Service Unit tests
@@ -40,7 +38,7 @@ public class CassandraAuthenticationServiceTest extends CassandraTestBase {
      */
     @Before
     public void prepare() {
-	createKeyspaces();
+
 	@SuppressWarnings("resource")
 	ApplicationContext context = new ClassPathXmlApplicationContext(
 		"default-context.xml");
@@ -48,11 +46,6 @@ public class CassandraAuthenticationServiceTest extends CassandraTestBase {
 	service = (CassandraAuthenticationService) context.getBean("service");
 	dao = (CassandraUserDAO) context.getBean("dao");
 
-    }
-
-    @After
-    public void clean() {
-	dropAllKeyspaces();
     }
 
     /**

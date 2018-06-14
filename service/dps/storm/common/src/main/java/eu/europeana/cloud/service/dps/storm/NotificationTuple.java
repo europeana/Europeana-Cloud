@@ -1,12 +1,14 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
+
 import eu.europeana.cloud.common.model.dps.InformationTypes;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,25 +25,35 @@ public class NotificationTuple {
 
     private final long taskId;
     private final InformationTypes informationType;
-    private final Map<String, String> parameters;
+    private final Map<String, Object> parameters;
 
-    protected NotificationTuple(long taskId, InformationTypes informationType, Map<String, String> parameters) {
+    protected NotificationTuple(long taskId, InformationTypes informationType, Map<String, Object> parameters) {
         this.taskId = taskId;
         this.informationType = informationType;
         this.parameters = parameters;
     }
 
-    public static NotificationTuple prepareBasicInfo(long taskId, int expectedSize, TaskState state,String info) {
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put(NotificationParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
+
+    public static NotificationTuple prepareUpdateTask(long taskId, String info, TaskState state, Date startTime) {
+        Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.TASK_STATE, state.toString());
+        parameters.put(NotificationParameterKeys.START_TIME, startTime);
         parameters.put(NotificationParameterKeys.INFO, info);
-        return new NotificationTuple(taskId, InformationTypes.BASIC_INFO, parameters);
+        return new NotificationTuple(taskId, InformationTypes.UPDATE_TASK, parameters);
     }
+
+    public static NotificationTuple prepareEndTask(long taskId, String info, TaskState state, Date finishTime) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(NotificationParameterKeys.TASK_STATE, state.toString());
+        parameters.put(NotificationParameterKeys.FINISH_TIME, finishTime);
+        parameters.put(NotificationParameterKeys.INFO, info);
+        return new NotificationTuple(taskId, InformationTypes.END_TASK, parameters);
+    }
+
 
     public static NotificationTuple prepareNotification(long taskId, String resource,
                                                         States state, String text, String additionalInformations) {
-        Map<String, String> parameters = new HashMap<>();
+        Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
@@ -52,7 +64,7 @@ public class NotificationTuple {
 
     public static NotificationTuple prepareNotification(long taskId, String resource,
                                                         States state, String text, String additionalInformations, String resultResource) {
-        Map<String, String> parameters = new HashMap<>();
+        Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
@@ -69,11 +81,11 @@ public class NotificationTuple {
         return informationType;
     }
 
-    public Map<String, String> getParameters() {
+    public Map<String, Object> getParameters() {
         return parameters;
     }
 
-    public String getParameter(String key) {
+    public Object getParameter(String key) {
         return parameters.get(key);
     }
 
@@ -84,7 +96,7 @@ public class NotificationTuple {
     public static NotificationTuple fromStormTuple(Tuple tuple) {
         return new NotificationTuple(tuple.getLongByField(taskIdFieldName),
                 (InformationTypes) tuple.getValueByField(informationTypeFieldName),
-                (Map<String, String>) tuple.getValueByField(parametersFieldName));
+                (Map<String, Object>) tuple.getValueByField(parametersFieldName));
     }
 
     public Values toStormTuple() {

@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:task="http://www.springframework.org/schema/task"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:jee="http://www.springframework.org/schema/jee"
-       xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
-                        http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
-                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+                        http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd">
 
     <context:annotation-config/>
     <import resource="classpath:config.xml"/>
@@ -19,6 +16,9 @@
 
     <bean id="permissionManager"
           class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
+
+    <bean id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"
+          scope="prototype"/>
 
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
         <constructor-arg name="kafkaBroker">
@@ -31,14 +31,7 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
         </constructor-arg>
     </bean>
-
-    <bean id="taskKillService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService">
-        <constructor-arg name="zookeeperConnectString">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
-        </constructor-arg>
-    </bean>
-
-    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService">
+    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService">
         <constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>
         </constructor-arg>
@@ -60,9 +53,6 @@
     <bean id="topologyManger" class="eu.europeana.cloud.service.dps.service.utils.TopologyManager">
         <constructor-arg name="nameList">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/nameList"/>
-        </constructor-arg>
-        <constructor-arg name="userNameList">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/userNameList"/>
         </constructor-arg>
     </bean>
     <bean id="mcsLocation" class="java.lang.String">
@@ -112,11 +102,25 @@
     </bean>
 
 
-
     <bean id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
+
+    <bean id="killService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+
+    <bean id="validationStatisticsService"
+          class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService">
+    </bean>
+    <bean id="cassandraNodeStatisticsDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+    <bean id="cassandraAttributeStatisticsDAO"
+          class="eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
 
     <import resource="authentication.xml"/>
     <import resource="authorization.xml"/>

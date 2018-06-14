@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import backtype.storm.tuple.Fields;
+
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import org.apache.commons.io.IOUtils;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 
 import java.io.*;
 import java.util.HashMap;
-
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
-import org.apache.commons.io.IOUtils;
-
 import java.util.Map;
 
 
@@ -27,9 +28,9 @@ public class StormTaskTuple implements Serializable {
     private long taskId;
     private String taskName;
     private Map<String, String> parameters;
-
-
-    private static final int BATCH_MAX_SIZE = 1024*4;
+    private static final int BATCH_MAX_SIZE = 1024 * 4;
+    private Revision revisionToBeApplied;
+    private OAIPMHHarvestingDetails sourceDetails;
 
     public StormTaskTuple() {
 
@@ -38,13 +39,20 @@ public class StormTaskTuple implements Serializable {
     }
 
     public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                          byte[] fileData, Map<String, String> parameters) {
+                          byte[] fileData, Map<String, String> parameters, Revision revision) {
 
         this.taskId = taskId;
         this.taskName = taskName;
         this.fileUrl = fileUrl;
         this.fileData = fileData;
         this.parameters = parameters;
+        revisionToBeApplied = revision;
+    }
+
+    public StormTaskTuple(long taskId, String taskName, String fileUrl,
+                          byte[] fileData, Map<String, String> parameters, Revision revision, OAIPMHHarvestingDetails sourceDetails) {
+        this(taskId, taskName, fileUrl, fileData, parameters, revision);
+        this.sourceDetails = sourceDetails;
     }
 
     public String getFileUrl() {
@@ -77,18 +85,23 @@ public class StormTaskTuple implements Serializable {
     }
 
     public void setFileData(InputStream is) throws IOException {
+        ByteArrayOutputStream tempByteArrayOutputStream = null;
         try {
             if (is != null) {
-                ByteArrayOutputStream tempByteArrayOutputStream = new ByteArrayOutputStream();
+                tempByteArrayOutputStream = new ByteArrayOutputStream();
                 byte[] buffer = new byte[BATCH_MAX_SIZE];
-                IOUtils.copyLarge(is,tempByteArrayOutputStream,buffer);
+                IOUtils.copyLarge(is, tempByteArrayOutputStream, buffer);
                 this.fileData = tempByteArrayOutputStream.toByteArray();
             } else {
                 this.fileData = null;
             }
         } finally {
-            if (is != null)
+            if (is != null) {
                 is.close();
+            }
+            if (tempByteArrayOutputStream != null) {
+                tempByteArrayOutputStream.close();
+            }
         }
     }
 
@@ -104,12 +117,32 @@ public class StormTaskTuple implements Serializable {
         parameters.put(parameterKey, parameterValue);
     }
 
+    public OAIPMHHarvestingDetails getSourceDetails() {
+        return sourceDetails;
+    }
+
+    public void setSourceDetails(OAIPMHHarvestingDetails sourceDetails) {
+        this.sourceDetails = sourceDetails;
+    }
+
     public String getParameter(String parameterKey) {
         return parameters.get(parameterKey);
     }
 
     public Map<String, String> getParameters() {
         return parameters;
+    }
+
+    public Revision getRevisionToBeApplied() {
+        return revisionToBeApplied;
+    }
+
+    public void setRevisionToBeApplied(Revision revision) {
+        revisionToBeApplied = revision;
+    }
+
+    public boolean hasRevisionToBeApplied() {
+        return revisionToBeApplied != null;
     }
 
     public static StormTaskTuple fromStormTuple(Tuple tuple) {
@@ -120,11 +153,15 @@ public class StormTaskTuple implements Serializable {
                 tuple.getStringByField(StormTupleKeys.INPUT_FILES_TUPLE_KEY),
                 tuple.getBinaryByField(StormTupleKeys.FILE_CONTENT_TUPLE_KEY),
                 (HashMap<String, String>) tuple
-                        .getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY));
+                        .getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY),
+                (Revision) tuple
+                        .getValueByField(StormTupleKeys.REVISIONS),
+                (OAIPMHHarvestingDetails) tuple.getValueByField(StormTupleKeys.SOURCE_TO_HARVEST));
+
     }
 
     public Values toStormTuple() {
-        return new Values(taskId, taskName, fileUrl, fileData, parameters);
+        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails);
     }
 
     public static Fields getFields() {
@@ -133,6 +170,10 @@ public class StormTaskTuple implements Serializable {
                 StormTupleKeys.TASK_NAME_TUPLE_KEY,
                 StormTupleKeys.INPUT_FILES_TUPLE_KEY,
                 StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-                StormTupleKeys.PARAMETERS_TUPLE_KEY);
+                StormTupleKeys.PARAMETERS_TUPLE_KEY,
+                StormTupleKeys.REVISIONS,
+                StormTupleKeys.SOURCE_TO_HARVEST);
     }
+
+
 }

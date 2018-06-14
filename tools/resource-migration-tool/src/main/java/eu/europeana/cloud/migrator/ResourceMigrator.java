@@ -7,6 +7,12 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.migrator.processing.FileProcessor;
+import eu.europeana.cloud.migrator.processing.FileProcessorFactory;
+import eu.europeana.cloud.migrator.provider.Cleaner;
+import eu.europeana.cloud.migrator.provider.DefaultResourceProvider;
+import eu.europeana.cloud.migrator.provider.FilePaths;
+import eu.europeana.cloud.migrator.provider.ResourceProvider;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
@@ -84,6 +90,12 @@ public class ResourceMigrator {
      */
     private ResourceProvider resourceProvider;
 
+
+    /**
+     * FileProcessor is an interface that supplies functions for some processing on the original files before they are uploaded to ECloud.
+     */
+    private FileProcessor fileProcessor;
+
     /**
      * Key is directory name, value is identifier that should be used in ECloud
      */
@@ -91,7 +103,7 @@ public class ResourceMigrator {
 
     protected int threadsCount = DEFAULT_PROVIDER_POOL_SIZE;
 
-    public ResourceMigrator(ResourceProvider resProvider, String dataProvidersMappingFile, String threadsCount) throws IOException {
+    public ResourceMigrator(ResourceProvider resProvider, String dataProvidersMappingFile, String threadsCount, FileProcessorFactory fileProcessorFactory) throws IOException {
         this.resourceProvider = resProvider;
         this.dataProvidersMapping = readDataProvidersMapping(dataProvidersMappingFile);
         if (threadsCount != null && !threadsCount.isEmpty()) {
@@ -103,6 +115,7 @@ public class ResourceMigrator {
                 // leave the default value
             }
         }
+        this.fileProcessor = fileProcessorFactory.create();
     }
 
     private Map<String, String> readDataProvidersMapping(String dataProvidersMappingFile) throws IOException {
@@ -202,6 +215,7 @@ public class ResourceMigrator {
                 logger.info("Verification of local identifier part " + localIdResult.getIdentifier() + " performed successfully. Verification time: " + localIdResult.getTime() + " sec. Number of not migrated identifiers: " + localIdResult.getNotMigratedCount());
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.error("Verification processed interrupted.", e);
         } catch (ExecutionException e) {
             logger.error("Problem with verification task thread execution.", e);
@@ -270,6 +284,7 @@ public class ResourceMigrator {
                 success &= providerResult.isSuccessful();
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.error("Migration processed interrupted.", e);
         } catch (ExecutionException e) {
             logger.error("Problem with migration task thread execution.", e);
@@ -492,9 +507,26 @@ public class ResourceMigrator {
         int retries = DEFAULT_RETRIES;
         while (retries-- > 0) {
             try {
-                is = fullURI.toURL().openStream();
-
                 String fileName = resourceProvider.getFilename(location, resourceProvider.isLocal() ? path : fullURI.toString());
+
+                // when there is a file processor specified run processing
+                if (fileProcessor != null) {
+                    File processed = fileProcessor.process(fullURI);
+                    if (processed != null) {
+                        processed.deleteOnExit();
+                        is = new FileInputStream(processed);
+                        // change filename extension to the one that processed file has
+                        fileName = changeExtension(fileName, processed.getName());
+                        mimeType = mimeFromExtension(fileName);
+                    }
+                    else {
+                        logger.error("Problem with processing file: " + path);
+                        return null;
+                    }
+                }
+                else
+                    is = fullURI.toURL().openStream();
+
                 if (logger.isDebugEnabled())
                     logger.debug("Trying to upload file with name: " + fileName);
 
@@ -539,6 +571,19 @@ public class ResourceMigrator {
         return null;
     }
 
+    private String changeExtension(String fileName, String newFileName) {
+        if (fileName == null || newFileName == null)
+            return null;
+
+        int i = fileName.lastIndexOf('.');
+        int j = newFileName.lastIndexOf('.');
+        if (i > 0 && j > 0)
+            return fileName.substring(0, i) +  newFileName.substring(j, newFileName.length());
+
+        // when any of the extension does not exist return unchanged original fileName
+        return fileName;
+    }
+
 
     /**
      * Http HEAD Method to get URL content type
@@ -552,7 +597,7 @@ public class ResourceMigrator {
         connection.setRequestMethod("HEAD");
         if (isRedirect(connection.getResponseCode())) {
             String newUrl = connection.getHeaderField("Location"); // get redirect url from "location" header field
-            logger.warn("Original request URL: " + url.toString() + " redirected to: " + newUrl);
+            logger.warn("Original request URL: " + url + " redirected to: " + newUrl);
             return getContentType(new URL(newUrl));
         }
         return connection.getContentType();
@@ -647,7 +692,10 @@ public class ResourceMigrator {
                 }
 
                 // first create provider, pass the path to the possible properties file, use first path to determine data provider id
-                String propsFile = providerPaths.getLocation() + LINUX_SEPARATOR + dataProviderId + DefaultResourceProvider.PROPERTIES_EXTENSION;
+                String propsFile = providerPaths.getLocation();
+                if (!propsFile.endsWith(dataProviderId))
+                    propsFile += LINUX_SEPARATOR + dataProviderId;
+                propsFile += LINUX_SEPARATOR + dataProviderId + DefaultResourceProvider.PROPERTIES_EXTENSION;
                 if (createProvider(propsFile) == null) {
                     // when create provider was not successful finish processing
                     return false;
@@ -959,6 +1007,7 @@ public class ResourceMigrator {
                 logger.info("Verification of provider " + providerResult.getProviderId() + " performed successfully. Verification time: " + providerResult.getTime() + " sec. Number of not migrated files: " + providerResult.getNotMigratedCount());
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             logger.error("Verification processed interrupted.", e);
         } catch (ExecutionException e) {
             logger.error("Problem with verification task thread execution.", e);
@@ -968,8 +1017,6 @@ public class ResourceMigrator {
 
     private long verifyProvider(String resourceProviderId, FilePaths providerPaths) {
         BufferedReader reader = providerPaths.getPathsReader();
-        if (reader == null)
-            return 0;
 
         String line = "";
         String localId = "";
@@ -1138,6 +1185,7 @@ public class ResourceMigrator {
                     if (mergeProgress)
                         saveProgressFromThreads(providerId, split);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     logger.error("Migration processed interrupted.", e);
                 } catch (ExecutionException e) {
                     logger.error("Problem with migration task thread execution.", e);
@@ -1286,6 +1334,7 @@ public class ResourceMigrator {
                         notMigrated += partResult.getNotMigratedCount();
                     }
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     logger.error("Verification processed interrupted.", e);
                 } catch (ExecutionException e) {
                     logger.error("Problem with verification task thread execution.", e);

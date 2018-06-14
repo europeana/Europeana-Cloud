@@ -1,0 +1,6 @@
+These test cases were designed to test swift directly through its rest APIs. sTwo test cases were developed for V1,and V2 of swift .
+To run those test cases you can execute:
+
+jmeter -n -t swiftPerformanceTestForV2.jmx -Jthreads=50 -Jloops=200 -Jport=5000 -Jusername=SwiftUserName -Jpassword=SwiftPassword -JserverUrl=SwiftUrl -Jtenant=SwiftTenant(project) -JcontainerName=containerName -Jlocation=whereToStoreResults
+
+

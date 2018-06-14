@@ -8,16 +8,15 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 public class LatestPersistentRepresentationVersionSelectorTest {
 
 
     RepresentationSelector representationSelector = new LatestPersistentRepresentationVersionSelector();
     List<Representation> emptyRepresentationsList = Collections.emptyList();
-    List<Representation> representationsListWithZeroPersistentVersions = new ArrayList<>();
-    List<Representation> representationsListWithOnePersistentVersion = new ArrayList<>();
-    List<Representation> representationsListWithMultiplePersistentVersions = new ArrayList<>();
+    List<Representation> representationsListWithZeroPersistentVersions = new ArrayList<>(2);
+    List<Representation> representationsListWithOnePersistentVersion = new ArrayList<>(3);
+    List<Representation> representationsListWithMultiplePersistentVersions = new ArrayList<>(4);
 
     @Before
     public void prepare() {

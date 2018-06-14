@@ -1,25 +1,22 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+
+import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Stores a Record on the cloud.
@@ -29,95 +26,76 @@ import java.util.regex.Pattern;
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
     private String ecloudMcsAddress;
-    private String username;
-    private String password;
-    private FileServiceClient mcsClient;
-    private RecordServiceClient recordServiceClient;
-    public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
+    protected Logger LOGGER;
 
-    public WriteRecordBolt(String ecloudMcsAddress, String username,
-                           String password) {
-
+    public WriteRecordBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-        this.username = username;
-        this.password = password;
+        LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
     }
+
 
     @Override
     public void prepare() {
-
-        mcsClient = new FileServiceClient(ecloudMcsAddress, username, password);
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress, username, password);
     }
 
     @Override
     public void execute(StormTaskTuple t) {
         try {
             LOGGER.info("WriteRecordBolt: persisting...");
-            String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
-            boolean outputUrlMissing = false;
-
-            if (outputUrl == null) {
-                // in case OUTPUT_URL is not provided use a random one, using the input URL as the base
-                outputUrl = t.getFileUrl();
-                outputUrl = StringUtils.substringBefore(outputUrl, "/files");
-                outputUrlMissing = true;
-
-                LOGGER.info("WriteRecordBolt: OUTPUT_URL is not provided");
-            }
-            LOGGER.info("WriteRecordBolt: OUTPUT_URL: {}", outputUrl);
             URI uri = uploadFileInNewRepresentation(t);
-            LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
-
-            if (outputUrlMissing) {
-                t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
-                LOGGER.info("WriteRecordBolt: pushing new URI as OUTPUT_URL: " + t.getParameter(PluginParameterKeys.OUTPUT_URL));
-            }
-
-            outputCollector.emit(inputTuple, t.toStormTuple());
-            outputCollector.ack(inputTuple);
-
+            LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
+            prepareEmittedTuple(t, uri.toString());
+            outputCollector.emit(t.toStormTuple());
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
-
-            // added to deal with EndBolt and NotificationBolt
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot process data because: " + e.getMessage(),
                     stack.toString());
-            outputCollector.ack(inputTuple);
             return;
         }
     }
 
-    private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
-        Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
-        TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
-        String newRepresentationName = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        String outputMimeType = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE);
-        Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
-        URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
-        String newRepresentationVersion = findRepresentationVersion(newRepresentation);
-        URI newFileUri = null;
-        if (stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME) != null) {
-            String fileName = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
-            newFileUri = mcsClient.uploadFile(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion, fileName, stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
-        } else
-            newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
-
-        recordServiceClient.persistRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion);
-        return newFileUri;
+    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException,DriverException {
+        RecordServiceClient recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
+        final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        recordServiceClient.useAuthorizationHeader(authorizationHeader);
+        return createRepresentationAndUploadFile(stormTaskTuple, recordServiceClient);
     }
 
-    private String findRepresentationVersion(URI uri) throws MCSException {
-        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)");
-        Matcher m = p.matcher(uri.toString());
 
-        if (m.find()) {
-            return m.group(3);
-        } else {
-            throw new MCSException("Unable to find representation version in representation URL");
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws IOException, MCSException, CloudException, DriverException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                return recordServiceClient.createRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME), getProviderId(stormTaskTuple, recordServiceClient), stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
+            } catch (MCSException | DriverException e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while creating representation and uploading file. Retries left {}", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while creating representation and uploading file.");
+                    throw e;
+                }
+            }
         }
     }
+
+    private String getProviderId(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws MCSException, DriverException {
+        Representation rep = recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION));
+        return rep.getDataProvider();
+
+    }
+
+    private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
+        stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultedResourceURL);
+        stormTaskTuple.setFileData((byte[]) null);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.CLOUD_ID);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
+    }
+
+
 }
+

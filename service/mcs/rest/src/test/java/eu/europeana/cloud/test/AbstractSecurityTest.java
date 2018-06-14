@@ -1,6 +1,5 @@
 package eu.europeana.cloud.test;
 
-import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,16 +25,18 @@ import org.springframework.test.context.ContextConfiguration;
     private AuthenticationManager authenticationManager;
 
     @Before
-    public void clear() {
+    public synchronized void clear() {
         SecurityContextHolder.clearContext();
     }
 
-    protected void login(String name, String password) {
+    protected synchronized void login(String name, String password) {
         Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
         SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
     }
-    
-    protected void logoutEveryone() {
-        SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false); 
+
+    protected synchronized void logoutEveryone() {
+        SecurityContextHolder.getContext().setAuthentication(null);
     }
+
+
 }

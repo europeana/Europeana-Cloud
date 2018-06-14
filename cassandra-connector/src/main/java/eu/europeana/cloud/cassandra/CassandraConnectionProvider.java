@@ -1,18 +1,12 @@
 package eu.europeana.cloud.cassandra;
 
-import com.datastax.driver.core.AtomicMonotonicTimestampGenerator;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Host;
-import com.datastax.driver.core.Metadata;
-import com.datastax.driver.core.ProtocolVersion;
-import com.datastax.driver.core.Session;
-
-import javax.annotation.PreDestroy;
-
+import com.datastax.driver.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PreDestroy;
+
 
 /**
  * Connector to Cassandra cluster.
@@ -34,6 +28,9 @@ public class CassandraConnectionProvider {
 
     private String keyspaceName;
 
+    private String userName;
+
+    private String password;
 
     /**
      * Constructor. Use it when your Cassandra cluster does not support
@@ -70,6 +67,8 @@ public class CassandraConnectionProvider {
         this.hosts = hosts;
         this.port = String.valueOf(port);
         this.keyspaceName = keyspaceName;
+        this.userName = userName;
+        this.password = password;
 
         String[] contactPoints = hosts.split(",");
         cluster = getClusterBuilder(port, contactPoints)
@@ -92,7 +91,7 @@ public class CassandraConnectionProvider {
     /**
      * Obtain common cassandra Cluster Builder.
      *
-     * @param port port of endpoints
+     * @param port          port of endpoints
      * @param contactPoints list of cassandra ip addresses
      * @return {@link com.datastax.driver.core.Cluster.Builder}
      */
@@ -104,11 +103,10 @@ public class CassandraConnectionProvider {
 
 
     @PreDestroy
-    private void closeConnections() {
+    public void closeConnections() {
         LOGGER.info("Cluster is shutting down.");
         cluster.close();
     }
-
 
     /**
      * Expose a singleton instance connection to a database on the requested
@@ -158,5 +156,21 @@ public class CassandraConnectionProvider {
      */
     public String getKeyspaceName() {
         return keyspaceName;
+    }
+
+    public Metadata getMetadata() {
+        return cluster.getMetadata();
+    }
+
+    private String getUserName() {
+        return userName;
+    }
+
+    private String getPassword() {
+        return password;
+    }
+
+    public CassandraConnectionProvider(final CassandraConnectionProvider cassandraConnectionProvider) {
+        this(cassandraConnectionProvider.getHosts(), Integer.parseInt(cassandraConnectionProvider.getPort()), cassandraConnectionProvider.getKeyspaceName(), cassandraConnectionProvider.getUserName(), cassandraConnectionProvider.getPassword());
     }
 }

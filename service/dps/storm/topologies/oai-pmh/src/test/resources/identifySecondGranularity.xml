@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="http://lib.psnc.pl/style/common/xsl/oai-style.xsl"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
+         http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2017-12-05T17:33:32Z</responseDate>
+    <request verb="Identify">
+        http://lib.psnc.pl/oai-pmh-repository.xml
+    </request>
+    <Identify>
+        <repositoryName><![CDATA[Repozytorium Instytucjonalne PCSS]]></repositoryName>
+        <baseURL>http://lib.psnc.pl/oai-pmh-repository.xml</baseURL>
+        <protocolVersion>2.0</protocolVersion>
+        <adminEmail>dlibra-techhelp@man.poznan.pl</adminEmail>
+        <earliestDatestamp>2006-12-21T08:36:50Z</earliestDatestamp>
+        <deletedRecord>persistent</deletedRecord>
+        <granularity>YYYY-MM-DDThh:mm:ssZ</granularity>
+        <description>
+            <friends
+                    xmlns="http://www.openarchives.org/OAI/2.0/friends/"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/friends/
+         http://www.openarchives.org/OAI/2.0/friends.xsd">
+                <baseURL>http://dlibra.psnc.pl/biblioteka/dlibra/oai-pmh-repository.xml</baseURL>
+            </friends>
+        </description>
+        <description>
+            <oai-identifier xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier
+		http://www.openarchives.org/OAI/2.0/oai-identifier.xsd">
+                <scheme>oai</scheme>
+                <repositoryIdentifier>lib.psnc.pl</repositoryIdentifier>
+                <delimiter>:</delimiter>
+                <sampleIdentifier>oai:lib.psnc.pl:1234</sampleIdentifier>
+            </oai-identifier>
+        </description>
+        <description>
+            <toolkit xmlns="http://oai.dlib.vt.edu/OAI/metadata/toolkit"
+                     xsi:schemaLocation="http://oai.dlib.vt.edu/OAI/metadata/toolkit
+		http://lib.psnc.pl/toolkit.xsd">
+                <title>dLibra Digital Library Framework</title>
+                <author>
+                    <email>dlibra@man.poznan.pl</email>
+                    <institution>PSNC (http://www.man.poznan.pl)</institution>
+                </author>
+                <version>5.8.5</version>
+                <toolkitIcon>http://dlibra.psnc.pl/images/dlibra_stamp.jpg</toolkitIcon>
+                <URL>http://dlibra.psnc.pl/</URL>
+            </toolkit>
+        </description>
+    </Identify>
+</OAI-PMH>
+	

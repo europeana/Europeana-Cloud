@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.uis;
 
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import static java.lang.Thread.sleep;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Assert;
+
 import static org.junit.Assert.fail;
-import org.junit.Ignore;
-import org.junit.Test;
 
 public class IdGeneratorTest {
 
@@ -68,14 +69,15 @@ public class IdGeneratorTest {
 
     @Test
     public void timeEncode_generateDiffrendId() throws InterruptedException {
-	// given
-	final String testStr = "123456789012345";
-	// when
-	final String id1 = IdGenerator.timeEncode(testStr);
-	sleep(1);
-	final String id2 = IdGenerator.timeEncode(testStr);
-	// then
-	Assert.assertNotSame(id1, id2);
+        // given
+        final String testStr = "123456789012345";
+        for (int i = 0; i < 100; i++) {
+            // when
+            final String id1 = IdGenerator.timeEncode(testStr);
+            final String id2 = IdGenerator.timeEncode(testStr);
+            // then
+            if (id1.equals(id2)) fail();
+        }
     }
 
 }

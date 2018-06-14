@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Util for parameters.
@@ -37,6 +38,20 @@ final class ParamUtil {
     static <T> void validate(String parameterName, T parameterValue, List<T> acceptedValues) {
         if (!acceptedValues.contains(parameterValue)) {
             ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), parameterName + " has unsupported value");
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
+        }
+    }
+
+
+    /**
+     * Checks if the tag set is valid against a set of expected allowed tags
+     *
+     * @param tags         set of tags
+     * @param expectedTags set of expected tags
+     */
+    static void validateTags(Set<String> tags, Set<String> expectedTags) {
+        if (!expectedTags.containsAll(tags)) {
+            ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), "The tags set was not validated !, The accepted tags are : " + expectedTags);
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
         }
     }

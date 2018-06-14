@@ -85,8 +85,8 @@
         global="mcs/swift/container"
         type="java.lang.String"/>
     <ResourceLink
-        name="mcs/swift/endpointList"
-        global="mcs/swift/endpointList"
+        name="mcs/swift/endpoint"
+        global="mcs/swift/endpoint"
         type="java.lang.String"/>
     <ResourceLink
         name="mcs/swift/user"

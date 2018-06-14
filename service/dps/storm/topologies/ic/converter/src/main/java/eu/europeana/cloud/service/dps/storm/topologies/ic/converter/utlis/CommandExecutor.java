@@ -13,7 +13,7 @@ import java.io.InputStreamReader;
  * Executes a shell command
  */
 public class CommandExecutor {
-    private final static Logger LOGGER = Logger.getLogger(CommandExecutor.class);
+    private static final Logger LOGGER = Logger.getLogger(CommandExecutor.class);
 
     /**
      * Executes a shell command and logs the output message
@@ -25,12 +25,12 @@ public class CommandExecutor {
         if (command != null) {
             Process p;
             p = Runtime.getRuntime().exec(command);
-            output = readOutPut(p.getInputStream());
-            if (!"".equals(output))
-                LOGGER.info("The command was executed successfully with the following output message: " + output);
-            else {
-                output = readOutPut(p.getErrorStream());
+            output = readOutPut(p.getErrorStream());
+            if (!"".equals(output)) {
                 throw new ConversionException(output);
+            } else {
+                output = readOutPut(p.getInputStream());
+                LOGGER.info("The command was executed successfully with the following output message: " + output);
             }
             p.destroy();
         }

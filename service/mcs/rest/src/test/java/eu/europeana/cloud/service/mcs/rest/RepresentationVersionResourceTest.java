@@ -3,57 +3,42 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotModifyPersistentRepresentationExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotPersistEmptyRepresentationExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.VersionNotExistsExceptionMapper;
-
-import java.util.Arrays;
-import java.util.Date;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.acls.model.MutableAclService;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.Date;
 
-import junitparams.JUnitParamsRunner;
 import static junitparams.JUnitParamsRunner.$;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.security.acls.model.MutableAclService;
+import static org.mockito.Mockito.*;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationVersionResourceTest extends JerseyTest {
 
     private RecordService recordService;
-    
+
     private MutableAclService mutableAclService;
 
     static final private String globalId = "1";
@@ -61,13 +46,13 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     static final private String version = "1.0";
     static final private String fileName = "1.xml";
     static final private String persistPath = URITools.getPath(RepresentationVersionResource.class,
-        "persistRepresentation", globalId, schema, version).toString();
+            "persistRepresentation", globalId, schema, version).toString();
     static final private String copyPath = URITools.getPath(RepresentationVersionResource.class, "copyRepresentation",
-        globalId, schema, version).toString();
+            globalId, schema, version).toString();
 
     static final private Representation representation = new Representation(globalId, schema, version, null, null,
             "DLF", Arrays.asList(new File(fileName, "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01",
-                    12345, null)), true, new Date());
+            12345, null)), null, true, new Date());
 
 
     @Override
@@ -163,7 +148,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     @Test
     @Parameters(method = "errors")
     public void testDeleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
-            String errorCode, int statusCode)
+                                                                                        String errorCode, int statusCode)
             throws Exception {
         Mockito.doThrow(exception).when(recordService).deleteRepresentation(globalId, schema, version);
 
@@ -182,10 +167,10 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     public void testPersistRepresentation()
             throws Exception {
         when(recordService.persistRepresentation(globalId, schema, version)).thenReturn(
-            new Representation(representation));
+                new Representation(representation));
 
         Response response = target(persistPath).request().post(
-            Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+                Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
         assertThat(response.getStatus(), is(201));
         assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));
@@ -197,7 +182,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     @Test
     @Parameters(method = "persistErrors")
     public void testPersistRepresentationReturns40XIfExceptionOccur(Throwable exception, String errorCode,
-            int statusCode)
+                                                                    int statusCode)
             throws Exception {
         when(recordService.persistRepresentation(globalId, schema, version)).thenThrow(exception);
 
@@ -215,11 +200,11 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     @SuppressWarnings("unused")
     private Object[] persistErrors() {
         return $(
-            $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404),
-            $(new CannotModifyPersistentRepresentationException(),
-                McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405),
-            $(new CannotPersistEmptyRepresentationException(),
-                McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(), 405));
+                $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404),
+                $(new CannotModifyPersistentRepresentationException(),
+                        McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405),
+                $(new CannotPersistEmptyRepresentationException(),
+                        McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(), 405));
     }
 
 
@@ -230,7 +215,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
                 .thenReturn(new Representation(representation));
 
         Response response = target(copyPath).request().post(
-            Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+                Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
         assertThat(response.getStatus(), is(201));
         assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));
@@ -242,7 +227,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     @Test
     @Parameters(method = "errors")
     public void testCopyRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(Throwable exception,
-            String errorCode, int statusCode)
+                                                                                               String errorCode, int statusCode)
             throws Exception {
         when(recordService.copyRepresentation(globalId, schema, version)).thenThrow(exception);
 

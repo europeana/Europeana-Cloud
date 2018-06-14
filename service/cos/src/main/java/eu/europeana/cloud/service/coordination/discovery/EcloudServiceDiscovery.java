@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.coordination.discovery;
 
-import java.util.List;
-
 import eu.europeana.cloud.service.coordination.ServiceProperties;
+
+import java.util.List;
 
 /**
  * A mechanism to ask for ecloud's service instances. 

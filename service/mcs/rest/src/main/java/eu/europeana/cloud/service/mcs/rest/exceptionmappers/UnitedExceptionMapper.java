@@ -1,16 +1,15 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Maps exceptions thrown by services to {@link Response}.
@@ -171,6 +170,10 @@ public class UnitedExceptionMapper {
                     exception);
         }
 
+        if (exception instanceof IllegalArgumentException) {
+            return buildResponse(Response.Status.BAD_REQUEST, McsErrorCode.BAD_PARAMETER_VALUE, exception);
+        }
+
         LOGGER.error("Unexpected error occured.", exception);
         return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
     }
@@ -209,6 +212,30 @@ public class UnitedExceptionMapper {
      */
     public Response toResponse(AccessDeniedOrObjectDoesNotExistException exception) {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
+    }
+
+
+    /**
+     * Maps {@link RevisionIsNotValidException} to {@link Response}. Returns a response with HTTP status code 405 -
+     * "Method not Allowed" and a {@link ErrorInfo} with exception details as a message body.
+     *
+     * @param exception the exception to map to a response
+     * @return a response mapped from the supplied exception
+     */
+    public Response toResponse(RevisionIsNotValidException exception) {
+        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.REVISION_IS_NOT_VALID, exception);
+    }
+
+
+    /**
+     * Maps {@link RevisionNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
+     * "Not found" and a {@link ErrorInfo} with exception details as a message body.
+     *
+     * @param exception the exception to map to a response
+     * @return a response mapped from the supplied exception
+     */
+    public Response toResponse(RevisionNotExistsException exception) {
+        return buildResponse(Response.Status.NOT_FOUND, McsErrorCode.REVISION_NOT_EXISTS, exception);
     }
 
 

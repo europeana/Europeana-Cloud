@@ -7,7 +7,7 @@
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.mockito.org/spring/mockito http://www.mockito.org/spring/mockito.xsd">
 
     <context:annotation-config/>
-    <mockito:mock id="taskKillService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService"/>
+    <mockito:mock id="taskKillService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService"/>
     <mockito:mock id="topologyManager" class="eu.europeana.cloud.service.dps.service.utils.TopologyManager"/>
 
     <bean id="aclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
@@ -83,6 +83,16 @@
     <bean id="permissionEvaluator"
           class="org.springframework.security.acls.AclPermissionEvaluator">
         <constructor-arg ref="aclService"/>
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.springframework.security.core.context.SecurityContextHolder"/>
+        <property name="targetMethod" value="setStrategyName"/>
+        <property name="arguments">
+            <list>
+                <value>MODE_INHERITABLETHREADLOCAL</value>
+            </list>
+        </property>
     </bean>
 
 </beans>

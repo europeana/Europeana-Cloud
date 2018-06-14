@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-parent</artifactId>
-        <version>0.5.3</version>
+        <version>1.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>ecloud-cassandra-connector</artifactId>
@@ -16,7 +16,7 @@
             <artifactId>cassandra-driver-core</artifactId>
             <version>${version.cassandra-driver}</version>
         </dependency>
-        
+
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

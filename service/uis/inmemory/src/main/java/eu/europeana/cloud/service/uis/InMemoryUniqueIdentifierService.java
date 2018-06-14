@@ -1,13 +1,5 @@
 package eu.europeana.cloud.service.uis;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
@@ -15,14 +7,15 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.dao.InMemoryCloudIdDao;
 import eu.europeana.cloud.service.uis.dao.InMemoryLocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * In-memory mockup of the unique identifier service

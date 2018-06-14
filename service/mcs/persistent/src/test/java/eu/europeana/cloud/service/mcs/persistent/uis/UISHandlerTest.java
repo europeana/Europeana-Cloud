@@ -1,19 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent.uis;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.exceptions.GenericException;
@@ -24,6 +10,19 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/uisIntegrationTestContext.xml"})
@@ -83,7 +82,7 @@ public class UISHandlerTest {
         CloudId cl = new CloudId();
         cl.setId("66666");
         ResultSlice<CloudId> result = new ResultSlice<>();
-        List<CloudId> resultList = new ArrayList<>();
+        List<CloudId> resultList = new ArrayList<>(1);
         resultList.add(cl);
         result.setResults(resultList);
 
@@ -99,7 +98,7 @@ public class UISHandlerTest {
         CloudId cl = new CloudId();
         cl.setId(cloudId);
         ResultSlice<CloudId> result = new ResultSlice<>();
-        List<CloudId> resultList = new ArrayList<>();
+        List<CloudId> resultList = new ArrayList<>(1);
         resultList.add(cl);
         result.setResults(resultList);
 

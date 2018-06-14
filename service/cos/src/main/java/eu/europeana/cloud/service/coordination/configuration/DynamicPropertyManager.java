@@ -18,13 +18,13 @@ public interface DynamicPropertyManager {
      *            Sets the current value of the specified {{dynamicProperty}} to
      *            {{dynamicPropertyUpdatedValue}}
      */
-    void updateValue(final String dynamicProperty,
-	    final String dynamicPropertyUpdatedValue);
+    void updateValue(String dynamicProperty,
+	    String dynamicPropertyUpdatedValue);
 
     /**
      * @return the current value of the specified {{dynamicProperty}}
      */
-    String getCurrentValue(final String dynamicProperty);
+    String getCurrentValue(String dynamicProperty);
 
     /**
      * Subscribes for updates on the specified dynamicProperty.

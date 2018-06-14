@@ -1,13 +1,12 @@
 package eu.europeana.cloud.service.dls.solr;
 
+import eu.europeana.cloud.common.model.Representation;
+import org.apache.solr.client.solrj.beans.Field;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
-
-import org.apache.solr.client.solrj.beans.Field;
-
-import eu.europeana.cloud.common.model.Representation;
 
 /**
  * Bean representing Representation + its data set assignments for SOLR indexing purposes (to be used only in

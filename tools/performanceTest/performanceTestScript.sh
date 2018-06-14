@@ -8,11 +8,13 @@
 # --interThreadGroupTimeGap [time in ms] 	Time gap between each thread group test single request.
 # --interTestDelay [time in sec]		Delay between test cases.
 # --fileSize                                    Set file size for mcsUploadFileTest.
+# --mimeTypeFile    File mime type.
+# --mimeTypeLargeFile   Large file mime type.
 # --uisPath [path to UIS]			Path to UIS service.
 # --mcsPath [path to MCS]			Path to MCS service.
 #
-# --ganglia [path to ganglia] [ganglia period string] [ganglia node name] [ganglia cluster name]			
-#    eg. --ganglia "http://localhost/ganglia" hour heliopsis apps+cluster           
+# --ganglia [path to ganglia] [ganglia period string] [ganglia node name] [ganglia cluster name]
+#    eg. --ganglia "http://localhost/ganglia" hour heliopsis apps+cluster
 #
 # --Auth [username] [password]			Set basic authorization user and password.
 # --HTTP					Use http to probe.
@@ -24,7 +26,7 @@
 # --mcsRepresentationsTest or --3 		Runs mcsRepresentationsTest case.
 # --mcsUploadFileTest or --4                    Runs mcsUploadFileTest case.
 # --dpsTest or --5 		Runs dpsTest case.
-					
+# --mcsUploadSmallFileTest or --6 Runs mcsUploadSmallFileTest case.
 #
 #
 # Eg. performanceTestScript.sh --host localhost --loops 1 --threads 1 --allTests
@@ -43,6 +45,7 @@ mcsDatasetTest=false
 mcsRepresentationsTest=false
 dpsTest=false
 mcsUploadFileTest=false
+mcsUploadSmallFileTest=false
 fileSize=100 #size in KiB
 user=""
 password=""
@@ -58,18 +61,21 @@ protocolType="HTTP"
 imageMimeType="image/tiff"
 imageFile="example.TIF"
 xmlFile="example.xml"
+mimeTypeFile="application/xml"
+mimeTypeLargeFile="application/octet-stream"
 
-function setAllTestsOn() { 
+function setAllTestsOn() {
 uisTest=true
 mcsDatasetTest=true
 mcsRepresentationsTest=true
-dpsTest=true
+dpsTest=false
+mcsUploadSmallFileTest=false
 
 # mcsUploadFileTest is intentionaly excluded
 }
 
 function showHelp() {
-for i in {2..28}
+for i in {2..32}
 	do
        		echo `sed "$i!d" $0`
 	done
@@ -86,6 +92,8 @@ case $1 in
 --testMode) shift 1; testMode=${1};  shift 1 ;;
 --interThreadGroupTimeGap) shift 1 ; interThreadGroupTimeGap=${1}; shift 1 ;;
 --interTestDelay) shift 1 ; interTestDelay=${1}; shift 1 ;;
+--mimeTypeFile) shift 1 ; mimeTypeFile=${1}; shift 1 ;;
+--mimeTypeLargeFile) shift 1 ; mimeTypeLargeFile=${1}; shift 1 ;;
 --uisPath) shift 1 ; uisPath=${1}; shift 1 ;;
 --mcsPath) shift 1 ; mcsPath=${1}; shift 1 ;;
 --aasPath) shift 1 ; aasPath=${1}; shift 1 ;;
@@ -108,6 +116,7 @@ case $1 in
 --3) shift 1 ;  mcsRepresentationsTest=true; continue ;;
 --4) shift 1; mcsUploadFileTest=true; continue ;;
 --5) shift 1; dpsTest=true; continue ;;
+--6) shift 1; mcsUploadSmallFileTest=true; continue ;;
 --HTTP) shift 1 ; protocolType="HTTP"; continue ;;
 --HTTPS) shift 1 ; protocolType="HTTPS"; continue ;;
 --Auth) shift 1; user=${1} ; shift 1 ; password=${1} ; shift 1 ;;
@@ -115,9 +124,9 @@ case $1 in
 *) echo "Unsuppored paramiter ${1}"; shift 1 ;;
 esac
 done
-if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ] &&  [ "$mcsUploadFileTest" = false ] &&  [ "$dpsTest" = false ]      
-then 
-setAllTestsOn; 
+if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ] &&  [ "$mcsUploadFileTest" = false ] &&  [ "$dpsTest" = false ] &&  [ "$mcsUploadSmallFileTest" = false ]
+then
+setAllTestsOn;
 fi
 
 
@@ -129,9 +138,7 @@ recordsPerProvider=1
 datasetsPerProvider=1
 representationNamePerCloudId=1
 timestamp="$(date +%Y%m%d_%H.%M.%s)"
-mimeTypeFile="application/xml"
 uloadedFileName="example_metadata.xml"
-mimeTypeLargeFile="application/octet-stream"
 sizesLargefile=('1' '5' '10'); #in MiB
 connectTimeOut=5000 #timeOut in miliseconds
 responseTimeOut=5000 #timeOut in miliseconds
@@ -140,7 +147,7 @@ interTreadQueueTimeOut=10 #timeOut in seconds
 outputFilessuffix=$timestamp
 folderPrefix=test_${timestamp}
 cummulatedCsvFileName="cummulated_${outputFilessuffix}.csv"
-uloadedLargeFileName="test.file${timestamp}" 
+uloadedLargeFileName="test.file${timestamp}"
 
 graphTypes=('mem_report' 'load_report' 'cpu_report' 'network_report');
 gangliaDelay=$interThreadGroupTimeGap #in seconds
@@ -157,6 +164,8 @@ echo threads=$threads | tee -a ${resultDir}/test.parms
 echo testMode=$testMode | tee -a ${resultDir}/test.parms
 echo interThreadGroupTimeGap=$interThreadGroupTimeGap | tee -a ${resultDir}/test.parms
 echo interTestDelay=$interTestDelay | tee -a ${resultDir}/test.parms
+echo mimeTypeFile=$mimeTypeFile | tee -a ${resultDir}/test.parms
+echo mimeTypeLargeFile=$mimeTypeLargeFile | tee -a ${resultDir}/test.parms
 echo uisTest=$uisTest | tee -a ${resultDir}/test.parms
 echo fileSize=$fileSize | tee -a ${resultDir}/test.parms
 echo mcsDatasetTest=$mcsDatasetTest | tee -a ${resultDir}/test.parms
@@ -312,6 +321,42 @@ sleep $interTestDelay
 
 }
 
+function mcsUploadSmallFileTest() {
+
+echo "############################### MCS REPRESENTATION FOR SMALL XML FILES TESTS ############################### ";
+
+jmeter $testMode \
+-Jhost=$host \
+-Jport=$port \
+-JuisName=$uisPath \
+-JmcsName=$mcsPath \
+-Jthreads=$threads \
+-JrampUpPeriod=$rampUpPeriod \
+-JrecordsPerProvider=$recordsPerProvider \
+-JrepresentationNamePerCloudId=$representationNamePerCloudId \
+-Jloops=$loops \
+-JmimeTypeFile=$mimeTypeFile \
+-JuloadedFileName=$uloadedFileName \
+-JmimeTypeLargeFile=$mimeTypeLargeFile \
+-JuloadedLargeFileName=../${resultDir}/$uloadedLargeFileName \
+-JconnectTimeOut=$connectTimeOut \
+-JresponseTimeOut=$responseMCSRepresentationTimeOut \
+-JinterTreadQueueTimeOut=$interTreadQueueTimeOut \
+-JinterThreadGroupTimeGap=$interThreadGroupTimeGap \
+-JoutputFilessuffix=${fileSize}_$outputFilessuffix \
+-JlargeFileSize=$fileSize \
+-JoutputFilespreffix=${resultDir}/ \
+-JprotocolType=$protocolType \
+-Juser=$user \
+-Jpassword=$password \
+-t ./testCases/MCS_UploadSmallFileTest.jmx -l ${resultDir}/MCS_UploadSmileFileTest_${fileSize}_${outputFilessuffix}.log
+
+cat ${resultDir}/MCS_mcsUploadSmallFileTest_${fileSize}_${outputFilessuffix}.log >> ${resultDir}/$cummulatedCsvFileName
+
+sleep $interTestDelay
+
+}
+
 #MCS Representation test
 function dpsTest() {
 echo "--- DPS Tests ---";
@@ -377,6 +422,12 @@ fi
 if [ "$mcsUploadFileTest" = true ] 
 then 
 mcsUploadFileTest;
+sleep $interTestDelay;
+fi
+
+if [ "$mcsUploadSmallFileTest" = true ]
+then
+mcsUploadSmallFileTest;
 sleep $interTestDelay;
 fi
 

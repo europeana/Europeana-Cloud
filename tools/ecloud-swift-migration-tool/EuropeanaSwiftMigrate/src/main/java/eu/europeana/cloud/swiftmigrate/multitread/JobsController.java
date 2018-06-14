@@ -2,16 +2,13 @@ package eu.europeana.cloud.swiftmigrate.multitread;
 
 import eu.europeana.cloud.swiftmigrate.SwiftMigrationDAO;
 import eu.europeana.cloud.swiftmigrate.SwiftMigrator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.*;
 
 /**
  * Manges creation of jobs and executing them.

@@ -1,17 +1,15 @@
 package eu.europeana.cloud.client.uis.rest.console.commands.tests;
 
+import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.client.uis.rest.console.commands.Command;
+import org.apache.commons.io.FileUtils;
+
+import javax.naming.directory.InvalidAttributesException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-
-import javax.naming.directory.InvalidAttributesException;
-
-import org.apache.commons.io.FileUtils;
-
-import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.commands.Command;
 
 /**
  * Test read Ids from one provider
@@ -26,7 +24,7 @@ public class TestReadOneProviderCommand extends Command {
 		try {
 			List<String> ids = FileUtils.readLines(new File("tests1IdRW"));
 			Date now = new Date();
-			System.out.println("Starting test at: " + now.toString());
+			System.out.println("Starting test at: " + now);
 			for(String id:ids){
 				String[] columns = id.split(" ");
 				client.getCloudId(columns[1], columns[2]);

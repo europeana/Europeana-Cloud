@@ -1,21 +1,19 @@
 package eu.europeana.cloud.client.uis.rest.console.commands.tests;
 
+import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.client.uis.rest.console.commands.Command;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import org.apache.commons.io.IOUtils;
+
+import javax.naming.directory.InvalidAttributesException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import javax.naming.directory.InvalidAttributesException;
-
-import org.apache.commons.io.IOUtils;
-
-import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.commands.Command;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProviderProperties;
 
 /**
  * Test Write many providers with Id
@@ -35,7 +33,7 @@ public class TestReadWriteManyProvidersWithIdCommand extends Command {
 			Date now = new Date();
 			long start = now.getTime();
 			
-			System.out.println("Test started at: " + now.toString());
+			System.out.println("Test started at: " + now);
 			while(i<Long.parseLong(input[0])){
 				client.createProvider(providerId+threadNo+"_"+i, new DataProviderProperties());
 				CloudId cId = client.createCloudId(providerId+threadNo+"_"+i,recordId+i);

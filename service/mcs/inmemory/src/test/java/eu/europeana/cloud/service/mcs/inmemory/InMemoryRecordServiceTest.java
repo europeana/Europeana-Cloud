@@ -1,24 +1,22 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import static junitparams.JUnitParamsRunner.$;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import static junitparams.JUnitParamsRunner.$;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(JUnitParamsRunner.class)
 public class InMemoryRecordServiceTest {

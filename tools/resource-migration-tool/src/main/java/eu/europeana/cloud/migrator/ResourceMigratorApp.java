@@ -73,7 +73,7 @@ public class ResourceMigratorApp {
         System.exit(0);
     }
 
-    private static Properties loadPropertiesFile(File dpFile) {
+    public static Properties loadPropertiesFile(File dpFile) {
         Properties props = new Properties();
         InputStream is = null;
         try {
@@ -83,7 +83,8 @@ public class ResourceMigratorApp {
             logger.error("Could not load properties file " + dpFile.getAbsolutePath());
         } finally {
             try {
-                is.close();
+                if (is != null)
+                    is.close();
             } catch (IOException e) {
                 logger.error("Could not close input stream.", e);
             }

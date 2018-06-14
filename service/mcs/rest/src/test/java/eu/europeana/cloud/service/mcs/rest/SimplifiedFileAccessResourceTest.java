@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -149,7 +148,7 @@ public class SimplifiedFileAccessResourceTest {
 
     private void setupRecordService() throws RepresentationNotExistsException, FileNotExistsException {
 
-        List<Representation> representationsList = new ArrayList<>();
+        List<Representation> representationsList = new ArrayList<>(1);
         Representation r1 = new Representation();
         r1.setPersistent(true);
         r1.setVersion("123");
@@ -157,7 +156,7 @@ public class SimplifiedFileAccessResourceTest {
         r1.setCloudId("sampleCloudID");
         representationsList.add(r1);
         //
-        List<Representation> representationsListWithoutPersistentRepresentations = new ArrayList<>();
+        List<Representation> representationsListWithoutPersistentRepresentations = new ArrayList<>(1);
         Representation r2 = new Representation();
         r2.setPersistent(false);
         representationsListWithoutPersistentRepresentations.add(r2);
@@ -178,11 +177,7 @@ public class SimplifiedFileAccessResourceTest {
     }
 
     private void setupAuthentication() {
-        User user = new User();
-        user.setUsername("admin");
-        user.setUsername("pass");
-        Authentication auth = new UsernamePasswordAuthenticationToken(user, null);
-
+        Authentication auth = new UsernamePasswordAuthenticationToken("admin", "pass");
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
     

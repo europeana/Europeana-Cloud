@@ -4,8 +4,9 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>0.5.3</version>
+        <version>1.0</version>
     </parent>
+
 
     <artifactId>ecloud-service-dps-rest</artifactId>
     <packaging>war</packaging>
@@ -16,45 +17,6 @@
     </properties>
 
     <profiles>
-
-        <profile>
-            <id>zoo</id>
-            <properties>
-                <spring.config.dir>zoo</spring.config.dir>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-kafka</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-zoo</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            <id>zookeeper-kafka</id>
-            <properties>
-                <spring.config.dir>zookeeper-kafka</spring.config.dir>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-kafka</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-zoo</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
         <profile>
             <id>tomcat</id>
             <activation>
@@ -67,16 +29,6 @@
                 <dependency>
                     <groupId>eu.europeana.cloud</groupId>
                     <artifactId>ecloud-service-dps-kafka</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-zoo</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>ecloud-service-dps-cassandra</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
@@ -112,6 +64,7 @@
     </profiles>
 
     <build>
+        <finalName>services</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -176,8 +129,9 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <!--valid until January 1st, 2020-->
                     <licence>
-                        cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtZHBzLXJlc3R8MjAxNy0wMy0yM3x0cnVlfC0xI01Dd0NGQjc2K1hJS1o4cmhuZytvRnd3NE45MEx5bmc4QWhSa3JQakNMZVpIWlJVK1VjOUJKdnE5YkZkbzJBPT0=
+                        cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==
                     </licence>
                     <restModel>
                         <httpStatusCodes>
@@ -326,11 +280,15 @@
         <dependency>
             <groupId>org.glassfish.jersey.bundles.repackaged</groupId>
             <artifactId>jersey-guava</artifactId>
-            <version>2.22.2</version>
+            <version>${version.jersey}</version>
         </dependency>
 
 
         <!--Jersey -->
+        <dependency>
+            <groupId>org.glassfish.jersey.ext</groupId>
+            <artifactId>jersey-bean-validation</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.ext</groupId>
             <artifactId>jersey-spring3</artifactId>
@@ -390,6 +348,12 @@
         </dependency>
         <!-- tests -->
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <scope>test</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
@@ -416,25 +380,19 @@
         <dependency>
             <groupId>org.glassfish.jersey.test-framework.providers</groupId>
             <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-            <version>2.4</version>
+            <version>${version.jersey}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.test-framework</groupId>
             <artifactId>jersey-test-framework-core</artifactId>
-            <version>2.4</version>
+            <version>${version.jersey}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
             <version>${version.junitparams}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>${version.cassandra-unit}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -446,6 +404,31 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>zookeeper</artifactId>
+                    <groupId>org.apache.zookeeper</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>xoai-service-provider</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>1.42</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
