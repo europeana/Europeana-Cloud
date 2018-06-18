@@ -1,38 +1,48 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
+import static eu.europeana.cloud.service.dps.test.TestConstants.CLOUD_ID;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.VERSION;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.shade.com.google.common.io.Resources;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 /**
  * Created by Tarek on 7/18/2017.
  */
 public class XsltBoltTest {
-    public static final String EXAMPLE_METIS_DATASET_ID = "metis_dataset_id";
+    private static final String EXAMPLE_METIS_DATASET_ID = "100";
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
 
@@ -55,7 +65,6 @@ public class XsltBoltTest {
         xsltBolt.prepare();
     }
 
-
     @Test
     public void executeBolt() throws IOException {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
@@ -71,7 +80,7 @@ public class XsltBoltTest {
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
 
-    private HashMap<String, String> prepareStormTaskTupleParameters(String xsltFile) throws MalformedURLException {
+    private HashMap<String, String> prepareStormTaskTupleParameters(String xsltFile) {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         URL xsltFileUrl = Resources.getResource(xsltFile);
@@ -114,8 +123,6 @@ public class XsltBoltTest {
         assertEquals(version, SOURCE + VERSION);
         String authorizationHeader = parameters.get(PluginParameterKeys.AUTHORIZATION_HEADER);
         assertNotNull(authorizationHeader);
-
-
     }
 
     @Test
@@ -129,7 +136,7 @@ public class XsltBoltTest {
         verify(outputCollector, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues, 5);
+        assertEmittedTuple(allValues, 4);
 
         String transformed = new String((byte[]) allValues.get(0).get(3));
         assertNotNull(transformed);
