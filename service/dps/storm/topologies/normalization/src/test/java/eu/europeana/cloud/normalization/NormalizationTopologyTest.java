@@ -44,7 +44,6 @@ import java.util.*;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static eu.europeana.cloud.service.dps.test.TestConstants.MCS_URL;
 import static eu.europeana.cloud.service.dps.test.TestConstants.TEST_END_BOLT;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;

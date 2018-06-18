@@ -423,7 +423,6 @@ public class RecordServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.get();
-            System.out.println(response);
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 Representation representation = response.readEntity(Representation.class);
                 return representation;

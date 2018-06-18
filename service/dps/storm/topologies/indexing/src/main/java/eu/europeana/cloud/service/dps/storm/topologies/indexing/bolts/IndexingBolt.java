@@ -23,6 +23,9 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingBolt.class);
 
+    private static final String MISSING_INDEXER_FACTORY_MESSAGE = "IndexerFactory is missing. " +
+            "Probably You are trying to use alternative environment that is not defined in properties file.";
+
     private transient IndexerFactoryWrapper indexerFactoryWrapper;
 
     private Properties indexingProperties;
@@ -43,10 +46,15 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-        String environment = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_ENVIRONMENT);
+        String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
         String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
-        LOGGER.info("Indexing bolt executed for: {}: {}", environment, database);
-        IndexerFactory indexerFactory = indexerFactoryWrapper.getIndexerFactory(environment, database);
+        LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}).", database, useAltEnv);
+        IndexerFactory indexerFactory = indexerFactoryWrapper.getIndexerFactory(useAltEnv, database);
+        if(indexerFactory == null){
+            LOGGER.error(MISSING_INDEXER_FACTORY_MESSAGE);
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), MISSING_INDEXER_FACTORY_MESSAGE, "Error while indexing");
+            return;
+        }
         try (final Indexer indexer = indexerFactory.getIndexer()) {
             String document = new String(stormTaskTuple.getFileData());
             indexer.index(document);
@@ -88,12 +96,16 @@ public class IndexingBolt extends AbstractDpsBolt {
             indexerFactoryForPreviewDbInDefaultEnv = new IndexerFactory(indexingSettingsForPreviewDbInDefaultEnv);
             indexerFactoryForPublishDbInDefaultEnv = new IndexerFactory(indexingSettingsForPublishDbInDefaultEnv);
 
-            indexerFactoryForPreviewDbInAnotherEnv = new IndexerFactory(indexingSettingsForPreviewDbInAnotherEnv);
-            indexerFactoryForPublishDbInAnotherEnv = new IndexerFactory(indexingSettingsForPublishDbInAnotherEnv);
+            if (indexingSettingsForPreviewDbInAnotherEnv != null) {
+                indexerFactoryForPreviewDbInAnotherEnv = new IndexerFactory(indexingSettingsForPreviewDbInAnotherEnv);
+            }
+            if (indexingSettingsForPublishDbInAnotherEnv != null) {
+                indexerFactoryForPublishDbInAnotherEnv = new IndexerFactory(indexingSettingsForPublishDbInAnotherEnv);
+            }
         }
 
-        IndexerFactory getIndexerFactory(String environment, String database) {
-            if (environment != null) {
+        IndexerFactory getIndexerFactory(String altEnv, String database) {
+            if (altEnv != null && altEnv.equalsIgnoreCase("true")) {
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
                     return indexerFactoryForPreviewDbInAnotherEnv;
                 else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
