@@ -44,6 +44,7 @@ public class LinkCheckTopology {
 
             builder.setBolt(statsBolt, new StatsBolt(), 1)
                     .globalGrouping(source, StatsInitTupleData.STREAM_ID)
+                    .globalGrouping(source, StatsTupleData.STREAM_ID)
                     .globalGrouping(linkCheckBolt, StatsTupleData.STREAM_ID);
 
             if (isTest) {
