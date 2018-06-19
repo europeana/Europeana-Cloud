@@ -25,6 +25,7 @@ public final class PluginParameterKeys {
     public static final String METIS_TARGET_INDEXING_DATABASE = "TARGET_INDEXING_DATABASE";
     public static final String METIS_TARGET_INDEXING_ENVIRONMENT = "TARGET_INDEXING_ENVIRONMENT";
 
+
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String CLOUD_ID = "CLOUD_ID";
@@ -67,6 +68,11 @@ public final class PluginParameterKeys {
 
     // ---------- OAI-PMH ----------
     public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
+    public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
+    public static final String USE_DEFAULT_IDENTIFIERS = "USE_DEFAULT_IDENTIFIERS";
+
+    // -----------MIGRATION----------
+    public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";
 
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 

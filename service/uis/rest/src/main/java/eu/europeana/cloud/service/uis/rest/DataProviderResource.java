@@ -273,7 +273,7 @@ public class DataProviderResource {
      * @return The newly associated cloud identifier
      *
      * @throws DatabaseConnectionException
-     *             datbase connection error
+     *             database connection error
      * @throws CloudIdDoesNotExistException
      *             cloud identifier does not exist
      * @throws IdHasBeenMappedException
@@ -283,7 +283,7 @@ public class DataProviderResource {
      * @throws RecordDatasetEmptyException
      *             empty dataset
      * @throws CloudIdAlreadyExistException
-     *             cloud identifier alrrasy exist
+     *             cloud identifier already exist
      *
      */
     @POST

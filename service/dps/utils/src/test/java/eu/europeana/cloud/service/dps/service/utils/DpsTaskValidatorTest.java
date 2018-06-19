@@ -56,7 +56,7 @@ public class DpsTaskValidatorTest {
         dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
         dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
         dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_ENVIRONMENT, "TEST");
+        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_ENVIRONMENT, "ALTERNATIVE");
         dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
         dpsTask.setOutputRevision(correctRevision);
         //
@@ -323,7 +323,7 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateTheNotRequiredNullOutputRevisionAsCorrect() throws DpsTaskValidationException {
-        new DpsTaskValidator().withOutputRevisionCheckingIfExists().validate(dpsTaskWithNullOutputRevision);
+        new DpsTaskValidator().withOptionalOutputRevision().validate(dpsTaskWithNullOutputRevision);
     }
 
     @Test
