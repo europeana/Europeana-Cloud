@@ -6,6 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -36,5 +37,9 @@ public abstract class WiremockHelper {
         return IOUtils.toString(
                 Object.class.getResourceAsStream(name),
                 "UTF-8");
+    }
+
+    public static InputStream getFileContentAsStream(String name) throws IOException {
+        return Object.class.getResourceAsStream(name);
     }
 }

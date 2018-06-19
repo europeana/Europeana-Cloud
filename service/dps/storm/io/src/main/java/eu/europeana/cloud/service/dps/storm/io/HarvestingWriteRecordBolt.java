@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +35,11 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
 
     @Override
-    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws IOException, MCSException, CloudException,DriverException {
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws IOException, MCSException, CloudException, DriverException {
         String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
         String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-        String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId);
+        String additionalLocalIdentifier = stormTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
+        String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId, additionalLocalIdentifier);
         String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
         if (representationName == null || representationName.isEmpty()) {
             if (stormTaskTuple.getSourceDetails() != null) {
@@ -50,12 +52,12 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
     }
 
-    private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient, String providerId, String cloudId, String representationName) throws IOException, MCSException,DriverException {
+    private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient, String providerId, String cloudId, String representationName) throws IOException, MCSException, DriverException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
                 return recordServiceClient.createRepresentation(cloudId, representationName, providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
-            } catch (MCSException|DriverException e) {
+            } catch (MCSException | DriverException e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while creating Representation. Retries left:{} ", retries);
                     waitForSpecificTime();
@@ -68,15 +70,41 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     }
 
 
-    private String getCloudId(String authorizationHeader, String providerId, String localId) throws CloudException {
+    private String getCloudId(String authorizationHeader, String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
+        String result;
         UISClient uisClient = new UISClient(ecloudUisAddress);
         uisClient.useAuthorizationHeader(authorizationHeader);
         CloudId cloudId;
         cloudId = getCloudId(providerId, localId, uisClient);
         if (cloudId != null) {
-            return cloudId.getId();
+            result = cloudId.getId();
+        } else {
+            result = createCloudId(providerId, localId, uisClient);
         }
-        return createCloudId(providerId, localId, uisClient);
+        if (additionalLocalIdentifier != null)
+            attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId, uisClient);
+        return result;
+    }
+
+    private boolean attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, UISClient uisClient)
+            throws CloudException {
+        int retries = DEFAULT_RETRIES;
+
+        while (true) {
+            try {
+                return uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier);
+            } catch (CloudException e) {
+                if (e.getCause() instanceof IdHasBeenMappedException)
+                    return true;
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while mapping localId to cloudId. Retries left: " + retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while creating CloudId.");
+                    throw e;
+                }
+            }
+        }
     }
 
     private CloudId getCloudId(String providerId, String localId, UISClient uisClient) throws CloudException {
