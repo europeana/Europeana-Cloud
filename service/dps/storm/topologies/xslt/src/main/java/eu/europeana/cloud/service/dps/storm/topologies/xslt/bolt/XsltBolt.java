@@ -21,6 +21,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
+
   @Override
   public void execute(StormTaskTuple stormTaskTuple) {
 
@@ -30,7 +31,8 @@ public class XsltBolt extends AbstractDpsBolt {
       String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
       LOGGER.info("Processing file: {} with xslt schema:{}", fileUrl, xsltUrl);
       XsltTransformer xsltTransformer = prepareXsltTransformer(stormTaskTuple);
-      writer = xsltTransformer.transform(stormTaskTuple.getFileData());
+      writer = xsltTransformer
+          .transform(stormTaskTuple.getFileData(), prepareEuropeanaGeneratedIdsMap(stormTaskTuple));
       LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
       stormTaskTuple.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
 
@@ -62,16 +64,22 @@ public class XsltBolt extends AbstractDpsBolt {
   }
 
   private XsltTransformer prepareXsltTransformer(StormTaskTuple stormTaskTuple)
-      throws EuropeanaIdException, TransformationException {
+      throws TransformationException {
     //Get topology parameters
     String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
-    String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
     String metisDatasetName = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_NAME);
     String metisDatasetCountry = stormTaskTuple
         .getParameter(PluginParameterKeys.METIS_DATASET_COUNTRY);
     String metisDatasetLanguage = stormTaskTuple
         .getParameter(PluginParameterKeys.METIS_DATASET_LANGUAGE);
 
+    return new XsltTransformer(xsltUrl, metisDatasetName, metisDatasetCountry,
+        metisDatasetLanguage);
+  }
+
+  private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(StormTaskTuple stormTaskTuple)
+      throws EuropeanaIdException {
+    String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
     //Prepare europeana identifiers
     EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
     if (!StringUtils.isBlank(metisDatasetId)) {
@@ -80,9 +88,7 @@ public class XsltBolt extends AbstractDpsBolt {
       europeanaGeneratedIdsMap = europeanIdCreator
           .constructEuropeanaId(fileDataString, metisDatasetId);
     }
-
-    return new XsltTransformer(xsltUrl, europeanaGeneratedIdsMap, metisDatasetName,
-        metisDatasetCountry, metisDatasetLanguage);
+    return europeanaGeneratedIdsMap;
   }
 
   private void clearParametersStormTuple(StormTaskTuple stormTaskTuple) {
