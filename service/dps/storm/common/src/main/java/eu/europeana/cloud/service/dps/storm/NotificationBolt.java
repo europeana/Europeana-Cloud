@@ -46,7 +46,7 @@ public class NotificationBolt extends BaseRichBolt {
     private final String userName;
     private final String password;
     private static LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
-            100);
+            50);
 
     private String topologyName;
     private static CassandraConnectionProvider cassandraConnectionProvider;
@@ -297,6 +297,9 @@ public class NotificationBolt extends BaseRichBolt {
             }
         }
     }
+    public static void clearCache() {
+        cache.clear();
+    }
 
     private static class NotificationCache {
 
@@ -332,9 +335,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    public static void clearCache() {
-        cache.clear();
-    }
 
 }
 

@@ -2,8 +2,13 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
 
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -24,6 +29,14 @@ public class XmlXPathTest {
             "/*[local-name()='metadata']" +
             "/child::*";
     private static final String ENCODING = "UTF-8";
+    private XPathExpression expr;
+
+    @Before
+    public void init() throws Exception
+    {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        expr = xpath.compile(EXPRESSION);
+    }
 
     @Test
     public void shouldFilterOaiDcResponse() throws IOException, HarvesterException {
@@ -32,7 +45,7 @@ public class XmlXPathTest {
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
 
         //when
-        final InputStream result = new XmlXPath(inputStream).xpath(EXPRESSION);
+        final InputStream result = new XmlXPath(inputStream).xpath(expr);
 
         //then
         final String actual = convertToString(result);
@@ -40,14 +53,16 @@ public class XmlXPathTest {
     }
 
     @Test
-    public void shouldThrowExceptionNonSingleOutputCandidate() throws IOException, HarvesterException {
+    public void shouldThrowExceptionNonSingleOutputCandidate() throws IOException, HarvesterException,XPathExpressionException {
         //given
         final String fileContent = getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
 
         try {
             //when
-            new XmlXPath(inputStream).xpath("/some/bad/xpath");
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            expr = xpath.compile("/some/bad/xpath");
+            new XmlXPath(inputStream).xpath(expr);
             fail();
         }catch (HarvesterException e){
             //then
@@ -63,7 +78,7 @@ public class XmlXPathTest {
 
         try {
             //when
-            new XmlXPath(inputStream).xpath(EXPRESSION);
+            new XmlXPath(inputStream).xpath(expr);
             fail();
         }catch (HarvesterException e){
             //then

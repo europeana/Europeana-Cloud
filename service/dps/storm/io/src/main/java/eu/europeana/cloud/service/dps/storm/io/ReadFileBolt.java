@@ -52,9 +52,9 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     void emitFile(StormTaskTuple t, FileServiceClient fileClient, String file) {
-        try {
-            LOGGER.info("HERE THE LINK: {}", file);
-            InputStream is = getFile(fileClient, file);
+
+        LOGGER.info("HERE THE LINK: {}", file);
+        try (InputStream is = getFile(fileClient, file)) {
             t.setFileData(is);
             t.setFileUrl(file);
             outputCollector.emit(t.toStormTuple());
@@ -74,7 +74,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         while (true) {
             try {
                 return fileClient.getFile(file);
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting a file. Retries left:{} ", retries);
                     waitForSpecificTime();

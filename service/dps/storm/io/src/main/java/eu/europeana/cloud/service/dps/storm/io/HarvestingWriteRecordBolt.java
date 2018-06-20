@@ -55,7 +55,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         while (true) {
             try {
                 return recordServiceClient.createRepresentation(cloudId, representationName, providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
-            } catch (MCSException|DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while creating Representation. Retries left:{} ", retries);
                     waitForSpecificTime();

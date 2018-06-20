@@ -80,7 +80,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                         resultRepresentation.getRepresentationName(),
                         resultRepresentation.getVersion());
                 break;
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while assigning record to dataset. Retries left: {}", retries);
                     waitForSpecificTime();

@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.xml.xpath.XPathExpression;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +38,7 @@ public class RecordHarvestingBoltTest {
     @Test
     public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
         //given
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(new
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(new
                 ByteArrayInputStream(new byte[]{}));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
@@ -54,7 +55,7 @@ public class RecordHarvestingBoltTest {
     public void shouldEmitErrorOnHarvestingException() throws IOException,
             HarvesterException {
         //given
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenThrow(new
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenThrow(new
                 HarvesterException("Some!"));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);

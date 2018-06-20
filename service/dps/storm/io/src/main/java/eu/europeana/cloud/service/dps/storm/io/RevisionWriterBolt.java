@@ -78,7 +78,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                         urlParser.getPart(UrlPart.VERSIONS),
                         revisionToBeApplied);
                 break;
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while adding Revisions. Retries left {}", retries);
                     waitForSpecificTime();
