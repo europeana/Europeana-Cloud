@@ -18,8 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.dps.topologies.media.support.*;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -79,6 +83,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
     private transient DatasetDownloader datasetDownloader;
     private transient EdmDownloader edmDownloader;
 
+    private transient CassandraSubTaskInfoDAO subTaskInfoDao;
+
     private long emitLimit;
 
     public DataSetReaderSpout(IRichSpout baseSpout, Collection<UrlType> urlTypes) {
@@ -107,6 +113,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
         emitLimit = (Long) conf.getOrDefault("MEDIATOPOLOGY_DATASET_EMIT_LIMIT", Long.MAX_VALUE);
 
         baseSpout.open(conf, context, new CollectorWrapper(collector));
+        CassandraConnectionProvider connectionProvider = Util.getCassandraConnectionProvider(conf);
+        subTaskInfoDao = CassandraSubTaskInfoDAO.getInstance(connectionProvider);
     }
 
     @Override
@@ -153,7 +161,13 @@ public class DataSetReaderSpout extends BaseRichSpout {
             logger.warn("Unrecognied ACK: {}", msgId);
             return;
         }
-
+        subTaskInfoDao.insert(
+                (int)edmInfo.counter,
+                edmInfo.taskInfo.task.getTaskId(),
+                "linkcheck_topology",
+                edmInfo.representation.getUri().toString(),
+                States.SUCCESS.toString(),
+                null, null, null);
         edmProcessed(edmInfo);
     }
 
@@ -169,8 +183,22 @@ public class DataSetReaderSpout extends BaseRichSpout {
             logger.info("FAIL received for {}, will retry ({} attempts left)", msgId, edmInfo.attempts);
             edmInfo.attempts--;
             edmInfo.sourceInfo.addToQueue(edmInfo);
+            subTaskInfoDao.insert(
+                    (int)edmInfo.counter,
+                    edmInfo.taskInfo.task.getTaskId(),
+                    "linkcheck_topology",
+                    edmInfo.representation.getUri().toString(),
+                    States.ERROR_WILL_RETRY.toString(),
+                    "Failed on topic spout", null, null);
         } else {
             logger.info("FAIL received for {}, no more retries", msgId);
+            subTaskInfoDao.insert(
+                    (int)edmInfo.counter,
+                    edmInfo.taskInfo.task.getTaskId(),
+                    "linkcheck_topology",
+                    edmInfo.representation.getUri().toString(),
+                    States.ERROR.toString(),
+                    "Failed on topic spout", null, null);
             edmProcessed(edmInfo);
         }
     }
