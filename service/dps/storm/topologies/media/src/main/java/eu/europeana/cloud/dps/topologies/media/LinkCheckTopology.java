@@ -3,6 +3,7 @@ package eu.europeana.cloud.dps.topologies.media;
 import java.util.Arrays;
 import java.util.Collection;
 
+import eu.europeana.cloud.dps.topologies.media.support.*;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
@@ -13,10 +14,6 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.dps.topologies.media.support.DummySpout;
-import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.metis.mediaservice.UrlType;
 
@@ -45,6 +42,7 @@ public class LinkCheckTopology {
             builder.setBolt(statsBolt, new StatsBolt(), 1)
                     .globalGrouping(source, StatsInitTupleData.STREAM_ID)
                     .globalGrouping(source, StatsTupleData.STREAM_ID)
+                    .globalGrouping(source, FileTupleData.STREAM_ID)
                     .globalGrouping(linkCheckBolt, StatsTupleData.STREAM_ID);
 
             if (isTest) {

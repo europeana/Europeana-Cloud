@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.dps.topologies.media.support.*;
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
@@ -237,6 +238,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
         TaskInfo taskInfo;
         SourceInfo sourceInfo;
         int attempts = 5;
+        int counter = 0;
     }
 
     private final class EdmDownloader {
@@ -297,24 +299,37 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
             void downloadEdm(EdmInfo edmInfo) throws InterruptedException {
                 Representation rep = edmInfo.representation;
+                File file;
+                String fileUri = null;
                 try {
-                    File file = rep.getFiles().get(0);
-                    String fileUri = fileClient.getFileUri(rep.getCloudId(), rep.getRepresentationName(),
+                    file = rep.getFiles().get(0);
+                    fileUri = fileClient.getFileUri(rep.getCloudId(), rep.getRepresentationName(),
                             rep.getVersion(), file.getFileName()).toString();
                     try (InputStream is = fileClient.getFile(fileUri)) {
                         edmInfo.edmObject = parser.parseXml(is);
                     } catch (MediaException e) {
                         logger.info("EDM loading failed ({}/{}) for {}", e.reportError, e.getMessage(), rep.getFiles());
                         logger.trace("full exception:", e);
-                        StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
+                        StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), edmInfo.counter);
                         stats.addStatus(fileUri, e.reportError);
                         outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
-
+                        emitErrorNotification(edmInfo, fileUri, States.ERROR, e.getMessage());
                         edmFinished(edmInfo);
                     }
                 } catch (Exception e) {
-                    logger.error("Downloading edm failed for " + rep, e);
-                    edmQueue.put(edmInfo); // retry later
+                    logger.info("EDM loading failed ({}/{}) for {}", e.getMessage(), e.getMessage(), rep.getFiles());
+                    if (edmInfo.attempts > 0) {
+                        emitErrorNotification(edmInfo, fileUri,States.ERROR_WILL_RETRY, e.getMessage());
+                        edmInfo.attempts--;
+                        edmQueue.put(edmInfo); // retry later
+                    } else {
+                        StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
+                        stats.addStatus(fileUri, e.getMessage());
+                        outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
+                        emitErrorNotification(edmInfo, fileUri,States.ERROR, e.getMessage());
+
+                        edmFinished(edmInfo);
+                    }
                     Thread.sleep(1000);
                 }
             }
@@ -334,6 +349,19 @@ public class DataSetReaderSpout extends BaseRichSpout {
                 String host = hostCounts.entrySet().stream().max(c).get().getKey();
                 SourceInfo source = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
                 source.addToQueue(edmInfo);
+            }
+
+            private void emitErrorNotification(EdmInfo edmInfo, String fileUri, States state, String message) {
+                FileTupleData fileTupleData = new FileTupleData();
+                fileTupleData.taskId = edmInfo.taskInfo.task.getTaskId();
+                fileTupleData.info_text = message;
+                fileTupleData.topology_name = "linkcheck_topology";
+                fileTupleData.state = state.toString();
+                fileTupleData.resource_url = fileUri;
+                fileTupleData.resource_no = edmInfo.counter;
+                outputCollector.emit(
+                        FileTupleData.STREAM_ID,
+                        new Values(fileTupleData));
             }
         }
     }
@@ -420,7 +448,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
                 Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
                         representationRevisionResponse.getVersion());
 
-                prepareEdmInfo(rep, taskInfo);
+                prepareEdmInfo(rep, taskInfo, edmCount);
                 edmCount++;
             }
             return edmCount;
@@ -448,7 +476,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
                 Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
                         representationRevisionResponse.getVersion());
 
-                prepareEdmInfo(rep, taskInfo);
+                prepareEdmInfo(rep, taskInfo, edmCount);
                 edmCount++;
             }
             return edmCount;
@@ -461,16 +489,17 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     config.providerId, config.datasetId);
             while (iterator.hasNext() && edmCount < emitLimit) {
                 Representation rep = iterator.next();
-                prepareEdmInfo(rep, taskInfo);
+                prepareEdmInfo(rep, taskInfo, edmCount);
                 edmCount++;
             }
             return edmCount;
         }
 
-        private void prepareEdmInfo(Representation rep, TaskInfo taskInfo) throws InterruptedException {
+        private void prepareEdmInfo(Representation rep, TaskInfo taskInfo,int counter) throws InterruptedException {
             EdmInfo edmInfo = new EdmInfo();
             edmInfo.representation = rep;
             edmInfo.taskInfo = taskInfo;
+            edmInfo.counter = counter;
             edmsByStormMsgId.put(toStormMsgId(edmInfo), edmInfo);
             edmDownloader.queue(edmInfo);
         }
