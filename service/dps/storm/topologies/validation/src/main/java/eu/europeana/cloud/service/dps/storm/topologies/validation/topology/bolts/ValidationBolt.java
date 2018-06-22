@@ -45,13 +45,13 @@ public class ValidationBolt extends AbstractDpsBolt {
 
     private void reorderFileContent(StormTaskTuple stormTaskTuple) throws TransformationException {
         LOGGER.info("Reordering the file");
-        StringWriter writer = transformer.transform(stormTaskTuple.getFileData());
+        StringWriter writer = transformer.transform(stormTaskTuple.getFileData(), null);
         stormTaskTuple.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
     }
 
     private void validateFile(StormTaskTuple stormTaskTuple) {
         String document = new String(stormTaskTuple.getFileData());
-        ValidationResult result = validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematromLocation(stormTaskTuple), document);
+        ValidationResult result = validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematronLocation(stormTaskTuple), document);
         if (result.isSuccess()) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
@@ -94,7 +94,7 @@ public class ValidationBolt extends AbstractDpsBolt {
         return stormTaskTuple.getParameter(PluginParameterKeys.ROOT_LOCATION);
     }
 
-    private String getSchematromLocation(StormTaskTuple stormTaskTuple) {
+    private String getSchematronLocation(StormTaskTuple stormTaskTuple) {
         return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMATRON_LOCATION);
     }
 }
