@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -201,6 +202,25 @@ public class HarvestingWriteRecordBoltTest {
 
     }
 
+    @Test
+    public void shouldFailWithNoRetriesIfProviderDoestExistWhenMappingAdditionalLocalId() throws Exception{
+        //given
+        CloudId cloudId = mock(CloudId.class);
+        CloudException exception = new CloudException("", new ProviderDoesNotExistException(new ErrorInfo()));
+        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenThrow(exception);
+        when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
+
+        when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier")).thenThrow(CloudException.class);
+        //when
+        oaiWriteRecordBoltT.execute(getStormTaskTupleWithAdditionalLocalIdParam());
+
+        //then
+        verify(outputCollector, times(0)).emit(anyList());
+        verify(uisClient, times(1)).getCloudId(anyString(), anyString());
+        verify(uisClient, times(0)).createMapping(anyString(), anyString(), anyString());
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+
+    }
 
     @Test
     public void shouldRetry10TimesBeforeFailingWhenCreatingNewCloudId() throws Exception {
@@ -212,6 +232,21 @@ public class HarvestingWriteRecordBoltTest {
         verify(uisClient, times(11)).createCloudId(anyString(), anyString());
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
+    }
+
+    @Test
+    public void shouldFailWithNoRetriesIfProviderDoestExistWhenCreatingNewCloudId() throws Exception {
+        //given
+        CloudException exception = new CloudException("", new ProviderDoesNotExistException(new ErrorInfo()));
+        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenThrow(exception);
+        doThrow(CloudException.class).when(uisClient).createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID);
+        //when
+        oaiWriteRecordBoltT.execute(getStormTaskTuple());
+        //then
+        verify(outputCollector, times(0)).emit(anyList());
+        verify(uisClient, times(1)).getCloudId(anyString(), anyString());
+        verify(uisClient, times(0)).createCloudId(anyString(), anyString());
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
     }
 
     @Captor
@@ -247,7 +282,5 @@ public class HarvestingWriteRecordBoltTest {
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(parameters.get(PluginParameterKeys.OUTPUT_URL), SOURCE_VERSION_URL);
     }
-
-
 }
 

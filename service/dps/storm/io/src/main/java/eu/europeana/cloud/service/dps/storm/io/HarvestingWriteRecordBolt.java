@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
@@ -58,6 +59,10 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
             try {
                 return recordServiceClient.createRepresentation(cloudId, representationName, providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
             } catch (MCSException | DriverException e) {
+                if (e.getCause() instanceof ProviderDoesNotExistException) {
+                    LOGGER.error("Error while creating Representation.");
+                    throw e;
+                }
                 if (retries-- > 0) {
                     LOGGER.warn("Error while creating Representation. Retries left:{} ", retries);
                     waitForSpecificTime();
@@ -96,6 +101,10 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
             } catch (CloudException e) {
                 if (e.getCause() instanceof IdHasBeenMappedException)
                     return true;
+                if (e.getCause() instanceof ProviderDoesNotExistException) {
+                    LOGGER.error("Error while mapping localId to cloudId.");
+                    throw e;
+                }
                 if (retries-- > 0) {
                     LOGGER.warn("Error while mapping localId to cloudId. Retries left: " + retries);
                     waitForSpecificTime();
@@ -116,6 +125,10 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
             } catch (CloudException e) {
                 if (e.getCause() instanceof RecordDoesNotExistException)
                     return null;
+                if (e.getCause() instanceof ProviderDoesNotExistException) {
+                    LOGGER.error("Error while getting CloudId.");
+                    throw e;
+                }
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting CloudId. Retries left: " + retries);
                     waitForSpecificTime();
@@ -134,6 +147,10 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
             try {
                 return uisClient.createCloudId(providerId, localId).getId();
             } catch (CloudException e) {
+                if (e.getCause() instanceof ProviderDoesNotExistException) {
+                    LOGGER.error("Error while creating CloudId.");
+                    throw e;
+                }
                 if (retries-- > 0) {
                     LOGGER.warn("Error while creating CloudId. Retries left: " + retries);
                     waitForSpecificTime();
