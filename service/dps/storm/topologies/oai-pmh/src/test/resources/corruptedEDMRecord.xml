@@ -1,0 +1,35 @@
+<rdf:RDF xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:edm="http://www.europeana.eu/schemas/edm/"
+         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:ore="http://www.openarchives.org/ore/terms/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#">
+    <edm:ProvidedCHO>
+        <dc:creator xml:lang="">Kate Fernie</dc:creator>
+        <dc:date>13</dc:date>
+        <dc:date>06-2013</dc:date>
+        <dc:description xml:lang="">The Wilton Windmill is a five-floor brick tower mill located on a chalk ridge between the villages of Wilton and Great Bedwyn in Wiltshire.</dc:description>
+        <dc:identifier>WWmill01</dc:identifier>
+        <dc:publisher xml:lang="">2Culture Associates</dc:publisher>
+        <dc:subject>Windmill</dc:subject>
+        <dc:title>Wilton Windmill</dc:title>
+        <edm:type>IMAGE</edm:type>
+    </edm:ProvidedCHO>
+    <edm:WebResource rdf:about="https://2culture.locloudhosting.net/files/original/f16359140f468d5be456065a65ec2488.jpg">
+        <dc:format>JPG</dc:format>
+        <dc:rights xml:lang="">Creative Commons Attribution (CC-BY)</dc:rights>
+        <edm:rights rdf:resource=""/>
+    </edm:WebResource>
+    <ore:Aggregation rdf:about="http://more.locloud.eu/object/DCU/24927017#aggregation">
+        <edm:aggregatedCHO rdf:resource="http://more.locloud.eu/object/DCU/24927017"/>
+        <edm:dataProvider>Library of Cyprus University of Technology </edm:dataProvider>
+        <edm:isShownAt rdf:resource="http://2culture.locloudhosting.net/items/show/1"/>
+        <edm:isShownBy rdf:resource="https://2culture.locloudhosting.net/files/original/f16359140f468d5be456065a65ec2488.jpg"/>
+        <edm:object rdf:resource="https://2culture.locloudhosting.net/files/original/f16359140f468d5be456065a65ec2488.jpg"/>
+        <edm:provider>LoCloud</edm:provider>
+        <edm:rights rdf:resource=""/>
+    </ore:Aggregation>
+</rdf:RDF>
