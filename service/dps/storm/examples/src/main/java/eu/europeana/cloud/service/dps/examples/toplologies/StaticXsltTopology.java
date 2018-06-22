@@ -6,8 +6,8 @@ import eu.europeana.cloud.service.dps.examples.toplologies.builder.SimpleStaticT
 import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
 import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.SpoutConfig;
