@@ -15,9 +15,13 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
+import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
+import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -162,6 +166,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
 
     private void emitFiles(final Path start, final StormTaskTuple stormTaskTuple) throws IOException {
+        final boolean useDefaultIdentifiers = useDefaultIdentifier(stormTaskTuple);
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
@@ -176,7 +181,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                     String mimeType = Files.probeContentType(file);
                     String filePath = file.toString();
                     String readableFileName = filePath.substring(start.toString().length() + 1).replaceAll("\\\\", "/");
-                    emitFileContent(stormTaskTuple, filePath, readableFileName, mimeType);
+                    try {
+                        emitFileContent(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers);
+                    } catch (IOException | EuropeanaIdException e){
+                        emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading the file because of " + e.getMessage(), "");
+                    }
                     cache.get(stormTaskTuple.getTaskId()).inc();
                 }
                 return FileVisitResult.CONTINUE;
@@ -199,7 +208,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         throw new IllegalArgumentException("Path parameter should never be null");
     }
 
-    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType) throws IOException {
+    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType, boolean useDefaultIdentifiers) throws IOException, EuropeanaIdException {
         FileInputStream fileInputStream = null;
         try {
             StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
@@ -207,7 +216,15 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             fileInputStream = new FileInputStream(file);
             tuple.setFileData(fileInputStream);
             tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
-            String localId = formulateLocalId(readableFilePath);
+
+            String localId;
+            if(useDefaultIdentifiers)
+                localId = formulateLocalId(readableFilePath);
+            else {
+                EuropeanaGeneratedIdsMap europeanaIdentifier = getEuropeanaIdentifier(tuple);
+                localId = europeanaIdentifier.getEuropeanaGeneratedId();
+                tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, europeanaIdentifier.getSourceProvidedChoAbout());
+            }
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, localId);
             tuple.setFileUrl(readableFilePath);
             collector.emit(tuple.toStormTuple());
@@ -215,6 +232,24 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             if (fileInputStream != null)
                 fileInputStream.close();
         }
+    }
+
+    private boolean useDefaultIdentifier(StormTaskTuple stormTaskTuple) {
+        boolean useDefaultIdentifiers = false;
+        if ("true".equals(stormTaskTuple.getParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS))) {
+            useDefaultIdentifiers = true;
+        }
+        return useDefaultIdentifiers;
+    }
+
+    private EuropeanaGeneratedIdsMap getEuropeanaIdentifier(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
+        String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+        if(StringUtils.isEmpty(datasetId))
+            throw new EuropeanaIdException("METIS dataset id not provided");
+
+        String document = new String(stormTaskTuple.getFileData());
+        EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
+        return europeanIdCreator.constructEuropeanaId(document, datasetId);
     }
 
     private String formulateLocalId(String readableFilePath) {
