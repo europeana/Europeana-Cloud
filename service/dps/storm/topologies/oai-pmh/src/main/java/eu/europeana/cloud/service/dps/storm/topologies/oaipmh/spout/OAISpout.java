@@ -37,6 +37,8 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
  */
 public class OAISpout extends CustomKafkaSpout {
 
+    private static final int RECORDS_COUNT_TO_WAIT = 100;
+    private static final int WAITING_IN_MILLIS = 3000;
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
     private SourceProvider sourceProvider;
@@ -195,7 +197,17 @@ public class OAISpout extends CustomKafkaSpout {
 
         int count = 0;
         while (hasNext(headerIterator) && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
-            Header header = headerIterator.next();
+            if (count% RECORDS_COUNT_TO_WAIT ==0)
+                try
+                {
+                    Thread.sleep(WAITING_IN_MILLIS);
+                }
+                catch(InterruptedException ex)
+                {
+                    Thread.currentThread().interrupt();
+                }
+
+                Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier(), schema);
                 count++;

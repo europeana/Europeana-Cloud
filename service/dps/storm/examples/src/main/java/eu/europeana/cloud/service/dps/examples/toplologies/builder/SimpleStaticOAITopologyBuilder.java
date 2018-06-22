@@ -38,7 +38,6 @@ public class SimpleStaticOAITopologyBuilder {
 
         builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress), 1).
                 shuffleGrouping(TopologyHelper.RECORD_HARVESTING_BOLT);
-/*
 
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt, 1).
                 shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
@@ -55,7 +54,6 @@ public class SimpleStaticOAITopologyBuilder {
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
-*/
 
         return builder.createTopology();
     }

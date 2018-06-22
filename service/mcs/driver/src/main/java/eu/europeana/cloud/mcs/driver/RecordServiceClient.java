@@ -305,8 +305,6 @@ public class RecordServiceClient extends MCSClient {
             IOUtils.closeQuietly(data);
             if (multipart != null)
                 multipart.close();
-            if (data!=null)
-                data.close();
         }
     }
 
