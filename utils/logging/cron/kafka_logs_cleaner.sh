@@ -33,7 +33,7 @@ do
         gzip $filePath
 done
 
-echo "Deteting log files for directory: "$logsDirectory
+echo "Deleting log files for directory: "$logsDirectory
 
 date=`date -u --date="$daysBackForDeletion days ago" +"%Y-%m-%d"`
 echo $date
