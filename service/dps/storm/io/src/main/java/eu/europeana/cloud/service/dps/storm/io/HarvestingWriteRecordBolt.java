@@ -58,7 +58,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         while (true) {
             try {
                 return recordServiceClient.createRepresentation(cloudId, representationName, providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (e.getCause() instanceof ProviderDoesNotExistException) {
                     LOGGER.error("Error while creating Representation.");
                     throw e;
@@ -78,17 +78,22 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     private String getCloudId(String authorizationHeader, String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
         String result;
         UISClient uisClient = new UISClient(ecloudUisAddress);
+
         uisClient.useAuthorizationHeader(authorizationHeader);
-        CloudId cloudId;
-        cloudId = getCloudId(providerId, localId, uisClient);
-        if (cloudId != null) {
-            result = cloudId.getId();
-        } else {
-            result = createCloudId(providerId, localId, uisClient);
+        try {
+            CloudId cloudId;
+            cloudId = getCloudId(providerId, localId, uisClient);
+            if (cloudId != null) {
+                result = cloudId.getId();
+            } else {
+                result = createCloudId(providerId, localId, uisClient);
+            }
+            if (additionalLocalIdentifier != null)
+                attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId, uisClient);
+            return result;
+        } finally {
+            uisClient.close();
         }
-        if (additionalLocalIdentifier != null)
-            attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId, uisClient);
-        return result;
     }
 
     private boolean attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, UISClient uisClient)
@@ -152,7 +157,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                     throw e;
                 }
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while creating CloudId. Retries left: " + retries);
+                    LOGGER.warn("Error while creating CloudId. Retries left: " , retries);
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while creating CloudId.");

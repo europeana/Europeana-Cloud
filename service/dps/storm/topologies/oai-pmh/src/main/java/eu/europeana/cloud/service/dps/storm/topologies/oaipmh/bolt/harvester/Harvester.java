@@ -11,6 +11,7 @@ import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.xpath.XPathExpression;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -21,11 +22,6 @@ import java.io.Serializable;
 public class Harvester implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Harvester.class);
 
-    private static final String METADATA_XPATH = "/*[local-name()='OAI-PMH']" +
-            "/*[local-name()='GetRecord']" +
-            "/*[local-name()='record']" +
-            "/*[local-name()='metadata']" +
-            "/child::*";
 
     /**
      * Harvest record
@@ -33,21 +29,22 @@ public class Harvester implements Serializable {
      * @param oaiPmhEndpoint OAI-PMH endpoint
      * @param recordId       record id
      * @param metadataPrefix metadata prefix
+     *  @param expression XPATH expression
+
      * @return return metadata
      * @throws HarvesterException
      * @throws IOException
      */
-    public InputStream harvestRecord(String oaiPmhEndpoint, String recordId, String metadataPrefix)
+    public InputStream harvestRecord(String oaiPmhEndpoint, String recordId, String metadataPrefix, XPathExpression expression)
             throws HarvesterException, IOException {
 
 
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
         int retries = AbstractDpsBolt.DEFAULT_RETRIES;
         while (true) {
-            try {
-                OAIClient client = new HttpOAIClient(oaiPmhEndpoint);
-                final InputStream record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
-                return new XmlXPath(record).xpath(METADATA_XPATH);
+            OAIClient client = new HttpOAIClient(oaiPmhEndpoint);
+            try (final InputStream record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params))) {
+                return new XmlXPath(record).xpath(expression);
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error harvesting record {}. Retries left:{} ", recordId, retries);
@@ -59,7 +56,7 @@ public class Harvester implements Serializable {
                     }
                 } else {
                     throw new HarvesterException(String.format("Problem with harvesting record %1$s for endpoint %2$s because of: %3$s",
-                            recordId, oaiPmhEndpoint,e.getMessage()), e);
+                            recordId, oaiPmhEndpoint, e.getMessage()), e);
                 }
             }
         }

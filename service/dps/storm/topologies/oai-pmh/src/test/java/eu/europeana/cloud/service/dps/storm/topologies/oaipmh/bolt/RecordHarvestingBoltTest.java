@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.xml.xpath.XPathExpression;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,8 +40,9 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
     @Test
     public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
         //given
+
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -58,7 +60,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -78,7 +80,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("blablaba");
         StormTaskTuple spiedTask = spy(task);
@@ -100,7 +102,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("true");
         StormTaskTuple spiedTask = spy(task);
@@ -122,7 +124,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix("true");
         StormTaskTuple spiedTask = spy(task);
@@ -144,7 +146,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/corruptedEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -159,7 +161,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
     public void shouldEmitErrorOnHarvestingException() throws IOException,
             HarvesterException {
         //given
-        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenThrow(new
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenThrow(new
                 HarvesterException("Some!"));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);

@@ -270,6 +270,15 @@ public class DpsClient {
         }
 
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        client.close();
+    }
+
+    public void close() {
+            client.close();
+    }
 }
 
 

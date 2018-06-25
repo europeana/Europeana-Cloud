@@ -184,4 +184,13 @@ public class RevisionServiceClient extends MCSClient {
         }
     }
 
+    public void close() {
+        client.close();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        client.close();
+    }
+
 }

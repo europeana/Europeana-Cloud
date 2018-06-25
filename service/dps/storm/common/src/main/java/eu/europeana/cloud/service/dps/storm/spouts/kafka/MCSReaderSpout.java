@@ -156,34 +156,43 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         FileServiceClient fileClient = new FileServiceClient(mcsClientURL);
         fileClient.useAuthorizationHeader(authorizationHeader);
 
-        for (String dataSetUrl : dataSets) {
-            try {
-                final UrlParser urlParser = new UrlParser(dataSetUrl);
-                if (urlParser.isUrlToDataset()) {
-                    if (revisionName != null && revisionProvider != null) {
-                        String revisionTimestamp = dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
-                        if (revisionTimestamp != null) {
-                            handleExactRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+        try {
+            for (String dataSetUrl : dataSets) {
+                try {
+                    final UrlParser urlParser = new UrlParser(dataSetUrl);
+                    if (urlParser.isUrlToDataset()) {
+                        if (revisionName != null && revisionProvider != null) {
+                            String revisionTimestamp = dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
+                            if (revisionTimestamp != null) {
+                                handleExactRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                            } else {
+                                handleLatestRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+                            }
                         } else {
-                            handleLatestRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+                            RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                            while (iterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                                Representation representation = iterator.next();
+                                emitFilesFromRepresentation(dpsTask, fileClient, representation);
+                            }
                         }
                     } else {
-                        RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
-                        while (iterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
-                            Representation representation = iterator.next();
-                            emitFilesFromRepresentation(dpsTask, fileClient, representation);
-                        }
+                        LOGGER.warn("dataset url is not formulated correctly {}", dataSetUrl);
+                        emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
                     }
-                } else {
-                    LOGGER.warn("dataset url is not formulated correctly {}", dataSetUrl);
-                    emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
+                } catch (MalformedURLException ex) {
+                    LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
+                    emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
                 }
-            } catch (MalformedURLException ex) {
-                LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
-                emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
             }
+            cassandraTaskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), cache.get(dpsTask.getTaskId()).getFileCount());
+        } finally {
+            fileClient.close();
+            dataSetServiceClient.close();
+            recordServiceClient.close();
+            if (cache.get(dpsTask.getTaskId()).getFileCount() == 0)
+                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
+
         }
-        cassandraTaskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), cache.get(dpsTask.getTaskId()).getFileCount());
     }
 
     private void handleLatestRevisions(DpsTask dpsTask, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException, DriverException {
@@ -243,7 +252,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                     throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
                 }
                 return resultSlice;
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting slice of  latest cloud Id from data set.Retries Left{} ", retries);
                     waitForSpecificTime();
@@ -256,7 +265,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     }
 
 
-    private void handleExactRevisions(DpsTask dpsTask, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException,DriverException {
+    private void handleExactRevisions(DpsTask dpsTask, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException, DriverException {
         String startFrom = null;
         long taskId = dpsTask.getTaskId();
         do {
@@ -281,7 +290,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         while (true) {
             try {
                 return recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting Representation. Retries left{}", retries);
                     waitForSpecificTime();
@@ -298,7 +307,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         while (true) {
             try {
                 return recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting representation revision. Retries Left{} ", retries);
                     waitForSpecificTime();
@@ -322,7 +331,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 }
 
                 return resultSlice;
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting Revisions from data set.Retries Left{} ", retries);
                     waitForSpecificTime();

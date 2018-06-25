@@ -57,7 +57,7 @@ public class XsltBolt extends AbstractDpsBolt {
         try {
           writer.close();
         } catch (IOException e) {
-          LOGGER.error("Error: during closing the writer" + e.getMessage());
+          LOGGER.error("Error: during closing the writer", e.getMessage());
         }
       }
     }

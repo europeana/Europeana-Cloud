@@ -25,21 +25,19 @@ import java.io.InputStream;
 class XmlXPath {
     private final InputStream input;
 
-    XmlXPath(InputStream input) {
+     XmlXPath(InputStream input) {
         this.input = input;
     }
 
     /**
      * Xpath on xml based on passed expression.
      *
-     * @param expression expression
+     * @param expr expression
      * @return result of xpath
      * @throws HarvesterException
      */
-    InputStream xpath(String expression) throws HarvesterException, IOException {
+    public InputStream xpath(XPathExpression expr) throws HarvesterException, IOException {
         try {
-            final XPathExpression expr = compileExpression(expression);
-
             final InputSource inputSource = new SAXSource(new InputSource(input)).getInputSource();
             final NodeList result = (NodeList) expr.evaluate(inputSource,
                     XPathConstants.NODESET);
@@ -48,28 +46,25 @@ class XmlXPath {
         } catch (XPathExpressionException | TransformerException e) {
             throw new HarvesterException("Cannot xpath XML!", e);
         } finally {
-            if(input != null){
+            if (input != null) {
                 input.close();
             }
         }
     }
 
-    private XPathExpression compileExpression(String expression) throws XPathExpressionException {
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        return xpath.compile(expression);
-    }
-
-    private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException {
+    private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException, IOException {
         final int length = nodes.getLength();
-        if(length < 1){
+        if (length < 1) {
             throw new HarvesterException("Empty XML!");
-        } else if(length > 1){
+        } else if (length > 1) {
             throw new HarvesterException("More than one XML!");
         }
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Source xmlSource = new DOMSource(nodes.item(0));
-        Result outputTarget = new StreamResult(outputStream);
-        TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
-        return new ByteArrayInputStream(outputStream.toByteArray());
+        try (
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();) {
+            Source xmlSource = new DOMSource(nodes.item(0));
+            Result outputTarget = new StreamResult(outputStream);
+            TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+            return new ByteArrayInputStream(outputStream.toByteArray());
+        }
     }
 }
