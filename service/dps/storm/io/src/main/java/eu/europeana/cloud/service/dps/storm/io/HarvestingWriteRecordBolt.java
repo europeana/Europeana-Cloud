@@ -157,7 +157,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                     throw e;
                 }
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while creating CloudId. Retries left: " + retries);
+                    LOGGER.warn("Error while creating CloudId. Retries left: " , retries);
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while creating CloudId.");
