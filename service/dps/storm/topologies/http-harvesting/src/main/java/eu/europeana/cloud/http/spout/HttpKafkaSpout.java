@@ -132,7 +132,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             if (!useDefaultIdentifiers) {
                 metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
                 if (StringUtils.isEmpty(metisDatasetId)) {
-                    emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "METIS_DATASET_ID cannot be empty", "");
+                    cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because METIS_DATASET_ID not provided" , TaskState.DROPPED.toString());
                     return;
                 }
             }
