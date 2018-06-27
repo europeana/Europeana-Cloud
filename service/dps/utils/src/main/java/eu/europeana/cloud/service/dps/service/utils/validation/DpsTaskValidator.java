@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Lists;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
