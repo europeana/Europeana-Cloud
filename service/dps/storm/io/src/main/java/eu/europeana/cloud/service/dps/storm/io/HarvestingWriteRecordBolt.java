@@ -118,6 +118,9 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                     throw e;
                 }
             }
+            finally {
+                uisClient.close();
+            }
         }
     }
 
