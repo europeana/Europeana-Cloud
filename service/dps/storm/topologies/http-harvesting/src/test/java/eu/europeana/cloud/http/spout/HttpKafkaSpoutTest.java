@@ -160,6 +160,29 @@ public class HttpKafkaSpoutTest {
         assertTrue(val.get("CLOUD_LOCAL_IDENTIFIER").toString().startsWith("record.xml"));
     }
 
+    @Test
+    public void shouldEmitErrorNotificationWhenUsingEuropeanaIdsAndMetisDatasetIdNotProvided() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        HashMap<String, String> parameters = prepareStormTaskTupleParameters();
+        parameters.put(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS, "false");
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME6, null, parameters, new Revision());
+        httpKafkaSpout.execute(tuple);
+        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+    }
+
+    @Test
+    public void shouldEmitErrorNotificationWhenUsingEuropeanaIdsAndMetisDatasetIdIsEmpty() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        HashMap<String, String> parameters = prepareStormTaskTupleParameters();
+        parameters.put(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS, "false");
+        parameters.put(PluginParameterKeys.METIS_DATASET_ID, "");
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_NAME6, null, parameters, new Revision());
+        httpKafkaSpout.execute(tuple);
+        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+    }
+
 
     @Test
     public void shouldEmitErrorNotificationWhenCannotCreateEuropeanaId() throws Exception {

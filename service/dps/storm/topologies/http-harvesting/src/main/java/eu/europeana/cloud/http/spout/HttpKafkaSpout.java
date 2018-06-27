@@ -127,13 +127,22 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     public void execute(StormTaskTuple stormTaskTuple) throws CompressionExtensionNotRecognizedException {
         File file = null;
         try {
+            final boolean useDefaultIdentifiers = useDefaultIdentifier(stormTaskTuple);
+            String metisDatasetId = null;
+            if (!useDefaultIdentifiers) {
+                metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+                if (StringUtils.isEmpty(metisDatasetId)) {
+                    emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "METIS_DATASET_ID cannot be empty", "");
+                    return;
+                }
+            }
             String httpURL = stormTaskTuple.getFileUrl();
             file = downloadFile(httpURL);
             String compressingExtension = FilenameUtils.getExtension(file.getName());
             FileUnpackingService fileUnpackingService = UnpackingServiceFactory.createUnpackingService(compressingExtension);
             fileUnpackingService.unpackFile(file.getAbsolutePath(), file.getParent() + File.separator);
             Path start = Paths.get(new File(file.getParent()).toURI());
-            emitFiles(start, stormTaskTuple);
+            emitFiles(start, stormTaskTuple, useDefaultIdentifiers, metisDatasetId);
             cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), cache.get(stormTaskTuple.getTaskId()).getFileCount());
         } catch (IOException e) {
             LOGGER.error("HTTPHarvesterBolt error: {} ", e.getMessage());
@@ -165,8 +174,8 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     }
 
 
-    private void emitFiles(final Path start, final StormTaskTuple stormTaskTuple) throws IOException {
-        final boolean useDefaultIdentifiers = useDefaultIdentifier(stormTaskTuple);
+    private void emitFiles(final Path start, final StormTaskTuple stormTaskTuple, final boolean useDefaultIdentifiers, final String metisDatasetId) throws IOException {
+
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
@@ -182,8 +191,8 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                     String filePath = file.toString();
                     String readableFileName = filePath.substring(start.toString().length() + 1).replaceAll("\\\\", "/");
                     try {
-                        emitFileContent(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers);
-                    } catch (IOException | EuropeanaIdException e){
+                        emitFileContent(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
+                    } catch (IOException | EuropeanaIdException e) {
                         emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading the file because of " + e.getMessage(), "");
                     }
                     cache.get(stormTaskTuple.getTaskId()).inc();
@@ -208,7 +217,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         throw new IllegalArgumentException("Path parameter should never be null");
     }
 
-    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType, boolean useDefaultIdentifiers) throws IOException, EuropeanaIdException {
+    private void emitFileContent(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType, boolean useDefaultIdentifiers, String datasetId) throws IOException, EuropeanaIdException {
         FileInputStream fileInputStream = null;
         try {
             StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
@@ -218,10 +227,10 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
 
             String localId;
-            if(useDefaultIdentifiers)
+            if (useDefaultIdentifiers)
                 localId = formulateLocalId(readableFilePath);
             else {
-                EuropeanaGeneratedIdsMap europeanaIdentifier = getEuropeanaIdentifier(tuple);
+                EuropeanaGeneratedIdsMap europeanaIdentifier = getEuropeanaIdentifier(tuple, datasetId);
                 localId = europeanaIdentifier.getEuropeanaGeneratedId();
                 tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, europeanaIdentifier.getSourceProvidedChoAbout());
             }
@@ -242,11 +251,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         return useDefaultIdentifiers;
     }
 
-    private EuropeanaGeneratedIdsMap getEuropeanaIdentifier(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
-        String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-        if(StringUtils.isEmpty(datasetId))
-            throw new EuropeanaIdException("METIS dataset id not provided");
-
+    private EuropeanaGeneratedIdsMap getEuropeanaIdentifier(StormTaskTuple stormTaskTuple, String datasetId) throws EuropeanaIdException {
         String document = new String(stormTaskTuple.getFileData());
         EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
         return europeanIdCreator.constructEuropeanaId(document, datasetId);
