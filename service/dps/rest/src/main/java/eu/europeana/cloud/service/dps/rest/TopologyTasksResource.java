@@ -220,19 +220,22 @@ public class TopologyTasksResource {
                     DataSet dataSet = parseDataSetURl(dataSetURL);
                     dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
                     validateProviderId(task, dataSet.getProviderId());
-                } catch (DataSetNotExistsException | MalformedURLException e) {
+                } catch (MalformedURLException e) {
                     throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL + " can not be submitted because: " + e.getMessage());
+                } catch (DataSetNotExistsException e) {
+                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL + " Does not exist");
                 } catch (Exception e) {
-                    throw new DpsTaskValidationException("Validation failed. Unexpected exception happened while validating the dataSet: " + dataSetURL + " because of: " + e.getMessage());
+                    throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: " + dataSetURL + " because of: " + e.getMessage());
                 }
-
             }
         }
     }
 
     private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
         String oldProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
-        if (oldProviderId != providerId)
+        if (oldProviderId == null)
+            task.addParameter(PluginParameterKeys.PROVIDER_ID, oldProviderId);
+        else if (oldProviderId != providerId)
             throw new DpsTaskValidationException("Validation failed. The provider id: " + oldProviderId + " should be the same provider of the output dataSet: " + providerId);
 
     }

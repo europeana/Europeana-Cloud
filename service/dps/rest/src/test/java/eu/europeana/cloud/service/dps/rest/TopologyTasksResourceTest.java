@@ -518,7 +518,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldProperlySendTaskWithDatsetEntryWithOutputRevision() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryWithOutputRevision() throws MCSException, TaskSubmissionException, InterruptedException {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
