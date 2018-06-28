@@ -232,11 +232,10 @@ public class TopologyTasksResource {
     }
 
     private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
-        String oldProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
-        if (oldProviderId == null)
-            task.addParameter(PluginParameterKeys.PROVIDER_ID, oldProviderId);
-        else if (oldProviderId != providerId)
-            throw new DpsTaskValidationException("Validation failed. The provider id: " + oldProviderId + " should be the same provider of the output dataSet: " + providerId);
+        String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
+        if (providedProviderId != null)
+            if (!providedProviderId.equals(providerId))
+                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId + " should be the same provider of the output dataSet: " + providerId);
 
     }
 
