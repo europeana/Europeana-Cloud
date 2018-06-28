@@ -64,7 +64,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                     throw e;
                 }
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while creating Representation. Retries left:{} ", retries);
+                    LOGGER.warn("Error while creating Representation. Retries left: {} ", retries);
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while creating Representation.");
@@ -111,7 +111,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                     throw e;
                 }
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while mapping localId to cloudId. Retries left: " + retries);
+                    LOGGER.warn("Error while mapping localId to cloudId. Retries left: {} " , retries);
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while creating CloudId.");
@@ -135,7 +135,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                     throw e;
                 }
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while getting CloudId. Retries left: " + retries);
+                    LOGGER.warn("Error while getting CloudId. Retries left: {}" , retries);
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while getting CloudId.");
@@ -157,7 +157,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                     throw e;
                 }
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while creating CloudId. Retries left: ", retries);
+                    LOGGER.warn("Error while creating CloudId. Retries left: {} ", retries);
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while creating CloudId.");
