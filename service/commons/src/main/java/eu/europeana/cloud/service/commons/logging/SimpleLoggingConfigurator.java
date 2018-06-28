@@ -42,7 +42,7 @@ public class SimpleLoggingConfigurator extends LoggingConfigurator {
             }
         } catch (NamingException ex) {
             removeKafkaAppenderFromLogger(europeanaLogger);
-            LOGGER.error("Name " + KAFKA_BROKER_LIST_JNDI_NAME + " not found in JNDI.");
+            LOGGER.error("Name {} not found in JNDI.", KAFKA_BROKER_LIST_JNDI_NAME);
         }
         turnOnLogger(europeanaLogger);
         loggerUpdater.update(europeanaLogger, APPLICATION_INSTANCE_NAME_MARKER, hostname);

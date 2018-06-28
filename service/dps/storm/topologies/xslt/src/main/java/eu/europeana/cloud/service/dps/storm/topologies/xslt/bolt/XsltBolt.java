@@ -49,7 +49,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
       outputCollector.emit(stormTaskTuple.toStormTuple());
     } catch (Exception e) {
-      LOGGER.error("XsltBolt error:" + e.getMessage());
+      LOGGER.error("XsltBolt error:{}",  e.getMessage());
       emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(), stormTaskTuple
           .getParameters().toString());
     } finally {
@@ -57,7 +57,7 @@ public class XsltBolt extends AbstractDpsBolt {
         try {
           writer.close();
         } catch (IOException e) {
-          LOGGER.error("Error: during closing the writer", e.getMessage());
+          LOGGER.error("Error: during closing the writer {}", e.getMessage());
         }
       }
     }

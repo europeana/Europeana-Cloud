@@ -133,7 +133,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                 return readCompleteListSizeFromXML(listIdentifiersResponse);
             } catch (OAIRequestException e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Checking CompleteListSize. Retries left: " + retries);
+                    LOGGER.warn("Checking CompleteListSize. Retries left: {} " , retries);
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException ex) {
