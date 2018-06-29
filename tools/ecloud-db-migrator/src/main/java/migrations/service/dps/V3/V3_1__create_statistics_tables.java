@@ -17,7 +17,7 @@ public class V3_1__create_statistics_tables implements JavaMigration {
                 "    task_id bigint,\n" +
                 "    node_xpath varchar,\n" +
                 "    node_value varchar,\n" +
-                "    occurence counter,\n" +
+                "    occurrence counter,\n" +
                 "    PRIMARY KEY((task_id, node_xpath), node_value)\n" +
                 ");\n");
         session.execute("CREATE TABLE attribute_statistics (\n" +
