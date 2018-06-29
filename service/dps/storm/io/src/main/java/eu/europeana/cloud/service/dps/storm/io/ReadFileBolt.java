@@ -39,7 +39,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-        String file = t.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        final String file = t.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
         FileServiceClient fileClient = new FileServiceClient(ecloudMcsAddress);
         try {
             final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);

@@ -27,10 +27,10 @@ public class XsltBolt extends AbstractDpsBolt {
 
     StringWriter writer = null;
     try {
-      String fileUrl = stormTaskTuple.getFileUrl();
-      String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
+      final String fileUrl = stormTaskTuple.getFileUrl();
+      final String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
       LOGGER.info("Processing file: {} with xslt schema:{}", fileUrl, xsltUrl);
-      XsltTransformer xsltTransformer = prepareXsltTransformer(stormTaskTuple);
+      final XsltTransformer xsltTransformer = prepareXsltTransformer(stormTaskTuple);
       writer = xsltTransformer
           .transform(stormTaskTuple.getFileData(), prepareEuropeanaGeneratedIdsMap(stormTaskTuple));
       LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
@@ -66,11 +66,11 @@ public class XsltBolt extends AbstractDpsBolt {
   private XsltTransformer prepareXsltTransformer(StormTaskTuple stormTaskTuple)
       throws TransformationException {
     //Get topology parameters
-    String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
-    String metisDatasetName = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_NAME);
-    String metisDatasetCountry = stormTaskTuple
+    final String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
+    final String metisDatasetName = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_NAME);
+    final String metisDatasetCountry = stormTaskTuple
         .getParameter(PluginParameterKeys.METIS_DATASET_COUNTRY);
-    String metisDatasetLanguage = stormTaskTuple
+    final String metisDatasetLanguage = stormTaskTuple
         .getParameter(PluginParameterKeys.METIS_DATASET_LANGUAGE);
 
     return new XsltTransformer(xsltUrl, metisDatasetName, metisDatasetCountry,

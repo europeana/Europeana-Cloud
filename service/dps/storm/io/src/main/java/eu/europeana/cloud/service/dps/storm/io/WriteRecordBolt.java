@@ -42,7 +42,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple t) {
         try {
             LOGGER.info("WriteRecordBolt: persisting...");
-            URI uri = uploadFileInNewRepresentation(t);
+            final URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(t, uri.toString());
             outputCollector.emit(t.toStormTuple());

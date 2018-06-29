@@ -44,6 +44,8 @@ import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
  * Created by Tarek on 5/18/2018.
  */
 public class MCSReaderSpout extends CustomKafkaSpout {
+    private static final int RECORDS_COUNT_TO_WAIT = 200;
+    private static final int WAITING_IN_MILLIS = 1500;
 
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
@@ -136,7 +138,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     public void execute(String stream, DpsTask dpsTask) throws MCSException, DriverException {
 
-        List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
+        final List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
         final String representationName = dpsTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         dpsTask.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
 
@@ -156,6 +158,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         FileServiceClient fileClient = new FileServiceClient(mcsClientURL);
         fileClient.useAuthorizationHeader(authorizationHeader);
 
+        final StormTaskTuple stormTaskTuple = new StormTaskTuple(
+                dpsTask.getTaskId(),
+                dpsTask.getTaskName(),
+                null, null, dpsTask.getParameters(), dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
+
         try {
             for (String dataSetUrl : dataSets) {
                 try {
@@ -164,20 +171,20 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                         if (revisionName != null && revisionProvider != null) {
                             String revisionTimestamp = dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
                             if (revisionTimestamp != null) {
-                                handleExactRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                                handleExactRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
                             } else {
-                                handleLatestRevisions(dpsTask, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+                                handleLatestRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
                             }
                         } else {
                             RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
                             while (iterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
-                                Representation representation = iterator.next();
-                                emitFilesFromRepresentation(dpsTask, fileClient, representation);
+                                final Representation representation = iterator.next();
+                                emitFilesFromRepresentation(stormTaskTuple, fileClient, representation);
                             }
                         }
                     } else {
-                        LOGGER.warn("dataset url is not formulated correctly {}", dataSetUrl);
-                        emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
+                        LOGGER.warn("dataSet url is not formulated correctly {}", dataSetUrl);
+                        emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataSet url is not formulated correctly", "");
                     }
                 } catch (MalformedURLException ex) {
                     LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
@@ -195,19 +202,19 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
     }
 
-    private void handleLatestRevisions(DpsTask dpsTask, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException, DriverException {
+    private void handleLatestRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException, DriverException {
 
         String startFrom = null;
-        long taskId = dpsTask.getTaskId();
+        final long taskId = stormTaskTuple.getTaskId();
         do {
-            ResultSlice<CloudIdAndTimestampResponse> resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, datasetName, datasetProvider, startFrom);
-            List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
+            final ResultSlice<CloudIdAndTimestampResponse> resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, datasetName, datasetProvider, startFrom);
+            final List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
             for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
                 if (!taskStatusChecker.hasKillFlag(taskId)) {
-                    String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-                    RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
-                    Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
-                    emitFilesFromRepresentation(dpsTask, fileServiceClient, representation);
+                    final String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
+                    final RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
+                    final Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
+                    emitFilesFromRepresentation(stormTaskTuple, fileServiceClient, representation);
                 } else
                     break;
             }
@@ -216,23 +223,22 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         while (startFrom != null && !taskStatusChecker.hasKillFlag(taskId));
     }
 
-    private void emitFilesFromRepresentation(DpsTask dpsTask, FileServiceClient fileServiceClient, Representation representation) {
-        StormTaskTuple stormTaskTuple = new StormTaskTuple(
-                dpsTask.getTaskId(),
-                dpsTask.getTaskName(),
-                null, null, dpsTask.getParameters(), dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
+    private void emitFilesFromRepresentation(StormTaskTuple stormTaskTuple, FileServiceClient fileServiceClient, Representation representation) {
+        final long taskId = stormTaskTuple.getTaskId();
         if (representation != null) {
             for (eu.europeana.cloud.common.model.File file : representation.getFiles()) {
                 String fileUrl = "";
-                if (!taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                if (!taskStatusChecker.hasKillFlag(taskId)) {
                     try {
                         fileUrl = fileServiceClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
-                        StormTaskTuple fileTuple = buildNextStormTuple(stormTaskTuple, fileUrl);
-                        cache.get(stormTaskTuple.getTaskId()).inc();
+                        final StormTaskTuple fileTuple = buildNextStormTuple(stormTaskTuple, fileUrl);
+                        cache.get(taskId).inc();
+                        if (cache.get(taskId).getFileCount() % RECORDS_COUNT_TO_WAIT == 0)
+                            waitForSpecificTime(WAITING_IN_MILLIS);
                         collector.emit(fileTuple.toStormTuple());
                     } catch (Exception e) {
                         LOGGER.warn("Error while getting File URI from MCS {}", e.getMessage());
-                        emitErrorNotification(dpsTask.getTaskId(), fileUrl, "Error while getting File URI from MCS " + e.getMessage(), "");
+                        emitErrorNotification(taskId, fileUrl, "Error while getting File URI from MCS " + e.getMessage(), "");
                     }
                 } else
                     break;
@@ -255,7 +261,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting slice of  latest cloud Id from data set.Retries Left{} ", retries);
-                    waitForSpecificTime();
+                    waitForSpecificTime(SLEEP_TIME);
                 } else {
                     LOGGER.error("Error while getting slice of latest cloud Id from data set.");
                     throw e;
@@ -265,9 +271,9 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     }
 
 
-    private void handleExactRevisions(DpsTask dpsTask, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException, DriverException {
+    private void handleExactRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException, DriverException {
         String startFrom = null;
-        long taskId = dpsTask.getTaskId();
+        long taskId = stormTaskTuple.getTaskId();
         do {
             ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionsChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, datasetProvider, datasetName, startFrom);
             List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
@@ -276,7 +282,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                     String responseCloudId = cloudTagsResponse.getCloudId();
                     RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, responseCloudId);
                     Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
-                    emitFilesFromRepresentation(dpsTask, fileClient, representation);
+                    emitFilesFromRepresentation(stormTaskTuple, fileClient, representation);
                 } else
                     break;
             }
@@ -293,7 +299,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting Representation. Retries left{}", retries);
-                    waitForSpecificTime();
+                    waitForSpecificTime(SLEEP_TIME);
                 } else {
                     LOGGER.error("Error while getting Representation.");
                     throw e;
@@ -310,7 +316,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting representation revision. Retries Left{} ", retries);
-                    waitForSpecificTime();
+                    waitForSpecificTime(SLEEP_TIME);
                 } else {
                     LOGGER.error("Error while getting representation revision.");
                     throw e;
@@ -334,7 +340,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting Revisions from data set.Retries Left{} ", retries);
-                    waitForSpecificTime();
+                    waitForSpecificTime(SLEEP_TIME);
                 } else {
                     LOGGER.error("Error while getting Revisions from data set.");
                     throw e;
@@ -350,9 +356,9 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         return fileTuple;
     }
 
-    private void waitForSpecificTime() {
+    private void waitForSpecificTime(int milliSecond) {
         try {
-            Thread.sleep(SLEEP_TIME);
+            Thread.sleep(milliSecond);
         } catch (InterruptedException e1) {
             Thread.currentThread().interrupt();
             LOGGER.error(e1.getMessage());
