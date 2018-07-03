@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -14,6 +16,7 @@ import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidatio
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
@@ -216,8 +219,79 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
+
     @Test
-    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetURLIsMalformed() throws MCSException, TaskSubmissionException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "Malformed dataset");
+        prepareMocks(TOPOLOGY_NAME);
+
+        Response response = sendTask(task, TOPOLOGY_NAME);
+
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetDoesNotExist() throws MCSException, TaskSubmissionException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
+        doThrow(DataSetNotExistsException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
+        prepareMocks(TOPOLOGY_NAME);
+
+        Response response = sendTask(task, TOPOLOGY_NAME);
+
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenUnexpectedExceptionHappens() throws MCSException, TaskSubmissionException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
+        doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
+        prepareMocks(TOPOLOGY_NAME);
+
+        Response response = sendTask(task, TOPOLOGY_NAME);
+
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetProviderIsNotEqualToTheProviderIdParameter() throws MCSException, TaskSubmissionException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
+        task.addParameter(PluginParameterKeys.PROVIDER_ID, "DIFFERENT_PROVIDER_ID");
+        when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<Representation>());
+        prepareMocks(TOPOLOGY_NAME);
+
+        Response response = sendTask(task, TOPOLOGY_NAME);
+
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWhithOutputDataSet() throws MCSException, TaskSubmissionException,InterruptedException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
+        when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<Representation>());
+        prepareMocks(TOPOLOGY_NAME);
+
+        Response response = sendTask(task, TOPOLOGY_NAME);
+
+        assertSuccessfulRequest(response, TOPOLOGY_NAME);
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException,InterruptedException  {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         setCorrectlyFormulatedOutputRevision(task);
@@ -444,7 +518,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldProperlySendTaskWithDatsetEntryWithOutputRevision() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryWithOutputRevision() throws MCSException, TaskSubmissionException, InterruptedException {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
@@ -455,7 +529,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertSuccessfulRequest(response, IC_TOPOLOGY);
     }
 
-//TODO
     @Test
     public void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws MCSException, TaskSubmissionException, InterruptedException {
         //given
