@@ -25,6 +25,8 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -211,6 +213,10 @@ public class DataSetResourceTest extends JerseyTest {
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 
-        return recordService.persistRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
+        Representation rep = recordService.persistRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
+        f.setContentUri(new URI("http://localhost:9998/records/" + cloudId + "/representations/" + schema + "/versions/" + r.getVersion() + "/files/content.xml"));
+        rep.setFiles(Arrays.asList(f));
+
+        return rep;
     }
 }
