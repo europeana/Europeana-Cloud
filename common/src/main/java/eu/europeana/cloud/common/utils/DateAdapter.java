@@ -19,8 +19,10 @@ public class DateAdapter extends XmlAdapter<String, Date> {
         if (date == null) {
             throw new RuntimeException("The revision creation Date shouldn't be null");
         }
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return dateFormat.format(date);
+        synchronized (dateFormat) {
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return dateFormat.format(date);
+        }
     }
 
     @Override
@@ -29,7 +31,9 @@ public class DateAdapter extends XmlAdapter<String, Date> {
             return null;
         }
         try {
-            return dateFormat.parse(stringDate);
+            synchronized (dateFormat) {
+                return dateFormat.parse(stringDate);
+            }
         } catch (ParseException e) {
             throw new ParseException(e.getMessage() + ". The accepted date format is yyyy-MM-dd'T'HH:mm:ss.SSSXXX", e.getErrorOffset());
         }
