@@ -76,7 +76,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     @Override
     public void nextTuple() {
         StormTaskTuple stormTaskTuple = null;
-        System.out.println("we are here");
         try {
             super.nextTuple();
             stormTaskTuple = taskDownloader.getTupleWithFileURL();
