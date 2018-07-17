@@ -35,10 +35,10 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
@@ -63,8 +63,6 @@ public class MCSReaderSpoutTest {
     @Mock
     private TaskStatusChecker taskStatusChecker;
 
-    @Mock(name = "cache")
-    private ConcurrentHashMap<Long, TaskSpoutInfo> cache;
 
     private TestHelper testHelper;
     private static Date date = new Date();
@@ -89,7 +87,6 @@ public class MCSReaderSpoutTest {
         representationIterator = mock(RepresentationIterator.class);
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
         TaskSpoutInfo taskSpoutInfo = mock(TaskSpoutInfo.class);
-        when(cache.get(anyLong())).thenReturn(taskSpoutInfo);
         doNothing().when(taskSpoutInfo).inc();
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
@@ -135,9 +132,8 @@ public class MCSReaderSpoutTest {
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
-        verify(collector, times(2)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
     }
 
     @Test
@@ -159,7 +155,7 @@ public class MCSReaderSpoutTest {
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
@@ -184,7 +180,7 @@ public class MCSReaderSpoutTest {
 
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
@@ -223,10 +219,10 @@ public class MCSReaderSpoutTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
-        verify(collector, times(2)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
+
     }
 
 
@@ -262,7 +258,7 @@ public class MCSReaderSpoutTest {
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -302,7 +298,7 @@ public class MCSReaderSpoutTest {
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -348,10 +344,9 @@ public class MCSReaderSpoutTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
-        verify(collector, times(2)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
 
     }
 
@@ -391,7 +386,7 @@ public class MCSReaderSpoutTest {
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -410,7 +405,7 @@ public class MCSReaderSpoutTest {
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
     }
 
@@ -424,7 +419,7 @@ public class MCSReaderSpoutTest {
 
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
     }
 
     @Test(expected = DriverException.class)
@@ -437,7 +432,7 @@ public class MCSReaderSpoutTest {
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(DriverException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
     }
 
@@ -451,7 +446,7 @@ public class MCSReaderSpoutTest {
 
         doThrow(DriverException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
     }
 
     private DpsTask getDpsTask() {
@@ -480,9 +475,9 @@ public class MCSReaderSpoutTest {
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
-        verify(collector, times(1)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 1);
+
     }
 
     @Test
@@ -502,7 +497,7 @@ public class MCSReaderSpoutTest {
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
     }

@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaFactory;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaHandler;
@@ -95,7 +94,7 @@ public class OAISpout extends CustomKafkaSpout {
             try {
                 DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
-                    taskDownloader.fillTheQueue(new TaskSpoutInfo(dpsTask));
+                    taskDownloader.fillTheQueue(dpsTask);
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
@@ -107,7 +106,7 @@ public class OAISpout extends CustomKafkaSpout {
 
     class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
-        private ArrayBlockingQueue<TaskSpoutInfo> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
+        private ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         private ArrayBlockingQueue<StormTaskTuple> oaiIdentifiers = new ArrayBlockingQueue<>(MAX_SIZE);
 
 
@@ -119,9 +118,9 @@ public class OAISpout extends CustomKafkaSpout {
             return oaiIdentifiers.poll();
         }
 
-        public void fillTheQueue(TaskSpoutInfo taskSpoutInfo) {
+        public void fillTheQueue(DpsTask dpsTask) {
             try {
-                taskQueue.put(taskSpoutInfo);
+                taskQueue.put(dpsTask);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -132,8 +131,7 @@ public class OAISpout extends CustomKafkaSpout {
             StormTaskTuple stormTaskTuple = null;
             while (true) {
                 try {
-                    TaskSpoutInfo taskSpoutInfo = taskQueue.take();
-                    DpsTask dpsTask = taskSpoutInfo.getDpsTask();
+                    DpsTask dpsTask = taskQueue.take();
                     OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
                     if (oaipmhHarvestingDetails == null)
                         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();

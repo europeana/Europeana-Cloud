@@ -8,7 +8,6 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
@@ -36,7 +35,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
 /**
  * Created by Tarek on 5/4/2018.
