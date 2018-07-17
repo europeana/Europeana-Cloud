@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.dps.examples.toplologies;
 
-import eu.europeana.cloud.http.spout.HttpKafkaSpout;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.examples.toplologies.builder.SimpleStaticTopologyBuilder;
-import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants;
-import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
 import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
@@ -40,7 +37,8 @@ public class StaticICTopology {
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         MCSReaderSpout kafkaSpout = new MCSReaderSpout(kafkaConfig, CASSANDRA_HOSTS, Integer.parseInt(CASSANDRA_PORT), CASSANDRA_KEYSPACE_NAME, CASSANDRA_USERNAME, CASSANDRA_SECRET_TOKEN,MCS_URL);
 
-        StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(kafkaSpout, new IcBolt(), TopologyHelper.IC_BOLT, TopologyConstants.MCS_URL);
+        StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(kafkaSpout, new IcBolt(), TopologyHelper.IC_BOLT, MCS_URL);
+
 
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology(TOPOLOGY_NAME, TopologyConfigBuilder.buildConfig(), stormTopology);

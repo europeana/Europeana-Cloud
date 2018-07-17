@@ -86,11 +86,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             for (long taskId : cache.keySet()) {
                 TaskSpoutInfo currentTask = cache.get(taskId);
                 if (!currentTask.isStarted()) {
+                    dpsTask = currentTask.getDpsTask();
                     LOGGER.info("Start progressing for Task with id {}", currentTask.getDpsTask().getTaskId());
                     startProgress(currentTask);
-                    dpsTask = currentTask.getDpsTask();
                     String stream = getStream(dpsTask);
-
                     if (stream.equals(FILE_URLS.name())) {
                         StormTaskTuple stormTaskTuple = new StormTaskTuple(
                                 dpsTask.getTaskId(),
@@ -104,7 +103,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                         }
                     } else // For data Sets
                         execute(stream, dpsTask);
-                    cache.remove(taskId);
                 }
             }
 
@@ -112,6 +110,9 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
             if (dpsTask != null)
                 cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
+        } finally {
+            if (dpsTask != null)
+                cache.remove(dpsTask.getTaskId());
         }
     }
 
