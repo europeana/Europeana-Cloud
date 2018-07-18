@@ -1,9 +1,7 @@
 package eu.europeana.cloud.service.dps.examples.toplologies;
 
-import eu.europeana.cloud.http.spout.HttpKafkaSpout;
-import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
+
 import eu.europeana.cloud.service.dps.examples.toplologies.builder.SimpleStaticOAITopologyBuilder;
-import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
 import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.OAISpout;
 import org.apache.storm.LocalCluster;
