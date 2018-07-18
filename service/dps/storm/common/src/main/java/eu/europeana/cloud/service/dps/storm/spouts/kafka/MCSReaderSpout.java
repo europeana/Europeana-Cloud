@@ -125,6 +125,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     DpsTask dpsTask = taskQueue.take();
+                    startProgressing(dpsTask);
                     OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
                     if (oaipmhHarvestingDetails == null)
                         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
@@ -140,6 +141,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                             fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
                             tuplesWithFileUrls.put(fileTuple);
                         }
+                        cassandraTaskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), files.size());
                     } else // For data Sets
                         execute(stream, dpsTask);
 
@@ -152,8 +154,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
 
         public void execute(String stream, DpsTask dpsTask) throws MCSException, DriverException {
-
-            startProgressing(dpsTask);
 
             final List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
             final String representationName = dpsTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
