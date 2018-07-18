@@ -141,7 +141,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                             fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
                             tuplesWithFileUrls.put(fileTuple);
                         }
-                        cassandraTaskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), files.size());
                     } else // For data Sets
                         execute(stream, dpsTask);
 
