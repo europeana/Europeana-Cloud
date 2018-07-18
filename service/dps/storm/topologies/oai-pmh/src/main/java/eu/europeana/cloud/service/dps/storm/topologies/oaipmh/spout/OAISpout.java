@@ -149,7 +149,7 @@ public class OAISpout extends CustomKafkaSpout {
         }
 
         public void execute(StormTaskTuple stormTaskTuple) throws BadArgumentException, InterruptedException {
-            startProgress(stormTaskTuple);
+            startProgress(stormTaskTuple.getTaskId());
             SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
             Set<String> schemas = schemaHandler.getSchemas(stormTaskTuple);
             OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
@@ -178,8 +178,9 @@ public class OAISpout extends CustomKafkaSpout {
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         }
 
-        private void startProgress(StormTaskTuple stormTaskTuple) {
-            cassandraTaskInfoDAO.updateTask(stormTaskTuple.getTaskId(), "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
+        private void startProgress(long taskId) {
+            LOGGER.info("Start progressing for Task with id {}", taskId);
+            cassandraTaskInfoDAO.updateTask(taskId, "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
         }
 
 
