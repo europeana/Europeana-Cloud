@@ -37,6 +37,8 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
  */
 public class OAISpout extends CustomKafkaSpout {
 
+    private static final int RECORDS_COUNT_TO_WAIT = 100;
+    private static final int WAITING_IN_MILLIS = 3000;
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
     private SourceProvider sourceProvider;
@@ -109,15 +111,14 @@ public class OAISpout extends CustomKafkaSpout {
 
 
     public void execute(StormTaskTuple stormTaskTuple) {
-
+        int count = 0;
         try {
             SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
             Set<String> schemas = schemaHandler.getSchemas(stormTaskTuple);
             OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
-            int count = 0;
+
             Date fromDate = oaipmhHarvestingDetails.getDateFrom();
             Date untilDate = oaipmhHarvestingDetails.getDateUntil();
-
             Set<String> sets = oaipmhHarvestingDetails.getSets();
 
             for (String schema : schemas) {
@@ -130,11 +131,17 @@ public class OAISpout extends CustomKafkaSpout {
             }
             LOGGER.debug("Harvested {} identifiers for source ( {} )", count, stormTaskTuple.getSourceDetails());
             cache.get(stormTaskTuple.getTaskId()).setFileCount(count);
-            cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), count);
+            if (count > 0)
+                cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), count);
+            else
+                cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         } catch (BadArgumentException e) {
             LOGGER.error("OAI Harvesting Spout error: {} ", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while Harvesting identifiers " + e.getMessage(), "");
+            if (count == 0)
+                cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The submitted parameters generated an exception while listing the records ids", TaskState.DROPPED.toString());
         }
+
     }
 
 
@@ -190,7 +197,17 @@ public class OAISpout extends CustomKafkaSpout {
 
         int count = 0;
         while (hasNext(headerIterator) && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
-            Header header = headerIterator.next();
+            if (count% RECORDS_COUNT_TO_WAIT ==0)
+                try
+                {
+                    Thread.sleep(WAITING_IN_MILLIS);
+                }
+                catch(InterruptedException ex)
+                {
+                    Thread.currentThread().interrupt();
+                }
+
+                Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier(), schema);
                 count++;

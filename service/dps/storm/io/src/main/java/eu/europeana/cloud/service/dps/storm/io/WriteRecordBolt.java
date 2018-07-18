@@ -42,7 +42,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple t) {
         try {
             LOGGER.info("WriteRecordBolt: persisting...");
-            URI uri = uploadFileInNewRepresentation(t);
+            final URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(t, uri.toString());
             outputCollector.emit(t.toStormTuple());
@@ -57,11 +57,15 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         }
     }
 
-    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException,DriverException {
+    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException, DriverException {
         RecordServiceClient recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
-        final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        recordServiceClient.useAuthorizationHeader(authorizationHeader);
-        return createRepresentationAndUploadFile(stormTaskTuple, recordServiceClient);
+        try {
+            final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+            recordServiceClient.useAuthorizationHeader(authorizationHeader);
+            return createRepresentationAndUploadFile(stormTaskTuple, recordServiceClient);
+        } finally {
+            recordServiceClient.close();
+        }
     }
 
 
@@ -70,7 +74,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         while (true) {
             try {
                 return recordServiceClient.createRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME), getProviderId(stormTaskTuple, recordServiceClient), stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while creating representation and uploading file. Retries left {}", retries);
                     waitForSpecificTime();

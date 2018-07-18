@@ -1,10 +1,15 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
@@ -17,6 +22,8 @@ import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +41,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -161,6 +170,7 @@ public class TopologyTasksResource {
             LOGGER.info("Submitting task");
             assertContainTopology(topologyName);
             validateTask(task, topologyName);
+            validateOutputDataSetsIfExist(task);
             final Date sentTime = new Date();
             new Thread(new Runnable() {
                 @Override
@@ -201,6 +211,53 @@ public class TopologyTasksResource {
         }
         return Response.notModified().build();
     }
+
+    private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
+        List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+        if (dataSets != null) {
+            for (String dataSetURL : dataSets) {
+                try {
+                    DataSet dataSet = parseDataSetURl(dataSetURL);
+                    dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
+                    validateProviderId(task, dataSet.getProviderId());
+                } catch (MalformedURLException e) {
+                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL + " can not be submitted because: " + e.getMessage());
+                } catch (DataSetNotExistsException e) {
+                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL + " Does not exist");
+                } catch (Exception e) {
+                    throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: " + dataSetURL + " because of: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
+        String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
+        if (providedProviderId != null)
+            if (!providedProviderId.equals(providerId))
+                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId + " should be the same provider of the output dataSet: " + providerId);
+
+    }
+
+
+    private List<String> readDataSetsList(String listParameter) {
+        if (listParameter == null)
+            return null;
+        return Arrays.asList(listParameter.split(","));
+    }
+
+    private DataSet parseDataSetURl(String url) throws MalformedURLException {
+        UrlParser parser = new UrlParser(url);
+        if (parser.isUrlToDataset()) {
+            DataSet dataSet = new DataSet();
+            dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
+            dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
+            return dataSet;
+        }
+        throw new MalformedURLException("The dataSet URL is not formulated correctly");
+
+    }
+
 
     /**
      * Retrieves a detailed report for the specified task.It will return info about

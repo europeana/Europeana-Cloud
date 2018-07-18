@@ -25,7 +25,6 @@ import javax.ws.rs.core.Response.Status;
  * The REST API client for the Unique Identifier Service.
  *
  * @author Yorgos.Mamakis@ kb.nl
- *
  */
 public class UISClient {
 
@@ -38,7 +37,6 @@ public class UISClient {
     /**
      * Creates a new instance of this class. Same as {@link #UISClient(String)}
      * but includes username and password to perform authenticated requests.
-     *
      */
     public UISClient(final String uisUrl, final String username, final String password) {
         LOGGER.info("UISClient starting...");
@@ -75,7 +73,7 @@ public class UISClient {
      * Invoke the creation of a new CloudId REST call.
      *
      * @param providerId The provider Id
-     * @param recordId The record Id
+     * @param recordId   The record Id
      * @return The newly generated CloudId
      * @throws CloudException The generic cloud exception wrapper
      */
@@ -129,7 +127,7 @@ public class UISClient {
      * Invoke the retrieval of a cloud identifier.
      *
      * @param providerId The provider Id
-     * @param recordId The record Id
+     * @param recordId   The record Id
      * @return The retrieved cloud Id
      * @throws CloudException The generic cloud exception wrapper
      */
@@ -239,9 +237,9 @@ public class UISClient {
     /**
      * Retrieve the record ids associated with a provider with pagination.
      *
-     * @param providerId The provider id
+     * @param providerId    The provider id
      * @param startRecordId The local identifier to start retrieval from
-     * @param limit The maximum number of records to fetch
+     * @param limit         The maximum number of records to fetch
      * @return A list of record ids associated with the provider
      * @throws CloudException The generic cloud exception wrapper
      */
@@ -272,9 +270,9 @@ public class UISClient {
     /**
      * Retrieve the cloud ids associated with a provider with pagination.
      *
-     * @param providerId The provider id
+     * @param providerId    The provider id
      * @param startRecordId The local identifier to start retrieval from
-     * @param limit The maximum number of records to fetch
+     * @param limit         The maximum number of records to fetch
      * @return A list of cloud ids associated with the provider
      * @throws CloudException The generic cloud exception wrapper
      */
@@ -305,14 +303,14 @@ public class UISClient {
     /**
      * Create a mapping between a cloud id and provider and record id.
      *
-     * @param cloudId The cloud id
+     * @param cloudId    The cloud id
      * @param providerId The provider id
-     * @param recordId The record id
+     * @param recordId   The record id
      * @return A confirmation that the mapping has been created
      * @throws CloudException The generic cloud exception wrapper
      */
     public boolean createMapping(String cloudId, String providerId,
-            String recordId) throws CloudException {
+                                 String recordId) throws CloudException {
 
         Response resp = null;
         try {
@@ -338,7 +336,7 @@ public class UISClient {
      * Remove the association of a record id to a cloud id.
      *
      * @param providerId The provider id to use
-     * @param recordId The record id to use
+     * @param recordId   The record id to use
      * @return A confirmation that the mapping has removed correctly
      * @throws CloudException The generic cloud exception wrapper
      */
@@ -393,7 +391,7 @@ public class UISClient {
      * Create a data provider.
      *
      * @param providerId The data provider Id
-     * @param dp The data provider properties
+     * @param dp         The data provider properties
      * @return A URL that points to the data provider
      * @throws CloudException
      */
@@ -421,7 +419,7 @@ public class UISClient {
      * Update a Data Provider.
      *
      * @param providerId The provider to update
-     * @param dp The data provider properties
+     * @param dp         The data provider properties
      * @return True if successful, false else
      * @throws CloudException
      */
@@ -512,7 +510,7 @@ public class UISClient {
         LOGGER.error(e.getDetails());
         return new CloudException(e.getErrorCode(), error.getException(e));
     }
-    
+
     private void closeResponse(Response response) {
         if (response != null) {
             response.close();
@@ -531,6 +529,10 @@ public class UISClient {
 
     @Override
     protected void finalize() throws Throwable {
+        client.close();
+    }
+
+    public void close() {
         client.close();
     }
 }

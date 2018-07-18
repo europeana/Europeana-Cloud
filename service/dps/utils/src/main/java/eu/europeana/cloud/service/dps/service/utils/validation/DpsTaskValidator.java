@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Lists;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -31,8 +29,10 @@ public class DpsTaskValidator {
     }
 
     public DpsTaskValidator withParameter(String parameterName) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, parameterName);
-
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.PARAMETER)
+                .expectedName(parameterName)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
 
@@ -50,8 +50,11 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withParameter(String parameterName, String parameterValue) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, parameterName, parameterValue);
-
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.PARAMETER)
+                .expectedName(parameterName)
+                .expectedValue(parameterValue)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -65,19 +68,28 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withParameter(String paramName, List allowedValues) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, paramName, allowedValues);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.PARAMETER)
+                .expectedName(paramName)
+                .expectedValue(allowedValues)
+                .build();
+
         dpsTaskConstraints.add(constraint);
         return this;
     }
 
     /**
-     * Will check if dps task contains parameter with selected name (value of this parameter will not be validated)
+     * Will check if dps task contains parameter with selected name and no value
      *
      * @param parameterName
      * @return
      */
     public DpsTaskValidator withEmptyParameter(String parameterName) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, parameterName, "");
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.PARAMETER)
+                .expectedName(parameterName)
+                .expectedValue("")
+                .build();
 
         dpsTaskConstraints.add(constraint);
         return this;
@@ -90,7 +102,10 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withDataEntry(String inputDataName) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.INPUT_DATA, inputDataName);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.INPUT_DATA)
+                .expectedName(inputDataName)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -103,7 +118,11 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withDataEntry(String entryName, Object entryValue) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.INPUT_DATA, entryName, entryValue);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.INPUT_DATA)
+                .expectedName(entryName)
+                .expectedValue(entryValue)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -116,7 +135,11 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withDataEntry(String entryName, InputDataValueType contentType) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.INPUT_DATA, entryName, contentType);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.INPUT_DATA)
+                .expectedName(entryName)
+                .expectedValueType(contentType)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -129,7 +152,11 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withName(String taskName) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.NAME, null, taskName);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.NAME)
+                .expectedName(null)
+                .expectedValue(taskName)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -140,7 +167,9 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withAnyName() {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.NAME);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.NAME)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -152,7 +181,11 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withId(long taskId) {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.ID, null, taskId + "");
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.ID)
+                .expectedName(null)
+                .expectedValue(taskId + "")
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -163,7 +196,9 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withAnyId() {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.ID);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.ID)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -176,13 +211,17 @@ public class DpsTaskValidator {
      */
     public DpsTaskValidator withAnyOutputRevision() {
         revisionMustExist = true;
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.OUTPUT_REVISION)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
 
-    public DpsTaskValidator withOutputRevisionCheckingIfExists() {
-        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
+    public DpsTaskValidator withOptionalOutputRevision() {
+        DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
+                .fieldType(DpsTaskFieldType.OUTPUT_REVISION)
+                .build();
         dpsTaskConstraints.add(constraint);
         return this;
     }
@@ -352,25 +391,15 @@ class DpsTaskConstraint {
     private InputDataValueType expectedValueType;
     private String expectedName;
 
-    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, Object expectedValue) {
-        this.fieldType = fieldType;
-        this.expectedName = expectedName;
-        this.expectedValue = expectedValue;
+    private DpsTaskConstraint(Builder builder) {
+        this.fieldType = builder.fieldType;
+        this.expectedValue = builder.expectedValue;
+        this.expectedValueType = builder.expectedValueType;
+        this.expectedName = builder.expectedName;
     }
 
-    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, InputDataValueType expectedValueType) {
-        this.fieldType = fieldType;
-        this.expectedName = expectedName;
-        this.expectedValueType = expectedValueType;
-    }
-
-    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName) {
-        this.fieldType = fieldType;
-        this.expectedName = expectedName;
-    }
-
-    DpsTaskConstraint(DpsTaskFieldType fieldType) {
-        this.fieldType = fieldType;
+    public static Builder newDpsTaskConstraint() {
+        return new Builder();
     }
 
     public Object getExpectedValue() {
@@ -387,6 +416,42 @@ class DpsTaskConstraint {
 
     public String getExpectedName() {
         return expectedName;
+    }
+
+
+
+    public static final class Builder {
+        private DpsTaskFieldType fieldType;
+        private Object expectedValue;
+        private InputDataValueType expectedValueType;
+        private String expectedName;
+
+        private Builder() {
+        }
+
+        public DpsTaskConstraint build() {
+            return new DpsTaskConstraint(this);
+        }
+
+        public Builder fieldType(DpsTaskFieldType fieldType) {
+            this.fieldType = fieldType;
+            return this;
+        }
+
+        public Builder expectedValue(Object expectedValue) {
+            this.expectedValue = expectedValue;
+            return this;
+        }
+
+        public Builder expectedValueType(InputDataValueType expectedValueType) {
+            this.expectedValueType = expectedValueType;
+            return this;
+        }
+
+        public Builder expectedName(String expectedName) {
+            this.expectedName = expectedName;
+            return this;
+        }
     }
 }
 

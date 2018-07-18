@@ -39,18 +39,22 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-        String file = t.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        final String file = t.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
         FileServiceClient fileClient = new FileServiceClient(ecloudMcsAddress);
-        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        fileClient.useAuthorizationHeader(authorizationHeader);
-        t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-        emitFile(t, fileClient, file);
+        try {
+            final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+            fileClient.useAuthorizationHeader(authorizationHeader);
+            t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+            emitFile(t, fileClient, file);
+        } finally {
+            fileClient.close();
+        }
     }
 
     void emitFile(StormTaskTuple t, FileServiceClient fileClient, String file) {
-        try {
-            LOGGER.info("HERE THE LINK: {}", file);
-            InputStream is = getFile(fileClient, file);
+
+        LOGGER.info("HERE THE LINK: {}", file);
+        try (InputStream is = getFile(fileClient, file)) {
             t.setFileData(is);
             t.setFileUrl(file);
             outputCollector.emit(t.toStormTuple());
@@ -59,7 +63,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
             LOGGER.warn("Can not retrieve file at {}", file);
             emitErrorNotification(t.getTaskId(), file, "Can not retrieve file", "");
         } catch (DriverException | MCSException | IOException ex) {
-            LOGGER.error("ReadFileBolt error: {}" + ex.getMessage());
+            LOGGER.error("ReadFileBolt error: {}" , ex.getMessage());
             emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
         }
     }
@@ -70,7 +74,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         while (true) {
             try {
                 return fileClient.getFile(file);
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting a file. Retries left:{} ", retries);
                     waitForSpecificTime();

@@ -38,9 +38,13 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple t) {
         DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
-        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
-        addRepresentationToDataSets(t, dataSetServiceClient);
+        try {
+            final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+            dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
+            addRepresentationToDataSets(t, dataSetServiceClient);
+        } finally {
+            dataSetServiceClient.close();
+        }
     }
 
     public final void addRepresentationToDataSets(StormTaskTuple t, DataSetServiceClient datasetClient) {
@@ -76,7 +80,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                         resultRepresentation.getRepresentationName(),
                         resultRepresentation.getVersion());
                 break;
-            } catch (MCSException | DriverException e) {
+            } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while assigning record to dataset. Retries left: {}", retries);
                     waitForSpecificTime();

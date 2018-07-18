@@ -186,17 +186,20 @@ public class ProcessingBolt extends BaseRichBolt {
 
     private void updateEdmPreview(EdmObject edm) {
         Set<String> objectUrls = edm.getResourceUrls(Arrays.asList(UrlType.OBJECT)).keySet();
+        Set<String> otherUrls = edm.getResourceUrls(Arrays.asList(UrlType.IS_SHOWN_BY, UrlType.HAS_VIEW)).keySet();
 
-        Optional<Thumbnail> thumbnail = mediaProcessor.getThumbnails().stream()
-                .filter(t -> t.targetName.contains("-LARGE") && objectUrls.contains(t.url))
-                .findFirst();
+        if (!objectUrls.isEmpty()) {
+            edm.updateEdmPreview(objectUrls.iterator().next());
+        } else {
+            Optional<Thumbnail> thumbnail = mediaProcessor.getThumbnails().stream()
+                    .filter(t -> t.targetName.contains("-LARGE") && otherUrls.contains(t.url))
+                    .findFirst();
 
-        if (thumbnail.isPresent()) {
-            String url = String.format("%s/%s/%s", config.get("AWS_CREDENTIALS_ENDPOINT"),
-                    config.get("AWS_CREDENTIALS_BUCKET"), thumbnail.get().targetName);
-            edm.updateEdmPreview(url);
+            if (thumbnail.isPresent()) {
+                String url = String.format("%s", thumbnail.get().targetName);
+                edm.updateEdmPreview(url);
+            }
         }
-
     }
 
     private static class Item {

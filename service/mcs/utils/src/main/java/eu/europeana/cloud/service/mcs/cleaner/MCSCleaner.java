@@ -19,7 +19,6 @@ import java.util.List;
 
 /**
  * Removes all records from Metadata & Content service.
- * 
  */
 public final class MCSCleaner {
 
@@ -37,9 +36,8 @@ public final class MCSCleaner {
     /**
      * Removes all records from Metadata & Content service. Get all record identifiers from Solr, then send DELETE/{id}
      * request to MCS.
-     * 
-     * @param args
-     *            URL to Solr server, URL to Metadata & Content service.
+     *
+     * @param args URL to Solr server, URL to Metadata & Content service.
      */
     public static void main(String[] args) {
 
@@ -74,12 +72,12 @@ public final class MCSCleaner {
                     idList.add(field.getName());
                 }
             }
-            logger.info(idList.size() + " records to delete");
+            logger.info("{} records to delete", idList.size());
             for (String id : idList) {
-                logger.debug("Deleting " + id);
+                logger.debug("Deleting {}", id);
                 Response response = client.target(mcsUrl + "records/" + id).request().delete();
                 if (response.getStatus() != STATUS_CODE_NO_CONTENT) {
-                    logger.error("Cannot remove record " + id + " " + response.toString());
+                    logger.error("Cannot remove record {} {}", id, response.toString());
                 }
             }
         } catch (SolrServerException | IOException ex) {
@@ -88,6 +86,7 @@ public final class MCSCleaner {
             try {
                 solrServer.close();
             } catch (IOException ex) {
+                logger.error("Exception while closing solr {}",ex.getMessage());
             }
         }
     }

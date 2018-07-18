@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyCon
 import org.apache.storm.Config;
 
 
-
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
 
@@ -16,7 +15,7 @@ public class TopologyConfigBuilder {
         Config conf = new Config();
         conf.setDebug(true);
         conf.put(Config.TOPOLOGY_DEBUG, true);
-        conf.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 36000);
+        conf.setNumAckers(0);
         conf.put(CASSANDRA_HOSTS, TopologyConstants.CASSANDRA_HOSTS);
         conf.put(CASSANDRA_PORT, TopologyConstants.CASSANDRA_PORT);
         conf.put(CASSANDRA_KEYSPACE_NAME, TopologyConstants.CASSANDRA_KEYSPACE_NAME);

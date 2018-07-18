@@ -3,6 +3,9 @@ package eu.europeana.cloud.dps.topologies.media;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import eu.europeana.cloud.dps.topologies.media.support.FileTupleData;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -29,6 +32,7 @@ public class StatsBolt extends BaseRichBolt {
     private static final Logger logger = LoggerFactory.getLogger(StatsBolt.class);
 
     private transient CassandraTaskInfoDAO taskInfoDao;
+    private transient CassandraSubTaskInfoDAO subTaskInfoDao;
     private transient CassandraTaskErrorsDAO taskErrorsDao;
 
     private String topologyName;
@@ -46,6 +50,7 @@ public class StatsBolt extends BaseRichBolt {
         CassandraConnectionProvider connectionProvider = Util.getCassandraConnectionProvider(stormConf);
         taskInfoDao = CassandraTaskInfoDAO.getInstance(connectionProvider);
         taskErrorsDao = CassandraTaskErrorsDAO.getInstance(connectionProvider);
+        subTaskInfoDao = CassandraSubTaskInfoDAO.getInstance(connectionProvider);
     }
 
     @Override
@@ -59,7 +64,11 @@ public class StatsBolt extends BaseRichBolt {
             handleStatsInit(tuple);
         } else if (StatsTupleData.STREAM_ID.equals(tuple.getSourceStreamId())) {
             handleStats(tuple);
-        } else {
+        } else if (FileTupleData.STREAM_ID.equals(tuple.getSourceStreamId())) {
+            FileTupleData data = (FileTupleData) tuple.getValueByField(FileTupleData.FIELD_NAME);
+            subTaskInfoDao.insert((int)data.resource_no, data.taskId, "linkcheck_topology", data.resource_url, data.state, data.info_text, null, null);
+        }
+        else {
             logger.error("Received tuple from unrecognized stream id: {}", tuple.getSourceStreamId());
         }
         outputCollector.ack(tuple);
@@ -71,10 +80,16 @@ public class StatsBolt extends BaseRichBolt {
         TaskStats stats = taskStats.computeIfAbsent(taskId, TaskStats::new);
         stats.init(data.getEdmCount(), data.getStartTime());
 
-        taskInfoDao.insert(taskId, topologyName, (int) data.getEdmCount(),
-                TaskState.CURRENTLY_PROCESSING.toString(), "", new Date(data.getStartTime()));
-        updateDao(stats);
-        logger.info("starting stats gathering for task {}", taskId);
+        if (data.getEdmCount() != 0) {
+            taskInfoDao.insert(taskId, topologyName, (int) data.getEdmCount(),
+                    TaskState.CURRENTLY_PROCESSING.toString(), "", new Date(data.getStartTime()));
+            updateDao(stats);
+            logger.info("starting stats gathering for task {}", taskId);
+        } else {
+            taskInfoDao.insert(taskId, topologyName, (int) data.getEdmCount(),
+                    TaskState.PROCESSED.toString(), "", new Date(data.getStartTime()));
+            logger.info("Task {} marked as processed because it is empty.", taskId);
+        }
     }
 
     private void handleStats(Tuple tuple) {

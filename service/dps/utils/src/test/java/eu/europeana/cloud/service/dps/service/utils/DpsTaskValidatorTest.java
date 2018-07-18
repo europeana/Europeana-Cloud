@@ -323,7 +323,7 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateTheNotRequiredNullOutputRevisionAsCorrect() throws DpsTaskValidationException {
-        new DpsTaskValidator().withOutputRevisionCheckingIfExists().validate(dpsTaskWithNullOutputRevision);
+        new DpsTaskValidator().withOptionalOutputRevision().validate(dpsTaskWithNullOutputRevision);
     }
 
     @Test

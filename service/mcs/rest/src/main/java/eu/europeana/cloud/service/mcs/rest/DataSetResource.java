@@ -25,8 +25,10 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -88,11 +90,16 @@ public class DataSetResource {
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.Representation>")
-    public ResultSlice<Representation> getDataSetContents(@PathParam(P_DATASET) String dataSetId,
+    public ResultSlice<Representation> getDataSetContents(@Context UriInfo uriInfo,
+                                                          @PathParam(P_DATASET) String dataSetId,
                                                           @PathParam(P_PROVIDER) String providerId,
                                                           @QueryParam(F_START_FROM) String startFrom)
             throws DataSetNotExistsException {
-        return dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
+        ResultSlice<Representation> representations = dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
+        for(Representation rep : representations.getResults()){
+            EnrichUriUtil.enrich(uriInfo,rep);
+        }
+        return representations;
     }
 
     /**
