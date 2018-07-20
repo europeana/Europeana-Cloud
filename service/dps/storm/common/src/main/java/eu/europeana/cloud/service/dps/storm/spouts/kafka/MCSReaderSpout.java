@@ -44,6 +44,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
  * Created by Tarek on 5/18/2018.
  */
 public class MCSReaderSpout extends CustomKafkaSpout {
+
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
 
@@ -96,11 +97,25 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    @Override
+    public void deactivate() {
+        final String info = "The task was dropped because of redeployment";
+        LOGGER.info("Deactivate method was executed");
+        DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
+        if (currentDpsTask != null) {
+            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), info, TaskState.DROPPED.toString());
+            DpsTask dpsTask;
+            while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
+                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), info, TaskState.DROPPED.toString());
+        }
+        LOGGER.info("Deactivate method was finished");
+    }
 
     class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE);
+        private DpsTask currentDpsTask;
 
 
         public TaskDownloader() {
@@ -124,25 +139,25 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             StormTaskTuple stormTaskTuple = null;
             while (true) {
                 try {
-                    DpsTask dpsTask = taskQueue.take();
-                    startProgressing(dpsTask);
-                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
+                    currentDpsTask = taskQueue.take();
+                    startProgressing(currentDpsTask);
+                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
                     if (oaipmhHarvestingDetails == null)
                         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
-                    String stream = getStream(dpsTask);
+                    String stream = getStream(currentDpsTask);
                     if (stream.equals(FILE_URLS.name())) {
                         stormTaskTuple = new StormTaskTuple(
-                                dpsTask.getTaskId(),
-                                dpsTask.getTaskName(),
-                                null, null, dpsTask.getParameters(), dpsTask.getOutputRevision(), oaipmhHarvestingDetails);
-                        List<String> files = dpsTask.getDataEntry(InputDataType.valueOf(stream));
+                                currentDpsTask.getTaskId(),
+                                currentDpsTask.getTaskName(),
+                                null, null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
+                        List<String> files = currentDpsTask.getDataEntry(InputDataType.valueOf(stream));
                         for (String file : files) {
                             StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
                             fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
                             tuplesWithFileUrls.put(fileTuple);
                         }
                     } else // For data Sets
-                        execute(stream, dpsTask);
+                        execute(stream, currentDpsTask);
 
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
@@ -217,6 +232,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                     cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
 
             }
+        }
+
+        DpsTask getCurrentDpsTask() {
+            return currentDpsTask;
         }
 
         private void startProgressing(DpsTask dpsTask) {
