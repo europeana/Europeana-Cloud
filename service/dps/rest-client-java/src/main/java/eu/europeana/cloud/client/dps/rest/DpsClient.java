@@ -1,5 +1,21 @@
 package eu.europeana.cloud.client.dps.rest;
 
+import java.net.URI;
+import java.util.List;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
@@ -8,19 +24,6 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.List;
 
 /**
  * The REST API client for the Data Processing service.
@@ -33,7 +36,7 @@ public class DpsClient {
 
     private String dpsUrl;
 
-    private Client client = JerseyClientBuilder.newClient();
+    private final Client client = JerseyClientBuilder.newClient();
 
     private static final String TOPOLOGY_NAME = "TopologyName";
     private static final String TASK_ID = "TaskId";
@@ -50,17 +53,48 @@ public class DpsClient {
     private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
     private static final String KILL_TASK_URL = TASK_URL + "/" + KILL_TASK;
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param dpsUrl Url where the DPS service is located.
-     *               Includes username and password to perform authenticated requests.
-     */
-    public DpsClient(final String dpsUrl, final String username, final String password) {
+	private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
+	private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
-        client.register(HttpAuthenticationFeature.basic(username, password));
-        this.dpsUrl = dpsUrl;
-    }
+	/**
+	 * Creates a new instance of this class.
+	 *
+	 * @param dpsUrl
+	 *            Url where the DPS service is located.
+	 * @param username
+	 *            THe username to perform authenticated requests.
+	 * @param password
+	 *            THe username to perform authenticated requests.
+	 * @param connectTimeoutInMillis
+	 *            The connect timeout in milliseconds (timeout for establishing the
+	 *            remote connection).
+	 * @param readTimeoutInMillis
+	 *            The read timeout in milliseconds (timeout for obtaining/1reading
+	 *            the result).
+	 */
+	public DpsClient(final String dpsUrl, final String username, final String password,
+			final int connectTimeoutInMillis, final int readTimeoutInMillis) {
+		this.client.register(HttpAuthenticationFeature.basic(username, password));
+		this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+		this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
+		this.dpsUrl = dpsUrl;
+	}
+
+	/**
+	 * Creates a new instance of this class. Will use a default connect timeout of
+	 * {@value #DEFAULT_CONNECT_TIMEOUT_IN_MILLIS} and a default read timeout of
+	 * {@link #DEFAULT_READ_TIMEOUT_IN_MILLIS}.
+	 *
+	 * @param dpsUrl
+	 *            Url where the DPS service is located.
+	 * @param username
+	 *            THe username to perform authenticated requests.
+	 * @param password
+	 *            THe username to perform authenticated requests.
+	 */
+	public DpsClient(final String dpsUrl, final String username, final String password) {
+		this(dpsUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+	}
 
     /**
      * Submits a task for execution in the specified topology.
