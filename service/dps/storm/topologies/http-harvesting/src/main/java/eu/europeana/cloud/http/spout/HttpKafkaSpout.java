@@ -102,16 +102,22 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     @Override
     public void deactivate() {
         LOGGER.info("Deactivate method was executed");
-        final String info = "The task was dropped because of redeployment";
+        deactivateWaitingTasks();
+        deactivateCurrentTask();
+        LOGGER.info("Deactivate method was finished");
+    }
+
+    private void deactivateWaitingTasks() {
+        DpsTask dpsTask;
+        while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
+            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+    }
+
+    private void deactivateCurrentTask() {
         DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
         if (currentDpsTask != null) {
-            final String DROPPED = TaskState.DROPPED.toString();
-            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), info, DROPPED);
-            DpsTask dpsTask;
-            while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
-                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), info, DROPPED);
+            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
         }
-        LOGGER.info("Deactivate method was finished");
     }
 
 
@@ -164,7 +170,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
         }
 
-        DpsTask getCurrentDpsTask() {
+        private DpsTask getCurrentDpsTask() {
             return currentDpsTask;
         }
 
@@ -175,7 +181,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
         }
 
-        public void execute(StormTaskTuple stormTaskTuple) throws CompressionExtensionNotRecognizedException, IOException, InterruptedException {
+        void execute(StormTaskTuple stormTaskTuple) throws CompressionExtensionNotRecognizedException, IOException, InterruptedException {
             File file = null;
             int expectedSize = 0;
             try {

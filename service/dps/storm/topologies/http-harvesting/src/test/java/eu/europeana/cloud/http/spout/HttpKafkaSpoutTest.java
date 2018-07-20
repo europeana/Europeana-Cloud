@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -112,6 +111,7 @@ public class HttpKafkaSpoutTest {
 
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
         doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
+        httpKafkaSpout.taskDownloader.taskQueue.clear();
         setStaticField(HttpKafkaSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
 
     }
@@ -264,7 +264,7 @@ public class HttpKafkaSpoutTest {
         assertTrue(!httpKafkaSpout.taskDownloader.taskQueue.isEmpty());
         httpKafkaSpout.deactivate();
         assertTrue(httpKafkaSpout.taskDownloader.taskQueue.isEmpty());
-        verify(cassandraTaskInfoDAO, atLeast(10)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
+        verify(cassandraTaskInfoDAO, atLeast(TASK_COUNT)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
     }
 
 

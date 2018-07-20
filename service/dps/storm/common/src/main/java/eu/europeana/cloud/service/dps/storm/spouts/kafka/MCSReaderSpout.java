@@ -99,16 +99,23 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     @Override
     public void deactivate() {
-        final String info = "The task was dropped because of redeployment";
         LOGGER.info("Deactivate method was executed");
+        deactivateWaitingTasks();
+        deactivateCurrentTask();
+        LOGGER.info("Deactivate method was finished");
+    }
+
+    private void deactivateWaitingTasks() {
+        DpsTask dpsTask;
+        while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
+            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+    }
+
+    private void deactivateCurrentTask() {
         DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
         if (currentDpsTask != null) {
-            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), info, TaskState.DROPPED.toString());
-            DpsTask dpsTask;
-            while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
-                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), info, TaskState.DROPPED.toString());
+            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
         }
-        LOGGER.info("Deactivate method was finished");
     }
 
     class TaskDownloader extends Thread {

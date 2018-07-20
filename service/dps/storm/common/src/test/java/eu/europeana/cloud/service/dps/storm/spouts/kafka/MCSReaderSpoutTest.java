@@ -507,7 +507,7 @@ public class MCSReaderSpoutTest {
         assertTrue(!mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
         mcsReaderSpout.deactivate();
         assertTrue(mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
-        verify(cassandraTaskInfoDAO, atLeast(10)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
+        verify(cassandraTaskInfoDAO, atLeast(TASK_COUNT)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
     }
 
 
