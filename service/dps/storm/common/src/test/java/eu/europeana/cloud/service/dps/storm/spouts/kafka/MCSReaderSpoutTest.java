@@ -500,14 +500,14 @@ public class MCSReaderSpoutTest {
 
     @Test
     public void deactivateShouldClearTheTaskQueue() throws Exception {
-        final int TASK_COUNT = 10;
-        for (int i = 0; i < TASK_COUNT; i++) {
+        final int taskCount = 10;
+        for (int i = 0; i < taskCount; i++) {
             mcsReaderSpout.taskDownloader.taskQueue.put(new DpsTask());
         }
         assertTrue(!mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
         mcsReaderSpout.deactivate();
         assertTrue(mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
-        verify(cassandraTaskInfoDAO, atLeast(TASK_COUNT)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
+        verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
     }
 
 
