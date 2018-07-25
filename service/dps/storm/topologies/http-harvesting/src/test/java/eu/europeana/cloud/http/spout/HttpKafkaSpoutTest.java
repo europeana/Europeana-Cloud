@@ -2,13 +2,14 @@ package eu.europeana.cloud.http.spout;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,14 +21,11 @@ import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -61,9 +59,6 @@ public class HttpKafkaSpoutTest {
     private final static String FILE_NAME5 = "http://127.0.0.1:9999/zipWithEDMs.zip";
     private final static String FILE_NAME6 = "http://127.0.0.1:9999/zipWithCorruptedEDM.zip";
     private final static String FILE_NAME7 = "http://127.0.0.1:9999/zipWithCorrectAndCorruptedEDM.zip";
-
-    @Captor
-    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
     @InjectMocks
     private HttpKafkaSpout httpKafkaSpout = new HttpKafkaSpout(null);
@@ -115,7 +110,10 @@ public class HttpKafkaSpoutTest {
                         .withBodyFile("zipWithCorrectAndCorruptedEDM.zip")));
 
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
+        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
+        httpKafkaSpout.taskDownloader.taskQueue.clear();
         setStaticField(HttpKafkaSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
+
     }
 
     static void setStaticField(Field field, Object newValue) throws Exception {
@@ -251,10 +249,22 @@ public class HttpKafkaSpoutTest {
     }
 
     @Test(expected = IOException.class)
-    public void TheHarvestingShouldFailForNonExistedURL() throws Exception {
+    public void harvestingShouldFailForNonExistedURL() throws Exception {
         when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, "UNDEFINED_URL", null, prepareStormTaskTupleParameters(), new Revision());
         httpKafkaSpout.taskDownloader.execute(tuple);
+    }
+
+    @Test
+    public void deactivateShouldClearTheTaskQueue() throws Exception {
+        final int taskCount = 10;
+        for (int i = 0; i < taskCount; i++) {
+            httpKafkaSpout.taskDownloader.taskQueue.put(new DpsTask());
+        }
+        assertTrue(!httpKafkaSpout.taskDownloader.taskQueue.isEmpty());
+        httpKafkaSpout.deactivate();
+        assertTrue(httpKafkaSpout.taskDownloader.taskQueue.isEmpty());
+        verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
     }
 
 

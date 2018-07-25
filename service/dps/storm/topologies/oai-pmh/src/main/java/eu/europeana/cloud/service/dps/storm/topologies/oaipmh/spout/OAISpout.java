@@ -83,6 +83,27 @@ public class OAISpout extends CustomKafkaSpout {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    @Override
+    public void deactivate() {
+        LOGGER.info("Deactivate method was executed");
+        deactivateWaitingTasks();
+        deactivateCurrentTask();
+        LOGGER.info("Deactivate method was finished");
+    }
+
+    private void deactivateWaitingTasks() {
+        DpsTask dpsTask;
+        while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
+            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+    }
+
+    private void deactivateCurrentTask() {
+        DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
+        if (currentDpsTask != null) {
+            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+        }
+    }
+
     private class CollectorWrapper extends SpoutOutputCollector {
 
         CollectorWrapper(ISpoutOutputCollector delegate) {
@@ -106,8 +127,9 @@ public class OAISpout extends CustomKafkaSpout {
 
     class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
-        private ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
+        ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         private ArrayBlockingQueue<StormTaskTuple> oaiIdentifiers = new ArrayBlockingQueue<>(MAX_SIZE);
+        private DpsTask currentDpsTask;
 
 
         public TaskDownloader() {
@@ -131,14 +153,14 @@ public class OAISpout extends CustomKafkaSpout {
             StormTaskTuple stormTaskTuple = null;
             while (true) {
                 try {
-                    DpsTask dpsTask = taskQueue.take();
-                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
+                    currentDpsTask = taskQueue.take();
+                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
                     if (oaipmhHarvestingDetails == null)
                         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
                     stormTaskTuple = new StormTaskTuple(
-                            dpsTask.getTaskId(),
-                            dpsTask.getTaskName(),
-                            dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, dpsTask.getParameters(), dpsTask.getOutputRevision(), oaipmhHarvestingDetails);
+                            currentDpsTask.getTaskId(),
+                            currentDpsTask.getTaskName(),
+                            currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
                     execute(stormTaskTuple);
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
@@ -146,6 +168,10 @@ public class OAISpout extends CustomKafkaSpout {
                         cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
                 }
             }
+        }
+
+        DpsTask getCurrentDpsTask() {
+            return currentDpsTask;
         }
 
         public void execute(StormTaskTuple stormTaskTuple) throws BadArgumentException, InterruptedException {
