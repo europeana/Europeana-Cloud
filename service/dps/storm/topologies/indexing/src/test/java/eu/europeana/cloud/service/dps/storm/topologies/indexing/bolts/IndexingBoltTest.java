@@ -1,24 +1,30 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexerFactory;
+import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.exception.IndexingException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 public class IndexingBoltTest {
 
@@ -147,7 +153,7 @@ public class IndexingBoltTest {
 
     private void mockIndexerFactoryFor(Class clazz) throws IndexerConfigurationException, IndexingException {
         when(indexerFactoryWrapper.getIndexerFactory(Mockito.anyString(),Mockito.anyString())).thenReturn(indexerFactory);
-        when(indexerFactory.getIndexer()).thenReturn(indexer);
+        when(indexerFactory.getIndexer(Mockito.anyBoolean())).thenReturn(indexer);
 
         if (clazz != null) {
             doThrow(clazz).when(indexer).index(Mockito.anyString());
