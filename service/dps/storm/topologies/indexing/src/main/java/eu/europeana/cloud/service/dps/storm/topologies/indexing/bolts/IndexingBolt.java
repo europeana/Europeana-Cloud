@@ -48,14 +48,17 @@ public class IndexingBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
         String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
-        LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}).", database, useAltEnv);
+        String preserveTimestamps = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
+        LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, preserve timestamps: {}).",
+            database, useAltEnv, preserveTimestamps);
         IndexerFactory indexerFactory = indexerFactoryWrapper.getIndexerFactory(useAltEnv, database);
         if(indexerFactory == null){
             LOGGER.error(MISSING_INDEXER_FACTORY_MESSAGE);
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), MISSING_INDEXER_FACTORY_MESSAGE, "Error while indexing");
             return;
         }
-        try (final Indexer indexer = indexerFactory.getIndexer()) {
+        try (final Indexer indexer = indexerFactory.getIndexer(
+            preserveTimestamps != null && preserveTimestamps.equalsIgnoreCase("true"))) {
             String document = new String(stormTaskTuple.getFileData());
             indexer.index(document);
             outputCollector.emit(stormTaskTuple.toStormTuple());
