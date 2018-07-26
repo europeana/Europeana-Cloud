@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -24,9 +25,7 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -38,6 +37,7 @@ import java.util.*;
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
@@ -75,18 +75,18 @@ public class MCSReaderSpoutTest {
     private FileServiceClient fileServiceClient;
     private RepresentationIterator representationIterator;
 
-
     @InjectMocks
     private MCSReaderSpout mcsReaderSpout = new MCSReaderSpout(null);
 
     @Before
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
-
         representationIterator = mock(RepresentationIterator.class);
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
+        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
+        mcsReaderSpout.taskDownloader.taskQueue.clear();
         mockMCSClient();
     }
 
@@ -495,8 +495,19 @@ public class MCSReaderSpoutTest {
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
         mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        verify(collector, times(0)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 0);
+    }
+
+    @Test
+    public void deactivateShouldClearTheTaskQueue() throws Exception {
+        final int taskCount = 10;
+        for (int i = 0; i < taskCount; i++) {
+            mcsReaderSpout.taskDownloader.taskQueue.put(new DpsTask());
+        }
+        assertTrue(!mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
+        mcsReaderSpout.deactivate();
+        assertTrue(mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
+        verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
     }
 
 

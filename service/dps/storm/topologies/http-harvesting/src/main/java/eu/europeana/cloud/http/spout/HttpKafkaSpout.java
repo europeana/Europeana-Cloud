@@ -99,11 +99,33 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    @Override
+    public void deactivate() {
+        LOGGER.info("Deactivate method was executed");
+        deactivateWaitingTasks();
+        deactivateCurrentTask();
+        LOGGER.info("Deactivate method was finished");
+    }
+
+    private void deactivateWaitingTasks() {
+        DpsTask dpsTask;
+        while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
+            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+    }
+
+    private void deactivateCurrentTask() {
+        DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
+        if (currentDpsTask != null) {
+            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+        }
+    }
+
 
     class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE);
+        private DpsTask currentDpsTask;
 
 
         public TaskDownloader() {
@@ -127,13 +149,12 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             StormTaskTuple stormTaskTuple = null;
             while (true) {
                 try {
-                    DpsTask dpsTask = taskQueue.take();
-                    LOGGER.info("Start progressing for Task with id {}", dpsTask.getTaskId());
-                    startProgress(dpsTask.getTaskId());
+                    currentDpsTask = taskQueue.take();
+                    startProgress(currentDpsTask.getTaskId());
                     stormTaskTuple = new StormTaskTuple(
-                            dpsTask.getTaskId(),
-                            dpsTask.getTaskName(),
-                            dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, dpsTask.getParameters(), dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
+                            currentDpsTask.getTaskId(),
+                            currentDpsTask.getTaskName(),
+                            currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
                     execute(stormTaskTuple);
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
@@ -144,8 +165,13 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         }
 
         private void startProgress(long taskId) {
+            LOGGER.info("Start progressing for Task with id {}", currentDpsTask.getTaskId());
             cassandraTaskInfoDAO.updateTask(taskId, "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
 
+        }
+
+        private DpsTask getCurrentDpsTask() {
+            return currentDpsTask;
         }
 
 
@@ -155,8 +181,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
         }
 
-        public void execute(StormTaskTuple stormTaskTuple) throws CompressionExtensionNotRecognizedException, IOException, InterruptedException {
+        void execute(StormTaskTuple stormTaskTuple) throws CompressionExtensionNotRecognizedException, IOException, InterruptedException {
             File file = null;
+            int expectedSize = 0;
             try {
                 final boolean useDefaultIdentifiers = useDefaultIdentifier(stormTaskTuple);
                 String metisDatasetId = null;
@@ -173,10 +200,13 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 FileUnpackingService fileUnpackingService = UnpackingServiceFactory.createUnpackingService(compressingExtension);
                 fileUnpackingService.unpackFile(file.getAbsolutePath(), file.getParent() + File.separator);
                 Path start = Paths.get(new File(file.getParent()).toURI());
-                int expectedSize = iterateOverFiles(start, stormTaskTuple, useDefaultIdentifiers, metisDatasetId);
+                expectedSize = iterateOverFiles(start, stormTaskTuple, useDefaultIdentifiers, metisDatasetId);
                 cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), expectedSize);
             } finally {
                 removeTempFolder(file);
+                if (expectedSize == 0)
+                    cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
+
             }
         }
 
