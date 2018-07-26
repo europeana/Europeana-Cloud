@@ -37,7 +37,6 @@ public class OAISpout extends CustomKafkaSpout {
 
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
-    private SourceProvider sourceProvider;
 
     private static final int DEFAULT_RETRIES = 10;
     private static final int SLEEP_TIME = 5000;
@@ -56,7 +55,6 @@ public class OAISpout extends CustomKafkaSpout {
                      SpoutOutputCollector collector) {
         this.collector = collector;
         taskDownloader = new TaskDownloader();
-        sourceProvider = new SourceProvider();
         super.open(conf, context, new CollectorWrapper(collector));
     }
 
@@ -186,6 +184,7 @@ public class OAISpout extends CustomKafkaSpout {
 
         private int harvestIdentifiers(String schema, String dataset, Date fromDate, Date untilDate, StormTaskTuple stormTaskTuple) throws InterruptedException
                 , BadArgumentException {
+            SourceProvider sourceProvider = new SourceProvider();
             OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
             String url = stormTaskTuple.getFileUrl();
             ListIdentifiersParameters parameters = configureParameters(schema, dataset, fromDate, untilDate);

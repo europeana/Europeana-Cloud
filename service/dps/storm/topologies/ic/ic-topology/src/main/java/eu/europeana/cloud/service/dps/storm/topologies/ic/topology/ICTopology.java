@@ -139,7 +139,6 @@ public class ICTopology {
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = icTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                config.setNumAckers(0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
