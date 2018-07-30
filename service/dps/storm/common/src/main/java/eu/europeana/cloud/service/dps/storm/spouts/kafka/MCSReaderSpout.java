@@ -53,9 +53,9 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     private static final int SLEEP_TIME = 5000;
 
     LRUCache<Long, DpsTask> executedTasks = new LRUCache<Long, DpsTask>(
-            50);
+            75);
     LRUCache<Long, Object> originalMessageIdS = new LRUCache<Long, Object>(
-            50);
+            75);
 
     TaskDownloader taskDownloader;
     private String mcsClientURL;
@@ -118,18 +118,18 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     @Override
     public void fail(Object msgId) {
-        MCSSpoutMessageId mcsSpoutMessageId = (MCSSpoutMessageId) msgId;
-        DpsTask dpsTask = executedTasks.get(mcsSpoutMessageId.getTaskId());
-        if (dpsTask != null) {
-            StormTaskTuple stormTaskTuple = getStormTaskTupleFromDPSTask(dpsTask);
-            StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-            String fileURL = mcsSpoutMessageId.getFileURL();
-            LOGGER.info("Retrying sending the tuple with file URL {}", fileURL);
-            tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, fileURL);
-            collector.emit(stormTaskTuple.toStormTuple(), mcsSpoutMessageId);
-        } else {
-            cassandraTaskInfoDAO.dropTask(mcsSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
-        }
+        LOGGER.info("The failing method is executed");
+        OAISpoutMessageId oaiSpoutMessageId = (OAISpoutMessageId) msgId;
+        if (oaiSpoutMessageId != null)
+            emitErrorNotification(oaiSpoutMessageId.getTaskId(), oaiSpoutMessageId.getIdentifierId(), "Unexpected error on Storm level", "The record schema is " + oaiSpoutMessageId.getSchemaId(), msgId);
+        else
+            cassandraTaskInfoDAO.dropTask(oaiSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
+    }
+
+    protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformation, Object msgId) {
+        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.ERROR, message, additionalInformation);
+        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple(), msgId);
     }
 
     @Override

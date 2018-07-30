@@ -8,6 +8,7 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +87,8 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     public int getProcessedFilesCount(long taskId) {
         ResultSet rs = dbService.getSession().execute(processedFilesCountStatement.bind(taskId));
+        if (!rs.iterator().hasNext())
+            return 0;
         Row row = rs.one();
         return row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM);
     }

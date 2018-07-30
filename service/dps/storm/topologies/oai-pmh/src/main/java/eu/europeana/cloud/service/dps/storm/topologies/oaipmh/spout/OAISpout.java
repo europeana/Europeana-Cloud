@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout;
 
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
@@ -103,20 +104,12 @@ public class OAISpout extends CustomKafkaSpout {
     @Override
     public void fail(Object msgId) {
         OAISpoutMessageId oaiSpoutMessageId = (OAISpoutMessageId) msgId;
-        DpsTask dpsTask = executedTasks.get(oaiSpoutMessageId.getTaskId());
-        if (dpsTask != null) {
-            StormTaskTuple stormTaskTuple = getStormTaskTupleFromDPSTask(dpsTask);
-            StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-            String identifier = oaiSpoutMessageId.getIdentifierId();
-            LOGGER.info("Retrying sending the tuple with identifier{}", identifier);
-            tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, identifier);
-            tuple.addParameter(PluginParameterKeys.SCHEMA_NAME, oaiSpoutMessageId.getSchemaId());
-            tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, stormTaskTuple.getFileUrl());
-            tuple.setFileUrl(identifier);
-            collector.emit(stormTaskTuple.toStormTuple(), oaiSpoutMessageId);
-        } else {
-            cassandraTaskInfoDAO.dropTask(oaiSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
+        if (oaiSpoutMessageId != null) {
+            LOGGER.info("The failing method is executed for identifier {}", oaiSpoutMessageId.getIdentifierId());
+            emitErrorNotification(oaiSpoutMessageId.getTaskId(), oaiSpoutMessageId.getIdentifierId(), "Unexpected error on Storm level", "The record schema is" + oaiSpoutMessageId.getSchemaId(), oaiSpoutMessageId);
         }
+        else
+            cassandraTaskInfoDAO.dropTask(oaiSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
     }
 
     @Override
@@ -128,7 +121,11 @@ public class OAISpout extends CustomKafkaSpout {
         }
     }
 
-
+    private void emitErrorNotification(long taskId, String resource, String message, String additionalInformation, Object msgId) {
+        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.ERROR, message, additionalInformation);
+        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple(), msgId);
+    }
     private StormTaskTuple getStormTaskTupleFromDPSTask(DpsTask dpsTask) {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
         if (oaipmhHarvestingDetails == null)
@@ -327,11 +324,11 @@ public class OAISpout extends CustomKafkaSpout {
                     return headerIterator.hasNext();
                 } catch (Exception e) {
                     if (retries-- > 0) {
-                        LOGGER.warn("Error while getting the next batch: {}", retries);
+                        LOGGER.warn("Error while getting the next batch because {}. Number of retries {} ", e.getMessage(), retries);
                         waitForSpecificTime();
                     } else {
                         LOGGER.error("Error while getting the next batch");
-                        throw e;
+                        throw new IllegalStateException(" Error while getting the next batch of identifiers from the oai end-point.",e);
                     }
                 }
             }

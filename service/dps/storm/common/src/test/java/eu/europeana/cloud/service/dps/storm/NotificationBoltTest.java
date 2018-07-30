@@ -40,7 +40,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     public void setUp() throws Exception {
         collector = Mockito.mock(OutputCollector.class);
         testedBolt = new NotificationBolt(HOST, PORT, KEYSPACE, "", "");
-        NotificationBolt.clearCache();
+        testedBolt.clearCache();
 
         Map<String, Object> boltConfig = new HashMap<>();
         boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));

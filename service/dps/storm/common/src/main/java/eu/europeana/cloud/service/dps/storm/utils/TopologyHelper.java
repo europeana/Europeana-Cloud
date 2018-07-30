@@ -54,7 +54,7 @@ public final class TopologyHelper {
         config.put(CASSANDRA_SECRET_TOKEN, topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
         config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
         config.put(Config.TOPOLOGY_ENABLE_MESSAGE_TIMEOUTS, true);
-        config.setMessageTimeoutSecs(1800);
+        config.setMessageTimeoutSecs(2700);
         return config;
     }
 

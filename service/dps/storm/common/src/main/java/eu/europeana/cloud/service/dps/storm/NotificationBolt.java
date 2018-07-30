@@ -45,7 +45,7 @@ public class NotificationBolt extends BaseRichBolt {
     private final String keyspaceName;
     private final String userName;
     private final String password;
-    private static LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
+    private LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
             50);
 
     private String topologyName;
@@ -108,12 +108,15 @@ public class NotificationBolt extends BaseRichBolt {
         NotificationCache nCache = new NotificationCache();
         try {
             LOGGER.info("Recover after failure");
-            TaskInfo taskInfo = taskInfoDAO.searchById(notificationTuple.getTaskId());
-            nCache.errors = taskInfo.getErrors();
-            nCache.processed = subTaskInfoDAO.getProcessedFilesCount(notificationTuple.getTaskId());
+            int processed = subTaskInfoDAO.getProcessedFilesCount(notificationTuple.getTaskId());
+            if (processed > 0) {
+                TaskInfo taskInfo = taskInfoDAO.searchById(notificationTuple.getTaskId());
+                nCache.errors = taskInfo.getErrors();
+                nCache.processed = processed;
+            }
 
         } catch (TaskInfoDoesNotExistException e) {
-            LOGGER.info("this is a new Task");
+            LOGGER.info("This is a new Task {}",e.getMessage());
         }
         return nCache;
     }
@@ -314,7 +317,7 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    public static void clearCache() {
+    public void clearCache() {
         cache.clear();
     }
 
