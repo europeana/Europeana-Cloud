@@ -8,6 +8,7 @@ import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.exception.IndexingException;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,7 +54,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class),captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
         Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
@@ -67,7 +68,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class),captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
         Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
@@ -82,7 +83,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class),any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
@@ -98,7 +99,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class),any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
@@ -114,7 +115,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(tuple);
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class),any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 

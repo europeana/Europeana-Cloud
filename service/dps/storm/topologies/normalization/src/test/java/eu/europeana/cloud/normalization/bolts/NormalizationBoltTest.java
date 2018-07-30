@@ -2,6 +2,7 @@ package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Matchers.any;
 
 public class NormalizationBoltTest {
 
@@ -42,7 +44,7 @@ public class NormalizationBoltTest {
         normalizationBolt.execute(getCorrectStormTuple(inputData));
 
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class),captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals(new String(expected), new String((byte[]) capturedValues.get(3)).replaceAll("\r", ""));
     }
@@ -58,7 +60,7 @@ public class NormalizationBoltTest {
         normalizationBolt.execute(getCorrectStormTuple(inputData));
 
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(),any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
         Assert.assertEquals("Error during normalization.", val.get("additionalInfo"));
@@ -76,7 +78,7 @@ public class NormalizationBoltTest {
         normalizationBolt.execute(getMalformedStormTuple(inputData));
 
         //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(),any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
         Assert.assertEquals("Cannot prepare output storm tuple.", val.get("additionalInfo"));

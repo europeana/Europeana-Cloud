@@ -47,7 +47,7 @@ public class XsltBolt extends AbstractDpsBolt {
       }
       clearParametersStormTuple(stormTaskTuple);
 
-      outputCollector.emit(stormTaskTuple.toStormTuple());
+      outputCollector.emit(currentTuple,stormTaskTuple.toStormTuple());
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}",  e.getMessage());
       emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(), stormTaskTuple

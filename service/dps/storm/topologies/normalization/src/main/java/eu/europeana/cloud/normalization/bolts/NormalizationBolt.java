@@ -70,6 +70,6 @@ public class NormalizationBolt extends AbstractDpsBolt {
 
     private void emitNormalizedContent(StormTaskTuple stormTaskTuple, String output) throws MalformedURLException {
         prepareStormTaskTupleForEmission(stormTaskTuple, output);
-        outputCollector.emit(stormTaskTuple.toStormTuple());
+        outputCollector.emit(currentTuple,stormTaskTuple.toStormTuple());
     }
 }

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -64,13 +65,13 @@ public class EnrichmentBoltTest {
     }
 
     private void assertSuccessfulValidation() {
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class),Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), Mockito.any(List.class));
     }
 
     private void assertFailedValidation() {
-        Mockito.verify(outputCollector, Mockito.times(0)).emit( Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), Mockito.any(List.class));
     }
 
 }

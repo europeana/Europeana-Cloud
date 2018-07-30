@@ -146,6 +146,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         return false;
     }
 
+    public boolean isFinished(long taskId) {
+        String state = getTaskStatus(taskId);
+        if (state.equals(String.valueOf(TaskState.DROPPED))||state.equals(String.valueOf(TaskState.PROCESSED)))
+            return true;
+        return false;
+    }
+
     private String getTaskStatus(long taskId) {
         ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
         Row row = rs.one();

@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Har
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -265,8 +266,8 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
      * Checks if emit to standard stream occured
      */
     private void verifySuccessfulEmit() {
-        verify(outputCollector, times(1)).emit(Mockito.anyList());
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"),Mockito.anyList());
+        verify(outputCollector, times(1)).emit(any(Tuple.class),Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"),any(Tuple.class),Mockito.anyList());
     }
 
     /**
@@ -274,8 +275,8 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
      */
     private void verifyErrorEmit() {
 
-        verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(outputCollector, times(0)).emit(Mockito.anyList());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"),any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(any(Tuple.class),Mockito.anyList());
     }
 
 }

@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,6 +30,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.shade.com.google.common.io.Resources;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,8 +71,8 @@ public class XsltBoltTest {
     public void executeBolt() throws IOException {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
         xsltBolt.execute(tuple);
-        when(outputCollector.emit(anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        when(outputCollector.emit(any(Tuple.class),anyList())).thenReturn(null);
+        verify(outputCollector, times(1)).emit(any(Tuple.class),captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 4);
@@ -132,8 +134,8 @@ public class XsltBoltTest {
 
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), parameters, new Revision());
         xsltBolt.execute(tuple);
-        when(outputCollector.emit(anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        when(outputCollector.emit(any(Tuple.class),anyList())).thenReturn(null);
+        verify(outputCollector, times(1)).emit(any(Tuple.class),captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 4);

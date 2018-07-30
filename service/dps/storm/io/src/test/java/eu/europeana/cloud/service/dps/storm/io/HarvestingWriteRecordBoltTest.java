@@ -68,7 +68,7 @@ public class HarvestingWriteRecordBoltTest {
     @Before
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
-        when(outputCollector.emit(anyList())).thenReturn(null);
+        when(outputCollector.emit(any(Tuple.class),anyList())).thenReturn(null);
         MockitoAnnotations.initMocks(this);
         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         oaipmhHarvestingDetails.setSchemas(new HashSet<String>(Arrays.asList(SOURCE + REPRESENTATION_NAME)));
@@ -124,9 +124,9 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     private void assertFailingExpectationWhenCreatingRepresentation() throws MCSException, IOException {
-        verify(outputCollector, times(0)).emit(anyList());
+        verify(outputCollector, times(0)).emit(any(Tuple.class),anyList());
         verify(recordServiceClient, times(11)).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class),anyListOf(Object.class));
 
     }
 
@@ -196,9 +196,9 @@ public class HarvestingWriteRecordBoltTest {
         oaiWriteRecordBoltT.execute(getStormTaskTupleWithAdditionalLocalIdParam());
 
         //then
-        verify(outputCollector, times(0)).emit(anyList());
+        verify(outputCollector, times(0)).emit(any(Tuple.class),anyList());
         verify(uisClient, times(11)).createMapping(anyString(), anyString(), anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -215,10 +215,10 @@ public class HarvestingWriteRecordBoltTest {
         oaiWriteRecordBoltT.execute(getStormTaskTupleWithAdditionalLocalIdParam());
 
         //then
-        verify(outputCollector, times(0)).emit(anyList());
+        verify(outputCollector, times(0)).emit(any(Tuple.class),anyList());
         verify(uisClient, times(1)).getCloudId(anyString(), anyString());
         verify(uisClient, times(0)).createMapping(anyString(), anyString(), anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -228,9 +228,9 @@ public class HarvestingWriteRecordBoltTest {
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenThrow(exception);
         doThrow(CloudException.class).when(uisClient).createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID);
         oaiWriteRecordBoltT.execute(getStormTaskTuple());
-        verify(outputCollector, times(0)).emit(anyList());
+        verify(outputCollector, times(0)).emit(any(Tuple.class),anyList());
         verify(uisClient, times(11)).createCloudId(anyString(), anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -243,10 +243,10 @@ public class HarvestingWriteRecordBoltTest {
         //when
         oaiWriteRecordBoltT.execute(getStormTaskTuple());
         //then
-        verify(outputCollector, times(0)).emit(anyList());
+        verify(outputCollector, times(0)).emit(any(Tuple.class),anyList());
         verify(uisClient, times(1)).getCloudId(anyString(), anyString());
         verify(uisClient, times(0)).createCloudId(anyString(), anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), anyListOf(Object.class));
     }
 
     @Captor
@@ -273,7 +273,7 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     private void assertExecutionResults() {
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(any(Tuple.class),captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(value.size(), 7);

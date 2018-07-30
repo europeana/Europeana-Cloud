@@ -7,6 +7,7 @@ import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class ValidationBolt extends AbstractDpsBolt {
         String document = new String(stormTaskTuple.getFileData());
         ValidationResult result = validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematronLocation(stormTaskTuple), document);
         if (result.isSuccess()) {
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(currentTuple,stormTaskTuple.toStormTuple());
         } else {
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
         }

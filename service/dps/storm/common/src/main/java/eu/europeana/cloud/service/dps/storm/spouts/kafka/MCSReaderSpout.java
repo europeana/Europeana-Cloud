@@ -21,6 +21,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
+import eu.europeana.cloud.service.dps.util.LRUCache;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -51,6 +52,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     private static final int DEFAULT_RETRIES = 10;
     private static final int SLEEP_TIME = 5000;
 
+    LRUCache<Long, DpsTask> executedTasks = new LRUCache<Long, DpsTask>(
+            50);
+    LRUCache<Long, Object> originalMessageIdS = new LRUCache<Long, Object>(
+            50);
+
     TaskDownloader taskDownloader;
     private String mcsClientURL;
 
@@ -79,17 +85,22 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         StormTaskTuple stormTaskTuple = null;
         try {
             super.nextTuple();
+
             stormTaskTuple = taskDownloader.getTupleWithFileURL();
             if (stormTaskTuple != null) {
-                collector.emit(stormTaskTuple.toStormTuple());
+                MCSSpoutMessageId messageId = formulateMessageId(stormTaskTuple);
+                collector.emit(stormTaskTuple.toStormTuple(), messageId);
             }
         } catch (Exception e) {
-            LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
+            LOGGER.error("Spout error: {}", e.getMessage());
             if (stormTaskTuple != null)
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
     }
 
+    private MCSSpoutMessageId formulateMessageId(StormTaskTuple stormTaskTuple) {
+        return new MCSSpoutMessageId(stormTaskTuple.getTaskId(), stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
+    }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -103,6 +114,39 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         deactivateWaitingTasks();
         deactivateCurrentTask();
         LOGGER.info("Deactivate method was finished");
+    }
+
+    @Override
+    public void fail(Object msgId) {
+        MCSSpoutMessageId mcsSpoutMessageId = (MCSSpoutMessageId) msgId;
+        DpsTask dpsTask = executedTasks.get(mcsSpoutMessageId.getTaskId());
+        if (dpsTask != null) {
+            StormTaskTuple stormTaskTuple = getStormTaskTupleFromDPSTask(dpsTask);
+            StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+            String fileURL = mcsSpoutMessageId.getFileURL();
+            LOGGER.info("Retrying sending the tuple with file URL {}", fileURL);
+            tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, fileURL);
+            collector.emit(stormTaskTuple.toStormTuple(), mcsSpoutMessageId);
+        } else {
+            cassandraTaskInfoDAO.dropTask(mcsSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
+        }
+    }
+
+    @Override
+    public void ack(Object msgId) {
+        OAISpoutMessageId oaiSpoutMessageId = (OAISpoutMessageId) msgId;
+        if (oaiSpoutMessageId != null) {
+            if (cassandraTaskInfoDAO.isFinished(oaiSpoutMessageId.getTaskId()))
+                super.ack(originalMessageIdS.get(oaiSpoutMessageId.getTaskId()));//original msgId
+        }
+    }
+
+    private StormTaskTuple getStormTaskTupleFromDPSTask(DpsTask dpsTask) {
+        return new StormTaskTuple(
+                dpsTask.getTaskId(),
+                dpsTask.getTaskName(),
+                null, null, dpsTask.getParameters(), dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
+
     }
 
     private void deactivateWaitingTasks() {
@@ -196,10 +240,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             FileServiceClient fileClient = new FileServiceClient(mcsClientURL);
             fileClient.useAuthorizationHeader(authorizationHeader);
 
-            final StormTaskTuple stormTaskTuple = new StormTaskTuple(
-                    dpsTask.getTaskId(),
-                    dpsTask.getTaskName(),
-                    null, null, dpsTask.getParameters(), dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
+            final StormTaskTuple stormTaskTuple = getStormTaskTupleFromDPSTask(dpsTask);
 
             int expectedSize = 0;
             try {
@@ -442,6 +483,8 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
                     taskDownloader.addNewTask(dpsTask);
+                    executedTasks.put(dpsTask.getTaskId(), dpsTask);
+                    originalMessageIdS.put(dpsTask.getTaskId(), messageId);
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());

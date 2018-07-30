@@ -57,7 +57,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         try (InputStream is = getFile(fileClient, file)) {
             t.setFileData(is);
             t.setFileUrl(file);
-            outputCollector.emit(t.toStormTuple());
+            outputCollector.emit(currentTuple,t.toStormTuple());
         } catch (RepresentationNotExistsException | FileNotExistsException |
                 WrongContentRangeException ex) {
             LOGGER.warn("Can not retrieve file at {}", file);

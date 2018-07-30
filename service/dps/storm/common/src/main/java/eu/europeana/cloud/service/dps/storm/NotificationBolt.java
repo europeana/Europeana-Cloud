@@ -86,7 +86,7 @@ public class NotificationBolt extends BaseRichBolt {
                     .fromStormTuple(tuple);
             NotificationCache nCache = cache.get(notificationTuple.getTaskId());
             if (nCache == null) {
-                nCache = new NotificationCache();
+                nCache = getNotificationCache(notificationTuple);
                 cache.put(notificationTuple.getTaskId(), nCache);
             }
             storeTaskDetails(notificationTuple, nCache);
@@ -99,7 +99,23 @@ public class NotificationBolt extends BaseRichBolt {
             LOGGER.error("Problem with store notification because: {}",
                     ex.getMessage());
             return;
+        } finally {
+            outputCollector.ack(tuple);
         }
+    }
+
+    private NotificationCache getNotificationCache(NotificationTuple notificationTuple) {
+        NotificationCache nCache = new NotificationCache();
+        try {
+            LOGGER.info("Recover after failure");
+            TaskInfo taskInfo = taskInfoDAO.searchById(notificationTuple.getTaskId());
+            nCache.errors = taskInfo.getErrors();
+            nCache.processed = subTaskInfoDAO.getProcessedFilesCount(notificationTuple.getTaskId());
+
+        } catch (TaskInfoDoesNotExistException e) {
+            LOGGER.info("this is a new Task");
+        }
+        return nCache;
     }
 
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
@@ -297,6 +313,7 @@ public class NotificationBolt extends BaseRichBolt {
             }
         }
     }
+
     public static void clearCache() {
         cache.clear();
     }
@@ -308,6 +325,11 @@ public class NotificationBolt extends BaseRichBolt {
         Map<String, String> errorTypes = new HashMap<>();
 
         NotificationCache() {
+        }
+
+        NotificationCache(int processed, int errors) {
+            this.processed = processed;
+            this.errors = errors;
         }
 
         public void inc(boolean error) {

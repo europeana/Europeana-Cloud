@@ -44,7 +44,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         LOGGER.info("{} executed", getClass().getSimpleName());
         try {
             addRevisionToSpecificResource(stormTaskTuple, revisionsClient, stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(currentTuple,stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());

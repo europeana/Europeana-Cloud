@@ -63,7 +63,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 else
                     useEuropeanaId(stormTaskTuple);
 
-                outputCollector.emit(stormTaskTuple.toStormTuple());
+                outputCollector.emit(currentTuple,stormTaskTuple.toStormTuple());
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
             } catch (HarvesterException | IOException | EuropeanaIdException e) {
                 LOGGER.error("Exception on harvesting", e);

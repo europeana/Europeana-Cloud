@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.stati
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Matchers.any;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StatisticsBoltTest extends CassandraTestBase {
@@ -147,14 +149,14 @@ public class StatisticsBoltTest extends CassandraTestBase {
     }
 
     private void assertSuccess(int times) {
-        Mockito.verify(collector, Mockito.times(times)).emit(Mockito.any(List.class));
-        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(times)).emit(any(Tuple.class),Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), Mockito.any(List.class));
     }
 
     private void assertFailure() {
 
 
-        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(0)).emit(any(Tuple.class),Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), Mockito.any(List.class));
     }
 }

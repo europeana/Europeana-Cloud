@@ -58,7 +58,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         try (final Indexer indexer = indexerFactory.getIndexer()) {
             String document = new String(stormTaskTuple.getFileData());
             indexer.index(document);
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(currentTuple,stormTaskTuple.toStormTuple());
         } catch (IndexerConfigurationException e) {
             LOGGER.error("Unable to index file", e);
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in indexer configuration");

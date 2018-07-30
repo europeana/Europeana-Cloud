@@ -9,9 +9,11 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.OAISpoutMessageId;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaFactory;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaHandler;
+import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -40,6 +42,10 @@ public class OAISpout extends CustomKafkaSpout {
 
     private static final int DEFAULT_RETRIES = 10;
     private static final int SLEEP_TIME = 5000;
+    LRUCache<Long, DpsTask> executedTasks = new LRUCache<Long, DpsTask>(
+            75);
+    LRUCache<Long, Object> originalMessageIdS = new LRUCache<Long, Object>(
+            75);
 
     private TaskDownloader taskDownloader;
 
@@ -65,13 +71,18 @@ public class OAISpout extends CustomKafkaSpout {
             super.nextTuple();
             stormTaskTuple = taskDownloader.getTupleWithOAIIdentifier();
             if (stormTaskTuple != null) {
-                collector.emit(stormTaskTuple.toStormTuple());
+                OAISpoutMessageId messageId = formulateMessageId(stormTaskTuple);
+                collector.emit(stormTaskTuple.toStormTuple(), messageId);
             }
         } catch (Exception e) {
             LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
             if (stormTaskTuple != null)
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
+    }
+
+    private OAISpoutMessageId formulateMessageId(StormTaskTuple stormTaskTuple) {
+        return new OAISpoutMessageId(stormTaskTuple.getTaskId(), stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME));
     }
 
 
@@ -87,6 +98,46 @@ public class OAISpout extends CustomKafkaSpout {
         deactivateWaitingTasks();
         deactivateCurrentTask();
         LOGGER.info("Deactivate method was finished");
+    }
+
+    @Override
+    public void fail(Object msgId) {
+        OAISpoutMessageId oaiSpoutMessageId = (OAISpoutMessageId) msgId;
+        DpsTask dpsTask = executedTasks.get(oaiSpoutMessageId.getTaskId());
+        if (dpsTask != null) {
+            StormTaskTuple stormTaskTuple = getStormTaskTupleFromDPSTask(dpsTask);
+            StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+            String identifier = oaiSpoutMessageId.getIdentifierId();
+            LOGGER.info("Retrying sending the tuple with identifier{}", identifier);
+            tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, identifier);
+            tuple.addParameter(PluginParameterKeys.SCHEMA_NAME, oaiSpoutMessageId.getSchemaId());
+            tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, stormTaskTuple.getFileUrl());
+            tuple.setFileUrl(identifier);
+            collector.emit(stormTaskTuple.toStormTuple(), oaiSpoutMessageId);
+        } else {
+            cassandraTaskInfoDAO.dropTask(oaiSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
+        }
+    }
+
+    @Override
+    public void ack(Object msgId) {
+        OAISpoutMessageId oaiSpoutMessageId = (OAISpoutMessageId) msgId;
+        if (oaiSpoutMessageId != null) {
+            if (cassandraTaskInfoDAO.isFinished(oaiSpoutMessageId.getTaskId()))
+                super.ack(originalMessageIdS.get(oaiSpoutMessageId.getTaskId()));//original msgId
+        }
+    }
+
+
+    private StormTaskTuple getStormTaskTupleFromDPSTask(DpsTask dpsTask) {
+        OAIPMHHarvestingDetails oaipmhHarvestingDetails = dpsTask.getHarvestingDetails();
+        if (oaipmhHarvestingDetails == null)
+            oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
+        return new StormTaskTuple(
+                dpsTask.getTaskId(),
+                dpsTask.getTaskName(),
+                dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, dpsTask.getParameters(), dpsTask.getOutputRevision(), oaipmhHarvestingDetails);
+
     }
 
     private void deactivateWaitingTasks() {
@@ -114,6 +165,8 @@ public class OAISpout extends CustomKafkaSpout {
                 DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
                     taskDownloader.fillTheQueue(dpsTask);
+                    executedTasks.put(dpsTask.getTaskId(), dpsTask);
+                    originalMessageIdS.put(dpsTask.getTaskId(), messageId);
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
@@ -152,13 +205,7 @@ public class OAISpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     currentDpsTask = taskQueue.take();
-                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
-                    if (oaipmhHarvestingDetails == null)
-                        oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
-                    stormTaskTuple = new StormTaskTuple(
-                            currentDpsTask.getTaskId(),
-                            currentDpsTask.getTaskName(),
-                            currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
+                    stormTaskTuple = getStormTaskTupleFromDPSTask(currentDpsTask);
                     execute(stormTaskTuple);
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
@@ -167,6 +214,7 @@ public class OAISpout extends CustomKafkaSpout {
                 }
             }
         }
+
 
         DpsTask getCurrentDpsTask() {
             return currentDpsTask;
