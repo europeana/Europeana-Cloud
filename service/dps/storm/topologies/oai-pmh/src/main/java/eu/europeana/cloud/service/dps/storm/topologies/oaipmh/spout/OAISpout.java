@@ -68,7 +68,7 @@ public class OAISpout extends CustomKafkaSpout {
                 collector.emit(stormTaskTuple.toStormTuple());
             }
         } catch (Exception e) {
-            LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
+            LOGGER.error("Spout error: {}", e.getMessage());
             if (stormTaskTuple != null)
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
@@ -282,8 +282,8 @@ public class OAISpout extends CustomKafkaSpout {
                         LOGGER.warn("Error while getting the next batch: {}", retries);
                         waitForSpecificTime();
                     } else {
-                        LOGGER.error("Error while getting the next batch");
-                        throw e;
+                        LOGGER.error("Error while getting the next batch {}",e.getMessage());
+                        throw new IllegalStateException(" Error while getting the next batch of identifiers from the oai end-point.", e);
                     }
                 }
             }
