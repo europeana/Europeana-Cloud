@@ -107,16 +107,16 @@ public class NotificationBolt extends BaseRichBolt {
     private NotificationCache getNotificationCache(NotificationTuple notificationTuple) {
         NotificationCache nCache = new NotificationCache();
         try {
-            LOGGER.info("Recover after failure");
             int processed = subTaskInfoDAO.getProcessedFilesCount(notificationTuple.getTaskId());
             if (processed > 0) {
                 TaskInfo taskInfo = taskInfoDAO.searchById(notificationTuple.getTaskId());
+                LOGGER.info("Recover after failure. The total number of errors is {} , and the total number of processed files {} ", taskInfo.getErrors(), processed);
                 nCache.errors = taskInfo.getErrors();
                 nCache.processed = processed;
             }
 
         } catch (TaskInfoDoesNotExistException e) {
-            LOGGER.info("This is a new Task {}",e.getMessage());
+            LOGGER.info("This is a new Task {}", e.getMessage());
         }
         return nCache;
     }
