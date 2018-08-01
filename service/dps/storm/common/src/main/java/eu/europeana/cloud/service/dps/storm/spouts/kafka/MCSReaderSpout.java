@@ -52,8 +52,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     private static final int DEFAULT_RETRIES = 10;
     private static final int SLEEP_TIME = 5000;
 
-    LRUCache<Long, DpsTask> executedTasks = new LRUCache<Long, DpsTask>(
-            75);
     LRUCache<Long, Object> originalMessageIdS = new LRUCache<Long, Object>(
             75);
 
@@ -118,26 +116,15 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     @Override
     public void fail(Object msgId) {
-        LOGGER.info("The failing method is executed");
-        OAISpoutMessageId oaiSpoutMessageId = (OAISpoutMessageId) msgId;
-        if (oaiSpoutMessageId != null)
-            emitErrorNotification(oaiSpoutMessageId.getTaskId(), oaiSpoutMessageId.getIdentifierId(), "Unexpected error on Storm level", "The record schema is " + oaiSpoutMessageId.getSchemaId(), msgId);
-        else
-            cassandraTaskInfoDAO.dropTask(oaiSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
-    }
-
-    protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformation, Object msgId) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.ERROR, message, additionalInformation);
-        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple(), msgId);
+        //Do Nothing
     }
 
     @Override
     public void ack(Object msgId) {
-        OAISpoutMessageId oaiSpoutMessageId = (OAISpoutMessageId) msgId;
-        if (oaiSpoutMessageId != null) {
-            if (cassandraTaskInfoDAO.isFinished(oaiSpoutMessageId.getTaskId()))
-                super.ack(originalMessageIdS.get(oaiSpoutMessageId.getTaskId()));//original msgId
+        MCSSpoutMessageId mcsSpoutMessageId = (MCSSpoutMessageId) msgId;
+        if (mcsSpoutMessageId != null) {
+            if (cassandraTaskInfoDAO.isFinished(mcsSpoutMessageId.getTaskId()))
+                super.ack(originalMessageIdS.get(mcsSpoutMessageId.getTaskId()));//original msgId
         }
     }
 
@@ -483,7 +470,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
                     taskDownloader.addNewTask(dpsTask);
-                    executedTasks.put(dpsTask.getTaskId(), dpsTask);
                     originalMessageIdS.put(dpsTask.getTaskId(), messageId);
                 }
             } catch (IOException e) {

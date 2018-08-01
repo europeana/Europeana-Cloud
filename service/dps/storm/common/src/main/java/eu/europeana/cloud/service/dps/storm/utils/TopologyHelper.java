@@ -55,6 +55,8 @@ public final class TopologyHelper {
         config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
         config.put(Config.TOPOLOGY_ENABLE_MESSAGE_TIMEOUTS, true);
         config.setMessageTimeoutSecs(2700);
+        config.setMaxSpoutPending(20000);
+        config.setNumAckers(2);
         return config;
     }
 

@@ -14,6 +14,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.HTTPSpoutMessageId;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.OAISpoutMessageId;
+import eu.europeana.cloud.service.dps.util.LRUCache;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -54,6 +57,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     private static final String MAC_TEMP_FOLDER = "__MACOSX";
     private static final String MAC_TEMP_FILE = ".DS_Store";
 
+    LRUCache<Long, Object> originalMessageIdS = new LRUCache<Long, Object>(
+            75);
+
     TaskDownloader taskDownloader;
 
     HttpKafkaSpout(SpoutConfig spoutConf) {
@@ -84,13 +90,18 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             super.nextTuple();
             stormTaskTuple = taskDownloader.getTupleWithFileURL();
             if (stormTaskTuple != null) {
-                collector.emit(stormTaskTuple.toStormTuple());
+                HTTPSpoutMessageId httpSpoutMessageId = prepareCustomMessageId(stormTaskTuple);
+                collector.emit(stormTaskTuple.toStormTuple(), httpSpoutMessageId);
             }
         } catch (Exception e) {
             LOGGER.error("Spout error: {}", e.getMessage());
             if (stormTaskTuple != null)
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
+    }
+
+    private HTTPSpoutMessageId prepareCustomMessageId(StormTaskTuple stormTaskTuple) {
+        return new HTTPSpoutMessageId(stormTaskTuple.getTaskId(), stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), stormTaskTuple.getParameter(PluginParameterKeys.MIME_TYPE));
     }
 
     @Override
@@ -106,6 +117,21 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         deactivateCurrentTask();
         LOGGER.info("Deactivate method was finished");
     }
+
+    @Override
+    public void fail(Object msgId) {
+        //Do Nothing
+    }
+
+    @Override
+    public void ack(Object msgId) {
+        HTTPSpoutMessageId httpSpoutMessageId = (HTTPSpoutMessageId) msgId;
+        if (httpSpoutMessageId != null) {
+            if (cassandraTaskInfoDAO.isFinished(httpSpoutMessageId.getTaskId()))
+                super.ack(originalMessageIdS.get(httpSpoutMessageId.getTaskId()));//original msgId
+        }
+    }
+
 
     private void deactivateWaitingTasks() {
         DpsTask dpsTask;
@@ -345,6 +371,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
                     taskDownloader.addNewTask(dpsTask);
+                    originalMessageIdS.put(dpsTask.getTaskId(), messageId);
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
