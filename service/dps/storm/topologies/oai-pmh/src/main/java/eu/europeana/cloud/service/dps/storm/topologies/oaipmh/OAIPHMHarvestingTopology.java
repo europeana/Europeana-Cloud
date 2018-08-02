@@ -14,6 +14,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 
 
 import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
@@ -136,7 +137,9 @@ public class OAIPHMHarvestingTopology {
                 Config config = configureTopology(topologyProperties);
                 config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
                 config.setNumAckers(0);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+//                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LocalCluster cluster = new LocalCluster();
+                cluster.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));

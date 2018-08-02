@@ -22,10 +22,10 @@ import java.io.InputStream;
  *
  * @author krystian.
  */
-class XmlXPath {
+public class XmlXPath {
     private final InputStream input;
 
-     XmlXPath(InputStream input) {
+     public XmlXPath(InputStream input) {
         this.input = input;
     }
 
