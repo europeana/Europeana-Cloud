@@ -24,6 +24,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     private String ecloudMcsAddress;
     private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
+    private DataSetServiceClient dataSetServiceClient;
 
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -32,22 +33,12 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-
+        dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
     }
 
     @Override
     public void execute(StormTaskTuple t) {
-        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
-        try {
-            final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-            dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
-            addRepresentationToDataSets(t, dataSetServiceClient);
-        } finally {
-            dataSetServiceClient.close();
-        }
-    }
-
-    public final void addRepresentationToDataSets(StormTaskTuple t, DataSetServiceClient datasetClient) {
+        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
             List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
@@ -56,7 +47,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                 for (String datasetLocation : datasets) {
                     Representation resultRepresentation = parseResultUrl(resultUrl);
                     DataSet dataSet = parseDataSetURl(datasetLocation);
-                    assignRepresentationToDataSet(datasetClient, dataSet, resultRepresentation);
+                    assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
                 }
             }
             emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
@@ -68,8 +59,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         }
     }
 
-
-    private void assignRepresentationToDataSet(DataSetServiceClient dataSetServiceClient, DataSet dataSet, Representation resultRepresentation) throws MCSException, DriverException {
+    private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException, DriverException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
@@ -78,7 +68,9 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                         dataSet.getId(),
                         resultRepresentation.getCloudId(),
                         resultRepresentation.getRepresentationName(),
-                        resultRepresentation.getVersion());
+                        resultRepresentation.getVersion(),
+                        AUTHORIZATION,
+                        authorizationHeader);
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {

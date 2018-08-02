@@ -33,12 +33,14 @@ import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -63,6 +65,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, ValidationRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class IndexingTopologyTest extends TopologyTestHelper {
+
+    private static final String AUTHORIZATION = "Authorization";
 
     private static StormTopology topology;
     static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.INDEXING_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
@@ -117,7 +121,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         Mockito.when(indexerFactory.getIndexer(Mockito.anyBoolean())).thenReturn(indexer);
         //
 
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));
         //
         revisionServiceClient = Mockito.mock(RevisionServiceClient.class);
         PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);

@@ -93,12 +93,7 @@ public class RevisionServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.post(null);
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleAddRevisionResponse(response);
         } finally {
             closeResponse(response);
         }
@@ -126,14 +121,49 @@ public class RevisionServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleAddRevisionResponse(response);
         } finally {
             closeResponse(response);
+        }
+    }
+
+
+    /**
+     * add a revision
+     *
+     * @param cloudId            id of uploaded revision.
+     * @param representationName representation name of uploaded revision.
+     * @param version            a specific version of the representation.
+     * @param revision           revision
+     * @param key                key of header request
+     * @param value              value of header request
+     * @return URI to revisions inside a version.
+     * @throws RepresentationNotExistsException when representation does not exist in specified version.
+     * @throws DriverException                  call to service has not succeeded because of server side error.
+     * @throws MCSException                     on unexpected situations.
+     */
+    public URI addRevision(String cloudId, String representationName, String version, Revision revision, String key, String value)
+            throws
+            DriverException, MCSException {
+        WebTarget target = client.target(baseUrl).path(revisionPath).resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+        Invocation.Builder request = target.request().header(key, value);
+        Response response = null;
+        try {
+            response = request.accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
+            return handleAddRevisionResponse(response);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    private URI handleAddRevisionResponse(Response response) throws MCSException {
+        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+            return response.getLocation();
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
 
@@ -166,12 +196,7 @@ public class RevisionServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.post(Entity.form(tagsForm));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleAddRevisionResponse(response);
         } finally {
             closeResponse(response);
         }

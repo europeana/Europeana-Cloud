@@ -94,14 +94,7 @@ public class FileServiceClient extends MCSClient {
 
         try {
             response = requset.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                InputStream contentResponse = response.readEntity(InputStream.class);
-
-                return copiedInputStream(contentResponse);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleReadFileResponse(response);
         } finally {
             closeResponse(response);
         }
@@ -161,13 +154,32 @@ public class FileServiceClient extends MCSClient {
         try {
             response = client.target(fileUrl).request().get();
 
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                InputStream contentResponse = response.readEntity(InputStream.class);
-                return copiedInputStream(contentResponse);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleReadFileResponse(response);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    private InputStream handleReadFileResponse(Response response) throws IOException, MCSException {
+        if (response.getStatus() == Status.OK.getStatusCode()) {
+            InputStream contentResponse = response.readEntity(InputStream.class);
+            return copiedInputStream(contentResponse);
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+
+    public InputStream getFile(String fileUrl,String key,String value)
+            throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException,
+            DriverException, MCSException, IOException {
+
+        Response response = null;
+
+        try {
+            response = client.target(fileUrl).request().header(key,value).get();
+
+            return handleReadFileResponse(response);
         } finally {
             closeResponse(response);
         }

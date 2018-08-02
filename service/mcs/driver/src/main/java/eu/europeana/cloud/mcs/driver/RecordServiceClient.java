@@ -308,6 +308,50 @@ public class RecordServiceClient extends MCSClient {
         }
     }
 
+
+    /**
+     * Creates new representation version, aploads a file and makes this representation persistent (in one request)
+     *
+     * @param cloudId            id of the record in which to create the representation
+     *                           (required)
+     * @param representationName name of the representation to be created
+     *                           (required)
+     * @param providerId         provider of this representation version (required)
+     * @param data               file that should be uploaded (required)
+     * @param fileName           name for created file
+     * @param mediaType          mimeType of uploaded file
+     * @param key                key to header request
+     * @param value              value to header request
+     * @return URI to created file
+     */
+    public URI createRepresentation(String cloudId,
+                                    String representationName,
+                                    String providerId,
+                                    InputStream data,
+                                    String fileName,
+                                    String mediaType,
+                                    String key, String value) throws IOException, MCSException {
+        WebTarget target = client.target(baseUrl).path(represtationNamePath + "/files")
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName);
+        Builder request = target.request();
+
+        FormDataMultiPart multipart = null;
+
+        Response response = null;
+        request.header("Content-Type", "multipart/form-data");
+        try {
+            multipart = prepareRequestBody(providerId, data, fileName, mediaType);
+            response = request.header(key, value).post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
+            return handleResponse(response);
+        } finally {
+            closeResponse(response);
+            IOUtils.closeQuietly(data);
+            if (multipart != null)
+                multipart.close();
+        }
+    }
+
     /**
      * Creates new representation version, aploads a file and makes this representation persistent (in one request)
      *
@@ -419,6 +463,49 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
+
+        Response response = null;
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                Representation representation = response.readEntity(Representation.class);
+                return representation;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } catch (MessageBodyProviderNotFoundException e) {
+            String out = webtarget.getUri().toString();
+            throw new MCSException(out, e);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    /**
+     * Returns representation in specified version.
+     * <p/>
+     * If Version = LATEST, will redirect to actual latest persistent version at
+     * the moment of invoking this method.
+     *
+     * @param cloudId            id of the record to get representation from (required)
+     * @param representationName name of the representation (required)
+     * @param version            version of the representation to be obtained; if
+     *                           version==LATEST function will return latest persistent version (required)
+     * @param key                key to header
+     * @param value              value to header
+     * @return requested representation version
+     * @throws RepresentationNotExistsException if specified representation does
+     *                                          not exist
+     * @throws MCSException                     on unexpected situations
+     */
+    public Representation getRepresentation(String cloudId, String representationName, String version, String key, String value)
+            throws RepresentationNotExistsException, MCSException {
+        WebTarget webtarget = client.target(baseUrl).path(versionPath)
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+        Builder request = webtarget.request().header(key, value);
 
         Response response = null;
         try {

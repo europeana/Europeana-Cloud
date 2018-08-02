@@ -31,9 +31,4 @@ public class ICTestMocksHelper extends TopologyTestHelper {
         PowerMockito.whenNew(ImageConverterServiceImpl.class).withAnyArguments().thenReturn(imageConverterService);
     }
 
-    protected void mockRepresentationIterator() throws Exception {
-        representationIterator = Mockito.mock(RepresentationIterator.class);
-        PowerMockito.whenNew(RepresentationIterator.class).withAnyArguments().thenReturn(representationIterator);
-    }
-
 }
