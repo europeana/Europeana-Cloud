@@ -20,15 +20,15 @@ public class ValidationRevisionWriter extends RevisionWriterBolt {
         this.successNotificationMessage = successNotificationMessage;
     }
 
-    protected void addRevisionAndEmit(StormTaskTuple stormTaskTuple, RevisionServiceClient revisionsClient) {
-        LOGGER.info("{} executed",getClass().getSimpleName());
+    protected void addRevisionAndEmit(StormTaskTuple stormTaskTuple) {
+        LOGGER.info("{} executed", getClass().getSimpleName());
         try {
-            addRevisionToSpecificResource(stormTaskTuple, revisionsClient, stormTaskTuple.getFileUrl());
+            addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
             emitSuccessNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), successNotificationMessage, "", "");
         } catch (MalformedURLException e) {
-            LOGGER.error("URL is malformed: {}" , stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
+            LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
-        } catch (MCSException|DriverException e) {
+        } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
         }

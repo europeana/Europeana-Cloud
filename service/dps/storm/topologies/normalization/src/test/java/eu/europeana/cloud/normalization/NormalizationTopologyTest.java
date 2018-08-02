@@ -56,10 +56,12 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class NormalizationTopologyTest extends TopologyTestHelper {
     private static StormTopology topology;
+    private static final String AUTHORIZATION = "Authorization";
+
     static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.NORMALIZATION_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
     @BeforeClass
-    public static void buildToplogy() {
+    public static void init() {
 
         buildTopology();
     }
@@ -121,20 +123,15 @@ public class NormalizationTopologyTest extends TopologyTestHelper {
         List<File> files = new ArrayList<>(1);
         List<Revision> revisions = new ArrayList<>(1);
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/edm.xml"))));
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
-
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/edm.xml"))));
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(representation);
     }
 
 
     private void configureMocks() throws MCSException, IOException, URISyntaxException {
-        doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
-        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
-        doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL));
-        doNothing().when(dataSetClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
-        when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL));
+        doNothing().when(dataSetClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class), anyString(), anyString())).thenReturn(new URI(REVISION_URL));
     }
 
 
@@ -147,7 +144,7 @@ public class NormalizationTopologyTest extends TopologyTestHelper {
         for (int i = 0; i < expectedTuples.size(); i++) {
             String actual = parse(selectSingle(actualTuples, i));
             String expected = expectedTuples.get(i);
-            assertEquals(expected, actual,false);
+            assertEquals(expected, actual, false);
         }
     }
 

@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -13,7 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.InputStream;
@@ -37,15 +37,18 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(WriteRecordBolt.class)
 public class WriteRecordBoltTest {
 
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
+    public static final String AUTHORIZATION = "Authorization";
     private final byte[] FILE_DATA = "Data".getBytes();
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
+
+    @Mock(name = "recordServiceClient")
+    private RecordServiceClient recordServiceClient;
 
 
     @InjectMocks
@@ -61,14 +64,11 @@ public class WriteRecordBoltTest {
     public void successfullyExecuteWriteBolt() throws Exception {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
         when(outputCollector.emit(anyList())).thenReturn(null);
-        RecordServiceClient recordServiceClient = mock(RecordServiceClient.class);
-        whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
-        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
 
         writeRecordBolt.execute(tuple);
 
@@ -86,33 +86,29 @@ public class WriteRecordBoltTest {
     @Test
     public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws Exception {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
-        RecordServiceClient recordServiceClient = mock(RecordServiceClient.class);
-        whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
-        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION ,AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
         writeRecordBolt.execute(tuple);
-        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
+        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
 
     @Test
     public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws Exception {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
-        RecordServiceClient recordServiceClient = mock(RecordServiceClient.class);
-        whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
-        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString());
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
         writeRecordBolt.execute(tuple);
-        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION));
+        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
 
     @Captor
