@@ -18,5 +18,7 @@
   <modules>
       <!--<module>ecloud-dlf-ingestion-tool</module>-->
     <module>resource-migration-tool</module>
+      <module>dataset-cleaner</module>
+    <module>dataset-cleaner</module>
   </modules>
 </project>
