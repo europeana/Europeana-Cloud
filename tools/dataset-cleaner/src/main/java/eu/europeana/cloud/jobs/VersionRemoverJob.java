@@ -18,7 +18,7 @@ public class VersionRemoverJob implements Callable<String> {
     private String userName;
     private String password;
 
-    private final static Logger LOGGER = Logger.getLogger(VersionRemoverJob.class);
+    private static final Logger LOGGER = Logger.getLogger(VersionRemoverJob.class);
 
 
     public VersionRemoverJob(String mcsURL,
@@ -48,7 +48,7 @@ public class VersionRemoverJob implements Callable<String> {
                 recordServiceClient.deleteRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
                 break;
             } catch (Exception e) {
-                if (retries-- > 0) {
+                if (--retries > 0) {
                     LOGGER.warn("Error while removing representation version. Retries left: " + retries);
                     waitForSpecificTime();
                 } else {

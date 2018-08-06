@@ -22,6 +22,7 @@ public class DataSetCleanerTool {
     private static final String PASSWORD = "PASSWORD";
     private static final String DATA_SET_URL = "DATASET_URL";
     private static final String THREADS_COUNT = "THREADS_COUNT";
+    private static final String DEBUG = "DEBUG";
     private static final int DEFAULT_THREADS_COUNT = 100;
 
 
@@ -32,9 +33,10 @@ public class DataSetCleanerTool {
     private static int threadsCount;
     private static String providerId;
     private static String dataSetName;
+    private static boolean debug = false;
 
 
-    private final static Logger LOGGER = Logger.getLogger(DataSetCleanerTool.class);
+    private static final Logger LOGGER = Logger.getLogger(DataSetCleanerTool.class);
     public static final int MAXIMUM_FUTURE_NUMBER = 500;
 
     private static List<String> errorLists = new ArrayList<>();
@@ -47,7 +49,7 @@ public class DataSetCleanerTool {
         CommandLine cmd;
         try {
             cmd = parser.parse(options, args);
-            setExecusionParameters(cmd);
+            setExecutionParameters(cmd);
             UrlParser urlParser = new UrlParser(dataSetUrl);
             if (urlParser.isUrlToDataset()) {
                 providerId = urlParser.getPart(UrlPart.DATA_PROVIDERS);
@@ -67,7 +69,7 @@ public class DataSetCleanerTool {
         }
     }
 
-    private static void setExecusionParameters(CommandLine cmd) {
+    private static void setExecutionParameters(CommandLine cmd) {
         dataSetUrl = cmd.getOptionValue(DATA_SET_URL);
         mcsURL = cmd.getOptionValue(MCS_URL);
         userName = cmd.getOptionValue(USERNAME);
@@ -75,6 +77,8 @@ public class DataSetCleanerTool {
         threadsCount = DEFAULT_THREADS_COUNT;
         if (cmd.getOptionValue(THREADS_COUNT) != null)
             threadsCount = Integer.parseInt(cmd.getOptionValue(THREADS_COUNT));
+        if ("true".equalsIgnoreCase(cmd.getOptionValue(DEBUG)))
+            debug = true;
     }
 
     private static void removeFilesFromDataSet() {
@@ -99,8 +103,9 @@ public class DataSetCleanerTool {
 
         if (!futures.isEmpty())
             getExcisionResultAndWait(futures);
+
+        LOGGER.info("The tool ended its Job. The final report is:");
         viewReport();
-        LOGGER.info("The tool ended its Job");
         service.shutdown();
     }
 
@@ -108,9 +113,13 @@ public class DataSetCleanerTool {
         int errorsCountInThisBatch = 0;
         for (Future<String> futureItem : futures) {
             try {
-                System.out.println(futureItem.get());
+                if (debug == true)
+                    System.out.println(futureItem.get());
+                else
+                    futureItem.get();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                LOGGER.error(e.getMessage());
             } catch (ExecutionException e) {
                 errorsCountInThisBatch++;
                 errorLists.add(e.getMessage());
@@ -124,11 +133,9 @@ public class DataSetCleanerTool {
         LOGGER.info("You correctly Removed " + successCount + " From data set and encountered " + errorLists.size() + " errors");
         if (!errorLists.isEmpty()) {
             LOGGER.info("The detailed error report till now is: ");
-            LOGGER.info("***********");
             for (String errorMessage : errorLists) {
                 LOGGER.error(errorMessage);
             }
-            LOGGER.info("***********");
         }
     }
 
@@ -136,11 +143,14 @@ public class DataSetCleanerTool {
     private static Options getParametersHelperOptions() {
         CommandLineHelper commandLineHelper = new CommandLineHelper();
         commandLineHelper.addOption(MCS_URL, "URL for mcs", true);
-        commandLineHelper.addOption(USERNAME, "user name", true);
-        commandLineHelper.addOption(PASSWORD, "password", true);
-        commandLineHelper.addOption(DATA_SET_URL, "data set URL", true);
-        commandLineHelper.addOption(THREADS_COUNT, "threads count (int)(optional)(default=10)", false);
+        commandLineHelper.addOption(USERNAME, "User name", true);
+        commandLineHelper.addOption(PASSWORD, "Password", true);
+        commandLineHelper.addOption(DATA_SET_URL, "Data set URL", true);
+        commandLineHelper.addOption(THREADS_COUNT, "Threads count (int)(optional)(default=100)", false);
+        commandLineHelper.addOption(DEBUG, "Log every execution (true,false)(optional)(default=false)", false);
+
         return commandLineHelper.getOptions();
+
     }
 
 }
