@@ -14,22 +14,17 @@ public class VersionRemoverJob implements Callable<String> {
     public static final int SLEEP_TIME = 5000;
 
     private Representation representation;
-    private String mcsURL;
-    private String userName;
-    private String password;
+    private RecordServiceClient recordServiceClient;
 
     private static final Logger LOGGER = Logger.getLogger(VersionRemoverJob.class);
 
 
-    public VersionRemoverJob(String mcsURL,
-                             Representation representation, String userName, String password) {
+    public VersionRemoverJob(RecordServiceClient recordServiceClient,
+                             Representation representation) {
 
-        this.mcsURL = mcsURL;
-        this.userName = userName;
-        this.password = password;
+        this.recordServiceClient = recordServiceClient;
         this.representation = representation;
     }
-
 
     @Override
     public String call() throws Exception {
@@ -41,7 +36,6 @@ public class VersionRemoverJob implements Callable<String> {
     This method should remove all the version files, revisions and unassign it from all the dataSets and Finally Remove the representation version entirely
      */
     private void removeVersion() throws Exception {
-        RecordServiceClient recordServiceClient = new RecordServiceClient(mcsURL, userName, password);
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
@@ -49,14 +43,10 @@ public class VersionRemoverJob implements Callable<String> {
                 break;
             } catch (Exception e) {
                 if (--retries > 0) {
-                    LOGGER.warn("Error while removing representation version. Retries left: " + retries);
                     waitForSpecificTime();
                 } else {
                     throw new Exception("Error while removing representation version " + representation.getUri() + " from dataSet because of " + e.getMessage());
                 }
-
-            } finally {
-                recordServiceClient.close();
             }
         }
     }

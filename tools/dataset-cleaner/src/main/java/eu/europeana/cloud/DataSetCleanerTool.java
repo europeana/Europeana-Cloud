@@ -3,6 +3,7 @@ package eu.europeana.cloud;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.jobs.VersionRemoverJob;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
@@ -54,7 +55,7 @@ public class DataSetCleanerTool {
             if (urlParser.isUrlToDataset()) {
                 providerId = urlParser.getPart(UrlPart.DATA_PROVIDERS);
                 dataSetName = urlParser.getPart(UrlPart.DATA_SETS);
-                removeFilesFromDataSet();
+                removeVersionsFromDataSet();
             } else
                 LOGGER.error("The provided dataSet url is not formulated correctly");
 
@@ -81,17 +82,19 @@ public class DataSetCleanerTool {
             debug = true;
     }
 
-    private static void removeFilesFromDataSet() {
+    private static void removeVersionsFromDataSet() {
         ExecutorService service = Executors.newFixedThreadPool(threadsCount);
 
         DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(mcsURL, userName, password);
+        RecordServiceClient recordServiceClient = new RecordServiceClient(mcsURL, userName, password);
         RepresentationIterator representationIterator = dataSetServiceClient.getRepresentationIterator(providerId, dataSetName);
         int threadsInWorkCount = 0;
         Set<Future<String>> futures = new HashSet<>(MAXIMUM_FUTURE_NUMBER);
+        LOGGER.info("The tool Started its Job...");
 
         while (representationIterator.hasNext()) {
             Representation representation = representationIterator.next();
-            Future<String> future = service.submit(new VersionRemoverJob(mcsURL, representation, userName, password));
+            Future<String> future = service.submit(new VersionRemoverJob(recordServiceClient, representation));
             futures.add(future);
             threadsInWorkCount++;
             if (threadsInWorkCount == MAXIMUM_FUTURE_NUMBER) {
@@ -104,7 +107,7 @@ public class DataSetCleanerTool {
         if (!futures.isEmpty())
             getExcisionResultAndWait(futures);
 
-        LOGGER.info("The tool ended its Job. The final report is:");
+        LOGGER.info("The tool finished its Job. The final report:");
         viewReport();
         service.shutdown();
     }
@@ -114,7 +117,7 @@ public class DataSetCleanerTool {
         for (Future<String> futureItem : futures) {
             try {
                 if (debug == true)
-                    System.out.println(futureItem.get());
+                    LOGGER.info(futureItem.get());
                 else
                     futureItem.get();
             } catch (InterruptedException e) {
@@ -125,12 +128,12 @@ public class DataSetCleanerTool {
                 errorLists.add(e.getMessage());
             }
         }
-        successCount += (MAXIMUM_FUTURE_NUMBER - errorsCountInThisBatch);
+        successCount += (futures.size() - errorsCountInThisBatch);
         futures.clear();
     }
 
     private static void viewReport() {
-        LOGGER.info("You correctly Removed " + successCount + " From data set and encountered " + errorLists.size() + " errors");
+        LOGGER.info("You correctly Removed " + successCount + " versions From data set:" + dataSetUrl + " and encountered " + errorLists.size() + " errors");
         if (!errorLists.isEmpty()) {
             LOGGER.info("The detailed error report till now is: ");
             for (String errorMessage : errorLists) {
