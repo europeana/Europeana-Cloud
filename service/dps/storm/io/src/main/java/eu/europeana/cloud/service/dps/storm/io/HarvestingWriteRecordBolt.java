@@ -103,7 +103,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         while (true) {
             try {
                 return uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier, AUTHORIZATION, authorizationHeader);
-            } catch (CloudException e) {
+            } catch (Exception e) {
                 if (e.getCause() instanceof IdHasBeenMappedException)
                     return true;
                 if (e.getCause() instanceof ProviderDoesNotExistException) {
@@ -127,7 +127,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         while (true) {
             try {
                 return uisClient.getCloudId(providerId, localId, AUTHORIZATION, authenticationHeader);
-            } catch (CloudException e) {
+            } catch (Exception e) {
                 if (e.getCause() instanceof RecordDoesNotExistException)
                     return null;
                 if (e.getCause() instanceof ProviderDoesNotExistException) {
@@ -151,7 +151,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         while (true) {
             try {
                 return uisClient.createCloudId(providerId, localId, AUTHORIZATION, authenticationHeader).getId();
-            } catch (CloudException e) {
+            } catch (Exception e) {
                 if (e.getCause() instanceof ProviderDoesNotExistException) {
                     LOGGER.error("Error while creating CloudId.");
                     throw e;

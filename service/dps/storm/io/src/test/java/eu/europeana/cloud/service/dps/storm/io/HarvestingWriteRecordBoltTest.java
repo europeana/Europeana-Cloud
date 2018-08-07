@@ -40,7 +40,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
  * Created by Tarek on 7/21/2017.
