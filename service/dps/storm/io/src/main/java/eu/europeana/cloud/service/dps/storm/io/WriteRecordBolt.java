@@ -83,11 +83,27 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     private String getProviderId(StormTaskTuple stormTaskTuple) throws MCSException, DriverException {
-        Representation rep = recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION), AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        Representation rep = getRepresentation(stormTaskTuple);
         return rep.getDataProvider();
 
     }
 
+    private Representation getRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                return recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION), AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while getting provider id. Retries left {}", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while getting provider id. Retries left");
+                    throw e;
+                }
+            }
+        }
+    }
     private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
         stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultedResourceURL);
         stormTaskTuple.setFileData((byte[]) null);
