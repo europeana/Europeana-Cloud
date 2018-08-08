@@ -27,7 +27,7 @@ public class StaticOAITopology {
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        OAISpout kafkaSpout = new OAISpout(kafkaConfig, CASSANDRA_HOSTS, Integer.parseInt(CASSANDRA_PORT), CASSANDRA_KEYSPACE_NAME, CASSANDRA_USERNAME, CASSANDRA_SECRET_TOKEN);
+        OAISpout kafkaSpout = new OAISpout(kafkaConfig, CASSANDRA_HOSTS, Integer.parseInt(CASSANDRA_PORT), CASSANDRA_KEYSPACE_NAME, CASSANDRA_USERNAME, CASSANDRA_SECRET_TOKEN,MCS_URL);
         StormTopology stormTopology = SimpleStaticOAITopologyBuilder.buildTopology(kafkaSpout, UIS_URL, MCS_URL);
 
         LocalCluster cluster = new LocalCluster();

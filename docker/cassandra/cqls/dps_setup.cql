@@ -27,6 +27,16 @@ CREATE TABLE notifications (
 ) WITH CLUSTERING ORDER BY (resource_num DESC);
 
 
+CREATE TABLE resource_progress (
+    task_id bigint,
+    resource varchar,
+    state varchar,
+    result_resource varchar,
+    PRIMARY KEY(task_id,resource)
+)
+
+
+
 CREATE TABLE error_notifications (
     task_id bigint,
     error_type timeuuid,

@@ -475,6 +475,34 @@ public class RecordServiceClient extends MCSClient {
         }
     }
 
+
+    /**
+     * Deletes representation in specified version.
+     *
+     * @param cloudId            id of the record to delete representation version from
+     *                           (required)
+     * @param representationName name of the representation (required)
+     * @param version            the deleted version of the representation (required)
+     * @param key                key of header
+     * @param value              value of header
+     * @throws RepresentationNotExistsException              if specified representation does
+     *                                                       not exist
+     * @throws CannotModifyPersistentRepresentationException if specified
+     *                                                       representation is persistent and thus cannot be removed
+     * @throws MCSException                                  on unexpected situations
+     */
+    public void deleteRepresentation(String cloudId, String representationName, String version, String key, String value)
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, MCSException {
+        WebTarget webtarget = client.target(baseUrl).path(versionPath)
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+        Builder request = webtarget.request().header(key, value);
+
+        handleDeleteRequest(request);
+    }
+
+
     /**
      * Copies all information from one representation version to another.
      * <p/>

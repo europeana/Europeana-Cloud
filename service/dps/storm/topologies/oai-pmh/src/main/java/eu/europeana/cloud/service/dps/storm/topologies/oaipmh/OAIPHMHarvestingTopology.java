@@ -64,7 +64,8 @@ public class OAIPHMHarvestingTopology {
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN),
+                ecloudMcsAddress);
 
 
         builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))

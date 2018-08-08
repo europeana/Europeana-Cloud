@@ -43,6 +43,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     public static final int DEFAULT_RETRIES = 10;
 
     public static final int SLEEP_TIME = 5000;
+    protected CassandraConnectionProvider cassandraConnectionProvider;
 
     protected Map stormConfig;
     protected TopologyContext topologyContext;
@@ -93,7 +94,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         String keyspaceName = (String) stormConfig.get(CASSANDRA_KEYSPACE_NAME);
         String userName = (String) stormConfig.get(CASSANDRA_USERNAME);
         String password = (String) stormConfig.get(CASSANDRA_SECRET_TOKEN);
-        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
+        cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         synchronized (AbstractDpsBolt.class) {
             if (taskStatusChecker == null) {
@@ -131,7 +132,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.ERROR, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME,currentTuple, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, currentTuple, nt.toStormTuple());
     }
 
     protected void logAndEmitError(StormTaskTuple t, String message) {
@@ -143,7 +144,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                                            String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.SUCCESS, message, additionalInformation, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME,currentTuple, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, currentTuple, nt.toStormTuple());
     }
 
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {

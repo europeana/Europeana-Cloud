@@ -10,6 +10,7 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraResourceProgressDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -53,6 +54,7 @@ public class NotificationBolt extends BaseRichBolt {
     private static CassandraTaskInfoDAO taskInfoDAO;
     private static CassandraSubTaskInfoDAO subTaskInfoDAO;
     private static CassandraTaskErrorsDAO taskErrorDAO;
+    private static CassandraResourceProgressDAO cassandraResourceProgressDAO;
     private static final int PROCESSED_INTERVAL = 100;
 
     private static final int DEFAULT_RETRIES = 10;
@@ -120,7 +122,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
         return nCache;
     }
-
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
         long taskId = notificationTuple.getTaskId();
         switch (notificationTuple.getInformationType()) {
@@ -221,6 +222,7 @@ public class NotificationBolt extends BaseRichBolt {
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
+        cassandraResourceProgressDAO = CassandraResourceProgressDAO.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
         this.stormConfig = stormConf;
         this.topologyContext = tc;
@@ -291,6 +293,7 @@ public class NotificationBolt extends BaseRichBolt {
         String additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
+        cassandraResourceProgressDAO.updateResourceProgress(taskId, resource, state);
     }
 
     private void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {

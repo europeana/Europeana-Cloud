@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraResourceProgressDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.kafka.*;
@@ -31,6 +32,7 @@ public class CustomKafkaSpout extends KafkaSpout {
     private String userName;
     private String password;
     protected CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    protected CassandraResourceProgressDAO cassandraResourceProgressDAO;
 
     protected CustomKafkaSpout(SpoutConfig spoutConf) {
         super(spoutConf);
@@ -55,6 +57,7 @@ public class CustomKafkaSpout extends KafkaSpout {
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         cassandraTaskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        cassandraResourceProgressDAO = CassandraResourceProgressDAO.getInstance(cassandraConnectionProvider);
         synchronized (CustomKafkaSpout.class) {
             if (taskStatusChecker == null) {
                 try {

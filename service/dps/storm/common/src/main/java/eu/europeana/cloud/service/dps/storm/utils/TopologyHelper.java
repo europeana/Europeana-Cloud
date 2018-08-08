@@ -52,11 +52,11 @@ public final class TopologyHelper {
         config.put(CASSANDRA_KEYSPACE_NAME, topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME));
         config.put(CASSANDRA_USERNAME, topologyProperties.getProperty(CASSANDRA_USERNAME));
         config.put(CASSANDRA_SECRET_TOKEN, topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
-        config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
+       // config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
         config.put(Config.TOPOLOGY_ENABLE_MESSAGE_TIMEOUTS, true);
-        config.setMessageTimeoutSecs(2700);
-        config.setMaxSpoutPending(20000);
-        config.setNumAckers(2);
+        config.setMessageTimeoutSecs(900);
+        config.setMaxSpoutPending(10000);
+        config.setNumAckers(4);
         return config;
     }
 

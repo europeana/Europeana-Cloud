@@ -7,6 +7,7 @@ public class CassandraTablesAndColumnsNames {
     //------- TABLES -------
     public static final String BASIC_INFO_TABLE = "basic_info";
     public static final String NOTIFICATIONS_TABLE = "notifications";
+    public static final String RESOURCE_PROGRESS = "resource_progress";
     public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
     public static final String ERROR_COUNTERS_TABLE = "error_counters";
     public static final String GENERAL_STATISTICS_TABLE = "general_statistics";
