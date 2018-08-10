@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.dps.ResourceProgress;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -53,7 +54,9 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     private static final int SLEEP_TIME = 5000;
 
     LRUCache<Long, Object> originalMessageIdS = new LRUCache<Long, Object>(
-            75);
+            50);
+    LRUCache<Long, DpsTask> executedTasks = new LRUCache<Long, DpsTask>(
+            50);
 
     TaskDownloader taskDownloader;
     private String mcsClientURL;
@@ -83,11 +86,18 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         StormTaskTuple stormTaskTuple = null;
         try {
             super.nextTuple();
-
             stormTaskTuple = taskDownloader.getTupleWithFileURL();
             if (stormTaskTuple != null) {
-                MCSSpoutMessageId messageId = formulateMessageId(stormTaskTuple);
-                collector.emit(stormTaskTuple.toStormTuple(), messageId);
+                ResourceProgress resourceProgress = cassandraResourceProgressDAO.searchForResourceProgress(stormTaskTuple.getTaskId(), stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
+                if (resourceProgress == null) {
+                    MCSSpoutMessageId messageId = formulateMessageId(stormTaskTuple);
+                    collector.emit(stormTaskTuple.toStormTuple(), messageId);
+                    cassandraResourceProgressDAO.insert(stormTaskTuple.getTaskId(), stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA), States.IN_PROGRESS.toString(), "");
+                } else if (resourceProgress.getState() == States.IN_PROGRESS) {
+                    //remove the version or unassign from dataSet
+                    MCSSpoutMessageId messageId = formulateMessageId(stormTaskTuple);
+                    collector.emit(stormTaskTuple.toStormTuple(), messageId);
+                }
             }
         } catch (Exception e) {
             LOGGER.error("Spout error: {}", e.getMessage());
@@ -115,11 +125,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     }
 
     @Override
-    public void fail(Object msgId) {
-        //Do Nothing
-    }
-
-    @Override
     public void ack(Object msgId) {
         MCSSpoutMessageId mcsSpoutMessageId = (MCSSpoutMessageId) msgId;
         if (mcsSpoutMessageId != null) {
@@ -127,6 +132,57 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 super.ack(originalMessageIdS.get(mcsSpoutMessageId.getTaskId()));//original msgId
         }
     }
+
+    @Override
+    public void fail(Object msgId) {
+        MCSSpoutMessageId mcsSpoutMessageId = (MCSSpoutMessageId) msgId;
+        DpsTask dpsTask = executedTasks.get(mcsSpoutMessageId.getTaskId());
+        try {
+            if (dpsTask != null) {
+                if (!cassandraTaskInfoDAO.isFinished(dpsTask.getTaskId())) {
+                    ResourceProgress resourceProgress = cassandraResourceProgressDAO.searchForResourceProgress(mcsSpoutMessageId.getTaskId(), mcsSpoutMessageId.getFileURL());
+                    if (resourceProgress == null) {
+                        reSendTuple(mcsSpoutMessageId, dpsTask);
+                    } else if (resourceProgress.getState() == States.IN_PROGRESS) {
+                        String resultedFile = resourceProgress.getResultResource();
+                        if (!"".equals(resultedFile)) {
+                            //Remove the version or unaasign it
+                          /*  UrlParser urlParser = new UrlParser(resultedFile);
+                          if (urlParser.isUrlToRepresentationVersionFile()) {
+                                String cloudId = urlParser.getPart(UrlPart.RECORDS);
+                                String representationName = urlParser.getPart(UrlPart.REPRESENTATIONS);
+                                String version = urlParser.getPart(UrlPart.VERSIONS);
+
+                                recordServiceClient.deleteRepresentation(cloudId, representationName, version, "Authorization", dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+                            }*/
+                        }
+                        reSendTuple(mcsSpoutMessageId, dpsTask);
+                    }
+                }
+            } else {
+                cassandraTaskInfoDAO.dropTask(mcsSpoutMessageId.getTaskId(), "The task was dropped because we encountered an error we can't recover from", TaskState.DROPPED.toString());
+            }
+
+        } catch (Exception e) {
+            emitErrorNotification(mcsSpoutMessageId.getTaskId(), mcsSpoutMessageId.getFileURL(), e.getMessage(), "");
+        }
+    }
+
+    private void reSendTuple(MCSSpoutMessageId mcsSpoutMessageId, DpsTask dpsTask) {
+        StormTaskTuple stormTaskTuple = getStormTaskTupleFromDPSTask(dpsTask);
+        StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+        String fileUrl = mcsSpoutMessageId.getFileURL();
+        LOGGER.info("Retrying sending the tuple with identifier{}", fileUrl);
+        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, fileUrl);
+        collector.emit(tuple.toStormTuple(), mcsSpoutMessageId);
+    }
+
+    private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.ERROR, message, additionalInformations);
+        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
 
     private StormTaskTuple getStormTaskTupleFromDPSTask(DpsTask dpsTask) {
         return new StormTaskTuple(
@@ -469,8 +525,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             try {
                 DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
                 if (dpsTask != null) {
-                    taskDownloader.addNewTask(dpsTask);
-                    originalMessageIdS.put(dpsTask.getTaskId(), messageId);
+                    if (!cassandraTaskInfoDAO.isFinished(dpsTask.getTaskId())) {
+                        taskDownloader.addNewTask(dpsTask);
+                        executedTasks.put(dpsTask.getTaskId(), dpsTask);
+                        originalMessageIdS.put(dpsTask.getTaskId(), messageId);
+                    }
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());

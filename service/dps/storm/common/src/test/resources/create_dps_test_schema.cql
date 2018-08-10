@@ -28,6 +28,15 @@ CREATE TABLE basic_info (
 );
 
 
+CREATE TABLE resource_progress (
+    task_id bigint,
+    resource varchar,
+    state varchar,
+    result_resource varchar,
+    PRIMARY KEY(task_id,resource)
+);
+
+
 CREATE TABLE notifications (
     resource_num int,
     task_id bigint,
