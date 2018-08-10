@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, ValidationRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, TaskStatusChecker.class})
+@PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, ValidationRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraResourceProgressDAO.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class IndexingTopologyTest extends TopologyTestHelper {
 

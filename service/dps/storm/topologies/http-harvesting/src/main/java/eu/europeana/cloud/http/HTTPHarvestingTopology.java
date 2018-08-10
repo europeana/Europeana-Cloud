@@ -113,9 +113,7 @@ public class HTTPHarvestingTopology {
     }
 
     public static void main(String[] args) {
-
         try {
-
             if (args.length <= 1) {
 
                 String providedPropertyFile = "";
@@ -129,6 +127,7 @@ public class HTTPHarvestingTopology {
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
                 StormTopology stormTopology = httpHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
                 Config config = configureTopology(topologyProperties);
+                config.setNumAckers(0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {
