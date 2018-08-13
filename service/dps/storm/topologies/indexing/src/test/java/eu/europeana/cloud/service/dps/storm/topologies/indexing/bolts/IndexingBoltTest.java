@@ -11,9 +11,11 @@ import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.exception.IndexingException;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
@@ -93,7 +95,7 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertEquals("Error in indexer configuration", val.get("additionalInfo"));
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error in indexer configuration"));
     }
 
     @Test
@@ -109,7 +111,7 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertEquals("Error while retrieving indexer", val.get("additionalInfo"));
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while retrieving indexer"));
     }
 
     @Test
@@ -125,7 +127,8 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertEquals("Error while indexing", val.get("additionalInfo"));
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
+
     }
 
     @Test(expected = RuntimeException.class)
@@ -152,7 +155,7 @@ public class IndexingBoltTest {
     }
 
     private void mockIndexerFactoryFor(Class clazz) throws IndexerConfigurationException, IndexingException {
-        when(indexerFactoryWrapper.getIndexerFactory(Mockito.anyString(),Mockito.anyString())).thenReturn(indexerFactory);
+        when(indexerFactoryWrapper.getIndexerFactory(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerFactory);
         when(indexerFactory.getIndexer(Mockito.anyBoolean())).thenReturn(indexer);
 
         if (clazz != null) {
