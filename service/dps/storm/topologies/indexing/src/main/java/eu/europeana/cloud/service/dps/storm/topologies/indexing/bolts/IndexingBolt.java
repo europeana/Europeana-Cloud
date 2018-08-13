@@ -64,13 +64,13 @@ public class IndexingBolt extends AbstractDpsBolt {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (IndexerConfigurationException e) {
             LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in indexer configuration");
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in indexer configuration. The full error is: "+e);
         } catch (IOException e) {
             LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while retrieving indexer");
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while retrieving indexer. The full error is: "+e);
         } catch (IndexingException e) {
             LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing");
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing. The full error is: "+e);
         }
     }
 
