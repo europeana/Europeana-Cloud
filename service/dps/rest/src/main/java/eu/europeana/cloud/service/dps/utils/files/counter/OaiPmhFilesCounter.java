@@ -36,7 +36,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                     "/*[local-name()='resumptionToken']";
     public static final String COMPLETE_LIST_SIZE = "completeListSize";
     private static final int DEFAULT_LIST_SIZE = -1;
-    private static final int DEFAULT_RETRIES = 10;
+    private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
 
     /**

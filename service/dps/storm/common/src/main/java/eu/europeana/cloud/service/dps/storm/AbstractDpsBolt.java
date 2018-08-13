@@ -42,7 +42,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
 
     // default number of retries
-    public static final int DEFAULT_RETRIES = 10;
+    public static final int DEFAULT_RETRIES = 3;
 
     public static final int SLEEP_TIME = 5000;
 

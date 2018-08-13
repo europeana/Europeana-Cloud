@@ -65,17 +65,17 @@ public class ReadFileBoltTest {
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
         //given
         doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
-        verifyMethodExecutionNumber(11, 1, FILE_URL);
+        verifyMethodExecutionNumber(4, 1, FILE_URL);
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
         //given
         doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
-        verifyMethodExecutionNumber(11, 1, FILE_URL);
+        verifyMethodExecutionNumber(4, 1, FILE_URL);
     }
 
     private StormTaskTuple prepareTuple() {

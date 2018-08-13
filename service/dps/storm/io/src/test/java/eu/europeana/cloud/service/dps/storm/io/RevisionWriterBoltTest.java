@@ -70,7 +70,7 @@ public class RevisionWriterBoltTest {
         Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString())).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.execute(prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(11)).addRevision(anyString(), anyString(), Mockito.anyString(), Mockito.any(Revision.class),anyString(),anyString());
+        Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(anyString(), anyString(), Mockito.anyString(), Mockito.any(Revision.class),anyString(),anyString());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),Mockito.any(List.class));
 
     }

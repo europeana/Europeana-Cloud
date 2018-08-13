@@ -88,16 +88,16 @@ public class AddResultToDataSetBoltTest {
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
         stormTaskTuple = prepareTupleWithSingleDataSet();
         doThrow(MCSException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(),eq(AUTHORIZATION),eq(AUTHORIZATION));
-        verifyMethodExecutionNumber(11, 1);
+        verifyMethodExecutionNumber(4, 1);
     }
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
         stormTaskTuple = prepareTupleWithSingleDataSet();
         doThrow(DriverException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(),eq(AUTHORIZATION),eq(AUTHORIZATION));
-        verifyMethodExecutionNumber(11, 1);
+        verifyMethodExecutionNumber(4, 1);
     }
 
 

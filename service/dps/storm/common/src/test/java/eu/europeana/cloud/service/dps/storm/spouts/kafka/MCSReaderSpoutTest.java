@@ -393,7 +393,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = MCSException.class)
-    public void shouldTry10TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws MCSException {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
@@ -407,7 +407,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = MCSException.class)
-    public void shouldTry10TimesAndFailWhenSpecificRevisionThrowMCSException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowMCSException() throws MCSException {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -420,7 +420,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = DriverException.class)
-    public void shouldTry10TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws MCSException {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
@@ -434,7 +434,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = DriverException.class)
-    public void shouldTry10TimesAndFailWhenSpecificRevisionThrowDriverException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowDriverException() throws MCSException {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given

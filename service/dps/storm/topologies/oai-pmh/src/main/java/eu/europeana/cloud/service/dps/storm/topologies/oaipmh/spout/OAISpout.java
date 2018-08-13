@@ -38,7 +38,7 @@ public class OAISpout extends CustomKafkaSpout {
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
 
-    private static final int DEFAULT_RETRIES = 10;
+    private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
 
     private TaskDownloader taskDownloader;

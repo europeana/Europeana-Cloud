@@ -102,7 +102,7 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws Exception {
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
@@ -112,7 +112,7 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws Exception {
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
@@ -123,7 +123,7 @@ public class HarvestingWriteRecordBoltTest {
 
     private void assertFailingExpectationWhenCreatingRepresentation() throws MCSException, IOException {
         verify(outputCollector, times(0)).emit(anyList());
-        verify(recordServiceClient, times(11)).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
+        verify(recordServiceClient, times(4)).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }
@@ -183,7 +183,7 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     @Test
-    public void shouldRetry10BeforeFailingWhenMappingAdditionalLocalId() throws Exception {
+    public void shouldRetry3BeforeFailingWhenMappingAdditionalLocalId() throws Exception {
         //given
         CloudId cloudId = mock(CloudId.class);
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
@@ -196,7 +196,7 @@ public class HarvestingWriteRecordBoltTest {
 
         //then
         verify(outputCollector, times(0)).emit(anyList());
-        verify(uisClient, times(11)).createMapping(anyString(), anyString(), anyString(),anyString(),anyString());
+        verify(uisClient, times(4)).createMapping(anyString(), anyString(), anyString(),anyString(),anyString());
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }
@@ -222,13 +222,13 @@ public class HarvestingWriteRecordBoltTest {
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenCreatingNewCloudId() throws Exception {
+    public void shouldRetry3TimesBeforeFailingWhenCreatingNewCloudId() throws Exception {
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
         doThrow(CloudException.class).when(uisClient).createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER);
         oaiWriteRecordBoltT.execute(getStormTaskTuple());
         verify(outputCollector, times(0)).emit(anyList());
-        verify(uisClient, times(11)).createCloudId(anyString(), anyString(),anyString(),anyString());
+        verify(uisClient, times(4)).createCloudId(anyString(), anyString(),anyString(),anyString());
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }

@@ -48,7 +48,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
 
-    private static final int DEFAULT_RETRIES = 10;
+    private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
 
     TaskDownloader taskDownloader;

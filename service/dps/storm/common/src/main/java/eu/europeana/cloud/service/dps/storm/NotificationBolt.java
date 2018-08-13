@@ -55,7 +55,7 @@ public class NotificationBolt extends BaseRichBolt {
     private static CassandraTaskErrorsDAO taskErrorDAO;
     private static final int PROCESSED_INTERVAL = 100;
 
-    private static final int DEFAULT_RETRIES = 10;
+    private static final int DEFAULT_RETRIES = 3;
 
     private static final int SLEEP_TIME = 5000;
 

@@ -82,7 +82,7 @@ public class WriteRecordBoltTest {
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws Exception {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
@@ -92,11 +92,11 @@ public class WriteRecordBoltTest {
 
         doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
         writeRecordBolt.execute(tuple);
-        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
+        verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws Exception {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
@@ -106,7 +106,7 @@ public class WriteRecordBoltTest {
 
         doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
         writeRecordBolt.execute(tuple);
-        verify(recordServiceClient, times(11)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
+        verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
 
     @Captor
