@@ -35,7 +35,7 @@ import java.util.List;
 @Component
 @Path("/cloudIds")
 @Scope("request")
-public class UniqueIdentifierResource {
+public class UniqueIdentifierResource extends AbstractUisResource {
 
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
@@ -45,13 +45,9 @@ public class UniqueIdentifierResource {
 
     private static final String CLOUDID = "cloudId";
 
-    @Autowired
-    private MutableAclService mutableAclService;
 
     private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
 
-    public static final int DEFAULT_RETRIES = 3;
-    public static final int SLEEP_TIME = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierResource.class);
 
     /**
@@ -110,31 +106,13 @@ public class UniqueIdentifierResource {
 
             ObjectIdentity cloudIdIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cId.getId());
 
-            MutableAcl cloudIdAcl = mutableAclService.createAcl(cloudIdIdentity);
-
-            cloudIdAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-
-            int retries = DEFAULT_RETRIES;
-            while (true) {
-                try {
-                    mutableAclService.updateAcl(cloudIdAcl);
-                    break;
-                } catch (Exception e) {
-                    if (retries-- > 0) {
-                        waitForSpecificTime();
-                    } else {
-                        LOGGER.error("Error while updating ACLs for cloudId creation. Exception: {}", e.getMessage());
-                        throw e;
-                    }
-                }
-            }
+            MutableAcl cloudIdAcl = getAcl(creatorName, cloudIdIdentity);
+            updateAcl(cloudIdAcl);
         }
         dataProviderResource.grantPermissionsToLocalId(cId, providerId);
         return response;
     }
+
 
 
     /**
@@ -260,12 +238,5 @@ public class UniqueIdentifierResource {
         return Response.ok("CloudId marked as deleted").build();
     }
 
-    protected void waitForSpecificTime() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
-        }
-    }
+
 }
