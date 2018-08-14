@@ -8,6 +8,8 @@ import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,7 +35,7 @@ import java.util.List;
 @Component
 @Path("/cloudIds")
 @Scope("request")
-public class UniqueIdentifierResource {
+public class UniqueIdentifierResource extends AbstractUisResource {
 
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
@@ -43,11 +45,10 @@ public class UniqueIdentifierResource {
 
     private static final String CLOUDID = "cloudId";
 
-    @Autowired
-    private MutableAclService mutableAclService;
 
     private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierResource.class);
 
     /**
      * Invokes the generation of a cloud identifier using the provider
@@ -105,19 +106,13 @@ public class UniqueIdentifierResource {
 
             ObjectIdentity cloudIdIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cId.getId());
 
-            MutableAcl cloudIdAcl = mutableAclService.createAcl(cloudIdIdentity);
-
-            cloudIdAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-
-            mutableAclService.updateAcl(cloudIdAcl);
+            MutableAcl cloudIdAcl = getAcl(creatorName, cloudIdIdentity);
+            updateAcl(cloudIdAcl);
         }
         dataProviderResource.grantPermissionsToLocalId(cId, providerId);
-
         return response;
     }
+
 
 
     /**
@@ -242,4 +237,6 @@ public class UniqueIdentifierResource {
         mutableAclService.deleteAcl(cloudIdentity, false);
         return Response.ok("CloudId marked as deleted").build();
     }
+
+
 }

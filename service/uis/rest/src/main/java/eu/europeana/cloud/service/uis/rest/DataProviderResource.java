@@ -40,7 +40,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 @Path("/data-providers/{" + P_PROVIDER + "}")
 @Component
 @Scope("request")
-public class DataProviderResource {
+public class DataProviderResource extends AbstractUisResource {
 
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
@@ -48,8 +48,6 @@ public class DataProviderResource {
     @Autowired
     private DataProviderService providerService;
 
-    @Autowired
-    private MutableAclService mutableAclService;
 
     protected final String LOCAL_ID_CLASS_NAME = "LocalId";
 
@@ -314,14 +312,9 @@ public class DataProviderResource {
         String key = result.getLocalId().getRecordId() + "/" + providerId;
         if (creatorName != null) {
             ObjectIdentity providerIdentity = new ObjectIdentityImpl(LOCAL_ID_CLASS_NAME, key);
-            MutableAcl providerAcl = mutableAclService.createAcl(providerIdentity);
+            MutableAcl providerAcl = getAcl(creatorName, providerIdentity);
 
-            providerAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-
-            mutableAclService.updateAcl(providerAcl);
+            updateAcl(providerAcl);
         }
     }
 
