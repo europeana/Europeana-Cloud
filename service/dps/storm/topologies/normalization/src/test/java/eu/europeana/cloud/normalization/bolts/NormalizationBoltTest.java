@@ -79,7 +79,8 @@ public class NormalizationBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
-        Assert.assertEquals("Cannot prepare output storm tuple.", val.get("additionalInfo"));
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("Cannot prepare output storm tuple."));
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("malformed.url"));
     }
 
     private StormTaskTuple getCorrectStormTuple(byte[] inputData) {
