@@ -5,17 +5,15 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +41,7 @@ public class DataProvidersResource {
     private int numberOfElementsOnPage;
 
     @Autowired
-    private MutableAclService mutableAclService;
+    private ACLServiceWrapper aclWrapper;
 
     private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class
 	    .getName();
@@ -100,19 +98,8 @@ public class DataProvidersResource {
 	    ObjectIdentity providerIdentity = new ObjectIdentityImpl(
 		    DATA_PROVIDER_CLASS_NAME, providerId);
 
-	    MutableAcl providerAcl = mutableAclService
-		    .createAcl(providerIdentity);
-
-	    providerAcl.insertAce(0, BasePermission.READ, new PrincipalSid(
-		    creatorName), true);
-	    providerAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(
-		    creatorName), true);
-	    providerAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(
-		    creatorName), true);
-	    providerAcl.insertAce(3, BasePermission.ADMINISTRATION,
-		    new PrincipalSid(creatorName), true);
-
-	    mutableAclService.updateAcl(providerAcl);
+	    MutableAcl providerAcl = aclWrapper.getAcl(creatorName, providerIdentity);
+	    aclWrapper.updateAcl(providerAcl);
 	}
 
 	return Response.created(provider.getUri()).build();

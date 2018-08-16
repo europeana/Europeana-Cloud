@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.uis.rest;
 
+import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.exception.*;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
@@ -31,6 +32,7 @@ public class JerseyConfig extends ResourceConfig {
         register(ProviderAlreadyExistsExceptionMapper.class);
         register(WebApplicationsExceptionMapper.class);
         register(RuntimeExceptionMapper.class);
+        register(ACLServiceWrapper.class);
         register(UniqueIdentifierResource.class);
         register(DataProviderResource.class);
         register(DataProvidersResource.class);

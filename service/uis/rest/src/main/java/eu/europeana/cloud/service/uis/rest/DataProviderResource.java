@@ -8,15 +8,14 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.*;
 import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.stereotype.Component;
@@ -49,7 +48,7 @@ public class DataProviderResource {
     private DataProviderService providerService;
 
     @Autowired
-    private MutableAclService mutableAclService;
+    private ACLServiceWrapper aclWrapper;
 
     protected final String LOCAL_ID_CLASS_NAME = "LocalId";
 
@@ -314,14 +313,8 @@ public class DataProviderResource {
         String key = result.getLocalId().getRecordId() + "/" + providerId;
         if (creatorName != null) {
             ObjectIdentity providerIdentity = new ObjectIdentityImpl(LOCAL_ID_CLASS_NAME, key);
-            MutableAcl providerAcl = mutableAclService.createAcl(providerIdentity);
-
-            providerAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-
-            mutableAclService.updateAcl(providerAcl);
+            MutableAcl providerAcl = aclWrapper.getAcl(creatorName, providerIdentity);
+            aclWrapper.updateAcl(providerAcl);
         }
     }
 
@@ -376,12 +369,12 @@ public class DataProviderResource {
             throws ChildrenExistException {
         String key = localId + "/" + providerId;
         ObjectIdentity providerIdentity = new ObjectIdentityImpl(LOCAL_ID_CLASS_NAME, key);
-        mutableAclService.deleteAcl(providerIdentity, false);
+        aclWrapper.deleteAcl(providerIdentity, false);
     }
 
 
     private void deleteProviderAcl(String dataProviderId) {
         ObjectIdentity providerIdentity = new ObjectIdentityImpl(DataProvider.class.getName(), dataProviderId);
-        mutableAclService.deleteAcl(providerIdentity, false);
+        aclWrapper.deleteAcl(providerIdentity, false);
     }
 }
