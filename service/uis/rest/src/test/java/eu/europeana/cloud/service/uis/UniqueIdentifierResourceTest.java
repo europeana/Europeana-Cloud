@@ -55,8 +55,10 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     private UniqueIdentifierService uniqueIdentifierService;
     private DataProviderResource dataProviderResource;
     private MutableAclService mutableAclService;
+    private ACLServiceWrapper aclWrapper;
     private String providerId = "providerId";
     private String recordId = "recordId";
+
 
 
     /**
@@ -88,6 +90,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         uniqueIdentifierService = applicationContext.getBean(UniqueIdentifierService.class);
         dataProviderResource = applicationContext.getBean(DataProviderResource.class);
         mutableAclService = applicationContext.getBean(MutableAclService.class);
+        aclWrapper = applicationContext.getBean(ACLServiceWrapper.class);
         Mockito.reset(uniqueIdentifierService);
         Mockito.reset(dataProviderResource);
     }
@@ -116,7 +119,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
 
 
     @Test
-    public void Try4TimesAndFailInCaseOfExceptionWhileUpdatingACL()
+    public void shouldTry4TimesAndFailInCaseOfExceptionWhileUpdatingACL()
             throws Exception {
         CloudId originalGid = createCloudId(providerId, recordId);
         when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(originalGid);
@@ -135,7 +138,6 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         verify(mutableAclService, times(4)).updateAcl(any(MutableAcl.class));
         assertThat(response.getStatus(), is(500));
     }
-
 
     /**
      * Test the database exception

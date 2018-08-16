@@ -81,5 +81,8 @@
           class="org.springframework.security.acls.AclPermissionEvaluator">
         <constructor-arg ref="aclService" />
     </bean>
+    <bean id="aclWrapper" class = "eu.europeana.cloud.service.uis.ACLServiceWrapper">
+        <constructor-arg ref="aclService"/>
+    </bean>
     
 </beans>
