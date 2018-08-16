@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.indexing.utils.IndexingSe
 import eu.europeana.indexing.*;
 import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.exception.IndexingException;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,13 +65,13 @@ public class IndexingBolt extends AbstractDpsBolt {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (IndexerConfigurationException e) {
             LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in indexer configuration. The full error is: "+e);
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in indexer configuration. The full error is: "+ ExceptionUtils.getStackTrace(e));
         } catch (IOException e) {
             LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while retrieving indexer. The full error is: "+e);
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while retrieving indexer. The full error is: "+ExceptionUtils.getStackTrace(e));
         } catch (IndexingException e) {
             LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing. The full error is: "+e);
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing. The full error is: "+ExceptionUtils.getStackTrace(e));
         }
     }
 
