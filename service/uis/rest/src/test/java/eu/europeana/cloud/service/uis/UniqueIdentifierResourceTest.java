@@ -55,7 +55,6 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     private UniqueIdentifierService uniqueIdentifierService;
     private DataProviderResource dataProviderResource;
     private MutableAclService mutableAclService;
-    private ACLServiceWrapper aclWrapper;
     private String providerId = "providerId";
     private String recordId = "recordId";
 
@@ -90,7 +89,6 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         uniqueIdentifierService = applicationContext.getBean(UniqueIdentifierService.class);
         dataProviderResource = applicationContext.getBean(DataProviderResource.class);
         mutableAclService = applicationContext.getBean(MutableAclService.class);
-        aclWrapper = applicationContext.getBean(ACLServiceWrapper.class);
         Mockito.reset(uniqueIdentifierService);
         Mockito.reset(dataProviderResource);
     }
