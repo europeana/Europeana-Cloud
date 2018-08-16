@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.rest.DataProviderResource;
@@ -16,9 +17,15 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -29,15 +36,20 @@ import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 /**
  * UniqueIdResource unit test
- * 
+ *
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 23, 2013
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(SpringUserUtils.class)
 public class UniqueIdentifierResourceTest extends JerseyTest {
 
     private UniqueIdentifierService uniqueIdentifierService;
@@ -83,7 +95,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
 
     /**
      * Test to create a cloud Id
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -103,9 +115,31 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     }
 
 
+    @Test
+    public void Try4TimesAndFailInCaseOfExceptionWhileUpdatingACL()
+            throws Exception {
+        CloudId originalGid = createCloudId(providerId, recordId);
+        when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(originalGid);
+        // Create a single object test
+        PowerMockito.mockStatic(SpringUserUtils.class);
+        PowerMockito.when(SpringUserUtils.getUsername()).thenReturn("Ola");
+        MutableAcl mutableAcl = mock(MutableAcl.class);
+        when(mutableAclService.createAcl(any(ObjectIdentity.class))).thenReturn(mutableAcl);
+        doThrow(Exception.class).when(mutableAclService).updateAcl(any(MutableAcl.class));
+
+        Response response = target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId)
+                .request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).
+                        post(null);
+
+        verify(mutableAclService, times(4)).updateAcl(any(MutableAcl.class));
+        assertThat(response.getStatus(), is(500));
+    }
+
+
     /**
      * Test the database exception
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -114,7 +148,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         Throwable databaseException = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                    uniqueIdentifierService.getPort(), "")));
+                        uniqueIdentifierService.getPort(), "")));
 
         when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenThrow(databaseException);
 
@@ -124,19 +158,19 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(500));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
-            errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getErrorCode());
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
-            errorInfo.getDetails(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getDetails());
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
 
     /**
      * Test the a cloud id already exists for the record id
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -154,15 +188,15 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(409));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId).getErrorCode());
+                IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId).getErrorCode());
         StringUtils.equals(errorInfo.getDetails(),
-            IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId).getDetails());
+                IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId).getDetails());
     }
 
 
     /**
      * Test the a cloud id already exists for the record id
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -182,15 +216,15 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(409));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(providerId, recordId).getErrorCode());
+                IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(providerId, recordId).getErrorCode());
         StringUtils.equals(errorInfo.getDetails(),
-            IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(providerId, recordId).getDetails());
+                IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(providerId, recordId).getDetails());
     }
 
 
     /**
      * Test the retrieval of a cloud id
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -212,7 +246,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
 
     /**
      * Test the database exception
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -221,7 +255,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                    uniqueIdentifierService.getPort(), "")));
+                        uniqueIdentifierService.getPort(), "")));
 
         when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenThrow(exception);
 
@@ -231,19 +265,19 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(500));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
-            errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getErrorCode());
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
-            errorInfo.getDetails(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getDetails());
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
 
     /**
      * Test the exception that a gloabl id does not exist for this record id
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -261,15 +295,15 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(404));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId).getErrorCode());
+                IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId).getErrorCode());
         StringUtils.equals(errorInfo.getDetails(),
-            IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId).getDetails());
+                IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId).getDetails());
     }
 
 
     /**
      * Test the retrieval of local ids by a cloud id
-     * 
+     *
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
@@ -295,7 +329,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
 
     /**
      * Test the database exception
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -304,7 +338,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                    uniqueIdentifierService.getPort(), "")));
+                        uniqueIdentifierService.getPort(), "")));
 
         when(uniqueIdentifierService.getLocalIdsByCloudId("cloudId")).thenThrow(exception);
 
@@ -312,19 +346,19 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(500));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
-            errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getErrorCode());
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
-            errorInfo.getDetails(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getDetails());
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
 
     /**
      * Test that a cloud id does not exist
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -340,15 +374,15 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(404));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
+                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
         StringUtils.equals(errorInfo.getDetails(),
-            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getDetails());
+                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getDetails());
     }
 
 
     /**
      * Test the deletion of a cloud id
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -366,7 +400,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
 
     /**
      * Test the database exception
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -375,7 +409,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                    uniqueIdentifierService.getPort(), "")));
+                        uniqueIdentifierService.getPort(), "")));
 
         doThrow(exception).when(uniqueIdentifierService).deleteCloudId("cloudId");
 
@@ -384,20 +418,20 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(500));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
-            errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getErrorCode());
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
-            errorInfo.getDetails(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                uniqueIdentifierService.getHostList(), "").getDetails());
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
 
     /**
      * Test the exception of the removal of a cloud id when a cloud id does not
      * exist
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -414,9 +448,9 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         assertThat(resp.getStatus(), is(404));
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(errorInfo.getErrorCode(),
-            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
+                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
         StringUtils.equals(errorInfo.getDetails(),
-            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getDetails());
+                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getDetails());
     }
 
 

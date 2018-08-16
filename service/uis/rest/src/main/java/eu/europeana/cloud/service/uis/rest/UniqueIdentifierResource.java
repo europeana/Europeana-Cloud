@@ -8,6 +8,8 @@ import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +28,7 @@ import java.util.List;
 
 /**
  * Implementation of the Unique Identifier Service.
- * 
+ *
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 17, 2013
  */
@@ -46,13 +48,19 @@ public class UniqueIdentifierResource {
     @Autowired
     private MutableAclService mutableAclService;
 
+
+    private static final int DEFAULT_RETRIES = 3;
+    private static final int SLEEP_TIME = 5000;
+
     private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierResource.class);
 
 
     /**
      * Invokes the generation of a cloud identifier using the provider
      * identifier and a record identifier.
-     * 
+     * <p>
      * <br/>
      * <br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
@@ -61,35 +69,27 @@ public class UniqueIdentifierResource {
      * <li>Authenticated user</li>
      * </ul>
      * </div>
-     * 
-     * @summary Cloud identifier generation
-     * @param providerId
-     *            <strong>REQUIRED</strong> identifier of data-provider for
-     *            which new cloud identifier will be created.
-     * @param localId
-     *            record identifier which will be binded to the newly created
-     *            cloud identifier. If not provided, random value will be
-     *            generated.
+     *
+     * @param providerId <strong>REQUIRED</strong> identifier of data-provider for
+     *                   which new cloud identifier will be created.
+     * @param localId    record identifier which will be binded to the newly created
+     *                   cloud identifier. If not provided, random value will be
+     *                   generated.
      * @return The newly created CloudId
-     * @throws DatabaseConnectionException
-     *             database error
-     * @throws RecordExistsException
-     *             Record already exists in repository
-     * @throws ProviderDoesNotExistException
-     *             Supplied Data-provider does not exist
-     * @throws RecordDatasetEmptyException
-     *             dataset is empty
-     * @throws CloudIdDoesNotExistException
-     *             cloud identifier does not exist
-     * @throws CloudIdAlreadyExistException
-     *             Cloud identifier was created previously
+     * @throws DatabaseConnectionException   database error
+     * @throws RecordExistsException         Record already exists in repository
+     * @throws ProviderDoesNotExistException Supplied Data-provider does not exist
+     * @throws RecordDatasetEmptyException   dataset is empty
+     * @throws CloudIdDoesNotExistException  cloud identifier does not exist
+     * @throws CloudIdAlreadyExistException  Cloud identifier was created previously
+     * @summary Cloud identifier generation
      */
     @POST
-    @Produces({  MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
     public Response createCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
-            @QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
+                                  @QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
             RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
@@ -112,41 +112,68 @@ public class UniqueIdentifierResource {
             cloudIdAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
             cloudIdAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
 
-            mutableAclService.updateAcl(cloudIdAcl);
+            int retries = DEFAULT_RETRIES;
+            while (true) {
+                try {
+                    mutableAclService.updateAcl(cloudIdAcl);
+                    break;
+                } catch (Exception e) {
+                    if (retries-- > 0) {
+                        waitForSpecificTime();
+                    } else {
+                        LOGGER.error("Error while updating ACLs for cloudId creation. Exception: {}", e.getMessage());
+                        throw e;
+                    }
+                }
+            }
         }
-        dataProviderResource.grantPermissionsToLocalId(cId, providerId);
-
+        int retries = DEFAULT_RETRIES;
+        while (true) {
+            try {
+                dataProviderResource.grantPermissionsToLocalId(cId, providerId);
+                break;
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while Granting Permission to localId. Exception: {}", e.getMessage());
+                    throw e;
+                }
+            }
+        }
         return response;
+    }
+
+
+    private void waitForSpecificTime() {
+        try {
+            Thread.sleep(SLEEP_TIME);
+        } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(e1.getMessage());
+        }
     }
 
 
     /**
      * Retrieves cloud identifier based on given provider identifier and record
      * identifier
-     * 
-     * @summary Cloud identifier retrieval
-     * @param providerId
-     *            <strong>REQUIRED</strong> provider identifier
-     * @param recordId
-     *            <strong>REQUIRED</strong> record identifier
-     * 
+     *
+     * @param providerId <strong>REQUIRED</strong> provider identifier
+     * @param recordId   <strong>REQUIRED</strong> record identifier
      * @return Cloud identifier associated with given provider identifier and
-     *         record identifier
-     * 
-     * @throws DatabaseConnectionException
-     *             database error
-     * @throws RecordDoesNotExistException
-     *             record does not exist
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     * @throws RecordDatasetEmptyException
-     *             dataset is empty
+     * record identifier
+     * @throws DatabaseConnectionException   database error
+     * @throws RecordDoesNotExistException   record does not exist
+     * @throws ProviderDoesNotExistException provider does not exist
+     * @throws RecordDatasetEmptyException   dataset is empty
+     * @summary Cloud identifier retrieval
      */
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     public Response getCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
-            @QueryParam(UISParamConstants.Q_RECORD_ID) String recordId)
+                               @QueryParam(UISParamConstants.Q_RECORD_ID) String recordId)
             throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
         return Response.ok(uniqueIdentifierService.getCloudId(providerId, recordId)).build();
@@ -157,28 +184,19 @@ public class UniqueIdentifierResource {
      * Retrieves list of record Identifiers associated with the cloud
      * identifier. Result is returned in slices which contain fixed amount of
      * results and reference (token) to next slice of results.
-     * 
-     * @summary List of record identifiers retrieval
-     * 
-     * @param cloudId
-     *            <strong>REQUIRED</strong> cloud identifier for which list of
-     *            all record identifiers will be retrieved
-     * 
+     *
+     * @param cloudId <strong>REQUIRED</strong> cloud identifier for which list of
+     *                all record identifiers will be retrieved
      * @return The list of record identifiers bound to given provider identifier
-     * 
-     * @throws DatabaseConnectionException
-     *             database error
-     * @throws CloudIdDoesNotExistException
-     *             cloud identifier does not exist
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     * @throws RecordDatasetEmptyException
-     *             datset is empty
-     * 
+     * @throws DatabaseConnectionException   database error
+     * @throws CloudIdDoesNotExistException  cloud identifier does not exist
+     * @throws ProviderDoesNotExistException provider does not exist
+     * @throws RecordDatasetEmptyException   datset is empty
+     * @summary List of record identifiers retrieval
      */
     @GET
     @Path("{" + CLOUDID + "}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public Response getLocalIds(@PathParam(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
@@ -192,7 +210,7 @@ public class UniqueIdentifierResource {
     /**
      * Remove a cloud identifier and all the associations to its record
      * identifiers
-     * 
+     * <p>
      * <br/>
      * <br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
@@ -201,28 +219,20 @@ public class UniqueIdentifierResource {
      * <li>Admin role</li>
      * </ul>
      * </div>
-     * 
-     * @summary Cloud identifier removal
-     * 
-     * @param cloudId
-     *            <strong>REQUIRED</strong> cloud identifier which will be
-     *            removed
-     * 
+     *
+     * @param cloudId <strong>REQUIRED</strong> cloud identifier which will be
+     *                removed
      * @return Empty response with http status code indicating whether the
-     *         operation was successful or not
-     * 
-     * @throws DatabaseConnectionException
-     *             database error
-     * @throws CloudIdDoesNotExistException
-     *             cloud identifier does not exist
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     * @throws RecordIdDoesNotExistException
-     *             record identifier does not exist
+     * operation was successful or not
+     * @throws DatabaseConnectionException   database error
+     * @throws CloudIdDoesNotExistException  cloud identifier does not exist
+     * @throws ProviderDoesNotExistException provider does not exist
+     * @throws RecordIdDoesNotExistException record identifier does not exist
+     * @summary Cloud identifier removal
      */
     @DELETE
     @Path("{" + CLOUDID + "}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Response deleteCloudId(@PathParam(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
