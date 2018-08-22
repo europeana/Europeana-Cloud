@@ -1,6 +1,7 @@
 package eu.europeana.cloud.client.aas.rest;
 
 import eu.europeana.cloud.common.web.AASParamConstants;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
@@ -25,7 +26,8 @@ public class AASClient {
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(AASClient.class);
-
+	private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
+	private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 	/**
 	 * Starts an AASClient.
 	 * 
@@ -33,11 +35,18 @@ public class AASClient {
 	 * as all AAS operations are blocked for normal ecloud users.
      */
 	public AASClient(final String aasUrl, final String username,
-			final String password) {
+					 final String password) {
+		this(aasUrl,username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+	}
+
+	public AASClient(final String aasUrl, final String username,
+					 final String password, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
 		
 		LOGGER.info("AASClient starting...");
 
 		client.register(HttpAuthenticationFeature.basic(username, password));
+		this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+		this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
 		this.aasUrl = aasUrl;
 		
 		LOGGER.info("AASClient started successfully.");

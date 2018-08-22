@@ -11,6 +11,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
@@ -33,15 +34,25 @@ public class UISClient {
     private UrlProvider urlProvider;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
+    private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
+    private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
     /**
      * Creates a new instance of this class. Same as {@link #UISClient(String)}
      * but includes username and password to perform authenticated requests.
      */
-    public UISClient(final String uisUrl, final String username, final String password) {
+    public UISClient(final String uisUrl, final String username, final String password)  {
+        this(uisUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+
+    public UISClient(final String uisUrl, final String username, final String password,
+                     final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         LOGGER.info("UISClient starting...");
 
         client.register(HttpAuthenticationFeature.basic(username, password));
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
 
         try {
             urlProvider = new StaticUrlProvider(uisUrl);
