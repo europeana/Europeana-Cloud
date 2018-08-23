@@ -34,8 +34,8 @@
         <module>storm/examples</module>
         <module>storm/topologies/ic</module>
         <module>utils</module>
-        <module>storm/topologies/oai-pmh</module>
         <module>storm/topologies/topologies-common-helper-test</module>
+        <module>storm/topologies/oai-pmh</module>
         <module>storm/topologies/validation</module>
         <module>storm/topologies/dereference-enrichment</module>
         <module>storm/topologies/http-harvesting</module>
