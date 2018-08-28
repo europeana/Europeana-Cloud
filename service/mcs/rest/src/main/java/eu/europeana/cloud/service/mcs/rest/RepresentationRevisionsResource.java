@@ -68,7 +68,6 @@ public class RepresentationRevisionsResource {
                     .entity(new ErrorInfo("OTHER", F_REVISION_PROVIDER_ID + " parameter cannot be empty."))
                     .build());
         }
-        System.out.println("we are here");
         Date revisionDate = null;
         if (revisionTimestamp != null) {
             DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);

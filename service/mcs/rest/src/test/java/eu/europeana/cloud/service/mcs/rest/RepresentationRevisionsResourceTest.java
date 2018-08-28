@@ -116,7 +116,18 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
         assertThat(response.getStatus(), is(500));
         verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
         verify(recordService, times(1)).getRepresentation(anyString(), anyString(), anyString());
-        System.out.println(response);
+    }
+
+    @Test
+    public void getRepresentationByRevisionsThrowExceptionWhenReturnsRepresentationRevisionResponseIsNull()
+            throws Exception {
+        when(recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null)).thenReturn(null);
+        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
+                .request(MediaType.APPLICATION_XML).get();
+
+        assertThat(response.getStatus(), is(500));
+        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
+
     }
 }
 
