@@ -75,7 +75,7 @@ public class RepresentationResource {
 			@PathParam(P_CLOUDID) String globalId,
 			@PathParam(P_REPRESENTATIONNAME) String schema)
 			throws RepresentationNotExistsException {
-		
+
 		Representation info = recordService.getRepresentation(globalId, schema);
 		prepare(uriInfo, info);
 		return info;

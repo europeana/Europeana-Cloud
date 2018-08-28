@@ -22,8 +22,6 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.dps.topologies.media.support.*;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -42,7 +40,6 @@ import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -162,7 +159,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             return;
         }
         subTaskInfoDao.insert(
-                (int)edmInfo.counter,
+                (int) edmInfo.counter,
                 edmInfo.taskInfo.task.getTaskId(),
                 "linkcheck_topology",
                 edmInfo.representation.getUri().toString(),
@@ -184,7 +181,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             edmInfo.attempts--;
             edmInfo.sourceInfo.addToQueue(edmInfo);
             subTaskInfoDao.insert(
-                    (int)edmInfo.counter,
+                    (int) edmInfo.counter,
                     edmInfo.taskInfo.task.getTaskId(),
                     "linkcheck_topology",
                     edmInfo.representation.getUri().toString(),
@@ -193,7 +190,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
         } else {
             logger.info("FAIL received for {}, no more retries", msgId);
             subTaskInfoDao.insert(
-                    (int)edmInfo.counter,
+                    (int) edmInfo.counter,
                     edmInfo.taskInfo.task.getTaskId(),
                     "linkcheck_topology",
                     edmInfo.representation.getUri().toString(),
@@ -347,14 +344,14 @@ public class DataSetReaderSpout extends BaseRichSpout {
                 } catch (Exception e) {
                     logger.info("EDM loading failed ({}/{}) for {}", e.getMessage(), e.getMessage(), rep.getFiles());
                     if (edmInfo.attempts > 0) {
-                        emitErrorNotification(edmInfo, fileUri,States.ERROR_WILL_RETRY, e.getMessage());
+                        emitErrorNotification(edmInfo, fileUri, States.ERROR_WILL_RETRY, e.getMessage());
                         edmInfo.attempts--;
                         edmQueue.put(edmInfo); // retry later
                     } else {
                         StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
                         stats.addStatus(fileUri, e.getMessage());
                         outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
-                        emitErrorNotification(edmInfo, fileUri,States.ERROR, e.getMessage());
+                        emitErrorNotification(edmInfo, fileUri, States.ERROR, e.getMessage());
 
                         edmFinished(edmInfo);
                     }
@@ -470,12 +467,9 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     break;
 
                 String responseCloudId = cloudTagsResponse.getCloudId();
-                RepresentationRevisionResponse representationRevisionResponse =
-                        recordClient.getRepresentationRevision(responseCloudId, config.representationName,
+                Representation rep =
+                        recordClient.getRepresentationByRevision(responseCloudId, config.representationName,
                                 config.revisionName, config.revisionProvider, config.revisionTimestamp);
-                Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
-                        representationRevisionResponse.getVersion());
-
                 prepareEdmInfo(rep, taskInfo, edmCount);
                 edmCount++;
             }
@@ -497,13 +491,10 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     break;
 
                 String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-                RepresentationRevisionResponse representationRevisionResponse =
-                        recordClient.getRepresentationRevision(responseCloudId, config.representationName,
+                Representation rep =
+                        recordClient.getRepresentationByRevision(responseCloudId, config.representationName,
                                 config.revisionName, config.revisionProvider, DateHelper.getUTCDateString(
                                         cloudIdAndTimestampResponse.getRevisionTimestamp()));
-                Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
-                        representationRevisionResponse.getVersion());
-
                 prepareEdmInfo(rep, taskInfo, edmCount);
                 edmCount++;
             }
@@ -523,7 +514,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             return edmCount;
         }
 
-        private void prepareEdmInfo(Representation rep, TaskInfo taskInfo,int counter) throws InterruptedException {
+        private void prepareEdmInfo(Representation rep, TaskInfo taskInfo, int counter) throws InterruptedException {
             EdmInfo edmInfo = new EdmInfo();
             edmInfo.representation = rep;
             edmInfo.taskInfo = taskInfo;

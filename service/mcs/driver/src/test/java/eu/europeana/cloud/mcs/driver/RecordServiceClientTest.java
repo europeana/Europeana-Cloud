@@ -909,34 +909,40 @@ public class RecordServiceClientTest {
     @Test
     @Betamax(tape = "records_shouldCreateNewRepresentationAndUploadFile")
     public void shouldCreateNewRepresentationAndUploadAFile() throws IOException, FileNotFoundException, MCSException {
-        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs","admin","admin");
+        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
         InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "fileName", "mediaType");
-    };
+    }
+
+    ;
 
     @Test
     @Betamax(tape = "records_shouldCreateNewRepresentationAndUploadFile")
-    public void shouldCreateNewRepresentationAndUploadAFile_1() throws IOException,FileNotFoundException, MCSException {
-        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs","admin","admin");
+    public void shouldCreateNewRepresentationAndUploadAFile_1() throws IOException, FileNotFoundException, MCSException {
+        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
         InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
-    };
+    }
 
-
-    @Betamax(tape = "records_shouldRetrieveRepresentationRevision")
+    @Betamax(tape = "records_shouldRetrieveRepresentationByRevision")
     @Test
     public void shouldRetrieveRepresentationRevision() throws MCSException {
 
-        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs/");
+        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
+        // retrieve representation by revision
+        Representation representation = instance.getRepresentationByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION1", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
+        assertNotNull(representation);
+        assertEquals("REPRESENTATION1",
+                representation.getRepresentationName());
+        assertEquals("68b4cc30-aa8d-11e8-8289-1c6f653f9042", representation.getVersion());
+    }
 
-        // retrieve representation revision
-        RepresentationRevisionResponse representationRevisionResponse = instance.getRepresentationRevision("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ", "t1", "DEREFERENCE", "EF", "2017-01-04T08:11:27.336");
-        assertNotNull(representationRevisionResponse);
-        assertEquals("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ", representationRevisionResponse.getCloudId());
-        assertEquals("t1",
-                representationRevisionResponse.getRepresentationName());
-        assertEquals("f25011f0-d188-11e6-91ce-50e5493601c6", representationRevisionResponse.getVersion());
-        assertEquals("EF", representationRevisionResponse.getRevisionProviderId());
-        assertEquals("DEREFERENCE", representationRevisionResponse.getRevisionName());
+    @Betamax(tape = "records_shouldThrowRepresentationNotExist")
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowRepresentationNotExists() throws MCSException {
+
+        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
+        instance.getRepresentationByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION2", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
+
     }
 }
