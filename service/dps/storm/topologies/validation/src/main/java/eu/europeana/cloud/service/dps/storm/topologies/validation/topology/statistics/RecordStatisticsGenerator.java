@@ -19,6 +19,7 @@ import java.util.*;
 public class RecordStatisticsGenerator {
     private Map<String, NodeStatistics> nodeStatistics;
     private String fileContent;
+    private static int MAX_SIZE = 30000;
 
     public RecordStatisticsGenerator(String fileContent) {
         this.fileContent = fileContent;
@@ -125,9 +126,13 @@ public class RecordStatisticsGenerator {
         StringBuilder textContent = new StringBuilder();
         for (int i = 0; i < list.getLength(); ++i) {
             Node child = list.item(i);
-            if (child.getNodeType() == Node.TEXT_NODE){
+            if (child.getNodeType() == Node.TEXT_NODE) {
                 textContent.append(child.getTextContent());
             }
+        }
+
+        if (textContent.length() > MAX_SIZE) {
+            return textContent.substring(0, MAX_SIZE).trim();
         }
         return textContent.toString().trim();
     }
