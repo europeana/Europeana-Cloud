@@ -70,7 +70,7 @@ public class RecordStatisticsGeneratorTest {
 
     @Test
     public void nodeContentsSizeShouldBeSmallerThanMaximumSize() throws Exception {
-        String fileContent = readFile("src/test/resources/bigContent.xml");
+        String fileContent = readFile("src/test/resources/BigContent.xml");
         RecordStatisticsGenerator xmlParser = new RecordStatisticsGenerator(fileContent);
         List<NodeStatistics> nodeModelList = xmlParser.getStatistics();
         for (NodeStatistics nodeModel : nodeModelList) {
