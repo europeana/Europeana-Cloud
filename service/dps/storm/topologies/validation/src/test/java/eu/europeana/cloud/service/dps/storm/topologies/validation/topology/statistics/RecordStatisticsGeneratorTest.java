@@ -32,6 +32,7 @@ import static org.junit.Assert.*;
  * Created by Tarek on 1/10/2018.
  */
 public class RecordStatisticsGeneratorTest {
+    private static final int MAX_SIZE = 30000;
     private static Multimap<String, String> xpathValueMap;
     private static Multimap<String, Long> xpathOccurrenceMap;
     private static Multimap<String, Set<AttributeStatistics>> xpathAttributeMap;
@@ -64,6 +65,18 @@ public class RecordStatisticsGeneratorTest {
             assertTrue(xpathAttributeMap.get(nodeModel.getXpath()).contains(attributeModels));
 
         }
+    }
+
+
+    @Test
+    public void nodeContentsSizeShouldBeSmallerThanMaximumSize() throws Exception {
+        String fileContent = readFile("src/test/resources/BigContent.xml");
+        RecordStatisticsGenerator xmlParser = new RecordStatisticsGenerator(fileContent);
+        List<NodeStatistics> nodeModelList = xmlParser.getStatistics();
+        for (NodeStatistics nodeModel : nodeModelList) {
+            assertTrue(nodeModel.getValue().length() <= MAX_SIZE);
+        }
+
     }
 
     @Test
@@ -128,11 +141,11 @@ public class RecordStatisticsGeneratorTest {
 
     private static void initXpathOccurrenceMap() {
         xpathOccurrenceMap = ArrayListMultimap.create();
-        xpathOccurrenceMap.put("//root/father1",1l);
+        xpathOccurrenceMap.put("//root/father1", 1l);
         xpathOccurrenceMap.put("//root/father3/childA", 2l);
-        xpathOccurrenceMap.put("//root/father1/childA",1l);
+        xpathOccurrenceMap.put("//root/father1/childA", 1l);
         xpathOccurrenceMap.put("//root/father3", 2l);
-        xpathOccurrenceMap.put("//root",1l);
+        xpathOccurrenceMap.put("//root", 1l);
         xpathOccurrenceMap.put("//root/father1/childA", 1l);
         xpathOccurrenceMap.put("//root/father1", 1l);
     }
