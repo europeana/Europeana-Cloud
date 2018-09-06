@@ -105,7 +105,7 @@ public class RecordServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public RecordServiceClient(String baseUrl) {
-        this(baseUrl,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     public RecordServiceClient(String baseUrl, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
@@ -774,10 +774,12 @@ public class RecordServiceClient extends MCSClient {
      * @return requested representation version
      * @throws RepresentationNotExistsException if specified representation does
      *                                          not exist
-     * @throws MCSException                     on unexpected situations
+     * @throws RepresentationNotExistsException on representation does not exist
+     * @throws MCSException on unexpected situations
+
      */
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
-            throws RevisionNotExistsException, MCSException {
+    public Representation getRepresentationByRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
+            throws RepresentationNotExistsException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
                 .resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
@@ -798,8 +800,7 @@ public class RecordServiceClient extends MCSClient {
         try {
             response = request.get();
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                RepresentationRevisionResponse representationRevisionResponse = response.readEntity(RepresentationRevisionResponse.class);
-                return representationRevisionResponse;
+                return response.readEntity(Representation.class);
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
