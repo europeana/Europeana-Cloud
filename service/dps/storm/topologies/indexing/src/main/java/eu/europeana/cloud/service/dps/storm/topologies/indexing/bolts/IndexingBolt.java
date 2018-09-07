@@ -62,6 +62,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             preserveTimestamps != null && preserveTimestamps.equalsIgnoreCase("true"))) {
             String document = new String(stormTaskTuple.getFileData());
             indexer.index(document);
+            stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (IndexerConfigurationException e) {
             LOGGER.error("Unable to index file", e);

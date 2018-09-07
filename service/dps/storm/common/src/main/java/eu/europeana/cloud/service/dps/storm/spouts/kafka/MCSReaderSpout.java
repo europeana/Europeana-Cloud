@@ -258,13 +258,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 final ResultSlice<CloudIdAndTimestampResponse> resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, datasetName, datasetProvider, startFrom);
                 final List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
                 for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
-                    if (!taskStatusChecker.hasKillFlag(taskId)) {
-                        final String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-                        final RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
-                        final Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
-                        count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
-                    } else
-                        break;
+                    final String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
+                    final RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
+                    final Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
+                    count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
                 }
                 startFrom = resultSlice.getNextSlice();
             }
@@ -328,13 +325,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionsChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, datasetProvider, datasetName, startFrom);
                 List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
                 for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-                    if (!taskStatusChecker.hasKillFlag(taskId)) {
-                        String responseCloudId = cloudTagsResponse.getCloudId();
-                        RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, responseCloudId);
-                        Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
-                        count += addTupleToQueue(stormTaskTuple, fileClient, representation);
-                    } else
-                        break;
+                    String responseCloudId = cloudTagsResponse.getCloudId();
+                    RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, responseCloudId);
+                    Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
+                    count += addTupleToQueue(stormTaskTuple, fileClient, representation);
                 }
                 startFrom = resultSlice.getNextSlice();
             }
