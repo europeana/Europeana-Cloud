@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -259,8 +258,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 final List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
                 for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
                     final String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-                    final RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
-                    final Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
+                    final Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
                     count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
                 }
                 startFrom = resultSlice.getNextSlice();
@@ -326,8 +324,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
                 for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
                     String responseCloudId = cloudTagsResponse.getCloudId();
-                    RepresentationRevisionResponse representationRevisionResponse = getRepresentationRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, responseCloudId);
-                    Representation representation = getRepresentation(recordServiceClient, representationName, responseCloudId, representationRevisionResponse);
+                    Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, responseCloudId);
                     count += addTupleToQueue(stormTaskTuple, fileClient, representation);
                 }
                 startFrom = resultSlice.getNextSlice();
@@ -336,28 +333,12 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             return count;
         }
 
-        private Representation getRepresentation(RecordServiceClient recordServiceClient, String representationName, String responseCloudId, RepresentationRevisionResponse representationRevisionResponse) throws MCSException {
-            int retries = DEFAULT_RETRIES;
-            while (true) {
-                try {
-                    return recordServiceClient.getRepresentation(responseCloudId, representationName, representationRevisionResponse.getVersion());
-                } catch (Exception e) {
-                    if (retries-- > 0) {
-                        LOGGER.warn("Error while getting Representation. Retries left{}", retries);
-                        waitForSpecificTime(SLEEP_TIME);
-                    } else {
-                        LOGGER.error("Error while getting Representation.");
-                        throw e;
-                    }
-                }
-            }
-        }
 
-        private RepresentationRevisionResponse getRepresentationRevision(RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String responseCloudId) throws MCSException {
+        private Representation getRepresentationByRevision(RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String responseCloudId) throws MCSException {
             int retries = DEFAULT_RETRIES;
             while (true) {
                 try {
-                    return recordServiceClient.getRepresentationRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
+                    return recordServiceClient.getRepresentationByRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
                 } catch (Exception e) {
                     if (retries-- > 0) {
                         LOGGER.warn("Error while getting representation revision. Retries Left{} ", retries);
