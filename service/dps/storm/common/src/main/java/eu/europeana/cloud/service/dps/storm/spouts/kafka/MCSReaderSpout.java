@@ -257,8 +257,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 final ResultSlice<CloudIdAndTimestampResponse> resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, datasetName, datasetProvider, startFrom);
                 final List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
                 for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
-                    final String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-                    final Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), responseCloudId);
+                    final Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), cloudIdAndTimestampResponse.getCloudId());
                     count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
                 }
                 startFrom = resultSlice.getNextSlice();
@@ -323,8 +322,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionsChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, datasetProvider, datasetName, startFrom);
                 List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
                 for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-                    String responseCloudId = cloudTagsResponse.getCloudId();
-                    Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, responseCloudId);
+                    Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, cloudTagsResponse.getCloudId());
                     count += addTupleToQueue(stormTaskTuple, fileClient, representation);
                 }
                 startFrom = resultSlice.getNextSlice();
