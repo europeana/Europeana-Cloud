@@ -214,9 +214,6 @@ public class CassandraRecordService implements RecordService {
         if (rep == null) {
             throw new RepresentationNotExistsException();
         }
-        if (rep.isPersistent()) {
-            throw new CannotModifyPersistentRepresentationException();
-        }
 
         representationIndexer.removeRepresentationVersion(version, uis.getProvider(rep.getDataProvider())
                 .getPartitionKey());
