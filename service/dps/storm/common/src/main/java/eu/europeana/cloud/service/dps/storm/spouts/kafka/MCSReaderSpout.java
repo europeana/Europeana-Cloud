@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
@@ -120,7 +121,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * 5);
         private DpsTask currentDpsTask;
 
 
@@ -173,7 +174,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         }
 
-        public void execute(String stream, DpsTask dpsTask) throws MCSException, DriverException {
+        public void execute(String stream, DpsTask dpsTask) throws Exception {
 
             final List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
             final String representationName = dpsTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
@@ -249,22 +250,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             cassandraTaskInfoDAO.updateTask(dpsTask.getTaskId(), "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
         }
 
-        private int handleLatestRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException, DriverException {
-            int count = 0;
-            String startFrom = null;
-            final long taskId = stormTaskTuple.getTaskId();
-            do {
-                final ResultSlice<CloudIdAndTimestampResponse> resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, datasetName, datasetProvider, startFrom);
-                final List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
-                for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
-                    final Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), cloudIdAndTimestampResponse.getCloudId());
-                    count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
-                }
-                startFrom = resultSlice.getNextSlice();
-            }
-            while (startFrom != null && !taskStatusChecker.hasKillFlag(taskId));
-            return count;
-        }
 
         private int addTupleToQueue(StormTaskTuple stormTaskTuple, FileServiceClient fileServiceClient, Representation representation) {
             int count = 0;
@@ -314,20 +299,54 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
 
 
-        private int handleExactRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException, DriverException {
+        private int handleLatestRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException, DriverException {
             int count = 0;
             String startFrom = null;
-            long taskId = stormTaskTuple.getTaskId();
+            final long taskId = stormTaskTuple.getTaskId();
             do {
-                ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionsChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, datasetProvider, datasetName, startFrom);
-                List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
-                for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-                    Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, cloudTagsResponse.getCloudId());
-                    count += addTupleToQueue(stormTaskTuple, fileClient, representation);
+                final ResultSlice<CloudIdAndTimestampResponse> resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, datasetName, datasetProvider, startFrom);
+                final List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
+                for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
+                    final Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), cloudIdAndTimestampResponse.getCloudId());
+                    count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
                 }
                 startFrom = resultSlice.getNextSlice();
             }
             while (startFrom != null && !taskStatusChecker.hasKillFlag(taskId));
+            return count;
+        }
+
+
+        private int handleExactRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException, DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
+            int count = 0;
+            String startFrom = null;
+            long taskId = stormTaskTuple.getTaskId();
+            ExecutorService executorService = Executors.newFixedThreadPool(5);
+            Set<Future<Integer>> futures = new HashSet<>(5);
+            do {
+                ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionsChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, datasetProvider, datasetName, startFrom);
+                List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
+                Future<Integer> job = executorService.submit(new QueueFillerJob(fileClient, recordServiceClient, collector, taskStatusChecker, tuplesWithFileUrls, stormTaskTuple, representationName, revisionName, revisionProvider, revisionTimestamp, cloudTagsResponses));
+                futures.add(job);
+                if (futures.size() == 5) {
+                    count += getCountAndWait(futures);
+                }
+                startFrom = resultSlice.getNextSlice();
+            }
+            while (startFrom != null && !taskStatusChecker.hasKillFlag(taskId));
+
+            if (futures.size() > 0)
+                count += getCountAndWait(futures);
+            executorService.shutdown();
+            return count;
+        }
+
+        private int getCountAndWait(Set<Future<Integer>> futures) throws InterruptedException, ExecutionException {
+            int count = 0;
+            for (Future<Integer> future : futures) {
+                count += future.get();
+            }
+            futures.clear();
             return count;
         }
 
