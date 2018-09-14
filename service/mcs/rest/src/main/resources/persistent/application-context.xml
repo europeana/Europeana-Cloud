@@ -97,19 +97,7 @@
         </constructor-arg>
     </bean>    
     
-    <bean id="solrRepresentationIndexer" 
-          class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-    <bean id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper" >
-        <constructor-arg name="brokerList">
-            <jee:jndi-lookup expected-type="java.lang.String" 
-                             jndi-name="java:comp/env/kafka/brokerList"/>
-        </constructor-arg>
-        <constructor-arg name="topic">
-            <jee:jndi-lookup expected-type="java.lang.String" 
-                             jndi-name="java:comp/env/kafka/topic"/>
-        </constructor-arg>
-    </bean>
-    <bean id="uisHandler" 
+    <bean id="uisHandler"
           class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
     <bean id="uisClient" 
           class="eu.europeana.cloud.client.uis.rest.UISClient">

@@ -104,11 +104,7 @@
         name="kafka/brokerList"
         global="kafka/brokerList"
         type="java.lang.String"/>
-    <ResourceLink
-        name="kafka/topic"
-        global="kafka/topic"
-        type="java.lang.String"/>   
-    
+
     <!-- AAS -->
     
     <ResourceLink
