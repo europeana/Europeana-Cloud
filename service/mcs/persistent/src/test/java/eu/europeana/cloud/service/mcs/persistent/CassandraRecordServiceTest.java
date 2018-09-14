@@ -490,8 +490,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
     }
 
-    @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void shouldNotDeletePersistentRepresentation() throws Exception {
+    @Test
+    public void shouldDeletePersistentRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
         Representation r = insertDummyPersistentRepresentation("globalId",
