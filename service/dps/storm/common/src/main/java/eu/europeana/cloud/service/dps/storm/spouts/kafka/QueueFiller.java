@@ -22,7 +22,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 public class QueueFiller {
     private TaskStatusChecker taskStatusChecker;
     private SpoutOutputCollector collector;
-    private ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls;
+    ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls;
     private static final Logger LOGGER = LoggerFactory.getLogger(QueueFiller.class);
 
      QueueFiller(TaskStatusChecker taskStatusChecker, SpoutOutputCollector collector, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls) {
