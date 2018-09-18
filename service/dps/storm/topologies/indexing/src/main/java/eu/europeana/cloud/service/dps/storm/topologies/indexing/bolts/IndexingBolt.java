@@ -6,16 +6,15 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnv
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.utils.IndexingSettingsGenerator;
-import eu.europeana.indexing.*;
-import eu.europeana.indexing.exception.IndexerConfigurationException;
+import eu.europeana.indexing.IndexerPool;
+import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
+import java.io.Closeable;
+import java.net.URISyntaxException;
+import java.util.Properties;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Properties;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -24,10 +23,13 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingBolt.class);
 
-    private static final String MISSING_INDEXER_FACTORY_MESSAGE = "IndexerFactory is missing. " +
+    private static final String MISSING_INDEXER_POOL_MESSAGE = "IndexerPool is missing. " +
             "Probably You are trying to use alternative environment that is not defined in properties file.";
 
-    private transient IndexerFactoryWrapper indexerFactoryWrapper;
+    private static final int MAX_IDLE_TIME_FOR_INDEXER_IN_SECS = 600;
+    private static final int IDLE_TIME_CHECK_INTERVAL_IN_SECS = 60;
+
+    private transient IndexerPoolWrapper indexerPoolWrapper;
 
     private Properties indexingProperties;
 
@@ -38,57 +40,67 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         try {
-            indexerFactoryWrapper = new IndexerFactoryWrapper();
-
-        } catch (IndexerConfigurationException | URISyntaxException e) {
+            indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
+                IDLE_TIME_CHECK_INTERVAL_IN_SECS);
+        } catch (IndexingException | URISyntaxException e) {
             LOGGER.error("Unable to initialize indexer", e);
         }
     }
 
     @Override
+    public void cleanup() {
+        if (indexerPoolWrapper != null) {
+            indexerPoolWrapper.close();
+        }
+        super.cleanup();
+    }
+
+    @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-        String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
-        String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
-        String preserveTimestamps = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
+
+        // Get variables.
+        final String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
+        final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
+        final String preserveTimestampsString = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
         LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, preserve timestamps: {}).",
-            database, useAltEnv, preserveTimestamps);
-        IndexerFactory indexerFactory = indexerFactoryWrapper.getIndexerFactory(useAltEnv, database);
-        if(indexerFactory == null){
-            LOGGER.error(MISSING_INDEXER_FACTORY_MESSAGE);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), MISSING_INDEXER_FACTORY_MESSAGE, "Error while indexing");
+            database, useAltEnv, preserveTimestampsString);
+
+        // Obtain indexer pool.
+        final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
+        if(indexerPool == null){
+            LOGGER.error(MISSING_INDEXER_POOL_MESSAGE);
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), MISSING_INDEXER_POOL_MESSAGE, "Error while indexing");
             return;
         }
-        try (final Indexer indexer = indexerFactory.getIndexer(
-            preserveTimestamps != null && preserveTimestamps.equalsIgnoreCase("true"))) {
-            String document = new String(stormTaskTuple.getFileData());
-            indexer.index(document);
+
+        // Perform indexing.
+        final boolean preserveTimestamps = "true".equalsIgnoreCase(preserveTimestampsString);
+        try {
+            final String document = new String(stormTaskTuple.getFileData());
+            indexerPool.index(document, preserveTimestamps);
             stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(stormTaskTuple.toStormTuple());
-        } catch (IndexerConfigurationException e) {
-            LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in indexer configuration. The full error is: "+ ExceptionUtils.getStackTrace(e));
-        } catch (IOException e) {
-            LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while retrieving indexer. The full error is: "+ExceptionUtils.getStackTrace(e));
         } catch (IndexingException e) {
             LOGGER.error("Unable to index file", e);
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing. The full error is: "+ExceptionUtils.getStackTrace(e));
         }
     }
 
-    class IndexerFactoryWrapper{
+    class IndexerPoolWrapper implements Closeable {
 
-        private IndexerFactory indexerFactoryForPreviewDbInDefaultEnv;
-        private IndexerFactory indexerFactoryForPublishDbInDefaultEnv;
+        private IndexerPool indexerPoolForPreviewDbInDefaultEnv;
+        private IndexerPool indexerPoolForPublishDbInDefaultEnv;
 
-        private IndexerFactory indexerFactoryForPreviewDbInAnotherEnv;
-        private IndexerFactory indexerFactoryForPublishDbInAnotherEnv;
+        private IndexerPool indexerPoolForPreviewDbInAnotherEnv;
+        private IndexerPool indexerPoolForPublishDbInAnotherEnv;
 
-        public IndexerFactoryWrapper() throws IndexerConfigurationException, URISyntaxException {
-            init();
+        public IndexerPoolWrapper(long maxIdleTimeForIndexerInSecs,
+            long idleTimeCheckIntervalInSecs) throws IndexingException, URISyntaxException {
+            init(maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
         }
 
-        private void init() throws IndexerConfigurationException, URISyntaxException {
+        private void init(long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs)
+            throws IndexingException, URISyntaxException {
             IndexingSettingsGenerator settingsGeneratorForDefaultEnv = new IndexingSettingsGenerator(indexingProperties);
             IndexingSettingsGenerator settingsGeneratorForAnotherEnv = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, indexingProperties);
 
@@ -98,30 +110,50 @@ public class IndexingBolt extends AbstractDpsBolt {
             IndexingSettings indexingSettingsForPreviewDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPreview();
             IndexingSettings indexingSettingsForPublishDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPublish();
 
-            indexerFactoryForPreviewDbInDefaultEnv = new IndexerFactory(indexingSettingsForPreviewDbInDefaultEnv);
-            indexerFactoryForPublishDbInDefaultEnv = new IndexerFactory(indexingSettingsForPublishDbInDefaultEnv);
+            indexerPoolForPreviewDbInDefaultEnv = new IndexerPool(indexingSettingsForPreviewDbInDefaultEnv,
+                maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
+            indexerPoolForPublishDbInDefaultEnv = new IndexerPool(indexingSettingsForPublishDbInDefaultEnv,
+                maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
 
             if (indexingSettingsForPreviewDbInAnotherEnv != null) {
-                indexerFactoryForPreviewDbInAnotherEnv = new IndexerFactory(indexingSettingsForPreviewDbInAnotherEnv);
+                indexerPoolForPreviewDbInAnotherEnv = new IndexerPool(indexingSettingsForPreviewDbInAnotherEnv,
+                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
             }
             if (indexingSettingsForPublishDbInAnotherEnv != null) {
-                indexerFactoryForPublishDbInAnotherEnv = new IndexerFactory(indexingSettingsForPublishDbInAnotherEnv);
+                indexerPoolForPublishDbInAnotherEnv = new IndexerPool(indexingSettingsForPublishDbInAnotherEnv,
+                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
             }
         }
 
-        IndexerFactory getIndexerFactory(String altEnv, String database) {
+        IndexerPool getIndexerPool(String altEnv, String database) {
             if (altEnv != null && altEnv.equalsIgnoreCase("true")) {
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
-                    return indexerFactoryForPreviewDbInAnotherEnv;
+                    return indexerPoolForPreviewDbInAnotherEnv;
                 else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
-                    return indexerFactoryForPublishDbInAnotherEnv;
+                    return indexerPoolForPublishDbInAnotherEnv;
             } else {
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
-                    return indexerFactoryForPreviewDbInDefaultEnv;
+                    return indexerPoolForPreviewDbInDefaultEnv;
                 else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
-                    return indexerFactoryForPublishDbInDefaultEnv;
+                    return indexerPoolForPublishDbInDefaultEnv;
             }
             throw new RuntimeException("Specified environment and/or database is not recognized");
+        }
+
+        @Override
+        public void close() {
+            if (indexerPoolForPreviewDbInDefaultEnv != null) {
+                indexerPoolForPreviewDbInDefaultEnv.close();
+            }
+            if (indexerPoolForPublishDbInDefaultEnv != null) {
+                indexerPoolForPublishDbInDefaultEnv.close();
+            }
+            if (indexerPoolForPreviewDbInAnotherEnv != null) {
+                indexerPoolForPreviewDbInAnotherEnv.close();
+            }
+            if (indexerPoolForPublishDbInAnotherEnv != null) {
+                indexerPoolForPreviewDbInAnotherEnv.close();
+            }
         }
     }
 }

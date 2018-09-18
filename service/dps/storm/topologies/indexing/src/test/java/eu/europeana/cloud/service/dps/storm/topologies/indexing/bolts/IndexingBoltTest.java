@@ -7,15 +7,12 @@ import static org.mockito.Mockito.when;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.IndexerFactory;
-import eu.europeana.indexing.exception.IndexerConfigurationException;
+import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
+import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexingException;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
@@ -33,14 +30,11 @@ public class IndexingBoltTest {
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
 
-    @Mock(name = "indexerFactoryWrapper")
-    private IndexingBolt.IndexerFactoryWrapper indexerFactoryWrapper;
+    @Mock(name = "indexerPoolWrapper")
+    private IndexerPoolWrapper indexerPoolWrapper;
 
     @Mock
-    private Indexer indexer;
-
-    @Mock
-    private IndexerFactory indexerFactory;
+    private IndexerPool indexerPool;
 
     @InjectMocks
     private IndexingBolt indexingBolt = new IndexingBolt(null);
@@ -83,10 +77,10 @@ public class IndexingBoltTest {
 
 
     @Test
-    public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException, IndexerConfigurationException {
+    public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException, IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
-        mockIndexerFactoryFor(IndexerConfigurationException.class);
+        mockIndexerFactoryFor(IndexingException.class);
         //when
         indexingBolt.execute(tuple);
         //then
@@ -99,7 +93,7 @@ public class IndexingBoltTest {
     }
 
     @Test
-    public void shouldEmitErrorNotificationForIOException() throws IndexerConfigurationException, IndexingException {
+    public void shouldEmitErrorNotificationForIOException() throws IndexingException, IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
         mockIndexerFactoryFor(IOException.class);
@@ -115,7 +109,7 @@ public class IndexingBoltTest {
     }
 
     @Test
-    public void shouldEmitErrorNotificationForIndexing() throws IndexerConfigurationException, IndexingException {
+    public void shouldEmitErrorNotificationForIndexing() throws IndexingException, IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
         mockIndexerFactoryFor(IndexingException.class);
@@ -132,7 +126,7 @@ public class IndexingBoltTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void shouldThrowExceptionForUnknownEnv() throws IndexerConfigurationException, IndexingException {
+    public void shouldThrowExceptionForUnknownEnv() throws IndexingException, IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
         mockIndexerFactoryFor(RuntimeException.class);
@@ -154,12 +148,10 @@ public class IndexingBoltTest {
                 }, new Revision());
     }
 
-    private void mockIndexerFactoryFor(Class clazz) throws IndexerConfigurationException, IndexingException {
-        when(indexerFactoryWrapper.getIndexerFactory(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerFactory);
-        when(indexerFactory.getIndexer(Mockito.anyBoolean())).thenReturn(indexer);
-
+    private void mockIndexerFactoryFor(Class clazz) throws IndexingException, IndexingException {
+        when(indexerPoolWrapper.getIndexerPool(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerPool);
         if (clazz != null) {
-            doThrow(clazz).when(indexer).index(Mockito.anyString());
+            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.anyBoolean());
         }
     }
 }

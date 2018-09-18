@@ -2,8 +2,8 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
 import com.mongodb.ServerAddress;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
-import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
+import eu.europeana.indexing.exception.IndexingException;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 public class IndexingSettingsGeneratorTest {
 
     @Test
-    public void shouldGenerateProperSettingsForPreviewDB() throws IOException, IndexerConfigurationException, URISyntaxException {
+    public void shouldGenerateProperSettingsForPreviewDB() throws IOException, IndexingException, URISyntaxException {
         Properties prop = loadProperties("indexing.properties");
         //
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(prop);
@@ -32,7 +32,7 @@ public class IndexingSettingsGeneratorTest {
     }
 
     @Test
-    public void shouldGenerateProperSettingsForPublishDB() throws IOException, IndexerConfigurationException, URISyntaxException {
+    public void shouldGenerateProperSettingsForPublishDB() throws IOException, IndexingException, URISyntaxException {
         Properties prop = loadProperties("indexing.properties");
         //
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(prop);
@@ -47,7 +47,7 @@ public class IndexingSettingsGeneratorTest {
     }
 
     @Test
-    public void shouldGenerateProperSettingsForPreviewDBAndAnotherEnv() throws IOException, IndexerConfigurationException, URISyntaxException {
+    public void shouldGenerateProperSettingsForPreviewDBAndAnotherEnv() throws IOException, IndexingException, URISyntaxException {
         Properties prop = loadProperties("indexing.properties");
         //
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, prop);
@@ -62,7 +62,7 @@ public class IndexingSettingsGeneratorTest {
     }
 
     @Test
-    public void shouldGenerateProperSettingsForPublishDBAndAnotherEnv() throws IOException, IndexerConfigurationException, URISyntaxException {
+    public void shouldGenerateProperSettingsForPublishDBAndAnotherEnv() throws IOException, IndexingException, URISyntaxException {
         Properties prop = loadProperties("indexing.properties");
         //
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, prop);

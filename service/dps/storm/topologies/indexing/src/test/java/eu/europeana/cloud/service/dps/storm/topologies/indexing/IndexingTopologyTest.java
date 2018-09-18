@@ -118,7 +118,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         IndexerFactory indexerFactory = Mockito.mock(IndexerFactory.class);
         Indexer indexer = Mockito.mock(Indexer.class);
         PowerMockito.whenNew(IndexerFactory.class).withAnyArguments().thenReturn(indexerFactory);
-        Mockito.when(indexerFactory.getIndexer(Mockito.anyBoolean())).thenReturn(indexer);
+        Mockito.when(indexerFactory.getIndexer()).thenReturn(indexer);
         //
 
         when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));
