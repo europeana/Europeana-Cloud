@@ -121,7 +121,18 @@ public class RecordServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public RecordServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl);
+        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    /**
+     * Creates instance of RecordServiceClient. Same as {@link #RecordServiceClient(String, int, int)}
+     * but includes username and password to perform authenticated requests.
+     *
+     * @param baseUrl URL of the MCS Rest Service
+     */
+    public RecordServiceClient(String baseUrl, final String username, final String password,
+            final int connectTimeoutInMillis, final int readTimeoutInMillis) {
+        this(baseUrl, connectTimeoutInMillis, readTimeoutInMillis);
         client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
     }
 
