@@ -51,6 +51,7 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     @Override
     public void cleanup() {
+        // This is just to close the connections in the pool and to prevent memory leaks.
         if (indexerPoolWrapper != null) {
             indexerPoolWrapper.close();
         }
@@ -112,19 +113,25 @@ public class IndexingBolt extends AbstractDpsBolt {
             IndexingSettings indexingSettingsForPreviewDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPreview();
             IndexingSettings indexingSettingsForPublishDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPublish();
 
-            indexerPoolForPreviewDbInDefaultEnv = new IndexerPool(indexingSettingsForPreviewDbInDefaultEnv,
+            indexerPoolForPreviewDbInDefaultEnv = initIndexerPool(indexingSettingsForPreviewDbInDefaultEnv,
                     maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-            indexerPoolForPublishDbInDefaultEnv = new IndexerPool(indexingSettingsForPublishDbInDefaultEnv,
+            indexerPoolForPublishDbInDefaultEnv = initIndexerPool(indexingSettingsForPublishDbInDefaultEnv,
                     maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
 
             if (indexingSettingsForPreviewDbInAnotherEnv != null) {
-                indexerPoolForPreviewDbInAnotherEnv = new IndexerPool(indexingSettingsForPreviewDbInAnotherEnv,
+                indexerPoolForPreviewDbInAnotherEnv = initIndexerPool(indexingSettingsForPreviewDbInAnotherEnv,
                         maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
             }
             if (indexingSettingsForPublishDbInAnotherEnv != null) {
-                indexerPoolForPublishDbInAnotherEnv = new IndexerPool(indexingSettingsForPublishDbInAnotherEnv,
+                indexerPoolForPublishDbInAnotherEnv = initIndexerPool(indexingSettingsForPublishDbInAnotherEnv,
                         maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
             }
+        }
+
+        private IndexerPool initIndexerPool(IndexingSettings indexingSettings,
+            long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs) {
+            return new IndexerPool(indexingSettings, maxIdleTimeForIndexerInSecs,
+                idleTimeCheckIntervalInSecs);
         }
 
         IndexerPool getIndexerPool(String altEnv, String database) {
