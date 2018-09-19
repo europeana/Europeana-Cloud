@@ -33,6 +33,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
+import eu.europeana.indexing.IndexerPool;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
@@ -115,10 +116,8 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     @Test
     public final void shouldTestSuccessfulExecution() throws Exception {
         //mocking
-        IndexerFactory indexerFactory = Mockito.mock(IndexerFactory.class);
-        Indexer indexer = Mockito.mock(Indexer.class);
-        PowerMockito.whenNew(IndexerFactory.class).withAnyArguments().thenReturn(indexerFactory);
-        Mockito.when(indexerFactory.getIndexer()).thenReturn(indexer);
+        IndexerPool indexerPool = Mockito.mock(IndexerPool.class);
+        PowerMockito.whenNew(IndexerPool.class).withAnyArguments().thenReturn(indexerPool);
         //
 
         when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));
