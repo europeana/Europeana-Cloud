@@ -10,9 +10,11 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexingException;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
@@ -58,7 +60,6 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
-        Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
     }
 
     @Test
@@ -72,7 +73,6 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
-        Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
     }
 
 
@@ -89,23 +89,7 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error in indexer configuration"));
-    }
-
-    @Test
-    public void shouldEmitErrorNotificationForIOException() throws IndexingException, IndexingException {
-        //given
-        StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
-        mockIndexerFactoryFor(IOException.class);
-        //when
-        indexingBolt.execute(tuple);
-        //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
-
-        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while retrieving indexer"));
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
     }
 
     @Test

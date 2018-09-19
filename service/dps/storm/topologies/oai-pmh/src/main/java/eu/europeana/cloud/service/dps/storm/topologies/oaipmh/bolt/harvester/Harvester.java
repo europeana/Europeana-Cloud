@@ -21,6 +21,7 @@ import java.io.Serializable;
  */
 public class Harvester implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Harvester.class);
+    private static final int DEFAULT_RETRIES=10;
 
 
     /**
@@ -40,7 +41,7 @@ public class Harvester implements Serializable {
 
 
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
-        int retries = AbstractDpsBolt.DEFAULT_RETRIES;
+        int retries = DEFAULT_RETRIES;
         while (true) {
             OAIClient client = new HttpOAIClient(oaiPmhEndpoint);
             try (final InputStream record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params))) {

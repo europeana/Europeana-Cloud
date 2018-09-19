@@ -9,9 +9,11 @@ import eu.europeana.cloud.service.dps.storm.topologies.indexing.utils.IndexingSe
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
+
 import java.io.Closeable;
 import java.net.URISyntaxException;
 import java.util.Properties;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     public void prepare() {
         try {
             indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
-                IDLE_TIME_CHECK_INTERVAL_IN_SECS);
+                    IDLE_TIME_CHECK_INTERVAL_IN_SECS);
         } catch (IndexingException | URISyntaxException e) {
             LOGGER.error("Unable to initialize indexer", e);
         }
@@ -63,11 +65,11 @@ public class IndexingBolt extends AbstractDpsBolt {
         final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
         final String preserveTimestampsString = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
         LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, preserve timestamps: {}).",
-            database, useAltEnv, preserveTimestampsString);
+                database, useAltEnv, preserveTimestampsString);
 
         // Obtain indexer pool.
         final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
-        if(indexerPool == null){
+        if (indexerPool == null) {
             LOGGER.error(MISSING_INDEXER_POOL_MESSAGE);
             emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), MISSING_INDEXER_POOL_MESSAGE, "Error while indexing");
             return;
@@ -82,7 +84,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (IndexingException e) {
             LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing. The full error is: "+ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -95,12 +97,12 @@ public class IndexingBolt extends AbstractDpsBolt {
         private IndexerPool indexerPoolForPublishDbInAnotherEnv;
 
         public IndexerPoolWrapper(long maxIdleTimeForIndexerInSecs,
-            long idleTimeCheckIntervalInSecs) throws IndexingException, URISyntaxException {
+                                  long idleTimeCheckIntervalInSecs) throws IndexingException, URISyntaxException {
             init(maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
         }
 
         private void init(long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs)
-            throws IndexingException, URISyntaxException {
+                throws IndexingException, URISyntaxException {
             IndexingSettingsGenerator settingsGeneratorForDefaultEnv = new IndexingSettingsGenerator(indexingProperties);
             IndexingSettingsGenerator settingsGeneratorForAnotherEnv = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, indexingProperties);
 
@@ -111,17 +113,17 @@ public class IndexingBolt extends AbstractDpsBolt {
             IndexingSettings indexingSettingsForPublishDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPublish();
 
             indexerPoolForPreviewDbInDefaultEnv = new IndexerPool(indexingSettingsForPreviewDbInDefaultEnv,
-                maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
+                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
             indexerPoolForPublishDbInDefaultEnv = new IndexerPool(indexingSettingsForPublishDbInDefaultEnv,
-                maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
+                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
 
             if (indexingSettingsForPreviewDbInAnotherEnv != null) {
                 indexerPoolForPreviewDbInAnotherEnv = new IndexerPool(indexingSettingsForPreviewDbInAnotherEnv,
-                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
+                        maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
             }
             if (indexingSettingsForPublishDbInAnotherEnv != null) {
                 indexerPoolForPublishDbInAnotherEnv = new IndexerPool(indexingSettingsForPublishDbInAnotherEnv,
-                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
+                        maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
             }
         }
 
