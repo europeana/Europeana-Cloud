@@ -31,17 +31,13 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexerPool;
-
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
