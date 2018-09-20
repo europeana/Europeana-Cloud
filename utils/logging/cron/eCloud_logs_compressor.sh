@@ -10,7 +10,7 @@
 set -u
 
 logsDirectory=/home/tomcat_user/logs/
-fileNamesForCompression=( aas uis mcs dls dps iiif)
+fileNamesForCompression=( aas uis mcs dps iiif)
 daysBack=${1:-1}
 
 echo "Compressing log files for directory: "$logsDirectory

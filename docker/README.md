@@ -163,7 +163,7 @@ exit 0;
 ```
 
 For deploying one service separately change directory to the "rest" directory of the service and run the maven command:
-`mvn clean install tomcat7:redeploy -Dmaven.tomcat.path="/dls" -DskipTests=true`
+`mvn clean install tomcat7:redeploy -Dmaven.tomcat.path="/dps" -DskipTests=true`
 
 ## ECloud Rest API Test
 Check your ECloud Rest API installation using jmeter tests.

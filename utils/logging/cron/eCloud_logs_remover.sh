@@ -9,7 +9,7 @@
 set -u
 
 logsDirectory=/home/tomcat_user/logs/
-fileNamesForDeletion=( aas uis mcs dls dps iiif)
+fileNamesForDeletion=( aas uis mcs dps iiif)
 daysBack=${1:-20}
 
 echo "Deleting log files for directory: "$logsDirectory
