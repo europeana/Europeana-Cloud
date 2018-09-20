@@ -31,16 +31,13 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.IndexerFactory;
-
+import eu.europeana.indexing.IndexerPool;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -115,10 +112,8 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     @Test
     public final void shouldTestSuccessfulExecution() throws Exception {
         //mocking
-        IndexerFactory indexerFactory = Mockito.mock(IndexerFactory.class);
-        Indexer indexer = Mockito.mock(Indexer.class);
-        PowerMockito.whenNew(IndexerFactory.class).withAnyArguments().thenReturn(indexerFactory);
-        Mockito.when(indexerFactory.getIndexer(Mockito.anyBoolean())).thenReturn(indexer);
+        IndexerPool indexerPool = Mockito.mock(IndexerPool.class);
+        PowerMockito.whenNew(IndexerPool.class).withAnyArguments().thenReturn(indexerPool);
         //
 
         when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));

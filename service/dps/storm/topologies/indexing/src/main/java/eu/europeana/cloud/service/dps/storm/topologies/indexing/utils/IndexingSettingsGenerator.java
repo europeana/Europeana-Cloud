@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
-import eu.europeana.indexing.exception.IndexerConfigurationException;
 import eu.europeana.indexing.IndexingSettings;
+import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public class IndexingSettingsGenerator {
         this(TargetIndexingEnvironment.DEFAULT, properties);
     }
 
-    public IndexingSettings generateForPreview() throws IndexerConfigurationException, URISyntaxException {
+    public IndexingSettings generateForPreview() throws IndexingException, URISyntaxException {
         if(!isDefinedFor(preparePreviewPrefix()))
             return null;
         IndexingSettings indexingSettings = new IndexingSettings();
@@ -58,7 +58,7 @@ public class IndexingSettingsGenerator {
         return indexingSettings;
     }
 
-    public IndexingSettings generateForPublish() throws IndexerConfigurationException, URISyntaxException {
+    public IndexingSettings generateForPublish() throws IndexingException, URISyntaxException {
         if(!isDefinedFor(preparePublishPrefix()))
             return null;
         IndexingSettings indexingSettings = new IndexingSettings();
@@ -85,13 +85,13 @@ public class IndexingSettingsGenerator {
     }
 
 
-    private void prepareSettingFor(String environment, IndexingSettings indexingSettings) throws IndexerConfigurationException, URISyntaxException {
+    private void prepareSettingFor(String environment, IndexingSettings indexingSettings) throws IndexingException, URISyntaxException {
         prepareMongoSettings(indexingSettings, environment);
         prepareSolrSetting(indexingSettings, environment);
         prepareZookeeperSettings(indexingSettings, environment);
     }
 
-    private void prepareMongoSettings(IndexingSettings indexingSettings, String prefix) throws IndexerConfigurationException {
+    private void prepareMongoSettings(IndexingSettings indexingSettings, String prefix) throws IndexingException {
         String mongoInstances = properties.get(prefix + DELIMITER + MONGO_INSTANCES).toString();
         int mongoPort = Integer.parseInt(properties.get(prefix + DELIMITER + MONGO_PORT_NUMBER).toString());
         String[] instances = mongoInstances.trim().split(",");
@@ -124,7 +124,7 @@ public class IndexingSettingsGenerator {
         }
     }
 
-    private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix) throws URISyntaxException, IndexerConfigurationException {
+    private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix) throws URISyntaxException, IndexingException {
         String solrInstances = properties.get(prefix + DELIMITER + SOLR_INSTANCES).toString();
         String[] instances = solrInstances.trim().split(",");
         for (String instance : instances) {
@@ -132,7 +132,7 @@ public class IndexingSettingsGenerator {
         }
     }
 
-    private void prepareZookeeperSettings(IndexingSettings indexingSettings, String prefix) throws IndexerConfigurationException {
+    private void prepareZookeeperSettings(IndexingSettings indexingSettings, String prefix) throws IndexingException {
         String zookeeperInstances = properties.get(prefix + DELIMITER + ZOOKEEPER_INSTANCES).toString();
         int zookeeperPort = Integer.parseInt(properties.get(prefix + DELIMITER + ZOOKEEPER_PORT_NUMBER).toString());
         String[] instances = zookeeperInstances.trim().split(",");
