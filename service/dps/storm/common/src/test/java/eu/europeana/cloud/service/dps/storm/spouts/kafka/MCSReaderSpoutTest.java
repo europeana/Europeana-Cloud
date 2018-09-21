@@ -184,7 +184,7 @@ public class MCSReaderSpoutTest {
 
 
     @Test
-    public void shouldEmitTheFilesWhenTaskWithSpecificRevision() throws MCSException, URISyntaxException {
+    public void shouldEmitTheFilesWhenTaskWithSpecificRevision() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -217,7 +217,7 @@ public class MCSReaderSpoutTest {
 
 
     @Test
-    public void shouldFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
+    public void shouldFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -251,7 +251,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test
-    public void shouldFailWhenReadFileThrowMCSExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
+    public void shouldFailWhenReadFileThrowMCSExceptionWhenSpecificRevisionIsProvided() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -287,7 +287,7 @@ public class MCSReaderSpoutTest {
 
 
     @Test
-    public void shouldEmitTheFilesWhenTaskWithLatestRevision() throws MCSException, URISyntaxException {
+    public void shouldEmitTheFilesWhenTaskWithLatestRevision() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -322,7 +322,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test
-    public void shouldFailWhenGettingFileThrowMCSExceptionWhenTaskWithLatestRevision() throws MCSException, URISyntaxException {
+    public void shouldFailWhenGettingFileThrowMCSExceptionWhenTaskWithLatestRevision() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -359,7 +359,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = MCSException.class)
-    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
@@ -373,7 +373,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = MCSException.class)
-    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowMCSException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowMCSException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -386,7 +386,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = DriverException.class)
-    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
@@ -400,7 +400,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = DriverException.class)
-    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowDriverException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowDriverException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
