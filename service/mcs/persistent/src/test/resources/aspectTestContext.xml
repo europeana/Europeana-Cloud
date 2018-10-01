@@ -26,7 +26,6 @@
         </constructor-arg>
     </bean>
 
-    <mockito:mock id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <mockito:mock id="cassandraConnectionProvider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider" />
     <mockito:mock id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider" />
     <mockito:mock id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>

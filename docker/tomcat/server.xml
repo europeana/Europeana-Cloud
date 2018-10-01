@@ -70,10 +70,6 @@
         <!-- MCS Solr specific configuration -->
         <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/"/>
         <Environment name="mcs/uis-url" value="http://localhost:8080/uis/" type="java.lang.String" override="false"/>
-        <!-- Kafka local specific configuration -->
-        <Environment name="kafka/brokerList" type="java.lang.String" value="kafka:9092"/>
-        <Environment name="kafka/zookeeperList" type="java.lang.String" value="zookeeper:2181"/>
-        <Environment name="kafka/topic" type="java.lang.String" value="indexing"/>
         <!-- AAS local specific configuration -->
         <Environment name="aas/cassandra/hosts" type="java.lang.String" value="cassandra"/>
         <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042"/>

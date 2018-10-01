@@ -38,9 +38,6 @@ public class CassandraDataSetService implements DataSetService {
     private CassandraRecordDAO recordDAO;
 
     @Autowired
-    private SolrRepresentationIndexer representationIndexer;
-
-    @Autowired
     private UISClientHandler uis;
 
     /**
@@ -97,11 +94,6 @@ public class CassandraDataSetService implements DataSetService {
                     rep.getVersion());
             DataProvider dataProvider = uis.getProvider(providerId);
             dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
-
-            representationIndexer.addAssignment(rep.getVersion(),
-                    new CompoundDataSetId(providerId, dataSetId),
-                    dataProvider.getPartitionKey());
-
 
             Map<String, Revision> latestRevisions = new HashMap<>();
 
@@ -191,10 +183,6 @@ public class CassandraDataSetService implements DataSetService {
         }
 
         Representation representation = recordDAO.getRepresentation(recordId, schema, versionId);
-        representationIndexer.removeAssignment(recordId, schema,
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
-
 
         Set<Revision> deletedRevisions = new HashSet<>();
         if (representation != null) {

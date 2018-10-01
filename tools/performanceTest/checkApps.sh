@@ -6,7 +6,6 @@ mcs
 uis
 aas
 )
-#solr, dls disabled for now
 
 success=0
 #it's only for docker purposes!

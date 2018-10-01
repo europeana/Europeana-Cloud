@@ -47,9 +47,6 @@ public class CassandraRecordService implements RecordService {
     private DynamicContentDAO contentDAO;
 
     @Autowired
-    private SolrRepresentationIndexer representationIndexer;
-
-    @Autowired
     private UISClientHandler uis;
 
 
@@ -90,10 +87,6 @@ public class CassandraRecordService implements RecordService {
             String dPId = null;
 
             for (Representation repVersion : allRecordRepresentationsInAllVersions) {
-                if (!(repVersion.getDataProvider()).equalsIgnoreCase(dPId)) {
-                    dPId = repVersion.getDataProvider();
-                    representationIndexer.removeRecordRepresentations(cloudId, uis.getProvider(dPId).getPartitionKey());
-                }
                 removeFilesFromRepresentationVersion(cloudId, repVersion);
                 removeRepresentationAssignmentFromDataSets(cloudId, repVersion);
                 deleteRepresentationRevision(cloudId, repVersion);
@@ -132,11 +125,6 @@ public class CassandraRecordService implements RecordService {
         String dPId = null;
 
         for (Representation rep : listRepresentations) {
-            if (!(rep.getDataProvider()).equalsIgnoreCase(dPId)) {
-                // send only one message per DataProvider
-                dPId = rep.getDataProvider();
-                representationIndexer.removeRepresentation(globalId, schema, uis.getProvider(dPId).getPartitionKey());
-            }
             removeFilesFromRepresentationVersion(globalId, rep);
             removeRepresentationAssignmentFromDataSets(globalId, rep);
             deleteRepresentationRevision(globalId, rep);
@@ -166,7 +154,6 @@ public class CassandraRecordService implements RecordService {
         }
         if (uis.existsCloudId(cloudId)) {
             Representation rep = recordDAO.createRepresentation(cloudId, representationName, providerId, now);
-            representationIndexer.insertRepresentation(rep, dataProvider.getPartitionKey());
             return rep;
         } else {
             throw new RecordNotExistsException(cloudId);
@@ -215,9 +202,6 @@ public class CassandraRecordService implements RecordService {
             throw new RepresentationNotExistsException();
         }
 
-        representationIndexer.removeRepresentationVersion(version, uis.getProvider(rep.getDataProvider())
-                .getPartitionKey());
-
         removeFilesFromRepresentationVersion(globalId, rep);
         removeRepresentationAssignmentFromDataSets(globalId, rep);
         deleteRepresentationRevision(globalId, rep);
@@ -264,8 +248,6 @@ public class CassandraRecordService implements RecordService {
 
         rep.setPersistent(true);
         rep.setCreationDate(now);
-
-        representationIndexer.insertRepresentation(rep, uis.getProvider(rep.getDataProvider()).getPartitionKey());
 
         return rep;
     }
@@ -391,8 +373,6 @@ public class CassandraRecordService implements RecordService {
         }
 
         Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now);
-        representationIndexer.insertRepresentation(copiedRep, uis.getProvider(srcRep.getDataProvider())
-                .getPartitionKey());
         for (File srcFile : srcRep.getFiles()) {
             File copiedFile = new File(srcFile);
             try {

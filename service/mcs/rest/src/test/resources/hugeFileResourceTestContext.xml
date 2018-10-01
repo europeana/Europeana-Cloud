@@ -24,6 +24,5 @@
 
 
     <mockito:mock id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
-    <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
     <mockito:mock id="mutableAclService" class="org.springframework.security.acls.model.MutableAclService"/>
 </beans>

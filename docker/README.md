@@ -152,20 +152,18 @@ UIS="uis"
 MCS="mcs"
 AAS="aas"
 DPS="dps"
-DLS="dls"
 
 #cd $ECLOUD/$SERVICE/$UIS
 mvn clean install -f $ECLOUD/$SERVICE/$UIS/$REST tomcat7:redeploy -Dmaven.tomcat.path="/$UIS" -DskipTests=true
 mvn clean install -f $ECLOUD/$SERVICE/$MCS/$REST tomcat7:redeploy -Dmaven.tomcat.path="/$MCS" -DskipTests=true
 mvn clean install -f $ECLOUD/$SERVICE/$AAS/$REST tomcat7:redeploy -Dmaven.tomcat.path="/$AAS" -DskipTests=true
 mvn clean install -f $ECLOUD/$SERVICE/$DPS/$REST tomcat7:redeploy -Dmaven.tomcat.path="/$DPS" -DskipTests=true
-mvn clean install -f $ECLOUD/$SERVICE/$DLS/$REST tomcat7:redeploy -Dmaven.tomcat.path="/$DLS" -DskipTests=true
 
 exit 0;
 ```
 
 For deploying one service separately change directory to the "rest" directory of the service and run the maven command:
-`mvn clean install tomcat7:redeploy -Dmaven.tomcat.path="/dls" -DskipTests=true`
+`mvn clean install tomcat7:redeploy -Dmaven.tomcat.path="/dps" -DskipTests=true`
 
 ## ECloud Rest API Test
 Check your ECloud Rest API installation using jmeter tests.

@@ -55,7 +55,6 @@
         <constructor-arg name="user" type="java.lang.String" value="test_user"/>
         <constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
     </bean>
-    <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <bean id="permissionGrantingManager" class="eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager"/>
 
     <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
@@ -63,7 +62,6 @@
     </bean>
     
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
-    <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
     <mockito:mock id="mutableAclService" class="org.springframework.security.acls.model.MutableAclService"/>
     
     <!--spy on everything-->

@@ -56,13 +56,6 @@
         <constructor-arg name="password" value="${mcs.swift.password}" />
     </bean>    
     
-    <bean id="solrRepresentationIndexer" 
-          class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-    <bean id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper" >
-        <constructor-arg name="brokerList" value="${mcs.kafka.brokerList}" />
-        <constructor-arg name="topic" value="${mcs.kafka.topic}" />
-    </bean>
-    
 	<!-- UIS Discovery -->
 	<bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
         <constructor-arg name="zookeeperAddress">
