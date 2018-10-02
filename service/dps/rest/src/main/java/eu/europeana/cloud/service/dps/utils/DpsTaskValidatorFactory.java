@@ -112,13 +112,15 @@ public class DpsTaskValidatorFactory {
         taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Indexing Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
                 .withOptionalOutputRevision()
-                .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues()));
+                .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
+                .withParameter(PluginParameterKeys.METIS_DATASET_ID));
 
         taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Indexing Topology")
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withOptionalOutputRevision()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
-                .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues()));
+                .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
+                .withParameter(PluginParameterKeys.METIS_DATASET_ID));
 
         return taskValidatorMap;
     }
