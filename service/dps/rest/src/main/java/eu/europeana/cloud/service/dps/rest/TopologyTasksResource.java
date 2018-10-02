@@ -2,12 +2,10 @@ package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.*;
@@ -18,12 +16,12 @@ import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.task.InitialActionsExecutorFactory;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,6 +185,7 @@ public class TopologyTasksResource {
                             taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime);
                         else {
                             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+                            runTaskSpecificActions(task, topologyName);
                             submitService.submitTask(task, topologyName);
                             LOGGER.info("Task submitted successfully");
                             taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
@@ -470,6 +469,10 @@ public class TopologyTasksResource {
         String taskType = getTaskType(submittedTask);
         FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
         return filesCounter.getFilesCount(submittedTask);
+    }
+
+    private void runTaskSpecificActions(DpsTask task, String topologyName) {
+        InitialActionsExecutorFactory.get(task, topologyName).execute();
     }
 
     //get TaskType
