@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.task.InitialActionException;
 import eu.europeana.cloud.service.dps.task.InitialActionsExecutorFactory;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -97,6 +98,9 @@ public class TopologyTasksResource {
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
+
+    @Autowired
+    private InitialActionsExecutorFactory initialActionsExecutorFactory;
 
 
     private final static String TOPOLOGY_PREFIX = "Topology";
@@ -195,7 +199,7 @@ public class TopologyTasksResource {
                         Response response = Response.serverError().build();
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                         asyncResponse.resume(response);
-                    } catch (TaskSubmissionException e) {
+                    } catch (TaskSubmissionException | InitialActionException e) {
                         LOGGER.error("Task submission failed: {}", e.getMessage());
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                     } catch (Exception e) {
@@ -471,8 +475,8 @@ public class TopologyTasksResource {
         return filesCounter.getFilesCount(submittedTask);
     }
 
-    private void runTaskSpecificActions(DpsTask task, String topologyName) {
-        InitialActionsExecutorFactory.get(task, topologyName).execute();
+    private void runTaskSpecificActions(DpsTask task, String topologyName) throws InitialActionException {
+        initialActionsExecutorFactory.get(task, topologyName).execute();
     }
 
     //get TaskType
@@ -481,6 +485,4 @@ public class TopologyTasksResource {
         final InputDataType first = task.getInputData().keySet().iterator().next();
         return first.name();
     }
-
-
 }

@@ -7,8 +7,8 @@ import eu.europeana.cloud.service.dps.DpsTask;
  */
 public class InitialActionsExecutorFactory {
 
-    public static TaskInitialActionsExecutor get(DpsTask task, String topologyName) {
-        if (topologyName.equals("oai_topology"))
+    public TaskInitialActionsExecutor get(DpsTask task, String topologyName) {
+        if (topologyName.equals("indexing_topology"))
             return new IndexingTaskInitialActionsExecutor(task, topologyName);
 
         return new TaskInitialActionsExecutor() {

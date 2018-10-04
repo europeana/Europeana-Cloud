@@ -5,5 +5,5 @@ package eu.europeana.cloud.service.dps.task;
  */
 public interface TaskInitialActionsExecutor {
 
-    void execute();
+    void execute() throws InitialActionException;
 }
