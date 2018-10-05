@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.dps.task;
 
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
@@ -12,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -24,18 +27,23 @@ public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExe
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingTaskInitialActionsExecutor.class);
 
     private DpsTask dpsTask;
+    private String topologyName;
     private IndexerFactory indexerFactory;
+    private CassandraTaskInfoDAO taskDAO;
 
     private Properties properties = new Properties();
 
-    public IndexingTaskInitialActionsExecutor(DpsTask task) {
+    public IndexingTaskInitialActionsExecutor(DpsTask task, String topologyName, CassandraTaskInfoDAO taskDAO) {
         this.dpsTask = task;
+        this.topologyName = topologyName;
+        this.taskDAO = taskDAO;
         loadProperties();
     }
 
     @Override
     public void execute() throws InitialActionException {
         LOGGER.info("Executing initial actions for indexing topology");
+        changeTaskStatus();
         prepareIndexerFactory();
         try {
             removeDataSet(dpsTask.getParameter(PluginParameterKeys.METIS_DATASET_ID));
@@ -43,6 +51,10 @@ public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExe
             LOGGER.error("Dataset was not removed correctly. ", e);
             throw new InitialActionException("Dataset was not removed correctly.", e);
         }
+    }
+
+    private void changeTaskStatus() {
+        taskDAO.insert(dpsTask.getTaskId(), topologyName, 0, TaskState.BEING_REMOVED.toString(), "The task is in a pending mode, it is being removed from Solr/Mongo before submission", new Date());
     }
 
     private void loadProperties() {

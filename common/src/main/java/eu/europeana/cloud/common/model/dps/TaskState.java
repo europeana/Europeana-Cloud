@@ -9,4 +9,6 @@ public enum TaskState {
     CURRENTLY_PROCESSING,
     DROPPED,
     PROCESSED,
+    BEING_REMOVED,
+
 }
