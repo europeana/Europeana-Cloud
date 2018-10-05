@@ -4,7 +4,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
-import eu.europeana.cloud.service.dps.storm.topologies.indexing.utils.IndexingSettingsGenerator;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
@@ -24,15 +24,12 @@ public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExe
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingTaskInitialActionsExecutor.class);
 
     private DpsTask dpsTask;
-    private String topologyName;
-
     private IndexerFactory indexerFactory;
 
     private Properties properties = new Properties();
 
-    public IndexingTaskInitialActionsExecutor(DpsTask task, String topologyName) {
+    public IndexingTaskInitialActionsExecutor(DpsTask task) {
         this.dpsTask = task;
-        this.topologyName = topologyName;
         loadProperties();
     }
 
@@ -41,7 +38,7 @@ public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExe
         LOGGER.info("Executing initial actions for indexing topology");
         prepareIndexerFactory();
         try {
-            removeDataSet(dpsTask, dpsTask.getParameter(PluginParameterKeys.METIS_DATASET_ID));
+            removeDataSet(dpsTask.getParameter(PluginParameterKeys.METIS_DATASET_ID));
         } catch (IndexingException e) {
             LOGGER.error("Dataset was not removed correctly. ", e);
             throw new InitialActionException("Dataset was not removed correctly.", e);
@@ -84,7 +81,7 @@ public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExe
         indexerFactory = new IndexerFactory(indexingSettings);
     }
 
-    private void removeDataSet(DpsTask dpsTask, String datasetId) throws IndexingException {
+    private void removeDataSet(String datasetId) throws IndexingException {
         LOGGER.info("Removing data set {} from solr and mongo", datasetId);
         indexerFactory.getIndexer().removeAll(datasetId);
         LOGGER.info("Data set removed");

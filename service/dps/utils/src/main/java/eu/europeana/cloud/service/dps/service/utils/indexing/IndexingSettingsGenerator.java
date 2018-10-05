@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
+package eu.europeana.cloud.service.dps.service.utils.indexing;
 
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.indexing.IndexingSettings;

@@ -9,7 +9,7 @@ public class InitialActionsExecutorFactory {
 
     public TaskInitialActionsExecutor get(DpsTask task, String topologyName) {
         if (topologyName.equals("indexing_topology"))
-            return new IndexingTaskInitialActionsExecutor(task, topologyName);
+            return new IndexingTaskInitialActionsExecutor(task);
 
         return new TaskInitialActionsExecutor() {
 
