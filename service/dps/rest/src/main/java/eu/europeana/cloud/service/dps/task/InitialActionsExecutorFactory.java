@@ -16,7 +16,7 @@ public class InitialActionsExecutorFactory {
 
     public TaskInitialActionsExecutor get(DpsTask task, String topologyName) {
         if (INDEXING_TOPOLOGY.equals(topologyName)) {
-            return new IndexingTaskInitialActionsExecutor(task, topologyName, taskDAO);
+            return new IndexingTaskInitialActionsExecutor(task);
         }
         return new TaskInitialActionsExecutor() {
 
