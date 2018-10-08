@@ -14,6 +14,8 @@ import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.task.InitialActionsExecutorFactory;
+import eu.europeana.cloud.service.dps.task.TaskInitialActionsExecutor;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -94,6 +96,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private FilesCounterFactory filesCounterFactory;
     private FilesCounter filesCounter;
     private KafkaSubmitService kafkaSubmitService;
+    private InitialActionsExecutorFactory initialActionsExecutorFactory;
     private TaskExecutionReportService reportService;
     private TaskExecutionKillService killService;
     private ValidationStatisticsReportService validationStatisticsService;
@@ -122,6 +125,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         kafkaSubmitService = applicationContext.getBean(KafkaSubmitService.class);
+        initialActionsExecutorFactory = applicationContext.getBean(InitialActionsExecutorFactory.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
@@ -861,6 +865,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Arrays.asList(DATA_SET_URL));
+        task.addParameter(METIS_DATASET_ID,"sampleDS");
         return task;
     }
 
@@ -873,6 +878,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private DpsTask getDpsTaskWithFileDataEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(FILE_URLS, Arrays.asList(RESOURCE_URL));
+        task.addParameter(METIS_DATASET_ID, "sampleDS");
         return task;
     }
 
@@ -928,6 +934,13 @@ public class TopologyTasksResourceTest extends JerseyTest {
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(eu.europeana.cloud.common.model.Permission.class));
+        when(initialActionsExecutorFactory.get(any(DpsTask.class), anyString())).thenReturn(new TaskInitialActionsExecutor() {
+
+            @Override
+            public void execute() {
+
+            }
+        });
     }
 
 }

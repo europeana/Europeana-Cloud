@@ -14,10 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
@@ -192,6 +189,19 @@ public class DpsTaskValidatorTest {
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsNoSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
         new DpsTaskValidator().withEmptyParameter("nonEmptyParameter").validate(dpsTask);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void shouldDiscardTaskWithMissingDataSetName() throws DpsTaskValidationException {
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_DATASET_ID).validate(dpsTask);
+    }
+
+    @Test
+    public void shouldValidateTaskCorrectlyWithDataSetName() throws DpsTaskValidationException {
+        Map<String, String> parameters = dpsTask.getParameters();
+        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "sample");
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_DATASET_ID).validate(dpsTask);
+        dpsTask.setParameters(parameters);
     }
 
 

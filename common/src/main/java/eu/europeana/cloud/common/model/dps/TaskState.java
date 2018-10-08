@@ -9,4 +9,5 @@ public enum TaskState {
     CURRENTLY_PROCESSING,
     DROPPED,
     PROCESSED,
+    REMOVING_FROM_SOLR_AND_MONGO
 }

@@ -44,5 +44,6 @@
 
     <mockito:mock id="urlParser" class="eu.europeana.cloud.service.commons.urls.UrlParser"/>
 
+    <mockito:mock id="initialActionsExecutorFactory" class="eu.europeana.cloud.service.dps.task.InitialActionsExecutorFactory"/>
 
 </beans>
