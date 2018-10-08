@@ -189,7 +189,7 @@ public class TopologyTasksResource {
                             taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime);
                         else {
                             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                            taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.BEING_REMOVED.toString(), "The task is in a pending mode, it is being removed from Solr/Mongo before submission", new Date());
+                            taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), "The task is in a pending mode, it is being removed from Solr/Mongo before submission", new Date());
                             runTaskSpecificActions(task, topologyName);
                             submitService.submitTask(task, topologyName);
                             LOGGER.info("Task submitted successfully");
