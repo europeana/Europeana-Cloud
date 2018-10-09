@@ -37,6 +37,7 @@
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>${version.servlet}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <!-- forked kafka with fixed appender issue KAFKA-847 -->
