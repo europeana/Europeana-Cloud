@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.dps.topologies.media.support.*;
+import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
@@ -56,6 +57,8 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaservice.EdmObject;
 import eu.europeana.metis.mediaservice.MediaException;
 import eu.europeana.metis.mediaservice.UrlType;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
 
 /**
  * Wraps a base spout that generates tuples with JSON encoded {@link DpsTask}s
@@ -176,6 +179,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             return;
         }
 
+        String topologyName = (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology");
         if (edmInfo.attempts > 0) {
             logger.info("FAIL received for {}, will retry ({} attempts left)", msgId, edmInfo.attempts);
             edmInfo.attempts--;
@@ -183,7 +187,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             subTaskInfoDao.insert(
                     (int) edmInfo.counter,
                     edmInfo.taskInfo.task.getTaskId(),
-                    "linkcheck_topology",
+                    topologyName,
                     edmInfo.representation.getUri().toString(),
                     States.ERROR_WILL_RETRY.toString(),
                     "Failed on topic spout", null, null);
@@ -192,7 +196,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             subTaskInfoDao.insert(
                     (int) edmInfo.counter,
                     edmInfo.taskInfo.task.getTaskId(),
-                    "linkcheck_topology",
+                    topologyName,
                     edmInfo.representation.getUri().toString(),
                     States.ERROR.toString(),
                     "Failed on topic spout", null, null);
@@ -206,10 +210,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
     private void edmProcessed(EdmInfo edmInfo) {
         SourceInfo source = edmInfo.sourceInfo;
-        source.running.remove(edmInfo);
-        if (source.running.isEmpty() && source.isEmpty()) {
-            logger.info("Finished all EDMs from source {}", source.host);
-            sourcesByHost.remove(source.host);
+        if (source != null) {
+            source.running.remove(edmInfo);
+            if (source.running.isEmpty() && source.isEmpty()) {
+                logger.info("Finished all EDMs from source {}", source.host);
+                sourcesByHost.remove(source.host);
+            }
         }
         edmFinished(edmInfo);
     }
@@ -360,27 +366,41 @@ public class DataSetReaderSpout extends BaseRichSpout {
             }
 
             void queueEdmInfo(EdmInfo edmInfo) {
-                Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
-                if (urls.isEmpty()) {
-                    logger.error("content url missing in edm file representation: {}", edmInfo.representation);
-                    return;
-                }
-                edmInfo.fileInfos = urls.stream().map(FileInfo::new).collect(Collectors.toList());
+                try {
+                    Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
+                    if (urls.isEmpty()) {
+                        logger.error("content url missing in edm file representation: {}", edmInfo.representation);
+                        return;
+                    }
+                    edmInfo.fileInfos = urls.stream().map(FileInfo::new).collect(Collectors.toList());
 
-                Map<String, Long> hostCounts = urls.stream()
-                        .collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()));
-                Comparator<Entry<String, Long>> c = Comparator.comparing(Entry::getValue);
-                c = c.thenComparing(Entry::getKey); // compiler weirdness, can't do it in one call
-                String host = hostCounts.entrySet().stream().max(c).get().getKey();
-                SourceInfo source = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
-                source.addToQueue(edmInfo);
+                    Map<String, Long> hostCounts = urls.stream()
+                            .collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()));
+                    Comparator<Entry<String, Long>> c = Comparator.comparing(Entry::getValue);
+                    c = c.thenComparing(Entry::getKey); // compiler weirdness, can't do it in one call
+                    String host = hostCounts.entrySet().stream().max(c).get().getKey();
+                    SourceInfo source = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
+                    source.addToQueue(edmInfo);
+                } catch (Exception e) {
+                    subTaskInfoDao.insert(
+                            (int) edmInfo.counter,
+                            edmInfo.taskInfo.task.getTaskId(),
+                            "linkcheck_topology",
+                            edmInfo.representation.getUri().toString(),
+                            States.ERROR.toString(),
+                            "Failed while queing edm info", e.getMessage(), null);
+                    StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
+                    stats.addStatus(edmInfo.representation.getUri().toString(), e.getMessage());
+                    outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
+                    edmProcessed(edmInfo);
+                }
             }
 
             private void emitErrorNotification(EdmInfo edmInfo, String fileUri, States state, String message) {
                 FileTupleData fileTupleData = new FileTupleData();
                 fileTupleData.taskId = edmInfo.taskInfo.task.getTaskId();
                 fileTupleData.info_text = message;
-                fileTupleData.topology_name = "linkcheck_topology";
+                fileTupleData.topology_name = (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology");
                 fileTupleData.state = state.toString();
                 fileTupleData.resource_url = fileUri;
                 fileTupleData.resource_no = edmInfo.counter;
