@@ -164,7 +164,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
         subTaskInfoDao.insert(
                 (int) edmInfo.counter,
                 edmInfo.taskInfo.task.getTaskId(),
-                "linkcheck_topology",
+                (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology"),
                 edmInfo.representation.getUri().toString(),
                 States.SUCCESS.toString(),
                 null, null, null);
@@ -385,7 +385,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     subTaskInfoDao.insert(
                             (int) edmInfo.counter,
                             edmInfo.taskInfo.task.getTaskId(),
-                            "linkcheck_topology",
+                            (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology"),
                             edmInfo.representation.getUri().toString(),
                             States.ERROR.toString(),
                             "Failed while queing edm info", e.getMessage(), null);
