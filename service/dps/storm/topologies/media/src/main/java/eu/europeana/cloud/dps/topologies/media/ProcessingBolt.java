@@ -140,6 +140,9 @@ public class ProcessingBolt extends BaseRichBolt {
                     }
                     statsData.addStatus(file.getUrl(), message);
                 }
+            } catch (Exception e) {
+                logger.info("processing failed ({}) for {}", e.getMessage(), file.getUrl());
+                statsData.addStatus(file.getUrl(), e.getMessage());
             } finally {
                 logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
             }
