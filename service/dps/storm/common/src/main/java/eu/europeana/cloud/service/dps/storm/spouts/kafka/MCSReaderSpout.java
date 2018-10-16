@@ -146,29 +146,25 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     currentDpsTask = taskQueue.take();
-                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId()))
-                    {
-                        startProgressing(currentDpsTask);
-                        OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
-                        if (oaipmhHarvestingDetails == null)
-                            oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
-                        String stream = getStream(currentDpsTask);
-                        if (stream.equals(FILE_URLS.name())) {
-                            stormTaskTuple = new StormTaskTuple(
-                                    currentDpsTask.getTaskId(),
-                                    currentDpsTask.getTaskName(),
-                                    null, null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
-                            List<String> files = currentDpsTask.getDataEntry(InputDataType.valueOf(stream));
-                            for (String file : files) {
-                                StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
-                                fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
-                                tuplesWithFileUrls.put(fileTuple);
-                            }
-                        } else // For data Sets
-                            execute(stream, currentDpsTask);
-                    } else {
-                        LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
-                    }
+                    startProgressing(currentDpsTask);
+                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
+                    if (oaipmhHarvestingDetails == null)
+                        oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
+                    String stream = getStream(currentDpsTask);
+                    if (stream.equals(FILE_URLS.name())) {
+                        stormTaskTuple = new StormTaskTuple(
+                                currentDpsTask.getTaskId(),
+                                currentDpsTask.getTaskName(),
+                                null, null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
+                        List<String> files = currentDpsTask.getDataEntry(InputDataType.valueOf(stream));
+                        for (String file : files) {
+                            StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
+                            fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
+                            tuplesWithFileUrls.put(fileTuple);
+                        }
+                    } else // For data Sets
+                        execute(stream, currentDpsTask);
+
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
                     if (stormTaskTuple != null)
