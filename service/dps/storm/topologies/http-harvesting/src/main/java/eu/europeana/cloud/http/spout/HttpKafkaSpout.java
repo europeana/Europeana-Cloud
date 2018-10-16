@@ -150,12 +150,17 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     currentDpsTask = taskQueue.take();
-                    startProgress(currentDpsTask.getTaskId());
-                    stormTaskTuple = new StormTaskTuple(
-                            currentDpsTask.getTaskId(),
-                            currentDpsTask.getTaskName(),
-                            currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
-                    execute(stormTaskTuple);
+                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId()))
+                    {
+                        startProgress(currentDpsTask.getTaskId());
+                        stormTaskTuple = new StormTaskTuple(
+                                currentDpsTask.getTaskId(),
+                                currentDpsTask.getTaskName(),
+                                currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
+                        execute(stormTaskTuple);
+                    } else {
+                        LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
+                    }
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
                     if (stormTaskTuple != null)
