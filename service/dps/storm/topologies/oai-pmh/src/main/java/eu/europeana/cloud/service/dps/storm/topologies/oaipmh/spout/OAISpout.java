@@ -152,14 +152,19 @@ public class OAISpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     currentDpsTask = taskQueue.take();
-                    OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
-                    if (oaipmhHarvestingDetails == null)
-                        oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
-                    stormTaskTuple = new StormTaskTuple(
-                            currentDpsTask.getTaskId(),
-                            currentDpsTask.getTaskName(),
-                            currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
-                    execute(stormTaskTuple);
+                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId()))
+                    {
+                        OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
+                        if (oaipmhHarvestingDetails == null)
+                            oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
+                        stormTaskTuple = new StormTaskTuple(
+                                currentDpsTask.getTaskId(),
+                                currentDpsTask.getTaskName(),
+                                currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
+                        execute(stormTaskTuple);
+                    } else {
+                        LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
+                    }
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
                     if (stormTaskTuple != null)
