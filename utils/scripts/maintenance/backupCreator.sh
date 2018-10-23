@@ -6,13 +6,12 @@
 #set -e
 
 keyspacesToBeBackuped=(
-    production_ecloud_mcs_v12)
+    ecloud_mcs_v12)
 
 backupTime=`date +"%Y-%m-%d"`
 dataLocation=~/nosql_filesystem/cassandra/data/data/
 backupLocation=~/mnt/ARCHIVE/test
 machine=`hostname`
-
 ################
 ##
 ################
@@ -67,6 +66,7 @@ if [ -z ${snapshotToBeUsed+x} ];
         for i in "${keyspacesToBeBackuped[@]}"
             do
                 echo -e "\tFlushing: $i"
+		        nodetool flush $i
             done
 
         echo "Creating snapshots"
@@ -77,7 +77,7 @@ if [ -z ${snapshotToBeUsed+x} ];
         for i in "${keyspacesToBeBackuped[@]}"
             do
                 echo -e "\tCreating snapshots for: $i in '$snapshotDirName' directory."
-                #nodetool snapshot -t $snapshotDirName $i
+                nodetool snapshot -t $snapshotDirName $i
             done
     else
         echo "Snapshot '$snapshotToBeUsed' will be used."; fi
@@ -91,20 +91,19 @@ for i in "${keyspacesToBeBackuped[@]}"
             do
                 echo -e "\t\tGenerating tarball for ${table}"
 
-                if [ ! -d "$table/snapshots/$snapshotToBeUsed/" ]; then
+            if [ ! -d "$table/snapshots/$snapshotToBeUsed/" ]; then
                     echo -e "\t\t[WARN]Directory '$table/snapshots/$snapshotToBeUsed/' does not exist. Skipping."
                     continue
                 fi
+		cd $table/snapshots/$snapshotToBeUsed/
+                tar --warning=none --exclude=${table##*/}.tar -cf ${table##*/}.tar *
 
-                cd $table/snapshots/$snapshotToBeUsed/
-                tar --exclude=${table##*/}.tar -cf $table/snapshots/$snapshotToBeUsed/${table##*/}.tar $table/snapshots/$snapshotToBeUsed/*
-
-                backupPath=$backupLocation/$backupTime/$i/${table##*/}/$machine/
+		backupPath=$backupLocation/$backupTime/$i/${table##*/}/$machine
                 echo -e "\t\tCopying created tarball ${table##*/}.tar to backup directory $backupPath"
-                mkdir -p $backupPath
-                #rsync --progress -vh ${table##*/}.tar $backupPath
+		mkdir -p $backupPath
+		rsync --progress -vh ${table##*/}.tar $backupPath
                 echo -e "\t\tRemoving created tarball from local directory"
-                #rm
+                rm ${table##*/}.tar
                 echo -e " "
             done
         done
