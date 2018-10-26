@@ -72,7 +72,6 @@
     </developers>
     <modules>
         <module>common</module>
-        <module>solr</module>
         <module>cassandra-connector</module>
         <module>service/uis</module>
         <module>service/dps</module>
@@ -158,8 +157,6 @@
 
         <commons-logging.version>1.2</commons-logging.version>
         <version.cassandra-driver>2.1.10.3</version.cassandra-driver>
-        <version.solr_war>4.5.1</version.solr_war>
-        <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
         <version.lucene>4.10.4</version.lucene>
 
