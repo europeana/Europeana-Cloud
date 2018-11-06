@@ -121,6 +121,17 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>artifactory.eanadev.org-release</id>
+            <name>artifactory.eanadev.org-releases</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
     <properties>
         <sonar.skip>false</sonar.skip>
