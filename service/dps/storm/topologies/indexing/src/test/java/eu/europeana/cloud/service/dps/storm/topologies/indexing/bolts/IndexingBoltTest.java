@@ -9,9 +9,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
 import eu.europeana.indexing.IndexerPool;
+import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,10 +77,10 @@ public class IndexingBoltTest {
 
 
     @Test
-    public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException, IndexingException {
+    public void shouldEmitErrorNotificationForIndexerConfiguration() throws  IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
-        mockIndexerFactoryFor(IndexingException.class);
+        mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
         //when
         indexingBolt.execute(tuple);
         //then
@@ -93,10 +93,10 @@ public class IndexingBoltTest {
     }
 
     @Test
-    public void shouldEmitErrorNotificationForIndexing() throws IndexingException, IndexingException {
+    public void shouldEmitErrorNotificationForIndexing() throws  IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
-        mockIndexerFactoryFor(IndexingException.class);
+        mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
         //when
         indexingBolt.execute(tuple);
         //then
@@ -110,7 +110,7 @@ public class IndexingBoltTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void shouldThrowExceptionForUnknownEnv() throws IndexingException, IndexingException {
+    public void shouldThrowExceptionForUnknownEnv() throws  IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
         mockIndexerFactoryFor(RuntimeException.class);
@@ -132,7 +132,7 @@ public class IndexingBoltTest {
                 }, new Revision());
     }
 
-    private void mockIndexerFactoryFor(Class clazz) throws IndexingException, IndexingException {
+    private void mockIndexerFactoryFor(Class clazz) throws  IndexingException {
         when(indexerPoolWrapper.getIndexerPool(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerPool);
         if (clazz != null) {
             doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.anyBoolean());
