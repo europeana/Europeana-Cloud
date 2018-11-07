@@ -15,13 +15,16 @@ environment=$1
 function copyApplications {
     for j in "${applicationsToBeDeployed[@]}"
         do
-            appLocation=../../../service/$j/rest/target/ecloud-service-$j-rest-*/*
+            dest=$j
+			appLocation=../../../service/$j/rest/target/ecloud-service-$j-rest-*/*
 	    if [ "$j" == "dps" ]
 	    then
-		appLocation=../../../service/$j/rest/target/services/*
+			appLocation=../../../service/$j/rest/target/services/*
+			dest=services
 	    fi
             echo -e "\tCopying "$appLocation" to "$i
-            scp -r -q $appLocation centos@chara-$i.man.poznan.pl:$newAppDirectory/$j/
+				rsync -r $appLocation  centos@chara-$i.man.poznan.pl:$newAppDirectory/$dest
+#scp -p -r -q $appLocation centos@chara-$i.man.poznan.pl:$newAppDirectory/$dest
         done
         echo -e "\t"
 }
