@@ -11,7 +11,7 @@
 webAppsDirectory=~/tomcat/webapps/
 backupDirectory=~/eCloud_apps/backup/
 newAppDirectory=~/eCloud_apps/to_be_deployed/
-applicationsToBeDeployed=( aas uis mcs dps)
+applicationsToBeDeployed=( aas uis mcs services)
 
 echo "Copying old apps to backup directory"
 backupTime=`date +"%Y-%m-%d-%H:%M:%S"`
@@ -21,7 +21,7 @@ function removeApplications {
     for i in "${applicationsToBeDeployed[@]}"
     do
             echo -e "\tRemoving: "$1$i
-            rm -R $1$i
+            rm -R $1$i/*
     done
 }
 
