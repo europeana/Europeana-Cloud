@@ -9,6 +9,10 @@ import org.apache.log4j.Logger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Tarek on 5/2/2017.
@@ -28,7 +32,7 @@ public class KeyspaceValidator implements Validator {
                 CassandraConnectionProvider newTargetCassandraConnectionProvider = new CassandraConnectionProvider(targetCassandraConnectionProvider);
                 DataValidator dataValidator = new DataValidator(newSourceCassandraConnectionProvider, newTargetCassandraConnectionProvider);
                 TableMetadata t = tmIterator.next();
-                LOGGER.info("Checking data integrity between source table {} and target table {} ", t.getName(), t.getName());
+                LOGGER.info("Checking data integrity between source table " + t.getName() + " and target table " + t.getName());
                 tableValidatorJobs.add(new TableValidatorJob(dataValidator, t.getName(), t.getName(), threadsCount));
             }
             executorService.invokeAll(tableValidatorJobs);

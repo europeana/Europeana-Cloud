@@ -1,10 +1,17 @@
 package data.validator;
 
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import data.validator.cql.CassandraHelper;
 import data.validator.jobs.RowsValidatorJob;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,9 +74,9 @@ public class DataValidator {
             if (!rows.isEmpty()) {
                 executeTheRowsJob(targetSession, executorService, primaryKeys, matchingBoundStatement, rows);
             }
-            LOGGER.info("The data For for source table {} and target table {} was validated correctly! ", sourceTableName, targetTableName);
+            LOGGER.info("The data For for source table" + sourceTableName + " and target table " + targetTableName + " was validated correctly! ");
         } catch (Exception e) {
-            LOGGER.error("ERROR happened: {} and The data for source table {}  and target table {} was NOT validated properly!", e.getMessage(), sourceTableName +, targetTableName);
+            LOGGER.error("ERROR happened: " + e.getMessage() + " and The data for source table " + sourceTableName + "  and target table " + targetTableName + " was NOT validated properly!");
         } finally {
             if (targetSession != null)
                 targetSession.close();
@@ -84,7 +91,7 @@ public class DataValidator {
         for (Future future : futures) {
             future.get();
         }
-        LOGGER.info("The data was matched properly for {} records! and the progress will continue for source table{} and target table {} ....", progressCounter, sourceTableName, targetTableName);
+        LOGGER.info("The data was matched properly for " + progressCounter + " records! and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
     }
 
     private void executeTheRowsJob(Session targetSession, ExecutorService executorService, List<String> primaryKeys, BoundStatement matchingBoundStatement, List<Row> rows) throws InterruptedException, java.util.concurrent.ExecutionException {

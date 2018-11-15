@@ -6,6 +6,7 @@ import data.validator.utils.CommandLineHelper;
 import data.validator.validator.Validator;
 import data.validator.validator.ValidatorFactory;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 
 import java.util.Properties;

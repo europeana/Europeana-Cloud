@@ -1,5 +1,6 @@
 package data.validator.cql;
 
+import com.datastax.driver.core.*;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,6 +25,7 @@ public class CassandraHelperTest {
     private static Session session;
     private static PreparedStatement preparedStatement;
     private static BoundStatement boundStatement;
+
 
 
     @BeforeClass

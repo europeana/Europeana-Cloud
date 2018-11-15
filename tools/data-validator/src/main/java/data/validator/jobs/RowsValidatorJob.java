@@ -1,5 +1,10 @@
 package data.validator.jobs;
 
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
