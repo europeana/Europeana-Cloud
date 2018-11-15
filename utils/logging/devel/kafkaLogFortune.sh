@@ -21,7 +21,7 @@ timeSpectrum=$3 #from how many minutes from before to draw from
 
 ###values to draw from
 priorityArray=("FATAL" "ERROR" "WARN" "INFO" "DEBUG" "TRACE")
-serviceTypeArray=("mcs" "uis" "dls")
+serviceTypeArray=("mcs" "uis")
 serviceIdArray=("01" "02" "03" "04")
 
 ###functions

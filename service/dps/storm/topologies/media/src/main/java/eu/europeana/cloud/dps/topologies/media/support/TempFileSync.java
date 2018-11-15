@@ -56,7 +56,7 @@ public class TempFileSync {
             return;
         localAddress = getLocalAddress();
         Map<?, ?> hostMapping = (Map<?, ?>) config.get("MEDIATOPOLOGY_FILE_TRANSFER_HOSTS");
-        String host = (String) hostMapping.get(localAddress.getHostAddress());
+        String host = hostMapping != null ? (String) hostMapping.get(localAddress.getHostAddress()) : null;
         try {
             publicAddress = host == null ? localAddress : InetAddress.getByName(host);
         } catch (UnknownHostException e) {

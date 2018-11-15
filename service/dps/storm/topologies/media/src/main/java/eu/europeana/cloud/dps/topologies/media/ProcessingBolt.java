@@ -79,8 +79,11 @@ public class ProcessingBolt extends BaseRichBolt {
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.outputCollector = collector;
         this.config = stormConf;
+        try {
+            mediaProcessor = new MediaProcessor();
+        } catch (MediaException e) {
 
-        mediaProcessor = new MediaProcessor();
+        }
         edmWriter = new EdmObject.Writer();
 
         persistResult = (Boolean) config.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
@@ -137,6 +140,9 @@ public class ProcessingBolt extends BaseRichBolt {
                     }
                     statsData.addStatus(file.getUrl(), message);
                 }
+            } catch (Exception e) {
+                logger.info("processing failed ({}) for {}", e.getMessage(), file.getUrl());
+                statsData.addStatus(file.getUrl(), e.getMessage());
             } finally {
                 logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
             }

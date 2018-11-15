@@ -43,10 +43,8 @@
         <constructor-arg name="user" type="java.lang.String" value="test_user"/>
         <constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
     </bean>
-    <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-    
+
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
-    <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
     <mockito:mock id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
     <mockito:mock id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.RecordService"/>
     

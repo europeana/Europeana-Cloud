@@ -20,7 +20,7 @@ public class V1__Initial_DPS implements JavaMigration {
                         "    result_resource text,\n" +
                         "    state text,\n" +
                         "    PRIMARY KEY (task_id, resource_num)\n" +
-                        ") WITH CLUSTERING ORDER BY (resource_num ASC);\n");
+                        ") WITH CLUSTERING ORDER BY (resource_num DESC);\n");
 
         session.execute(
                 "CREATE TABLE basic_info (\n" +

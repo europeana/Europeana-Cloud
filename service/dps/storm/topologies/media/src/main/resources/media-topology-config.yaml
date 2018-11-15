@@ -14,7 +14,7 @@ topology.max.spout.pending: 128
 #topology.backpressure.enable: true
 
 # Media topology specific
-MCS_URL: "https://test-cloud.europeana.eu/api"
+MCS_URL: "https://test.ecloud.psnc.pl/api"
 
 # File transfer of downloaded files between workers:
 MEDIATOPOLOGY_FILE_TRANSFER_PORT: 4401
@@ -44,8 +44,8 @@ storm.zookeeper.servers:
 CASSANDRA_HOSTS: "cassandra-01.man.poznan.pl,cassandra-02.man.poznan.pl,cassandra-03.man.poznan.pl,cassandra-04.man.poznan.pl,cassandra-05.man.poznan.pl,cassandra-06.man.poznan.pl"
 CASSANDRA_PORT: 9042
 CASSANDRA_KEYSPACE_NAME: "test_ecloud_dps_v1"
-CASSANDRA_USERNAME: 
-CASSANDRA_PASSWORD: 
+CASSANDRA_USERNAME:
+CASSANDRA_PASSWORD:
 
 # Bluemix Storage
 AWS_CREDENTIALS_ACCESSKEY: ""

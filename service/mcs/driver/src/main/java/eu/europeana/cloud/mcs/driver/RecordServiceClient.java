@@ -10,6 +10,7 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -104,7 +105,13 @@ public class RecordServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public RecordServiceClient(String baseUrl) {
+        this(baseUrl, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    public RecordServiceClient(String baseUrl, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
 
     /**
@@ -114,7 +121,18 @@ public class RecordServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public RecordServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl);
+        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    /**
+     * Creates instance of RecordServiceClient. Same as {@link #RecordServiceClient(String, int, int)}
+     * but includes username and password to perform authenticated requests.
+     *
+     * @param baseUrl URL of the MCS Rest Service
+     */
+    public RecordServiceClient(String baseUrl, final String username, final String password,
+            final int connectTimeoutInMillis, final int readTimeoutInMillis) {
+        this(baseUrl, connectTimeoutInMillis, readTimeoutInMillis);
         client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
     }
 
@@ -308,6 +326,50 @@ public class RecordServiceClient extends MCSClient {
         }
     }
 
+
+    /**
+     * Creates new representation version, aploads a file and makes this representation persistent (in one request)
+     *
+     * @param cloudId            id of the record in which to create the representation
+     *                           (required)
+     * @param representationName name of the representation to be created
+     *                           (required)
+     * @param providerId         provider of this representation version (required)
+     * @param data               file that should be uploaded (required)
+     * @param fileName           name for created file
+     * @param mediaType          mimeType of uploaded file
+     * @param key                key to header request
+     * @param value              value to header request
+     * @return URI to created file
+     */
+    public URI createRepresentation(String cloudId,
+                                    String representationName,
+                                    String providerId,
+                                    InputStream data,
+                                    String fileName,
+                                    String mediaType,
+                                    String key, String value) throws IOException, MCSException {
+        WebTarget target = client.target(baseUrl).path(represtationNamePath + "/files")
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName);
+        Builder request = target.request();
+
+        FormDataMultiPart multipart = null;
+
+        Response response = null;
+        request.header("Content-Type", "multipart/form-data");
+        try {
+            multipart = prepareRequestBody(providerId, data, fileName, mediaType);
+            response = request.header(key, value).post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
+            return handleResponse(response);
+        } finally {
+            closeResponse(response);
+            IOUtils.closeQuietly(data);
+            if (multipart != null)
+                multipart.close();
+        }
+    }
+
     /**
      * Creates new representation version, aploads a file and makes this representation persistent (in one request)
      *
@@ -419,6 +481,49 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
+
+        Response response = null;
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                Representation representation = response.readEntity(Representation.class);
+                return representation;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } catch (MessageBodyProviderNotFoundException e) {
+            String out = webtarget.getUri().toString();
+            throw new MCSException(out, e);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    /**
+     * Returns representation in specified version.
+     * <p/>
+     * If Version = LATEST, will redirect to actual latest persistent version at
+     * the moment of invoking this method.
+     *
+     * @param cloudId            id of the record to get representation from (required)
+     * @param representationName name of the representation (required)
+     * @param version            version of the representation to be obtained; if
+     *                           version==LATEST function will return latest persistent version (required)
+     * @param key                key to header
+     * @param value              value to header
+     * @return requested representation version
+     * @throws RepresentationNotExistsException if specified representation does
+     *                                          not exist
+     * @throws MCSException                     on unexpected situations
+     */
+    public Representation getRepresentation(String cloudId, String representationName, String version, String key, String value)
+            throws RepresentationNotExistsException, MCSException {
+        WebTarget webtarget = client.target(baseUrl).path(versionPath)
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+        Builder request = webtarget.request().header(key, value);
 
         Response response = null;
         try {
@@ -680,10 +785,12 @@ public class RecordServiceClient extends MCSClient {
      * @return requested representation version
      * @throws RepresentationNotExistsException if specified representation does
      *                                          not exist
-     * @throws MCSException                     on unexpected situations
+     * @throws RepresentationNotExistsException on representation does not exist
+     * @throws MCSException on unexpected situations
+
      */
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
-            throws RevisionNotExistsException, MCSException {
+    public Representation getRepresentationByRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
+            throws RepresentationNotExistsException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
                 .resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
@@ -704,8 +811,7 @@ public class RecordServiceClient extends MCSClient {
         try {
             response = request.get();
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                RepresentationRevisionResponse representationRevisionResponse = response.readEntity(RepresentationRevisionResponse.class);
-                return representationRevisionResponse;
+                return response.readEntity(Representation.class);
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);

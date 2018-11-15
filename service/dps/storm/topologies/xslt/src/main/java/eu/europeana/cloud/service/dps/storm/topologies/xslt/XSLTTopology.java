@@ -150,7 +150,6 @@ public class XSLTTopology {
                         kafkaTopic,
                         ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                config.setNumAckers(0);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
         } catch (Exception e) {

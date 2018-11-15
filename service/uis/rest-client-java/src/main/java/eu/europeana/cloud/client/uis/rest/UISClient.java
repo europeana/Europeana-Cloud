@@ -11,6 +11,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
@@ -33,15 +34,25 @@ public class UISClient {
     private UrlProvider urlProvider;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
+    private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
+    private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
     /**
      * Creates a new instance of this class. Same as {@link #UISClient(String)}
      * but includes username and password to perform authenticated requests.
      */
-    public UISClient(final String uisUrl, final String username, final String password) {
+    public UISClient(final String uisUrl, final String username, final String password)  {
+        this(uisUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+
+    public UISClient(final String uisUrl, final String username, final String password,
+                     final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         LOGGER.info("UISClient starting...");
 
         client.register(HttpAuthenticationFeature.basic(username, password));
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
 
         try {
             urlProvider = new StaticUrlProvider(uisUrl);
@@ -102,6 +113,37 @@ public class UISClient {
      * Invoke the creation of a new CloudId REST call.
      *
      * @param providerId The provider Id
+     * @param recordId   The record Id
+     * @param key        key of header request
+     * @param value      value of header request
+     * @return The newly generated CloudId
+     * @throws CloudException The generic cloud exception wrapper
+     */
+    public CloudId createCloudId(String providerId, String recordId, String key, String value)
+            throws CloudException {
+
+        Response resp = null;
+        try {
+            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
+                    .post(null);
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(CloudId.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+
+        } finally {
+            closeResponse(resp);
+        }
+    }
+
+    /**
+     * Invoke the creation of a new CloudId REST call.
+     *
+     * @param providerId The provider Id
      * @return The newly generated CloudId
      * @throws CloudException The generic cloud exception wrapper
      */
@@ -139,6 +181,36 @@ public class UISClient {
             resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
                     .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                    .get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(CloudId.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
+        }
+    }
+
+    /**
+     * Invoke the retrieval of a cloud identifier.
+     *
+     * @param providerId The provider Id
+     * @param recordId   The record Id
+     * @param key        key for head request
+     * @param value      for head request
+     * @return The retrieved cloud Id
+     * @throws CloudException The generic cloud exception wrapper
+     */
+    public CloudId getCloudId(String providerId, String recordId, String key, String value)
+            throws CloudException {
+
+        Response resp = null;
+        try {
+            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
                     .get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -320,6 +392,41 @@ public class UISClient {
                     .resolveTemplate("PROVIDER_ID", providerId)
                     .resolveTemplate("CLOUD_ID", cloudId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                    .post(null);
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return true;
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
+        }
+    }
+
+
+    /**
+     * Create a mapping between a cloud id and provider and record id.
+     *
+     * @param cloudId    The cloud id
+     * @param providerId The provider id
+     * @param recordId   The record id
+     * @param key        key of header request
+     * @param value      value of header request
+     * @return A confirmation that the mapping has been created
+     * @throws CloudException The generic cloud exception wrapper
+     */
+    public boolean createMapping(String cloudId, String providerId,
+                                 String recordId, String key, String value) throws CloudException {
+
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
+                    .resolveTemplate("PROVIDER_ID", providerId)
+                    .resolveTemplate("CLOUD_ID", cloudId)
+                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
                     .post(null);
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {

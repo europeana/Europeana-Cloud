@@ -1,38 +1,42 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.exception.IndexerConfigurationException;
-import eu.europeana.indexing.IndexerFactory;
+import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
+import eu.europeana.indexing.IndexerPool;
+import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 public class IndexingBoltTest {
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
 
-    @Mock(name = "indexerFactoryWrapper")
-    private IndexingBolt.IndexerFactoryWrapper indexerFactoryWrapper;
+    @Mock(name = "indexerPoolWrapper")
+    private IndexerPoolWrapper indexerPoolWrapper;
 
     @Mock
-    private Indexer indexer;
-
-    @Mock
-    private IndexerFactory indexerFactory;
+    private IndexerPool indexerPool;
 
     @InjectMocks
     private IndexingBolt indexingBolt = new IndexingBolt(null);
@@ -56,7 +60,6 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
-        Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
     }
 
     @Test
@@ -70,15 +73,14 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
         Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
-        Assert.assertArrayEquals(new byte[]{'a', 'b', 'c'}, (byte[]) capturedValues.get(3));
     }
 
 
     @Test
-    public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException, IndexerConfigurationException {
+    public void shouldEmitErrorNotificationForIndexerConfiguration() throws  IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
-        mockIndexerFactoryFor(IndexerConfigurationException.class);
+        mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
         //when
         indexingBolt.execute(tuple);
         //then
@@ -87,14 +89,14 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertEquals("Error in indexer configuration", val.get("additionalInfo"));
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
     }
 
     @Test
-    public void shouldEmitErrorNotificationForIOException() throws IndexerConfigurationException, IndexingException {
+    public void shouldEmitErrorNotificationForIndexing() throws  IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
-        mockIndexerFactoryFor(IOException.class);
+        mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
         //when
         indexingBolt.execute(tuple);
         //then
@@ -103,27 +105,12 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertEquals("Error while retrieving indexer", val.get("additionalInfo"));
-    }
+        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
 
-    @Test
-    public void shouldEmitErrorNotificationForIndexing() throws IndexerConfigurationException, IndexingException {
-        //given
-        StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
-        mockIndexerFactoryFor(IndexingException.class);
-        //when
-        indexingBolt.execute(tuple);
-        //then
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
-
-        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertEquals("Error while indexing", val.get("additionalInfo"));
     }
 
     @Test(expected = RuntimeException.class)
-    public void shouldThrowExceptionForUnknownEnv() throws IndexerConfigurationException, IndexingException {
+    public void shouldThrowExceptionForUnknownEnv() throws  IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
         mockIndexerFactoryFor(RuntimeException.class);
@@ -145,12 +132,10 @@ public class IndexingBoltTest {
                 }, new Revision());
     }
 
-    private void mockIndexerFactoryFor(Class clazz) throws IndexerConfigurationException, IndexingException {
-        when(indexerFactoryWrapper.getIndexerFactory(Mockito.anyString(),Mockito.anyString())).thenReturn(indexerFactory);
-        when(indexerFactory.getIndexer()).thenReturn(indexer);
-
+    private void mockIndexerFactoryFor(Class clazz) throws  IndexingException {
+        when(indexerPoolWrapper.getIndexerPool(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerPool);
         if (clazz != null) {
-            doThrow(clazz).when(indexer).index(Mockito.anyString());
+            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.anyBoolean());
         }
     }
 }

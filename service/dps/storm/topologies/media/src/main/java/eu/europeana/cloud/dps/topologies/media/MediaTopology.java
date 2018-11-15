@@ -38,7 +38,7 @@ public class MediaTopology {
 
             TopologyBuilder builder = new TopologyBuilder();
             IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
-            Collection<UrlType> urlTypes = Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY);
+            Collection<UrlType> urlTypes = Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY, UrlType.IS_SHOWN_AT);
             builder.setSpout(source, new DataSetReaderSpout(baseSpout, urlTypes), 1);
 
             builder.setBolt(downloadBolt, new DownloadBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))

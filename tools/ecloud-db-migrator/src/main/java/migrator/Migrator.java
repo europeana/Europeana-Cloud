@@ -20,7 +20,7 @@ public class Migrator {
     private final static String USER = "user";
     private final static String PASSWORD = "password";
     private final static String SERVICE = "service";
-    private final static List<String> SERVICES = Arrays.asList("UIS", "MCS", "DLS", "DPS", "AAS");
+    private final static List<String> SERVICES = Arrays.asList("UIS", "MCS", "DPS", "AAS");
     private final static String MIGRATIONS_DIR_PREFIX = "migrations/service/";
 
 
@@ -72,7 +72,7 @@ public class Migrator {
         options.addCliSetRequiredOption(KEY_SPACE, "keySpace");
         options.addCliSetRequiredOption(USER, "user");
         options.addCliSetRequiredOption(PASSWORD, "password");
-        options.addCliSetRequiredOption(SERVICE, "migrate service eg. (UIS, MCS, DLS, DPS, AAS)");
+        options.addCliSetRequiredOption(SERVICE, "migrate service eg. (UIS, MCS, DPS, AAS)");
         return options;
     }
 

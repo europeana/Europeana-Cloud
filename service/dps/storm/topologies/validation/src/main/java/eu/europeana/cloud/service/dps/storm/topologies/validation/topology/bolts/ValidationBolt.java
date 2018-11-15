@@ -7,6 +7,7 @@ import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +38,8 @@ public class ValidationBolt extends AbstractDpsBolt {
             reorderFileContent(stormTaskTuple);
             validateFile(stormTaskTuple);
         } catch (Exception e) {
-            LOGGER.error("XsltBolt error: {}", e.getMessage());
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stormTaskTuple
-                    .getParameters().toString());
+            LOGGER.error("Validation Bolt error: {}", e.getMessage());
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
         }
     }
 

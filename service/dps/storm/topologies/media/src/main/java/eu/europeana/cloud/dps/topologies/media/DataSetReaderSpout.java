@@ -1,29 +1,29 @@
 package eu.europeana.cloud.dps.topologies.media;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.dps.topologies.media.support.*;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.metis.mediaservice.EdmObject;
+import eu.europeana.metis.mediaservice.MediaException;
+import eu.europeana.metis.mediaservice.UrlType;
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -38,27 +38,17 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.metis.mediaservice.EdmObject;
-import eu.europeana.metis.mediaservice.MediaException;
-import eu.europeana.metis.mediaservice.UrlType;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
 
 /**
  * Wraps a base spout that generates tuples with JSON encoded {@link DpsTask}s
@@ -162,9 +152,9 @@ public class DataSetReaderSpout extends BaseRichSpout {
             return;
         }
         subTaskInfoDao.insert(
-                (int)edmInfo.counter,
+                (int) edmInfo.counter,
                 edmInfo.taskInfo.task.getTaskId(),
-                "linkcheck_topology",
+                (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology"),
                 edmInfo.representation.getUri().toString(),
                 States.SUCCESS.toString(),
                 null, null, null);
@@ -179,23 +169,24 @@ public class DataSetReaderSpout extends BaseRichSpout {
             return;
         }
 
+        String topologyName = (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology");
         if (edmInfo.attempts > 0) {
             logger.info("FAIL received for {}, will retry ({} attempts left)", msgId, edmInfo.attempts);
             edmInfo.attempts--;
             edmInfo.sourceInfo.addToQueue(edmInfo);
             subTaskInfoDao.insert(
-                    (int)edmInfo.counter,
+                    (int) edmInfo.counter,
                     edmInfo.taskInfo.task.getTaskId(),
-                    "linkcheck_topology",
+                    topologyName,
                     edmInfo.representation.getUri().toString(),
                     States.ERROR_WILL_RETRY.toString(),
                     "Failed on topic spout", null, null);
         } else {
             logger.info("FAIL received for {}, no more retries", msgId);
             subTaskInfoDao.insert(
-                    (int)edmInfo.counter,
+                    (int) edmInfo.counter,
                     edmInfo.taskInfo.task.getTaskId(),
-                    "linkcheck_topology",
+                    topologyName,
                     edmInfo.representation.getUri().toString(),
                     States.ERROR.toString(),
                     "Failed on topic spout", null, null);
@@ -209,10 +200,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
     private void edmProcessed(EdmInfo edmInfo) {
         SourceInfo source = edmInfo.sourceInfo;
-        source.running.remove(edmInfo);
-        if (source.running.isEmpty() && source.isEmpty()) {
-            logger.info("Finished all EDMs from source {}", source.host);
-            sourcesByHost.remove(source.host);
+        if (source != null) {
+            source.running.remove(edmInfo);
+            if (source.running.isEmpty() && source.isEmpty()) {
+                logger.info("Finished all EDMs from source {}", source.host);
+                sourcesByHost.remove(source.host);
+            }
         }
         edmFinished(edmInfo);
     }
@@ -224,6 +217,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             logger.info("Task {} finished", task.task.getTaskName());
             baseSpout.ack(task.baseMsgId);
         }
+        edmsByStormMsgId.remove(toStormMsgId(edmInfo), edmInfo);
     }
 
     private static class TaskInfo {
@@ -347,14 +341,14 @@ public class DataSetReaderSpout extends BaseRichSpout {
                 } catch (Exception e) {
                     logger.info("EDM loading failed ({}/{}) for {}", e.getMessage(), e.getMessage(), rep.getFiles());
                     if (edmInfo.attempts > 0) {
-                        emitErrorNotification(edmInfo, fileUri,States.ERROR_WILL_RETRY, e.getMessage());
+                        emitErrorNotification(edmInfo, fileUri, States.ERROR_WILL_RETRY, e.getMessage());
                         edmInfo.attempts--;
                         edmQueue.put(edmInfo); // retry later
                     } else {
                         StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
                         stats.addStatus(fileUri, e.getMessage());
                         outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
-                        emitErrorNotification(edmInfo, fileUri,States.ERROR, e.getMessage());
+                        emitErrorNotification(edmInfo, fileUri, States.ERROR, e.getMessage());
 
                         edmFinished(edmInfo);
                     }
@@ -363,27 +357,41 @@ public class DataSetReaderSpout extends BaseRichSpout {
             }
 
             void queueEdmInfo(EdmInfo edmInfo) {
-                Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
-                if (urls.isEmpty()) {
-                    logger.error("content url missing in edm file representation: {}", edmInfo.representation);
-                    return;
-                }
-                edmInfo.fileInfos = urls.stream().map(FileInfo::new).collect(Collectors.toList());
+                try {
+                    Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
+                    if (urls.isEmpty()) {
+                        logger.error("content url missing in edm file representation: {}", edmInfo.representation);
+                        return;
+                    }
+                    edmInfo.fileInfos = urls.stream().map(FileInfo::new).collect(Collectors.toList());
 
-                Map<String, Long> hostCounts = urls.stream()
-                        .collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()));
-                Comparator<Entry<String, Long>> c = Comparator.comparing(Entry::getValue);
-                c = c.thenComparing(Entry::getKey); // compiler weirdness, can't do it in one call
-                String host = hostCounts.entrySet().stream().max(c).get().getKey();
-                SourceInfo source = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
-                source.addToQueue(edmInfo);
+                    Map<String, Long> hostCounts = urls.stream()
+                            .collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()));
+                    Comparator<Entry<String, Long>> c = Comparator.comparing(Entry::getValue);
+                    c = c.thenComparing(Entry::getKey); // compiler weirdness, can't do it in one call
+                    String host = hostCounts.entrySet().stream().max(c).get().getKey();
+                    SourceInfo source = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
+                    source.addToQueue(edmInfo);
+                } catch (Exception e) {
+                    subTaskInfoDao.insert(
+                            (int) edmInfo.counter,
+                            edmInfo.taskInfo.task.getTaskId(),
+                            (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology"),
+                            edmInfo.representation.getUri().toString(),
+                            States.ERROR.toString(),
+                            "Failed while queing edm info", e.getMessage(), null);
+                    StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), 1);
+                    stats.addStatus(edmInfo.representation.getUri().toString(), e.getMessage());
+                    outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
+                    edmProcessed(edmInfo);
+                }
             }
 
             private void emitErrorNotification(EdmInfo edmInfo, String fileUri, States state, String message) {
                 FileTupleData fileTupleData = new FileTupleData();
                 fileTupleData.taskId = edmInfo.taskInfo.task.getTaskId();
                 fileTupleData.info_text = message;
-                fileTupleData.topology_name = "linkcheck_topology";
+                fileTupleData.topology_name = (String) baseSpout.getComponentConfiguration().getOrDefault(TOPOLOGY_NAME, "linkcheck_topology");
                 fileTupleData.state = state.toString();
                 fileTupleData.resource_url = fileUri;
                 fileTupleData.resource_no = edmInfo.counter;
@@ -470,12 +478,9 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     break;
 
                 String responseCloudId = cloudTagsResponse.getCloudId();
-                RepresentationRevisionResponse representationRevisionResponse =
-                        recordClient.getRepresentationRevision(responseCloudId, config.representationName,
+                Representation rep =
+                        recordClient.getRepresentationByRevision(responseCloudId, config.representationName,
                                 config.revisionName, config.revisionProvider, config.revisionTimestamp);
-                Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
-                        representationRevisionResponse.getVersion());
-
                 prepareEdmInfo(rep, taskInfo, edmCount);
                 edmCount++;
             }
@@ -497,13 +502,10 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     break;
 
                 String responseCloudId = cloudIdAndTimestampResponse.getCloudId();
-                RepresentationRevisionResponse representationRevisionResponse =
-                        recordClient.getRepresentationRevision(responseCloudId, config.representationName,
+                Representation rep =
+                        recordClient.getRepresentationByRevision(responseCloudId, config.representationName,
                                 config.revisionName, config.revisionProvider, DateHelper.getUTCDateString(
                                         cloudIdAndTimestampResponse.getRevisionTimestamp()));
-                Representation rep = recordClient.getRepresentation(responseCloudId, config.representationName,
-                        representationRevisionResponse.getVersion());
-
                 prepareEdmInfo(rep, taskInfo, edmCount);
                 edmCount++;
             }
@@ -523,7 +525,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
             return edmCount;
         }
 
-        private void prepareEdmInfo(Representation rep, TaskInfo taskInfo,int counter) throws InterruptedException {
+        private void prepareEdmInfo(Representation rep, TaskInfo taskInfo, int counter) throws InterruptedException {
             EdmInfo edmInfo = new EdmInfo();
             edmInfo.representation = rep;
             edmInfo.taskInfo = taskInfo;

@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -15,7 +15,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.TaskSpoutInfo;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -25,9 +24,7 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -35,10 +32,11 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
@@ -63,8 +61,6 @@ public class MCSReaderSpoutTest {
     @Mock
     private TaskStatusChecker taskStatusChecker;
 
-    @Mock(name = "cache")
-    private ConcurrentHashMap<Long, TaskSpoutInfo> cache;
 
     private TestHelper testHelper;
     private static Date date = new Date();
@@ -78,21 +74,18 @@ public class MCSReaderSpoutTest {
     private FileServiceClient fileServiceClient;
     private RepresentationIterator representationIterator;
 
-
     @InjectMocks
     private MCSReaderSpout mcsReaderSpout = new MCSReaderSpout(null);
 
     @Before
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
-
         representationIterator = mock(RepresentationIterator.class);
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
-        TaskSpoutInfo taskSpoutInfo = mock(TaskSpoutInfo.class);
-        when(cache.get(anyLong())).thenReturn(taskSpoutInfo);
-        doNothing().when(taskSpoutInfo).inc();
+        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
+        mcsReaderSpout.taskDownloader.taskQueue.clear();
         mockMCSClient();
     }
 
@@ -135,9 +128,8 @@ public class MCSReaderSpoutTest {
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
-        verify(collector, times(2)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
     }
 
     @Test
@@ -159,7 +151,7 @@ public class MCSReaderSpoutTest {
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
@@ -184,7 +176,7 @@ public class MCSReaderSpoutTest {
 
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
@@ -192,7 +184,7 @@ public class MCSReaderSpoutTest {
 
 
     @Test
-    public void shouldEmitTheFilesWhenTaskWithSpecificRevision() throws MCSException, URISyntaxException {
+    public void shouldEmitTheFilesWhenTaskWithSpecificRevision() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -211,27 +203,21 @@ public class MCSReaderSpoutTest {
         resultSlice.setResults(cloudIdCloudTagsResponses);
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-
-        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-        RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
 
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
-        verify(collector, times(2)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
+
     }
 
 
     @Test
-    public void shouldFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
+    public void shouldFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -250,19 +236,13 @@ public class MCSReaderSpoutTest {
         resultSlice.setResults(cloudIdCloudTagsResponses);
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-
-        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-        RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
 
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -271,7 +251,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test
-    public void shouldFailWhenReadFileThrowMCSExceptionWhenSpecificRevisionIsProvided() throws MCSException, URISyntaxException {
+    public void shouldFailWhenReadFileThrowMCSExceptionWhenSpecificRevisionIsProvided() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -291,18 +271,13 @@ public class MCSReaderSpoutTest {
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
 
-        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-        RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -312,7 +287,7 @@ public class MCSReaderSpoutTest {
 
 
     @Test
-    public void shouldEmitTheFilesWhenTaskWithLatestRevision() throws MCSException, URISyntaxException {
+    public void shouldEmitTheFilesWhenTaskWithLatestRevision() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -326,10 +301,6 @@ public class MCSReaderSpoutTest {
         List<Representation> representations = new ArrayList<>(2);
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
-
-        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-        RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-
 
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
         ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
@@ -339,24 +310,19 @@ public class MCSReaderSpoutTest {
 
 
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentationRevisionResponse);
-
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
-
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
-        verify(collector, times(2)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
 
     }
 
     @Test
-    public void shouldFailWhenGettingFileThrowMCSExceptionWhenTaskWithLatestRevision() throws MCSException, URISyntaxException {
+    public void shouldFailWhenGettingFileThrowMCSExceptionWhenTaskWithLatestRevision() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -371,27 +337,19 @@ public class MCSReaderSpoutTest {
         representations.add(firstRepresentation);
         representations.add(secondRepresentation);
 
-
-        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-        RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
-
-
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
         ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
         resultSlice.setResults(cloudIdAndTimestampResponseList);
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), eq(false), anyString())).thenReturn(resultSlice);
 
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
-        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentationRevisionResponse);
-
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -401,7 +359,7 @@ public class MCSReaderSpoutTest {
     }
 
     @Test(expected = MCSException.class)
-    public void shouldTry10TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
@@ -410,12 +368,12 @@ public class MCSReaderSpoutTest {
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
     }
 
     @Test(expected = MCSException.class)
-    public void shouldTry10TimesAndFailWhenSpecificRevisionThrowMCSException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowMCSException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -424,11 +382,11 @@ public class MCSReaderSpoutTest {
 
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
     }
 
     @Test(expected = DriverException.class)
-    public void shouldTry10TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
@@ -437,12 +395,12 @@ public class MCSReaderSpoutTest {
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(DriverException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
     }
 
     @Test(expected = DriverException.class)
-    public void shouldTry10TimesAndFailWhenSpecificRevisionThrowDriverException() throws MCSException {
+    public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowDriverException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         //given
@@ -451,7 +409,7 @@ public class MCSReaderSpoutTest {
 
         doThrow(DriverException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
     }
 
     private DpsTask getDpsTask() {
@@ -480,9 +438,9 @@ public class MCSReaderSpoutTest {
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
-        verify(collector, times(1)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 1);
+
     }
 
     @Test
@@ -502,9 +460,20 @@ public class MCSReaderSpoutTest {
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
-        mcsReaderSpout.execute(DATASET_URLS.name(), dpsTask);
-        verify(collector, times(0)).emit(anyListOf(Object.class));
-        verify(collector, times(0)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 0);
+    }
+
+    @Test
+    public void deactivateShouldClearTheTaskQueue() throws Exception {
+        final int taskCount = 10;
+        for (int i = 0; i < taskCount; i++) {
+            mcsReaderSpout.taskDownloader.taskQueue.put(new DpsTask());
+        }
+        assertTrue(!mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
+        mcsReaderSpout.deactivate();
+        assertTrue(mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
+        verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
     }
 
 

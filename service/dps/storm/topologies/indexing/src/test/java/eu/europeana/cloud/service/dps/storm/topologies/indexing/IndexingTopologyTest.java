@@ -1,5 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
+import static eu.europeana.cloud.service.dps.test.TestConstants.MCS_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.TEST_END_BOLT;
+import static org.mockito.Mockito.when;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
+
 import com.mongodb.util.JSONParseException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.Revision;
@@ -8,13 +16,28 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.*;
-import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.ValidationRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import eu.europeana.cloud.service.dps.storm.utils.*;
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.IndexerFactory;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
+import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import eu.europeana.indexing.IndexerPool;
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -35,17 +58,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.ByteArrayInputStream;
-import java.util.*;
-
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.mockito.Mockito.when;
-import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, ValidationRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class IndexingTopologyTest extends TopologyTestHelper {
+
+    private static final String AUTHORIZATION = "Authorization";
 
     private static StormTopology topology;
     static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.INDEXING_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
@@ -94,13 +112,11 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     @Test
     public final void shouldTestSuccessfulExecution() throws Exception {
         //mocking
-        IndexerFactory indexerFactory = Mockito.mock(IndexerFactory.class);
-        Indexer indexer = Mockito.mock(Indexer.class);
-        PowerMockito.whenNew(IndexerFactory.class).withAnyArguments().thenReturn(indexerFactory);
-        Mockito.when(indexerFactory.getIndexer()).thenReturn(indexer);
+        IndexerPool indexerPool = Mockito.mock(IndexerPool.class);
+        PowerMockito.whenNew(IndexerPool.class).withAnyArguments().thenReturn(indexerPool);
         //
 
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(new byte[]{'a', 'b', 'c'}));
         //
         revisionServiceClient = Mockito.mock(RevisionServiceClient.class);
         PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);
@@ -114,6 +130,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         taskParameters.put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
         taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
         taskParameters.put(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "TRUE");
+        taskParameters.put(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS, "FALSE");
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
         dpsTask.setOutputRevision(new Revision());

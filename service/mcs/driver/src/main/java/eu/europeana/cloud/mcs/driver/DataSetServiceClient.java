@@ -11,6 +11,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,9 +114,16 @@ public class DataSetServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl, final String username, final String password) {
+        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    public DataSetServiceClient(String baseUrl, final String username, final String password,
+                                final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         this(baseUrl);
         client
                 .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
 
     /**
@@ -438,10 +446,7 @@ public class DataSetServiceClient extends MCSClient {
                 .resolveTemplate(P_PROVIDER, providerId)
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
-        Form form = new Form();
-        form.param(ParamConstants.F_CLOUDID, cloudId);
-        form.param(ParamConstants.F_REPRESENTATIONNAME, representationName);
-        form.param(ParamConstants.F_VER, versionId);
+        Form form = getForm(cloudId, representationName, versionId);
 
 
         Response response = null;
@@ -460,6 +465,67 @@ public class DataSetServiceClient extends MCSClient {
             }
         }
     }
+
+    private Form getForm(String cloudId, String representationName, String versionId) {
+        Form form = new Form();
+        form.param(ParamConstants.F_CLOUDID, cloudId);
+        form.param(ParamConstants.F_REPRESENTATIONNAME, representationName);
+        form.param(ParamConstants.F_VER, versionId);
+        return form;
+    }
+
+
+    /**
+     * Assigns representation into data set.
+     * <p/>
+     * If specific version is assigned, and then other version of the same
+     * representation name assigned again, the old version is overridden. You
+     * can also assign the representation without version in this case the old
+     * version will also be overridden. Note that the version number will be
+     * then set to null in Cassandra, but
+     * {@link #getDataSetRepresentations(java.lang.String, java.lang.String)}
+     * method will return the last persistent version with
+     * {@link Representation#version} filled.
+     *
+     * @param providerId         provider identifier (required)
+     * @param dataSetId          data set identifier (required)
+     * @param cloudId            cloudId of the record (required)
+     * @param representationName name of the representation (required)
+     * @param versionId          version of representation; if not provided, latest
+     *                           persistent version will be assigned to data set
+     * @param versionId          key of header request
+     * @param versionId          value of header request
+     * @throws DataSetNotExistsException        if data set does not exist
+     * @throws RepresentationNotExistsException if no such representation exists
+     * @throws MCSException                     on unexpected situations
+     */
+    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId,
+                                              String representationName, String versionId, String key, String value)
+            throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
+        WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
+                .resolveTemplate(P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
+
+        Form form = getForm(cloudId, representationName, versionId);
+
+
+        Response response = null;
+
+        try {
+            response = target.request().header(key, value).post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
 
     /**
      * Unassigns representation from data set.

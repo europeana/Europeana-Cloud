@@ -13,6 +13,8 @@ import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +52,7 @@ public class XsltBolt extends AbstractDpsBolt {
       outputCollector.emit(stormTaskTuple.toStormTuple());
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}",  e.getMessage());
-      emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(), stormTaskTuple
-          .getParameters().toString());
+      emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(),  ExceptionUtils.getStackTrace(e));
     } finally {
       if (writer != null) {
         try {

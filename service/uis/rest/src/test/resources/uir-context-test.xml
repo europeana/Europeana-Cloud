@@ -22,13 +22,15 @@
             value="eu.europeana.cloud.service.uis.rest.DataProviderResource" />
     </bean>
 
-        
-	<bean id="mutableAclService" name="mutableAclService" class="org.mockito.Mockito"
+    <bean id="mutableAclService" name="mutableAclService" class="org.mockito.Mockito"
 		  factory-method="mock">
 		<constructor-arg
 			value="org.springframework.security.acls.model.MutableAclService"/>
 	</bean>
-	
+
+    <bean id="aclWrapper" class = "eu.europeana.cloud.service.uis.ACLServiceWrapper">
+        <constructor-arg ref="mutableAclService"/>
+    </bean>
 		
     <bean id="mappings"
               class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">

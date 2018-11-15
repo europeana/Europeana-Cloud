@@ -6,6 +6,4 @@
                             http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd">
     
     <mockito:mock id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
-    <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-    <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
- </beans>         
+ </beans>

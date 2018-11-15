@@ -3,6 +3,7 @@ package eu.europeana.cloud.enrichment.bolts;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
+import org.apache.commons.lang.exception.ExceptionUtils;
 
 /**
  * Call the remote enrichment service in order to dereference and enrich a file.
@@ -27,7 +28,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
             String output = enrichmentWorker.process(fileContent);
             emitEnrichedContent(stormTaskTuple, output);
         } catch (Exception e) {
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Remote Enrichment/dereference service caused the problem!");
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Remote Enrichment/dereference service caused the problem!. The full error: " +  ExceptionUtils.getStackTrace(e));
         }
 
     }

@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -53,8 +54,14 @@ public class FileServiceClient extends MCSClient {
      * @param baseUrl url of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl) {
+            this(baseUrl, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    public FileServiceClient(String baseUrl, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
         client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
 
     /**
@@ -64,10 +71,17 @@ public class FileServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl, final String username, final String password) {
+        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    public FileServiceClient(String baseUrl, final String username, final String password,
+                             final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
         client = JerseyClientBuilder.newClient()
                 .register(MultiPartFeature.class)
                 .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
 
     /**
@@ -94,14 +108,7 @@ public class FileServiceClient extends MCSClient {
 
         try {
             response = requset.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                InputStream contentResponse = response.readEntity(InputStream.class);
-
-                return copiedInputStream(contentResponse);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleReadFileResponse(response);
         } finally {
             closeResponse(response);
         }
@@ -161,13 +168,32 @@ public class FileServiceClient extends MCSClient {
         try {
             response = client.target(fileUrl).request().get();
 
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                InputStream contentResponse = response.readEntity(InputStream.class);
-                return copiedInputStream(contentResponse);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleReadFileResponse(response);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    private InputStream handleReadFileResponse(Response response) throws IOException, MCSException {
+        if (response.getStatus() == Status.OK.getStatusCode()) {
+            InputStream contentResponse = response.readEntity(InputStream.class);
+            return copiedInputStream(contentResponse);
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+
+    public InputStream getFile(String fileUrl,String key,String value)
+            throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException,
+            DriverException, MCSException, IOException {
+
+        Response response = null;
+
+        try {
+            response = client.target(fileUrl).request().header(key,value).get();
+
+            return handleReadFileResponse(response);
         } finally {
             closeResponse(response);
         }

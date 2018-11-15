@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,9 +27,6 @@ import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
@@ -44,9 +40,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
     @Autowired
     private UISClientHandler uisHandler;
-
-    @Autowired
-    private SolrRepresentationIndexer representationIndexer;
 
     private static final String PROVIDER_1_ID = "provider1";
     private static final int PROVIDER_1_PARTITION_KEY = 0;
@@ -62,7 +55,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     @After
     public void cleanUp() {
         Mockito.reset(uisHandler);
-        Mockito.reset(representationIndexer);
     }
 
     @Test
@@ -238,12 +230,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.deleteRepresentation(r1.getCloudId(),
                 r1.getRepresentationName(), r1.getVersion());
 
-        verify(representationIndexer, times(1)).removeRepresentationVersion(
-                r1.getVersion(), dataProvider1.getPartitionKey());
-        verify(representationIndexer, times(5)).insertRepresentation(
-                Matchers.any(Representation.class), Matchers.anyInt());
-        verifyNoMoreInteractions(representationIndexer);
-
         List<Representation> representationVersions = cassandraRecordService
                 .listRepresentationVersions("globalId", "dc");
         assertThat(representationVersions, is(Arrays.asList(r4, r3, r2)));
@@ -269,14 +255,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 .deleteRepresentation(globalId, represntationName);
 
         // then
-        verify(representationIndexer, times(1)).removeRepresentation(globalId,
-                represntationName, dataProvider1.getPartitionKey());
-        verify(representationIndexer, times(1)).removeRepresentation(globalId,
-                represntationName, dataProvider2.getPartitionKey());
-        verify(representationIndexer, times(4)).insertRepresentation(
-                Matchers.any(Representation.class), Matchers.anyInt());
-        verifyNoMoreInteractions(representationIndexer);
-
         cassandraRecordService.listRepresentationVersions(globalId,
                 represntationName).isEmpty();
     }
@@ -437,14 +415,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.deleteRecord(globalId);
 
         // then
-        verify(representationIndexer, times(1)).removeRecordRepresentations(
-                globalId, dataProvider1.getPartitionKey());
-        verify(representationIndexer, times(1)).removeRecordRepresentations(
-                globalId, dataProvider2.getPartitionKey());
-        verify(representationIndexer, times(8)).insertRepresentation(
-                Matchers.any(Representation.class), Matchers.anyInt());
-        verifyNoMoreInteractions(representationIndexer);
-
         try {
             cassandraRecordService.listRepresentationVersions(globalId,
                     represntationName1);
@@ -490,8 +460,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
     }
 
-    @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void shouldNotDeletePersistentRepresentation() throws Exception {
+    @Test
+    public void shouldDeletePersistentRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
         Representation r = insertDummyPersistentRepresentation("globalId",
@@ -641,12 +611,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation copy = cassandraRecordService.copyRepresentation(
                 r.getCloudId(), r.getRepresentationName(), r.getVersion());
         // that
-        // verify(representationIndexer).insertRepresentation(copy,
-        // PROVIDER_1_PARTITION_KEY);
-        verify(representationIndexer, times(3)).insertRepresentation(
-                any(Representation.class), eq(PROVIDER_1_PARTITION_KEY));
-        verifyNoMoreInteractions(representationIndexer);
-
         assertThat(copy.getCloudId(), is(r.getCloudId()));
         assertThat(copy.getDataProvider(), is(r.getDataProvider()));
         assertThat(copy.getRepresentationName(), is(r.getRepresentationName()));

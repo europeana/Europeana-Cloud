@@ -23,7 +23,10 @@
 		<constructor-arg
 			value="org.springframework.security.acls.model.MutableAclService"/>
 	</bean>
-	
+
+    <bean id="aclWrapper" class = "eu.europeana.cloud.service.uis.ACLServiceWrapper">
+        <constructor-arg ref="mutableAclService"/>
+    </bean>
 		
     <bean id="mappings"
               class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">

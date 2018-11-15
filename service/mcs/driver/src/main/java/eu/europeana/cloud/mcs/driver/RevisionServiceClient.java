@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -47,9 +48,16 @@ public class RevisionServiceClient extends MCSClient {
      *
      * @param baseUrl url of the MCS Rest Service
      */
+
     public RevisionServiceClient(String baseUrl) {
+        this(baseUrl, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    public RevisionServiceClient(String baseUrl, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
         client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
 
     /**
@@ -58,11 +66,19 @@ public class RevisionServiceClient extends MCSClient {
      *
      * @param baseUrl URL of the MCS Rest Service
      */
+
     public RevisionServiceClient(String baseUrl, final String username, final String password) {
+        this(baseUrl, username, password,  DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
+
+
+    public RevisionServiceClient(String baseUrl, final String username, final String password, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
         client = JerseyClientBuilder.newClient()
                 .register(MultiPartFeature.class)
                 .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
 
     public void useAuthorizationHeader(final String headerValue) {
@@ -93,12 +109,7 @@ public class RevisionServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.post(null);
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleAddRevisionResponse(response);
         } finally {
             closeResponse(response);
         }
@@ -126,14 +137,49 @@ public class RevisionServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleAddRevisionResponse(response);
         } finally {
             closeResponse(response);
+        }
+    }
+
+
+    /**
+     * add a revision
+     *
+     * @param cloudId            id of uploaded revision.
+     * @param representationName representation name of uploaded revision.
+     * @param version            a specific version of the representation.
+     * @param revision           revision
+     * @param key                key of header request
+     * @param value              value of header request
+     * @return URI to revisions inside a version.
+     * @throws RepresentationNotExistsException when representation does not exist in specified version.
+     * @throws DriverException                  call to service has not succeeded because of server side error.
+     * @throws MCSException                     on unexpected situations.
+     */
+    public URI addRevision(String cloudId, String representationName, String version, Revision revision, String key, String value)
+            throws
+            DriverException, MCSException {
+        WebTarget target = client.target(baseUrl).path(revisionPath).resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+        Invocation.Builder request = target.request().header(key, value);
+        Response response = null;
+        try {
+            response = request.accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
+            return handleAddRevisionResponse(response);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    private URI handleAddRevisionResponse(Response response) throws MCSException {
+        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+            return response.getLocation();
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
 
@@ -166,12 +212,7 @@ public class RevisionServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.post(Entity.form(tagsForm));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return handleAddRevisionResponse(response);
         } finally {
             closeResponse(response);
         }

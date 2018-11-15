@@ -38,6 +38,10 @@
         <constructor-arg ref="permissionFactory" />
     </bean>
 
+    <bean id="aclWrapper" class = "eu.europeana.cloud.service.uis.ACLServiceWrapper">
+        <constructor-arg ref="aclService"/>
+    </bean>
+
     <bean id="aclRepository"
           class="eu.europeana.aas.acl.repository.CassandraAclRepository">
         <constructor-arg ref="cassandraProvider" />

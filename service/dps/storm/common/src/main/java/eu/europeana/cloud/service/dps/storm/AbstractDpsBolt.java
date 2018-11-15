@@ -38,9 +38,11 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     protected static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
+    protected static final String AUTHORIZATION = "Authorization";
+
 
     // default number of retries
-    public static final int DEFAULT_RETRIES = 10;
+    public static final int DEFAULT_RETRIES = 3;
 
     public static final int SLEEP_TIME = 5000;
 

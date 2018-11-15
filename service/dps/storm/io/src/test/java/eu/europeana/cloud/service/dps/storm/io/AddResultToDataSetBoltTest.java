@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class AddResultToDataSetBoltTest {
 
+
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
     @Mock(name = "dataSetClient")
@@ -32,6 +33,7 @@ public class AddResultToDataSetBoltTest {
     @InjectMocks
     private AddResultToDataSetBolt addResultToDataSetBolt;
 
+    private static final String AUTHORIZATION = "Authorization";
 
     @Before
     public void init() throws IllegalAccessException, MCSException, URISyntaxException {
@@ -46,8 +48,8 @@ public class AddResultToDataSetBoltTest {
 
     public final void verifyMethodExecutionNumber(int expectedAssignRepresentationToDataCallTimes, int expectedEmitCallTimes) throws MCSException {
         when(outputCollector.emit(anyString(), anyList())).thenReturn(null);
-        addResultToDataSetBolt.addRepresentationToDataSets(stormTaskTuple, dataSetServiceClient);
-        verify(dataSetServiceClient, times(expectedAssignRepresentationToDataCallTimes)).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
+        addResultToDataSetBolt.execute(stormTaskTuple);
+        verify(dataSetServiceClient, times(expectedAssignRepresentationToDataCallTimes)).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(), eq(AUTHORIZATION),eq(AUTHORIZATION));
         verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }
@@ -86,16 +88,16 @@ public class AddResultToDataSetBoltTest {
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
         stormTaskTuple = prepareTupleWithSingleDataSet();
-        doThrow(MCSException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
-        verifyMethodExecutionNumber(11, 1);
+        doThrow(MCSException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(),eq(AUTHORIZATION),eq(AUTHORIZATION));
+        verifyMethodExecutionNumber(4, 1);
     }
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
         stormTaskTuple = prepareTupleWithSingleDataSet();
-        doThrow(DriverException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
-        verifyMethodExecutionNumber(11, 1);
+        doThrow(DriverException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(),eq(AUTHORIZATION),eq(AUTHORIZATION));
+        verifyMethodExecutionNumber(4, 1);
     }
 
 
@@ -115,6 +117,7 @@ public class AddResultToDataSetBoltTest {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
+        tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
         return tuple;
     }
 
@@ -122,6 +125,7 @@ public class AddResultToDataSetBoltTest {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL + "," + DATASET_URL2);
+        tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
         return tuple;
     }
 
@@ -129,6 +133,7 @@ public class AddResultToDataSetBoltTest {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "sample_sample_sample");
+        tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
         return tuple;
     }
 

@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -27,6 +28,8 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ReadFileBoltTest {
 
+    private static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
+    private static final String AUTHORIZATION = "Authorization";
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
 
@@ -42,12 +45,13 @@ public class ReadFileBoltTest {
     @Before
     public void init() throws IllegalAccessException, MCSException, URISyntaxException {
         MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
+        stormTaskTuple = prepareTuple();
     }
 
     private final void verifyMethodExecutionNumber(int expectedCalls, int expectedEmitCallTimes, String file) throws MCSException, IOException {
         when(outputCollector.emit(anyList())).thenReturn(null);
-        readFileBolt.emitFile(stormTaskTuple, fileServiceClient, file);
-        verify(fileServiceClient, times(expectedCalls)).getFile(eq(file));
+        readFileBolt.execute(stormTaskTuple);
+        verify(fileServiceClient, times(expectedCalls)).getFile(eq(file), eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
         verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
     }
@@ -56,25 +60,29 @@ public class ReadFileBoltTest {
     @Test
     public void shouldEmmitNotificationWhenDataSetListHasOneElement() throws MCSException, IOException {
         //given
-        when(fileServiceClient.getFile(eq(FILE_URL))).thenReturn(null);
-        stormTaskTuple = new StormTaskTuple();
+        when(fileServiceClient.getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER))).thenReturn(null);
         verifyMethodExecutionNumber(1, 0, FILE_URL);
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
         //given
-        doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL));
-        stormTaskTuple = new StormTaskTuple();
-        verifyMethodExecutionNumber(11, 1, FILE_URL);
+        doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
+        verifyMethodExecutionNumber(4, 1, FILE_URL);
     }
 
     @Test
-    public void shouldRetry10TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
+    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
         //given
-        doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL));
+        doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
+        verifyMethodExecutionNumber(4, 1, FILE_URL);
+    }
+
+    private StormTaskTuple prepareTuple() {
         stormTaskTuple = new StormTaskTuple();
-        verifyMethodExecutionNumber(11, 1, FILE_URL);
+        stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER);
+        stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
+        return stormTaskTuple;
     }
 
 
