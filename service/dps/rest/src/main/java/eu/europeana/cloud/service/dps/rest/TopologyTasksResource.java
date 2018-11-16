@@ -23,6 +23,7 @@ import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.net.MalformedURLException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -204,8 +206,9 @@ public class TopologyTasksResource {
                         LOGGER.error("Task submission failed: {}", e.getMessage());
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                     } catch (Exception e) {
-                        LOGGER.error("Task submission failed: {}", e.getMessage());
-                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        String fullStacktrace = ExceptionUtils.getStackTrace(e);
+                        LOGGER.error("Task submission failed: {}", fullStacktrace);
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), fullStacktrace, sentTime);
                         Response response = Response.serverError().build();
                         asyncResponse.resume(response);
                     }
