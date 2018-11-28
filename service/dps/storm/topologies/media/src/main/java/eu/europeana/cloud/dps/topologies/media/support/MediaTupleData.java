@@ -1,70 +1,25 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.metis.mediaprocessing.temp.FileInfo;
+import eu.europeana.metis.mediaservice.EdmObject;
+import eu.europeana.metis.mediaservice.MediaException;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.esotericsoftware.kryo.DefaultSerializer;
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.JavaSerializer;
-
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.metis.mediaservice.EdmObject;
-import eu.europeana.metis.mediaservice.MediaException;
-
 @DefaultSerializer(MTDSerializer.class)
 public class MediaTupleData {
-
-    @DefaultSerializer(JavaSerializer.class)
-    public static class FileInfo implements Serializable {
-        private final String url;
-        private File content;
-        private String mimeType;
-        private InetAddress contentSource;
-
-        public FileInfo(String url) {
-            this.url = url;
-        }
-
-        public File getContent() {
-            return content;
-        }
-
-        public void setContent(File content) {
-            this.content = content;
-        }
-
-        public InetAddress getContentSource() {
-            return contentSource;
-        }
-
-        public void setContentSource(InetAddress contentSource) {
-            this.contentSource = contentSource;
-        }
-
-        public String getMimeType() {
-            return mimeType;
-        }
-
-        public void setMimeType(String mimeType) {
-            this.mimeType = mimeType;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-    }
 
     public static final String FIELD_NAME = "mediaTopology.mediaData";
 

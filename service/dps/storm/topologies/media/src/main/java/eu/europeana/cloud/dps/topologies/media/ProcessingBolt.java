@@ -1,5 +1,6 @@
 package eu.europeana.cloud.dps.topologies.media;
 
+import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -36,7 +37,6 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 import eu.europeana.cloud.dps.topologies.media.support.Util;

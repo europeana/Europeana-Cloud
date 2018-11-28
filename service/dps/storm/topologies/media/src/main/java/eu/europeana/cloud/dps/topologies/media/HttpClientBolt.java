@@ -1,21 +1,17 @@
 package eu.europeana.cloud.dps.topologies.media;
 
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
+import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
+import eu.europeana.metis.mediaprocessing.MediaProcessor;
+import eu.europeana.metis.mediaprocessing.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
+import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.http.HttpHost;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
-import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
-import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
-import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
-import org.apache.http.nio.protocol.HttpAsyncResponseConsumer;
-import org.apache.http.pool.ConnPoolControl;
+import java.util.function.BiConsumer;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.base.BaseRichBolt;
@@ -23,47 +19,34 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
-import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
-
 abstract class HttpClientBolt extends BaseRichBolt {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpClientBolt.class);
 
-    protected static final int FOLLOW_REDIRECTS = 3;
+    private static final int FOLLOW_REDIRECTS = 3;
 
     protected transient OutputCollector outputCollector;
 
-    protected transient CloseableHttpAsyncClient httpClient;
-    private transient ConnPoolControl<HttpRoute> connPoolControl;
-    private HashMap<String, Integer> connectionLimitsPerHost = new HashMap<>();
-    private HashMap<HttpRoute, Integer> currentClientLimits = new HashMap<>();
+    private MediaProcessor mediaProcessor;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-
         outputCollector = collector;
-
+        final MediaProcessorFactory mediaProcessorFactory = new MediaProcessorFactory();
+        mediaProcessorFactory.setRedirectCount(FOLLOW_REDIRECTS);
+        mediaProcessorFactory.setGeneralConnectionLimit((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_TOTAL", 200));
+        mediaProcessorFactory.setConnectionLimitPerSource((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_PER_SOURCE", 4));
         try {
-            PoolingNHttpClientConnectionManager connMgr =
-                    new PoolingNHttpClientConnectionManager(new DefaultConnectingIOReactor());
-            connMgr.setDefaultMaxPerRoute(
-                    (int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_PER_SOURCE", 4));
-            connMgr.setMaxTotal((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_TOTAL", 200));
-            httpClient = HttpAsyncClients.custom().setConnectionManager(connMgr).build();
-            httpClient.start();
-            connPoolControl = connMgr;
-        } catch (IOException e) {
+            mediaProcessor = mediaProcessorFactory.createMediaProcessor();
+        } catch (MediaProcessorException e) {
             throw new RuntimeException("Could not initialize http client", e);
         }
     }
 
     @Override
-    public void cleanup() {
+    public final void cleanup() {
         try {
-            httpClient.close();
+            mediaProcessor.close();
         } catch (IOException e) {
             logger.error("HttpClient could not close", e);
         }
@@ -71,47 +54,29 @@ abstract class HttpClientBolt extends BaseRichBolt {
     }
 
     @Override
-    public void execute(Tuple input) {
-        MediaTupleData data = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
-        updateConnectionLimits(data);
-        List<FileInfo> files = data.getFileInfos();
-        StatsTupleData stats = new StatsTupleData(data.getTaskId(), files.size());
+    public final void execute(final Tuple input) {
 
-        List<HttpAsyncResponseConsumer<Void>> responseConsumers = new ArrayList<>();
-        try {
-            for (FileInfo fileInfo : files)
-                responseConsumers.add(createResponseConsumer(fileInfo, stats, input));
-        } catch (IOException e) {
-            logger.error("Disk error?", e);
-            for (HttpAsyncResponseConsumer<Void> c : responseConsumers)
-                c.failed(e);
-            outputCollector.fail(input);
-            return;
-        }
-        for (int i = 0; i < files.size(); i++) {
-            httpClient.execute(createRequestProducer(files.get(i)), responseConsumers.get(i), null);
-        }
-    }
+        final MediaTupleData data = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
+        final List<FileInfo> files = data.getFileInfos();
+        final StatsTupleData stats = new StatsTupleData(data.getTaskId(), files.size());
 
-    private void updateConnectionLimits(MediaTupleData data) {
-        connectionLimitsPerHost.putAll(data.getConnectionLimitsPerSource());
-        for (FileInfo fileInfo : data.getFileInfos()) {
-            URI uri = URI.create(fileInfo.getUrl());
-            Integer limit = connectionLimitsPerHost.get(uri.getHost());
-            if (limit == null)
-                continue;
-            boolean secure = "https".equals(uri.getScheme());
-            HttpRoute route = new HttpRoute(new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme()), null, secure);
-            Integer currentLimit = currentClientLimits.get(route);
-            if (!limit.equals(currentLimit)) {
-                connPoolControl.setMaxPerRoute(route, limit);
-                currentClientLimits.put(route, limit);
+        final BiConsumer<FileInfo, String> callback = (fileInfo, status) -> {
+            synchronized (stats) {
+                statusUpdate(input, stats, fileInfo, status == null ? Status.STATUS_OK : status);
             }
+        };
+
+        try {
+            execute(mediaProcessor, files, data.getConnectionLimitsPerSource(), callback);
+        } catch (MediaProcessorException e) {
+            outputCollector.fail(input);
         }
     }
 
-    protected abstract HttpAsyncRequestProducer createRequestProducer(FileInfo fileInfo);
+    protected abstract void execute(MediaProcessor mediaProcessor, List<FileInfo> files,
+        Map<String, Integer> connectionLimitsPerSource, BiConsumer<FileInfo, String> callback)
+        throws MediaProcessorException;
 
-    protected abstract HttpAsyncResponseConsumer<Void> createResponseConsumer(FileInfo fileInfo, StatsTupleData stats,
-            Tuple input) throws IOException;
+    protected abstract void statusUpdate(Tuple tuple, StatsTupleData stats, FileInfo fileInfo,
+        String status);
 }
