@@ -1,29 +1,23 @@
 package eu.europeana.cloud.dps.topologies.media;
 
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.dps.States;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.dps.topologies.media.support.*;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.metis.mediaprocessing.temp.FileInfo;
-import eu.europeana.metis.mediaservice.EdmObject;
-import eu.europeana.metis.mediaservice.MediaException;
-import eu.europeana.metis.mediaservice.UrlType;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -37,18 +31,35 @@ import org.apache.storm.tuple.Values;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.dps.topologies.media.support.FileTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.Util;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.corelib.definitions.jibx.RDF;
+import eu.europeana.metis.mediaprocessing.temp.FileInfo;
+import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
+import eu.europeana.metis.mediaservice.MediaException;
+import eu.europeana.metis.mediaservice.UrlType;
 
 /**
  * Wraps a base spout that generates tuples with JSON encoded {@link DpsTask}s
@@ -255,7 +266,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
     private static class EdmInfo {
         Representation representation;
-        EdmObject edmObject;
+        RDF edmObject;
         List<FileInfo> fileInfos;
         TaskInfo taskInfo;
         SourceInfo sourceInfo;
@@ -291,11 +302,10 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
             DpsTask currentTask;
             FileServiceClient fileClient;
-            EdmObject.Parser parser;
+            TemporaryMediaHandler mediaHandler = new TemporaryMediaHandler();
 
             public EdmDownloadThread(int id) {
                 super("edm-downloader-" + id);
-                parser = new EdmObject.Parser();
             }
 
             @Override
@@ -328,7 +338,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     fileUri = fileClient.getFileUri(rep.getCloudId(), rep.getRepresentationName(),
                             rep.getVersion(), file.getFileName()).toString();
                     try (InputStream is = fileClient.getFile(fileUri)) {
-                        edmInfo.edmObject = parser.parseXml(is);
+                        edmInfo.edmObject = mediaHandler.deserialize(is);
                     } catch (MediaException e) {
                         logger.info("EDM loading failed ({}/{}) for {}", e.reportError, e.getMessage(), rep.getFiles());
                         logger.trace("full exception:", e);
@@ -358,7 +368,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
             void queueEdmInfo(EdmInfo edmInfo) {
                 try {
-                    Set<String> urls = edmInfo.edmObject.getResourceUrls(urlTypes).keySet();
+                    final Set<String> urls = mediaHandler.getResourceUrls(edmInfo.edmObject, urlTypes);
                     if (urls.isEmpty()) {
                         logger.error("content url missing in edm file representation: {}", edmInfo.representation);
                         return;

@@ -1,8 +1,5 @@
 package eu.europeana.cloud.dps.topologies.media;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
@@ -13,7 +10,6 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
 import org.slf4j.LoggerFactory;
-
 import eu.europeana.cloud.dps.topologies.media.support.DummySpout;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
@@ -38,8 +34,7 @@ public class MediaTopology {
 
             TopologyBuilder builder = new TopologyBuilder();
             IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
-            Collection<UrlType> urlTypes = Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY, UrlType.IS_SHOWN_AT);
-            builder.setSpout(source, new DataSetReaderSpout(baseSpout, urlTypes), 1);
+            builder.setSpout(source, new DataSetReaderSpout(baseSpout, UrlType.URL_TYPES_FOR_MEDIA_PROCESSING), 1);
 
             builder.setBolt(downloadBolt, new DownloadBolt(), (Number) conf.get(Config.TOPOLOGY_WORKERS))
                     .fieldsGrouping(source, new Fields(DataSetReaderSpout.SOURCE_FIELD));

@@ -1,24 +1,19 @@
 package eu.europeana.cloud.dps.topologies.media;
 
-import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
-
 import javax.ws.rs.ProcessingException;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -28,12 +23,10 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
@@ -50,11 +43,13 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.metis.mediaservice.EdmObject;
+import eu.europeana.corelib.definitions.jibx.RDF;
+import eu.europeana.metis.mediaprocessing.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.temp.FileInfo;
+import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService;
+import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService.MediaProcessingListener;
 import eu.europeana.metis.mediaservice.MediaException;
-import eu.europeana.metis.mediaservice.MediaProcessor;
 import eu.europeana.metis.mediaservice.MediaProcessor.Thumbnail;
-import eu.europeana.metis.mediaservice.UrlType;
 
 public class ProcessingBolt extends BaseRichBolt {
 
@@ -66,9 +61,7 @@ public class ProcessingBolt extends BaseRichBolt {
     private transient OutputCollector outputCollector;
     private transient Map<String, Object> config;
 
-    private transient MediaProcessor mediaProcessor;
-
-    private transient EdmObject.Writer edmWriter;
+    private transient TemporaryMediaService mediaService;
 
     private ArrayList<ResultsUploadThread> threads = new ArrayList<>();
     private ArrayBlockingQueue<Item> queue = new ArrayBlockingQueue<>(100);
@@ -80,11 +73,10 @@ public class ProcessingBolt extends BaseRichBolt {
         this.outputCollector = collector;
         this.config = stormConf;
         try {
-            mediaProcessor = new MediaProcessor();
-        } catch (MediaException e) {
+            mediaService = new TemporaryMediaService();
+        } catch (MediaProcessorException e) {
 
         }
-        edmWriter = new EdmObject.Writer();
 
         persistResult = (Boolean) config.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
 
@@ -113,49 +105,76 @@ public class ProcessingBolt extends BaseRichBolt {
         declarer.declareStream(StatsTupleData.STREAM_ID, new Fields(StatsTupleData.FIELD_NAME));
     }
 
+    private static class MediaProcessingListenerImpl implements MediaProcessingListener {
+      
+        private final StatsTupleData statsData;
+        private boolean retry = false;
+        private long start;
+  
+        public MediaProcessingListenerImpl(StatsTupleData statsData) {
+            this.statsData = statsData;
+        }
+
+        @Override
+        public void beforeStartingFile(FileInfo file) throws MediaException {
+            start = System.currentTimeMillis();
+            TempFileSync.ensureLocal(file);
+        }
+  
+        @Override
+        public boolean handleMediaException(FileInfo file, MediaException e) {
+            logger.info("processing failed ({}/{}) for {}", e.reportError, e.getMessage(), file.getUrl());
+            logger.trace("failure details:", e);
+            retry = retry || e.retry;
+            if (!e.retry) {
+                String message = e.reportError;
+                if (message == null) {
+                    logger.warn("Exception without proper report error:", e);
+                    message = "UNKNOWN";
+                }
+                statsData.addStatus(file.getUrl(), message);
+            }
+            return e.retry;
+        }
+  
+        @Override
+        public boolean handleOtherException(FileInfo file, Exception e) {
+            logger.info("processing failed ({}) for {}", e.getMessage(), file.getUrl());
+            statsData.addStatus(file.getUrl(), e.getMessage());
+            return false;
+        }
+  
+        @Override
+        public void afterCompletingFile(FileInfo file) {
+            logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
+        }
+    }
+    
+    
     @Override
     public void execute(Tuple input) {
         MediaTupleData mediaData = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
         StatsTupleData statsData = (StatsTupleData) input.getValueByField(StatsTupleData.FIELD_NAME);
 
         statsData.setProcessingStartTime(System.currentTimeMillis());
-        EdmObject edm = mediaData.getEdm();
-        mediaProcessor.setEdm(edm);
-        for (FileInfo file : mediaData.getFileInfos()) {
-            long start = System.currentTimeMillis();
-            try {
-                TempFileSync.ensureLocal(file);
-                mediaProcessor.processResource(file.getUrl(), file.getMimeType(), file.getContent());
-            } catch (MediaException e) {
-                logger.info("processing failed ({}/{}) for {}", e.reportError, e.getMessage(), file.getUrl());
-                logger.trace("failure details:", e);
-                if (e.retry) {
-                    cleanupRecord(mediaData, mediaProcessor.getThumbnails());
-                    outputCollector.fail(input);
-                } else {
-                    String message = e.reportError;
-                    if (message == null) {
-                        logger.warn("Exception without proper report error:", e);
-                        message = "UNKNOWN";
-                    }
-                    statsData.addStatus(file.getUrl(), message);
-                }
-            } catch (Exception e) {
-                logger.info("processing failed ({}) for {}", e.getMessage(), file.getUrl());
-                statsData.addStatus(file.getUrl(), e.getMessage());
-            } finally {
-                logger.debug("Processing {} took {} ms", file.getUrl(), System.currentTimeMillis() - start);
-            }
+        RDF rdf = mediaData.getEdm();
+        
+        final MediaProcessingListenerImpl listener = new MediaProcessingListenerImpl(statsData);
+        final Pair<RDF, List<Thumbnail>> mediaProcessResult = mediaService.performMediaProcessing(rdf, 
+            mediaData.getFileInfos(), listener);
+        
+        if (listener.retry) {
+            cleanupRecord(mediaData, mediaProcessResult.getRight());
+            outputCollector.fail(input);
+        } else {
+            queueUpload(input, mediaData, statsData, mediaProcessResult.getLeft(), mediaProcessResult.getRight());
         }
-        updateEdmPreview(edm);
-        queueUpload(input, mediaData, statsData);
         statsData.setProcessingEndTime(System.currentTimeMillis());
-
     }
 
     @Override
     public void cleanup() {
-        mediaProcessor.close();
+        mediaService.close();
         for (ResultsUploadThread thread : threads)
             thread.interrupt();
     }
@@ -173,13 +192,13 @@ public class ProcessingBolt extends BaseRichBolt {
         }
     }
 
-    private void queueUpload(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData) {
+    private void queueUpload(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData, RDF rdf, List<Thumbnail> thumbnails) {
         Item item = new Item();
         item.tuple = tuple;
         item.mediaData = mediaData;
         item.statsData = statsData;
-        item.thumbnails = mediaProcessor.getThumbnails();
-        item.edmContents = edmWriter.toXmlBytes(mediaProcessor.getEdm());
+        item.thumbnails = thumbnails;
+        item.edmContents = mediaService.serialize(rdf);
         try {
             if (queue.remainingCapacity() == 0)
                 logger.warn("Results upload queue full");
@@ -187,24 +206,6 @@ public class ProcessingBolt extends BaseRichBolt {
         } catch (InterruptedException e) {
             logger.trace("Thread interrupted", e);
             Thread.currentThread().interrupt();
-        }
-    }
-
-    private void updateEdmPreview(EdmObject edm) {
-        Set<String> objectUrls = edm.getResourceUrls(Arrays.asList(UrlType.OBJECT)).keySet();
-        Set<String> otherUrls = edm.getResourceUrls(Arrays.asList(UrlType.IS_SHOWN_BY, UrlType.HAS_VIEW)).keySet();
-
-        if (!objectUrls.isEmpty()) {
-            edm.updateEdmPreview(objectUrls.iterator().next());
-        } else {
-            Optional<Thumbnail> thumbnail = mediaProcessor.getThumbnails().stream()
-                    .filter(t -> t.targetName.contains("-LARGE") && otherUrls.contains(t.url))
-                    .findFirst();
-
-            if (thumbnail.isPresent()) {
-                String url = String.format("%s", thumbnail.get().targetName);
-                edm.updateEdmPreview(url);
-            }
         }
     }
 
