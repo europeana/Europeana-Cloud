@@ -4,7 +4,7 @@ import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
-import eu.europeana.metis.mediaprocessing.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaProcessor;
 import java.net.InetAddress;

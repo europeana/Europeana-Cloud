@@ -44,11 +44,11 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
-import eu.europeana.metis.mediaprocessing.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.exception.MediaException;
+import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService.MediaProcessingListener;
-import eu.europeana.metis.mediaservice.MediaException;
 import eu.europeana.metis.mediaservice.MediaProcessor.Thumbnail;
 
 public class ProcessingBolt extends BaseRichBolt {

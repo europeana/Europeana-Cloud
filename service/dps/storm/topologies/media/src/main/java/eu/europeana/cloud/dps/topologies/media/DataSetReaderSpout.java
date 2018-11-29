@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -56,10 +55,9 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
+import eu.europeana.metis.mediaprocessing.exception.MediaException;
 import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
-import eu.europeana.metis.mediaservice.MediaException;
-import eu.europeana.metis.mediaservice.UrlType;
 
 /**
  * Wraps a base spout that generates tuples with JSON encoded {@link DpsTask}s
@@ -71,9 +69,11 @@ public class DataSetReaderSpout extends BaseRichSpout {
     public static final String SOURCE_FIELD = "source";
 
     private static final Logger logger = LoggerFactory.getLogger(DataSetReaderSpout.class);
+    
+    public enum Mode { LINK_CHECKING, METADATA_EXTRACTION };
 
     private final IRichSpout baseSpout;
-    private final Collection<UrlType> urlTypes;
+    private final Mode mode;
     private transient SpoutOutputCollector outputCollector;
     private transient Map<String, Object> config;
 
@@ -88,9 +88,9 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
     private long emitLimit;
 
-    public DataSetReaderSpout(IRichSpout baseSpout, Collection<UrlType> urlTypes) {
+    public DataSetReaderSpout(IRichSpout baseSpout, Mode mode) {
         this.baseSpout = baseSpout;
-        this.urlTypes = urlTypes;
+        this.mode = mode;
     }
 
     @Override
@@ -368,7 +368,17 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
             void queueEdmInfo(EdmInfo edmInfo) {
                 try {
-                    final Set<String> urls = mediaHandler.getResourceUrls(edmInfo.edmObject, urlTypes);
+                    final Set<String> urls;
+                    switch (mode) {
+                      case LINK_CHECKING:
+                        urls = mediaHandler.getResourceUrlsForLinkChecking(edmInfo.edmObject);
+                        break;
+                      case METADATA_EXTRACTION:
+                        urls = mediaHandler.getResourceUrlsForMetadataExtraction(edmInfo.edmObject);
+                        break;
+                      default:
+                        throw new IllegalStateException();
+                    }                   
                     if (urls.isEmpty()) {
                         logger.error("content url missing in edm file representation: {}", edmInfo.representation);
                         return;

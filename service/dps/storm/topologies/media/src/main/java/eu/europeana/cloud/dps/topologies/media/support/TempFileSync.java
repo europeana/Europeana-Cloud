@@ -1,5 +1,6 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import eu.europeana.metis.mediaprocessing.exception.MediaException;
 import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,8 +28,6 @@ import java.util.concurrent.Executors;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.europeana.metis.mediaservice.MediaException;
 
 public class TempFileSync {
 

@@ -15,9 +15,9 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.corelib.definitions.jibx.RDF;
+import eu.europeana.metis.mediaprocessing.exception.MediaException;
 import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
-import eu.europeana.metis.mediaservice.MediaException;
 
 @DefaultSerializer(MTDSerializer.class)
 public class MediaTupleData {

@@ -2,7 +2,7 @@ package eu.europeana.cloud.dps.topologies.media;
 
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.metis.mediaprocessing.MediaProcessor;
-import eu.europeana.metis.mediaprocessing.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaProcessor;
 import java.util.List;
