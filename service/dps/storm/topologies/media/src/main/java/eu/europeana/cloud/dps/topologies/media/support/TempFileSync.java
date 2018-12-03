@@ -1,7 +1,7 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.metis.mediaprocessing.exception.MediaException;
-import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;

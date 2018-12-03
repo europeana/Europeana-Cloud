@@ -1,17 +1,17 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 import eu.europeana.metis.mediaprocessing.MediaProcessor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
-import eu.europeana.metis.mediaprocessing.temp.FileInfo;
+import eu.europeana.metis.mediaprocessing.temp.HttpClientCallback;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.base.BaseRichBolt;
@@ -19,7 +19,7 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class HttpClientBolt extends BaseRichBolt {
+abstract class HttpClientBolt<O> extends BaseRichBolt {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpClientBolt.class);
 
@@ -60,9 +60,9 @@ abstract class HttpClientBolt extends BaseRichBolt {
         final List<FileInfo> files = data.getFileInfos();
         final StatsTupleData stats = new StatsTupleData(data.getTaskId(), files.size());
 
-        final BiConsumer<FileInfo, String> callback = (fileInfo, status) -> {
+        final HttpClientCallback<FileInfo, O> callback = (fileInfo, output, status) -> {
             synchronized (stats) {
-                statusUpdate(input, stats, fileInfo, status == null ? Status.STATUS_OK : status);
+                statusUpdate(input, stats, fileInfo, output, status == null ? Status.STATUS_OK : status);
             }
         };
 
@@ -74,9 +74,9 @@ abstract class HttpClientBolt extends BaseRichBolt {
     }
 
     protected abstract void execute(MediaProcessor mediaProcessor, List<FileInfo> files,
-        Map<String, Integer> connectionLimitsPerSource, BiConsumer<FileInfo, String> callback)
+        Map<String, Integer> connectionLimitsPerSource, HttpClientCallback<FileInfo, O> callback)
         throws MediaProcessorException;
 
     protected abstract void statusUpdate(Tuple tuple, StatsTupleData stats, FileInfo fileInfo,
-        String status);
+        O output, String status);
 }

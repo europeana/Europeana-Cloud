@@ -1,5 +1,8 @@
 package eu.europeana.cloud.dps.topologies.media;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
+import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -46,10 +49,8 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.exception.MediaException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
-import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService.MediaProcessingListener;
-import eu.europeana.metis.mediaservice.MediaProcessor.Thumbnail;
 
 public class ProcessingBolt extends BaseRichBolt {
 
@@ -105,7 +106,7 @@ public class ProcessingBolt extends BaseRichBolt {
         declarer.declareStream(StatsTupleData.STREAM_ID, new Fields(StatsTupleData.FIELD_NAME));
     }
 
-    private static class MediaProcessingListenerImpl implements MediaProcessingListener {
+    private static class MediaProcessingListenerImpl implements MediaProcessingListener<FileInfo> {
       
         private final StatsTupleData statsData;
         private boolean retry = false;
@@ -160,7 +161,7 @@ public class ProcessingBolt extends BaseRichBolt {
         RDF rdf = mediaData.getEdm();
         
         final MediaProcessingListenerImpl listener = new MediaProcessingListenerImpl(statsData);
-        final Pair<RDF, List<Thumbnail>> mediaProcessResult = mediaService.performMediaProcessing(rdf, 
+        final Pair<RDF, List<Thumbnail>> mediaProcessResult = mediaService.performMediaProcessing(rdf,
             mediaData.getFileInfos(), listener);
         
         if (listener.retry) {
@@ -185,9 +186,9 @@ public class ProcessingBolt extends BaseRichBolt {
         }
         for (Thumbnail thumb : thumbnails) {
             try {
-                Files.delete(thumb.content.toPath());
-            } catch (IOException e) {
-                logger.warn("Could not delete thumbnail from temp: " + thumb.content, e);
+                thumb.deleteFile();
+            } catch (MediaProcessorException e) {
+                logger.warn("Could not delete thumbnail.", e);
             }
         }
     }
@@ -316,12 +317,12 @@ public class ProcessingBolt extends BaseRichBolt {
             boolean uploaded = false;
             for (Thumbnail t : currentItem.thumbnails) {
                 try {
-                    amazonClient.putObject(storageBucket, t.targetName, t.content);
-                    logger.debug("thumbnail saved: {} b, md5({}) = {}", t.content.length(), t.url, t.targetName);
+                    amazonClient.putObject(storageBucket, t.getTargetName(), t.getContentStream(), new ObjectMetadata());
+                    logger.debug("thumbnail saved: {} b, md5({}) = {}", t.getContentSize(), t.getResourceUrl(), t.getTargetName());
                     uploaded = true;
-                } catch (AmazonClientException e) {
-                    logger.error("Could not save thumbnails for " + t.url, e);
-                    currentItem.statsData.addErrorIfAbsent(t.url, "THUMBNAIL SAVING");
+                } catch (AmazonClientException | MediaProcessorException e) {
+                    logger.error("Could not save thumbnails for " + t.getResourceUrl(), e);
+                    currentItem.statsData.addErrorIfAbsent(t.getResourceUrl(), "THUMBNAIL SAVING");
                 }
             }
             if (!uploaded) {

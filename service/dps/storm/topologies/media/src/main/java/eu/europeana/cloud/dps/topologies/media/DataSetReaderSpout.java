@@ -1,6 +1,8 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
+
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -56,7 +58,6 @@ import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.exception.MediaException;
-import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
 
 /**

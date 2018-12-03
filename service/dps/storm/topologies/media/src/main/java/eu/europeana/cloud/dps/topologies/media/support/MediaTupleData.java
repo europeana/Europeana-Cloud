@@ -1,7 +1,13 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
+import eu.europeana.metis.mediaprocessing.temp.ThumbnailSource;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,11 +22,70 @@ import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSeriali
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.exception.MediaException;
-import eu.europeana.metis.mediaprocessing.temp.FileInfo;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
 
 @DefaultSerializer(MTDSerializer.class)
 public class MediaTupleData {
+
+    @DefaultSerializer(JavaSerializer.class)
+    public static class FileInfo implements Serializable, ThumbnailSource {
+
+        private final String url;
+        private File content;
+        private String mimeType;
+        private InetAddress contentSource;
+        private boolean errorFlag = false;
+
+        public FileInfo(String url) {
+            this.url = url;
+        }
+
+        public File getContent() {
+            return content;
+        }
+
+        public void setContent(File content) {
+            this.content = content;
+        }
+
+        public InetAddress getContentSource() {
+            return contentSource;
+        }
+
+        public void setContentSource(InetAddress contentSource) {
+            this.contentSource = contentSource;
+        }
+
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        public void setMimeType(String mimeType) {
+            this.mimeType = mimeType;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setErrorFlag(Boolean errorFlag) {
+            this.errorFlag = errorFlag;
+        }
+
+        public boolean isErrorFlagSet() {
+            return this.errorFlag;
+        }
+
+        @Override
+        public String getResourceUrl() {
+            return getUrl();
+        }
+
+        @Override
+        public Path getContentPath() {
+            return getContent() != null ? getContent().toPath() : null;
+        }
+    }
 
     public static final String FIELD_NAME = "mediaTopology.mediaData";
 
