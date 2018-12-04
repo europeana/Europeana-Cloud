@@ -2,36 +2,6 @@ package eu.europeana.cloud.dps.topologies.media;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
 
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import org.apache.storm.kafka.KafkaSpout;
-import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
-import org.apache.storm.spout.ISpoutOutputCollector;
-import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IRichSpout;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseRichSpout;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Values;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
@@ -40,6 +10,7 @@ import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.dps.topologies.media.support.FileTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
@@ -58,7 +29,36 @@ import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.exception.MediaException;
+import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import org.apache.storm.kafka.KafkaSpout;
+import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
+import org.apache.storm.spout.ISpoutOutputCollector;
+import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.IRichSpout;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseRichSpout;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wraps a base spout that generates tuples with JSON encoded {@link DpsTask}s
@@ -369,24 +369,24 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
             void queueEdmInfo(EdmInfo edmInfo) {
                 try {
-                    final Set<String> urls;
+                    final List<RdfResourceEntry> rdfResourceEntries;
                     switch (mode) {
-                      case LINK_CHECKING:
-                        urls = mediaHandler.getResourceUrlsForLinkChecking(edmInfo.edmObject);
-                        break;
-                      case METADATA_EXTRACTION:
-                        urls = mediaHandler.getResourceUrlsForMetadataExtraction(edmInfo.edmObject);
-                        break;
-                      default:
-                        throw new IllegalStateException();
+                        case LINK_CHECKING:
+                            rdfResourceEntries = mediaHandler.getResourceEntriesForLinkChecking(edmInfo.edmObject);
+                            break;
+                        case METADATA_EXTRACTION:
+                            rdfResourceEntries = mediaHandler.getResourceEntriesForMetadataExtraction(edmInfo.edmObject);
+                            break;
+                        default:
+                            throw new IllegalStateException();
                     }                   
-                    if (urls.isEmpty()) {
+                    if (rdfResourceEntries.isEmpty()) {
                         logger.error("content url missing in edm file representation: {}", edmInfo.representation);
                         return;
                     }
-                    edmInfo.fileInfos = urls.stream().map(FileInfo::new).collect(Collectors.toList());
+                    edmInfo.fileInfos = rdfResourceEntries.stream().map(FileInfo::new).collect(Collectors.toList());
 
-                    Map<String, Long> hostCounts = urls.stream()
+                    Map<String, Long> hostCounts = rdfResourceEntries.stream().map(RdfResourceEntry::getResourceUrl)
                             .collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()));
                     Comparator<Entry<String, Long>> c = Comparator.comparing(Entry::getValue);
                     c = c.thenComparing(Entry::getKey); // compiler weirdness, can't do it in one call

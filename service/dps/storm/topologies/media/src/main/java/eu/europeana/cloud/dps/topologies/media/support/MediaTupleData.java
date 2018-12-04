@@ -1,7 +1,9 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
-import eu.europeana.metis.mediaprocessing.temp.ThumbnailSource;
+import eu.europeana.metis.mediaprocessing.UrlType;
+import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
+import eu.europeana.metis.mediaprocessing.temp.DownloadedResource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -23,21 +25,24 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.exception.MediaException;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
+import java.util.Set;
 
 @DefaultSerializer(MTDSerializer.class)
 public class MediaTupleData {
 
     @DefaultSerializer(JavaSerializer.class)
-    public static class FileInfo implements Serializable, ThumbnailSource {
+    public static class FileInfo implements Serializable, DownloadedResource, RdfResourceEntry {
 
         private final String url;
         private File content;
         private String mimeType;
         private InetAddress contentSource;
         private boolean errorFlag = false;
+        private Set<UrlType> urlTypes;
 
-        public FileInfo(String url) {
-            this.url = url;
+        public FileInfo(RdfResourceEntry resourceEntry) {
+            this.url = resourceEntry.getResourceUrl();
+            this.urlTypes = resourceEntry.getUrlTypes();
         }
 
         public File getContent() {
@@ -74,6 +79,11 @@ public class MediaTupleData {
 
         public boolean isErrorFlagSet() {
             return this.errorFlag;
+        }
+
+        @Override
+        public Set<UrlType> getUrlTypes() {
+            return Collections.unmodifiableSet(this.urlTypes);
         }
 
         @Override

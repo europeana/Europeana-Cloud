@@ -55,7 +55,7 @@ public class DownloadBolt extends HttpClientBolt<Resource> {
     protected void execute(eu.europeana.metis.mediaprocessing.MediaProcessor mediaProcessor,
         List<FileInfo> files, Map<String, Integer> connectionLimitsPerSource,
         HttpClientCallback<FileInfo, Resource> callback) throws MediaProcessorException {
-        ((TemporaryMediaProcessor) mediaProcessor).executeDownloadTask(files, connectionLimitsPerSource, callback, FileInfo::getUrl);
+        ((TemporaryMediaProcessor) mediaProcessor).executeDownloadTask(files, connectionLimitsPerSource, callback);
     }
 
     @Override
