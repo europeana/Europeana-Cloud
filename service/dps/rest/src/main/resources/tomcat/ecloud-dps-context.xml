@@ -49,7 +49,6 @@
         </constructor-arg>
     </bean>
 
-    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>
     <bean id="topologyManger" class="eu.europeana.cloud.service.dps.service.utils.TopologyManager">
         <constructor-arg name="nameList">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/nameList"/>
