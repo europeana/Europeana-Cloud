@@ -166,6 +166,4 @@ http://www.springframework.org/schema/context/spring-context.xsd">
     <b:bean id="encoder"
             class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
-    <b:bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>
-
 </b:beans>
