@@ -395,7 +395,6 @@
                     <exclude>persistent-authentication/</exclude>
                     <exclude>persistent-authorization/</exclude>
                     <exclude>inmemory-authentication/</exclude>
-                    <exclude>kafkaLogging/</exclude>
                 </excludes>
             </resource>
         </resources>
