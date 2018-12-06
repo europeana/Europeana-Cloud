@@ -42,5 +42,6 @@
         <module>storm/topologies/indexing</module>
         <module>storm/topologies/normalization</module>
         <module>storm/topologies/media</module>
+        <module>storm/topologies/media-service</module>
     </modules>
 </project>
