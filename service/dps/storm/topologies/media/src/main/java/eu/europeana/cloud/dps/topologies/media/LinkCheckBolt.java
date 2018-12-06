@@ -28,7 +28,7 @@ public class LinkCheckBolt extends HttpClientBolt<Void> {
     protected void execute(MediaProcessor mediaProcessor, List<FileInfo> files,
         Map<String, Integer> connectionLimitsPerSource, HttpClientCallback<FileInfo, Void> callback)
         throws MediaProcessorException {
-        ((TemporaryMediaProcessor) mediaProcessor).executeLinkCheckTask(files, connectionLimitsPerSource, callback, FileInfo::getUrl);
+        ((TemporaryMediaProcessor) mediaProcessor).executeLinkCheckTask(files, connectionLimitsPerSource, callback);
     }
 
     @Override

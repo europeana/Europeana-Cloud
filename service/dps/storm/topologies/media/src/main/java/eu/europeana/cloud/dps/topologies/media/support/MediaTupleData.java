@@ -1,7 +1,18 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.JavaSerializer;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.corelib.definitions.jibx.RDF;
+import eu.europeana.metis.mediaprocessing.RdfConverter.Parser;
+import eu.europeana.metis.mediaprocessing.RdfConverter.Writer;
 import eu.europeana.metis.mediaprocessing.UrlType;
+import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.temp.DownloadedResource;
 import java.io.ByteArrayInputStream;
@@ -15,16 +26,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.esotericsoftware.kryo.DefaultSerializer;
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.corelib.definitions.jibx.RDF;
-import eu.europeana.metis.mediaprocessing.exception.MediaException;
-import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
 import java.util.Set;
 
 @DefaultSerializer(MTDSerializer.class)
@@ -155,13 +156,27 @@ public class MediaTupleData {
 
     public static class MTDSerializer extends com.esotericsoftware.kryo.Serializer<MediaTupleData> {
 
-        private final TemporaryMediaHandler mediaHandler = new TemporaryMediaHandler();
+        private final Parser deserializer;
+        private final Writer serializer;
+
+        public MTDSerializer() {
+            try {
+                deserializer = new Parser();
+                serializer = new Writer();
+            } catch (MediaProcessorException e) {
+                throw new RuntimeException("EDM serializer construction failed", e);
+            }
+        }
 
         @Override
         public void write(Kryo kryo, Output output, MediaTupleData data) {
             output.writeLong(data.taskId);
             kryo.writeObject(output, data.edmRepresentation);
-            kryo.writeObject(output, mediaHandler.serialize(data.edm));
+            try {
+                kryo.writeObject(output, serializer.serialize(data.edm));
+            } catch (MediaProcessorException e) {
+                throw new RuntimeException("EDM writing failed", e);
+            }
             kryo.writeObject(output, new ArrayList<>(data.fileInfos));
             kryo.writeObject(output, new HashMap<>(data.connectionLimitsPerSource));
             kryo.writeObject(output, data.task);
@@ -173,8 +188,8 @@ public class MediaTupleData {
             Representation representation = kryo.readObject(input, Representation.class);
             MediaTupleData data = new MediaTupleData(taskId, representation);
             try (ByteArrayInputStream byteStream = new ByteArrayInputStream(kryo.readObject(input, byte[].class))) {
-                data.edm = mediaHandler.deserialize(byteStream);
-            } catch (MediaException | IOException e) {
+                data.edm = deserializer.deserialize(byteStream);
+            } catch (MediaProcessorException | IOException e) {
                 throw new RuntimeException("EDM parsing failed", e);
             }
             data.fileInfos = kryo.readObject(input, ArrayList.class);

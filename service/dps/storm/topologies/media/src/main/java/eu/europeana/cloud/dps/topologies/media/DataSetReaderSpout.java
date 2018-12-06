@@ -28,9 +28,10 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
-import eu.europeana.metis.mediaprocessing.exception.MediaException;
+import eu.europeana.metis.mediaprocessing.RdfConverter;
+import eu.europeana.metis.mediaprocessing.UrlType;
+import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
-import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -303,10 +304,15 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
             DpsTask currentTask;
             FileServiceClient fileClient;
-            TemporaryMediaHandler mediaHandler = new TemporaryMediaHandler();
+            RdfConverter.Parser deserializer;
 
             public EdmDownloadThread(int id) {
                 super("edm-downloader-" + id);
+                try {
+                    this.deserializer = new RdfConverter.Parser();
+                } catch (MediaProcessorException e) {
+                    throw new IllegalStateException(e);
+                }
             }
 
             @Override
@@ -339,12 +345,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     fileUri = fileClient.getFileUri(rep.getCloudId(), rep.getRepresentationName(),
                             rep.getVersion(), file.getFileName()).toString();
                     try (InputStream is = fileClient.getFile(fileUri)) {
-                        edmInfo.edmObject = mediaHandler.deserialize(is);
-                    } catch (MediaException e) {
-                        logger.info("EDM loading failed ({}/{}) for {}", e.reportError, e.getMessage(), rep.getFiles());
+                        edmInfo.edmObject = deserializer.deserialize(is);
+                    } catch (MediaProcessorException e) {
+                        logger.info("EDM loading failed ({}/{}) for {}", e.getMessage(), e.getMessage(), rep.getFiles());
                         logger.trace("full exception:", e);
                         StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), edmInfo.counter);
-                        stats.addStatus(fileUri, e.reportError);
+                        stats.addStatus(fileUri, e.getMessage());
                         outputCollector.emit(StatsTupleData.STREAM_ID, new Values(stats));
                         emitErrorNotification(edmInfo, fileUri, States.ERROR, e.getMessage());
                         edmFinished(edmInfo);
@@ -372,10 +378,10 @@ public class DataSetReaderSpout extends BaseRichSpout {
                     final List<RdfResourceEntry> rdfResourceEntries;
                     switch (mode) {
                         case LINK_CHECKING:
-                            rdfResourceEntries = mediaHandler.getResourceEntriesForLinkChecking(edmInfo.edmObject);
+                            rdfResourceEntries = deserializer.getResourceEntries(edmInfo.edmObject, UrlType.URL_TYPES_FOR_LINK_CHECKING);
                             break;
                         case METADATA_EXTRACTION:
-                            rdfResourceEntries = mediaHandler.getResourceEntriesForMetadataExtraction(edmInfo.edmObject);
+                            rdfResourceEntries = deserializer.getResourceEntries(edmInfo.edmObject, UrlType.URL_TYPES_FOR_MEDIA_EXTRACTION);
                             break;
                         default:
                             throw new IllegalStateException();

@@ -1,13 +1,38 @@
 package eu.europeana.cloud.dps.topologies.media;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
+import eu.europeana.cloud.dps.topologies.media.support.Util;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.corelib.definitions.jibx.RDF;
+import eu.europeana.metis.mediaprocessing.RdfConverter;
+import eu.europeana.metis.mediaprocessing.exception.MediaException;
+import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
+import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService;
+import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService.MediaProcessingListener;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,31 +51,6 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
-import eu.europeana.cloud.dps.topologies.media.support.Util;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.corelib.definitions.jibx.RDF;
-import eu.europeana.metis.mediaprocessing.exception.MediaException;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
-import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService;
-import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService.MediaProcessingListener;
 
 public class ProcessingBolt extends BaseRichBolt {
 
@@ -63,6 +63,7 @@ public class ProcessingBolt extends BaseRichBolt {
     private transient Map<String, Object> config;
 
     private transient TemporaryMediaService mediaService;
+    private transient RdfConverter.Writer serializer;
 
     private ArrayList<ResultsUploadThread> threads = new ArrayList<>();
     private ArrayBlockingQueue<Item> queue = new ArrayBlockingQueue<>(100);
@@ -75,6 +76,7 @@ public class ProcessingBolt extends BaseRichBolt {
         this.config = stormConf;
         try {
             mediaService = new TemporaryMediaService();
+            serializer = new RdfConverter.Writer();
         } catch (MediaProcessorException e) {
 
         }
@@ -199,7 +201,11 @@ public class ProcessingBolt extends BaseRichBolt {
         item.mediaData = mediaData;
         item.statsData = statsData;
         item.thumbnails = thumbnails;
-        item.edmContents = mediaService.serialize(rdf);
+        try {
+            item.edmContents = serializer.serialize(rdf);
+        } catch (MediaProcessorException e) {
+            throw new IllegalStateException("Should always be able to serialize.", e);
+        }
         try {
             if (queue.remainingCapacity() == 0)
                 logger.warn("Results upload queue full");
