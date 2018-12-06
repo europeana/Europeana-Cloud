@@ -1,7 +1,7 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
-import eu.europeana.metis.mediaprocessing.exception.MediaException;
+import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +102,7 @@ public class TempFileSync {
         }
     }
 
-    public static void ensureLocal(FileInfo file) throws MediaException {
+    public static void ensureLocal(FileInfo file) throws MediaExtractionException {
         if (isLocal(file) || localToRemoteContent.contains(file.getContent()))
             return;
         long start = System.currentTimeMillis();
@@ -122,8 +121,8 @@ public class TempFileSync {
             }
             logger.debug("Synching file ({} B) took {} ms", local.length(), System.currentTimeMillis() - start);
         } catch (IOException e) {
-            throw new MediaException("Could not synchronize temp file with " + file.getContentSource()
-                    + "(" + remote + ")", "TEMP-SYNCH", e);
+            throw new MediaExtractionException("Could not synchronize temp file with " + file.getContentSource()
+                    + "(" + remote + ")", e);
         }
     }
 

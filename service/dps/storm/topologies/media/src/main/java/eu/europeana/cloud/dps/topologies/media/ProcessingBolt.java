@@ -24,8 +24,10 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.RdfConverter;
-import eu.europeana.metis.mediaprocessing.exception.MediaException;
+import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
+import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaService.MediaProcessingListener;
@@ -77,7 +79,7 @@ public class ProcessingBolt extends BaseRichBolt {
         try {
             mediaService = new TemporaryMediaService();
             serializer = new RdfConverter.Writer();
-        } catch (MediaProcessorException e) {
+        } catch (RdfConverterException | MediaProcessorException e) {
 
         }
 
@@ -119,32 +121,27 @@ public class ProcessingBolt extends BaseRichBolt {
         }
 
         @Override
-        public void beforeStartingFile(FileInfo file) throws MediaException {
+        public void beforeStartingFile(FileInfo file) throws MediaExtractionException {
             start = System.currentTimeMillis();
             TempFileSync.ensureLocal(file);
         }
   
         @Override
-        public boolean handleMediaException(FileInfo file, MediaException e) {
-            logger.info("processing failed ({}/{}) for {}", e.reportError, e.getMessage(), file.getUrl());
+        public void handleMediaExtractionException(FileInfo file, MediaExtractionException e) {
+            logger.info("processing failed ({}) for {}", e.getMessage(), file.getUrl());
             logger.trace("failure details:", e);
-            retry = retry || e.retry;
-            if (!e.retry) {
-                String message = e.reportError;
-                if (message == null) {
-                    logger.warn("Exception without proper report error:", e);
-                    message = "UNKNOWN";
-                }
-                statsData.addStatus(file.getUrl(), message);
+            String message = e.getMessage();
+            if (message == null) {
+                logger.warn("Exception without proper report error:", e);
+                message = "UNKNOWN";
             }
-            return e.retry;
+            statsData.addStatus(file.getUrl(), message);
         }
   
         @Override
-        public boolean handleOtherException(FileInfo file, Exception e) {
+        public void handleOtherException(FileInfo file, Exception e) {
             logger.info("processing failed ({}) for {}", e.getMessage(), file.getUrl());
             statsData.addStatus(file.getUrl(), e.getMessage());
-            return false;
         }
   
         @Override
@@ -188,8 +185,8 @@ public class ProcessingBolt extends BaseRichBolt {
         }
         for (Thumbnail thumb : thumbnails) {
             try {
-                thumb.deleteFile();
-            } catch (MediaProcessorException e) {
+                thumb.close();
+            } catch (IOException e) {
                 logger.warn("Could not delete thumbnail.", e);
             }
         }
@@ -203,7 +200,7 @@ public class ProcessingBolt extends BaseRichBolt {
         item.thumbnails = thumbnails;
         try {
             item.edmContents = serializer.serialize(rdf);
-        } catch (MediaProcessorException e) {
+        } catch (RdfSerializationException e) {
             throw new IllegalStateException("Should always be able to serialize.", e);
         }
         try {
@@ -326,7 +323,7 @@ public class ProcessingBolt extends BaseRichBolt {
                     amazonClient.putObject(storageBucket, t.getTargetName(), t.getContentStream(), new ObjectMetadata());
                     logger.debug("thumbnail saved: {} b, md5({}) = {}", t.getContentSize(), t.getResourceUrl(), t.getTargetName());
                     uploaded = true;
-                } catch (AmazonClientException | MediaProcessorException e) {
+                } catch (AmazonClientException | IOException e) {
                     logger.error("Could not save thumbnails for " + t.getResourceUrl(), e);
                     currentItem.statsData.addErrorIfAbsent(t.getResourceUrl(), "THUMBNAIL SAVING");
                 }

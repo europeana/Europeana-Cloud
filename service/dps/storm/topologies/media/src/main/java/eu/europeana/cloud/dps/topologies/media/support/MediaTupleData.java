@@ -11,9 +11,11 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.RdfConverter.Parser;
 import eu.europeana.metis.mediaprocessing.RdfConverter.Writer;
-import eu.europeana.metis.mediaprocessing.UrlType;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
+import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
+import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
+import eu.europeana.metis.mediaprocessing.model.UrlType;
 import eu.europeana.metis.mediaprocessing.temp.DownloadedResource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -163,7 +165,7 @@ public class MediaTupleData {
             try {
                 deserializer = new Parser();
                 serializer = new Writer();
-            } catch (MediaProcessorException e) {
+            } catch (RdfConverterException e) {
                 throw new RuntimeException("EDM serializer construction failed", e);
             }
         }
@@ -174,7 +176,7 @@ public class MediaTupleData {
             kryo.writeObject(output, data.edmRepresentation);
             try {
                 kryo.writeObject(output, serializer.serialize(data.edm));
-            } catch (MediaProcessorException e) {
+            } catch (RdfSerializationException e) {
                 throw new RuntimeException("EDM writing failed", e);
             }
             kryo.writeObject(output, new ArrayList<>(data.fileInfos));
@@ -189,7 +191,7 @@ public class MediaTupleData {
             MediaTupleData data = new MediaTupleData(taskId, representation);
             try (ByteArrayInputStream byteStream = new ByteArrayInputStream(kryo.readObject(input, byte[].class))) {
                 data.edm = deserializer.deserialize(byteStream);
-            } catch (MediaProcessorException | IOException e) {
+            } catch (RdfDeserializationException | IOException e) {
                 throw new RuntimeException("EDM parsing failed", e);
             }
             data.fileInfos = kryo.readObject(input, ArrayList.class);

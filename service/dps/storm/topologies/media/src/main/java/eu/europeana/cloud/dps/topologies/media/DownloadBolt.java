@@ -5,7 +5,8 @@ import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.MediaExtractor;
+import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.model.Resource;
 import eu.europeana.metis.mediaprocessing.model.ResourceImpl;
 import eu.europeana.metis.mediaprocessing.temp.HttpClientCallback;
@@ -52,9 +53,9 @@ public class DownloadBolt extends HttpClientBolt<Resource> {
     }
 
     @Override
-    protected void execute(eu.europeana.metis.mediaprocessing.MediaProcessor mediaProcessor,
+    protected void execute(MediaExtractor mediaProcessor,
         List<FileInfo> files, Map<String, Integer> connectionLimitsPerSource,
-        HttpClientCallback<FileInfo, Resource> callback) throws MediaProcessorException {
+        HttpClientCallback<FileInfo, Resource> callback) throws MediaExtractionException {
         ((TemporaryMediaProcessor) mediaProcessor).executeDownloadTask(files, connectionLimitsPerSource, callback);
     }
 

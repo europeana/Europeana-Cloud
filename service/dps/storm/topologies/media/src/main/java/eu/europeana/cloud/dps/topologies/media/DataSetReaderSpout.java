@@ -29,7 +29,9 @@ import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.metis.mediaprocessing.RdfConverter;
-import eu.europeana.metis.mediaprocessing.UrlType;
+import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
+import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
+import eu.europeana.metis.mediaprocessing.model.UrlType;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import java.io.IOException;
@@ -310,7 +312,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
                 super("edm-downloader-" + id);
                 try {
                     this.deserializer = new RdfConverter.Parser();
-                } catch (MediaProcessorException e) {
+                } catch (RdfConverterException e) {
                     throw new IllegalStateException(e);
                 }
             }
@@ -346,7 +348,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
                             rep.getVersion(), file.getFileName()).toString();
                     try (InputStream is = fileClient.getFile(fileUri)) {
                         edmInfo.edmObject = deserializer.deserialize(is);
-                    } catch (MediaProcessorException e) {
+                    } catch (RdfDeserializationException e) {
                         logger.info("EDM loading failed ({}/{}) for {}", e.getMessage(), e.getMessage(), rep.getFiles());
                         logger.trace("full exception:", e);
                         StatsTupleData stats = new StatsTupleData(edmInfo.taskInfo.task.getTaskId(), edmInfo.counter);

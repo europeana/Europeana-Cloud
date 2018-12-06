@@ -2,8 +2,8 @@ package eu.europeana.cloud.dps.topologies.media;
 
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
-import eu.europeana.metis.mediaprocessing.MediaProcessor;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.MediaExtractor;
+import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
 import eu.europeana.metis.mediaprocessing.temp.HttpClientCallback;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaProcessor;
 import java.util.List;
@@ -25,9 +25,9 @@ public class LinkCheckBolt extends HttpClientBolt<Void> {
     }
 
     @Override
-    protected void execute(MediaProcessor mediaProcessor, List<FileInfo> files,
+    protected void execute(MediaExtractor mediaProcessor, List<FileInfo> files,
         Map<String, Integer> connectionLimitsPerSource, HttpClientCallback<FileInfo, Void> callback)
-        throws MediaProcessorException {
+        throws LinkCheckingException {
         ((TemporaryMediaProcessor) mediaProcessor).executeLinkCheckTask(files, connectionLimitsPerSource, callback);
     }
 

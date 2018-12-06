@@ -5,11 +5,13 @@ import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
-import eu.europeana.metis.mediaprocessing.MediaProcessor;
+import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
+import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
+import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.temp.HttpClientCallback;
-import java.io.IOException;
+import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaProcessor;
 import java.util.List;
 import java.util.Map;
 import org.apache.storm.task.OutputCollector;
@@ -27,7 +29,7 @@ abstract class HttpClientBolt<O> extends BaseRichBolt {
 
     protected transient OutputCollector outputCollector;
 
-    private MediaProcessor mediaProcessor;
+    private TemporaryMediaProcessor mediaProcessor;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -37,7 +39,7 @@ abstract class HttpClientBolt<O> extends BaseRichBolt {
         mediaProcessorFactory.setGeneralConnectionLimit((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_TOTAL", 200));
         mediaProcessorFactory.setConnectionLimitPerSource((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_PER_SOURCE", 4));
         try {
-            mediaProcessor = mediaProcessorFactory.createMediaProcessor();
+            mediaProcessor = (TemporaryMediaProcessor) mediaProcessorFactory.createMediaExtractor();
         } catch (MediaProcessorException e) {
             throw new RuntimeException("Could not initialize http client", e);
         }
@@ -45,11 +47,7 @@ abstract class HttpClientBolt<O> extends BaseRichBolt {
 
     @Override
     public final void cleanup() {
-        try {
-            mediaProcessor.close();
-        } catch (IOException e) {
-            logger.error("HttpClient could not close", e);
-        }
+        mediaProcessor.close();
         TempFileSync.stopServer();
     }
 
@@ -68,14 +66,14 @@ abstract class HttpClientBolt<O> extends BaseRichBolt {
 
         try {
             execute(mediaProcessor, files, data.getConnectionLimitsPerSource(), callback);
-        } catch (MediaProcessorException e) {
+        } catch (MediaExtractionException | LinkCheckingException e) {
             outputCollector.fail(input);
         }
     }
 
-    protected abstract void execute(MediaProcessor mediaProcessor, List<FileInfo> files,
+    protected abstract void execute(MediaExtractor mediaProcessor, List<FileInfo> files,
         Map<String, Integer> connectionLimitsPerSource, HttpClientCallback<FileInfo, O> callback)
-        throws MediaProcessorException;
+        throws MediaExtractionException, LinkCheckingException;
 
     protected abstract void statusUpdate(Tuple tuple, StatsTupleData stats, FileInfo fileInfo,
         O output, String status);
