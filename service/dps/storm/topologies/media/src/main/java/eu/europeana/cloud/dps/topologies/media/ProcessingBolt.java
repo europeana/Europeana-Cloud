@@ -23,7 +23,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
-import eu.europeana.metis.mediaprocessing.RdfConverter;
+import eu.europeana.metis.mediaprocessing.RdfSerializerImpl;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
@@ -65,7 +65,7 @@ public class ProcessingBolt extends BaseRichBolt {
     private transient Map<String, Object> config;
 
     private transient TemporaryMediaService mediaService;
-    private transient RdfConverter.Writer serializer;
+    private transient RdfSerializerImpl serializer;
 
     private ArrayList<ResultsUploadThread> threads = new ArrayList<>();
     private ArrayBlockingQueue<Item> queue = new ArrayBlockingQueue<>(100);
@@ -78,7 +78,7 @@ public class ProcessingBolt extends BaseRichBolt {
         this.config = stormConf;
         try {
             mediaService = new TemporaryMediaService();
-            serializer = new RdfConverter.Writer();
+            serializer = new RdfSerializerImpl();
         } catch (RdfConverterException | MediaProcessorException e) {
 
         }

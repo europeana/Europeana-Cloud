@@ -8,7 +8,6 @@ import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.model.Resource;
-import eu.europeana.metis.mediaprocessing.model.ResourceImpl;
 import eu.europeana.metis.mediaprocessing.temp.HttpClientCallback;
 import eu.europeana.metis.mediaprocessing.temp.TemporaryMediaProcessor;
 import java.net.InetAddress;
@@ -66,7 +65,7 @@ public class DownloadBolt extends HttpClientBolt<Resource> {
         if (Status.STATUS_OK.equals(status)) {
             fileInfo.setMimeType(resource.getMimeType());
             if (resource.hasContent()) {
-                fileInfo.setContent(((ResourceImpl)resource).getContentPath().toFile());
+                fileInfo.setContent(((Resource)resource).getContentPath().toFile());
             }
         } else {
             fileInfo.setErrorFlag(true);

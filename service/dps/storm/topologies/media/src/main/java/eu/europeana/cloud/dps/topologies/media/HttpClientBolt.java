@@ -35,9 +35,7 @@ abstract class HttpClientBolt<O> extends BaseRichBolt {
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
         final MediaProcessorFactory mediaProcessorFactory = new MediaProcessorFactory();
-        mediaProcessorFactory.setRedirectCount(FOLLOW_REDIRECTS);
-        mediaProcessorFactory.setGeneralConnectionLimit((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_TOTAL", 200));
-        mediaProcessorFactory.setConnectionLimitPerSource((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_PER_SOURCE", 4));
+        mediaProcessorFactory.setMaxRedirectCount(FOLLOW_REDIRECTS);
         try {
             mediaProcessor = (TemporaryMediaProcessor) mediaProcessorFactory.createMediaExtractor();
         } catch (MediaProcessorException e) {

@@ -28,11 +28,10 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.corelib.definitions.jibx.RDF;
-import eu.europeana.metis.mediaprocessing.RdfConverter;
+import eu.europeana.metis.mediaprocessing.RdfDeserializerImpl;
 import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.UrlType;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import java.io.IOException;
 import java.io.InputStream;
@@ -306,12 +305,12 @@ public class DataSetReaderSpout extends BaseRichSpout {
 
             DpsTask currentTask;
             FileServiceClient fileClient;
-            RdfConverter.Parser deserializer;
+            RdfDeserializerImpl deserializer;
 
             public EdmDownloadThread(int id) {
                 super("edm-downloader-" + id);
                 try {
-                    this.deserializer = new RdfConverter.Parser();
+                    this.deserializer = new RdfDeserializerImpl();
                 } catch (RdfConverterException e) {
                     throw new IllegalStateException(e);
                 }

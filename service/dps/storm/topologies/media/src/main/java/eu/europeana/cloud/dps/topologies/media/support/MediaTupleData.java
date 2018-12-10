@@ -9,8 +9,8 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.MTDSerializer;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.corelib.definitions.jibx.RDF;
-import eu.europeana.metis.mediaprocessing.RdfConverter.Parser;
-import eu.europeana.metis.mediaprocessing.RdfConverter.Writer;
+import eu.europeana.metis.mediaprocessing.RdfDeserializerImpl;
+import eu.europeana.metis.mediaprocessing.RdfSerializerImpl;
 import eu.europeana.metis.mediaprocessing.exception.RdfConverterException;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
@@ -158,13 +158,13 @@ public class MediaTupleData {
 
     public static class MTDSerializer extends com.esotericsoftware.kryo.Serializer<MediaTupleData> {
 
-        private final Parser deserializer;
-        private final Writer serializer;
+        private final RdfDeserializerImpl deserializer;
+        private final RdfSerializerImpl serializer;
 
         public MTDSerializer() {
             try {
-                deserializer = new Parser();
-                serializer = new Writer();
+                deserializer = new RdfDeserializerImpl();
+                serializer = new RdfSerializerImpl();
             } catch (RdfConverterException e) {
                 throw new RuntimeException("EDM serializer construction failed", e);
             }
