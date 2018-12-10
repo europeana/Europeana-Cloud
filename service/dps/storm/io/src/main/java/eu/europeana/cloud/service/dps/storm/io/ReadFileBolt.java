@@ -28,7 +28,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
      * Properties to connect to eCloud
      */
     private final String ecloudMcsAddress;
-    private FileServiceClient fileClient;
+    protected FileServiceClient fileClient;
 
     public ReadFileBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -42,9 +42,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple t) {
         final String file = t.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        LOGGER.info("HERE THE LINK: {}", file);
-        try (InputStream is = getFile(fileClient, file, authorizationHeader)) {
+        try (InputStream is = getFileStreamByStormTuple(t)) {
             t.setFileData(is);
             t.setFileUrl(file);
             outputCollector.emit(t.toStormTuple());
@@ -74,4 +72,11 @@ public class ReadFileBolt extends AbstractDpsBolt {
             }
         }
     }
+
+    protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws MCSException, IOException, DriverException {
+        final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        LOGGER.info("HERE THE LINK: {}", file);
+        return getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+    }
+
 }
