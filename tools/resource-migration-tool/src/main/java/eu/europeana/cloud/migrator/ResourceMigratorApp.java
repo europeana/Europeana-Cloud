@@ -31,12 +31,15 @@ public class ResourceMigratorApp {
 
     private static final String VERIFYLOCAL = "verifylocal";
 
+    private static final String GRANT_PUBLIC_ACCESS = "grant";
+
     private static ArgumentParser prepareArgumentParser() {
         ArgumentParser parser = ArgumentParsers.newArgumentParser("ResourceMigratorApp")
                 .defaultHelp(true)
                 .description("Migrate files from specified location to Europeana Cloud.");
         parser.addArgument("-c", "--clean").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Clean previously added records.");
         parser.addArgument("-path").help("Only in Windows.");
+        parser.addArgument("-g", "--grant").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Grant .");
 
         MutuallyExclusiveGroup group = parser.addMutuallyExclusiveGroup();
         group.addArgument("-v", "--verify").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Verify the migration from files point of view.");
@@ -68,6 +71,8 @@ public class ResourceMigratorApp {
             migrator.verifyLocalIds();
         else if (ns.getBoolean(VERIFY))
             migrator.verify();
+        else if (ns.getBoolean(GRANT_PUBLIC_ACCESS))
+            migrator.grant(ns.getBoolean(SIMULATE));
         else
             migrator.migrate(ns.getBoolean(CLEAN), ns.getBoolean(SIMULATE));
         System.exit(0);
