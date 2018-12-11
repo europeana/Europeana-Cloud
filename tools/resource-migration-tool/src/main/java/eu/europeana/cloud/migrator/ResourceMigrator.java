@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
@@ -236,6 +237,64 @@ public class ResourceMigrator {
             }
         }
         return result;
+    }
+
+    public boolean grant(boolean simulate) {
+        Set<String> uniqueIds = new HashSet<String>();
+        uniqueIds.addAll(resourceProvider.getReversedMapping().values());
+
+        // do nothing when local identifiers could not be retrieved
+        if (uniqueIds.size() == 0)
+            return false;
+
+        ExecutorService threadLocalIdPool = Executors
+                .newFixedThreadPool(threadsCount);
+        List<Future<PublicAccessGranterResult>> results = null;
+        List<Callable<PublicAccessGranterResult>> tasks = new ArrayList<Callable<PublicAccessGranterResult>>();
+
+        int parts = threadsCount;
+
+        int idsPerThread = uniqueIds.size() / threadsCount;
+        if (idsPerThread == 0) {
+            parts = 1;
+            idsPerThread = uniqueIds.size();
+        } else {
+            if (uniqueIds.size() % threadsCount > 0)
+                idsPerThread++;
+        }
+
+        List<String> localIds = new ArrayList<String>(uniqueIds);
+        // create task for each resource provider
+        for (int i = 0; i < parts; i++) {
+            int from = i * idsPerThread;
+            if (from >= localIds.size()) {
+                break;
+            }
+            int to = (i + 1) * idsPerThread > localIds.size() ? localIds.size() : (i + 1) * idsPerThread;
+            String id = String.valueOf(from + "-" + to);
+            logger.info("Starting public access granter task thread for part " + id + "...");
+            tasks.add(new PublicAccessGranter(localIds.subList(from, to), id, simulate));
+        }
+
+        if (tasks.size() == 0)
+            return false;
+
+        try {
+            // invoke a separate thread for each provider
+            results = threadLocalIdPool.invokeAll(tasks);
+
+            PublicAccessGranterResult granterResult;
+            for (Future<PublicAccessGranterResult> result : results) {
+                granterResult = result.get();
+                logger.info("Public access granter part " + granterResult.getIdentifier() + " performed successfully. Granting time: " + granterResult.getTime() + " sec. Number of not granted identifiers: " + granterResult.getNotGrantedCount());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Granting processed interrupted.", e);
+        } catch (ExecutionException e) {
+            logger.error("Problem with granting task thread execution.", e);
+        }
+        return true;
     }
 
     public boolean migrate(boolean clean, boolean simulate) {
@@ -1546,6 +1605,118 @@ public class ResourceMigrator {
             saveProgress(providerId, toSave, true, null);
         } catch (IOException e) {
             logger.error("Problem with file.", e);
+        }
+    }
+
+
+    private class PublicAccessGranter implements Callable<PublicAccessGranterResult> {
+        // local identifiers of records to be checked and granted public access
+        private List<String> localIds;
+
+        // identifier of part of local identifiers (usually a name of the directory), may be null
+        private String identifier;
+
+        private boolean simulate;
+
+        PublicAccessGranter(List<String> localIds, String identifier, boolean simulate) {
+            this.localIds = localIds;
+            this.identifier = identifier;
+            this.simulate = simulate;
+        }
+
+        public PublicAccessGranterResult call()
+                throws Exception {
+            long start = System.currentTimeMillis();
+
+            long notGranted = 0;
+            int counter = 0;
+
+            int total = localIds.size();
+            String cloudId;
+            List<String> strings = new ArrayList<>();
+
+            // truncate file
+            saveProgress(resourceProvider.getDataProviderId(""), strings, true, "grantaccess_" + identifier + "_");
+
+            for (String localId : localIds) {
+                if ((int) (((float) (counter) / (float) total) * 100) > (int) (((float) (counter - 1) / (float) total) * 100)) {
+                    logger.info("Granting public access part " + identifier + " progress: " + counter + " of " + total + " (" + (int) (((float) (counter) / (float) total) * 100) + "%).");
+                    if (!strings.isEmpty()) {
+                        saveProgress(resourceProvider.getDataProviderId(""), strings, false, "grantaccess_" + identifier + "_");
+                        notGranted += strings.size();
+                        strings.clear();
+                    }
+                }
+                counter++;
+
+                cloudId = getRecord(resourceProvider.getDataProviderId(""), localId);
+                if (cloudId != null) {
+                    List<Representation> representations = null;
+                    try {
+                        representations = mcs.getRepresentations(cloudId, resourceProvider.getRepresentationName());
+                    } catch (MCSException e) {
+                        logger.warn(e.getMessage());
+                    }
+                    if (representations == null || representations.isEmpty()) {
+                        continue;
+                    }
+                    for (Representation representation : representations) {
+                        if (representation.isPersistent() && !accessible(representation)) {
+                            // in this case there are no permissions
+                            if (!simulate) {
+                                mcs.permitVersion(cloudId, representation.getRepresentationName(), representation.getVersion());
+                            }
+                            strings.add(localId + ";no permissions for persistent version");
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!strings.isEmpty()) {
+                saveProgress(resourceProvider.getDataProviderId(""), strings, false, "grantaccess_" + identifier + "_");
+                notGranted += strings.size();
+            }
+            return new PublicAccessGranterResult(notGranted, (float) (System.currentTimeMillis() - start) / (float) 1000, identifier);
+        }
+
+        private boolean accessible(Representation representation) throws IOException {
+            URL url = new URL(representation.getAllVersionsUri() + "/" + representation.getVersion());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            int code = connection.getResponseCode();
+            connection.disconnect();
+            return (code != Response.Status.METHOD_NOT_ALLOWED.getStatusCode());
+        }
+    }
+
+    private class PublicAccessGranterResult {
+        // Part identifier
+        String identifier;
+
+        // execution time
+        float time;
+
+        // number of versions without public access
+        long notGranted;
+
+        PublicAccessGranterResult(long notGranted, float time, String identifier) {
+            this.notGranted = notGranted;
+            this.time = time;
+            this.identifier = identifier;
+        }
+
+        long getNotGrantedCount() {
+            return notGranted;
+        }
+
+        float getTime() {
+            return time;
+        }
+
+        String getIdentifier() {
+            return identifier;
         }
     }
 }
