@@ -46,7 +46,6 @@ public class ParseFileBolt extends ReadFileBolt {
                     LOGGER.info("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
                     tuple.setFileData(fileContent);
                     tuple.addParameter(RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
-                    tuple.addParameter(RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
                     tuple.addParameter(RESOURCE_LINKS_COUNT, String.valueOf(rdfResourceEntries.size()));
                     outputCollector.emit(tuple.toStormTuple());
                 }
