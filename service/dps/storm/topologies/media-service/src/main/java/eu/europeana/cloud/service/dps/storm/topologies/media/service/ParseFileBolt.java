@@ -20,8 +20,8 @@ import eu.europeana.metis.mediaprocessing.*;
  */
 public class ParseFileBolt extends ReadFileBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
-    public static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
-    public static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
+    private static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
+    private static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
     private final Gson gson = new Gson();
     private RdfDeserializer rdfDeserializer;
 
@@ -45,7 +45,6 @@ public class ParseFileBolt extends ReadFileBolt {
                     StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                     LOGGER.info("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
                     tuple.setFileData(fileContent);
-                    tuple.addParameter(RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
                     tuple.addParameter(RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
                     tuple.addParameter(RESOURCE_LINKS_COUNT, String.valueOf(rdfResourceEntries.size()));
                     outputCollector.emit(tuple.toStormTuple());
