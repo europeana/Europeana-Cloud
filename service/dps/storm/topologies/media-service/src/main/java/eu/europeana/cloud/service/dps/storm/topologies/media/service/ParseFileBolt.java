@@ -38,7 +38,6 @@ public class ParseFileBolt extends ReadFileBolt {
                 StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                 LOGGER.info("The EDM file has no resource Links ");
                 tuple.setFileData(fileContent);
-                tuple.addParameter(RESOURCE_LINKS_COUNT, null);
                 outputCollector.emit(tuple.toStormTuple());
             } else {
                 for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
@@ -63,6 +62,7 @@ public class ParseFileBolt extends ReadFileBolt {
             rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
         } catch (Exception e) {
             LOGGER.error("Unable to initialize RDF Deserializer ", e);
+            throw new RuntimeException(ExceptionUtils.getStackTrace(e));
         }
     }
 }
