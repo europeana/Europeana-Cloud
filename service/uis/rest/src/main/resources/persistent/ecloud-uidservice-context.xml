@@ -63,8 +63,6 @@
     <bean id="uniqueIdResource"
           class="eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource" />
     
-    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>
-
     <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
         <constructor-arg name="session" value="#{dbService.session}"/>
     </bean>
