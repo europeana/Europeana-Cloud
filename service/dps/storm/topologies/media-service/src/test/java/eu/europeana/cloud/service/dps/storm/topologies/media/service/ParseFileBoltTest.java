@@ -33,13 +33,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class ParseFileBoltTest {
 
-    private static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
     private static final String AUTHORIZATION = "Authorization";
-    public static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
-    public static final String DPS_TASK_INPUT_DATA = "DPS_TASK_INPUT_DATA";
-    public static final String FILE_URL = "FILE_URL";
-    public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
-    public static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
+    private static final String FILE_URL = "FILE_URL";
+    private static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
+
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
@@ -61,7 +58,7 @@ public class ParseFileBoltTest {
     public static void init() {
 
         parseFileBolt.prepare();
-        expectedParametersKeysList = Arrays.asList(AUTHORIZATION_HEADER, RESOURCE_LINK_KEY, DPS_TASK_INPUT_DATA, RESOURCE_LINKS_COUNT);
+        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.DPS_TASK_INPUT_DATA, PluginParameterKeys.RESOURCE_LINKS_COUNT);
 
     }
 
@@ -71,7 +68,7 @@ public class ParseFileBoltTest {
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
-        stormTaskTuple.addParameter(AUTHORIZATION_HEADER, AUTHORIZATION);
+        stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
     }
 
     @Test
@@ -106,8 +103,8 @@ public class ParseFileBoltTest {
             Map<String, String> map = (Map) values.get(4);
             System.out.println(map);
             assertEquals(2, map.size());
-            assertNull(map.get(RESOURCE_LINKS_COUNT));
-            assertNull(map.get(RESOURCE_LINK_KEY));
+            assertNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
+            assertNull(map.get(PluginParameterKeys.RESOURCE_LINK_KEY));
         }
 
     }
