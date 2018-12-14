@@ -70,7 +70,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 buildErrorMessage(exception, e.getMessage());
             } finally {
                 stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
-                if (!exception.toString().isEmpty())
+                if (exception.length() > 0)
                     stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                 outputCollector.emit(stormTaskTuple.toStormTuple());
             }
@@ -87,12 +87,12 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             createMediaExtractor();
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
+            throw new RuntimeException(e);
         }
     }
 
     private void createMediaExtractor() throws MediaProcessorException {
-        MediaProcessorFactory factory = new MediaProcessorFactory();
-        mediaExtractor = factory.createMediaExtractor();
+        mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
     }
 
     private void initAmazonClient() {
@@ -106,7 +106,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
     private void buildErrorMessage(StringBuilder message, String newMessage) {
         LOGGER.error("Error while processing {}", newMessage);
-        if (message.toString().isEmpty()) {
+        if (message.length() == 0) {
             message.append(newMessage);
         } else {
             message.append(",").append(newMessage);
