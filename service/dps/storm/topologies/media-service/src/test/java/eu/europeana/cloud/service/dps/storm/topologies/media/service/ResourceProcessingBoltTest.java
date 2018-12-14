@@ -47,11 +47,8 @@ public class ResourceProcessingBoltTest {
     private final static String AWS_BUCKET = "AWS_BUCKET";
 
     public static final String FILE_URL = "FILE_URL";
-    private static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
     private static final String AUTHORIZATION = "Authorization";
-    private static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
-    private static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
-    private static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
+
 
     private StormTaskTuple stormTaskTuple;
 
@@ -81,20 +78,20 @@ public class ResourceProcessingBoltTest {
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
-        stormTaskTuple.addParameter(AUTHORIZATION_HEADER, AUTHORIZATION);
+        stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
     }
 
 
     @Test
     public void shouldSuccessfullyProcessTheResource() throws Exception {
-        stormTaskTuple.addParameter(RESOURCE_LINKS_COUNT, Integer.toString(5));
-        stormTaskTuple.addParameter(RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
         String resourceName = "RESOURCE_URL";
         int thumbnailCount = 3;
         List<Thumbnail> thumbnailList = getThumbnails(resourceName, thumbnailCount);
 
-        ResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
+        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResult(resourceMetadata, thumbnailList);
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
@@ -107,20 +104,20 @@ public class ResourceProcessingBoltTest {
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
         assertEquals(4, parameters.size());
-        assertNull(parameters.get(EXCEPTION_ERROR_MESSAGE));
+        assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
     }
 
 
     @Test
     public void shouldFormulateTheAggregateExceptionsWhenSavingToAmazonFails() throws Exception {
-        stormTaskTuple.addParameter(RESOURCE_LINKS_COUNT, Integer.toString(5));
-        stormTaskTuple.addParameter(RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
         String resourceName = "RESOURCE_URL";
         int thumbNailCount = 3;
         List<Thumbnail> thumbnailList = getThumbnails(resourceName, thumbNailCount);
 
-        ResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
+        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResult(resourceMetadata, thumbnailList);
         String errorMessage = "The error was thrown because of something";
 
@@ -134,17 +131,17 @@ public class ResourceProcessingBoltTest {
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
         assertEquals(5, parameters.size());
-        assertNotNull(parameters.get(EXCEPTION_ERROR_MESSAGE));
-        assertEquals(thumbNailCount, StringUtils.countMatches(parameters.get(EXCEPTION_ERROR_MESSAGE), errorMessage));
-        assertNull(parameters.get(RESOURCE_LINK_KEY));
+        assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+        assertEquals(thumbNailCount, StringUtils.countMatches(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), errorMessage));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINK_KEY));
 
     }
 
 
     @Test
     public void shouldSendExceptionsWhenProcessingFails() throws Exception {
-        stormTaskTuple.addParameter(RESOURCE_LINKS_COUNT, Integer.toString(5));
-        stormTaskTuple.addParameter(RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
         doThrow(MediaExtractionException.class).when(mediaExtractor).performMediaExtraction(any(RdfResourceEntry.class));
 
         resourceProcessingBolt.execute(stormTaskTuple);
@@ -156,9 +153,9 @@ public class ResourceProcessingBoltTest {
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
         assertEquals(4, parameters.size());
-        assertNotNull(parameters.get(EXCEPTION_ERROR_MESSAGE));
-        assertNull(parameters.get("RESOURCE_METADATA"));
-        assertNull(parameters.get(RESOURCE_LINK_KEY));
+        assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINK_KEY));
 
     }
 
@@ -173,8 +170,8 @@ public class ResourceProcessingBoltTest {
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
         assertEquals(expectedParametersSize, parameters.size());
-        assertNull(parameters.get(EXCEPTION_ERROR_MESSAGE));
-        assertNull(parameters.get("RESOURCE_METADATA"));
+        assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
     }
 
     private List<Thumbnail> getThumbnails(String resourceName, int thumbnailCount) throws IOException {

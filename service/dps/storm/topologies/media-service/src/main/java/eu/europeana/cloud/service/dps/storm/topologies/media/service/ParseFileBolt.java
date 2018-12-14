@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
@@ -20,8 +21,6 @@ import eu.europeana.metis.mediaprocessing.*;
  */
 public class ParseFileBolt extends ReadFileBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
-    private static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
-    private static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
     private final Gson gson = new Gson();
     private RdfDeserializer rdfDeserializer;
 
@@ -38,15 +37,14 @@ public class ParseFileBolt extends ReadFileBolt {
                 StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                 LOGGER.info("The EDM file has no resource Links ");
                 tuple.setFileData(fileContent);
-                tuple.addParameter(RESOURCE_LINKS_COUNT, null);
                 outputCollector.emit(tuple.toStormTuple());
             } else {
                 for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
                     StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                     LOGGER.info("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
                     tuple.setFileData(fileContent);
-                    tuple.addParameter(RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
-                    tuple.addParameter(RESOURCE_LINKS_COUNT, String.valueOf(rdfResourceEntries.size()));
+                    tuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
+                    tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(rdfResourceEntries.size()));
                     outputCollector.emit(tuple.toStormTuple());
                 }
             }

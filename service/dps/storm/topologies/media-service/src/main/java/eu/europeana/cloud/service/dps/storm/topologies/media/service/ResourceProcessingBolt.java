@@ -4,6 +4,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.gson.Gson;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -22,11 +23,8 @@ import java.util.List;
  * Created by Tarek on 12/11/2018.
  */
 public class ResourceProcessingBolt extends AbstractDpsBolt {
-    private static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);
-    private static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
-    private static final String RESOURCE_METADATA = "RESOURCE_METADATA";
-    private static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
 
 
     static AmazonS3 amazonClient;
@@ -51,29 +49,29 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
         StringBuilder exception = new StringBuilder();
-        if (stormTaskTuple.getParameter(RESOURCE_LINKS_COUNT) == null) {
+        if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
             try {
-                RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(RESOURCE_LINK_KEY), RdfResourceEntry.class);
+                RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry);
-                stormTaskTuple.addParameter(RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
                 List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
                 for (Thumbnail thumbnail : thumbnails) {
                     try (InputStream stream = thumbnail.getContentStream()) {
                         amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, null);
-                        LOGGER.info("The thumbnail {} was uploaded successfully to Amazon S3", thumbnail.getTargetName());
+                        LOGGER.info("The thumbnail {} was uploaded successfully to S3 in Bluemix", thumbnail.getTargetName());
                     } catch (Exception e) {
-                        String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to Amazon S3. The full error message is " + e.getMessage();
+                        String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is " + e.getMessage();
                         buildErrorMessage(exception, errorMessage);
                     }
                 }
             } catch (Exception e) {
                 buildErrorMessage(exception, e.getMessage());
             } finally {
-                stormTaskTuple.getParameters().remove(RESOURCE_LINK_KEY);
+                stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
                 if (!exception.toString().isEmpty())
-                    stormTaskTuple.addParameter(EXCEPTION_ERROR_MESSAGE, exception.toString());
+                    stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                 outputCollector.emit(stormTaskTuple.toStormTuple());
             }
         }
