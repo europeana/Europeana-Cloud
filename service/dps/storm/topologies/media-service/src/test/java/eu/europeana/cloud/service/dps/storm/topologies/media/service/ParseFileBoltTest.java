@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -78,9 +79,9 @@ public class ParseFileBoltTest {
             verify(outputCollector, Mockito.times(5)).emit(captor.capture()); // 4 hasView, 1 edm:object
 
             List<Values> capturedValuesList = captor.getAllValues();
-            assertEquals(capturedValuesList.size(), 5);
+            assertEquals(5, capturedValuesList.size());
             for (Values values : capturedValuesList) {
-                assertEquals(values.size(), 7);
+                assertEquals(7, values.size());
                 Map<String, String> val = (Map) values.get(4);
                 assertNotNull(val);
                 for (String parameterKey : val.keySet()) {
@@ -100,7 +101,10 @@ public class ParseFileBoltTest {
             assertNotNull(values);
             System.out.println(values);
             Map<String, String> map = (Map) values.get(4);
+            System.out.println(map);
+            assertEquals(2, map.size());
             assertNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
+            assertNull(map.get(PluginParameterKeys.RESOURCE_LINK_KEY));
         }
 
     }
@@ -112,12 +116,32 @@ public class ParseFileBoltTest {
         verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), captor.capture());
         Values values = captor.getValue();
         assertNotNull(values);
-        System.out.println(values);
         Map<String, String> valueMap = (Map) values.get(2);
         assertNotNull(valueMap);
-        System.out.println(valueMap);
-        assertEquals(valueMap.size(), 4);
+        assertEquals(4, valueMap.size());
         assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
-        assertEquals(valueMap.get("state"), States.ERROR.toString());
+        assertEquals(States.ERROR.toString(), valueMap.get("state"));
+        assertNull(valueMap.get(RESOURCE_LINKS_COUNT));
+        verify(outputCollector, Mockito.times(0)).emit(anyList());
+    }
+
+
+    @Test
+    public void shouldEmitErrorWhenGettingResourceLinksFails() throws Exception {
+        try (InputStream stream = this.getClass().getResourceAsStream("/files/broken.xml")) {
+            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
+            parseFileBolt.execute(stormTaskTuple);
+            verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), captor.capture());
+            Values values = captor.getValue();
+            assertNotNull(values);
+            Map<String, String> valueMap = (Map) values.get(2);
+            assertNotNull(valueMap);
+            assertEquals(4, valueMap.size());
+            assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
+            assertEquals(States.ERROR.toString(), valueMap.get("state"));
+            assertNull(valueMap.get(RESOURCE_LINKS_COUNT));
+            verify(outputCollector, Mockito.times(0)).emit(anyList());
+        }
+
     }
 }

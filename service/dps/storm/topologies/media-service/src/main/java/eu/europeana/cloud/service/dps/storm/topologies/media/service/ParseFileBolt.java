@@ -61,6 +61,7 @@ public class ParseFileBolt extends ReadFileBolt {
             rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
         } catch (Exception e) {
             LOGGER.error("Unable to initialize RDF Deserializer ", e);
+            throw new RuntimeException(e);
         }
     }
 }
