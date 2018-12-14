@@ -121,7 +121,7 @@ public class ParseFileBoltTest {
         assertEquals(4, valueMap.size());
         assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
         assertEquals(States.ERROR.toString(), valueMap.get("state"));
-        assertNull(valueMap.get(RESOURCE_LINKS_COUNT));
+        assertNull(valueMap.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
         verify(outputCollector, Mockito.times(0)).emit(anyList());
     }
 
@@ -139,7 +139,7 @@ public class ParseFileBoltTest {
             assertEquals(4, valueMap.size());
             assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
             assertEquals(States.ERROR.toString(), valueMap.get("state"));
-            assertNull(valueMap.get(RESOURCE_LINKS_COUNT));
+            assertNull(valueMap.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
             verify(outputCollector, Mockito.times(0)).emit(anyList());
         }
 
