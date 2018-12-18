@@ -20,8 +20,10 @@ import eu.europeana.metis.mediaprocessing.temp.DownloadedResource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,18 +36,15 @@ import java.util.Set;
 public class MediaTupleData {
 
     @DefaultSerializer(JavaSerializer.class)
-    public static class FileInfo implements Serializable, DownloadedResource, RdfResourceEntry {
+    public static class FileInfo extends RdfResourceEntry implements Serializable, DownloadedResource {
 
-        private final String url;
         private File content;
         private String mimeType;
         private InetAddress contentSource;
         private boolean errorFlag = false;
-        private Set<UrlType> urlTypes;
 
         public FileInfo(RdfResourceEntry resourceEntry) {
-            this.url = resourceEntry.getResourceUrl();
-            this.urlTypes = resourceEntry.getUrlTypes();
+            super(resourceEntry.getResourceUrl(), new ArrayList<>(resourceEntry.getUrlTypes()));
         }
 
         public File getContent() {
@@ -73,7 +72,7 @@ public class MediaTupleData {
         }
 
         public String getUrl() {
-            return url;
+            return getResourceUrl();
         }
 
         public void setErrorFlag(Boolean errorFlag) {
@@ -85,18 +84,29 @@ public class MediaTupleData {
         }
 
         @Override
-        public Set<UrlType> getUrlTypes() {
-            return Collections.unmodifiableSet(this.urlTypes);
-        }
-
-        @Override
-        public String getResourceUrl() {
-            return getUrl();
-        }
-
-        @Override
         public Path getContentPath() {
             return getContent() != null ? getContent().toPath() : null;
+        }
+
+        @Override
+        public InputStream getContentStream() throws IOException {
+            if (getContent() == null || !getContent().exists()) {
+                throw new IOException("Cannot get the file content: file does not exist.");
+            }
+            return Files.newInputStream(getContentPath());
+        }
+
+        @Override
+        public long getContentSize() throws IOException {
+            if (getContent() == null || !getContent().exists()) {
+                throw new IOException("Cannot get the file size: file does not exist.");
+            }
+            return Files.size(getContentPath());
+        }
+
+        @Override
+        public void close() {
+            // Nothing to do.
         }
     }
 
