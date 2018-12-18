@@ -86,7 +86,7 @@
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-transformation-service</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

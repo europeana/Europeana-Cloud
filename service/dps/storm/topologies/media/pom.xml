@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-media-service</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.logging.log4j</groupId>
