@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>1.1.1</version>
+        <version>1.1.2</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-transformation-service</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
