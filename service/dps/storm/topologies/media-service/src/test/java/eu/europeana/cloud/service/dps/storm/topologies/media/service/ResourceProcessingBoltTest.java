@@ -75,6 +75,7 @@ public class ResourceProcessingBoltTest {
     public void prepareTuple() {
         PowerMockito.mockStatic(ResourceProcessingBolt.class);
         ResourceProcessingBolt.amazonClient = amazonClient;
+        resourceProcessingBolt.initGson();
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);

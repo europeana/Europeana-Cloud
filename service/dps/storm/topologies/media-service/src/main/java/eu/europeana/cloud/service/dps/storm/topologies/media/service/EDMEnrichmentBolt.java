@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.google.gson.Gson;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -8,11 +10,14 @@ import eu.europeana.cloud.service.dps.util.LRUCache;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
+import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
 
 /**
  * Created by Tarek on 12/12/2018.
@@ -23,7 +28,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
 
     private static final int CACHE_SIZE = 25;
 
-    private final Gson gson = new Gson();
+    private Gson gson;
     private RdfDeserializer deserializer;
     private RdfSerializer rdfSerializer;
 
@@ -57,12 +62,10 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
                 if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
                     try {
                         LOGGER.info("The file {} was fully enriched and will be send to the next bolt", file);
-                        if (!tempEnrichedFile.getExceptions().isEmpty())
-                            stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, tempEnrichedFile.getExceptions());
-                        stormTaskTuple.setFileData(rdfSerializer.serialize(tempEnrichedFile.getEnrichedRdf()));
-                        stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_METADATA);
+                        prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
                         outputCollector.emit(stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
+                        LOGGER.error("Error while serializing the enriched file: ", ex);
                         emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex));
                     }
                 } else {
@@ -71,6 +74,22 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
                 }
             }
         }
+    }
+
+    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, TempEnrichedFile tempEnrichedFile) throws RdfSerializationException, MalformedURLException {
+        if (!tempEnrichedFile.getExceptions().isEmpty())
+            stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, tempEnrichedFile.getExceptions());
+        stormTaskTuple.setFileData(rdfSerializer.serialize(tempEnrichedFile.getEnrichedRdf()));
+        final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
+        if (urlParser.isUrlToRepresentationVersionFile()) {
+            stormTaskTuple
+                    .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
+            stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
+                    urlParser.getPart(UrlPart.REPRESENTATIONS));
+            stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
+                    urlParser.getPart(UrlPart.VERSIONS));
+        }
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_METADATA);
     }
 
     private String buildErrorMessage(String resourceErrorMessage, String cachedErrorMessage) {
@@ -100,6 +119,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
         try {
             deserializer = new RdfConverterFactory().createRdfDeserializer();
             rdfSerializer = new RdfConverterFactory().createRdfSerializer();
+            gson = new Gson();
 
         } catch (Exception e) {
             throw new RuntimeException("Error while creating serializer/deserializer", e);

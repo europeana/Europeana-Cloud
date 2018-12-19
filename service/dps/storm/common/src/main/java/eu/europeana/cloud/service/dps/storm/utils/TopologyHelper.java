@@ -32,6 +32,13 @@ public final class TopologyHelper {
     public static final String ENRICHMENT_BOLT = "enrichmentBolt";
     public static final String NORMALIZATION_BOLT = "normalizationBolt";
     public static final String RECORD_HARVESTING_BOLT = "recordHarvestingBolt";
+    public static final String PARSE_FILE_BOLT = "ParseFileBolt";
+    public static final String EDM_ENRICHMENT_BOLT = "EDMEnrichmentBolt";
+    public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
+
+    public static final String EDMEnrichmentBolt = "EDMEnrichmentBolt";
+    public static final String ParseFileBolt = "ParseFileBolt";
+    public static final String ResourceProcessingBolt = "ResourceProcessingBolt";
 
 
     public static Config configureTopology(Properties topologyProperties) {

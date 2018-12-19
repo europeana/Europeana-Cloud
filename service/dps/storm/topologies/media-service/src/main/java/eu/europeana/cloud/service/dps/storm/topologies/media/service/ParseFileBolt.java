@@ -21,7 +21,7 @@ import eu.europeana.metis.mediaprocessing.*;
  */
 public class ParseFileBolt extends ReadFileBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
-    private final Gson gson = new Gson();
+    private Gson gson;
     private RdfDeserializer rdfDeserializer;
 
     public ParseFileBolt(String ecloudMcsAddress) {
@@ -59,6 +59,7 @@ public class ParseFileBolt extends ReadFileBolt {
         super.prepare();
         try {
             rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
+            gson = new Gson();
         } catch (Exception e) {
             LOGGER.error("Unable to initialize RDF Deserializer ", e);
             throw new RuntimeException(e);

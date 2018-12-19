@@ -13,6 +13,7 @@ import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     private String awsBucket;
 
 
-    private final Gson gson = new Gson();
+    private Gson gson;
     private MediaExtractor mediaExtractor;
 
 
@@ -63,10 +64,14 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                         LOGGER.info("The thumbnail {} was uploaded successfully to S3 in Bluemix", thumbnail.getTargetName());
                     } catch (Exception e) {
                         String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is " + e.getMessage();
+                        LOGGER.error(errorMessage);
                         buildErrorMessage(exception, errorMessage);
+                    } finally {
+                        thumbnail.close();
                     }
                 }
             } catch (Exception e) {
+                LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), ExceptionUtils.getStackTrace(e));
                 buildErrorMessage(exception, e.getMessage());
             } finally {
                 stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
@@ -85,10 +90,15 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 initAmazonClient();
             }
             createMediaExtractor();
+            initGson();
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
             throw new RuntimeException(e);
         }
+    }
+
+    void initGson() {
+        gson = new Gson();
     }
 
     private void createMediaExtractor() throws MediaProcessorException {
