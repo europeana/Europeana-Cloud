@@ -118,7 +118,7 @@ public class CassandraLocalIdDAO {
     public List<CloudId> insert(String... args) throws DatabaseConnectionException {
         try {
             Bucket bucket = bucketsHandler.getCurrentBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
-            if (bucket == null || bucket.getRowsCount() == BucketSize.PROVIDER_RECORD_ID_TABLE) {
+            if (bucket == null || bucket.getRowsCount() >= BucketSize.PROVIDER_RECORD_ID_TABLE) {
                 bucket = new Bucket(args[0], new com.eaio.uuid.UUID().toString(), 0);
             }
             bucketsHandler.increaseBucketCount(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);
