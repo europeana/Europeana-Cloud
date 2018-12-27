@@ -26,6 +26,7 @@ import java.util.List;
 public class ResourceProcessingBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);
+    private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
 
     static AmazonS3 amazonClient;
@@ -66,6 +67,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                         String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is " + e.getMessage();
                         LOGGER.error(errorMessage);
                         buildErrorMessage(exception, errorMessage);
+
                     } finally {
                         thumbnail.close();
                     }
@@ -75,9 +77,12 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 buildErrorMessage(exception, e.getMessage());
             } finally {
                 stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
-                if (exception.length() > 0)
+                if (exception.length() > 0) {
                     stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
+                    stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+                }
                 outputCollector.emit(stormTaskTuple.toStormTuple());
+
             }
         }
 
@@ -116,10 +121,10 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
     private void buildErrorMessage(StringBuilder message, String newMessage) {
         LOGGER.error("Error while processing {}", newMessage);
-        if (message.length() == 0) {
+        if (message.toString().isEmpty()) {
             message.append(newMessage);
         } else {
-            message.append(",").append(newMessage);
+            message.append(", ").append(newMessage);
         }
     }
 }

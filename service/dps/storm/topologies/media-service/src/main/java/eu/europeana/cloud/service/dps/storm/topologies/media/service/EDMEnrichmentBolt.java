@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 public class EDMEnrichmentBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
+    private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
     private static final int CACHE_SIZE = 25;
 
@@ -55,9 +56,12 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
                     tempEnrichedFile.setExceptions(cachedErrorMessage);
                 }
             } catch (Exception e) {
-                LOGGER.error(e.getMessage());
-                String errorMessage = tempEnrichedFile.getExceptions() + "," + e.getMessage();
-                tempEnrichedFile.setExceptions(errorMessage);
+                LOGGER.error("problem while enrichment ", e);
+                String currentException = tempEnrichedFile.getExceptions();
+                if (currentException.isEmpty())
+                    tempEnrichedFile.setExceptions(e.getMessage());
+                else
+                    tempEnrichedFile.setExceptions(currentException + "," + e.getMessage());
             } finally {
                 if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
                     try {
@@ -77,8 +81,10 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
     }
 
     private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, TempEnrichedFile tempEnrichedFile) throws RdfSerializationException, MalformedURLException {
-        if (!tempEnrichedFile.getExceptions().isEmpty())
+        if (!tempEnrichedFile.getExceptions().isEmpty()) {
             stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, tempEnrichedFile.getExceptions());
+            stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+        }
         stormTaskTuple.setFileData(rdfSerializer.serialize(tempEnrichedFile.getEnrichedRdf()));
         final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
         if (urlParser.isUrlToRepresentationVersionFile()) {
@@ -89,6 +95,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
             stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
                     urlParser.getPart(UrlPart.VERSIONS));
         }
+
         stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_METADATA);
     }
 
@@ -103,7 +110,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
     private String handleResourceErrorMessage(String resourceErrorMessage) {
         if (resourceErrorMessage == null)
             return "";
-        return "," + resourceErrorMessage;
+        return ", " + resourceErrorMessage;
 
     }
 

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 public class EDMEnrichmentBoltTest {
 
     private static final String AUTHORIZATION = "Authorization";
+    private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
     public static final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
 
     private StormTaskTuple stormTaskTuple;
@@ -68,9 +69,9 @@ public class EDMEnrichmentBoltTest {
             assertNotNull(parameters);
             assertEquals(6, parameters.size());
             assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
-            assertEquals("sourceCloudId",parameters.get(PluginParameterKeys.CLOUD_ID));
-            assertEquals("sourceRepresentationName",parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
-            assertEquals("sourceVersion",parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
+            assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
+            assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
+            assertEquals("sourceVersion", parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
         }
     }
 
@@ -95,9 +96,9 @@ public class EDMEnrichmentBoltTest {
             assertNotNull(parameters);
             assertEquals(6, parameters.size());
             assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
-            assertEquals("sourceCloudId",parameters.get(PluginParameterKeys.CLOUD_ID));
-            assertEquals("sourceRepresentationName",parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
-            assertEquals("sourceVersion",parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
+            assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
+            assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
+            assertEquals("sourceVersion", parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
         }
     }
 
@@ -133,12 +134,16 @@ public class EDMEnrichmentBoltTest {
             Values values = captor.getValue();
             Map<String, String> parameters = (Map) values.get(4);
             assertNotNull(parameters);
-            assertEquals(7, parameters.size());
+            assertEquals(8, parameters.size());
             assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+            assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
             assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
-            assertEquals("sourceCloudId",parameters.get(PluginParameterKeys.CLOUD_ID));
-            assertEquals("sourceRepresentationName",parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
-            assertEquals("sourceVersion",parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
+            assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
+            assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
+            assertEquals("sourceVersion", parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
+            assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
+            assertNotNull(MEDIA_RESOURCE_EXCEPTION, parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
+
         }
     }
 

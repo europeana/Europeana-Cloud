@@ -50,7 +50,10 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                     assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
                 }
             }
-            emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
+            if (t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
+                emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
+            else
+                emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl, t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), t.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
