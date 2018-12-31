@@ -45,6 +45,7 @@ public class ResourceProcessingBoltTest {
     private final static String AWS_SECRET_KEY = "AWS_SECRET_KEY";
     private final static String AWS_END_POINT = "AWS_END_POINT";
     private final static String AWS_BUCKET = "AWS_BUCKET";
+    private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
     public static final String FILE_URL = "FILE_URL";
     private static final String AUTHORIZATION = "Authorization";
@@ -75,6 +76,7 @@ public class ResourceProcessingBoltTest {
     public void prepareTuple() {
         PowerMockito.mockStatic(ResourceProcessingBolt.class);
         ResourceProcessingBolt.amazonClient = amazonClient;
+        resourceProcessingBolt.initGson();
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
@@ -130,10 +132,12 @@ public class ResourceProcessingBoltTest {
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
-        assertEquals(5, parameters.size());
+        assertEquals(6, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+        assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
         assertEquals(thumbNailCount, StringUtils.countMatches(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), errorMessage));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINK_KEY));
+        assertNotNull(MEDIA_RESOURCE_EXCEPTION, parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
 
     }
 
@@ -152,10 +156,12 @@ public class ResourceProcessingBoltTest {
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
-        assertEquals(4, parameters.size());
+        assertEquals(5, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+        assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINK_KEY));
+        assertNotNull(MEDIA_RESOURCE_EXCEPTION, parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
 
     }
 

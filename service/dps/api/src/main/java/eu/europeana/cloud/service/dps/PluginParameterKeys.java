@@ -81,6 +81,8 @@ public final class PluginParameterKeys {
     //Media
     public static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
     public static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
+    public static final String UNIFIED_ERROR_MESSAGE = "UNIFIED_ERROR_MESSAGE";
+
     public static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
     public static final String RESOURCE_METADATA = "RESOURCE_METADATA";
 

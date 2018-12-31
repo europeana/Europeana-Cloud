@@ -8,6 +8,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -117,8 +118,8 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void notifyTask(NotificationTuple notificationTuple, NotificationCache nCache, long taskId) throws DatabaseConnectionException, TaskInfoDoesNotExistException {
-        boolean error = isError(String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)));
-        nCache.inc(error);
+        boolean error = isError(notificationTuple, nCache);
+
         int processesFilesCount = nCache.getProcessed();
         int errors = nCache.getErrors();
 
@@ -126,17 +127,22 @@ public class NotificationBolt extends BaseRichBolt {
                 notificationTuple.getParameters());
 
         if (error) {
-            storeNotificationError(taskId, nCache, notificationTuple.getParameters());
+            storeNotificationError(taskId, nCache, notificationTuple);
         }
         if ((processesFilesCount % PROCESSED_INTERVAL) == 0) {
             taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
         }
     }
 
-    private void storeNotificationError(long taskId, NotificationCache nCache, Map<String, Object> parameters) {
+    private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
+        Map<String, Object> parameters = notificationTuple.getParameters();
         Validate.notNull(parameters);
         String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
         String additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
+        if (!String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(States.ERROR.toString()) && parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
+            errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE));
+            additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE));
+        }
         String errorType = nCache.getErrorType(errorMessage);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         updateErrorCounter(taskId, errorType);
@@ -191,8 +197,16 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
 
-    private boolean isError(String state) {
-        return state.equalsIgnoreCase(States.ERROR.toString());
+    private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
+        if (String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(States.ERROR.toString())) {
+            nCache.inc(true);
+            return true;
+        } else if (notificationTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
+            nCache.inc(false);
+            return true;
+        }
+        nCache.inc(false);
+        return false;
     }
 
     @Override
@@ -297,6 +311,7 @@ public class NotificationBolt extends BaseRichBolt {
             }
         }
     }
+
     public static void clearCache() {
         cache.clear();
     }
