@@ -1135,7 +1135,7 @@ public class CassandraDataSetDAO {
         String bucketId = null;
         Bucket bucketCount = getCurrentProviderDatasetBucket(dataSetProviderId, dataSetId);
         // when there is no bucket or bucket rows count is max we should add another bucket
-        if (bucketCount == null || bucketCount.getRowsCount() == MAX_PROVIDER_DATASET_BUCKET_COUNT) {
+        if (bucketCount == null || bucketCount.getRowsCount() >= MAX_PROVIDER_DATASET_BUCKET_COUNT) {
             bucketId = createBucket();
         }
         else
