@@ -40,6 +40,8 @@ public class ParseFileBolt extends ReadFileBolt {
                 outputCollector.emit(tuple.toStormTuple());
             } else {
                 for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
+                    if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                        break;
                     StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                     LOGGER.info("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
                     tuple.setFileData(fileContent);

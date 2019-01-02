@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.model.*;
@@ -16,12 +17,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ public class ResourceProcessingBoltTest {
     private final static String AWS_END_POINT = "AWS_END_POINT";
     private final static String AWS_BUCKET = "AWS_BUCKET";
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
+    private static final long TASK_ID = 1;
 
     public static final String FILE_URL = "FILE_URL";
     private static final String AUTHORIZATION = "Authorization";
@@ -64,6 +66,9 @@ public class ResourceProcessingBoltTest {
     @Mock(name = "mediaExtractor")
     private MediaExtractor mediaExtractor;
 
+    @Mock(name = "taskStatusChecker")
+    private TaskStatusChecker taskStatusChecker;
+
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
@@ -73,14 +78,21 @@ public class ResourceProcessingBoltTest {
 
 
     @Before
-    public void prepareTuple() {
-        PowerMockito.mockStatic(ResourceProcessingBolt.class);
+    public void prepareTuple() throws Exception {
         ResourceProcessingBolt.amazonClient = amazonClient;
         resourceProcessingBolt.initGson();
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        stormTaskTuple.setTaskId(TASK_ID);
+
+        setStaticField(ResourceProcessingBolt.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
+    }
+
+    void setStaticField(Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+        field.set(null, newValue);
     }
 
 
@@ -98,15 +110,38 @@ public class ResourceProcessingBoltTest {
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
         when(amazonClient.putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(new PutObjectResult());
+        when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
         resourceProcessingBolt.execute(stormTaskTuple);
 
-        verify(amazonClient, Mockito.times(3)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
+        verify(amazonClient, Mockito.times(thumbnailCount)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
         verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
         assertEquals(4, parameters.size());
         assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+    }
+
+
+    @Test
+    public void shouldDropTheTaskAndStopProcessing() throws Exception {
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+
+        String resourceName = "RESOURCE_URL";
+        int thumbnailCount = 3;
+        List<Thumbnail> thumbnailList = getThumbnails(resourceName, thumbnailCount);
+
+        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
+        ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResult(resourceMetadata, thumbnailList);
+
+        when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
+        when(amazonClient.putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(new PutObjectResult());
+
+        when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(true);
+
+        resourceProcessingBolt.execute(stormTaskTuple);
+        verify(amazonClient, Mockito.times(1)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
     }
 
 

@@ -60,6 +60,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
                 List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
                 for (Thumbnail thumbnail : thumbnails) {
+                    if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                        break;
                     try (InputStream stream = thumbnail.getContentStream()) {
                         amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, null);
                         LOGGER.info("The thumbnail {} was uploaded successfully to S3 in Bluemix", thumbnail.getTargetName());
