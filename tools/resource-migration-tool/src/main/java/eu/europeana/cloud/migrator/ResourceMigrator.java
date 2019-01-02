@@ -1660,15 +1660,25 @@ public class ResourceMigrator {
                     if (representations == null || representations.isEmpty()) {
                         continue;
                     }
+
+                    boolean noPersistentVersion = true;
+
                     for (Representation representation : representations) {
-                        if (representation.isPersistent() && !accessible(representation)) {
-                            // in this case there are no permissions
-                            if (!simulate) {
-                                mcs.permitVersion(cloudId, representation.getRepresentationName(), representation.getVersion());
+                        if (representation.isPersistent()) {
+                            noPersistentVersion = false;
+                            if (!accessible(representation)) {
+                                // in this case there are no permissions
+                                if (!simulate) {
+                                    mcs.permitVersion(cloudId, representation.getRepresentationName(), representation.getVersion());
+                                }
+                                strings.add(localId + ";no permissions for persistent version");
+                                break;
                             }
-                            strings.add(localId + ";no permissions for persistent version");
-                            break;
                         }
+                    }
+
+                    if (noPersistentVersion) {
+                        strings.add(localId + ";no persistent version");
                     }
                 }
             }
