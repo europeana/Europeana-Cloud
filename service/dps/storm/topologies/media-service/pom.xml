@@ -9,7 +9,8 @@
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>media-service</artifactId>
+
+    <artifactId>ecloud-service-dps-storm-topologies-media-service</artifactId>
 
     <name>media-service</name>
 
