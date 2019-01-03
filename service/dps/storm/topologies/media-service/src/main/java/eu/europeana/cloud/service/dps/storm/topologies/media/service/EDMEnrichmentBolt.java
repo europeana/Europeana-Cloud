@@ -100,11 +100,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
     }
 
     private String buildErrorMessage(String resourceErrorMessage, String cachedErrorMessage) {
-        if (!cachedErrorMessage.isEmpty()) {
-            return cachedErrorMessage + handleResourceErrorMessage(resourceErrorMessage);
-        } else {
-            return handleResourceErrorMessage(resourceErrorMessage);
-        }
+        return cachedErrorMessage + handleResourceErrorMessage(resourceErrorMessage);
     }
 
     private String handleResourceErrorMessage(String resourceErrorMessage) {

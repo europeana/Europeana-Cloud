@@ -112,8 +112,8 @@ public class MediaTopology {
         return builder.createTopology();
     }
 
-    private static int getAnInt(String parseTasksBoltParallel) {
-        return parseInt(topologyProperties.getProperty(parseTasksBoltParallel));
+    private static int getAnInt(String propertyName) {
+        return parseInt(topologyProperties.getProperty(propertyName));
     }
 
     public static void main(String[] args) {
