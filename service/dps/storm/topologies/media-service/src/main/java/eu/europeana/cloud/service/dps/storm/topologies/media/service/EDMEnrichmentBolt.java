@@ -33,7 +33,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
     private RdfDeserializer deserializer;
     private RdfSerializer rdfSerializer;
 
-    static LRUCache<String, TempEnrichedFile> cache = new LRUCache<>(CACHE_SIZE);
+    LRUCache<String, TempEnrichedFile> cache = new LRUCache<>(CACHE_SIZE);
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {

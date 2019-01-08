@@ -66,7 +66,7 @@ public class ParseFileBoltTest {
     public static void init() {
 
         parseFileBolt.prepare();
-        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.DPS_TASK_INPUT_DATA, PluginParameterKeys.RESOURCE_LINKS_COUNT);
+        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.DPS_TASK_INPUT_DATA,PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT);
 
     }
 

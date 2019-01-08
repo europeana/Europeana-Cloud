@@ -75,8 +75,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), ExceptionUtils.getStackTrace(e));
-                buildErrorMessage(exception, e.getMessage());
+                LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
+                buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: " + e.getMessage());
             } finally {
                 stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
                 if (exception.length() > 0) {
