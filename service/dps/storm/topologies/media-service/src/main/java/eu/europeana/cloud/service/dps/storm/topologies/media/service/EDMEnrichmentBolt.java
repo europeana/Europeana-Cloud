@@ -27,7 +27,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
-    private static final int CACHE_SIZE = 25;
+    private static final int CACHE_SIZE = 500;
 
     private Gson gson;
     private RdfDeserializer deserializer;
@@ -40,7 +40,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
-            final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+            final String file = stormTaskTuple.getFileUrl();
             TempEnrichedFile tempEnrichedFile = cache.get(file);
             try {
                 if (tempEnrichedFile == null) {
@@ -67,6 +67,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
                     try {
                         LOGGER.info("The file {} was fully enriched and will be send to the next bolt", file);
                         prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
+                        cache.put(file, null);
                         outputCollector.emit(stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
                         LOGGER.error("Error while serializing the enriched file: ", ex);
