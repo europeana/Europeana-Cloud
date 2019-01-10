@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.util.LRUCache;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
@@ -18,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Tarek on 12/12/2018.
@@ -27,13 +28,13 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
-    private static final int CACHE_SIZE = 500;
+    private static final int CACHE_SIZE = 1024;
 
     private Gson gson;
     private RdfDeserializer deserializer;
     private RdfSerializer rdfSerializer;
 
-    LRUCache<String, TempEnrichedFile> cache = new LRUCache<>(CACHE_SIZE);
+    Map<String, TempEnrichedFile> cache = new HashMap<>(CACHE_SIZE);
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
@@ -67,7 +68,7 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
                     try {
                         LOGGER.info("The file {} was fully enriched and will be send to the next bolt", file);
                         prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
-                        cache.put(file, null);
+                        cache.remove(file);
                         outputCollector.emit(stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
                         LOGGER.error("Error while serializing the enriched file: ", ex);
