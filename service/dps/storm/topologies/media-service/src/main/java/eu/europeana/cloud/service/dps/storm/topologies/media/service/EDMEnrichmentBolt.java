@@ -51,11 +51,12 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
 
                 if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA) != null) {
                     EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA));
-                    String cachedErrorMessage = tempEnrichedFile.getExceptions();
-                    cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), cachedErrorMessage);
                     tempEnrichedFile.setEnrichedRdf(enrichedRdf);
-                    tempEnrichedFile.setExceptions(cachedErrorMessage);
                 }
+                String cachedErrorMessage = tempEnrichedFile.getExceptions();
+                cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), cachedErrorMessage);
+                tempEnrichedFile.setExceptions(cachedErrorMessage);
+
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
                 String currentException = tempEnrichedFile.getExceptions();

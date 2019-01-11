@@ -57,21 +57,23 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             try {
                 RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry);
-                stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
-                List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
-                for (Thumbnail thumbnail : thumbnails) {
-                    if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
-                        break;
-                    try (InputStream stream = thumbnail.getContentStream()) {
-                        amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, null);
-                        LOGGER.info("The thumbnail {} was uploaded successfully to S3 in Bluemix", thumbnail.getTargetName());
-                    } catch (Exception e) {
-                        String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is " + e.getMessage();
-                        LOGGER.error(errorMessage);
-                        buildErrorMessage(exception, errorMessage);
+                if (resourceExtractionResult != null) {
+                    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                    List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
+                    for (Thumbnail thumbnail : thumbnails) {
+                        if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                            break;
+                        try (InputStream stream = thumbnail.getContentStream()) {
+                            amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, null);
+                            LOGGER.info("The thumbnail {} was uploaded successfully to S3 in Bluemix", thumbnail.getTargetName());
+                        } catch (Exception e) {
+                            String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is " + e.getMessage();
+                            LOGGER.error(errorMessage);
+                            buildErrorMessage(exception, errorMessage);
 
-                    } finally {
-                        thumbnail.close();
+                        } finally {
+                            thumbnail.close();
+                        }
                     }
                 }
             } catch (Exception e) {
