@@ -60,10 +60,11 @@ public class EDMEnrichmentBolt extends AbstractDpsBolt {
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
                 String currentException = tempEnrichedFile.getExceptions();
+                String exceptionMessage="Exception while enriching the original edm file with resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: " + ExceptionUtils.getStackTrace(e);
                 if (currentException.isEmpty())
-                    tempEnrichedFile.setExceptions(e.getMessage());
+                    tempEnrichedFile.setExceptions(exceptionMessage);
                 else
-                    tempEnrichedFile.setExceptions(currentException + "," + e.getMessage());
+                    tempEnrichedFile.setExceptions(currentException + "," + exceptionMessage);
             } finally {
                 if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
                     try {

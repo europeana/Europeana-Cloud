@@ -58,7 +58,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry);
                 if (resourceExtractionResult != null) {
-                    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                    if (resourceExtractionResult.getMetadata() != null)
+                        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
                     List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
                     if (thumbnails != null) {
                         for (Thumbnail thumbnail : thumbnails) {
