@@ -69,7 +69,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                                 amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, null);
                                 LOGGER.info("The thumbnail {} was uploaded successfully to S3 in Bluemix", thumbnail.getTargetName());
                             } catch (Exception e) {
-                                String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is " + e.getMessage();
+                                String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage()+" because of: "+e.getCause();
                                 LOGGER.error(errorMessage);
                                 buildErrorMessage(exception, errorMessage);
 
@@ -81,7 +81,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 }
             } catch (Exception e) {
                 LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
-                buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: " + e.getMessage());
+                buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage()+" because of: "+e.getCause());
             } finally {
                 stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
                 if (exception.length() > 0) {
