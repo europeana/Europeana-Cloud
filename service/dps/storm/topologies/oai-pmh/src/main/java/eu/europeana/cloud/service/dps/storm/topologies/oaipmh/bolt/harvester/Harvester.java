@@ -21,7 +21,7 @@ import java.io.Serializable;
  */
 public class Harvester implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Harvester.class);
-    private static final int DEFAULT_RETRIES=10;
+    private static final int DEFAULT_RETRIES=3;
 
 
     /**
