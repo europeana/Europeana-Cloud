@@ -42,7 +42,7 @@
         <edm:type>TEXT</edm:type>
     </edm:ProvidedCHO>
     <edm:Agent rdf:about="http://id.loc.gov/authorities/names/n84175522#concept">
-        <skos:prefLabel>Meehan, Paula</skos:prefLabel>
+        <skos:prefLabel>Meehan,  Paula</skos:prefLabel>
         <rdaGr2:professionOrOccupation>Author</rdaGr2:professionOrOccupation>
         <edm:language>eng</edm:language>
     </edm:Agent>
