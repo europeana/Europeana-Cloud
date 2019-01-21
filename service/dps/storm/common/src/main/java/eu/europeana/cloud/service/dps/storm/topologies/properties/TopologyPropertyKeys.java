@@ -24,6 +24,7 @@ public final class TopologyPropertyKeys {
     public static final String KAFKA_SPOUT_PARALLEL = "KAFKA_SPOUT_PARALLEL";
     public static final String RETRIEVE_FILE_BOLT_PARALLEL = "RETRIEVE_FILE_BOLT_PARALLEL";
     public static final String XSLT_BOLT_PARALLEL = "XSLT_BOLT_PARALLEL";
+    public static final String DUMMY_BOLT_PARALLEL = "DUMMY_BOLT_PARALLEL";
     public static final String IC_BOLT_PARALLEL = "IC_BOLT_PARALLEL";
     public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
     public static final String REVISION_WRITER_BOLT_PARALLEL = "REVISION_WRITER_BOLT_PARALLEL";
@@ -36,6 +37,7 @@ public final class TopologyPropertyKeys {
     public static final String KAFKA_SPOUT_NUMBER_OF_TASKS = "KAFKA_SPOUT_NUMBER_OF_TASKS";
     public static final String RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS = "RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS";
     public static final String XSLT_BOLT_NUMBER_OF_TASKS = "XSLT_BOLT_NUMBER_OF_TASKS";
+    public static final String DUMMY_BOLT_NUMBER_OF_TASKS = "DUMMY_BOLT_NUMBER_OF_TASKS";
     public static final String WRITE_BOLT_NUMBER_OF_TASKS = "WRITE_BOLT_NUMBER_OF_TASKS";
     public static final String REVISION_WRITER_BOLT_NUMBER_OF_TASKS = "REVISION_WRITER_BOLT_NUMBER_OF_TASKS";
     public static final String NOTIFICATION_BOLT_NUMBER_OF_TASKS = "NOTIFICATION_BOLT_NUMBER_OF_TASKS";
