@@ -78,6 +78,16 @@ public final class PluginParameterKeys {
     // -----------MIGRATION----------
     public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";
 
+    //Media
+    public static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
+    public static final String RESOURCE_URL="RESOURCE_URL";
+    public static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
+    public static final String UNIFIED_ERROR_MESSAGE = "UNIFIED_ERROR_MESSAGE";
+
+    public static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
+    public static final String RESOURCE_METADATA = "RESOURCE_METADATA";
+
+
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 
     static {
