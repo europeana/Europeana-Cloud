@@ -63,7 +63,7 @@ public class MediaTopology {
                 .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(PARSE_FILE_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(),
+        builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(ecloudMcsAddress),
                 (getAnInt(EDM_ENRICHMENT_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(RESOURCE_PROCESSING_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));

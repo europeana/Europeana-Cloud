@@ -158,7 +158,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
         List<File> files = new ArrayList<>(1);
         List<Revision> revisions = new ArrayList<>(1);
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/files/one-resource.xml"))));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/files/one-resource.xml")))).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/files/one-resource.xml"))));
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, PluginParameterKeys.AUTHORIZATION_HEADER)).thenReturn(representation);
     }
 
@@ -206,7 +206,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
         builder.setSpout(TopologyHelper.SPOUT, new TestSpout(), 1);
         builder.setBolt(TopologyHelper.PARSE_FILE_BOLT, parseFileBolt).shuffleGrouping(TopologyHelper.SPOUT);
         builder.setBolt(TopologyHelper.RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt("", "", "", "")).shuffleGrouping(TopologyHelper.PARSE_FILE_BOLT);
-        builder.setBolt(TopologyHelper.EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt()).fieldsGrouping(TopologyHelper.PARSE_FILE_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
+        builder.setBolt(TopologyHelper.EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(MCS_URL)).fieldsGrouping(TopologyHelper.PARSE_FILE_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
         builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(TopologyHelper.EDM_ENRICHMENT_BOLT);
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt).shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
         builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT);

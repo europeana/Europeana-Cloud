@@ -36,7 +36,6 @@ public class ParseFileBolt extends ReadFileBolt {
             if (rdfResourceEntries.size() == 0) {
                 StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                 LOGGER.info("The EDM file has no resource Links ");
-                tuple.setFileData(fileContent);
                 outputCollector.emit(tuple.toStormTuple());
             } else {
                 for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
@@ -44,7 +43,6 @@ public class ParseFileBolt extends ReadFileBolt {
                         break;
                     StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                     LOGGER.info("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
-                    tuple.setFileData(fileContent);
                     tuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
                     tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(rdfResourceEntries.size()));
                     tuple.addParameter(PluginParameterKeys.RESOURCE_URL, rdfResourceEntry.getResourceUrl());

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
@@ -15,8 +16,10 @@ import java.io.InputStream;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Tarek on 12/14/2018.
@@ -36,8 +39,11 @@ public class EDMEnrichmentBoltTest {
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
+    @Mock(name = "fileClient")
+    private FileServiceClient fileClient;
+
     @InjectMocks
-    private static EDMEnrichmentBolt edmEnrichmentBolt = new EDMEnrichmentBolt();
+    private static EDMEnrichmentBolt edmEnrichmentBolt = new EDMEnrichmentBolt("MCS_URL");
 
     @BeforeClass
     public static void init() {
@@ -58,7 +64,7 @@ public class EDMEnrichmentBoltTest {
     @Test
     public void shouldEnrichTheFileSuccessfullyAndSendItToTheNextBolt() throws Exception {
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            stormTaskTuple.setFileData(stream);
+            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
             assertEquals(4, stormTaskTuple.getParameters().size());
@@ -79,7 +85,7 @@ public class EDMEnrichmentBoltTest {
     @Test
     public void shouldEnrichTheFileSuccessfullyOnMultipleBatchesAndSendItToTheNextBolt() throws Exception {
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            stormTaskTuple.setFileData(stream);
+            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
 
             int resourceLinksCount = 10;
@@ -124,7 +130,7 @@ public class EDMEnrichmentBoltTest {
     @Test
     public void shouldLogTheExceptionAndSendItAsParameterToTheNextBolt() throws Exception {
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            stormTaskTuple.setFileData(stream);
+            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             String brokenMetaData = "{\"textResourceMetadata\":{\"containsTe/xml\",\"resourceUrl\":\"RESOURCE_URL\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}";
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, brokenMetaData);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
