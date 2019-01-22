@@ -89,7 +89,9 @@ public class MediaTopologyTest extends TopologyTestHelper {
 
 
         List<Thumbnail> thumbnailList = new ArrayList<>();
-        Thumbnail thumbnail = new ThumbnailImpl(resourceName, thumbnailName);
+        Thumbnail thumbnail =mock(Thumbnail.class);
+        when(thumbnail.getTargetName()).thenReturn(thumbnailName);
+        when(thumbnail.getContentSize()).thenReturn(1l);
         thumbnailList.add(thumbnail);
 
         AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);

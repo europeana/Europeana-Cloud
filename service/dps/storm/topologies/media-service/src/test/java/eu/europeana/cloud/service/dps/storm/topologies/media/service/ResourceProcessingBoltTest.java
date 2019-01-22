@@ -31,9 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Tarek on 12/11/2018.
@@ -103,7 +101,7 @@ public class ResourceProcessingBoltTest {
 
         String resourceName = "RESOURCE_URL";
         int thumbnailCount = 3;
-        List<Thumbnail> thumbnailList = getThumbnails(resourceName, thumbnailCount);
+        List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
         AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResult(resourceMetadata, thumbnailList);
@@ -130,7 +128,7 @@ public class ResourceProcessingBoltTest {
 
         String resourceName = "RESOURCE_URL";
         int thumbnailCount = 3;
-        List<Thumbnail> thumbnailList = getThumbnails(resourceName, thumbnailCount);
+        List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
         AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResult(resourceMetadata, thumbnailList);
@@ -152,7 +150,7 @@ public class ResourceProcessingBoltTest {
 
         String resourceName = "RESOURCE_URL";
         int thumbNailCount = 3;
-        List<Thumbnail> thumbnailList = getThumbnails(resourceName, thumbNailCount);
+        List<Thumbnail> thumbnailList = getThumbnails(thumbNailCount);
 
         AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResult(resourceMetadata, thumbnailList);
@@ -215,11 +213,13 @@ public class ResourceProcessingBoltTest {
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
     }
 
-    private List<Thumbnail> getThumbnails(String resourceName, int thumbnailCount) throws IOException {
+    private List<Thumbnail> getThumbnails(int thumbnailCount) throws IOException {
         List<Thumbnail> list = new ArrayList<>();
         for (int i = 0; i < thumbnailCount; i++) {
+            Thumbnail thumbnail = mock(Thumbnail.class);
             String thumbnailName = "TargetName" + i;
-            Thumbnail thumbnail = new ThumbnailImpl(resourceName, thumbnailName);
+            when(thumbnail.getContentSize()).thenReturn(1l);
+            when(thumbnail.getTargetName()).thenReturn(thumbnailName);
             list.add(thumbnail);
         }
         return list;
