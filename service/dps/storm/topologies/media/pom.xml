@@ -24,7 +24,11 @@
 		<dependency>
 			<groupId>eu.europeana.metis</groupId>
 			<artifactId>metis-media-service</artifactId>
+<<<<<<< HEAD
 			<version>${version.metis}</version>
+=======
+			<version>1.0.1</version>
+>>>>>>> origin/hotfix/v1.1.3
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.logging.log4j</groupId>

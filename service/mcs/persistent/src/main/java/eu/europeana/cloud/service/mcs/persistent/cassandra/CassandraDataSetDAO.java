@@ -503,7 +503,7 @@ public class CassandraDataSetDAO {
 
         Bucket bucket = bucketsHandler.getCurrentBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId);
         // when there is no bucket or bucket rows count is max we should add another bucket
-        if (bucket == null || bucket.getRowsCount() == MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT) {
+        if (bucket == null || bucket.getRowsCount() >= MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT) {
             bucket = new Bucket(providerDataSetId, createBucket(), 0);
         }
         bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
@@ -1135,7 +1135,7 @@ public class CassandraDataSetDAO {
         String bucketId = null;
         Bucket bucketCount = getCurrentProviderDatasetBucket(dataSetProviderId, dataSetId);
         // when there is no bucket or bucket rows count is max we should add another bucket
-        if (bucketCount == null || bucketCount.getRowsCount() == MAX_PROVIDER_DATASET_BUCKET_COUNT) {
+        if (bucketCount == null || bucketCount.getRowsCount() >= MAX_PROVIDER_DATASET_BUCKET_COUNT) {
             bucketId = createBucket();
         }
         else
