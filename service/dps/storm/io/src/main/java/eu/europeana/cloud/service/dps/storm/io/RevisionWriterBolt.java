@@ -43,10 +43,10 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
-            emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
+            emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
+            emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
         }
     }
 
