@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# This script create will create database backup in archive location.
+# This script will create database backup in archive location.
 #
 # It can be run in two modes.
 # First one mode will do the flush and snapshot on selected keyspaces. All the files stored in snapshot directory
@@ -17,14 +17,15 @@
 #
 
 #exit script of first failed command
-#set -e
+set -e
 
 keyspacesToBeBackuped=(
     production_ecloud_mcs_v12)
 
-backupTime=`date +"%Y-%m-%d"`
+backupTimeInDays=`date +"%Y-%m-%d"`
+backupTimeInMonths=`date +"%Y-%m"`
 dataLocation=~/nosql_filesystem/cassandra/data/data/
-backupLocation=~/mnt/ARCHIVE/production
+backupLocation=/mnt/backup
 machine=`hostname`
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
@@ -87,7 +88,7 @@ if [ -z ${snapshotToBeUsed+x} ];
 
         echo "Creating snapshots"
 
-        snapshotDirName="backup_$backupTime"
+        snapshotDirName="backup_$backupTimeInDays"
         snapshotToBeUsed=$snapshotDirName
 
         for i in "${keyspacesToBeBackuped[@]}"
@@ -114,7 +115,7 @@ for i in "${keyspacesToBeBackuped[@]}"
 		    cd $table/snapshots/$snapshotToBeUsed/
             tar --warning=none --exclude=${table##*/}.tar -cvf ${table##*/}.tar *
 
-		    backupPath=$backupLocation/$backupTime/$i/${table##*/}/$machine
+		    backupPath=$backupLocation/$backupTimeInMonths/$i/${table##*/}
             echo -e "${GREEN}\t\tCopying created tarball ${table##*/}.tar to backup directory $backupPath${NC}"
 		    mkdir -p $backupPath
 		    rsync --progress -vh ${table##*/}.tar $backupPath
