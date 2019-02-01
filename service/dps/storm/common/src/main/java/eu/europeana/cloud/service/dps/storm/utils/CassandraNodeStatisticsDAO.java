@@ -89,7 +89,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         searchNodesStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? LIMIT 2");
         searchNodesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         checkStatisticsReportStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID +
