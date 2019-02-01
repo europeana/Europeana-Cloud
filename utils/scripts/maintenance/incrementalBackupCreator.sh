@@ -53,6 +53,6 @@ do
         echo -e "${GREEN}\tRemoving created tarball from local directory${NC}"
         rm $backupFileName
         echo -e "${GREEN}\tRemoving backup files from local directory: ${filesToBeArchived[@]} ${NC}"
-#        rm ${filesToBeArchived[@]}
+        rm ${filesToBeArchived[@]}
     done
 done
