@@ -67,11 +67,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
             } catch (HarvesterException | IOException | EuropeanaIdException e) {
                 LOGGER.error("Exception on harvesting", e);
-                StringWriter stack = new StringWriter();
-                e.printStackTrace(new PrintWriter(stack));
-                emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Cannot harvest data because: " + e.getMessage(),
-                        stack.toString());
-
+                emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while harvesting a record", "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause());
                 LOGGER.error(e.getMessage());
             }
         } else {

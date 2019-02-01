@@ -257,7 +257,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
                             expectedSize.set(expectedSize.incrementAndGet());
                         } catch (IOException | EuropeanaIdException | InterruptedException e) {
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading the file because of " + e.getMessage(), "");
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading a file","Error while reading the file :"+file.getFileName()+" because of "+e.getCause());
                         }
                     }
                     return FileVisitResult.CONTINUE;
