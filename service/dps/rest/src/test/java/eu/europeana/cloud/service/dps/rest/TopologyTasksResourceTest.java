@@ -79,6 +79,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final String TASK_ID_PARAMETER_LABEL = "taskId";
     private static final String EMPTY_STRING = "";
     private static final String WRONG_DATA_SET_URL = "http://wrongDataSet.com";
+    public static final String PATH = "path";
+    public static final String PATH_VALUE = "ELEMENT";
 
     private TopologyManager topologyManager;
     private MutableAclService mutableAclService;
@@ -88,6 +90,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget killTaskWebTarget;
     private WebTarget errorsReportWebTarget;
     private WebTarget validationStatisticsReportWebTarget;
+    private WebTarget elementReportWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -131,6 +134,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
         errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
         validationStatisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
+
+        elementReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/element");
         killTaskWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/kill");
     }
 
@@ -281,7 +286,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWhithOutputDataSet() throws MCSException, TaskSubmissionException,InterruptedException {
+    public void shouldProperlySendTaskWhithOutputDataSet() throws MCSException, TaskSubmissionException, InterruptedException {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
@@ -295,7 +300,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException,InterruptedException  {
+    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException, InterruptedException {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         setCorrectlyFormulatedOutputRevision(task);
@@ -708,6 +713,18 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertEquals(TASK_ID, response.readEntity(StatisticsReport.class).getTaskId());
     }
 
+
+    @Test
+    public void shouldGetElementReport() throws TaskSubmissionException, MCSException {
+        NodeReport nodeReport = new NodeReport("VALUE", 5);
+        when(validationStatisticsService.getElementReport(TASK_ID, PATH_VALUE)).thenReturn(Arrays.asList(nodeReport));
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
+        WebTarget enrichedWebTarget = elementReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+        Response response = enrichedWebTarget.queryParam(PATH, PATH_VALUE).request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+    }
+
+
     @Test
     public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws AccessDeniedOrObjectDoesNotExistException {
         when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
@@ -865,7 +882,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Arrays.asList(DATA_SET_URL));
-        task.addParameter(METIS_DATASET_ID,"sampleDS");
+        task.addParameter(METIS_DATASET_ID, "sampleDS");
         return task;
     }
 

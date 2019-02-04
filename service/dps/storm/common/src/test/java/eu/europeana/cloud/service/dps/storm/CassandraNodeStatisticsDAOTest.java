@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
+import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
@@ -10,10 +11,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
     private static final long TASK_ID = 1;
@@ -168,5 +166,25 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         // then
         StatisticsReport reportRetrieved = nodeStatisticsDAO.getStatisticsReport(TASK_ID);
         Assert.assertEquals(report, reportRetrieved);
+    }
+
+
+    @Test
+    public void shouldProperlyReturnElementReport() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+
+        // when
+        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+
+        // then
+        List<NodeReport> nodeReportList = nodeStatisticsDAO.getElementReport(TASK_ID, NODE_1_XPATH);
+        Assert.assertNotNull(nodeReportList);
+        Assert.assertEquals(2, nodeReportList.size());
+        List<String> expectedValues = Arrays.asList(NODE_VALUE_1, NODE_VALUE_2);
+        for (NodeReport nodeReport : nodeReportList) {
+            Assert.assertTrue(expectedValues.contains(nodeReport.getNodeValue()));
+            Assert.assertEquals(OCCURRENCE, nodeReportList.get(0).getOccurrence());
+        }
     }
 }
