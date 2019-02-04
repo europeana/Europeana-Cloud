@@ -197,6 +197,19 @@ public class DPSClientTest {
         assertEquals(TASK_ID, report.getTaskId());
     }
 
+
+    @Test
+    @Betamax(tape = "DPSClient_shouldReturnElementReport")
+    public void shouldGetTheElementReport() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        List<NodeReport> nodeReports = dpsClient.getElementReport(TOPOLOGY_NAME, TASK_ID, "elementPath");
+        assertNotNull(nodeReports);
+        assertEquals(1, nodeReports.size());
+        assertEquals("value1", nodeReports.get(0).getNodeValue());
+        assertEquals(10, nodeReports.get(0).getOccurrence());
+    }
+
+
     @Test(expected = AccessDeniedOrTopologyDoesNotExistException.class)
     @Betamax(tape = "DPSClient_shouldThrowExceptionForStatisticsWhenTopologyDoesNotExist")
     public void shouldThrowExceptionForStatistics() throws DpsException {

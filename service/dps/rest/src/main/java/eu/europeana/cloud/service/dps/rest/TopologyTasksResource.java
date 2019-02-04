@@ -34,6 +34,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -41,7 +42,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.net.MalformedURLException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -364,6 +364,36 @@ public class TopologyTasksResource {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
         return validationStatisticsService.getTaskStatisticsReport(Long.parseLong(taskId));
+    }
+
+
+    /**
+     * Retrieves a list of distinct values and their occurrences for a specific element based on its path}
+     * <p>
+     * <p/>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
+     * </div>
+     *
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param elementPath  <strong>REQUIRED</strong> Path for specific element.
+     * @return List of distinct values and their occurrences.
+     */
+
+    @GET
+    @Path("{taskId}/reports/element")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    public List<NodeReport> getElementsValues(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId, @NotNull @QueryParam("path") String elementPath) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+        assertContainTopology(topologyName);
+        reportService.checkIfTaskExists(taskId, topologyName);
+        return validationStatisticsService.getElementReport(Long.parseLong(taskId), elementPath);
     }
 
 
