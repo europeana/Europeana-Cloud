@@ -170,7 +170,7 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
 
 
     @Test
-    public void shouldProperlyReturnElementReport() {
+    public void shouldProperlyReturnElementReportWithAttributes() {
         // given
         List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
 
@@ -185,6 +185,8 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         for (NodeReport nodeReport : nodeReportList) {
             Assert.assertTrue(expectedValues.contains(nodeReport.getNodeValue()));
             Assert.assertEquals(OCCURRENCE, nodeReportList.get(0).getOccurrence());
+            Assert.assertNotNull(nodeReport.getAttributeStatistics());
+            Assert.assertEquals(1, nodeReport.getAttributeStatistics().size());
         }
     }
 }

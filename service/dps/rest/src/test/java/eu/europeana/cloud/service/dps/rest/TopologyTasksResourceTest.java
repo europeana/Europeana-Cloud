@@ -716,7 +716,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
     @Test
     public void shouldGetElementReport() throws TaskSubmissionException, MCSException {
-        NodeReport nodeReport = new NodeReport("VALUE", 5);
+        NodeReport nodeReport = new NodeReport("VALUE", 5, Arrays.asList(new AttributeStatistics("Attr1", "Value1", 10)));
         when(validationStatisticsService.getElementReport(TASK_ID, PATH_VALUE)).thenReturn(Arrays.asList(nodeReport));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
         WebTarget enrichedWebTarget = elementReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
