@@ -1,12 +1,12 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.eaio.uuid.UUID;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.DataSetRepresentationForLatestRevision;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
-import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +41,8 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     private static final String SAMPLE_CLOUD_ID = "Cloud_1";
     private static final String SAMPLE_CLOUD_ID2 = "Cloud_2";
     private static final String SAMPLE_CLOUD_ID3 = "Cloud_3";
-    private static final UUID SAMPLE_VERSION_ID = TimeUUIDUtils.getTimeUUID(new java.util.Date().getTime());
+    private static final UUID SAMPLE_VERSION_ID = new UUID(new java.util.Date().getTime() + "");
+
 
     private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
 
@@ -355,7 +356,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
             representation.setCloudId("cloud_id_" + i);
             representation.setDataProvider(dataSet.getProviderId());
             representation.setRepresentationName("representation_" + i);
-            representation.setVersion(TimeUUIDUtils.getTimeUUID(new java.util.Date().getTime()).toString());
+            representation.setVersion(new UUID(new java.util.Date().getTime() + "").toString());
             dataSetDAO.addAssignment(dataSet.getProviderId(), dataSet.getId(), representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
             assigned.add(representation);
         }

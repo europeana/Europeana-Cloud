@@ -149,7 +149,7 @@
         <version.commonscodec>1.10</version.commonscodec>
         <version.commonio>2.4</version.commonio>
         <version.uuid>3.4</version.uuid>
-        <version.swift>1.9.2</version.swift>
+        <version.swift>2.1.1</version.swift>
         <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>0.8.1.1</version.kafka>
@@ -168,7 +168,7 @@
         <spring-security.version>3.1.4.RELEASE</spring-security.version>
 
         <commons-logging.version>1.2</commons-logging.version>
-        <version.cassandra-driver>2.1.10.3</version.cassandra-driver>
+        <version.cassandra-driver>3.6.0</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
@@ -435,7 +435,7 @@
                 <artifactId>guava</artifactId>
                 <groupId>com.google.guava</groupId>
                 <type>jar</type>
-                <version>16.0</version>
+                <version>18.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
