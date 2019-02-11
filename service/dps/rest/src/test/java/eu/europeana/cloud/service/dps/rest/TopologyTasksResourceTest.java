@@ -80,6 +80,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final String EMPTY_STRING = "";
     private static final String WRONG_DATA_SET_URL = "http://wrongDataSet.com";
 
+    private static final String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
+
     private TopologyManager topologyManager;
     private MutableAclService mutableAclService;
     private WebTarget webTarget;
@@ -840,6 +842,54 @@ public class TopologyTasksResourceTest extends JerseyTest {
         Response detailedReportResponse = enrichedWebTarget.request().get();
         assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
     }
+
+
+    @Test
+    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToLinkCheckTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        prepareTaskWithRepresentationAndRevision(task);
+        prepareMocks(LINK_CHECKING_TOPOLOGY);
+
+        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+        assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToLinkCheckTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
+
+        prepareMocks(LINK_CHECKING_TOPOLOGY);
+        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+
+        assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckWithWrongDataSetURL() throws MCSException, TaskSubmissionException {
+        DpsTask task = new DpsTask(TASK_NAME);
+        task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
+        prepareMocks(LINK_CHECKING_TOPOLOGY);
+
+        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckTopologyWithNotValidOutputRevision() throws MCSException, TaskSubmissionException {
+        DpsTask task = getDpsTaskWithDataSetEntry();
+        Revision revision = new Revision(" ", REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        prepareMocks(LINK_CHECKING_TOPOLOGY);
+
+        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
+
 
     private TaskErrorsInfo createDummyErrorsInfo(boolean specific) {
         TaskErrorsInfo info = new TaskErrorsInfo(TASK_ID);
