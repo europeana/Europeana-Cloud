@@ -281,7 +281,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWhithOutputDataSet() throws MCSException, TaskSubmissionException,InterruptedException {
+    public void shouldProperlySendTaskWhithOutputDataSet() throws MCSException, TaskSubmissionException, InterruptedException {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
@@ -295,7 +295,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException,InterruptedException  {
+    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException, InterruptedException {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         setCorrectlyFormulatedOutputRevision(task);
@@ -758,16 +758,32 @@ public class TopologyTasksResourceTest extends JerseyTest {
         WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        doNothing().when(killService).killTask(eq(TASK_ID));
+        String info = "Dropped by the user";
+        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         Response detailedReportResponse = enrichedWebTarget.request().post(null);
         assertEquals(200, detailedReportResponse.getStatus());
-        assertEquals(detailedReportResponse.readEntity(String.class), "Task killing request was registered successfully");
+        assertEquals(detailedReportResponse.readEntity(String.class), "The task was killed because of " + info);
     }
+
+
+    @Test
+    public void shouldKillTheTaskWhenPassingTheCauseOfKilling() throws AccessDeniedOrObjectDoesNotExistException {
+        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+        String info = "The aggregator decided to do so";
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
+        Response detailedReportResponse = enrichedWebTarget.queryParam("info", info).request().post(null);
+        assertEquals(200, detailedReportResponse.getStatus());
+        assertEquals(detailedReportResponse.readEntity(String.class), "The task was killed because of " + info);
+    }
+
 
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        doNothing().when(killService).killTask(eq(TASK_ID));
+        String info = "Dropped by the user";
+        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
         Response detailedReportResponse = enrichedWebTarget.request().post(null);
@@ -777,7 +793,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     @Test
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        doNothing().when(killService).killTask(eq(TASK_ID));
+        String info = "Dropped by the user";
+        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         Response detailedReportResponse = enrichedWebTarget.request().post(null);
@@ -865,7 +882,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Arrays.asList(DATA_SET_URL));
-        task.addParameter(METIS_DATASET_ID,"sampleDS");
+        task.addParameter(METIS_DATASET_ID, "sampleDS");
         return task;
     }
 

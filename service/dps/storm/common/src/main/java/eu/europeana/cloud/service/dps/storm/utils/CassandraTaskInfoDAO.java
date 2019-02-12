@@ -135,8 +135,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     }
 
-    public void killTask(long taskId) {
-        dbService.getSession().execute(killTask.bind(String.valueOf(TaskState.DROPPED), "Dropped by the user", new Date(), taskId));
+    public void killTask(long taskId, String info) {
+        dbService.getSession().execute(killTask.bind(String.valueOf(TaskState.DROPPED), info, new Date(), taskId));
     }
 
     public boolean hasKillFlag(long taskId) {

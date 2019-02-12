@@ -15,8 +15,8 @@ public class CassandraKillService implements TaskExecutionKillService {
     }
 
     @Override
-    public void killTask(long taskId) {
-        taskDAO.killTask(taskId);
+    public void killTask(long taskId,String info) {
+        taskDAO.killTask(taskId,info);
 
     }
 

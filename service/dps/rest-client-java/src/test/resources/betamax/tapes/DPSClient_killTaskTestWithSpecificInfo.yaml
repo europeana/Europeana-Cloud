@@ -1,10 +1,10 @@
 !tape
-name: DPSClient/killTaskTest
+name: DPSClient/killTaskTestWithSpecificInfo
 interactions:
-- recorded: 2018-02-22T09:54:47.596Z
+- recorded: 2019-02-12T09:54:47.596Z
   request:
     method: POST
-    uri: http://localhost:8080/services/TopologyName/tasks/12345/kill
+    uri: http://localhost:8080/services/TopologyName/tasks/12345/kill?info=Aggregator-choice
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Authorization: Basic YWRtaW46YWRtaW4=
@@ -23,4 +23,4 @@ interactions:
       X-Content-Type-Options: nosniff
       X-Frame-Options: DENY
       X-XSS-Protection: 1; mode=block
-    body: The task was killed because of Dropped by the user
+    body: The task was killed because of Aggregator-choice
