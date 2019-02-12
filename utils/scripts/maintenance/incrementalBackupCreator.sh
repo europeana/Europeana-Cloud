@@ -29,6 +29,8 @@ echo -e "${GREEN}Preparing incremental backup${NC}"
 for keyspaceToBeBackuped in "${keyspacesToBeBackuped[@]}"
 do
     echo -e "${GREEN}Will backup keyspace: $keyspaceToBeBackuped${NC}"
+    echo -e "${GREEN}\tFlushing $keyspaceToBeBackuped${NC}"
+    nodetool flush $keyspaceToBeBackuped
     for table in $dataLocation$keyspaceToBeBackuped/*
     do
         echo -e "${GREEN}Will backup table: ${table##*/}${NC}"

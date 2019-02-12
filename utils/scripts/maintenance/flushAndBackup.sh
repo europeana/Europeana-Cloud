@@ -24,7 +24,7 @@ echo -e "${GREEN}Flushing and creating snapshot with name $backupTimeInDays${NC}
 for keyspaceToBeBackuped in "${keyspacesToBeBackuped[@]}"
 do
     echo -e "${GREEN}\tFlushing $keyspaceToBeBackuped${NC}"
-    nodetool flush $i
+    nodetool flush $keyspaceToBeBackuped
     echo -e "${GREEN}\tCreating snapshots for: $keyspaceToBeBackuped${NC}"
     snapshotDirName="backup_$backupTimeInDays"
     nodetool snapshot -t $snapshotDirName $keyspaceToBeBackuped
