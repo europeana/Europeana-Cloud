@@ -12,7 +12,7 @@ public interface TaskExecutionKillService {
      *
      * @param taskId task id to kill
      */
-    void killTask(long taskId);
+    void killTask(long taskId,String info);
 
 
 }

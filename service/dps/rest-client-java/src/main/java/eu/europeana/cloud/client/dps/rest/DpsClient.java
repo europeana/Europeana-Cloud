@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -53,48 +54,40 @@ public class DpsClient {
     private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
     private static final String KILL_TASK_URL = TASK_URL + "/" + KILL_TASK;
 
-	private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
-	private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
+    private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
+    private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
-	/**
-	 * Creates a new instance of this class.
-	 *
-	 * @param dpsUrl
-	 *            Url where the DPS service is located.
-	 * @param username
-	 *            THe username to perform authenticated requests.
-	 * @param password
-	 *            THe username to perform authenticated requests.
-	 * @param connectTimeoutInMillis
-	 *            The connect timeout in milliseconds (timeout for establishing the
-	 *            remote connection).
-	 * @param readTimeoutInMillis
-	 *            The read timeout in milliseconds (timeout for obtaining/1reading
-	 *            the result).
-	 */
-	public DpsClient(final String dpsUrl, final String username, final String password,
-			final int connectTimeoutInMillis, final int readTimeoutInMillis) {
-		this.client.register(HttpAuthenticationFeature.basic(username, password));
-		this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
-		this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
-		this.dpsUrl = dpsUrl;
-	}
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param dpsUrl                 Url where the DPS service is located.
+     * @param username               THe username to perform authenticated requests.
+     * @param password               THe username to perform authenticated requests.
+     * @param connectTimeoutInMillis The connect timeout in milliseconds (timeout for establishing the
+     *                               remote connection).
+     * @param readTimeoutInMillis    The read timeout in milliseconds (timeout for obtaining/1reading
+     *                               the result).
+     */
+    public DpsClient(final String dpsUrl, final String username, final String password,
+                     final int connectTimeoutInMillis, final int readTimeoutInMillis) {
+        this.client.register(HttpAuthenticationFeature.basic(username, password));
+        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
+        this.dpsUrl = dpsUrl;
+    }
 
-	/**
-	 * Creates a new instance of this class. Will use a default connect timeout of
-	 * {@value #DEFAULT_CONNECT_TIMEOUT_IN_MILLIS} and a default read timeout of
-	 * {@link #DEFAULT_READ_TIMEOUT_IN_MILLIS}.
-	 *
-	 * @param dpsUrl
-	 *            Url where the DPS service is located.
-	 * @param username
-	 *            THe username to perform authenticated requests.
-	 * @param password
-	 *            THe username to perform authenticated requests.
-	 */
-	public DpsClient(final String dpsUrl, final String username, final String password) {
-		this(dpsUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
-	}
+    /**
+     * Creates a new instance of this class. Will use a default connect timeout of
+     * {@value #DEFAULT_CONNECT_TIMEOUT_IN_MILLIS} and a default read timeout of
+     * {@link #DEFAULT_READ_TIMEOUT_IN_MILLIS}.
+     *
+     * @param dpsUrl   Url where the DPS service is located.
+     * @param username THe username to perform authenticated requests.
+     * @param password THe username to perform authenticated requests.
+     */
+    public DpsClient(final String dpsUrl, final String username, final String password) {
+        this(dpsUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+    }
 
     /**
      * Submits a task for execution in the specified topology.
@@ -278,12 +271,14 @@ public class DpsClient {
         }
     }
 
-    public String killTask(final String topologyName, final long taskId) throws DpsException {
+    public String killTask(final String topologyName, final long taskId, String info) throws DpsException {
         Response response = null;
         try {
-            response = client.target(dpsUrl).path(KILL_TASK_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId).request().post(null);
-
+            WebTarget webTarget = client.target(dpsUrl).path(KILL_TASK_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId);
+            if (info != null)
+                webTarget = webTarget.queryParam("info", info);
+            response = webTarget.request().post(null);
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(String.class);
             } else {
@@ -311,7 +306,7 @@ public class DpsClient {
     }
 
     public void close() {
-            client.close();
+        client.close();
     }
 }
 

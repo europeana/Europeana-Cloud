@@ -384,7 +384,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         submitTaskAndWait(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         //when
         try {
-            topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
+            topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),"Dropped by the user");
             fail();
             //then
         } catch (AccessDeniedOrTopologyDoesNotExistException e) {
@@ -403,7 +403,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         //when
         try {
-            topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
+            topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),"Dropped by the user");
             fail();
             //then
         } catch (AccessDeniedException e) {
@@ -420,7 +420,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         submitTaskAndWait(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         //when
         try {
-            Response response = topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
+            Response response = topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),"Dropped by the user");
             assertNotNull(response);
             assertEquals(response.getStatus(), 200);
         } catch (Exception e) {

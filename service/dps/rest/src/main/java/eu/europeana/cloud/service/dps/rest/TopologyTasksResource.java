@@ -414,6 +414,7 @@ public class TopologyTasksResource {
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param info <strong>OPTIONAL</strong> The cause of the cancellation. If it was not specified a default cause 'Dropped by the user' will be provided
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if taskId does not belong to the specified topology
@@ -423,11 +424,11 @@ public class TopologyTasksResource {
     @POST
     @Path("{taskId}/kill")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
-    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId, @QueryParam("info") @DefaultValue("Dropped by the user") String info) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        killService.killTask(Long.parseLong(taskId));
-        return Response.ok("Task killing request was registered successfully").build();
+        killService.killTask(Long.parseLong(taskId), info);
+        return Response.ok("The task was killed because of " + info).build();
 
     }
 
