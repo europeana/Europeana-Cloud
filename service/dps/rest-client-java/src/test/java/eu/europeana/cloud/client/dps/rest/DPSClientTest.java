@@ -197,6 +197,25 @@ public class DPSClientTest {
         assertEquals(TASK_ID, report.getTaskId());
     }
 
+
+    @Test
+    @Betamax(tape = "DPSClient_shouldReturnElementReport")
+    public void shouldGetTheElementReport() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        List<NodeReport> nodeReports = dpsClient.getElementReport(TOPOLOGY_NAME, TASK_ID, "//rdf:RDF/edm:Place/skos:prefLabel");
+        assertNotNull(nodeReports);
+        assertEquals(1, nodeReports.size());
+        assertEquals("Lattakia", nodeReports.get(0).getNodeValue());
+        assertEquals(10, nodeReports.get(0).getOccurrence());
+        List<AttributeStatistics> attributes = nodeReports.get(0).getAttributeStatistics();
+        assertNotNull(attributes);
+        assertEquals(1, attributes.size());
+        assertEquals("//rdf:RDF/edm:Place/skos:prefLabel/@xml:lang", attributes.get(0).getName());
+        assertEquals(10, attributes.get(0).getOccurrence());
+        assertEquals("en", attributes.get(0).getValue());
+    }
+
+
     @Test(expected = AccessDeniedOrTopologyDoesNotExistException.class)
     @Betamax(tape = "DPSClient_shouldThrowExceptionForStatisticsWhenTopologyDoesNotExist")
     public void shouldThrowExceptionForStatistics() throws DpsException {
