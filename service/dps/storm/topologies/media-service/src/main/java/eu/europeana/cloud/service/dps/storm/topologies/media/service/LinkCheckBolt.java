@@ -101,10 +101,11 @@ public class LinkCheckBolt extends AbstractDpsBolt {
                 LOGGER.info("Link error (code {}) for {}", status, resourceInfo.linkUrl);
                 addErrorMessage(resourceInfo, fileInfo, status);
             }
-            fileInfo.linksChecked++;
         } catch (Exception e) {
             LOGGER.info("There was exception while checking the link: {}", resourceInfo.edmUrl);
-            fileInfo.errors = fileInfo.errors + " " + e.getMessage();
+            fileInfo.errors = fileInfo.errors + "," + e.getMessage();
+        } finally {
+            fileInfo.linksChecked++;
         }
     }
 
@@ -132,7 +133,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
 
     private void emit(StormTaskTuple tuple) {
-        outputCollector.emit(tuple.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, tuple.toStormTuple());
     }
 
 }
