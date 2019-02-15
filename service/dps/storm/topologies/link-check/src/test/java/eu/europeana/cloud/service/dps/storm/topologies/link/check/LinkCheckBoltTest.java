@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.media.service;
+package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -70,7 +70,7 @@ public class LinkCheckBoltTest {
 
     @Test
     public void shouldEmitTupleWithErrorIncluded() throws Exception {
-        when(linkChecker.check(Mockito.anyString())).thenReturn(500,501,502,505,507);
+        when(linkChecker.check(Mockito.anyString())).thenReturn(500, 501, 502, 505, 507);
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(tuple);
         linkCheckBolt.execute(tuple);

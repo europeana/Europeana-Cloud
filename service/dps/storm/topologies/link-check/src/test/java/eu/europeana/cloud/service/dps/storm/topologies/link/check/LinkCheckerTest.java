@@ -1,4 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.media.service;
+package eu.europeana.cloud.service.dps.storm.topologies.link.check;
+
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.client.ClientProtocolException;

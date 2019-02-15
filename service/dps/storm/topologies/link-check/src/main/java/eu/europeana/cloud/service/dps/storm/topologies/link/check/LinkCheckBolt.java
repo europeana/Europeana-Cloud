@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.media.service;
+package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -8,9 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_LINKS_COUNT;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_URL;
 
 /**
  * Created by pwozniak on 2/5/19
@@ -55,9 +52,9 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 
     private ResourceInfo readResourceInfoFromTuple(StormTaskTuple tuple) {
         ResourceInfo resourceInfo = new ResourceInfo();
-        resourceInfo.expectedSize = Integer.parseInt(tuple.getParameter(RESOURCE_LINKS_COUNT));
+        resourceInfo.expectedSize = Integer.parseInt(tuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT));
         resourceInfo.edmUrl = tuple.getFileUrl();
-        resourceInfo.linkUrl = tuple.getParameter(RESOURCE_URL);
+        resourceInfo.linkUrl = tuple.getParameter(PluginParameterKeys.RESOURCE_URL);
         return resourceInfo;
     }
 
@@ -120,8 +117,8 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
 
     private void prepareTuple(StormTaskTuple tuple) {
-        tuple.getParameters().remove(RESOURCE_LINKS_COUNT);
-        tuple.getParameters().remove(RESOURCE_URL);
+        tuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINKS_COUNT);
+        tuple.getParameters().remove(PluginParameterKeys.RESOURCE_URL);
     }
 
     private void prepareTuple(StormTaskTuple tuple, FileInfo edmFile) {
@@ -133,7 +130,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
 
     private void emit(StormTaskTuple tuple) {
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, tuple.toStormTuple());
+        outputCollector.emit(AbstractDpsBolt.NOTIFICATION_STREAM_NAME, tuple.toStormTuple());
     }
 
 }

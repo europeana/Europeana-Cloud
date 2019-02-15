@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.media.service;
+package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
