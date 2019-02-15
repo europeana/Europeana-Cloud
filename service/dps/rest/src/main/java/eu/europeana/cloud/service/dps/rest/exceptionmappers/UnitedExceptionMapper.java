@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 
+import javax.validation.ConstraintViolationException;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -33,6 +35,19 @@ public class UnitedExceptionMapper {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, DpsErrorCode.TOPOLOGY_ALREADY_EXIST,
             exception);
     }
+
+
+    /**
+     *
+     * @param exception
+     *            the exception to map to a response
+     * @return a response mapped from the supplied exception
+     */
+    public Response toResponse(ConstraintViolationException exception) {
+        return buildResponse(Response.Status.BAD_REQUEST, DpsErrorCode.BAD_REQUEST,
+                exception);
+    }
+
 
 
     /**
