@@ -36,7 +36,7 @@ public class LinkCheckBoltTest {
     public void shouldEmitSameTupleWhenNoResourcesHasToBeChecked() {
         StormTaskTuple tuple = prepareTupleWithLinksCountEqualsToZero();
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), captor.capture());
         validateCapturedValues(captor);
     }
 
@@ -44,7 +44,7 @@ public class LinkCheckBoltTest {
     public void shouldCheckOneLinkWithoutEmittingTuple() throws Exception {
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(0)).emit(Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(1)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
     }
 
@@ -52,19 +52,19 @@ public class LinkCheckBoltTest {
     public void shouldEmitTupleAfterCheckingAllResourcesFromFile() throws Exception {
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(0)).emit(Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(1)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(0)).emit(Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(2)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(0)).emit(Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(3)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(0)).emit(Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(4)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(1)).emit(Mockito.anyList());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(5)).check(Mockito.anyString());
     }
 
@@ -77,7 +77,7 @@ public class LinkCheckBoltTest {
         linkCheckBolt.execute(tuple);
         linkCheckBolt.execute(tuple);
         linkCheckBolt.execute(tuple);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), captor.capture());
         validateCapturedValuesForError(captor);
     }
 
