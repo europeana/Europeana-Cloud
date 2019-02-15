@@ -55,20 +55,20 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 
     private ResourceInfo readResourceInfoFromTuple(StormTaskTuple tuple) {
         ResourceInfo resourceInfo = new ResourceInfo();
-        resourceInfo.counter = Integer.parseInt(tuple.getParameter(RESOURCE_LINKS_COUNT));
+        resourceInfo.expectedSize = Integer.parseInt(tuple.getParameter(RESOURCE_LINKS_COUNT));
         resourceInfo.edmUrl = tuple.getFileUrl();
         resourceInfo.linkUrl = tuple.getParameter(RESOURCE_URL);
         return resourceInfo;
     }
 
     private boolean hasLinksForCheck(ResourceInfo resourceInfo) {
-        return resourceInfo.counter > 0;
+        return resourceInfo.expectedSize > 0;
     }
 
     private FileInfo checkProvidedLink(ResourceInfo resourceInfo) {
         FileInfo edmFile = takeFileFromCache(resourceInfo);
         if (edmFile == null) {
-            edmFile = new FileInfo(resourceInfo.edmUrl, resourceInfo.counter, 0);
+            edmFile = new FileInfo(resourceInfo.edmUrl, resourceInfo.expectedSize, 0);
             checkLink(resourceInfo, edmFile);
             putFileToCache(edmFile);
         } else {
@@ -144,7 +144,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 class ResourceInfo {
     String linkUrl;
     String edmUrl;
-    int counter = 0;
+    int expectedSize;
 }
 
 /**
