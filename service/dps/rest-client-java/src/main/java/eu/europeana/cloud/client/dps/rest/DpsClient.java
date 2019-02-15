@@ -11,16 +11,13 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import eu.europeana.cloud.common.model.dps.*;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.common.model.dps.StatisticsReport;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
@@ -53,7 +50,7 @@ public class DpsClient {
     private static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
     private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
     private static final String KILL_TASK_URL = TASK_URL + "/" + KILL_TASK;
-
+    private static final String ELEMENT_REPORT = TASK_URL + "/" + REPORTS_RESOURCE + "/element";
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
@@ -208,6 +205,37 @@ public class DpsClient {
             closeResponse(getResponse);
         }
     }
+
+
+    public List<NodeReport> getElementReport(final String topologyName, final long taskId, String elementPath) throws DpsException {
+
+        Response getResponse = null;
+
+        try {
+            getResponse = client
+                    .target(dpsUrl)
+                    .path(ELEMENT_REPORT)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                    .resolveTemplate(TASK_ID, taskId).queryParam("path", elementPath)
+                    .request().get();
+
+            return handleElementReportResponse(getResponse);
+
+        } finally {
+            closeResponse(getResponse);
+        }
+    }
+
+
+    private List<NodeReport> handleElementReportResponse(Response response) throws DpsException {
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            return response.readEntity(new GenericType<List<NodeReport>>() {
+            });
+        } else {
+            throw handleException(response);
+        }
+    }
+
 
     private List<SubTaskInfo> handleResponse(Response response) throws DpsException {
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {

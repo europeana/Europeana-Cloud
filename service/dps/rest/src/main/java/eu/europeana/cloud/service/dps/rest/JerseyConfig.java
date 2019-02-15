@@ -30,6 +30,7 @@ public class JerseyConfig extends ResourceConfig {
         register(TaskSubmissionExceptionMapper.class);
         register(DpsTaskValidationExceptionMapper.class);
         register(AccessDeniedOrObjectDoesNotExistExceptionMapper.class);
+        register(BadRequestExceptionMapper.class);
 
         // resources
         register(TopologyTasksResource.class);

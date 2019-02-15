@@ -6,13 +6,17 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.google.gson.Gson;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
+import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CassandraNodeStatisticsDAO extends CassandraDAO {
+    public static final int ELEMETNS_SAMPLE_MAX_SIZE = 100;
+    public static final int ATTRIBUTES_SAMPLE_MAX_SIZE = 25;
     private final Gson gson = new Gson();
 
     private PreparedStatement updateStatement;
@@ -24,6 +28,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
     private PreparedStatement searchByTaskIdStatement;
 
     private PreparedStatement searchByNodeStatement;
+    private PreparedStatement searchByAttributeStatement;
 
     private PreparedStatement searchNodesStatement;
 
@@ -89,8 +94,17 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         searchNodesStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? limit ?");
         searchNodesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        searchByAttributeStatement = dbService.getSession().prepare("SELECT *" +
+                " FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ? limit ?");
+        searchByAttributeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
 
         checkStatisticsReportStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID +
                 " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
@@ -187,7 +201,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     private List<NodeStatistics> retrieveNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
         List<NodeStatistics> result = new ArrayList<>();
-        ResultSet rs = dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath));
+        ResultSet rs = dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath, 2));
 
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
@@ -278,5 +292,30 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
             return gson.fromJson(report, StatisticsReport.class);
         }
         return null;
+    }
+
+
+    public List<NodeReport> getElementReport(long taskId, String nodeXpath) {
+        List<NodeReport> result = new ArrayList<>();
+        ResultSet rs = dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath, ELEMETNS_SAMPLE_MAX_SIZE));
+        while (rs.iterator().hasNext()) {
+            Row elementRow = rs.one();
+            String elementValue = elementRow.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE);
+            List<AttributeStatistics> attributeStatistics = getAttributesStatistics(taskId, nodeXpath, elementValue);
+            NodeReport nodeValues = new NodeReport(elementValue, elementRow.getLong(CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE), attributeStatistics);
+            result.add(nodeValues);
+        }
+        return result;
+    }
+
+    private List<AttributeStatistics> getAttributesStatistics(long taskId, String nodeXpath, String elementValue) {
+        List<AttributeStatistics> attributeStatistics = new ArrayList<>();
+        ResultSet attributeRs = dbService.getSession().execute(searchByAttributeStatement.bind(taskId, nodeXpath, elementValue, ATTRIBUTES_SAMPLE_MAX_SIZE));
+        while (attributeRs.iterator().hasNext()) {
+            Row attributeRow = attributeRs.one();
+            attributeStatistics.add(new AttributeStatistics(attributeRow.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME), attributeRow.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_VALUE),
+                    attributeRow.getLong(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE)));
+        }
+        return attributeStatistics;
     }
 }
