@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -49,10 +50,7 @@ public class DpsClient {
     private static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
     private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
     private static final String KILL_TASK_URL = TASK_URL + "/" + KILL_TASK;
-
     private static final String ELEMENT_REPORT = TASK_URL + "/" + REPORTS_RESOURCE + "/element";
-    ;
-
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
@@ -301,12 +299,14 @@ public class DpsClient {
         }
     }
 
-    public String killTask(final String topologyName, final long taskId) throws DpsException {
+    public String killTask(final String topologyName, final long taskId, String info) throws DpsException {
         Response response = null;
         try {
-            response = client.target(dpsUrl).path(KILL_TASK_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId).request().post(null);
-
+            WebTarget webTarget = client.target(dpsUrl).path(KILL_TASK_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId);
+            if (info != null)
+                webTarget = webTarget.queryParam("info", info);
+            response = webTarget.request().post(null);
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(String.class);
             } else {

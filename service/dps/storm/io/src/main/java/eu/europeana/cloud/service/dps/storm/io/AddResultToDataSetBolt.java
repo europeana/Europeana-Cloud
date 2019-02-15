@@ -56,9 +56,9 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                 emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl, t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), t.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
+            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } catch (MalformedURLException e) {
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
+            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         }
     }
 

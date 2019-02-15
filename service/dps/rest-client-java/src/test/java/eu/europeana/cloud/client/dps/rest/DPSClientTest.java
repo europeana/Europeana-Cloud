@@ -134,18 +134,30 @@ public class DPSClientTest {
     @Betamax(tape = "DPSClient/killTaskTest")
     public final void shouldKillTask() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
-        String responseMessage = dpsClient.killTask(TOPOLOGY_NAME, TASK_ID);
-        assertEquals(responseMessage, "Task killing request was registered successfully");
-
+        String responseMessage = dpsClient.killTask(TOPOLOGY_NAME, TASK_ID, null);
+        assertEquals(responseMessage, "The task was killed because of Dropped by the user");
 
     }
+
+    @Test
+    @Betamax(tape = "DPSClient/killTaskTestWithSpecificInfo")
+    public final void shouldKillTaskWithSpecificInfo() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        String responseMessage = dpsClient.killTask(TOPOLOGY_NAME, TASK_ID, "Aggregator-choice");
+        assertEquals(responseMessage, "The task was killed because of Aggregator-choice");
+
+    }
+
+
+
+
 
     @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
     @Betamax(tape = "DPSClient/shouldThrowExceptionWhenKillingNonExistingTaskTest")
     public final void shouldThrowExceptionWhenKillingNonExistingTaskTest() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
         long nonExistedTaskId = 1111l;
-        dpsClient.killTask(TOPOLOGY_NAME, nonExistedTaskId);
+        dpsClient.killTask(TOPOLOGY_NAME, nonExistedTaskId, null);
 
 
     }
@@ -154,9 +166,7 @@ public class DPSClientTest {
     @Betamax(tape = "DPSClient/shouldThrowExceptionWhenKillingTaskForNonExistedTopologyTest")
     public final void shouldThrowExceptionWhenKillingTaskForNonExistedTopologyTest() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
-        dpsClient.killTask(NOT_DEFINED_TOPOLOGY_NAME, TASK_ID);
-
-
+        dpsClient.killTask(NOT_DEFINED_TOPOLOGY_NAME, TASK_ID, null);
     }
 
     @Test
