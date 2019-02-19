@@ -1,5 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.media.service;
-
+package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -15,8 +14,10 @@ import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +29,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
-
 /**
- * Created by Tarek on 12/6/2018.
+ * Created by Tarek on 2/19/2019.
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.management.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
@@ -66,7 +65,7 @@ public class ParseFileBoltTest {
     public static void init() {
 
         parseFileBolt.prepare();
-        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.DPS_TASK_INPUT_DATA,PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT);
+        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.DPS_TASK_INPUT_DATA, PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT);
 
     }
 

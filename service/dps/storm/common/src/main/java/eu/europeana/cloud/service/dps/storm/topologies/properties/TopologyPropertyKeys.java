@@ -54,6 +54,9 @@ public final class TopologyPropertyKeys {
     public static final String RESOURCE_PROCESSING_BOLT_PARALLEL = "RESOURCE_PROCESSING_BOLT_PARALLEL";
     public static final String EDM_ENRICHMENT_BOLT_PARALLEL = "EDM_ENRICHMENT_BOLT_PARALLEL";
 
+    public static final String LINK_CHECK_BOLT_PARALLEL = "LINK_CHECK_BOLT_PARALLEL";
+    public static final String LINK_CHECK_BOLT_NUMBER_OF_TASKS = "LINK_CHECK_BOLT_NUMBER_OF_TASKS";
+
 
     public static final String AWS_CREDENTIALS_ACCESSKEY = "AWS_CREDENTIALS_ACCESSKEY";
     public static final String AWS_CREDENTIALS_SECRETKEY = "AWS_CREDENTIALS_SECRETKEY";

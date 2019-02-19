@@ -27,7 +27,7 @@ public class LinkCheckBoltTest {
     private LinkChecker linkChecker;
 
     @InjectMocks
-    private LinkCheckBolt linkCheckBolt = new LinkCheckBolt(linkChecker);
+    private LinkCheckBolt linkCheckBolt = new LinkCheckBolt();
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
@@ -100,19 +100,19 @@ public class LinkCheckBoltTest {
 
     private void validateCapturedValues(ArgumentCaptor<Values> captor) {
         Values values = captor.getValue();
-        Map<String, String> parameters = (Map) values.get(4);
+        Map<String, String> parameters = (Map) values.get(2);
         assertNotNull(parameters);
-        assertEquals(0, parameters.size());
+        assertEquals(5, parameters.size());
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
-        assertEquals("ecloudFileUrl", values.get(2));
+        assertEquals("ecloudFileUrl", parameters.get("resource"));
     }
 
     private void validateCapturedValuesForError(ArgumentCaptor<Values> captor) {
         Values values = captor.getValue();
-        Map<String, String> parameters = (Map) values.get(4);
+        Map<String, String> parameters = (Map) values.get(2);
         assertNotNull(parameters);
-        assertEquals(2, parameters.size());
+        assertEquals(7, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("500"));
         assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("501"));
@@ -121,9 +121,8 @@ public class LinkCheckBoltTest {
         assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("507"));
 
         assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
-        assertEquals("ecloudFileUrl", values.get(2));
+        assertEquals("ecloudFileUrl", parameters.get("resource"));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
-        assertEquals("ecloudFileUrl", values.get(2));
     }
 }

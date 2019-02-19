@@ -21,12 +21,10 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 
     private LinkChecker linkChecker;
 
-    public LinkCheckBolt(LinkChecker linkChecker) {
-        this.linkChecker = linkChecker;
-    }
 
     @Override
     public void prepare() {
+        linkChecker = new LinkChecker();
     }
 
     /**
@@ -38,14 +36,15 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple tuple) {
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
-            prepareTuple(tuple);
-            emit(tuple);
+            emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
         } else {
             FileInfo edmFile = checkProvidedLink(resourceInfo);
             if (isFileFullyProcessed(edmFile)) {
                 removeFileFromCache(edmFile);
-                prepareTuple(tuple, edmFile);
-                emit(tuple);
+                if (edmFile.errors == null || edmFile.errors.isEmpty())
+                    emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
+                else
+                    emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors);
             }
         }
     }
@@ -114,23 +113,6 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 
     private boolean isResponseStatusAcceptable(int statusCode) {
         return statusCode >= 200 && statusCode < 300;
-    }
-
-    private void prepareTuple(StormTaskTuple tuple) {
-        tuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINKS_COUNT);
-        tuple.getParameters().remove(PluginParameterKeys.RESOURCE_URL);
-    }
-
-    private void prepareTuple(StormTaskTuple tuple, FileInfo edmFile) {
-        prepareTuple(tuple);
-        if (!edmFile.errors.isEmpty()) {
-            tuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, edmFile.errors);
-            tuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, "media resource exception");
-        }
-    }
-
-    private void emit(StormTaskTuple tuple) {
-        outputCollector.emit(AbstractDpsBolt.NOTIFICATION_STREAM_NAME, tuple.toStormTuple());
     }
 
 }
