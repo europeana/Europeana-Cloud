@@ -2,9 +2,10 @@ package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.metis.mediaprocessing.LinkChecker;
+import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
-import org.hamcrest.core.StringContains;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -45,7 +46,7 @@ public class LinkCheckBoltTest {
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(linkChecker, times(1)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
+        verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
     }
 
     @Test
@@ -53,24 +54,24 @@ public class LinkCheckBoltTest {
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(linkChecker, times(1)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
+        verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(linkChecker, times(2)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
+        verify(linkChecker, times(2)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(linkChecker, times(3)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
+        verify(linkChecker, times(3)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(linkChecker, times(4)).check(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
+        verify(linkChecker, times(4)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(tuple);
         verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(linkChecker, times(5)).check(Mockito.anyString());
+        verify(linkChecker, times(5)).performLinkChecking(Mockito.anyString());
     }
 
     @Test
     public void shouldEmitTupleWithErrorIncluded() throws Exception {
-        when(linkChecker.check(Mockito.anyString())).thenReturn(500, 501, 502, 505, 507);
+        doThrow(new LinkCheckingException(new Throwable())).when(linkChecker).performLinkChecking(Mockito.anyString());
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(tuple);
         linkCheckBolt.execute(tuple);
@@ -114,12 +115,7 @@ public class LinkCheckBoltTest {
         assertNotNull(parameters);
         assertEquals(7, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
-        assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("500"));
-        assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("501"));
-        assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("502"));
-        assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("505"));
-        assertThat(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), StringContains.containsString("507"));
-
+        assertEquals(5, parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE).split(",").length);
         assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
         assertEquals("ecloudFileUrl", parameters.get("resource"));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));

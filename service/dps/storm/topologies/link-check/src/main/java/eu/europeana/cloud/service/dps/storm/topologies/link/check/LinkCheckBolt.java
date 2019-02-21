@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.metis.mediaprocessing.LinkChecker;
+import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +26,15 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        linkChecker = new LinkChecker();
+        try {
+            final MediaProcessorFactory processorFactory = new MediaProcessorFactory();
+            linkChecker = processorFactory.createLinkChecker();
+        } catch (Exception e) {
+            String errorMessage = "error while initializing Link checker";
+            LOGGER.error(errorMessage + " " + e.getCause());
+            throw new RuntimeException("error while initializing Link checker", e);
+        }
+
     }
 
     /**
@@ -92,11 +102,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private void checkLink(ResourceInfo resourceInfo, FileInfo fileInfo) {
         LOGGER.info("Checking resource url {}", resourceInfo.edmUrl);
         try {
-            int status = linkChecker.check(resourceInfo.linkUrl);
-            if (!isResponseStatusAcceptable(status)) {
-                LOGGER.info("Link error (code {}) for {}", status, resourceInfo.linkUrl);
-                addErrorMessage(resourceInfo, fileInfo, status);
-            }
+            linkChecker.performLinkChecking(resourceInfo.linkUrl);
         } catch (Exception e) {
             LOGGER.info("There was exception while checking the link: {}", resourceInfo.edmUrl);
             String error = e.getMessage() + " . Because of: " + e.getCause();
@@ -107,16 +113,6 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         } finally {
             fileInfo.linksChecked++;
         }
-    }
-
-    private void addErrorMessage(ResourceInfo resourceInfo, FileInfo fileInfo, int status) {
-        if (!fileInfo.errors.isEmpty())
-            fileInfo.errors = fileInfo.errors + ", ";
-        fileInfo.errors = fileInfo.errors + "Link error (code " + status + ") for " + resourceInfo.linkUrl;
-    }
-
-    private boolean isResponseStatusAcceptable(int statusCode) {
-        return statusCode >= 200 && statusCode < 300;
     }
 
 }

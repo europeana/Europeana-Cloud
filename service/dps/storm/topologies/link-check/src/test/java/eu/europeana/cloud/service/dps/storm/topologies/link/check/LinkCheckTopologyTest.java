@@ -12,6 +12,8 @@ import eu.europeana.cloud.service.dps.storm.*;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.metis.mediaprocessing.LinkChecker;
+import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -55,7 +57,7 @@ import static org.mockito.Mockito.when;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class,LinkChecker.class, LinkCheckBolt.class, ParseFileBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class})
+@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
 
 public class LinkCheckTopologyTest extends TopologyTestHelper {
@@ -67,16 +69,16 @@ public class LinkCheckTopologyTest extends TopologyTestHelper {
 
     @BeforeClass
     public static void init() {
-        PowerMockito.mockStatic(LinkCheckBolt.class);
         buildTopology();
     }
 
 
     private void mockLinkChecking() throws Exception {
         LinkChecker linkChecker = mock(LinkChecker.class);
-        PowerMockito.whenNew(LinkChecker.class).withAnyArguments().thenReturn(linkChecker);
-        when(linkChecker.check(anyString())).thenReturn(200);
-
+        MediaProcessorFactory mediaProcessorFactory = mock(MediaProcessorFactory.class);
+        PowerMockito.whenNew(MediaProcessorFactory.class).withAnyArguments().thenReturn(mediaProcessorFactory);
+        when(mediaProcessorFactory.createLinkChecker()).thenReturn(linkChecker);
+        doNothing().when(linkChecker).performLinkChecking(anyString());
     }
 
     @Before
