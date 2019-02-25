@@ -830,6 +830,28 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(retrievedInfo, is(errorsInfo));
     }
 
+
+    @Test
+    public void shouldCheckIfReportExists() throws AccessDeniedOrObjectDoesNotExistException {
+        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        when(reportService.checkIfReportExists(eq(Long.toString(TASK_ID)))).thenReturn(true);
+        Response response = enrichedWebTarget.request().head();
+        assertEquals(200, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturn405InCaseOfException() throws AccessDeniedOrObjectDoesNotExistException {
+        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfReportExists(eq(Long.toString(TASK_ID)));
+        Response response = enrichedWebTarget.request().head();
+        assertEquals(405, response.getStatus());
+
+    }
+
     @Test
     public void shouldGetSpecificErrorReport() throws AccessDeniedOrObjectDoesNotExistException {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID).queryParam("error", ERROR_TYPES[0]);

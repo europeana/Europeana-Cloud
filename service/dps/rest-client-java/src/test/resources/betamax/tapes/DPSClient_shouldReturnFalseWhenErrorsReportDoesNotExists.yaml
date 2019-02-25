@@ -1,0 +1,25 @@
+!tape
+name: DPSClient_shouldReturnFalseWhenErrorsReportDoesNotExists
+interactions:
+- recorded: 2019-02-25T11:37:21.863Z
+  request:
+    method: HEAD
+    uri: http://localhost:8080/services/TopologyName/tasks/12345/reports/errors
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.8.0_121)
+  response:
+    status: 405
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Mon, 25 Feb 2019 11:37:21 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block

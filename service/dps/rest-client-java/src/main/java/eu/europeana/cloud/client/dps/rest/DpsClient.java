@@ -273,6 +273,28 @@ public class DpsClient {
         }
     }
 
+    public boolean checkIfErrorReportExists(final String topologyName, final long taskId){
+
+        Response response = null;
+
+        try {
+            response = client
+                    .target(dpsUrl)
+                    .path(ERRORS_TASK_REPORT_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                    .resolveTemplate(TASK_ID, taskId)
+                    .request().head();
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode())
+                return true;
+            return false;
+
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+
     private TaskErrorsInfo handleErrorResponse(Response response) throws DpsException {
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return response.readEntity(TaskErrorsInfo.class);

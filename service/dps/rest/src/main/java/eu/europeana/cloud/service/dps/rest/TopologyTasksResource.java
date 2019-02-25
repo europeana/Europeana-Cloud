@@ -339,6 +339,34 @@ public class TopologyTasksResource {
 
 
     /**
+     * Check if the task has error report
+     * <p>
+     * <p/>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
+     * </div>
+     *
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @return if the error report exists
+     * @summary Check if the task has error report
+     */
+    @HEAD
+    @Path("{taskId}/reports/errors")
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    public Boolean checkIfErrorReportExists(@PathParam("taskId") String taskId, @PathParam("topologyName") final String topologyName) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+        assertContainTopology(topologyName);
+        reportService.checkIfTaskExists(taskId, topologyName);
+        return reportService.checkIfReportExists(taskId);
+    }
+
+
+    /**
      * Retrieves a statistics report for the specified task. Only applicable for tasks executing {@link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
      * <p>
      * <p/>
@@ -444,7 +472,7 @@ public class TopologyTasksResource {
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param info <strong>OPTIONAL</strong> The cause of the cancellation. If it was not specified a default cause 'Dropped by the user' will be provided
+     * @param info         <strong>OPTIONAL</strong> The cause of the cancellation. If it was not specified a default cause 'Dropped by the user' will be provided
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if taskId does not belong to the specified topology

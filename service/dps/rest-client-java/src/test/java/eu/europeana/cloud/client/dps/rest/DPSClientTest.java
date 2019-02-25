@@ -149,9 +149,6 @@ public class DPSClientTest {
     }
 
 
-
-
-
     @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
     @Betamax(tape = "DPSClient/shouldThrowExceptionWhenKillingNonExistingTaskTest")
     public final void shouldThrowExceptionWhenKillingNonExistingTaskTest() throws DpsException {
@@ -187,6 +184,20 @@ public class DPSClientTest {
         TaskErrorsInfo report = createErrorInfo(TASK_ID, false);
         assertThat(dpsClient.getTaskErrorsReport(TOPOLOGY_NAME, TASK_ID, null, 0), is(report));
 
+    }
+
+    @Test
+    @Betamax(tape = "DPSClient_shouldReturnTrueWhenErrorsReportExists")
+    public final void shouldReturnTrueWhenErrorsReportExists() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        assertTrue(dpsClient.checkIfErrorReportExists(TOPOLOGY_NAME, TASK_ID));
+    }
+
+    @Test
+    @Betamax(tape = "DPSClient_shouldReturnFalseWhenErrorsReportDoesNotExists")
+    public final void shouldReturnFalseWhenErrorsReportDoesNotExists() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        assertFalse(dpsClient.checkIfErrorReportExists(TOPOLOGY_NAME, TASK_ID));
     }
 
     @Test
