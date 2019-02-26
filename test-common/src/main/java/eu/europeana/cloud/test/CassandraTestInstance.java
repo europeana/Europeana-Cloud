@@ -1,6 +1,7 @@
 package eu.europeana.cloud.test;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.datastax.driver.core.policies.RetryPolicy;
 import org.cassandraunit.CQLDataLoader;
@@ -116,10 +117,10 @@ public final class CassandraTestInstance {
     private static void truncateAllNotEmptyKeyspaceTables(String keyspaceName) {
         Session session = keyspaceSessions.get(keyspaceName);
         final ResultSet rs = session
-                .execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
+                .execute("SELECT table_name from system_schema.tables where keyspace_name='" +
                         keyspaceName + "';");
         for (Row r : rs.all()) {
-            String tableName = r.getString("columnfamily_name");
+            String tableName = r.getString("table_name");
             ResultSet rows = session
                     .execute("SELECT * FROM " + tableName + " LIMIT 1;");
             if (rows.one() == null) {
@@ -232,6 +233,21 @@ public final class CassandraTestInstance {
                                            int aliveReplica, int nbRetry) {
             waitForNextRetry();
             return getRetryDecision(cl, requiredReplica, aliveReplica, nbRetry, maxUnavailableNbRetry);
+        }
+
+        @Override
+        public RetryDecision onRequestError(Statement statement, ConsistencyLevel cl, DriverException e, int nbRetry) {
+            return null;
+        }
+
+        @Override
+        public void init(Cluster cluster) {
+
+        }
+
+        @Override
+        public void close() {
+
         }
 
         private RetryDecision getRetryDecision(ConsistencyLevel cl, int required, int actual, int nbRetry, double maxNbRetry) {

@@ -124,7 +124,6 @@ public interface UniqueIdentifierService {
      * 
      * @param cloudId
      * @param providerId
-     * @param recordId
      * @return The newly created CloudId
      * @throws DatabaseConnectionException
      * @throws CloudIdDoesNotExistException

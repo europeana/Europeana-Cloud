@@ -9,7 +9,7 @@
     <artifactId>test-common</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <cassandra-all.version>2.1.8</cassandra-all.version>
+        <cassandra-all.version>3.11.4</cassandra-all.version>
     </properties>
     <dependencies>
         <dependency>

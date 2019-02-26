@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.eaio.uuid.UUID;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.DataSetRepresentationForLatestRevision;
 import eu.europeana.cloud.common.model.Representation;
@@ -41,7 +40,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     private static final String SAMPLE_CLOUD_ID = "Cloud_1";
     private static final String SAMPLE_CLOUD_ID2 = "Cloud_2";
     private static final String SAMPLE_CLOUD_ID3 = "Cloud_3";
-    private static final UUID SAMPLE_VERSION_ID = new UUID(new java.util.Date().getTime() + "");
+    private static final UUID SAMPLE_VERSION_ID = UUID.fromString("9c8e1480-e115-11e8-b840-fa163e8d4ae3");
 
 
     private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
@@ -356,7 +355,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
             representation.setCloudId("cloud_id_" + i);
             representation.setDataProvider(dataSet.getProviderId());
             representation.setRepresentationName("representation_" + i);
-            representation.setVersion(new UUID(new java.util.Date().getTime() + "").toString());
+            representation.setVersion(SAMPLE_VERSION_ID.toString());
             dataSetDAO.addAssignment(dataSet.getProviderId(), dataSet.getId(), representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
             assigned.add(representation);
         }
