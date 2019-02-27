@@ -6,8 +6,8 @@ MAIN_DIR=$1
 
 function wait_for_cassandra_bootup () {
 
-    until cqlsh --cqlversion=3.2.0 -u cassandra -p cassandra \
-        -e "DESCRIBE system.schema_columnfamilies;" &> /dev/null
+    until cqlsh --cqlversion=3.4.4 -u cassandra -p cassandra \
+        -e "DESCRIBE system_schema.keyspaces;" &> /dev/null
     do
         echo "."
         sleep 1s;
