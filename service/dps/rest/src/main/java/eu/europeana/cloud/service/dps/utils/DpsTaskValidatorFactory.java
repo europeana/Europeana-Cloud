@@ -32,9 +32,14 @@ public class DpsTaskValidatorFactory {
     private static final String INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS = "indexing_topology_file_urls";
     private static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
 
+
+    private static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
+    private static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
+
     private static Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
-    private DpsTaskValidatorFactory(){}
+    private DpsTaskValidatorFactory() {
+    }
 
     public static DpsTaskValidator createValidator(String taskType) {
         DpsTaskValidator taskValidator = taskValidatorMap.get(taskType);
@@ -121,6 +126,17 @@ public class DpsTaskValidatorFactory {
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
                 .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
                 .withParameter(PluginParameterKeys.METIS_DATASET_ID));
+
+
+        taskValidatorMap.put(LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Link checking Topology")
+                .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
+                .withOptionalOutputRevision());
+
+        taskValidatorMap.put(LINK_CHECKING_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Link checking Topology")
+                .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
+                .withOptionalOutputRevision()
+                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
+
 
         return taskValidatorMap;
     }
