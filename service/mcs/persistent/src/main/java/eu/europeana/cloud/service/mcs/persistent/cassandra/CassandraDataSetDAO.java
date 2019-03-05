@@ -36,6 +36,8 @@ public class CassandraDataSetDAO {
 
     private static final String DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS = "data_set_assignments_by_data_set_buckets";
 
+    private static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
+
     @Autowired
     @Qualifier("dbService")
     private CassandraConnectionProvider connectionProvider;
@@ -260,8 +262,8 @@ public class CassandraDataSetDAO {
                 .getSession()
                 .prepare( //
                         "INSERT INTO " //
-                                + "data_set_assignments_by_revision_id (provider_id, dataset_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted) " //
-                                + "VALUES (?,?,?,?,?,?,?,?,?,?);");
+                                + "data_set_assignments_by_revision_id (provider_id, dataset_id, bucket_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted) " //
+                                + "VALUES (?,?,?,?,?,?,?,?,?,?,?);");
         addDataSetsRevision.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
@@ -269,7 +271,7 @@ public class CassandraDataSetDAO {
                 = connectionProvider.getSession().prepare(//
                 "DELETE "//
                         + "FROM data_set_assignments_by_revision_id "//
-                        + "WHERE provider_id = ? AND dataset_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? " +
+                        + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? " +
                         "AND cloud_id = ?;");
         removeDataSetsRevision
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
@@ -278,7 +280,7 @@ public class CassandraDataSetDAO {
                 "SELECT "//
                         + "cloud_id, published, acceptance, mark_deleted "//
                         + "FROM data_set_assignments_by_revision_id "//
-                        + "WHERE provider_id = ? AND dataset_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? LIMIT ?;");
+                        + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? LIMIT ?;");
         getDataSetsRevision
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
@@ -834,24 +836,38 @@ public class CassandraDataSetDAO {
     }
 
     public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId) {
-        BoundStatement boundStatement = addDataSetsRevision.bind(providerId, datasetId, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
+        //
+        String providerDataSetId = createProviderDataSetId(providerId, datasetId);
+        Bucket bucket = bucketsHandler.getCurrentBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId);
+        // when there is no bucket or bucket rows count is max we should add another bucket
+        if (bucket == null || bucket.getRowsCount() >= MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT) {
+            bucket = new Bucket(providerDataSetId, createBucket(), 0);
+        }
+        bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
+        //
+        BoundStatement boundStatement = addDataSetsRevision.bind(providerId, datasetId, UUID.fromString(bucket.getBucketId()), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
     public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String
             representationName, String cloudId) {
-        BoundStatement boundStatement = removeDataSetsRevision.bind(providerId, datasetId, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
+        Bucket bucket = bucketsHandler.getCurrentBucket(
+                DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
+                createProviderDataSetId(providerId, datasetId));
+
+        BoundStatement boundStatement = removeDataSetsRevision.bind(providerId, datasetId, UUID.fromString(bucket.getBucketId()), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
                 representationName, cloudId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
+        bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
     }
 
     public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String nextToken, int limit) {
         List<Properties> result = new ArrayList<>(limit);
 
         // bind parameters, set limit to max int value
-        BoundStatement boundStatement = getDataSetsRevision.bind(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, Integer.MAX_VALUE);
+        BoundStatement boundStatement = getDataSetsRevision.bind(providerId, dataSetId, UUID.fromString("sample"), revisionProviderId, revisionName, revisionTimestamp, representationName, Integer.MAX_VALUE);
         // limit page to "limit" number of results
         boundStatement.setFetchSize(limit);
         // when this is not a first page call set paging state in the statement
