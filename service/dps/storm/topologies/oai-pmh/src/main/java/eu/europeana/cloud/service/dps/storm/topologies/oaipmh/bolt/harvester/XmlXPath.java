@@ -9,6 +9,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.*;
@@ -34,7 +35,7 @@ class XmlXPath {
      */
     public InputStream xpath(XPathExpression expr) throws HarvesterException, IOException {
         try {
-            final InputSource inputSource = new InputSource(new StringReader(input));
+            final InputSource inputSource = new SAXSource(new InputSource(new StringReader(input))).getInputSource();
             final NodeList result = (NodeList) expr.evaluate(inputSource,
                     XPathConstants.NODESET);
 
