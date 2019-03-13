@@ -272,7 +272,7 @@ public class CassandraDataSetDAO {
                 "DELETE "//
                         + "FROM data_set_assignments_by_revision_id "//
                         + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? " +
-                        "AND cloud_id = ?;");
+                        "AND cloud_id = ? IF EXISTS;");
         removeDataSetsRevision
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
@@ -852,15 +852,19 @@ public class CassandraDataSetDAO {
 
     public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String
             representationName, String cloudId) {
-        Bucket bucket = bucketsHandler.getCurrentBucket(
-                DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
+        List<Bucket> availableBuckets = bucketsHandler.getAllBuckets(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
                 createProviderDataSetId(providerId, datasetId));
 
-        BoundStatement boundStatement = removeDataSetsRevision.bind(providerId, datasetId, UUID.fromString(bucket.getBucketId()), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
-                representationName, cloudId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
+        for (Bucket bucket : availableBuckets) {
+            BoundStatement boundStatement = removeDataSetsRevision.bind(providerId, datasetId, UUID.fromString(bucket.getBucketId()), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
+                    representationName, cloudId);
+            ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+            QueryTracer.logConsistencyLevel(boundStatement, rs);
+            if (rs.wasApplied()) {
+                bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
+                return;
+            }
+        }
     }
 
     public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String nextToken, int limit) {
