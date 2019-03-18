@@ -12,10 +12,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * Class xpath on XML passed as {@code InputStream}.
@@ -23,9 +20,9 @@ import java.io.InputStream;
  * @author krystian.
  */
 class XmlXPath {
-    private final InputStream input;
+    private String input;
 
-     XmlXPath(InputStream input) {
+    XmlXPath(String input) {
         this.input = input;
     }
 
@@ -38,17 +35,13 @@ class XmlXPath {
      */
     public InputStream xpath(XPathExpression expr) throws HarvesterException, IOException {
         try {
-            final InputSource inputSource = new SAXSource(new InputSource(input)).getInputSource();
+            final InputSource inputSource = new SAXSource(new InputSource(new StringReader(input))).getInputSource();
             final NodeList result = (NodeList) expr.evaluate(inputSource,
                     XPathConstants.NODESET);
 
             return convertToStream(result);
         } catch (XPathExpressionException | TransformerException e) {
             throw new HarvesterException("Cannot xpath XML!", e);
-        } finally {
-            if (input != null) {
-                input.close();
-            }
         }
     }
 
