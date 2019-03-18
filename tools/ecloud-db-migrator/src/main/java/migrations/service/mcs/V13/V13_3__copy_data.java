@@ -1,44 +1,90 @@
 package migrations.service.mcs.V13;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import migrations.common.TableCopier;
+import com.datastax.driver.core.*;
+import eu.europeana.cloud.common.utils.Bucket;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 
-public class V13_3__copy_data extends TableCopier implements JavaMigration {
+import java.util.Iterator;
+import java.util.UUID;
 
-    private static final String sourceTable = "data_set_assignments_by_revision_id";
-    private static final String targetTable = "data_set_assignments_by_revision_id_temp";
+import static migrations.common.TableCopier.hasNextRow;
 
-    private static final String select = "SELECT "
-            + " provider_id, dataset_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted "
-            + " FROM " + sourceTable +" ;\n";
+public class V13_3__copy_data implements JavaMigration {
 
-    private static final String insert = "INSERT INTO "
-            + targetTable + " (provider_id, dataset_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?);\n";
+    private PreparedStatement selectStatement;
+    private PreparedStatement insertStatement;
 
+    private static final int MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT = 250000;
+    protected static final String CDSID_SEPARATOR = "\n";
 
-    @Override
-    public void migrate(Session session) throws Exception {
-        PreparedStatement selectStatement = session.prepare(select);
-        PreparedStatement insertStatement = session.prepare(insert);
-        copyTable(session, selectStatement, insertStatement);
+    private void initStatements(Session session) {
+
+        selectStatement = session.prepare("SELECT * FROM data_set_assignments_by_revision_id");
+
+        insertStatement = session.prepare("INSERT INTO "
+                + "data_set_assignments_by_revision_id_v1 (provider_id,dataset_id,bucket_id,revision_provider_id,revision_name,revision_timestamp,representation_id,cloud_id,published,acceptance, mark_deleted) "
+                + "VALUES (?,?,?,?,?,?,?,?,?,?,?);");
+
+        selectStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);
+        insertStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);
     }
 
     @Override
-    public void insert(PreparedStatement insertStatement, Row r, Session session) {
-        session.execute(insertStatement.bind(
-                r.getString("provider_id"),
-                r.getString("dataset_id"),
-                r.getString("revision_provider_id"),
-                r.getString("revision_name"),
-                r.getDate("revision_timestamp"),
-                r.getString("representation_id"),
-                r.getString("cloud_id"),
-                r.getBool("published"),
-                r.getBool("acceptance"),
-                r.getBool("mark_deleted")));
+    public void migrate(Session session) throws Exception {
+        BucketsHandler bucketsHandler = new BucketsHandler(session);
+        initStatements(session);
+
+        long counter = 0;
+
+        BoundStatement boundStatement = selectStatement.bind();
+        boundStatement.setFetchSize(1000);
+        ResultSet rs = session.execute(boundStatement);
+
+        Iterator<Row> ri = rs.iterator();
+
+        while (hasNextRow(ri)) {
+            Row dataset_assignment = ri.next();
+            //
+            Bucket bucket = bucketsHandler.getCurrentBucket(
+                    "data_set_assignments_by_revision_id_buckets",
+                    createProviderDataSetId(dataset_assignment.getString("provider_id"), dataset_assignment.getString("dataset_id")));
+
+            if (bucket == null || bucket.getRowsCount() >= MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT) {
+                bucket = new Bucket(
+                        createProviderDataSetId(dataset_assignment.getString("provider_id"), dataset_assignment.getString("dataset_id")),
+                        new com.eaio.uuid.UUID().toString(),
+                        0);
+            }
+            bucketsHandler.increaseBucketCount("data_set_assignments_by_revision_id_buckets", bucket);
+            //
+            insertRowToAssignmentsByRepresentationsTable(session, dataset_assignment, bucket.getBucketId());
+
+            if (++counter % 10000 == 0) {
+                System.out.print("\rCopy table progress: " + counter);
+            }
+        }
+    }
+
+    private void insertRowToAssignmentsByRepresentationsTable(Session session, Row sourceRow, String bucketId) {
+
+        BoundStatement boundStatement = insertStatement.bind(
+                sourceRow.getString("provider_id"),
+                sourceRow.getString("dataset_id"),
+                UUID.fromString(bucketId),
+                sourceRow.getString("revision_provider_id"),
+                sourceRow.getString("revision_name"),
+                sourceRow.getDate("revision_timestamp"),
+                sourceRow.getString("representation_id"),
+                sourceRow.getString("cloud_id"),
+                sourceRow.getBool("published"),
+                sourceRow.getBool("acceptance"),
+                sourceRow.getBool("mark_deleted")
+        );
+        session.execute(boundStatement);
+    }
+
+    private String createProviderDataSetId(String providerId, String dataSetId) {
+        return providerId + CDSID_SEPARATOR + dataSetId;
     }
 }
