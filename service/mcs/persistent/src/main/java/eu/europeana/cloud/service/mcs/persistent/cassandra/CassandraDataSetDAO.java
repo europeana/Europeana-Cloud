@@ -262,7 +262,7 @@ public class CassandraDataSetDAO {
                 .getSession()
                 .prepare( //
                         "INSERT INTO " //
-                                + "data_set_assignments_by_revision_id (provider_id, dataset_id, bucket_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted) " //
+                                + "data_set_assignments_by_revision_id_v1 (provider_id, dataset_id, bucket_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted) " //
                                 + "VALUES (?,?,?,?,?,?,?,?,?,?,?);");
         addDataSetsRevision.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
@@ -270,7 +270,7 @@ public class CassandraDataSetDAO {
         removeDataSetsRevision
                 = connectionProvider.getSession().prepare(//
                 "DELETE "//
-                        + "FROM data_set_assignments_by_revision_id "//
+                        + "FROM data_set_assignments_by_revision_id_v1 "//
                         + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? " +
                         "AND cloud_id = ? IF EXISTS;");
         removeDataSetsRevision
@@ -279,7 +279,7 @@ public class CassandraDataSetDAO {
         getDataSetsRevision = connectionProvider.getSession().prepare(//
                 "SELECT "//
                         + "cloud_id, published, acceptance, mark_deleted "//
-                        + "FROM data_set_assignments_by_revision_id "//
+                        + "FROM data_set_assignments_by_revision_id_v1 "//
                         + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? LIMIT ?;");
         getDataSetsRevision
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());

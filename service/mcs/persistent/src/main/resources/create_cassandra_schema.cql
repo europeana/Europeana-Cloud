@@ -74,7 +74,7 @@ CREATE TABLE representation_revisions (
        PRIMARY KEY ((cloud_id, representation_id), revision_provider_id, revision_name, revision_timestamp, version_id)
 )WITH CLUSTERING ORDER BY (revision_provider_id ASC, revision_name ASC, revision_timestamp DESC, version_id ASC) AND comment='Retrieve version_id based on the rest known fields of the primary key';
 
-CREATE TABLE data_set_assignments_by_revision_id (
+CREATE TABLE data_set_assignments_by_revision_id_v1 (
        provider_id varchar,
        dataset_id varchar,
        bucket_id timeuuid,

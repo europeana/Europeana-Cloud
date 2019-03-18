@@ -19,7 +19,7 @@ public class V13_validator {
 
     public void validate() {
         KeyspaceMetadata meta = session.getCluster().getMetadata().getKeyspace(EmbeddedCassandra.KEYSPACE);
-        TableMetadata data_set_assignments_by_revision_id = meta.getTable("data_set_assignments_by_revision_id");
+        TableMetadata data_set_assignments_by_revision_id = meta.getTable("data_set_assignments_by_revision_id_v1");
 
         Assert.assertNotNull(data_set_assignments_by_revision_id);
         //

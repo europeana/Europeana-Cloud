@@ -47,7 +47,7 @@ CREATE TABLE representation_versions (
        PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 
-CREATE TABLE data_set_assignments_by_revision_id (
+CREATE TABLE data_set_assignments_by_revision_id_v1 (
        provider_id varchar,
        dataset_id varchar,
        bucket_id timeuuid,
