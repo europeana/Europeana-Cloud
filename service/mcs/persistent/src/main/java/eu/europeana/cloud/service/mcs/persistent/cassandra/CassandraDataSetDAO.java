@@ -33,6 +33,7 @@ public class CassandraDataSetDAO {
     private static final int MAX_PROVIDER_DATASET_BUCKET_COUNT = 210000;
 
     private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
+    private static final int MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT = 250000;
 
     private static final String DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS = "data_set_assignments_by_data_set_buckets";
 
@@ -840,7 +841,7 @@ public class CassandraDataSetDAO {
         String providerDataSetId = createProviderDataSetId(providerId, datasetId);
         Bucket bucket = bucketsHandler.getCurrentBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId);
         // when there is no bucket or bucket rows count is max we should add another bucket
-        if (bucket == null || bucket.getRowsCount() >= MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT) {
+        if (bucket == null || bucket.getRowsCount() >= MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT) {
             bucket = new Bucket(providerDataSetId, createBucket(), 0);
         }
         bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
