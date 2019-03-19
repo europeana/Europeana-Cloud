@@ -53,6 +53,6 @@ do
 done
 
 echo -e "${GREEN}Executing full backup script for $keyspaceToBeBackuped and $snapshotDirName${NC}"
-./fullBackupCreator.sh -s $snapshotDirName
+fullBackupCreator.sh -s $snapshotDirName
 
 echo '' |  mailx -s "[`hostname -s`] Full backup finished" mail@to
