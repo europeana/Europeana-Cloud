@@ -2,8 +2,8 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.dspace.xoai.serviceprovider.exceptions.HttpException;
 import org.dspace.xoai.serviceprovider.parameters.Parameters;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CustomConnection {
     private String baseUrl;
-    private HttpClient httpclient;
+    private CloseableHttpClient httpclient;
     private int timeout = '\uea60';
 
     public CustomConnection(String baseUrl) {
@@ -39,15 +39,28 @@ public class CustomConnection {
         } catch (IOException exception) {
             throw new HttpException(exception);
         } finally {
-            if (httpGet != null)
-                httpGet.releaseConnection();
+            try {
+                if (httpGet != null)
+                    httpGet.releaseConnection();
+            } finally {
+                if (httpclient != null)
+                    try {
+                        httpclient.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+            }
         }
     }
 
 
     private String getData(InputStream is) throws IOException {
-
-        return IOUtils.toString(is, "UTF-8");
+        try {
+            return IOUtils.toString(is, "UTF-8");
+        } finally {
+            if (is != null)
+                is.close();
+        }
     }
 
     private HttpGet createGetRequest(Parameters parameters) {
