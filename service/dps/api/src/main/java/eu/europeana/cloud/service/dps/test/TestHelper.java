@@ -27,12 +27,30 @@ public class TestHelper {
         return cloudTagsResponseList;
     }
 
+    public final List<CloudTagsResponse> prepareCloudTagsResponsesList(int n) {
+        List<CloudTagsResponse> cloudTagsResponseList = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID + i, true, false, false);
+            cloudTagsResponseList.add(cloudTagsResponseResponse1);
+        }
+        return cloudTagsResponseList;
+    }
+
     public final List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date) {
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>(2);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse2 = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID2, date);
         cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
         cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse2);
+        return cloudIdAndTimestampResponseList;
+    }
+
+    public final List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date, int n) {
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
+            cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
+        }
         return cloudIdAndTimestampResponseList;
     }
 
