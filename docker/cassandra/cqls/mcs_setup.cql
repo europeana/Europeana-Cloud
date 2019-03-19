@@ -47,9 +47,10 @@ CREATE TABLE representation_versions (
        PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 
-CREATE TABLE data_set_assignments_by_revision_id (
+CREATE TABLE data_set_assignments_by_revision_id_v1 (
        provider_id varchar,
        dataset_id varchar,
+       bucket_id timeuuid,
        revision_provider_id varchar,
        revision_name varchar,
        revision_timestamp timestamp,
@@ -58,8 +59,15 @@ CREATE TABLE data_set_assignments_by_revision_id (
        published boolean,
        acceptance boolean,
        mark_deleted boolean,
-       PRIMARY KEY ((provider_id, dataset_id), revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id)
+       PRIMARY KEY ((provider_id, dataset_id, bucket_id), revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id)
 )WITH comment='Retrieve cloud Ids based on a known provider_id, dataset_id, revision_id';
+
+CREATE TABLE data_set_assignments_by_revision_id_buckets (
+      object_id varchar,
+      bucket_id timeuuid,
+      rows_count counter,
+      PRIMARY KEY (object_id, bucket_id)
+) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
 
 CREATE TABLE data_set_representation_names(
        provider_id varchar,

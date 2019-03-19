@@ -119,6 +119,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
         private static final int INTERNAL_THREADS_NUMBER = 10;
+        public static final int MAX_BATCH_SIZE = 100;
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
         private DpsTask currentDpsTask;
@@ -146,8 +147,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     currentDpsTask = taskQueue.take();
-                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId()))
-                    {
+                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId())) {
                         startProgressing(currentDpsTask);
                         OAIPMHHarvestingDetails oaipmhHarvestingDetails = currentDpsTask.getHarvestingDetails();
                         if (oaipmhHarvestingDetails == null)
@@ -213,9 +213,16 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                             if (revisionName != null && revisionProvider != null) {
                                 String revisionTimestamp = dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
                                 if (revisionTimestamp != null) {
-                                    expectedSize += handleExactRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                                    if (stormTaskTuple.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null)
+                                        expectedSize += handleExactRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                                    else
+                                        expectedSize += handlePartialSizeExactRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS), Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.SAMPLE_SIZE)));
+
                                 } else {
-                                    expectedSize += handleLatestRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+                                    if (stormTaskTuple.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null)
+                                        expectedSize += handleLatestRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+                                    else
+                                        expectedSize += handlePartialSizeForLatestRevisions(stormTaskTuple, dataSetServiceClient, recordServiceClient, fileClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS), Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.SAMPLE_SIZE)));
                                 }
                             } else {
                                 QueueFiller queueFiller = new QueueFiller(taskStatusChecker, collector, tuplesWithFileUrls);
@@ -300,12 +307,47 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
 
 
+        private int handlePartialSizeForLatestRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, int
+                maxRecordsCount) throws MCSException, DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
+            int count = 0;
+            String startFrom = null;
+            final long taskId = stormTaskTuple.getTaskId();
+            ExecutorService executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
+            Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
+            int total = 0;
+            do {
+
+                final ResultSlice<CloudIdAndTimestampResponse> resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, datasetName, datasetProvider, startFrom);
+                List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = resultSlice.getResults();
+                total += cloudIdAndTimestampResponseList.size();
+                if (total > maxRecordsCount)
+                    if (total - maxRecordsCount < MAX_BATCH_SIZE)
+                        cloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList.subList(0, maxRecordsCount % MAX_BATCH_SIZE);
+                    else
+                        break;
+                Future<Integer> job = executorService.submit(new QueueFillerForLatestRevisionJob(fileServiceClient, recordServiceClient, collector, taskStatusChecker, tuplesWithFileUrls, stormTaskTuple, representationName, revisionName, revisionProvider, cloudIdAndTimestampResponseList));
+                futures.add(job);
+                if (futures.size() == INTERNAL_THREADS_NUMBER) {
+                    count += getCountAndWait(futures);
+                }
+                startFrom = resultSlice.getNextSlice();
+            }
+            while (startFrom != null && !taskStatusChecker.hasKillFlag(taskId));
+
+            if (futures.size() > 0)
+                count += getCountAndWait(futures);
+            executorService.shutdown();
+            return count;
+        }
+
+
         private int handleExactRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName) throws MCSException, DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
             int count = 0;
             String startFrom = null;
             long taskId = stormTaskTuple.getTaskId();
             ExecutorService executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
             Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
+
             do {
                 ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionsChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, datasetProvider, datasetName, startFrom);
                 List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
@@ -323,6 +365,39 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             executorService.shutdown();
             return count;
         }
+
+
+        private int handlePartialSizeExactRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName, int maxRecordsCount) throws MCSException, DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
+            int count = 0;
+            String startFrom = null;
+            long taskId = stormTaskTuple.getTaskId();
+            ExecutorService executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
+            Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
+            int total = 0;
+            do {
+                ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionsChunk(dataSetServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, datasetProvider, datasetName, startFrom);
+                List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
+                total += cloudTagsResponses.size();
+                if (total > maxRecordsCount)
+                    if (total - maxRecordsCount < MAX_BATCH_SIZE)
+                        cloudTagsResponses = cloudTagsResponses.subList(0, maxRecordsCount % MAX_BATCH_SIZE);
+                    else
+                        break;
+                Future<Integer> job = executorService.submit(new QueueFillerForSpecificRevisionJob(fileClient, recordServiceClient, collector, taskStatusChecker, tuplesWithFileUrls, stormTaskTuple, representationName, revisionName, revisionProvider, revisionTimestamp, cloudTagsResponses));
+                futures.add(job);
+                if (futures.size() == INTERNAL_THREADS_NUMBER) {
+                    count += getCountAndWait(futures);
+                }
+                startFrom = resultSlice.getNextSlice();
+            }
+            while (startFrom != null && !taskStatusChecker.hasKillFlag(taskId));
+
+            if (futures.size() > 0)
+                count += getCountAndWait(futures);
+            executorService.shutdown();
+            return count;
+        }
+
 
         private int getCountAndWait(Set<Future<Integer>> futures) throws InterruptedException, ExecutionException {
             int count = 0;
