@@ -23,4 +23,4 @@ interactions:
       X-Content-Type-Options: nosniff
       X-Frame-Options: DENY
       X-XSS-Protection: 1; mode=block
-    body: Task killing request was registered successfully
+    body: The task was killed because of Dropped by the user

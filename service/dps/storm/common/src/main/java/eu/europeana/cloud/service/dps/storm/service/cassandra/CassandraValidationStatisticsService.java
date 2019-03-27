@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.service.cassandra;
 
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
+import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
@@ -18,6 +19,7 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
 
     /**
      * {@inheritDoc}
+     *
      * @param taskId
      */
     @Override
@@ -33,6 +35,11 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
             cassandraNodeStatisticsDAO.storeStatisticsReport(taskId, report);
         }
         return report;
+    }
+
+    @Override
+    public List<NodeReport> getElementReport(long taskId, String elementPath) {
+        return cassandraNodeStatisticsDAO.getElementReport(taskId, elementPath);
     }
 
 }

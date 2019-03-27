@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
  * Created by Tarek on 1/10/2018.
  */
 public class RecordStatisticsGeneratorTest {
-    private static final int MAX_SIZE = 30000;
+    private static final int MAX_SIZE = 1000;
     private static Multimap<String, String> xpathValueMap;
     private static Multimap<String, Long> xpathOccurrenceMap;
     private static Multimap<String, Set<AttributeStatistics>> xpathAttributeMap;

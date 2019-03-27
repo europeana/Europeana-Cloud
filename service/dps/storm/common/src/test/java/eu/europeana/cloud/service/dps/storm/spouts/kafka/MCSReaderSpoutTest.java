@@ -217,6 +217,35 @@ public class MCSReaderSpoutTest {
 
 
     @Test
+    public void shouldEmitOnlySampleSizeWhenTaskWithSpecificRevision() throws Exception {
+        //given
+        when(collector.emit(anyList())).thenReturn(null);
+        //given
+        DpsTask dpsTask = getDpsTask();
+        //when
+        dpsTask.addParameter(PluginParameterKeys.SAMPLE_SIZE, "65");
+
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+
+        List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList(100);
+        ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
+        resultSlice.setResults(cloudIdCloudTagsResponses);
+        resultSlice.setNextSlice(null);
+
+        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
+        when(recordServiceClient.getRepresentationByRevision(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(firstRepresentation);
+
+        when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
+
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 65);
+
+    }
+
+
+    @Test
     public void shouldFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
@@ -318,6 +347,39 @@ public class MCSReaderSpoutTest {
         mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
 
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
+
+    }
+
+
+    @Test
+    public void shouldEmitOnlySampleSizeWhenTaskWithLatestRevision() throws Exception {
+        //given
+        when(collector.emit(anyList())).thenReturn(null);
+        //given
+        List<String> dataSets = new ArrayList<>();
+        dataSets.add(DATASET_URL);
+        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
+        DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+        dpsTask.addParameter(PluginParameterKeys.SAMPLE_SIZE, "65");
+
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>(1);
+        representations.add(firstRepresentation);
+
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date, 100);
+        ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
+        resultSlice.setResults(cloudIdAndTimestampResponseList);
+        resultSlice.setNextSlice(null);
+        when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), eq(false), anyString())).thenReturn(resultSlice);
+
+
+        when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
+        when(recordServiceClient.getRepresentationByRevision(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(firstRepresentation);
+        when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
+
+        mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
+
+        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 65);
 
     }
 

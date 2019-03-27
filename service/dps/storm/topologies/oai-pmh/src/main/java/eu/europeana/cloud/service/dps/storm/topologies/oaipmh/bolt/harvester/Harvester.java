@@ -4,8 +4,6 @@ import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import org.dspace.xoai.model.oaipmh.Verb;
-import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
-import org.dspace.xoai.serviceprovider.client.OAIClient;
 import org.dspace.xoai.serviceprovider.parameters.GetRecordParameters;
 import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import org.slf4j.Logger;
@@ -21,7 +19,7 @@ import java.io.Serializable;
  */
 public class Harvester implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Harvester.class);
-    private static final int DEFAULT_RETRIES=3;
+    private static final int DEFAULT_RETRIES = 3;
 
 
     /**
@@ -30,8 +28,7 @@ public class Harvester implements Serializable {
      * @param oaiPmhEndpoint OAI-PMH endpoint
      * @param recordId       record id
      * @param metadataPrefix metadata prefix
-     *  @param expression XPATH expression
-
+     * @param expression     XPATH expression
      * @return return metadata
      * @throws HarvesterException
      * @throws IOException
@@ -43,8 +40,9 @@ public class Harvester implements Serializable {
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
         int retries = DEFAULT_RETRIES;
         while (true) {
-            OAIClient client = new HttpOAIClient(oaiPmhEndpoint);
-            try (final InputStream record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params))) {
+            CustomConnection client = new CustomConnection(oaiPmhEndpoint);
+            try {
+                String record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
                 return new XmlXPath(record).xpath(expression);
             } catch (Exception e) {
                 if (retries-- > 0) {

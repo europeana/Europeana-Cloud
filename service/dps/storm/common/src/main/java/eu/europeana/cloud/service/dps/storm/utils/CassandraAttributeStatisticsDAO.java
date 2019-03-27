@@ -6,16 +6,22 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
+import jnr.ffi.annotations.Synchronized;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class CassandraAttributeStatisticsDAO extends CassandraDAO {
+    public static final int MAX_ALLOWED_VALUES = 15;
     private static CassandraAttributeStatisticsDAO instance = null;
 
     private PreparedStatement updateAttributeStatement;
 
     private PreparedStatement selectAttributesStatement;
+
+    private PreparedStatement countDistinctAttributeValues;
+
+    private PreparedStatement countSpecificAttributeValue;
 
     public static synchronized CassandraAttributeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -45,8 +51,25 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
         selectAttributesStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? ");
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? LIMIT 2");
         selectAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        countDistinctAttributeValues = dbService.getSession().prepare("SELECT count(*)" +
+                " FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME + " = ?");
+        countDistinctAttributeValues.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        countSpecificAttributeValue = dbService.getSession().prepare("SELECT count(*)" +
+                " FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_VALUE + " = ?");
+        countSpecificAttributeValue.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**
@@ -57,8 +80,25 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      */
     public void insertAttributeStatistics(long taskId, String nodeXpath, String nodeValue, Set<AttributeStatistics> attributes) {
         for (AttributeStatistics attributeStatistics : attributes) {
-            insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
+            long distinctValuesCount = getAttributeDistinctValues(taskId, nodeXpath, nodeValue, attributeStatistics.getName());
+            if (distinctValuesCount >= MAX_ALLOWED_VALUES) {
+                long currentCount = getSpecificAttributeValueCount(taskId, nodeXpath, nodeValue, attributeStatistics.getName(), attributeStatistics.getValue());
+                if (currentCount > 0)
+                    insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
+            } else {
+                insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
+            }
         }
+    }
+
+    private long getAttributeDistinctValues(long taskId, String nodePath, String nodeValue, String attributeName) {
+        ResultSet rs = dbService.getSession().execute(countDistinctAttributeValues.bind(taskId, nodePath, nodeValue, attributeName));
+        return rs.one().getLong(0);
+    }
+
+    private long getSpecificAttributeValueCount(long taskId, String nodePath, String nodeValue, String attributeName, String attributeValue) {
+        ResultSet rs = dbService.getSession().execute(countSpecificAttributeValue.bind(taskId, nodePath, nodeValue, attributeName, attributeValue));
+        return rs.one().getLong(0);
     }
 
     /**

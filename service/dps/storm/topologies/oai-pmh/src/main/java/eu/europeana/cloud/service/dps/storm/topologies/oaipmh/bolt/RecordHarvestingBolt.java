@@ -16,8 +16,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
@@ -67,11 +65,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
             } catch (HarvesterException | IOException | EuropeanaIdException e) {
                 LOGGER.error("Exception on harvesting", e);
-                StringWriter stack = new StringWriter();
-                e.printStackTrace(new PrintWriter(stack));
-                emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Cannot harvest data because: " + e.getMessage(),
-                        stack.toString());
-
+                emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while harvesting a record", "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause());
                 LOGGER.error(e.getMessage());
             }
         } else {
@@ -106,7 +100,9 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+
         harvester = new Harvester();
+
         try {
             XPath xpath = XPathFactory.newInstance().newXPath();
             expr = xpath.compile(METADATA_XPATH);

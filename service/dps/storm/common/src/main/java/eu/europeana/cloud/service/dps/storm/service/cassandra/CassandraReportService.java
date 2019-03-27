@@ -26,6 +26,7 @@ public class CassandraReportService implements TaskExecutionReportService {
     private PreparedStatement selectErrorsStatement;
     private PreparedStatement selectErrorStatement;
     private PreparedStatement selectErrorCounterStatement;
+    private PreparedStatement checkErrorExistStatement;
 
     private PreparedStatement checkIfTaskExistsStatement;
 
@@ -61,6 +62,11 @@ public class CassandraReportService implements TaskExecutionReportService {
         checkIfTaskExistsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         checkIfTaskExistsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
+
+        checkErrorExistStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? LIMIT 1");
+        checkErrorExistStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
+
     }
 
     @Override
@@ -254,4 +260,14 @@ public class CassandraReportService implements TaskExecutionReportService {
             throw new AccessDeniedOrObjectDoesNotExistException("The specified task does not exist in this service!");
         }
     }
+
+    @Override
+    public Boolean checkIfReportExists(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
+        ResultSet rs = cassandra.getSession().execute(checkErrorExistStatement.bind(Long.parseLong(taskId)));
+        if (rs.iterator().hasNext()) {
+            return true;
+        }
+        throw new AccessDeniedOrObjectDoesNotExistException("No statistic report");
+    }
+
 }

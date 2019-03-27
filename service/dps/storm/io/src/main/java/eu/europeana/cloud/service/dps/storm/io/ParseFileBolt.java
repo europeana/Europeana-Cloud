@@ -1,10 +1,10 @@
-package eu.europeana.cloud.service.dps.storm.topologies.media.service;
+package eu.europeana.cloud.service.dps.storm.io;
 
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -39,7 +39,7 @@ public class ParseFileBolt extends ReadFileBolt {
                 outputCollector.emit(tuple.toStormTuple());
             } else {
                 for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
-                    if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                    if (AbstractDpsBolt.taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
                         break;
                     StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                     LOGGER.info("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());

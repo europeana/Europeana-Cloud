@@ -36,12 +36,12 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-common</artifactId>
-            <version>0.8-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
-            <version>0.8-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -55,14 +55,6 @@
             <version>2.1.9.2</version>
             <scope>test</scope>
         </dependency>
-
-
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-commons</artifactId>
-            <version>0.8-SNAPSHOT</version>
-        </dependency>
-
     </dependencies>
     <build>
         <plugins>

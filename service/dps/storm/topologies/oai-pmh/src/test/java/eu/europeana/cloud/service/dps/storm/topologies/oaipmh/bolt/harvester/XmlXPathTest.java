@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.Harvest
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -25,15 +24,14 @@ import static org.junit.Assert.fail;
 public class XmlXPathTest {
     private static final String EXPRESSION = "/*[local-name()='OAI-PMH']" +
             "/*[local-name()='GetRecord']" +
-            "/*[local-name()='record']"+
+            "/*[local-name()='record']" +
             "/*[local-name()='metadata']" +
             "/child::*";
     private static final String ENCODING = "UTF-8";
     private XPathExpression expr;
 
     @Before
-    public void init() throws Exception
-    {
+    public void init() throws Exception {
         XPath xpath = XPathFactory.newInstance().newXPath();
         expr = xpath.compile(EXPRESSION);
     }
@@ -43,9 +41,11 @@ public class XmlXPathTest {
         //given
         final String fileContent = getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
+        String content = IOUtils.toString(inputStream, "UTF-8");
+
 
         //when
-        final InputStream result = new XmlXPath(inputStream).xpath(expr);
+        final InputStream result = new XmlXPath(content).xpath(expr);
 
         //then
         final String actual = convertToString(result);
@@ -53,20 +53,21 @@ public class XmlXPathTest {
     }
 
     @Test
-    public void shouldThrowExceptionNonSingleOutputCandidate() throws IOException, HarvesterException,XPathExpressionException {
+    public void shouldThrowExceptionNonSingleOutputCandidate() throws IOException, HarvesterException, XPathExpressionException {
         //given
         final String fileContent = getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
+        String content = IOUtils.toString(inputStream, "UTF-8");
 
         try {
             //when
             XPath xpath = XPathFactory.newInstance().newXPath();
             expr = xpath.compile("/some/bad/xpath");
-            new XmlXPath(inputStream).xpath(expr);
+            new XmlXPath(content).xpath(expr);
             fail();
-        }catch (HarvesterException e){
+        } catch (HarvesterException e) {
             //then
-            assertThat(e.getMessage(),is("Empty XML!"));
+            assertThat(e.getMessage(), is("Empty XML!"));
         }
     }
 
@@ -75,14 +76,15 @@ public class XmlXPathTest {
         //given
         final String fileContent = "";
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
+        String content = IOUtils.toString(inputStream, "UTF-8");
 
         try {
             //when
-            new XmlXPath(inputStream).xpath(expr);
+            new XmlXPath(content).xpath(expr);
             fail();
-        }catch (HarvesterException e){
+        } catch (HarvesterException e) {
             //then
-            assertThat(e.getMessage(),is("Cannot xpath XML!"));
+            assertThat(e.getMessage(), is("Cannot xpath XML!"));
         }
     }
 
