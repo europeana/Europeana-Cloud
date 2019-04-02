@@ -84,6 +84,12 @@
         <module>test-common</module>
     </modules>
     <repositories>
+        <!--ZohoCRM libraries-->
+        <repository>
+            <id>maven.zohodl.com</id>
+            <url>https://maven.zohodl.com</url>
+        </repository>
+
         <repository>
             <id>repo1</id>
             <url>http://repo1.maven.org/maven2</url>
