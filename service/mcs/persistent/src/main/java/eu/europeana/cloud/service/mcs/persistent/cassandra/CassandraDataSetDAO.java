@@ -76,6 +76,7 @@ public class CassandraDataSetDAO {
     private PreparedStatement hasProvidedRepresentationName;
 
     private PreparedStatement addDataSetsRevision;
+    private PreparedStatement addDataSetsRevisionToReplica;
 
     private PreparedStatement getDataSetsRevision;
 
@@ -265,6 +266,17 @@ public class CassandraDataSetDAO {
         addDataSetsRevision.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
+
+        addDataSetsRevisionToReplica = connectionProvider
+                .getSession()
+                .prepare( //
+                        "INSERT INTO " //
+                                + "data_set_assignments_by_revision_id_replica (provider_id, dataset_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted) " //
+                                + "VALUES (?,?,?,?,?,?,?,?,?,?);");
+        addDataSetsRevisionToReplica.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
+
+
         removeDataSetsRevision
                 = connectionProvider.getSession().prepare(//
                 "DELETE "//
@@ -397,10 +409,10 @@ public class CassandraDataSetDAO {
      * cloud id and schema of the representation, may also contain version (if a
      * certain version is in a data set).
      *
-     * @param providerId       data set owner's (provider's) id
-     * @param dataSetId        data set id
-     * @param nextToken        next token containing information about paging state and bucket id
-     * @param limit            maximum size of returned list
+     * @param providerId data set owner's (provider's) id
+     * @param dataSetId  data set id
+     * @param nextToken  next token containing information about paging state and bucket id
+     * @param limit      maximum size of returned list
      * @return
      */
     public List<Properties> listDataSet(String providerId, String dataSetId, String nextToken, int limit)
@@ -836,7 +848,12 @@ public class CassandraDataSetDAO {
     public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId) {
         BoundStatement boundStatement = addDataSetsRevision.bind(providerId, datasetId, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+
+        BoundStatement addDataSetsRevisionToReplicaStatement = addDataSetsRevisionToReplica.bind(providerId, datasetId, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
+        ResultSet rsToReplica = connectionProvider.getSession().execute(addDataSetsRevisionToReplicaStatement);
+
         QueryTracer.logConsistencyLevel(boundStatement, rs);
+        QueryTracer.logConsistencyLevel(addDataSetsRevisionToReplicaStatement, rsToReplica);
     }
 
     public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String
@@ -1046,8 +1063,8 @@ public class CassandraDataSetDAO {
      * Get bucket id from part of token considering paging state which was retrieved from the same token. This is used for data assignment table where
      * provider id and dataset id are concatenated to one string
      *
-     * @param tokenPart  part of token containing bucket id
-     * @param state      paging state from the same token as the bucket id
+     * @param tokenPart         part of token containing bucket id
+     * @param state             paging state from the same token as the bucket id
      * @param providerDataSetId provider id and dataset id to retrieve next bucket id
      * @return bucket id to be used for the query
      */
@@ -1137,8 +1154,7 @@ public class CassandraDataSetDAO {
         // when there is no bucket or bucket rows count is max we should add another bucket
         if (bucketCount == null || bucketCount.getRowsCount() >= MAX_PROVIDER_DATASET_BUCKET_COUNT) {
             bucketId = createBucket();
-        }
-        else
+        } else
             bucketId = bucketCount.getBucketId();
         increaseBucketCount(dataSetProviderId, dataSetId, bucketId);
 
@@ -1229,7 +1245,7 @@ public class CassandraDataSetDAO {
             throws NoHostAvailableException, QueryExecutionException {
 
         //
-        BoundStatement deleteStatement  = deleteLatestProviderDatasetRepresentationInfo.bind(
+        BoundStatement deleteStatement = deleteLatestProviderDatasetRepresentationInfo.bind(
                 dataSetProviderId,
                 dataSetId,
                 schema,
