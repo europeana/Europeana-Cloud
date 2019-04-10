@@ -8,6 +8,7 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.util.CommandLineHelper;
 import eu.europeana.cloud.util.FileUtil;
 import eu.europeana.cloud.util.FolderCompressor;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.mime.MimeTypeException;
 import org.zeroturnaround.zip.ZipException;

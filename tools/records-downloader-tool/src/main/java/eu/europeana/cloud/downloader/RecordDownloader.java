@@ -1,6 +1,7 @@
 package eu.europeana.cloud.downloader;
 
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.exception.RepresentationNotFoundException;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -10,9 +11,11 @@ import eu.europeana.cloud.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.mime.MimeTypeException;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.*;
 
 
 /**
