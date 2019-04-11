@@ -44,7 +44,6 @@ import static org.mockito.Mockito.*;
 /**
  * Created by Tarek on 7/21/2017.
  */
-@RunWith(PowerMockRunner.class)
 public class HarvestingWriteRecordBoltTest {
 
     private static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";

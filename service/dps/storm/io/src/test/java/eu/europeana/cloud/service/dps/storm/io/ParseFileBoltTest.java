@@ -32,8 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Tarek on 2/19/2019.
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.management.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
+
 public class ParseFileBoltTest {
 
     private static final String AUTHORIZATION = "Authorization";

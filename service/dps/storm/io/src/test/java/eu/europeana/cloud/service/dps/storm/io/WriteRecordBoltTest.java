@@ -34,7 +34,6 @@ import static org.mockito.Mockito.*;
  * Created by Tarek on 7/21/2017.
  */
 
-@RunWith(PowerMockRunner.class)
 public class WriteRecordBoltTest {
 
     private final int TASK_ID = 1;

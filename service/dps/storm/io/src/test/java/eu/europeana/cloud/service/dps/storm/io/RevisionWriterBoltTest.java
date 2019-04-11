@@ -23,7 +23,6 @@ import java.util.List;
 
 import static org.mockito.Mockito.anyString;
 
-@RunWith(MockitoJUnitRunner.class)
 public class RevisionWriterBoltTest {
 
     @Mock(name = "outputCollector")
