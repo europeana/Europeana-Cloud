@@ -42,7 +42,7 @@ public class TopologyTestHelper {
 
     protected static MkClusterParam prepareMKClusterParm() {
         MkClusterParam mkClusterParam = new MkClusterParam();
-        int SUPERVISORS = 2;
+        int SUPERVISORS = 4;
         mkClusterParam.setSupervisors(SUPERVISORS);
         Config daemonConf = new Config();
         daemonConf.put(Config.STORM_LOCAL_MODE_ZMQ, false);

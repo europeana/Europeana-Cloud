@@ -49,6 +49,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(t, uri.toString());
             outputCollector.emit(t.toStormTuple());
+            LOGGER.info("Done lalloo", uri);
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
