@@ -116,7 +116,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
     }
 
-    class TaskDownloader extends Thread {
+    final class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
         private static final int INTERNAL_THREADS_NUMBER = 10;
         public static final int MAX_BATCH_SIZE = 100;

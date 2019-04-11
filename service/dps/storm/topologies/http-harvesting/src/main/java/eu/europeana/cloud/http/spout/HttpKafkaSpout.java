@@ -121,7 +121,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     }
 
 
-    class TaskDownloader extends Thread {
+   final class TaskDownloader extends Thread {
         private static final int MAX_SIZE = 100;
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE);
@@ -150,8 +150,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     currentDpsTask = taskQueue.take();
-                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId()))
-                    {
+                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId())) {
                         startProgress(currentDpsTask.getTaskId());
                         stormTaskTuple = new StormTaskTuple(
                                 currentDpsTask.getTaskId(),
@@ -256,8 +255,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                         try {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
                             expectedSize.set(expectedSize.incrementAndGet());
-                        } catch (IOException | EuropeanaIdException | InterruptedException e) {
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading a file","Error while reading the file :"+file.getFileName()+" because of "+e.getCause());
+                        } catch (IOException | EuropeanaIdException e) {
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading a file", "Error while reading the file :" + file.getFileName() + " because of " + e.getCause());
+                        } catch (InterruptedException e) {
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading a file", "Error while reading the file :" + file.getFileName() + " because of " + e.getCause());
+                            Thread.currentThread().interrupt();
                         }
                     }
                     return FileVisitResult.CONTINUE;
