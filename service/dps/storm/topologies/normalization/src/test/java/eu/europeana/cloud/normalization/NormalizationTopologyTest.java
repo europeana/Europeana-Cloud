@@ -53,10 +53,10 @@ import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
-@Ignore
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, NormalizationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class})
+@PrepareForTest({ReadFileBolt.class, NormalizationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class,  WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
+@Ignore
 public class NormalizationTopologyTest extends TopologyTestHelper {
     private static StormTopology topology;
     private static final String AUTHORIZATION = "Authorization";
@@ -95,7 +95,7 @@ public class NormalizationTopologyTest extends TopologyTestHelper {
         });
     }
 
-    @Test
+    @Ignore
     public final void shouldTestSuccessfulExecution() throws MCSException, IOException, URISyntaxException {
         //given
         prepareForTask();

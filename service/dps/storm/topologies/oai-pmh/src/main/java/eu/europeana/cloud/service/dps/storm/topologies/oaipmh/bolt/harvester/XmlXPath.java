@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.Harvest
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -56,7 +57,9 @@ class XmlXPath {
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();) {
             Source xmlSource = new DOMSource(nodes.item(0));
             Result outputTarget = new StreamResult(outputStream);
-            TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            transformerFactory.newTransformer().transform(xmlSource, outputTarget);
             return new ByteArrayInputStream(outputStream.toByteArray());
         }
     }
