@@ -79,7 +79,7 @@
   		<constructor-arg name="discoveryPath" value="/discovery"/>
 		<constructor-arg name="serviceType" value="UIS"/>
 	</bean>
-	
+
 	<bean id="uisProvider" class="eu.europeana.cloud.service.coordination.provider.ServiceProviderImpl">
 		<constructor-arg name="serviceDiscovery" ref="uisServiceDiscovery"/> 
         <constructor-arg name="preferredDatacenter">
@@ -117,7 +117,7 @@
   		<property name="zookeeperService" ref="zookeeperService"/>
   		<property name="configurationSettingsPath" value="/configuration"/>
 	</bean>
-    
+
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
     

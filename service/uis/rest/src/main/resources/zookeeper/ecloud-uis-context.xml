@@ -104,7 +104,6 @@
   		<property name="zookeeperService" ref="zookeeperService"/>
   		<property name="configurationSettingsPath" value="/configuration"/>
 	</bean>
-            
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
 </beans>
