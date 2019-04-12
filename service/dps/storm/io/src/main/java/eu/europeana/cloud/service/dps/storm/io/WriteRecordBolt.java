@@ -49,8 +49,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(t, uri.toString());
             outputCollector.emit(t.toStormTuple());
-            LOGGER.info("Done lalloo", uri);
-
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
             StringWriter stack = new StringWriter();
@@ -105,6 +103,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             }
         }
     }
+
     private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
         stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultedResourceURL);
         stormTaskTuple.setFileData((byte[]) null);

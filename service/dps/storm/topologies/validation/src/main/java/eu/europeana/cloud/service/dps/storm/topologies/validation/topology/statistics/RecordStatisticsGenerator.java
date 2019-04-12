@@ -20,7 +20,7 @@ import java.util.*;
 public class RecordStatisticsGenerator {
     private Map<String, NodeStatistics> nodeStatistics;
     private String fileContent;
-    private static int MAX_SIZE = 1000;
+    private final static int MAX_SIZE = 1000;
 
     public RecordStatisticsGenerator(String fileContent) {
         this.fileContent = fileContent;

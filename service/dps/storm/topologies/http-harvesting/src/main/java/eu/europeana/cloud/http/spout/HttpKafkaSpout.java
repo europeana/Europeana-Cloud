@@ -122,8 +122,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
 
    final class TaskDownloader extends Thread {
-        private static final int MAX_SIZE = 100;
-        ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
+       private static final int MAX_SIZE = 100;
+       public static final String ERROR_WHILE_READING_A_FILE_MESSAGE = "Error while reading a file";
+       ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE);
         private DpsTask currentDpsTask;
 
@@ -256,9 +257,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
                             expectedSize.set(expectedSize.incrementAndGet());
                         } catch (IOException | EuropeanaIdException e) {
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading a file", "Error while reading the file :" + file.getFileName() + " because of " + e.getCause());
+                            LOGGER.error(e.getMessage());
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE+": " + file.getFileName() + " because of " + e.getCause());
                         } catch (InterruptedException e) {
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading a file", "Error while reading the file :" + file.getFileName() + " because of " + e.getCause());
+                            LOGGER.error(e.getMessage());
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE+": " + file.getFileName() + " because of " + e.getCause());
                             Thread.currentThread().interrupt();
                         }
                     }
