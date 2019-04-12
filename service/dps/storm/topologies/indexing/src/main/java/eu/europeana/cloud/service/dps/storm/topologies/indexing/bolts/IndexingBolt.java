@@ -161,7 +161,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                 indexerPoolForPreviewDbInAnotherEnv.close();
             }
             if (indexerPoolForPublishDbInAnotherEnv != null) {
-                indexerPoolForPreviewDbInAnotherEnv.close();
+                indexerPoolForPublishDbInAnotherEnv.close();
             }
         }
     }
