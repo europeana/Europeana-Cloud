@@ -31,7 +31,6 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_U
  * Created by Tarek on 1/16/2018.
  */
 
-@RunWith(MockitoJUnitRunner.class)
 public class ValidationBoltTest {
 
 

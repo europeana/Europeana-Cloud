@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Tarek on 12/14/2018.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class EDMEnrichmentBoltTest {
 
     private static final String AUTHORIZATION = "Authorization";
