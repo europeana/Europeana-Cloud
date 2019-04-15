@@ -7,10 +7,9 @@ import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Tarek on 1/23/2018.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class EnrichmentBoltTest {
 
     public static final String DEREFERENCE_URL = "https:/dereference.org";
@@ -43,6 +41,11 @@ public class EnrichmentBoltTest {
 
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
+
+    @Before
+    public void init() {
+        MockitoAnnotations.initMocks(this);
+    }
 
 
     @InjectMocks

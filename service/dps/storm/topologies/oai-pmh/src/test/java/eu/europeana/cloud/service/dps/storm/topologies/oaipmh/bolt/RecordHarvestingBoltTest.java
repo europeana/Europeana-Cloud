@@ -7,15 +7,14 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Har
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
 import org.apache.storm.task.OutputCollector;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 import javax.xml.xpath.XPathExpression;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.*;
  * Tests for {@link RecordHarvestingBolt}
  */
 
-@RunWith(MockitoJUnitRunner.class)
 public class RecordHarvestingBoltTest extends WiremockHelper {
     @Mock
     private OutputCollector outputCollector;
@@ -36,6 +34,11 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
     @InjectMocks
     private RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
+
+    @Before
+    public void init() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
     public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {

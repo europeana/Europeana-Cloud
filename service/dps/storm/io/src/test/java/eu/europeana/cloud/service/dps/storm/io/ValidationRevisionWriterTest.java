@@ -6,12 +6,12 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -24,7 +24,6 @@ import static org.mockito.Matchers.anyString;
  * Created by Tarek on 12/6/2017.
  */
 
-@RunWith(MockitoJUnitRunner.class)
 public class ValidationRevisionWriterTest {
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
@@ -34,6 +33,12 @@ public class ValidationRevisionWriterTest {
 
     @InjectMocks
     private ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter("http://sample.ecloud.com/", "sampleMessage");
+
+    @Before
+    public void init()
+    {
+        MockitoAnnotations.initMocks(this);
+    }
 
 
     @Test

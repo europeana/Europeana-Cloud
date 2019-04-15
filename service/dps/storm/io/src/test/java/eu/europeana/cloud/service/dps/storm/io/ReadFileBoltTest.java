@@ -9,11 +9,9 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -25,7 +23,6 @@ import static org.mockito.Mockito.*;
 /**
  * Created by Tarek on 5/9/2018.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ReadFileBoltTest {
 
     private static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
@@ -37,7 +34,7 @@ public class ReadFileBoltTest {
     private FileServiceClient fileServiceClient;
 
     @InjectMocks
-    private ReadFileBolt readFileBolt;
+    private ReadFileBolt readFileBolt=new ReadFileBolt("MCS_URL");
 
     private StormTaskTuple stormTaskTuple;
     private static final String FILE_URL = "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2";

@@ -9,13 +9,10 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.spout.SpoutOutputCollector;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.*;
+
 import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
@@ -30,7 +27,6 @@ import static org.mockito.Mockito.*;
 /**
  * Created by Tarek on 9/18/2018.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class QueueFillerTest {
 
 
@@ -48,6 +44,11 @@ public class QueueFillerTest {
     private QueueFiller queueFiller = new QueueFiller(taskStatusChecker, collector, new ArrayBlockingQueue<StormTaskTuple>(10));
 
     private static final String BASE_URL = "http://MCS.com";
+
+    @Before
+    public void init() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
     public void testAddingToQueueSuccessfully() throws Exception {
