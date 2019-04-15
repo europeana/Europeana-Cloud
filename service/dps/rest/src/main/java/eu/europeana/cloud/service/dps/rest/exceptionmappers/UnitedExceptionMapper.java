@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 
 import javax.validation.ConstraintViolationException;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

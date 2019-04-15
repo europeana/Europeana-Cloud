@@ -6,7 +6,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
-import jnr.ffi.annotations.Synchronized;
 
 import java.util.HashSet;
 import java.util.Set;

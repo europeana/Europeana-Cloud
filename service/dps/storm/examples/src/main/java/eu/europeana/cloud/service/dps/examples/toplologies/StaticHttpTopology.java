@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.examples.toplologies;
 
 import eu.europeana.cloud.service.dps.examples.toplologies.builder.SimpleStaticHTTPTopologyBuilder;
-import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants;
 import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
 import eu.europeana.cloud.http.spout.HttpKafkaSpout;
 import org.apache.storm.LocalCluster;

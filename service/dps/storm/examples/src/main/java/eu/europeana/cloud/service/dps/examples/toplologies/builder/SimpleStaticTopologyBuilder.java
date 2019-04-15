@@ -1,9 +1,8 @@
 package eu.europeana.cloud.service.dps.examples.toplologies.builder;
 
-import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
+
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.generated.StormTopology;
