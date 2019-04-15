@@ -10,11 +10,7 @@ import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
