@@ -4,7 +4,6 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import migrator.validators.V10_validator;
 import migrator.validators.V12_validator;
-import migrator.validators.V13_validator;
 import migrator.validators.V2_validator;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -80,7 +79,6 @@ public class MigrationExecutorTest {
     private void validateMigration(){
         new V10_validator(session).validate();
         new V12_validator(session).validate();
-        new V13_validator(session).validate();
     }
 
     @Test

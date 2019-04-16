@@ -1,5 +1,24 @@
 # Change Log
 
+## [v1.3.0](https://github.com/europeana/Europeana-Cloud/tree/v1.3.0) (2019-03-26)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.2.0...v1.3.0)
+
+**Merged pull requests:**
+
+- MET-1773, fix attribute statistcs [\#220](https://github.com/europeana/Europeana-Cloud/pull/220) ([tarekkh](https://github.com/tarekkh))
+- Met 1775 fix for data set assignments by revision id table [\#219](https://github.com/europeana/Europeana-Cloud/pull/219) ([pWoz](https://github.com/pWoz))
+- Met 1778 [\#218](https://github.com/europeana/Europeana-Cloud/pull/218) ([tarekkh](https://github.com/tarekkh))
+- Met 1705 [\#217](https://github.com/europeana/Europeana-Cloud/pull/217) ([tarekkh](https://github.com/tarekkh))
+- Met 1248 linkcheck topology [\#216](https://github.com/europeana/Europeana-Cloud/pull/216) ([tarekkh](https://github.com/tarekkh))
+- MET-1765 , check errors report [\#215](https://github.com/europeana/Europeana-Cloud/pull/215) ([pWoz](https://github.com/pWoz))
+- Met 1692 [\#214](https://github.com/europeana/Europeana-Cloud/pull/214) ([tarekkh](https://github.com/tarekkh))
+- MET-1711 , Add parameter to specify the reason behind the cancelation [\#213](https://github.com/europeana/Europeana-Cloud/pull/213) ([tarekkh](https://github.com/tarekkh))
+- MET-1706 , validate the parameters of link check task on rest side [\#212](https://github.com/europeana/Europeana-Cloud/pull/212) ([tarekkh](https://github.com/tarekkh))
+- Feat/met 1694 [\#211](https://github.com/europeana/Europeana-Cloud/pull/211) ([tarekkh](https://github.com/tarekkh))
+- Feat/met 1698 [\#210](https://github.com/europeana/Europeana-Cloud/pull/210) ([tarekkh](https://github.com/tarekkh))
+- Met 1551 incremental backups [\#209](https://github.com/europeana/Europeana-Cloud/pull/209) ([pWoz](https://github.com/pWoz))
+- Feat/met 1671 [\#208](https://github.com/europeana/Europeana-Cloud/pull/208) ([tarekkh](https://github.com/tarekkh))
+
 ## [v1.2.0](https://github.com/europeana/Europeana-Cloud/tree/v1.2.0) (2019-01-22)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.1.3...v1.2.0)
 
