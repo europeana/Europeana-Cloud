@@ -17,6 +17,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     private PreparedStatement updateAttributeStatement;
 
     private PreparedStatement selectAttributesStatement;
+    private PreparedStatement deleteAttributesStatement;
 
     private PreparedStatement countDistinctAttributeValues;
 
@@ -52,6 +53,13 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? LIMIT 2");
         selectAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        deleteAttributesStatement = dbService.getSession().prepare("DELETE FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ?");
+        deleteAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         countDistinctAttributeValues = dbService.getSession().prepare("SELECT count(*)" +
                 " FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
@@ -135,5 +143,11 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
         }
 
         return result;
+    }
+
+
+    public void removeAttributeStatistics(long taskId, String nodeXpath, String nodeValue)  {
+        BoundStatement bs = deleteAttributesStatement.bind(taskId, nodeXpath, nodeValue);
+        dbService.getSession().execute(bs);
     }
 }

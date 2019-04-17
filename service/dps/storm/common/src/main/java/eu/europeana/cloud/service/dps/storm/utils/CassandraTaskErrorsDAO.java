@@ -17,6 +17,10 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     private PreparedStatement insertErrorStatement;
     private PreparedStatement updateErrorCounterStatement;
     private PreparedStatement selectErrorCountsStatement;
+    private PreparedStatement removeErrorCountsStatement;
+    private PreparedStatement removeErrorNotifications;
+
+    private PreparedStatement selectErrorTypeStatement;
 
 
     private static CassandraTaskErrorsDAO instance = null;
@@ -58,6 +62,21 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
                 " FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? ");
         selectErrorCountsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        selectErrorTypeStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE +
+                " FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? ");
+        selectErrorTypeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        removeErrorCountsStatement = dbService.getSession().prepare("DELETE  FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? ");
+        removeErrorCountsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        removeErrorNotifications = dbService.getSession().prepare("DELETE  FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? and " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?");
+        removeErrorNotifications.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
 
@@ -99,5 +118,17 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
             count += row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
         }
         return count;
+    }
+
+
+    public void removeErrors(long taskId) {
+        ResultSet rs = dbService.getSession().execute(selectErrorTypeStatement.bind(taskId));
+
+        while (rs.iterator().hasNext()) {
+            Row row = rs.one();
+            UUID errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE);
+            dbService.getSession().execute(removeErrorNotifications.bind(taskId, errorType));
+        }
+        dbService.getSession().execute(removeErrorCountsStatement.bind(taskId));
     }
 }
