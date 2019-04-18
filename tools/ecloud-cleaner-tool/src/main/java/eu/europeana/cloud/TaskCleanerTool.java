@@ -6,6 +6,7 @@ import eu.europeana.cloud.persisted.RemoverImpl;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
 
@@ -27,6 +28,7 @@ public class TaskCleanerTool {
 
 
     public static void main(String[] args) {
+        PropertyConfigurator.configure("log4j.properties");
         Options options = getOptions();
         CommandLineParser parser = new DefaultParser();
         try {
