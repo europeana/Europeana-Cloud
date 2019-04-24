@@ -158,12 +158,7 @@ public class NotificationBolt extends BaseRichBolt {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while updating Error counter. Retries left: {}", retries);
-                    try {
-                        Thread.sleep(SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        Thread.currentThread().interrupt();
-                        LOGGER.error(e1.getMessage());
-                    }
+                    waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while updating Error counter.");
                     throw e;
@@ -182,17 +177,21 @@ public class NotificationBolt extends BaseRichBolt {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while inserting Error to cassandra. Retries left: {}", retries);
-                    try {
-                        Thread.sleep(SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        Thread.currentThread().interrupt();
-                        LOGGER.error(e1.getMessage());
-                    }
+                    waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while inserting Error to cassandra.");
                     throw e;
                 }
             }
+        }
+    }
+
+    private void waitForSpecificTime() {
+        try {
+            Thread.sleep(SLEEP_TIME);
+        } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(e1.getMessage());
         }
     }
 
@@ -245,12 +244,7 @@ public class NotificationBolt extends BaseRichBolt {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while Updating the task info. Retries left: {}", retries);
-                    try {
-                        Thread.sleep(SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        Thread.currentThread().interrupt();
-                        LOGGER.error(e1.getMessage());
-                    }
+                    waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while Updating the task info.");
                     throw e;
@@ -298,12 +292,7 @@ public class NotificationBolt extends BaseRichBolt {
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while inserting detailed record information to cassandra. Retries left: {}", retries);
-                    try {
-                        Thread.sleep(SLEEP_TIME);
-                    } catch (InterruptedException e1) {
-                        Thread.currentThread().interrupt();
-                        LOGGER.error(e1.getMessage());
-                    }
+                    waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while inserting detailed record information to cassandra.");
                     throw e;

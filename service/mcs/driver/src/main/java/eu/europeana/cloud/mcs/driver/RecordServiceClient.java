@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
@@ -18,8 +17,11 @@ import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundExceptio
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.*;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -131,7 +133,7 @@ public class RecordServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public RecordServiceClient(String baseUrl, final String username, final String password,
-            final int connectTimeoutInMillis, final int readTimeoutInMillis) {
+                               final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         this(baseUrl, connectTimeoutInMillis, readTimeoutInMillis);
         client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
     }
@@ -482,22 +484,7 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
 
-        Response response = null;
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                Representation representation = response.readEntity(Representation.class);
-                return representation;
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } catch (MessageBodyProviderNotFoundException e) {
-            String out = webtarget.getUri().toString();
-            throw new MCSException(out, e);
-        } finally {
-            closeResponse(response);
-        }
+        return handleRepresentationResponse(webtarget, request);
     }
 
     /**
@@ -525,6 +512,10 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request().header(key, value);
 
+        return handleRepresentationResponse(webtarget, request);
+    }
+
+    private Representation handleRepresentationResponse(WebTarget webtarget, Builder request) throws MCSException {
         Response response = null;
         try {
             response = request.get();
@@ -786,8 +777,7 @@ public class RecordServiceClient extends MCSClient {
      * @throws RepresentationNotExistsException if specified representation does
      *                                          not exist
      * @throws RepresentationNotExistsException on representation does not exist
-     * @throws MCSException on unexpected situations
-
+     * @throws MCSException                     on unexpected situations
      */
     public Representation getRepresentationByRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
             throws RepresentationNotExistsException, MCSException {
