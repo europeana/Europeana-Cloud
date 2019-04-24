@@ -1,6 +1,7 @@
 package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.migrator.ResourceMigrator;
+import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.List;
 public class FilePaths {
 
     private static final String prefix = "paths_";
+    private static final Logger logger = Logger.getLogger(FilePaths.class);
 
     /**
      * Location part in path
@@ -72,7 +74,7 @@ public class FilePaths {
             if (dest.toFile().exists())
                 Files.write(dest, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage() + " .Because of " + e.getCause());
         }
     }
 
@@ -128,7 +130,7 @@ public class FilePaths {
             size++;
         } catch (IOException e) {
             System.out.println("Cannot store path " + path + "in file " + prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
-            e.printStackTrace();
+            logger.error(e);
         }
     }
 
@@ -173,7 +175,7 @@ public class FilePaths {
                     try {
                         reader.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error(e);
                     }
                 }
             }
@@ -186,7 +188,7 @@ public class FilePaths {
                 if (size < 0)
                     size = 0;
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         }
     }
