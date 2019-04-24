@@ -96,7 +96,11 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement insertLatestProviderDatasetRepresentationInfo;
 
+    private PreparedStatement insertLatestProviderDatasetRepresentationInfoReplica;
+
     private PreparedStatement deleteLatestProviderDatasetRepresentationInfo;
+
+    private PreparedStatement deleteLatestProviderDatasetRepresentationInfoReplica;
 
     private PreparedStatement selectFromLatestProviderDatasetRepresentationInfo;
 
@@ -332,11 +336,19 @@ public class CassandraDataSetDAO {
                 + "VALUES (?,?,?,?,?,?,?,?,?,?,?);");
         insertLatestProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
+        insertLatestProviderDatasetRepresentationInfoReplica = connectionProvider.getSession().prepare("INSERT INTO " //
+                + "latest_provider_dataset_rep_rev_replica (provider_id, dataset_id,cloud_id,representation_id," //
+                + "revision_name,revision_provider, revision_timestamp,version_id, acceptance, published, mark_deleted) " //
+                + "VALUES (?,?,?,?,?,?,?,?,?,?,?);");
+        insertLatestProviderDatasetRepresentationInfoReplica.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteLatestProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("DELETE FROM " //
                 + "latest_provider_dataset_representation_revision WHERE provider_id = ? AND dataset_id = ?  AND representation_id =? AND revision_name =? And revision_provider =? and mark_deleted = ? and cloud_id = ? ");
         deleteLatestProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
+        deleteLatestProviderDatasetRepresentationInfoReplica = connectionProvider.getSession().prepare("DELETE FROM " //
+                + "latest_provider_dataset_rep_rev_replica WHERE provider_id = ? AND dataset_id = ?  AND representation_id =? AND revision_name =? And revision_provider =? and mark_deleted = ? and cloud_id = ? ");
+        deleteLatestProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         selectFromLatestProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("select version_id,revision_timestamp,cloud_id FROM " //
                 + "latest_provider_dataset_representation_revision WHERE provider_id = ? AND dataset_id = ?  AND representation_id =? And revision_name =?" +
@@ -1283,7 +1295,26 @@ public class CassandraDataSetDAO {
             throws NoHostAvailableException, QueryExecutionException {
 
         //
-        BoundStatement deleteStatement = deleteLatestProviderDatasetRepresentationInfo.bind(
+        deleteRow(deleteLatestProviderDatasetRepresentationInfo, dataSetId, dataSetProviderId, cloudId,
+                schema, revisionName, revisionProvider, timestamp, versionId,
+                acceptance, published, deleted);
+        insertRow(insertLatestProviderDatasetRepresentationInfo, dataSetId, dataSetProviderId, cloudId,
+                schema, revisionName, revisionProvider, timestamp, versionId,
+                acceptance, published, deleted);
+
+        deleteRow(deleteLatestProviderDatasetRepresentationInfoReplica, dataSetId, dataSetProviderId, cloudId,
+                schema, revisionName, revisionProvider, timestamp, versionId,
+                acceptance, published, deleted);
+        insertRow(insertLatestProviderDatasetRepresentationInfoReplica, dataSetId, dataSetProviderId, cloudId,
+                schema, revisionName, revisionProvider, timestamp, versionId,
+                acceptance, published, deleted);
+    }
+
+    private void deleteRow(PreparedStatement preparedStatement, String dataSetId, String dataSetProviderId, String cloudId,
+                           String schema, String revisionName, String revisionProvider, Date timestamp, String versionId,
+                           boolean acceptance, boolean published, boolean deleted){
+
+        BoundStatement deleteStatement = preparedStatement.bind(
                 dataSetProviderId,
                 dataSetId,
                 schema,
@@ -1292,11 +1323,26 @@ public class CassandraDataSetDAO {
                 !deleted,
                 cloudId);
         connectionProvider.getSession().execute(deleteStatement);
-        //
-        BoundStatement insertStatement = insertLatestProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, cloudId, schema, revisionName, revisionProvider, timestamp, UUID.fromString(versionId), acceptance, published, deleted);
-        connectionProvider.getSession().execute(insertStatement);
     }
 
+    private void insertRow(PreparedStatement preparedStatement, String dataSetId, String dataSetProviderId, String cloudId,
+                           String schema, String revisionName, String revisionProvider, Date timestamp, String versionId,
+                           boolean acceptance, boolean published, boolean deleted){
+
+        BoundStatement insertStatement = preparedStatement.bind(
+                dataSetProviderId,
+                dataSetId,
+                cloudId,
+                schema,
+                revisionName,
+                revisionProvider,
+                timestamp,
+                UUID.fromString(versionId),
+                acceptance,
+                published,
+                deleted);
+        connectionProvider.getSession().execute(insertStatement);
+    }
 
     /**
      * Remove row from latest_provider_dataset_representation_revision table.
@@ -1315,6 +1361,11 @@ public class CassandraDataSetDAO {
                 globalId);
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);
+        //
+        BoundStatement deleteStatement = deleteLatestProviderDatasetRepresentationInfoReplica.bind(
+                dataSetProviderId, dataSetId, schema, revisionName, revisionProvider, markDeleted,
+                globalId);
+        connectionProvider.getSession().execute(deleteStatement);
     }
 
     public void addLatestRevisionForDatasetAssignment(DataSet dataSet, Representation representation, Revision
