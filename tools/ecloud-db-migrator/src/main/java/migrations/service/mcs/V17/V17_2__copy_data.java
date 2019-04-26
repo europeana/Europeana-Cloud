@@ -1,4 +1,4 @@
-package migrations.service.mcs.V14;
+package migrations.service.mcs.V17;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.*;
@@ -13,7 +13,7 @@ import static migrations.common.TableCopier.hasNextRow;
 /**
  * Created by pwozniak on 4/24/19
  */
-public class V14_2__copy_data implements JavaMigration {
+public class V17_2__copy_data implements JavaMigration {
 
     private PreparedStatement selectStatement;
     private PreparedStatement insertStatement;
