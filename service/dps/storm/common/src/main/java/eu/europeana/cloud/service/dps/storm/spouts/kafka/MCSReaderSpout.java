@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import com.rits.cloning.Cloner;
-import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -21,15 +21,12 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.spout.ISpoutOutputCollector;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -69,7 +66,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                      SpoutOutputCollector collector) {
         this.collector = collector;
         taskDownloader = new TaskDownloader();
-        super.open(conf, context, new CollectorWrapper(collector));
+        super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
 
     @Override
@@ -116,7 +113,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
     }
 
-    final class TaskDownloader extends Thread {
+    final class TaskDownloader extends Thread implements TaskQueueFiller {
         private static final int MAX_SIZE = 100;
         private static final int INTERNAL_THREADS_NUMBER = 10;
         public static final int MAX_BATCH_SIZE = 100;
@@ -453,25 +450,4 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
     }
 
-
-    private class CollectorWrapper extends SpoutOutputCollector {
-
-        CollectorWrapper(ISpoutOutputCollector delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
-            try {
-                DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
-                if (dpsTask != null) {
-                    taskDownloader.addNewTask(dpsTask);
-                }
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
-            }
-
-            return Collections.emptyList();
-        }
-    }
 }
