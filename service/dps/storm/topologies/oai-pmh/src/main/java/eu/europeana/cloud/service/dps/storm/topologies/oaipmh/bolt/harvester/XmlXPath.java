@@ -33,7 +33,7 @@ class XmlXPath {
      */
     public InputStream xpath(XPathExpression expr) throws HarvesterException, IOException {
         try {
-            final InputSource inputSource = new SAXSource(new InputSource(new StringReader(input))).getInputSource();
+            final InputSource inputSource = getInputSource();
             final NodeList result = (NodeList) expr.evaluate(inputSource,
                     XPathConstants.NODESET);
 
@@ -43,11 +43,34 @@ class XmlXPath {
         }
     }
 
+
+    public boolean isDeletedRecord(XPathExpression expr) throws HarvesterException {
+        try {
+            String status = evaluateExpression(expr);
+            if ("deleted".equalsIgnoreCase(status))
+                return true;
+            return false;
+        } catch (XPathExpressionException e) {
+            throw new HarvesterException("Cannot xpath XML!", e);
+        }
+
+    }
+
+    private InputSource getInputSource() {
+        return new SAXSource(new InputSource(new StringReader(input))).getInputSource();
+    }
+
+    private String evaluateExpression(XPathExpression expr) throws XPathExpressionException {
+        final InputSource inputSource = getInputSource();
+        return expr.evaluate(inputSource);
+    }
+
     private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException, IOException {
         final int length = nodes.getLength();
         if (length < 1) {
             throw new HarvesterException("Empty XML!");
         } else if (length > 1) {
+
             throw new HarvesterException("More than one XML!");
         }
         try (
