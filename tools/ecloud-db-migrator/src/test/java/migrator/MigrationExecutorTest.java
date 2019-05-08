@@ -5,7 +5,6 @@ import com.datastax.driver.core.Session;
 import migrator.validators.*;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public class MigrationExecutorTest {
         assertThat(cloudIds.size(), is(2));
     }
 
-    @Ignore
+    @Test
     public void shouldThrowExceptionOnTwiceDataMigrations() {
         //given
         MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations);
@@ -82,7 +81,7 @@ public class MigrationExecutorTest {
         new V14_validator(session).validate();
     }
 
-    @Ignore
+    @Test
     public void shouldSuccessfullyMigrateDataInUIS() {
         //given
         final String[] scriptsLocations1 = new String[]{"migrations/service/uis",
@@ -104,7 +103,7 @@ public class MigrationExecutorTest {
         assertEquals(row.getString("cloud_id"), "cloud_id");
     }
 
-    @Ignore
+    @Test
     public void shouldSuccessfullyMigrateDataInDPS() {
         //given
         final String[] scriptsLocations1 = new String[]{"migrations/service/dps",
