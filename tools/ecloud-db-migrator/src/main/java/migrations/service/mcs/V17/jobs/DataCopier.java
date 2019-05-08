@@ -75,7 +75,7 @@ public class DataCopier implements Callable<String> {
             insertIntoNewTable(row, bucket);
             //
             if (++counter % 10000 == 0) {
-                System.out.print("\rCopy table progress: " + counter);
+                System.out.print("\rCopy table for providerId: " + providerId + " and datasetId " + dataSetId + "the current progress is:" + counter);
             }
         }
         return "................... The information for providerId: " + providerId + " and datasetId " + dataSetId + " is inserted correctly. The total number of inserted rows is:" + counter;
