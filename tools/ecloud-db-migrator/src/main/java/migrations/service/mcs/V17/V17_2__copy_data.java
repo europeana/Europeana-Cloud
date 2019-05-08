@@ -48,7 +48,7 @@ public class V17_2__copy_data implements JavaMigration {
             }
             waitToFinish(set);
         } catch (Exception e) {
-            System.err.println("The migration was not completed successfully:" + e.getMessage() + ". Because of:" + e.getCause());
+            System.err.println("The migration was not completed successfully:" + e.getMessage() + ". Because of:" + e.getCause()+" .Please clean and restart again!!");
         }
     }
 

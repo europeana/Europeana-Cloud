@@ -72,7 +72,7 @@ public class DataCopier implements Callable<String> {
             }
             bucketsHandler.increaseBucketCount(BUCKET_TABLE_NAME, bucket);
             //
-            insertIntoNewTable(row, bucket);
+            insertIntoNewTable(row, bucket.getBucketId());
             //
             if (++counter % 10000 == 0) {
                 System.out.print("\rCopy table for providerId: " + providerId + " and datasetId " + dataSetId + "the current progress is:" + counter);
@@ -81,11 +81,11 @@ public class DataCopier implements Callable<String> {
         return "................... The information for providerId: " + providerId + " and datasetId " + dataSetId + " is inserted correctly. The total number of inserted rows is:" + counter;
     }
 
-    private void insertIntoNewTable(Row row, Bucket bucket) {
+    private void insertIntoNewTable(Row row, String bucketId) {
         BoundStatement insert = insertStatement.bind(
-                row.getString("provider_id"),
-                row.getString("dataset_id"),
-                UUID.fromString(bucket.getBucketId()),
+                row.getString(PROVIDER_ID),
+                row.getString(DATASET_ID),
+                UUID.fromString(bucketId),
                 row.getString("cloud_id"),
                 row.getString("representation_id"),
                 row.getDate("revision_timestamp"),
