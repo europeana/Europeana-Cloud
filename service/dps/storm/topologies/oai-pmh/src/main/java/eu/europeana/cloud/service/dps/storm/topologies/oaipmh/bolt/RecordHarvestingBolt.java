@@ -31,7 +31,15 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
             "/*[local-name()='record']" +
             "/*[local-name()='metadata']" +
             "/child::*";
+
+    private static final String IS_DELETED_XPATH = "string(/*[local-name()='OAI-PMH']" +
+            "/*[local-name()='GetRecord']" +
+            "/*[local-name()='record']" +
+            "/*[local-name()='header']" +
+            "/@status)";
+
     private XPathExpression expr;
+    private XPathExpression isDeletedExpression;
 
     /**
      * For given: <br/>
@@ -53,7 +61,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
             LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
             try (final InputStream record = harvester.harvestRecord(endpointLocation, recordId,
-                    metadataPrefix, expr)) {
+                    metadataPrefix, expr, isDeletedExpression)) {
                 stormTaskTuple.setFileData(record);
 
                 if (useHeaderIdentifier(stormTaskTuple))
@@ -106,6 +114,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         try {
             XPath xpath = XPathFactory.newInstance().newXPath();
             expr = xpath.compile(METADATA_XPATH);
+            isDeletedExpression = xpath.compile(IS_DELETED_XPATH);
         } catch (Exception e) {
             LOGGER.error("Exception while compiling the meta data xpath");
         }

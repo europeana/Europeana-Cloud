@@ -45,7 +45,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         //given
 
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -63,7 +63,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -83,7 +83,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("blablaba");
         StormTaskTuple spiedTask = spy(task);
@@ -95,7 +95,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         verifySuccessfulEmit();
 
         verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertEquals("http://more.locloud.eu/object/DCU/24927017",  spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+        assertEquals("http://more.locloud.eu/object/DCU/24927017", spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
         assertEquals("/2020739_Ag_EU_CARARE_2Cultur/object_DCU_24927017", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
@@ -105,7 +105,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("true");
         StormTaskTuple spiedTask = spy(task);
@@ -117,7 +117,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         verifySuccessfulEmit();
 
         verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertEquals(null,  spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+        assertEquals(null, spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
         assertEquals("http://data.europeana.eu/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
@@ -127,7 +127,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix("true");
         StormTaskTuple spiedTask = spy(task);
@@ -139,7 +139,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         verifySuccessfulEmit();
 
         verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertEquals(null,  spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+        assertEquals(null, spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
         assertEquals("/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
@@ -149,7 +149,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/corruptedEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -164,7 +164,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
     public void shouldEmitErrorOnHarvestingException() throws IOException,
             HarvesterException {
         //given
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(),any(XPathExpression.class))).thenThrow(new
+        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenThrow(new
                 HarvesterException("Some!"));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
@@ -212,13 +212,13 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         verifyErrorEmit();
     }
 
-    private StormTaskTuple taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix(String paramValue){
+    private StormTaskTuple taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix(String paramValue) {
         StormTaskTuple stormTaskTuple = taskWithGivenValueOfUseHeaderIdentifiersParameter(paramValue);
         stormTaskTuple.addParameter(PluginParameterKeys.MIGRATION_IDENTIFIER_PREFIX, "http://data.europeana.eu");
         return stormTaskTuple;
     }
 
-    private StormTaskTuple taskWithGivenValueOfUseHeaderIdentifiersParameter(String paramValue){
+    private StormTaskTuple taskWithGivenValueOfUseHeaderIdentifiersParameter(String paramValue) {
         StormTaskTuple stormTaskTuple = taskWithAllNeededParameters();
         stormTaskTuple.addParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS, paramValue);
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "http://data.europeana.eu/item/2064203/o_aj_kk_tei_3");
@@ -244,7 +244,6 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
     }
 
 
-
     private StormTaskTuple taskWithoutRecordId() {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
@@ -263,13 +262,12 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         return task;
     }
 
-     /**
-
+    /**
      * Checks if emit to standard stream occured
      */
     private void verifySuccessfulEmit() {
         verify(outputCollector, times(1)).emit(Mockito.anyList());
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"),Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
     }
 
     /**
