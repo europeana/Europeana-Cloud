@@ -95,6 +95,8 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted;
 
+    private PreparedStatement getLatestDataSetRepresentationRevision;
+
     private PreparedStatement insertProviderDatasetRepresentationInfo;
 
     private PreparedStatement insertLatestProviderDatasetRepresentationInfo;
@@ -321,6 +323,12 @@ public class CassandraDataSetDAO {
                 + "FROM latest_dataset_representation_revision_v1 " //
                 + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_name = ? And revision_provider = ? And representation_id = ? AND mark_deleted = ? AND cloud_id > ? LIMIT ? ;");
         getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        getLatestDataSetRepresentationRevision = connectionProvider.getSession().prepare("SELECT * " //
+                + "FROM latest_dataset_representation_revision_v1 " //
+                + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? And revision_name = ? and revision_provider = ? AND mark_deleted = ? AND cloud_id = ?;");
+        getLatestDataSetRepresentationRevision.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
 
         insertProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("INSERT INTO " //
                 + "provider_dataset_representation (provider_id, dataset_id, bucket_id, cloud_id, version_id, representation_id," //
@@ -1299,6 +1307,38 @@ public class CassandraDataSetDAO {
             ResultSet rs = connectionProvider.getSession().execute(deleteStatement);
 
             if (rs.wasApplied()) {
+                BoundStatement insertStatement = insertLatestProviderDatasetRepresentationInfo.bind(
+                        dataSetProviderId,
+                        dataSetId,
+                        UUID.fromString(bucket.getBucketId()),
+                        cloudId,
+                        schema,
+                        revisionName,
+                        revisionProvider,
+                        timestamp,
+                        UUID.fromString(versionId),
+                        acceptance,
+                        published,
+                        deleted);
+                connectionProvider.getSession().execute(insertStatement);
+                return;
+            }
+        }
+
+        for (Bucket bucket : buckets) {
+            BoundStatement selectStatement = getLatestDataSetRepresentationRevision.bind(
+                    dataSetProviderId,
+                    dataSetId,
+                    UUID.fromString(bucket.getBucketId()),
+                    schema,
+                    revisionName,
+                    revisionProvider,
+                    deleted,
+                    cloudId
+            );
+
+            ResultSet foundRows = connectionProvider.getSession().execute(selectStatement);
+            if (foundRows.getAvailableWithoutFetching() > 0) {
                 BoundStatement insertStatement = insertLatestProviderDatasetRepresentationInfo.bind(
                         dataSetProviderId,
                         dataSetId,
