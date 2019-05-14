@@ -57,67 +57,12 @@
     </bean>    
     
 	<!-- UIS Discovery -->
-	<bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
-        <constructor-arg name="zookeeperAddress">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperAddress"/>
-        </constructor-arg>
-        
-        <constructor-arg name="zookeeperConnectionTimeout">
-            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperConnectionTimeout"/>
-        </constructor-arg>
-        <constructor-arg name="zookeeperSessionTimeout">
-            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperSessionTimeout"/>
-        </constructor-arg>
-        
-        <constructor-arg name="zookeeperPath">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperPath"/>
-        </constructor-arg>
-	</bean>
-	
-	<bean id="uisServiceDiscovery" class="eu.europeana.cloud.service.coordination.discovery.ZookeeperServiceDiscovery">
-		<constructor-arg name="zookeeper" ref="zookeeperService"/>
-  		<constructor-arg name="discoveryPath" value="/discovery"/>
-		<constructor-arg name="serviceType" value="UIS"/>
-	</bean>
-
-	<bean id="uisProvider" class="eu.europeana.cloud.service.coordination.provider.ServiceProviderImpl">
-		<constructor-arg name="serviceDiscovery" ref="uisServiceDiscovery"/> 
-        <constructor-arg name="preferredDatacenter">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/datacenterLocation"/>
-        </constructor-arg>
-	</bean>
-	
     <bean id="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient">
 		<constructor-arg name="uisProvider" ref="uisProvider"/>
     </bean>
 	
     <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
     
-    <!-- MCS Registration in Zookeeper -->
-    <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
-		<constructor-arg name="serviceName" value="MCS" />
-		
-        <constructor-arg name="listenAddress">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/listenAddress"/>
-        </constructor-arg>
-        
-        <constructor-arg name="datacenterLocation">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/datacenterLocation"/>
-        </constructor-arg>
-	</bean>
-	
-	<bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
-		<constructor-arg name="zookeeper" ref="zookeeperService"/>
-  		<constructor-arg name="discoveryPath" value="/discovery"/>
-		<constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
-	</bean>
-	
-	<!-- Loads properties saved in Zookeeper  -->
-	<bean id="configurationLoader" class="eu.europeana.cloud.service.coordination.configuration.ConfigurationLoader">
-  		<property name="zookeeperService" ref="zookeeperService"/>
-  		<property name="configurationSettingsPath" value="/configuration"/>
-	</bean>
-
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
     

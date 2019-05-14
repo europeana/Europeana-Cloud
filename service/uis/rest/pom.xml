@@ -27,11 +27,6 @@
                     <artifactId>ecloud-service-uis-persistent</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-cos</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
             </dependencies>
         </profile>
 
@@ -153,11 +148,6 @@
                 </property>
             </activation>
             <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-cos</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
                 <!-- forked kafka with fixed appender issue KAFKA-847 -->
                 <!-- TODO ECL-317 -->
                 <dependency>

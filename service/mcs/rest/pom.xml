@@ -116,11 +116,6 @@
             <dependencies>
                 <dependency>
                     <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-cos</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
                     <artifactId>ecloud-service-mcs-persistent</artifactId>
                     <version>${project.version}</version>
                     <exclusions>
