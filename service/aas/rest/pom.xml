@@ -45,12 +45,7 @@
 			<version>${project.version}</version>
 		</dependency>
 		
-		<!-- COS -->
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-cos</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!-- Common -->
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
