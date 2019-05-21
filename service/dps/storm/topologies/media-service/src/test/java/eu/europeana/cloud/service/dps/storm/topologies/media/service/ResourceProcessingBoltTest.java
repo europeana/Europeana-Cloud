@@ -15,11 +15,7 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -36,8 +32,6 @@ import static org.mockito.Mockito.*;
 /**
  * Created by Tarek on 12/11/2018.
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.management.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
 public class ResourceProcessingBoltTest {
 
     private final static String AWS_ACCESS_KEY = "AWS_ACCESS_KEY";
@@ -77,6 +71,7 @@ public class ResourceProcessingBoltTest {
 
     @Before
     public void prepareTuple() throws Exception {
+        MockitoAnnotations.initMocks(this);
         ResourceProcessingBolt.amazonClient = amazonClient;
         resourceProcessingBolt.initGson();
         stormTaskTuple = new StormTaskTuple();

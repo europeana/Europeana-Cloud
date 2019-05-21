@@ -14,11 +14,10 @@ import org.apache.storm.task.OutputCollector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,7 +25,6 @@ import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 
-@RunWith(MockitoJUnitRunner.class)
 public class StatisticsBoltTest extends CassandraTestBase {
     private static final long TASK_ID = 1;
 
@@ -47,6 +45,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
 
     @Before
     public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
         statisticsBolt.prepare();
         statisticsDAO = CassandraNodeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
 

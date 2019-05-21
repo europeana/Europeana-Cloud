@@ -4,10 +4,8 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.Harvest
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.XMLConstants;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
@@ -35,7 +33,7 @@ class XmlXPath {
      */
     public InputStream xpath(XPathExpression expr) throws HarvesterException, IOException {
         try {
-            final InputSource inputSource = new SAXSource(new InputSource(new StringReader(input))).getInputSource();
+            final InputSource inputSource = getInputSource();
             final NodeList result = (NodeList) expr.evaluate(inputSource,
                     XPathConstants.NODESET);
 
@@ -45,18 +43,47 @@ class XmlXPath {
         }
     }
 
+
+    public boolean isDeletedRecord(XPathExpression expr) throws HarvesterException {
+        try {
+            String status = evaluateExpression(expr);
+            if ("deleted".equalsIgnoreCase(status))
+                return true;
+            return false;
+        } catch (XPathExpressionException e) {
+            throw new HarvesterException("Cannot xpath XML!", e);
+        }
+
+    }
+
+    private InputSource getInputSource() {
+        return new SAXSource(new InputSource(new StringReader(input))).getInputSource();
+    }
+
+    private String evaluateExpression(XPathExpression expr) throws XPathExpressionException {
+        final InputSource inputSource = getInputSource();
+        return expr.evaluate(inputSource);
+    }
+
     private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException, IOException {
         final int length = nodes.getLength();
         if (length < 1) {
             throw new HarvesterException("Empty XML!");
         } else if (length > 1) {
+
             throw new HarvesterException("More than one XML!");
         }
         try (
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();) {
             Source xmlSource = new DOMSource(nodes.item(0));
             Result outputTarget = new StreamResult(outputStream);
-            TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            transformer.transform(xmlSource, outputTarget);
             return new ByteArrayInputStream(outputStream.toByteArray());
         }
     }

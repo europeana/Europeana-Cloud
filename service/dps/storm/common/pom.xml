@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>1.3.1</version>
+        <version>1.4.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -69,11 +69,6 @@
             <artifactId>ecloud-cassandra-connector</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-cos</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -211,7 +206,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
-            <version>1.3.1</version>
+            <version>1.4.0</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

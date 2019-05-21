@@ -10,11 +10,7 @@ import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -32,8 +28,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Tarek on 2/19/2019.
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.management.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
+
 public class ParseFileBoltTest {
 
     private static final String AUTHORIZATION = "Authorization";

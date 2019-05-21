@@ -13,7 +13,9 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.CollectorWrapper;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.TaskQueueFiller;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -22,11 +24,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.spout.ISpoutOutputCollector;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,7 +75,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                      SpoutOutputCollector collector) {
         taskDownloader = new TaskDownloader();
         this.collector = collector;
-        super.open(conf, context, new CollectorWrapper(collector));
+        super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
 
 
@@ -121,8 +123,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     }
 
 
-    class TaskDownloader extends Thread {
+    final class TaskDownloader extends Thread implements TaskQueueFiller {
         private static final int MAX_SIZE = 100;
+        public static final String ERROR_WHILE_READING_A_FILE_MESSAGE = "Error while reading a file";
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE);
         private DpsTask currentDpsTask;
@@ -150,8 +153,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
             while (true) {
                 try {
                     currentDpsTask = taskQueue.take();
-                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId()))
-                    {
+                    if (!taskStatusChecker.hasKillFlag(currentDpsTask.getTaskId())) {
                         startProgress(currentDpsTask.getTaskId());
                         stormTaskTuple = new StormTaskTuple(
                                 currentDpsTask.getTaskId(),
@@ -256,8 +258,13 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                         try {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
                             expectedSize.set(expectedSize.incrementAndGet());
-                        } catch (IOException | EuropeanaIdException | InterruptedException e) {
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, "Error while reading a file","Error while reading the file :"+file.getFileName()+" because of "+e.getCause());
+                        } catch (IOException | EuropeanaIdException e) {
+                            LOGGER.error(e.getMessage());
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
+                        } catch (InterruptedException e) {
+                            LOGGER.error(e.getMessage());
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
+                            Thread.currentThread().interrupt();
                         }
                     }
                     return FileVisitResult.CONTINUE;
@@ -333,29 +340,6 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 } catch (IOException e) {
                     LOGGER.error("ERROR while removing the temp Folder: {}", e.getMessage());
                 }
-        }
-
-
-    }
-
-    private class CollectorWrapper extends SpoutOutputCollector {
-
-        CollectorWrapper(ISpoutOutputCollector delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
-            try {
-                DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
-                if (dpsTask != null) {
-                    taskDownloader.addNewTask(dpsTask);
-                }
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
-            }
-
-            return Collections.emptyList();
         }
     }
 }

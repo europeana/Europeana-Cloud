@@ -59,13 +59,13 @@ public class NormalizationBolt extends AbstractDpsBolt {
             }
         } catch (NormalizationConfigurationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in normalizer configuration. The full error is: " +  ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e));
         } catch (NormalizationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error during normalization. The full error is: " +  ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e));
         } catch (MalformedURLException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Cannot prepare output storm tuple. The full error is: " +  ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e));
         }
     }
 

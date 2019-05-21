@@ -10,12 +10,10 @@ import org.apache.storm.task.OutputCollector;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,7 +29,6 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_U
  * Created by Tarek on 1/16/2018.
  */
 
-@RunWith(MockitoJUnitRunner.class)
 public class ValidationBoltTest {
 
 

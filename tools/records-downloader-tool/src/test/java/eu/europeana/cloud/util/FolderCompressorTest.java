@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.zeroturnaround.zip.ZipException;
 
+import java.io.*;
 import java.util.Date;
 
 import static org.junit.Assert.assertNotNull;

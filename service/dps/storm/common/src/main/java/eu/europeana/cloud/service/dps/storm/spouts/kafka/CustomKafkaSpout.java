@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.kafka.*;
@@ -13,9 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
-import static java.lang.Integer.parseInt;
 
 /**
  * Created by Tarek on 11/27/2017.

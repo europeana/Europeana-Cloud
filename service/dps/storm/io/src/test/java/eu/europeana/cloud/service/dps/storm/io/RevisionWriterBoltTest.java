@@ -9,12 +9,10 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -23,7 +21,6 @@ import java.util.List;
 
 import static org.mockito.Mockito.anyString;
 
-@RunWith(MockitoJUnitRunner.class)
 public class RevisionWriterBoltTest {
 
     @Mock(name = "outputCollector")

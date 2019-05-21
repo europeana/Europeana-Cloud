@@ -6,10 +6,9 @@ import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Map;
 
@@ -18,7 +17,6 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_URL;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class LinkCheckBoltTest {
 
     @Mock(name = "outputCollector")
@@ -32,6 +30,11 @@ public class LinkCheckBoltTest {
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
+
+    @Before
+    public void init() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
     public void shouldEmitSameTupleWhenNoResourcesHasToBeChecked() {

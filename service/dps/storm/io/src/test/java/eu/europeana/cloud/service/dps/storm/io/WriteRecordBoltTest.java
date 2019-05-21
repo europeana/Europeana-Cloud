@@ -11,9 +11,7 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -34,7 +32,6 @@ import static org.mockito.Mockito.*;
  * Created by Tarek on 7/21/2017.
  */
 
-@RunWith(PowerMockRunner.class)
 public class WriteRecordBoltTest {
 
     private final int TASK_ID = 1;

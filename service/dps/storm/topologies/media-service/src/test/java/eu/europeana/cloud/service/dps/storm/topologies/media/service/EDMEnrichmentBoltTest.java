@@ -8,9 +8,7 @@ import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -24,7 +22,6 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Tarek on 12/14/2018.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class EDMEnrichmentBoltTest {
 
     private static final String AUTHORIZATION = "Authorization";

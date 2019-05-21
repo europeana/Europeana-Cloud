@@ -10,18 +10,15 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.net.URISyntaxException;
 
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class AddResultToDataSetBoltTest {
 
 
@@ -31,7 +28,7 @@ public class AddResultToDataSetBoltTest {
     private DataSetServiceClient dataSetServiceClient;
 
     @InjectMocks
-    private AddResultToDataSetBolt addResultToDataSetBolt;
+    private AddResultToDataSetBolt addResultToDataSetBolt=new AddResultToDataSetBolt("MCS_URL");
 
     private static final String AUTHORIZATION = "Authorization";
 

@@ -21,6 +21,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     private PreparedStatement subtaskSearchStatement;
     private PreparedStatement subtaskInsertStatement;
     private PreparedStatement processedFilesCountStatement;
+    private PreparedStatement removeNotificationsByTaskId;
 
     private static CassandraSubTaskInfoDAO instance = null;
 
@@ -60,6 +61,8 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
                 "SELECT resource_num FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ? limit 1");
         processedFilesCountStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
+        removeNotificationsByTaskId = dbService.getSession().prepare("delete from " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?");
+
     }
 
     public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource)
@@ -89,4 +92,9 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
         Row row = rs.one();
         return row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM);
     }
+
+    public void removeNotifications(long taskId) {
+        dbService.getSession().execute(removeNotificationsByTaskId.bind(taskId));
+    }
+
 }
