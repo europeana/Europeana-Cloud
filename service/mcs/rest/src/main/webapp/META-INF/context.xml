@@ -62,10 +62,6 @@
         global="mcs/uis-url" 
         name="mcs/uis-url" 
         type="java.lang.String"/>  
-    <ResourceLink
-        name="kafka/brokerList"
-        global="kafka/brokerList"
-        type="java.lang.String"/>
 
     <!-- AAS -->
     
@@ -104,9 +100,4 @@
         global="aas/cassandra/autoCreateTables"
         type="java.lang.Boolean"/>
 
-    <ResourceLink
-        name="logging/kafka/brokerList"
-        global="logging/kafka/brokerList"
-        type="java.lang.String"/>
-        
 </Context>
