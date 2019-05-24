@@ -79,9 +79,4 @@
         global="aas/cassandra/autoCreateTables"
         type="java.lang.Boolean"/>
     
-    <ResourceLink
-            name="logging/kafka/brokerList"
-            global="logging/kafka/brokerList"
-            type="java.lang.String"/>
-    
 </Context>

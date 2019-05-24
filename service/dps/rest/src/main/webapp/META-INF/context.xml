@@ -91,11 +91,6 @@
             type="java.lang.String"/>
 
     <ResourceLink
-            name="logging/kafka/brokerList"
-            global="logging/kafka/brokerList"
-            type="java.lang.String"/>
-
-    <ResourceLink
             name="dps/topology/nameList"
             global="dps/topology/nameList"
             type="java.lang.String"/>
