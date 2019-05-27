@@ -74,7 +74,7 @@ class ValidationJob implements Runnable {
         bucketsForSpecificObjectIdStatement = session.prepare("Select bucket_id from data_set_assignments_by_revision_id_buckets where object_id=?");
 
         countOfRowsStatementFromV1 = session.prepare("Select count(*) from data_set_assignments_by_revision_id_v1 where provider_id=? and dataset_id=? and bucket_id=? and revision_provider_id=? and revision_name=? and revision_timestamp=? and representation_id=? and cloud_id=? ;");
-        countOfRowsStatementFromReplica = session.prepare("Select count(*) from data_set_assignments_by_revision_id_replica where provider_id=? and dataset_id=? and bucket_id=? and revision_provider_id=? and revision_name=? and revision_timestamp=? and representation_id=? and cloud_id=? ;");
+        countOfRowsStatementFromReplica = session.prepare("Select count(*) from data_set_assignments_by_revision_id_replica where provider_id=? and dataset_id=? and revision_provider_id=? and revision_name=? and revision_timestamp=? and representation_id=? and cloud_id=? ;");
 
 
         selectStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);
@@ -136,10 +136,10 @@ class ValidationJob implements Runnable {
             if (count > 0)
                 return;
 
-            count = getMatchCount(dataset_assignment, bucketId, countOfRowsStatementFromReplica);
-            if (count > 0)
-                return;
         }
+        long count = getMatchCountFromReplica(dataset_assignment, countOfRowsStatementFromReplica);
+        if (count > 0)
+            return;
 
         throw new RuntimeException("The record with providerId= " + dataset_assignment.getString("provider_id") + " & datasetId=" + dataset_assignment.getString("dataset_id") +
                 " & revision_name=" + dataset_assignment.getString("revision_name") + " & cloud_id=" + dataset_assignment.getString("cloud_id") + " couldn't be validated");
@@ -175,6 +175,41 @@ class ValidationJob implements Runnable {
                     }
                 } else {
                     LOG.error("Error while matching record for data_set_assignments_by_revision_id. " + countBoundStatement.preparedStatement().getQueryString());
+                    throw e;
+                }
+            }
+        }
+    }
+
+
+    private long getMatchCountFromReplica(Row dataset_assignment, PreparedStatement countOfRowsStatement) {
+        BoundStatement countBoundStatement = countOfRowsStatement.bind(dataset_assignment.getString("provider_id"),
+                dataset_assignment.getString("dataset_id"),
+                dataset_assignment.getString("revision_provider_id"),
+                dataset_assignment.getString("revision_name"),
+                dataset_assignment.getDate("revision_timestamp"),
+                dataset_assignment.getString("representation_id"),
+                dataset_assignment.getString("cloud_id")
+        );
+
+
+        int retries = DEFAULT_RETRIES;
+
+        while (true) {
+            try {
+                ResultSet resultSet = session.execute(countBoundStatement);
+                return resultSet.one().getLong(0);
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOG.info("Warning while matching record from data_set_assignments_by_revision_id to replica. Retries left:" + retries);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
+                        System.err.println(e1.getMessage());
+                    }
+                } else {
+                    LOG.error("Error while matching record drom data_set_assignments_by_revision_id to replica. " + countBoundStatement.preparedStatement().getQueryString());
                     throw e;
                 }
             }
