@@ -57,8 +57,6 @@ public final class CassandraAclRepository implements AclRepository {
 	    "sid", "mask", "isSidPrincipal", "isGranting", "isAuditSuccess",
 	    "isAuditFailure" };
 
-    // private String replicationStrategy = "SimpleStrategy";
-    // private int replicationFactor = 3;
     private final Session session;
     private final String keyspace;
 
@@ -111,7 +109,6 @@ public final class CassandraAclRepository implements AclRepository {
 	    boolean initSchema) {
 	this(session, keyspace);
 	if (initSchema) {
-	    // createkeyspace();
 	    createAoisTable();
 	    createChilrenTable();
 	    createAclsTable();
