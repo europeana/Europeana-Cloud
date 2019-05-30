@@ -119,7 +119,7 @@ class ValidationJob implements Runnable {
             }
             LOG.info("Validating finished successfully for: " + provider_id + ":" + dataset_id + ". Validated rows: " + counter);
         } catch (Exception e) {
-            LOG.info("FAILED to execute Validation for: " + provider_id + ":" + dataset_id + "." + e.getMessage() + " . The cause of the problem: " + e.getCause());
+            LOG.error("FAILED to execute Validation for: " + provider_id + ":" + dataset_id + "." + e.getMessage() + " . The cause of the problem: " + e.getCause());
         }
 
     }
@@ -171,7 +171,7 @@ class ValidationJob implements Runnable {
                 return resultSet.one().getLong(0);
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOG.info("Warning while matching record to latest_provider_dataset_representation_revision. Retries left:" + retries);
+                    LOG.warn("Warning while matching record to latest_provider_dataset_representation_revision. Retries left:" + retries);
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException e1) {
@@ -205,7 +205,7 @@ class ValidationJob implements Runnable {
                 return resultSet.one().getLong(0);
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOG.info("Warning while matching record from latest_provider_dataset_representation_revision to replica. Retries left:" + retries);
+                    LOG.warn("Warning while matching record from latest_provider_dataset_representation_revision to replica. Retries left:" + retries);
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException e1) {
