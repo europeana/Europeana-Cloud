@@ -11,6 +11,7 @@
 
     <artifactId>ecloud-service-dps-storm-topologies-media-service</artifactId>
 
+    <name>media-service</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
