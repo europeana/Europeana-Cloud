@@ -11,7 +11,6 @@
 
     <artifactId>ecloud-service-dps-storm-topologies-media-service</artifactId>
 
-    <name>media-service</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,12 +21,6 @@
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-media-service</artifactId>
             <version>${version.metis}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-slf4j-impl</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
