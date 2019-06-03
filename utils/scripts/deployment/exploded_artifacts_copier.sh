@@ -8,8 +8,8 @@
 
 newAppDirectory=eCloud_apps/to_be_deployed/
 applicationsToBeDeployed=( aas uis mcs dps)
-testMachines=( 81 82 83)
-productionMachines=( 95 96 97)
+testMachines=( test-app1 test-app2 test-app3)
+productionMachines=( app1 app2 app3)
 environment=$1
 
 function copyApplications {
@@ -23,7 +23,7 @@ function copyApplications {
 			dest=services
 	    fi
             echo -e "\tCopying "$appLocation" to "$i
-				rsync -r $appLocation  centos@chara-$i.man.poznan.pl:$newAppDirectory/$dest
+				rsync -r $appLocation  centos@$i:$newAppDirectory/$dest
 #scp -p -r -q $appLocation centos@chara-$i.man.poznan.pl:$newAppDirectory/$dest
         done
         echo -e "\t"
