@@ -134,7 +134,7 @@ public final class CassandraAclRepository implements AclRepository {
 
                 @Override
                 public int compare(AclEntry o1, AclEntry o2) {
-                    return new Integer(o1.getOrder()).compareTo(o2.getOrder());
+                    return  Integer.compare(o1.getOrder(), o2.getOrder());
                 }
             }));
         }
