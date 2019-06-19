@@ -60,9 +60,9 @@ public class BucketsHandler {
         String query = "SELECT * FROM " + bucketsTableName + " WHERE object_id = '" + objectId + "';";
         ResultSet rs = session.execute(query);
 
-        List<Bucket> resultBuckets = new ArrayList<>();
 
         List<Row> rows = rs.all();
+        List<Bucket> resultBuckets = new ArrayList<>(rows.size());
         for (Row row : rows) {
             Bucket bucket = new Bucket(
                     row.getString(OBJECT_ID_COLUMN_NAME),

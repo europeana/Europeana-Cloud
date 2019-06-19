@@ -1,18 +1,22 @@
 package eu.europeana.cloud.service.dps.examples.util;
 
-import com.google.common.collect.Lists;
+import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_SECRET_TOKEN;
+import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_USERNAME;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import net.iharder.Base64;
-
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_USERNAME;
 
 /**
  * dps Task helpers
@@ -67,7 +71,7 @@ public class DpsTaskUtil {
         DpsTask task = new DpsTask();
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
 
-        List<String> dataSets = Lists.newArrayList();
+        List<String> dataSets = new ArrayList<>(recordCount);
         for (int i = 0; i < recordCount; i++) {
             dataSets.add(dataSetURL);
         }

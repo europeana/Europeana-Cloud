@@ -180,7 +180,6 @@ public class ResourceMigrator {
         ExecutorService threadLocalIdPool = Executors
                 .newFixedThreadPool(threadsCount);
         List<Future<LocalIdVerificationResult>> results = null;
-        List<Callable<LocalIdVerificationResult>> tasks = new ArrayList<Callable<LocalIdVerificationResult>>();
 
         int parts = threadsCount;
 
@@ -192,7 +191,8 @@ public class ResourceMigrator {
             if (uniqueIds.size() % threadsCount > 0)
                 idsPerThread++;
         }
-
+        
+        List<Callable<LocalIdVerificationResult>> tasks = new ArrayList<Callable<LocalIdVerificationResult>>(parts);
         List<String> localIds = new ArrayList<String>(uniqueIds);
         // create task for each resource provider
         for (int i = 0; i < parts; i++) {
@@ -1045,7 +1045,7 @@ public class ResourceMigrator {
         logger.info("Scanning resource provider locations finished in " + String.valueOf(((float) (System.currentTimeMillis() - start) / (float) 1000)) + " sec.");
 
         List<Future<VerificationResult>> results = null;
-        List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>();
+        List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>(paths.size());
 
         // create task for each resource provider
         for (String providerId : paths.keySet()) {
@@ -1217,7 +1217,7 @@ public class ResourceMigrator {
                     success &= processProvider(providerId, fp);
             } else { // initial paths were split into more sets, for each set run separate thread and gather results
                 List<Future<MigrationResult>> results = null;
-                List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>();
+                List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>(split.size());
 
                 boolean mergeProgress = false;
 
@@ -1372,7 +1372,7 @@ public class ResourceMigrator {
                     notMigrated += verifyProvider(providerId, fp);
             } else { // initial paths were split into more sets, for each set run separate thread and gather results
                 List<Future<VerificationResult>> results = null;
-                List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>();
+                List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>(split.size());
 
                 // create task for each file path
                 for (FilePaths fp : split) {
