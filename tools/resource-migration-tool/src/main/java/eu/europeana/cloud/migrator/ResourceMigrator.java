@@ -109,7 +109,7 @@ public class ResourceMigrator {
         this.dataProvidersMapping = readDataProvidersMapping(dataProvidersMappingFile);
         if (threadsCount != null && !threadsCount.isEmpty()) {
             try {
-                this.threadsCount = Integer.valueOf(threadsCount);
+                this.threadsCount = Integer.parseInt(threadsCount);
                 if (this.threadsCount < 0)
                     this.threadsCount = DEFAULT_PROVIDER_POOL_SIZE;
             } catch (NumberFormatException e) {
