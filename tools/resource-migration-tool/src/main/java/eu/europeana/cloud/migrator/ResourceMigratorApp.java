@@ -17,6 +17,8 @@ import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 public class ResourceMigratorApp {
@@ -104,13 +106,18 @@ public class ResourceMigratorApp {
 
         try {
             String content = new String(Files.readAllBytes(FileSystems.getDefault().getPath(".", "spring-config.xml")));
-            for (Object obj : config.keySet()) {
-                String value = (String) config.get(obj);
+            
+            Iterator<Entry<Object, Object>> iterator = config.entrySet().iterator();
+            while(iterator.hasNext()) {
+            	Entry<Object, Object> entry = iterator.next();
+            	
+                String value = (String)entry.getValue();
                 if (value == null)
                     value = "";
-                String key = "${" + obj + "}";
+                String key = "${" + entry.getKey() + "}";
                 content = content.replace(key, value);
             }
+            
             Files.write(FileSystems.getDefault().getPath(".", "spring-config-configured.xml"), content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
         } catch (IOException e) {
             return null;

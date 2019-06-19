@@ -137,8 +137,9 @@ public class CassandraDataSetService implements DataSetService {
         ds.setProviderId(providerId);
         //
         if (!latestRevisions.isEmpty()) {
-            for (String revisionKey : latestRevisions.keySet()) {
-                Revision latestRevision = latestRevisions.get(revisionKey);
+        	Iterator<Revision> values = latestRevisions.values().iterator();
+        	while(values.hasNext()) {
+                Revision latestRevision = values.next();
                 Date latestStoredRevisionTimestamp = dataSetDAO.getLatestRevisionTimeStamp(dataSetId, providerId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.isDeleted(), recordId);
                 if (latestStoredRevisionTimestamp == null || latestStoredRevisionTimestamp.getTime() < latestRevision.getCreationTimeStamp().getTime()) {
                     dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
@@ -146,7 +147,7 @@ public class CassandraDataSetService implements DataSetService {
                             latestRevision.isAcceptance(), latestRevision.isPublished(), latestRevision.isDeleted());
                     dataSetDAO.addLatestRevisionForDatasetAssignment(ds, rep, latestRevision);
                 }
-            }
+        	}
         }
     }
 

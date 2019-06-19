@@ -11,7 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static java.lang.Thread.sleep;
 
@@ -136,17 +138,18 @@ public final class CassandraTestInstance {
      */
     public static synchronized void print() {
         LOGGER.info(keyspaceSessions.toString());
-        for (String keyspaceName : keyspaceSessions.keySet()) {
-            final ResultSet rs = keyspaceSessions.get(keyspaceName)
-                    .execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
-                            keyspaceName
-                            + "';");
+        Iterator<Entry<String, Session>> iterator = keyspaceSessions.entrySet().iterator();
+        while(iterator.hasNext()) {
+        	Entry<String, Session> entry = iterator.next();
+        	final ResultSet rs = entry.getValue().execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
+                    entry.getKey()+ "';");
+        	
             for (Row r : rs.all()) {
                 String tableName = r.getString("columnfamily_name");
-                Session session = keyspaceSessions.get(keyspaceName);
+                Session session = entry.getValue();
                 ResultSet rows = session
                         .execute("SELECT * FROM " + tableName + ";");
-                LOGGER.info("keyspace : {}, table : {}  have rows : {} ", keyspaceName, tableName, rows.getAvailableWithoutFetching());
+                LOGGER.info("keyspace : {}, table : {}  have rows : {} ", entry.getKey(), tableName, rows.getAvailableWithoutFetching());
             }
         }
     }

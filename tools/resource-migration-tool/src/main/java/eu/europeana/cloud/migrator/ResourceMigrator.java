@@ -30,6 +30,7 @@ import java.net.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.*;
 
 public class ResourceMigrator {
@@ -317,14 +318,17 @@ public class ResourceMigrator {
         List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>();
 
         // create task for each resource provider
-        for (String providerId : paths.keySet()) {
+        Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
+        while(iterator.hasNext()) {
+        	Entry<String, List<FilePaths>> entry = iterator.next();
+        	
             if (clean) {
-                logger.info("Cleaning " + providerId);
-                clean(providerId);
+                logger.info("Cleaning " + entry.getKey());
+                clean(entry.getKey());
             }
             if (!simulate) {
-                logger.info("Starting task thread for provider " + providerId + "...");
-                tasks.add(new ProviderMigrator(providerId, paths.get(providerId), null));
+                logger.info("Starting task thread for provider " + entry.getKey() + "...");
+                tasks.add(new ProviderMigrator(entry.getKey(), entry.getValue(), null));
             }
         }
 
@@ -1048,9 +1052,11 @@ public class ResourceMigrator {
         List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>(paths.size());
 
         // create task for each resource provider
-        for (String providerId : paths.keySet()) {
-            logger.info("Starting verification task thread for provider " + providerId + "...");
-            tasks.add(new ProviderVerifier(providerId, paths.get(providerId), null));
+        Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
+        while(iterator.hasNext()) {
+        	Entry<String, List<FilePaths>> entry = iterator.next();
+            logger.info("Starting verification task thread for provider " + entry.getKey() + "...");
+            tasks.add(new ProviderVerifier(entry.getKey(), entry.getValue(), null));
         }
 
         if (tasks.size() == 0)
