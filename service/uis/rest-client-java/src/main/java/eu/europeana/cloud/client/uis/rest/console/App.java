@@ -41,7 +41,8 @@ public class App implements Runnable {
 	}
 
 	private static Map<String, Command> populateCommands() {
-		Map<String,Command> a = new HashMap<>();
+		//NOTE: remember to increase (or maybe decrease) this argument below if number of command will be changed
+		Map<String,Command> a = new HashMap<>(30);  
 
 		a.put("createCloudId", new CreateCloudIdCommand());
 		a.put("createMapping", new CreateMappingCommand());
@@ -75,7 +76,7 @@ public class App implements Runnable {
 		return a;
 	}
 
-	private static String[] subArray(String[] input) throws InvalidAttributesException {
+	private static String[] subArray(String[] input) {
 		String[] ret = new String[input.length - 1];
 		System.arraycopy(input, 1, ret, 0, ret.length);
 		return ret;

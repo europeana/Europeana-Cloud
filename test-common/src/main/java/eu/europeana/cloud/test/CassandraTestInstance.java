@@ -137,13 +137,12 @@ public final class CassandraTestInstance {
     public static synchronized void print() {
         LOGGER.info(keyspaceSessions.toString());
         for (String keyspaceName : keyspaceSessions.keySet()) {
-            final ResultSet rs = keyspaceSessions.get(keyspaceName)
-                    .execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
-                            keyspaceName
-                            + "';");
+            Session session = keyspaceSessions.get(keyspaceName);
+            final ResultSet rs = session.execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
+                    keyspaceName + "';");
+
             for (Row r : rs.all()) {
                 String tableName = r.getString("columnfamily_name");
-                Session session = keyspaceSessions.get(keyspaceName);
                 ResultSet rows = session
                         .execute("SELECT * FROM " + tableName + ";");
                 LOGGER.info("keyspace : {}, table : {}  have rows : {} ", keyspaceName, tableName, rows.getAvailableWithoutFetching());

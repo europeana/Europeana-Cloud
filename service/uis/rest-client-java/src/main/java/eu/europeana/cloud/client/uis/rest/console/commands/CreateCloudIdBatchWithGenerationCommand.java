@@ -24,12 +24,13 @@ public class CreateCloudIdBatchWithGenerationCommand extends Command {
 	public void execute(UISClient client, int threadNo, String... input) throws InvalidAttributesException {
 		
 		try {
-			
-			List<String> created = new ArrayList<>();
-			int i=0;
 			client.createProvider(input[0], new DataProviderProperties());
-			while(i<Integer.parseInt(input[1])){
-				
+
+			int inputNumber = Integer.parseInt(input[1]); 
+			List<String> created = new ArrayList<>(inputNumber);
+			
+			int i=0;
+			while(i<inputNumber){
 				CloudId cId = client.createCloudId(input[0]);
 				created.add(String.format("%s %s %s", cId.getId(),input[0],cId.getLocalId().getRecordId()));
 				i++;

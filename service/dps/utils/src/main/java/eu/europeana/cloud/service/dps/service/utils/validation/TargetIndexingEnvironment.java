@@ -7,12 +7,11 @@ import java.util.List;
  * Created by pwozniak on 5/29/18
  */
 public enum TargetIndexingEnvironment {
-
     DEFAULT,
     ALTERNATIVE;
 
     public static List<String> getStringValues() {
-        List<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<>(TargetIndexingEnvironment.values().length);
         for (TargetIndexingEnvironment env :
                 TargetIndexingEnvironment.values()) {
             result.add(env.toString());

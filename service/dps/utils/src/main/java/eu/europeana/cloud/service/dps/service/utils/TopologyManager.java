@@ -13,7 +13,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class TopologyManager {
     public static final String separatorChar = ",";
-    private List<String> topologies = new ArrayList<>();
+    private List<String> topologies = null;
     public static final Logger logger = LoggerFactory.getLogger(TopologyManager.class);
 
     /**
@@ -24,6 +24,8 @@ public class TopologyManager {
     public TopologyManager(final String nameList) {
         String[] names = nameList.split(separatorChar);
         assertNotEmpty(names);
+        
+        topologies = new ArrayList<>(names.length);
         for (int i = 0; i < names.length; i++) {
             topologies.add(names[i]);
         }

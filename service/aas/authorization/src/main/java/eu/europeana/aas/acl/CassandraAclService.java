@@ -81,7 +81,7 @@ public class CassandraAclService implements AclService {
         List<ObjectIdentity> result = null;
         List<AclObjectIdentity> children = aclRepository.findAclObjectIdentityChildren(new AclObjectIdentity(parentIdentity));
         if (children != null && !children.isEmpty()) {
-            result = new ArrayList<>();
+            result = new ArrayList<>(children.size());
             for (AclObjectIdentity entry : children) {
                 result.add(entry.toObjectIdentity());
             }
@@ -174,7 +174,7 @@ public class CassandraAclService implements AclService {
         Map<ObjectIdentity, Acl> result = new HashMap<>();
 
         if (objects != null && !objects.isEmpty()) {
-            List<AclObjectIdentity> objectIds = new ArrayList<>();
+            List<AclObjectIdentity> objectIds = new ArrayList<>(objects.size());
 
             for (ObjectIdentity objId : objects) {
                 objectIds.add(new AclObjectIdentity(objId));

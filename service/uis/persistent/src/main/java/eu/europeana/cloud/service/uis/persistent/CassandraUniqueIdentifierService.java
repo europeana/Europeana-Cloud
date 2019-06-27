@@ -148,7 +148,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         } else {
             cloudIds = localIdDao.searchByIdWithPagination(start, end, providerId);
         }
-        List<CloudId> localIds = new ArrayList<>();
+        List<CloudId> localIds = new ArrayList<>(cloudIds.size());
         for (CloudId cloudId : cloudIds) {
             localIds.add(cloudId);
         }

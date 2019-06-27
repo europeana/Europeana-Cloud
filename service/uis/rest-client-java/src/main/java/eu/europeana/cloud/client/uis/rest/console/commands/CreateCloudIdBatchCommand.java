@@ -25,7 +25,7 @@ public class CreateCloudIdBatchCommand extends Command {
 		
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[0]));
-			List<String> created = new ArrayList<>();
+			List<String> created = new ArrayList<>(ids.size());
 			client.createProvider(ids.get(0).split(" ")[0], new DataProviderProperties());
 			for (String id : ids){
 				String[] info = id.split(" ");
