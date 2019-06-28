@@ -43,7 +43,7 @@ public final class Client {
 				t.start();
 				
 			}
-			System.out.println("\n");
+			System.out.println();
 
 		}
 	}

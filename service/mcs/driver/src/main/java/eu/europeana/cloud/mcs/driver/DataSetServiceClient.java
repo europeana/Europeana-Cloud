@@ -58,26 +58,26 @@ public class DataSetServiceClient extends MCSClient {
         final StringBuilder builder = new StringBuilder();
 
         builder.append(ParamConstants.PROVIDERS);
-        builder.append("/");
-        builder.append("{");
+        builder.append('/');
+        builder.append('{');
         builder.append(P_PROVIDER);
         builder.append("}/");
         builder.append(ParamConstants.DATASETS);
         dataSetsPath = builder.toString();
 
-        builder.append("/");
-        builder.append("{");
+        builder.append('/');
+        builder.append('{');
         builder.append(ParamConstants.P_DATASET);
-        builder.append("}");
+        builder.append('}');
         dataSetPath = builder.toString();
 
-        builder.append("/");
+        builder.append('/');
         builder.append(ParamConstants.ASSIGNMENTS);
         assignmentsPath = builder.toString();
 
         final StringBuilder dataSetRevisionsPathBuilder = new StringBuilder(dataSetPath);
         dataSetRevisionsPathBuilder
-                .append("/")
+                .append('/')
                 .append(ParamConstants.REPRESENTATIONS)
                 .append("/{")
                 .append(ParamConstants.P_REPRESENTATIONNAME)
@@ -89,7 +89,7 @@ public class DataSetServiceClient extends MCSClient {
                 .append(ParamConstants.REVISION_PROVIDER)
                 .append("/{")
                 .append(ParamConstants.P_REVISION_PROVIDER_ID)
-                .append("}");
+                .append('}');
         dataSetRevisionsPath = dataSetRevisionsPathBuilder.toString();
         representationsPath = dataSetPath + "/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
         latelyTaggedRecordsPath = dataSetPath + "/latelyRevisionedVersion";

@@ -23,9 +23,9 @@ public class ImageMagicHelper {
         if (inputFilePath != null && outputFilePath != null) {
             StringBuffer command = new StringBuffer();
             command.append(imageMagicConsoleCommand);
-            command.append(" ");
+            command.append(' ');
             command.append(inputFilePath);
-            command.append(" ");
+            command.append(' ');
             command.append(outputFilePath);
             if (properties != null) {
                 for (String property : properties) {
