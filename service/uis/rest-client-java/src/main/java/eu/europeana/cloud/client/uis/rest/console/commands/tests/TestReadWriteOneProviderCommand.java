@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * Test Read Write one provider
- * 
+ *
  * @author Yorgos.Mamakis@ kb.nl
  * @since Dec 17, 2013
  */
@@ -25,7 +25,7 @@ public class TestReadWriteOneProviderCommand extends Command {
 
 	@Override
 	public void execute(UISClient client, int threadNo,String... input) throws InvalidAttributesException {
-		
+
 		String providerId = input[1]+threadNo;
 		try {
 			long i=0;
@@ -35,7 +35,7 @@ public class TestReadWriteOneProviderCommand extends Command {
 			System.out.println("Test started at: " + now);
 			client.createProvider(providerId, new DataProviderProperties());
 			while(i<Long.parseLong(input[0])){
-				
+
 				CloudId cId = client.createCloudId(providerId);
 				str.add(String.format("%s %s %s", cId.getId(),cId.getLocalId().getProviderId(),cId.getLocalId().getRecordId()));
 				i++;
@@ -50,7 +50,7 @@ public class TestReadWriteOneProviderCommand extends Command {
 		} catch (CloudException | IOException e) {
 			getLogger().error(e.getMessage());
 		}
-		
+
 	}
 
 }
