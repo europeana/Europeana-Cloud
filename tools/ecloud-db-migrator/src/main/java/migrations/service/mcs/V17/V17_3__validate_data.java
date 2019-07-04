@@ -78,9 +78,9 @@ class ValidationJob implements Runnable {
         bucketsForSpecificObjectIdStatement = session.prepare("Select bucket_id from latest_dataset_representation_revision_buckets where object_id=?");
 
         countOfRowsStatementFromV1 = session.prepare("Select count(*) from latest_dataset_representation_revision_v1 where provider_id=? and dataset_id=? and bucket_id=? and " +
-                "representation_id=? and revision_name=? revision_provider=? and mark_deleted=? and cloud_id=?;");
+                "representation_id=? and revision_name=? and revision_provider=? and mark_deleted=? and cloud_id=?;");
 
-        countOfRowsStatementFromReplica = session.prepare("Select count(*) from latest_provider_dataset_rep_rev_replica where provider_id=? and dataset_id=? and representation_id=? revision_name=? and revision_provider=? and mark_deleted=? and cloud_id=?;");
+        countOfRowsStatementFromReplica = session.prepare("Select count(*) from latest_provider_dataset_rep_rev_replica where provider_id=? and dataset_id=? and representation_id=? and revision_name=? and revision_provider=? and mark_deleted=? and cloud_id=?;");
 
 
         selectStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);
@@ -157,7 +157,7 @@ class ValidationJob implements Runnable {
                 bucketId,
                 row.getString("representation_id"),
                 row.getString("revision_name"),
-                row.getDate("revision_provider"),
+                row.getString("revision_provider"),
                 row.getBool("mark_deleted"),
                 row.getString("cloud_id")
         );
