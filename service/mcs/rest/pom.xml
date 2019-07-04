@@ -125,18 +125,7 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-                <dependency>
-                    <!-- forked kafka with fixed appender issue KAFKA-847 -->
-                    <!-- TODO ECL-317 -->
-                    <groupId>eu.europeana.cloud.kafka</groupId>
-                    <artifactId>kafka_2.10</artifactId>
-                    <exclusions>
-                        <exclusion>
-                            <artifactId>zookeeper</artifactId>
-                            <groupId>org.apache.zookeeper</groupId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
+
             </dependencies>
         </profile>
 

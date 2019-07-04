@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -14,7 +15,7 @@
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>
-	
+
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -22,25 +23,36 @@
             <version>${project.version}</version>
         </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-dps-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
-		<!-- forked kafka with fixed appender issue KAFKA-847 -->
-		<!-- TODO ECL-317 -->
-		<dependency>
-			<groupId>eu.europeana.cloud.kafka</groupId>
-			<artifactId>kafka_2.10</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>zookeeper</artifactId>
-						<groupId>org.apache.zookeeper</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-				
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.12</artifactId>
+            <version>1.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>zookeeper</artifactId>
+                    <groupId>org.apache.zookeeper</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -68,7 +80,7 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
         </dependency>
-        
+
         <!--tests -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -82,7 +94,7 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>     
+        </dependency>
         <dependency>
             <groupId>org.kubek2k</groupId>
             <artifactId>springockito</artifactId>
