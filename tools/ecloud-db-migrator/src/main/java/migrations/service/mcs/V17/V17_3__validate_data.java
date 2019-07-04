@@ -186,12 +186,13 @@ class ValidationJob implements Runnable {
         }
     }
 
+
     private long getMatchCountFromReplica(Row row, PreparedStatement countOfRowsStatement) {
         BoundStatement countBoundStatement = countOfRowsStatement.bind(row.getString("provider_id"),
                 row.getString("dataset_id"),
                 row.getString("representation_id"),
                 row.getString("revision_name"),
-                row.getDate("revision_provider"),
+                row.getString("revision_provider"),
                 row.getBool("mark_deleted"),
                 row.getString("cloud_id")
         );
