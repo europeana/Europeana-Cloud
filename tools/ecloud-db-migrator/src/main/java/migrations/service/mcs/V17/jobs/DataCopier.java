@@ -1,5 +1,7 @@
 package migrations.service.mcs.V17.jobs;
 
+import com.contrastsecurity.cassandra.migration.logging.Log;
+import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
@@ -14,13 +16,17 @@ import static migrations.common.TableCopier.hasNextRow;
  * Created by Tarek on 5/8/2019.
  */
 public class DataCopier implements Callable<String> {
+
+    private static final Log LOG = LogFactory.getLog(DataCopier.class);
+
     private static final String PROVIDER_ID = "provider_id";
     private static final String DATASET_ID = "dataset_id";
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
 
     private Session session;
-    private Row distinctPartitionKeysRow;
+    private String providerId;
+    private String dataSetId;
 
     private PreparedStatement selectStatement;
     private PreparedStatement insertStatement;
@@ -29,9 +35,10 @@ public class DataCopier implements Callable<String> {
     private static final String CDSID_SEPARATOR = "\n";
     private static final String BUCKET_TABLE_NAME = "latest_dataset_representation_revision_buckets";
 
-    public DataCopier(Session session, Row distinctPartitionKeysRow) {
+    public DataCopier(Session session, String provider_id, String dataset_id) {
         this.session = session;
-        this.distinctPartitionKeysRow = distinctPartitionKeysRow;
+        this.providerId = provider_id;
+        this.dataSetId = dataset_id;
         initStatements();
     }
 
@@ -50,34 +57,38 @@ public class DataCopier implements Callable<String> {
     public String call() throws Exception {
         BucketsHandler bucketsHandler = new BucketsHandler(session);
         long counter = 0;
-        final String providerId = distinctPartitionKeysRow.getString(PROVIDER_ID);
-        String dataSetId = distinctPartitionKeysRow.getString(DATASET_ID);
+        LOG.info("Starting job for providerId: " + providerId + " and datasetId " + dataSetId + " fthe current progress is: " + counter);
         BoundStatement boundStatement = selectStatement.bind(providerId, dataSetId);
         boundStatement.setFetchSize(1000);
         ResultSet rs = session.execute(boundStatement);
         Iterator<Row> ri = rs.iterator();
 
-        while (hasNextRow(ri)) {
-            Row row = ri.next();
+        try{
+            while (hasNextRow(ri)) {
+                Row row = ri.next();
 
-            Bucket bucket = bucketsHandler.getCurrentBucket(
-                    BUCKET_TABLE_NAME,
-                    createProviderDataSetId(providerId, dataSetId));
+                Bucket bucket = bucketsHandler.getCurrentBucket(
+                        BUCKET_TABLE_NAME,
+                        createProviderDataSetId(providerId, dataSetId));
 
-            if (bucket == null || bucket.getRowsCount() >= BUCKET_SIZE) {
-                bucket = new Bucket(
-                        createProviderDataSetId(providerId, dataSetId),
-                        new com.eaio.uuid.UUID().toString(),
-                        0);
+                if (bucket == null || bucket.getRowsCount() >= BUCKET_SIZE) {
+                    bucket = new Bucket(
+                            createProviderDataSetId(providerId, dataSetId),
+                            new com.eaio.uuid.UUID().toString(),
+                            0);
+                }
+                bucketsHandler.increaseBucketCount(BUCKET_TABLE_NAME, bucket);
+                //
+                insertIntoNewTable(row, bucket.getBucketId());
+                //
+                if (++counter % 10000 == 0) {
+                    LOG.info("Copy table for providerId: " + providerId + " and datasetId " + dataSetId + " the current progress is:" + counter);
+                }
             }
-            bucketsHandler.increaseBucketCount(BUCKET_TABLE_NAME, bucket);
-            //
-            insertIntoNewTable(row, bucket.getBucketId());
-            //
-            if (++counter % 10000 == 0) {
-                System.out.print("\rCopy table for providerId: " + providerId + " and datasetId " + dataSetId + "the current progress is:" + counter);
-            }
+        }catch(Exception e){
+            LOG.error("Migration failed providerId: " + providerId + " and datasetId " + dataSetId + "the current progress is:" + counter);
         }
+        LOG.info("Finished job for providerId: " + providerId + " and datasetId " + dataSetId + "the current progress is: " + counter);
         return "................... The information for providerId: " + providerId + " and datasetId " + dataSetId + " is inserted correctly. The total number of inserted rows is:" + counter;
     }
 
@@ -106,7 +117,7 @@ public class DataCopier implements Callable<String> {
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    System.out.println("Warning while inserting to latest_dataset_representation_revision_v1. Retries left:" + retries);
+                    LOG.info("Warning while inserting to latest_dataset_representation_revision_v1. Retries left:" + retries);
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException e1) {
@@ -114,7 +125,7 @@ public class DataCopier implements Callable<String> {
                         System.err.println(e1.getMessage());
                     }
                 } else {
-                    System.err.println("Error while inserting to latest_dataset_representation_revision_v1. " + insert.preparedStatement().getQueryString());
+                    LOG.info("Error while inserting to latest_dataset_representation_revision_v1. " + insert.preparedStatement().getQueryString());
                     throw e;
                 }
             }
