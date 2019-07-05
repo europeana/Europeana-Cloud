@@ -1309,16 +1309,16 @@ public class ResourceMigrator {
 
     private class MigrationResult {
         // success indicator
-        Boolean success;
+       private Boolean success;
 
         // resource provider identifier
-        String providerId;
+       private String providerId;
 
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+        private float time;
 
         MigrationResult(Boolean success, String providerId, float time, String identifier) {
             this.success = success;
@@ -1413,16 +1413,16 @@ public class ResourceMigrator {
 
     private class VerificationResult {
         // resource provider identifier
-        String providerId;
+        private String providerId;
 
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+        private float time;
 
         // number of not migrated files
-        long notMigrated;
+        private long notMigrated;
 
         VerificationResult(long notMigrated, String providerId, float time, String identifier) {
             this.notMigrated = notMigrated;
@@ -1534,13 +1534,13 @@ public class ResourceMigrator {
 
     private class LocalIdVerificationResult {
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+        private float time;
 
         // number of not migrated files
-        long notMigrated;
+       private long notMigrated;
 
         LocalIdVerificationResult(long notMigrated, float time, String identifier) {
             this.notMigrated = notMigrated;
@@ -1709,13 +1709,13 @@ public class ResourceMigrator {
 
     private class PublicAccessGranterResult {
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+       private float time;
 
         // number of versions without public access
-        long notGranted;
+        private long notGranted;
 
         PublicAccessGranterResult(long notGranted, float time, String identifier) {
             this.notGranted = notGranted;
