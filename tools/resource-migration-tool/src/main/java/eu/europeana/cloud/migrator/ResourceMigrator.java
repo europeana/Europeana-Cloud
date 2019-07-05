@@ -192,7 +192,7 @@ public class ResourceMigrator {
             if (uniqueIds.size() % threadsCount > 0)
                 idsPerThread++;
         }
-        
+
         List<Callable<LocalIdVerificationResult>> tasks = new ArrayList<Callable<LocalIdVerificationResult>>(parts);
         List<String> localIds = new ArrayList<String>(uniqueIds);
         // create task for each resource provider
@@ -319,9 +319,9 @@ public class ResourceMigrator {
 
         // create task for each resource provider
         Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
-        while(iterator.hasNext()) {
-        	Entry<String, List<FilePaths>> entry = iterator.next();
-        	
+        while (iterator.hasNext()) {
+            Entry<String, List<FilePaths>> entry = iterator.next();
+
             if (clean) {
                 logger.info("Cleaning " + entry.getKey());
                 clean(entry.getKey());
@@ -581,13 +581,11 @@ public class ResourceMigrator {
                         // change filename extension to the one that processed file has
                         fileName = changeExtension(fileName, processed.getName());
                         mimeType = mimeFromExtension(fileName);
-                    }
-                    else {
+                    } else {
                         logger.error("Problem with processing file: " + path);
                         return null;
                     }
-                }
-                else
+                } else
                     is = fullURI.toURL().openStream();
 
                 if (logger.isDebugEnabled())
@@ -641,7 +639,7 @@ public class ResourceMigrator {
         int i = fileName.lastIndexOf('.');
         int j = newFileName.lastIndexOf('.');
         if (i > 0 && j > 0)
-            return fileName.substring(0, i) +  newFileName.substring(j, newFileName.length());
+            return fileName.substring(0, i) + newFileName.substring(j, newFileName.length());
 
         // when any of the extension does not exist return unchanged original fileName
         return fileName;
@@ -788,12 +786,12 @@ public class ResourceMigrator {
             try {
                 path = reader.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage() + ". Because of: " + e.getCause());
             } finally {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
                 }
             }
         } else
@@ -1053,8 +1051,8 @@ public class ResourceMigrator {
 
         // create task for each resource provider
         Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
-        while(iterator.hasNext()) {
-        	Entry<String, List<FilePaths>> entry = iterator.next();
+        while (iterator.hasNext()) {
+            Entry<String, List<FilePaths>> entry = iterator.next();
             logger.info("Starting verification task thread for provider " + entry.getKey() + "...");
             tasks.add(new ProviderVerifier(entry.getKey(), entry.getValue(), null));
         }
@@ -1167,7 +1165,7 @@ public class ResourceMigrator {
                     // when we got here it means that for the current localId there is a cloud id and persistent representation - the whole record is migrated
                     migratedLocalIds.add(localId.intern());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
                     break;
                 } catch (RecordNotExistsException e) {
                     strings.add(line + " (upload " + localId + ")");
@@ -1175,7 +1173,8 @@ public class ResourceMigrator {
                     strings.add(line + " (upload " + localId + ")");
                 } catch (MCSException e) {
                     logger.error("Problem with getting representation.");
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
+
                 }
             }
             saveProgress(providerPaths.getIdentifier() != null ? providerPaths.getIdentifier() : resourceProviderId, strings, true, "verify_");
@@ -1184,7 +1183,7 @@ public class ResourceMigrator {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
                 }
             }
         }
@@ -1309,10 +1308,10 @@ public class ResourceMigrator {
 
     private class MigrationResult {
         // success indicator
-       private Boolean success;
+        private Boolean success;
 
         // resource provider identifier
-       private String providerId;
+        private String providerId;
 
         // Part identifier
         private String identifier;
@@ -1497,7 +1496,7 @@ public class ResourceMigrator {
                     try {
                         representations = mcs.getRepresentations(cloudId, resourceProvider.getRepresentationName());
                     } catch (MCSException e) {
-                        e.printStackTrace();
+                        logger.error(e.getMessage() + ". Because of: " + e.getCause());
                     }
                     if (representations == null || representations.size() == 0) {
                         strings.add(localId + ";" + "no representation");
@@ -1540,7 +1539,7 @@ public class ResourceMigrator {
         private float time;
 
         // number of not migrated files
-       private long notMigrated;
+        private long notMigrated;
 
         LocalIdVerificationResult(long notMigrated, float time, String identifier) {
             this.notMigrated = notMigrated;
@@ -1712,7 +1711,7 @@ public class ResourceMigrator {
         private String identifier;
 
         // execution time
-       private float time;
+        private float time;
 
         // number of versions without public access
         private long notGranted;
