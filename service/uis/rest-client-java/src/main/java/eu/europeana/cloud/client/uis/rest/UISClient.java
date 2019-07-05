@@ -29,10 +29,16 @@ import javax.ws.rs.core.Response.Status;
  */
 public class UISClient {
 
+    private static final String CLOUD_IDS_PATH = "/cloudIds";
+    private static final String P_CLOUD_ID="CLOUD_ID";
+    private static final String P_PROVIDER_ID = "PROVIDER_ID";
+    private static final String DATA_PROVIDERS_PATH_WITH_PROVIDER_ID = "/data-providers/{PROVIDER_ID}";
+    private static final String P_LOCAL_ID = "LOCAL_ID";
+    private static final String DATA_PROVIDERS_PATH = "/data-providers";
+    private static final String CLOUD_IDS_PATH_WITH_CLOUD_ID = "/cloudIds/{CLOUD_ID}";
+
     private Client client = JerseyClientBuilder.newClient();
-
     private UrlProvider urlProvider;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
@@ -41,7 +47,7 @@ public class UISClient {
      * Creates a new instance of this class. Same as {@link #UISClient(String)}
      * but includes username and password to perform authenticated requests.
      */
-    public UISClient(final String uisUrl, final String username, final String password)  {
+    public UISClient(final String uisUrl, final String username, final String password) {
         this(uisUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
@@ -93,7 +99,7 @@ public class UISClient {
 
         Response resp = null;
         try {
-            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
                     .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
                     .post(null);
@@ -124,7 +130,7 @@ public class UISClient {
 
         Response resp = null;
         try {
-            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
                     .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
                     .post(null);
@@ -151,7 +157,7 @@ public class UISClient {
 
         Response resp = null;
         try {
-            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
                     .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                     .request().post(null);
 
@@ -178,7 +184,7 @@ public class UISClient {
 
         Response resp = null;
         try {
-            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
                     .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
                     .get();
@@ -208,7 +214,7 @@ public class UISClient {
 
         Response resp = null;
         try {
-            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
                     .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
                     .get();
@@ -237,8 +243,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl() + "/cloudIds/{CLOUD_ID}")
-                    .resolveTemplate("CLOUD_ID", cloudId).request().get();
+                    .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
+                    .resolveTemplate(P_CLOUD_ID, cloudId).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
@@ -264,9 +270,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}/localIds")
-                    .resolveTemplate("PROVIDER_ID", providerId).request().get();
+                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds")
+                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
@@ -292,9 +297,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}/cloudIds")
-                    .resolveTemplate("PROVIDER_ID", providerId).request().get();
+                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
+                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
@@ -323,9 +327,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}/localIds")
-                    .resolveTemplate("PROVIDER_ID", providerId)
+                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds")
+                    .resolveTemplate(P_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_FROM, startRecordId)
                     .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
 
@@ -356,9 +359,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}/cloudIds")
-                    .resolveTemplate("PROVIDER_ID", providerId)
+                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
+                    .resolveTemplate(P_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_FROM, startRecordId)
                     .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
 
@@ -387,10 +389,9 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
-                    .resolveTemplate("PROVIDER_ID", providerId)
-                    .resolveTemplate("CLOUD_ID", cloudId)
+                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
+                    .resolveTemplate(P_PROVIDER_ID, providerId)
+                    .resolveTemplate(P_CLOUD_ID, cloudId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
                     .post(null);
 
@@ -422,10 +423,9 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
-                    .resolveTemplate("PROVIDER_ID", providerId)
-                    .resolveTemplate("CLOUD_ID", cloudId)
+                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
+                    .resolveTemplate(P_PROVIDER_ID, providerId)
+                    .resolveTemplate(P_CLOUD_ID, cloudId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
                     .post(null);
 
@@ -453,10 +453,9 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
-                    .resolveTemplate("PROVIDER_ID", providerId)
-                    .resolveTemplate("LOCAL_ID", recordId).request().delete();
+                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
+                    .resolveTemplate(P_PROVIDER_ID, providerId)
+                    .resolveTemplate(P_LOCAL_ID, recordId).request().delete();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return true;
@@ -481,8 +480,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl() + "/cloudIds/{CLOUD_ID}")
-                    .resolveTemplate("CLOUD_ID", cloudId).request().delete();
+                    .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
+                    .resolveTemplate(P_CLOUD_ID, cloudId).request().delete();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return true;
@@ -508,7 +507,7 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl() + "/data-providers")
+                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH)
                     .queryParam(UISParamConstants.Q_PROVIDER, providerId).request()
                     .post(Entity.json(dp));
 
@@ -536,9 +535,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}")
-                    .resolveTemplate("PROVIDER_ID", providerId).request()
+                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
+                    .resolveTemplate(P_PROVIDER_ID, providerId).request()
                     .put(Entity.json(dp));
 
             if (resp.getStatus() == Status.NO_CONTENT.getStatusCode()) {
@@ -565,7 +563,7 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl() + "/data-providers")
+                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH)
                     .queryParam(UISParamConstants.Q_FROM, from).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -591,9 +589,8 @@ public class UISClient {
         Response resp = null;
         try {
             resp = client
-                    .target(urlProvider.getBaseUrl()
-                            + "/data-providers/{PROVIDER_ID}")
-                    .resolveTemplate("PROVIDER_ID", providerId).request().get();
+                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
+                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(DataProvider.class);
