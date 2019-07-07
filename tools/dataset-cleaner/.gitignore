@@ -1,0 +1,10 @@
+/target
+/.settings
+/.idea
+/.classpath
+/.project
+*.log
+*.parms
+dataset-cleaner/target
+
+
