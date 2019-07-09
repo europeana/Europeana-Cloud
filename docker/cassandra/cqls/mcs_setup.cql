@@ -128,7 +128,7 @@ CREATE TABLE latest_dataset_representation_revision_v1 (
     acceptance boolean,
     published boolean,
     mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id, bucket_id),representation_id,revision_name,revision_provider,mark_deleted,cloud_id)
+    PRIMARY KEY ((provider_id, dataset_id, bucket_id),representation_id, revision_name, revision_provider, mark_deleted, cloud_id)
 );
 
 CREATE TABLE latest_dataset_representation_revision_buckets (

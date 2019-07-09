@@ -949,19 +949,23 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Session session = CassandraTestInstance.getSession(KEYSPACE);
         PreparedStatement ps = getPreparedStatementForInsertionToLatestCloudIdsAndTimestampTable(session);
         BoundStatement bs;
+        //
+        UUID bucketId = UUID.fromString(new com.eaio.uuid.UUID().toString());
+        //
         for (int i = 0; i < size; i++) {
+            session.execute("UPDATE latest_dataset_representation_revision_buckets SET rows_count = rows_count + 1 WHERE object_id = '" + providerId + "\n" + DATA_SET_NAME + "' AND bucket_id = " + bucketId + ";");
             Date date = new Date();
             CloudIdAndTimestampResponse obj = new CloudIdAndTimestampResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
                     date);
-            bs = ps.bind(providerId, DATA_SET_NAME, obj.getCloudId(), UUID.fromString(new com.eaio.uuid.UUID().toString()), REPRESENTATION, REVISION, providerId, date, true, false, true);
+            bs = ps.bind(providerId, DATA_SET_NAME, bucketId, obj.getCloudId(), UUID.fromString(new com.eaio.uuid.UUID().toString()), REPRESENTATION, REVISION, providerId, date, true, false, true);
             session.execute(bs);
         }
     }
 
     private PreparedStatement getPreparedStatementForInsertionToLatestCloudIdsAndTimestampTable(Session session) {
-        String table = KEYSPACE + ".latest_provider_dataset_representation_revision";
-        PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,cloud_id,version_id,representation_id,revision_name,revision_provider,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
-                "(?,?,?,?,?,?,?,?,?,?,?)");
+        String table = KEYSPACE + ".latest_dataset_representation_revision_v1";
+        PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,bucket_id,cloud_id,version_id,representation_id,revision_name,revision_provider,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
+                "(?,?,?,?,?,?,?,?,?,?,?,?)");
         ps.setConsistencyLevel(ConsistencyLevel.QUORUM);
         return ps;
 
