@@ -152,7 +152,7 @@
                     <groupId>org.slf4j</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>kafka_2.9.2</artifactId>
+                    <artifactId>kafka_2.12</artifactId>
                     <groupId>org.apache.kafka</groupId>
                 </exclusion>
                 <exclusion>
