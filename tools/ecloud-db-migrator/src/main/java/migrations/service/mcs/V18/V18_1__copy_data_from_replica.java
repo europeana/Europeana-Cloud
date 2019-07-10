@@ -1,16 +1,15 @@
 package migrations.service.mcs.V18;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
+import com.contrastsecurity.cassandra.migration.logging.Log;
+import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
 import migrations.service.mcs.V18.jobs.DataCopier;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 import static migrations.common.TableCopier.hasNextRow;
 
@@ -18,6 +17,8 @@ import static migrations.common.TableCopier.hasNextRow;
  * Created by Tarek on 4/26/19
  */
 public class V18_1__copy_data_from_replica implements JavaMigration {
+
+    private static final Log LOG = LogFactory.getLog(V18_1__copy_data_from_replica.class);
 
     public static final int THREADS = 25;
     private PreparedStatement selectDistinctPartitionKeysStatement;
@@ -30,31 +31,27 @@ public class V18_1__copy_data_from_replica implements JavaMigration {
 
     @Override
     public void migrate(Session session) {
+        ExecutorService executorService = Executors.newFixedThreadPool(THREADS);
+
         try {
             initStatements(session);
-            ExecutorService executorService = Executors.newFixedThreadPool(THREADS);
             ResultSet distinctPartitions = session.execute(selectDistinctPartitionKeysStatement.bind());
             Iterator<Row> distinctPartitionIterator = distinctPartitions.iterator();
-            Set<Future<String>> set = new HashSet<>();
             while (hasNextRow(distinctPartitionIterator)) {
                 Row disRow = distinctPartitionIterator.next();
-                DataCopier dataCopier = new DataCopier(session, disRow);
-                set.add(executorService.submit(dataCopier));
-                if (set.size() >= THREADS) {
-                    waitToFinish(set);
-                    set.clear();
-                }
+                LOG.info("Submitting task for: " + disRow.getString("provider_id") + ":" + disRow.getString("dataset_id"));
+                DataCopier dataCopier = new DataCopier(session, disRow.getString("provider_id"), disRow.getString("dataset_id"));
+                executorService.submit(dataCopier);
             }
-            waitToFinish(set);
-            executorService.shutdown();
         } catch (Exception e) {
-            System.err.println("The migration was not completed successfully:" + e.getMessage() + ". Because of:" + e.getCause() + " .Please clean and restart again!!");
+            LOG.error("The migration was not completed successfully:" + e.getMessage() + ". Because of:" + e.getCause() + " .Please clean and restart again!!");
         }
-    }
 
-    void waitToFinish(Set<Future<String>> set) throws ExecutionException, InterruptedException {
-        for (Future<String> future : set) {
-            System.out.println(future.get());
+        try {
+            executorService.shutdown();
+            executorService.awaitTermination(100, TimeUnit.DAYS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }
