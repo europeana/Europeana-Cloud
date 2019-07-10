@@ -19,6 +19,7 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.job.TaskExecutor;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -45,27 +46,31 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
+    private static final int INTERNAL_THREADS_NUMBER = 10;
 
     TaskDownloader taskDownloader;
     private String mcsClientURL;
+    private ExecutorService executorService;
 
     public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password, String mcsClientURL) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
         this.mcsClientURL = mcsClientURL;
+        executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
 
     }
 
     MCSReaderSpout(SpoutConfig spoutConf) {
         super(spoutConf);
-        taskDownloader = new TaskDownloader();
+        taskDownloader = new TaskDownloader(null);
+        executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
     }
 
     @Override
     public void open(Map conf, TopologyContext context,
                      SpoutOutputCollector collector) {
         this.collector = collector;
-        taskDownloader = new TaskDownloader();
+        taskDownloader = new TaskDownloader(collector);
         super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
 
@@ -120,9 +125,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
         private DpsTask currentDpsTask;
+        private SpoutOutputCollector collector;
 
 
-        public TaskDownloader() {
+        public TaskDownloader(SpoutOutputCollector collector) {
+            this.collector = collector;
             start();
         }
 
@@ -161,8 +168,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                                 fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
                                 tuplesWithFileUrls.put(fileTuple);
                             }
-                        } else // For data Sets
-                            execute(stream, currentDpsTask);
+                        } else { // For data Sets
+                            executorService.submit(new TaskExecutor(collector, cassandraTaskInfoDAO, stream, currentDpsTask, mcsClientURL));
+                            //execute(stream, currentDpsTask);
+                        }
                     } else {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
                     }
@@ -174,7 +183,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         }
 
-        public void execute(String stream, DpsTask dpsTask) throws Exception {
+/*        public void execute(String stream, DpsTask dpsTask) throws Exception {
 
             final List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
             final String representationName = dpsTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
@@ -248,6 +257,8 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         }
 
+ */
+
         DpsTask getCurrentDpsTask() {
             return currentDpsTask;
         }
@@ -277,6 +288,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 }
             }
         }
+
 
 
         private int handleLatestRevisions(StormTaskTuple stormTaskTuple, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException, DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
@@ -437,11 +449,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         }
 
-        private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+        /*private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
             NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                     resource, States.ERROR, message, additionalInformations);
             collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-        }
+        }*/
 
         private String getStream(DpsTask task) {
             if (task.getInputData().get(FILE_URLS) != null)

@@ -31,7 +31,7 @@ public class QueueFiller {
         this.tuplesWithFileUrls = tuplesWithFileUrls;
     }
 
-     int addTupleToQueue(StormTaskTuple stormTaskTuple, FileServiceClient fileServiceClient, Representation representation) {
+     public int addTupleToQueue(StormTaskTuple stormTaskTuple, FileServiceClient fileServiceClient, Representation representation) {
         int count = 0;
         final long taskId = stormTaskTuple.getTaskId();
         if (representation != null) {
