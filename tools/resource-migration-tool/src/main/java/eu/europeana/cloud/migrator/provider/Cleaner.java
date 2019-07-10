@@ -39,11 +39,11 @@ public class Cleaner {
             }
         } catch (IOException e) {
         } catch (RecordNotExistsException e) {
-            e.printStackTrace();
+            logger.error("Error while cleaning ", e);
         } catch (MCSException e) {
-            e.printStackTrace();
+            logger.error("Error while cleaning ", e);
         } catch (CloudException e) {
-            e.printStackTrace();
+            logger.error("Error while cleaning ", e);
         }
 
     }
@@ -59,11 +59,11 @@ public class Cleaner {
             }
         } catch (IOException e) {
         } catch (RecordNotExistsException e) {
-            e.printStackTrace();
+            logger.error("Error while cleaning records ", e);
         } catch (MCSException e) {
-            e.printStackTrace();
+            logger.error("Error while cleaning records ", e);
         } catch (CloudException e) {
-            e.printStackTrace();
+            logger.error("Error while cleaning records ", e);
         }
 
     }

@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.Harvest
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
 import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.xml.xpath.XPath;
@@ -31,32 +30,55 @@ public class HarvesterTest extends WiremockHelper {
             "/*[local-name()='record']" +
             "/*[local-name()='metadata']" +
             "/child::*";
+
+    private static final String IS_DELETED_XPATH = "string(/*[local-name()='OAI-PMH']" +
+            "/*[local-name()='GetRecord']" +
+            "/*[local-name()='record']" +
+            "/*[local-name()='header']" +
+            "/@status)";
+
+    private XPathExpression isDeletedExpression;
     private XPathExpression expr;
 
     @Before
-    public void init() throws Exception
-    {
+    public void init() throws Exception {
         XPath xpath = XPathFactory.newInstance().newXPath();
-         expr = xpath.compile(METADATA_XPATH);
+        expr = xpath.compile(METADATA_XPATH);
+        isDeletedExpression = xpath.compile(IS_DELETED_XPATH);
     }
 
-    //To DO mock the external repository
-    @Ignore
+    @Test
     public void shouldHarvestRecord() throws IOException, HarvesterException {
         //given
-        stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=oai%3Amediateka.centrumzamenhofa.pl%3A19&metadataPrefix=oai_dc"))
+        stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=mediateka" +
+                "&metadataPrefix=oai_dc"))
                 .willReturn(response200XmlContent(getFileContent("/sampleOaiRecord.xml"))
-         ));
+                ));
         final Harvester harvester = new Harvester();
 
         //when
-        final InputStream result = harvester.harvestRecord("http://www.mediateka.centrumzamenhofa.pl/oai-phm/","oai:mediateka" +
-                        ".centrumzamenhofa.pl:19",
-                "oai_dc",expr);
+        final InputStream result = harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
+                "oai_dc", expr, isDeletedExpression);
 
         //then
         final String actual = convertToString(result);
         assertThat(actual, isSimilarXml(getFileContent("/expectedOaiRecord.xml")));
+    }
+
+
+    @Test(expected = HarvesterException.class)
+    public void shouldHandleDeletedRecords() throws IOException, HarvesterException {
+        //given
+        stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=mediateka" +
+                "&metadataPrefix=oai_dc"))
+                .willReturn(response200XmlContent(getFileContent("/deletedOaiRecord.xml"))
+                ));
+        final Harvester harvester = new Harvester();
+
+        //when
+        harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
+                "oai_dc", expr, isDeletedExpression);
+
     }
 
     @Test
@@ -70,15 +92,14 @@ public class HarvesterTest extends WiremockHelper {
 
         //when
         try {
-            harvester.harvestRecord(OAI_PMH_ENDPOINT,"oai:mediateka.centrumzamenhofa.pl:19",
-                    "oai_dc",expr);
+            harvester.harvestRecord(OAI_PMH_ENDPOINT, "oai:mediateka.centrumzamenhofa.pl:19",
+                    "oai_dc", expr, isDeletedExpression);
             fail();
-        }catch (HarvesterException e){
+        } catch (HarvesterException e) {
             //then
-            assertThat(e.getMessage(),is("Problem with harvesting record oai:mediateka.centrumzamenhofa.pl:19 for endpoint http://localhost:8181/oai-phm/ because of: Error querying service. Returned HTTP Status Code: 404"));
+            assertThat(e.getMessage(), is("Problem with harvesting record oai:mediateka.centrumzamenhofa.pl:19 for endpoint http://localhost:8181/oai-phm/ because of: Error querying service. Returned HTTP Status Code: 404"));
         }
     }
-
 
 
 }

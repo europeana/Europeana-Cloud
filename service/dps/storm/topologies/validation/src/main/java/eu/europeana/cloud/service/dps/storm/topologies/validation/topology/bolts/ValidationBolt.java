@@ -75,7 +75,7 @@ public class ValidationBolt extends AbstractDpsBolt {
         if (vr.getRecordId() != null) {
             sb.append("recordId: ");
             sb.append(vr.getRecordId());
-            sb.append(" ");
+            sb.append(' ');
         }
         if (vr.getNodeId() != null) {
             sb.append("nodeId: ");

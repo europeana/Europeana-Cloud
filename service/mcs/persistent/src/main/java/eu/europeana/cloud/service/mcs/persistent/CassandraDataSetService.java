@@ -137,8 +137,7 @@ public class CassandraDataSetService implements DataSetService {
         ds.setProviderId(providerId);
         //
         if (!latestRevisions.isEmpty()) {
-            for (String revisionKey : latestRevisions.keySet()) {
-                Revision latestRevision = latestRevisions.get(revisionKey);
+            for (Revision latestRevision : latestRevisions.values()) {
                 Date latestStoredRevisionTimestamp = dataSetDAO.getLatestRevisionTimeStamp(dataSetId, providerId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.isDeleted(), recordId);
                 if (latestStoredRevisionTimestamp == null || latestStoredRevisionTimestamp.getTime() < latestRevision.getCreationTimeStamp().getTime()) {
                     dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
@@ -148,6 +147,7 @@ public class CassandraDataSetService implements DataSetService {
                 }
             }
         }
+
     }
 
     private Representation getRepresentationIfExist(String recordId, String schema, String version) throws RepresentationNotExistsException {
@@ -239,8 +239,7 @@ public class CassandraDataSetService implements DataSetService {
     private boolean isRepresentationBeingRemoved(Representation foundRepresentation, Representation removedRepresentation) {
         if (foundRepresentation.getVersion().equals(removedRepresentation.getVersion())) {
             return true;
-        }
-        else
+        } else
             return false;
     }
 
