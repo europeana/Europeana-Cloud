@@ -43,6 +43,10 @@ public class RevisionServiceClient extends MCSClient {
     private static final String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
             + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
 
+
+    private static final String DATASET_REVISION = "/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/representations/{" +
+            P_REPRESENTATIONNAME + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}" + "/records/{" + P_CLOUDID + "}/versions/{" + P_VER + "}";
+
     /**
      * Constructs a RevisionServiceClient
      *
@@ -68,7 +72,7 @@ public class RevisionServiceClient extends MCSClient {
      */
 
     public RevisionServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl, username, password,  DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
 
@@ -216,6 +220,33 @@ public class RevisionServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
         }
+    }
+
+
+    void deleteRevisionFromDataSet(String dataSetId, String providerId, String revisionName, String revisionProvider, String revisionTimestamp, String representationName, String version, String cloudId)
+            throws DriverException, MCSException {
+        WebTarget target = client.target(baseUrl).path(DATASET_REVISION)
+                .resolveTemplate(P_PROVIDER, providerId)
+                .resolveTemplate(P_DATASET, dataSetId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(P_REVISION_NAME, revisionName)
+                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProvider)
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_VER, version).queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
+
+        Invocation.Builder request = target.request();
+        Response response = null;
+        try {
+            response = request.delete();
+            System.out.println(response);
+            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
+        }
+
     }
 
 

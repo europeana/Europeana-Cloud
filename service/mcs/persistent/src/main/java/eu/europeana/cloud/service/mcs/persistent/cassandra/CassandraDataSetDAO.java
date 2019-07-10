@@ -875,6 +875,24 @@ public class CassandraDataSetDAO {
         }
     }
 
+
+    public void removeDataSetsRevision(String providerId, String datasetId, String revisionName,String revisionProvider,Date revisionTimeStamp, String
+            representationName, String cloudId) {
+        List<Bucket> availableBuckets = bucketsHandler.getAllBuckets(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
+                createProviderDataSetId(providerId, datasetId));
+
+        for (Bucket bucket : availableBuckets) {
+            BoundStatement boundStatement = removeDataSetsRevision.bind(providerId, datasetId, UUID.fromString(bucket.getBucketId()), revisionProvider, revisionName, revisionTimeStamp,
+                    representationName, cloudId);
+            ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+            QueryTracer.logConsistencyLevel(boundStatement, rs);
+            if (rs.wasApplied()) {
+                bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
+                return;
+            }
+        }
+    }
+
     public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String nextToken, int limit) {
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         List<Properties> result = new ArrayList<>(limit);
@@ -1476,6 +1494,19 @@ public class CassandraDataSetDAO {
                 representation.getCloudId(),
                 revision.getRevisionName(),
                 revision.getRevisionProviderId()
+        );
+        ResultSet rs = connectionProvider.getSession().execute(bs);
+        QueryTracer.logConsistencyLevel(bs, rs);
+    }
+
+    public void removeLatestRevisionForDatasetAssignment(DataSet dataSet, Representation representation, String revisionProvider,String revisionName) {
+        BoundStatement bs = removeLatestRevisionForDatasetAssignment.bind(
+                dataSet.getProviderId(),
+                dataSet.getId(),
+                representation.getRepresentationName(),
+                representation.getCloudId(),
+                revisionName,
+               revisionProvider
         );
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);

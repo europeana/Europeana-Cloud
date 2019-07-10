@@ -46,11 +46,7 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit)
             throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
+        checkIfDatasetExists(dataSetId, providerId);
 
         // get representation stubs from data set
         List<Properties> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId, thresholdParam, limit);
@@ -85,7 +81,7 @@ public class CassandraDataSetService implements DataSetService {
                               String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException {
 
-        isDataSetExists(providerId, dataSetId);
+        checkIfDatasetExists(providerId, dataSetId);
         Representation rep = getRepresentationIfExist(recordId, schema, version);
 
         if (!isAssignmentExists(providerId, dataSetId, recordId, schema, rep.getVersion())) {
@@ -174,10 +170,9 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void removeAssignment(String providerId, String dataSetId,
                                  String recordId, String schema, String versionId) throws DataSetNotExistsException {
-        isDataSetExists(providerId, dataSetId);
+        checkIfDatasetExists(providerId, dataSetId);
 
         dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema, versionId);
-        DataProvider dataProvider = uis.getProvider(providerId);
         if (!dataSetDAO.hasMoreRepresentations(providerId, dataSetId, schema)) {
             dataSetDAO.removeRepresentationNameForDataSet(schema, providerId, dataSetId);
         }
@@ -438,7 +433,7 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
-        isDataSetExists(providerId, dataSetId);
+        checkIfDatasetExists(providerId, dataSetId);
         String nextToken = null;
         int maxSize = 10000;
 
@@ -540,11 +535,7 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private boolean isDataSetExists(String providerId, String dataSetId) throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
+        checkIfDatasetExists(dataSetId, providerId);
         return true;
     }
 
@@ -593,6 +584,41 @@ public class CassandraDataSetService implements DataSetService {
             list.remove(numberOfElementsPerPage);
         }
         return new ResultSlice<>(nextToken, list);
+    }
+
+    @Override
+    public void deleteRevisionFromDataSet(String dataSetId, String providerId, String revisionName, String revisionProvider, Date revisionTimestamp, String representationName,
+                                          String version, String cloudId)
+            throws ProviderNotExistsException, DataSetNotExistsException, RepresentationNotExistsException {
+
+        checkIfDatasetExists(dataSetId, providerId);
+        checkIfRepresentationExists(representationName, version, cloudId);
+
+        //data_set_assignments_by_revision_id_v1
+        dataSetDAO.removeDataSetsRevision(providerId, dataSetId, revisionName, revisionProvider, revisionTimestamp, representationName, cloudId);
+
+        //provider_dataset_representation
+        dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, cloudId, representationName, revisionTimestamp);
+
+        //representation revision
+        recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProvider, revisionName, revisionTimestamp);
+
+    }
+
+    private void checkIfRepresentationExists(String representationName, String version, String cloudId) throws RepresentationNotExistsException {
+        System.out.println(cloudId + " " + representationName + " " + version);
+        System.out.println(recordDAO);
+        Representation rep = recordDAO.getRepresentation(cloudId, representationName, version);
+        if (rep == null) {
+            throw new RepresentationNotExistsException();
+        }
+    }
+
+    private void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException {
+        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+        if (ds == null) {
+            throw new DataSetNotExistsException();
+        }
     }
 
     private void validateRequest(String dataSetId, String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
