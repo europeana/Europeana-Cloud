@@ -10,44 +10,6 @@
                                type="java.lang.String" override="false"/>
     [...]-->
     
-    <!-- UIS registration of service in COS -->
-    
-   <ResourceLink
-        name="cos/listenAddress"
-        global="cos/listenAddress"
-        type="java.lang.String"/>
-        
-   <ResourceLink
-        name="cos/datacenterLocation"
-        global="cos/datacenterLocation"
-        type="java.lang.String"/>
-        
-    <!-- COS -->
-    
-   <ResourceLink
-        name="cos/zookeeper/zookeeperAddress"
-        global="cos/zookeeper/zookeeperAddress"
-        type="java.lang.String"/>        
-        
-   <ResourceLink
-        name="cos/zookeeper/zookeeperConnectionTimeout"
-        global="cos/zookeeper/zookeeperConnectionTimeout"
-        type="java.lang.Integer"/>       
-        
-    <ResourceLink
-        name="cos/zookeeper/zookeeperSessionTimeout"
-        global="cos/zookeeper/zookeeperSessionTimeout"
-        type="java.lang.Integer"/>       
-        
-    <ResourceLink
-        name="cos/zookeeper/zookeeperPath"
-        global="cos/zookeeper/zookeeperPath"
-        type="java.lang.String"/>   
-        
-   	<!--  -->
-   	<!-- Properties bellow this line are only needed if cos profile is not activated -->
-   	<!--  -->
-	
     <!-- UIS -->
     
     <ResourceLink
@@ -116,10 +78,5 @@
         name="aas/cassandra/autoCreateTables"
         global="aas/cassandra/autoCreateTables"
         type="java.lang.Boolean"/>
-    
-    <ResourceLink
-            name="logging/kafka/brokerList"
-            global="logging/kafka/brokerList"
-            type="java.lang.String"/>
     
 </Context>

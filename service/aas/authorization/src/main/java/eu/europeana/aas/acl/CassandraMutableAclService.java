@@ -104,7 +104,6 @@ public class CassandraMutableAclService extends CassandraAclService implements M
             LOG.debug("BEGIN deleteAcl: objectIdentity: " + objectIdentity + ", deleteChildren: " + deleteChildren);
         }
 
-        List<AclObjectIdentity> objIdsToDelete = new ArrayList<>();
         List<ObjectIdentity> objectsToDelete = new ArrayList<>();
         objectsToDelete.add(objectIdentity);
 
@@ -118,6 +117,7 @@ public class CassandraMutableAclService extends CassandraAclService implements M
                     + " children)");
         }
 
+        List<AclObjectIdentity> objIdsToDelete = new ArrayList<>(objectsToDelete.size());
         for (ObjectIdentity objId : objectsToDelete) {
             objIdsToDelete.add(new AclObjectIdentity(objId));
         }
@@ -191,7 +191,7 @@ public class CassandraMutableAclService extends CassandraAclService implements M
      * @return the list of derived {@link AclEntry} objects.
      */
     private List<AclEntry> convertToAclEntries(Acl acl) {
-        List<AclEntry> result = new ArrayList<>();
+        List<AclEntry> result = new ArrayList<>(acl.getEntries().size());
 
         for (AccessControlEntry entry : acl.getEntries()) {
             result.add(new AclEntry(entry));

@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.5.0-SNAPSHOT</version>
     </parent>
 
 
@@ -179,33 +179,31 @@
     </build>
 
     <dependencies>
-
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-cos</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <!-- Authentication + Authorization -->
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-aas-authorization</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-aas-authentication</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
@@ -216,16 +214,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-common</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jackson-core-asl</artifactId>
-                    <groupId>org.codehaus.jackson</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jackson-mapper-asl</artifactId>
-                    <groupId>org.codehaus.jackson</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -248,14 +236,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!--Jersey -->
         <dependency>
             <groupId>org.glassfish.jersey.bundles.repackaged</groupId>
             <artifactId>jersey-guava</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-
-
-        <!--Jersey -->
         <dependency>
             <groupId>org.glassfish.jersey.ext</groupId>
             <artifactId>jersey-bean-validation</artifactId>
@@ -301,6 +287,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
+
         <!-- SLF4J extensions -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -317,8 +304,6 @@
             <artifactId>miredot-annotations</artifactId>
             <version>1.2</version>
         </dependency>
-
-
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
@@ -332,14 +317,18 @@
                     <artifactId>corelib-media-storage</artifactId>
                     <groupId>eu.europeana.corelib</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.8</version>
         </dependency>
+
         <!-- tests -->
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

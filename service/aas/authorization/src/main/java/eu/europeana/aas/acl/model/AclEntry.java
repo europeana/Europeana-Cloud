@@ -213,7 +213,7 @@ public class AclEntry {
 		sb.append(", mask: ").append(mask);
 		sb.append(", granting: ").append(granting);
 		sb.append(", auditSuccess: ").append(auditSuccess);
-		sb.append(", auditFailure: ").append(auditFailure).append("]");
+		sb.append(", auditFailure: ").append(auditFailure).append(']');
 		return sb.toString();
 	}
 

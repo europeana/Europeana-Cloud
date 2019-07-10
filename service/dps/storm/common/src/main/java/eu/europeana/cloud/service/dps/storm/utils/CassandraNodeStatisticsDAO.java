@@ -25,14 +25,21 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     private PreparedStatement searchByParentStatement;
 
-    private PreparedStatement searchByTaskIdStatement;
+    private PreparedStatement searchGeneralStatistcsByTaskIdStatement;
+
+    private PreparedStatement removeGeneralStatisticsStatement;
 
     private PreparedStatement searchByNodeStatement;
     private PreparedStatement searchByAttributeStatement;
 
     private PreparedStatement searchNodesStatement;
 
+    private PreparedStatement searchNodesStatementAll;
+
+    private PreparedStatement deleteNodesStatistcsStatement;
+
     private PreparedStatement getStatisticsReportStatement;
+    private PreparedStatement removeStatisticsReportStatement;
 
     private PreparedStatement checkStatisticsReportStatement;
 
@@ -73,10 +80,16 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ?");
         updateNodeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        searchByTaskIdStatement = dbService.getSession().prepare("SELECT *" +
+        searchGeneralStatistcsByTaskIdStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?");
-        searchByTaskIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        searchGeneralStatistcsByTaskIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        removeGeneralStatisticsStatement = dbService.getSession().prepare("DELETE " +
+                " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?");
+        removeGeneralStatisticsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         searchByParentStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
@@ -98,6 +111,19 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         searchNodesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
+        searchNodesStatementAll = dbService.getSession().prepare("SELECT *" +
+                " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
+        searchNodesStatementAll.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        deleteNodesStatistcsStatement = dbService.getSession().prepare("DELETE " +
+                " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
+        deleteNodesStatistcsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
         searchByAttributeStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
@@ -115,6 +141,12 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                 " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
         getStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        removeStatisticsReportStatement = dbService.getSession().prepare("DELETE " +
+                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        removeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         storeStatisticsReportStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " (" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + "," +
@@ -179,7 +211,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      * @return list of all node statistics
      */
     public List<NodeStatistics> getNodeStatistics(long taskId) {
-        ResultSet rs = dbService.getSession().execute(searchByTaskIdStatement.bind(taskId));
+        ResultSet rs = dbService.getSession().execute(searchGeneralStatistcsByTaskIdStatement.bind(taskId));
         List<NodeStatistics> result = new ArrayList<>();
 
         while (rs.iterator().hasNext()) {
@@ -307,6 +339,33 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         }
         return result;
     }
+
+
+    public void removeStatistics(long taskId) {
+        removeGeneralStatistics(taskId);
+        dbService.getSession().execute(removeStatisticsReportStatement.bind(taskId));
+    }
+
+
+    public void removeGeneralStatistics(long taskId) {
+        ResultSet rs = dbService.getSession().execute(searchGeneralStatistcsByTaskIdStatement.bind(taskId));
+        while (rs.iterator().hasNext()) {
+            Row row = rs.one();
+            String nodeXpath = row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH);
+            removeNodeStatistics(taskId, nodeXpath);
+        }
+        dbService.getSession().execute(removeGeneralStatisticsStatement.bind(taskId));
+    }
+
+    private void removeNodeStatistics(long taskId, String nodeXpath) {
+        ResultSet rs = dbService.getSession().execute(searchNodesStatementAll.bind(taskId, nodeXpath));
+        while (rs.iterator().hasNext()) {
+            Row row = rs.one();
+            cassandraAttributeStatisticsDAO.removeAttributeStatistics(taskId, nodeXpath, row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE));
+        }
+        dbService.getSession().execute(deleteNodesStatistcsStatement.bind(taskId, nodeXpath));
+    }
+
 
     private List<AttributeStatistics> getAttributesStatistics(long taskId, String nodeXpath, String elementValue) {
         List<AttributeStatistics> attributeStatistics = new ArrayList<>();

@@ -144,22 +144,6 @@ CREATE TABLE latest_dataset_representation_revision_buckets (
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
 
 
-CREATE TABLE latest_provider_dataset_rep_rev_replica (
-    provider_id varchar,
-    dataset_id varchar,
-    cloud_id varchar,
-    representation_id varchar,
-    revision_timestamp timestamp,
-    revision_name varchar,
-    revision_provider varchar,
-    version_id timeuuid,
-    acceptance boolean,
-    published boolean,
-    mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id),representation_id,revision_name,revision_provider,mark_deleted,cloud_id)
-);
-
-
 CREATE TABLE latest_provider_dataset_representation_revision (
     provider_id varchar,
     dataset_id varchar,

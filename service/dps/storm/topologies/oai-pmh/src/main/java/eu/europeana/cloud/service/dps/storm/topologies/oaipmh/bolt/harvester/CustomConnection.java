@@ -7,6 +7,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.dspace.xoai.serviceprovider.exceptions.HttpException;
 import org.dspace.xoai.serviceprovider.parameters.Parameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +22,7 @@ public class CustomConnection {
     private String baseUrl;
     private CloseableHttpClient httpclient;
     private int timeout = '\uea60';
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomConnection.class);
 
     public CustomConnection(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -47,7 +50,7 @@ public class CustomConnection {
                     try {
                         httpclient.close();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LOGGER.error("Error while closing the stream {}. Because of {}", e.getMessage(), e.getCause());
                     }
             }
         }

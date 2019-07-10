@@ -2,14 +2,12 @@ package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.apache.log4j.Logger;
 
 import java.io.File;
 
 public class StandardResourceProvider
         extends DefaultResourceProvider {
 
-    private static final Logger logger = Logger.getLogger(StandardResourceProvider.class);
 
     private static final String DEFAULT_PROVIDER_ID = "data_provider";
 

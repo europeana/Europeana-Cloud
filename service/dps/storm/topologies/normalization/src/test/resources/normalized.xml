@@ -43,10 +43,11 @@
     </ore:Proxy>
     <ore:Proxy rdf:about="/proxy/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
         <dc:identifier>http://contribute.europeana.eu/contributions/7a079620-5915-0136-be15-620aa6c174ff</dc:identifier>
+        <dc:language>spa</dc:language>
         <edm:europeanaProxy>true</edm:europeanaProxy>
         <ore:proxyFor rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
         <ore:proxyIn rdf:resource="/aggregation/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-    <dc:language>spa</dc:language></ore:Proxy>
+    </ore:Proxy>
     <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
         <edm:aggregatedCHO rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
         <edm:datasetName>2084002_Ag_EU_Migration_ugc</edm:datasetName>

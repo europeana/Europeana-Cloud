@@ -33,7 +33,7 @@ public class Harvester implements Serializable {
      * @throws HarvesterException
      * @throws IOException
      */
-    public InputStream harvestRecord(String oaiPmhEndpoint, String recordId, String metadataPrefix, XPathExpression expression)
+    public InputStream harvestRecord(String oaiPmhEndpoint, String recordId, String metadataPrefix, XPathExpression expression, XPathExpression statusCheckerExpression)
             throws HarvesterException, IOException {
 
 
@@ -43,7 +43,12 @@ public class Harvester implements Serializable {
             CustomConnection client = new CustomConnection(oaiPmhEndpoint);
             try {
                 String record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
-                return new XmlXPath(record).xpath(expression);
+                XmlXPath xmlXPath = new XmlXPath(record);
+                if (xmlXPath.isDeletedRecord(statusCheckerExpression)) {
+                    retries = 0;
+                    throw new HarvesterException("The record is deleted");
+                }
+                return xmlXPath.xpath(expression);
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error harvesting record {}. Retries left:{} ", recordId, retries);

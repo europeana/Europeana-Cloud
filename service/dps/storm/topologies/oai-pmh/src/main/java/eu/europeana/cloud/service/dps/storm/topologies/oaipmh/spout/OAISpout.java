@@ -6,19 +6,18 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.CollectorWrapper;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.TaskQueueFiller;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job.IdentifierHarvester;
 import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.spout.ISpoutOutputCollector;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,7 +45,7 @@ public class OAISpout extends CustomKafkaSpout {
                      SpoutOutputCollector collector) {
         this.collector = collector;
         taskDownloader = new TaskDownloader();
-        super.open(conf, context, new CollectorWrapper(collector));
+        super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
 
     @Override
@@ -64,7 +63,6 @@ public class OAISpout extends CustomKafkaSpout {
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
     }
-
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -93,28 +91,8 @@ public class OAISpout extends CustomKafkaSpout {
         }
     }
 
-    private class CollectorWrapper extends SpoutOutputCollector {
 
-        CollectorWrapper(ISpoutOutputCollector delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
-            try {
-                DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
-                if (dpsTask != null) {
-                    taskDownloader.fillTheQueue(dpsTask);
-                }
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
-            }
-            return Collections.emptyList();
-        }
-    }
-
-
-    final class TaskDownloader extends Thread {
+    final class TaskDownloader extends Thread implements TaskQueueFiller {
         private static final int MAX_SIZE = 100;
         private static final int INTERNAL_THREADS_NUMBER = 10;
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
@@ -132,7 +110,7 @@ public class OAISpout extends CustomKafkaSpout {
             return oaiIdentifiers.poll();
         }
 
-        public void fillTheQueue(DpsTask dpsTask) {
+        public void addNewTask(DpsTask dpsTask) {
             try {
                 taskQueue.put(dpsTask);
             } catch (InterruptedException e) {

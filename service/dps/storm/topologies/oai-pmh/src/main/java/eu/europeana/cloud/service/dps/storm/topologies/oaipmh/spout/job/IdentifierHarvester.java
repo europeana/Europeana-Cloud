@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job;
 
+import com.google.common.base.Throwables;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -44,7 +45,11 @@ public class IdentifierHarvester implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        execute(stormTaskTuple);
+        try {
+            execute(stormTaskTuple);
+        } catch (Exception e) {
+            cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e), TaskState.DROPPED.toString());
+        }
         return null;
     }
 
@@ -155,7 +160,7 @@ public class IdentifierHarvester implements Callable<Void> {
                 return headerIterator.hasNext();
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while getting the next batch: {}", retries);
+                    LOGGER.warn("Error while getting the next batch: {}. Retries left {}. The cause of the error is {}", e.getMessage(), retries, e.getMessage() + " " + e.getCause());
                     waitForSpecificTime();
                 } else {
                     LOGGER.error("Error while getting the next batch {}", e.getMessage());
