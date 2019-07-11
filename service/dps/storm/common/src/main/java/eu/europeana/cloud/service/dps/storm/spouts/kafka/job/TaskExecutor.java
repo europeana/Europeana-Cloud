@@ -41,15 +41,21 @@ public class TaskExecutor implements Callable<Void> {
 
     private SpoutOutputCollector collector;
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls;
 
     private String stream;
     private DpsTask dpsTask;
 
     private String mcsClientURL;
 
-    public TaskExecutor(SpoutOutputCollector collector, CassandraTaskInfoDAO cassandraTaskInfoDAO, String stream, DpsTask dpsTask, String mcsClientURL) {
+    public TaskExecutor() {
+        this(null, null, null, null, null, null);
+    }
+
+    public TaskExecutor(SpoutOutputCollector collector, CassandraTaskInfoDAO cassandraTaskInfoDAO, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, String stream, DpsTask dpsTask, String mcsClientURL) {
         this.collector = collector;
         this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
+        this.tuplesWithFileUrls = tuplesWithFileUrls;
 
         this.stream = stream;
         this.dpsTask = dpsTask;

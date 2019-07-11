@@ -25,7 +25,7 @@ public class QueueFiller {
     ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls;
     private static final Logger LOGGER = LoggerFactory.getLogger(QueueFiller.class);
 
-     QueueFiller(TaskStatusChecker taskStatusChecker, SpoutOutputCollector collector, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls) {
+     public QueueFiller(TaskStatusChecker taskStatusChecker, SpoutOutputCollector collector, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls) {
         this.taskStatusChecker = taskStatusChecker;
         this.collector = collector;
         this.tuplesWithFileUrls = tuplesWithFileUrls;

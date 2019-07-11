@@ -49,8 +49,8 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     private static final int INTERNAL_THREADS_NUMBER = 10;
 
     TaskDownloader taskDownloader;
-    private String mcsClientURL;
-    private ExecutorService executorService;
+    String mcsClientURL;
+    ExecutorService executorService;
 
     public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password, String mcsClientURL) {
@@ -169,8 +169,8 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                                 tuplesWithFileUrls.put(fileTuple);
                             }
                         } else { // For data Sets
-                            executorService.submit(new TaskExecutor(collector, cassandraTaskInfoDAO, stream, currentDpsTask, mcsClientURL));
-                            //execute(stream, currentDpsTask);
+                            //executorService.submit(new TaskExecutor(collector, cassandraTaskInfoDAO, tuplesWithFileUrls, stream, currentDpsTask, mcsClientURL));
+                            execute(stream, currentDpsTask);
                         }
                     } else {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
@@ -183,7 +183,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         }
 
-/*        public void execute(String stream, DpsTask dpsTask) throws Exception {
+        public void execute(String stream, DpsTask dpsTask) throws Exception {
 
             final List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
             final String representationName = dpsTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
@@ -257,7 +257,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         }
 
- */
+
 
         DpsTask getCurrentDpsTask() {
             return currentDpsTask;
@@ -449,11 +449,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             }
         }
 
-        /*private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+        private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
             NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                     resource, States.ERROR, message, additionalInformations);
             collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-        }*/
+        }
 
         private String getStream(DpsTask task) {
             if (task.getInputData().get(FILE_URLS) != null)
