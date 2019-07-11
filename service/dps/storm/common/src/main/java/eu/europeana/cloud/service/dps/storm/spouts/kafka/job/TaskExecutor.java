@@ -37,7 +37,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 
 public class TaskExecutor implements Callable<Void> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutor.class);
-    private static volatile TaskStatusChecker taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+    private TaskStatusChecker taskStatusChecker;
 
     private SpoutOutputCollector collector;
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
@@ -49,11 +49,12 @@ public class TaskExecutor implements Callable<Void> {
     private String mcsClientURL;
 
     public TaskExecutor() {
-        this(null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null);
     }
 
-    public TaskExecutor(SpoutOutputCollector collector, CassandraTaskInfoDAO cassandraTaskInfoDAO, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, String stream, DpsTask dpsTask, String mcsClientURL) {
+    public TaskExecutor(SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, String stream, DpsTask dpsTask, String mcsClientURL) {
         this.collector = collector;
+        this.taskStatusChecker = taskStatusChecker;
         this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
         this.tuplesWithFileUrls = tuplesWithFileUrls;
 
@@ -70,7 +71,6 @@ public class TaskExecutor implements Callable<Void> {
     }
 
     private void execute() throws Exception {
-
         final List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
         final String representationName = dpsTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         dpsTask.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);

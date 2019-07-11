@@ -62,7 +62,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     MCSReaderSpout(SpoutConfig spoutConf) {
         super(spoutConf);
-        taskDownloader = new TaskDownloader(null);
+        taskDownloader = new TaskDownloader();
         executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
     }
 
@@ -70,7 +70,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     public void open(Map conf, TopologyContext context,
                      SpoutOutputCollector collector) {
         this.collector = collector;
-        taskDownloader = new TaskDownloader(collector);
+        taskDownloader = new TaskDownloader();
         super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
 
@@ -125,13 +125,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
         private DpsTask currentDpsTask;
-        private SpoutOutputCollector collector;
 
-
-        public TaskDownloader(SpoutOutputCollector collector) {
-            this.collector = collector;
+        public TaskDownloader() {
             start();
         }
+
 
         public StormTaskTuple getTupleWithFileURL() {
             return tuplesWithFileUrls.poll();
@@ -169,8 +167,8 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                                 tuplesWithFileUrls.put(fileTuple);
                             }
                         } else { // For data Sets
-                            //executorService.submit(new TaskExecutor(collector, cassandraTaskInfoDAO, tuplesWithFileUrls, stream, currentDpsTask, mcsClientURL));
-                            execute(stream, currentDpsTask);
+                            executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO, tuplesWithFileUrls, stream, currentDpsTask, mcsClientURL));
+                            //execute(stream, currentDpsTask);
                         }
                     } else {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
