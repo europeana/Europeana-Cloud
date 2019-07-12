@@ -54,12 +54,12 @@ public class TaskExecutor implements Callable<Void> {
     private RecordServiceClient recordServiceClient;
     private FileServiceClient fileClient;
 
+    private String mcsClientURL;
+
     private String stream;
     private DpsTask dpsTask;
 
-    private String mcsClientURL;
-
-    public TaskExecutor(SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String stream, DpsTask dpsTask, String mcsClientURL) {
+    public TaskExecutor(SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String mcsClientURL, String stream, DpsTask dpsTask) {
         this.collector = collector;
         this.taskStatusChecker = taskStatusChecker;
         this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
@@ -69,10 +69,10 @@ public class TaskExecutor implements Callable<Void> {
         this.recordServiceClient = recordServiceClient;
         this.fileClient = fileClient;
 
+        this.mcsClientURL = mcsClientURL;
+
         this.stream = stream;
         this.dpsTask = dpsTask;
-
-        this.mcsClientURL = mcsClientURL;
     }
 
     @Override
@@ -93,14 +93,8 @@ public class TaskExecutor implements Callable<Void> {
         dpsTask.getParameters().remove(PluginParameterKeys.REVISION_PROVIDER);
 
         final String authorizationHeader = dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-
-        //DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(mcsClientURL);
         dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
-
-        //RecordServiceClient recordServiceClient = new RecordServiceClient(mcsClientURL);
         recordServiceClient.useAuthorizationHeader(authorizationHeader);
-
-        //FileServiceClient fileClient = new FileServiceClient(mcsClientURL);
         fileClient.useAuthorizationHeader(authorizationHeader);
 
         final StormTaskTuple stormTaskTuple = new StormTaskTuple(

@@ -31,10 +31,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
@@ -50,7 +48,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({MCSReaderSpout.class, TaskExecutor.class })
+@PrepareForTest(MCSReaderSpout.class)
 public class MCSReaderSpoutTest {
     public static final String DATASET_URL = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
     @Mock(name = "collector")
@@ -130,15 +128,10 @@ public class MCSReaderSpoutTest {
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
-        if(false) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
-        //mcsReaderSpout.executorService.awaitTermination(1, TimeUnit.MINUTES);
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
     }
 
@@ -161,13 +154,9 @@ public class MCSReaderSpoutTest {
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -193,14 +182,9 @@ public class MCSReaderSpoutTest {
 
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
-
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -234,13 +218,9 @@ public class MCSReaderSpoutTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
     }
@@ -269,13 +249,9 @@ public class MCSReaderSpoutTest {
 
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 65);
     }
@@ -307,13 +283,9 @@ public class MCSReaderSpoutTest {
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -348,13 +320,9 @@ public class MCSReaderSpoutTest {
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -392,13 +360,9 @@ public class MCSReaderSpoutTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
     }
@@ -430,16 +394,11 @@ public class MCSReaderSpoutTest {
         when(recordServiceClient.getRepresentationByRevision(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(firstRepresentation);
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 65);
-
     }
 
     @Test
@@ -470,22 +429,16 @@ public class MCSReaderSpoutTest {
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         verify(collector, times(2)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
-
     }
 
-    //@Test(expected = MCSException.class)
     @Test
     public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws Exception {
         //given
@@ -496,16 +449,12 @@ public class MCSReaderSpoutTest {
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            try {
-                mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                        mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                        DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-            } catch(ExecutionException e) {
-                assertTrue(e.getCause() instanceof  MCSException);
-            }
+        try {
+            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                    mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
+        } catch(ExecutionException e) {
+            assertTrue(e.getCause() instanceof  MCSException);
         }
     }
 
@@ -519,16 +468,12 @@ public class MCSReaderSpoutTest {
 
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            try {
-                mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                        mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                        DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-            } catch(ExecutionException e) {
-                assertTrue(e.getCause() instanceof  MCSException);
-            }
+        try {
+            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                    mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
+        } catch(ExecutionException e) {
+            assertTrue(e.getCause() instanceof  MCSException);
         }
     }
 
@@ -542,16 +487,12 @@ public class MCSReaderSpoutTest {
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(DriverException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            try {
-                mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                        mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                        DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-            } catch(ExecutionException e) {
-                assertTrue(e.getCause() instanceof  DriverException);
-            }
+        try {
+            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                    mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
+        } catch(ExecutionException e) {
+            assertTrue(e.getCause() instanceof  DriverException);
         }
     }
 
@@ -565,16 +506,12 @@ public class MCSReaderSpoutTest {
 
         doThrow(DriverException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            try {
-                mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                        mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                        DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-            } catch(ExecutionException e) {
-                assertTrue(e.getCause() instanceof  DriverException);
-            }
+        try {
+            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                    mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
+        } catch(ExecutionException e) {
+            assertTrue(e.getCause() instanceof  DriverException);
         }
     }
 
@@ -605,13 +542,9 @@ public class MCSReaderSpoutTest {
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 1);
     }
@@ -634,13 +567,9 @@ public class MCSReaderSpoutTest {
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
-        if(OLD_FLAG) {
-            mcsReaderSpout.taskDownloader.execute(DATASET_URLS.name(), dpsTask);
-        } else {
-            mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                    mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
-                    DATASET_URLS.name(), dpsTask, mcsReaderSpout.mcsClientURL)).get();
-        }
+        mcsReaderSpout.executorService.submit(new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                mcsReaderSpout.taskDownloader.tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileServiceClient,
+                mcsReaderSpout.mcsClientURL, DATASET_URLS.name(), dpsTask)).get();
 
         assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 0);
     }
