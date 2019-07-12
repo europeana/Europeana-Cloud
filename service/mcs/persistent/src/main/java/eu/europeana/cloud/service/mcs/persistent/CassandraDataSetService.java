@@ -81,7 +81,7 @@ public class CassandraDataSetService implements DataSetService {
                               String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException {
 
-        checkIfDatasetExists(providerId, dataSetId);
+        checkIfDatasetExists(dataSetId, providerId);
         Representation rep = getRepresentationIfExist(recordId, schema, version);
 
         if (!isAssignmentExists(providerId, dataSetId, recordId, schema, rep.getVersion())) {
@@ -170,7 +170,7 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void removeAssignment(String providerId, String dataSetId,
                                  String recordId, String schema, String versionId) throws DataSetNotExistsException {
-        checkIfDatasetExists(providerId, dataSetId);
+        checkIfDatasetExists(dataSetId, providerId);
 
         dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema, versionId);
         if (!dataSetDAO.hasMoreRepresentations(providerId, dataSetId, schema)) {
@@ -433,7 +433,7 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
-        checkIfDatasetExists(providerId, dataSetId);
+        checkIfDatasetExists(dataSetId, providerId);
         String nextToken = null;
         int maxSize = 10000;
 
@@ -606,8 +606,6 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private void checkIfRepresentationExists(String representationName, String version, String cloudId) throws RepresentationNotExistsException {
-        System.out.println(cloudId + " " + representationName + " " + version);
-        System.out.println(recordDAO);
         Representation rep = recordDAO.getRepresentation(cloudId, representationName, version);
         if (rep == null) {
             throw new RepresentationNotExistsException();
