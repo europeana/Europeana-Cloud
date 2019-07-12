@@ -967,6 +967,31 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     }
 
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowDatsetNotExistsException() throws Exception {
+        makeUISProviderSuccess();
+        makeUISSuccess();
+        Date date = new Date();
+        String cloudId = "2EEN23VWNXOW7LGLM6SKTDOZUBUOTKEWZ3IULSYEWEMERHISS6XA";
+
+        Representation representation = insertDummyPersistentRepresentation(cloudId, REPRESENTATION, PROVIDER_ID);
+        cassandraDataSetService.deleteRevisionFromDataSet(DATA_SET_NAME, PROVIDER_ID, REVISION, PROVIDER_ID, date, REPRESENTATION,
+                representation.getVersion(), cloudId);
+    }
+
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowRepresentationNotExistsException() throws Exception {
+        makeUISProviderSuccess();
+        makeUISSuccess();
+        makeDatasetExists();
+
+        Date date = new Date();
+        String cloudId = "2EEN23VWNXOW7LGLM6SKTDOZUBUOTKEWZ3IULSYEWEMERHISS6XA";
+
+        cassandraDataSetService.deleteRevisionFromDataSet(DATA_SET_NAME, PROVIDER_ID, REVISION, PROVIDER_ID, date, REPRESENTATION,
+                "3d6381c0-a3cf-11e9-960f-fa163e8d4ae3", cloudId);
+    }
+
 
     private void prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(int rowNum) throws ProviderNotExistsException, DataSetAlreadyExistsException {
         makeUISProviderSuccess();
