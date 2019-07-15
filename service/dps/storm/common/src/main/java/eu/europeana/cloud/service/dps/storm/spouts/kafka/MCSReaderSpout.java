@@ -30,29 +30,24 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
  * Created by Tarek on 5/18/2018.
  */
 public class MCSReaderSpout extends CustomKafkaSpout {
-
-    private SpoutOutputCollector collector;
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
 
     private static final int INTERNAL_THREADS_NUMBER = 10;
 
-    TaskDownloader taskDownloader;
-    String mcsClientURL;
-    ExecutorService executorService;
+    private SpoutOutputCollector collector;
     private DataSetServiceClient dataSetServiceClient;
     private RecordServiceClient recordServiceClient;
     private FileServiceClient fileClient;
+
+    TaskDownloader taskDownloader;
+    String mcsClientURL;
+    transient ExecutorService executorService;
 
     public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password, String mcsClientURL) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
         this.mcsClientURL = mcsClientURL;
         executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
-
-        dataSetServiceClient = new DataSetServiceClient(mcsClientURL);
-        recordServiceClient = new RecordServiceClient(mcsClientURL);
-        fileClient = new FileServiceClient(mcsClientURL);
-
     }
 
     MCSReaderSpout(SpoutConfig spoutConf) {
@@ -66,6 +61,11 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                      SpoutOutputCollector collector) {
         this.collector = collector;
         taskDownloader = new TaskDownloader();
+
+        dataSetServiceClient = new DataSetServiceClient(mcsClientURL);
+        recordServiceClient = new RecordServiceClient(mcsClientURL);
+        fileClient = new FileServiceClient(mcsClientURL);
+
         super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
 
