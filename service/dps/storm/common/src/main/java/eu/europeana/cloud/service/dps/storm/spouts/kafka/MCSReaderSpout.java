@@ -32,7 +32,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 public class MCSReaderSpout extends CustomKafkaSpout {
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
 
-    private static final int INTERNAL_THREADS_NUMBER = 10;
+    static final int INTERNAL_THREADS_NUMBER = 10;
 
     private SpoutOutputCollector collector;
     private DataSetServiceClient dataSetServiceClient;
@@ -41,19 +41,16 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     TaskDownloader taskDownloader;
     String mcsClientURL;
-    transient ExecutorService executorService;
 
     public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password, String mcsClientURL) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
         this.mcsClientURL = mcsClientURL;
-        executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
     }
 
     MCSReaderSpout(SpoutConfig spoutConf) {
         super(spoutConf);
         taskDownloader = new TaskDownloader();
-        executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
     }
 
     @Override
@@ -79,7 +76,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 collector.emit(stormTaskTuple.toStormTuple());
             }
         } catch (Exception e) {
-            LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
+            LOGGER.error("StaticDpsTaskSpout error: "+e.getMessage(), e);
             if (stormTaskTuple != null)
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
@@ -162,7 +159,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                                 tuplesWithFileUrls.put(fileTuple);
                             }
                         } else { // For data Sets
-                            executorService.submit(
+                            Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER).submit(
                                     new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                                             tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileClient,
                                             mcsClientURL, stream, currentDpsTask));
@@ -171,7 +168,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
                     }
                 } catch (Exception e) {
-                    LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
+                    LOGGER.error("StaticDpsTaskSpout error: "+e.getMessage(), e);
                     if (stormTaskTuple != null)
                         cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
                 }
