@@ -223,7 +223,7 @@ public class RevisionServiceClient extends MCSClient {
     }
 
 
-    void deleteRevisionFromDataSet(String dataSetId, String providerId, String revisionName, String revisionProvider, String revisionTimestamp, String representationName, String version, String cloudId)
+   public void deleteRevisionFromDataSet(String dataSetId, String providerId, String revisionName, String revisionProvider, String revisionTimestamp, String representationName, String version, String cloudId)
             throws DriverException, MCSException {
         WebTarget target = client.target(baseUrl).path(DATASET_REVISION)
                 .resolveTemplate(P_PROVIDER, providerId)

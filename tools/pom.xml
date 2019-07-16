@@ -18,5 +18,6 @@
   <modules>
       <!--<module>ecloud-dlf-ingestion-tool</module>-->
     <module>resource-migration-tool</module>
+      <module>ecloud-revision-cleaner-tool</module>
   </modules>
 </project>
