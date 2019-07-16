@@ -26,9 +26,9 @@ public class RevisionRemoverJob implements Runnable {
     private DataSetServiceClient dataSetServiceClient;
     private RecordServiceClient recordServiceClient;
     private RevisionServiceClient revisionServiceClient;
-
-
     private RevisionInformation revisionInformation;
+
+    private static final int SLEEP_TIME = 600000;
 
     public RevisionRemoverJob(DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, RevisionInformation revisionInformation, RevisionServiceClient revisionServiceClient) {
         this.dataSetServiceClient = dataSetServiceClient;
@@ -78,17 +78,55 @@ public class RevisionRemoverJob implements Runnable {
         Date revisionDate = utc.toDate();
         for (Revision revision : representation.getRevisions()) {
             if (revisionInformation.getRevisionName().equals(revision.getRevisionName()) && revisionInformation.getRevisionProvider().equals(revision.getRevisionProviderId()) && revisionDate.getTime() == revision.getCreationTimeStamp().getTime()) {
-                revisionServiceClient.deleteRevisionFromDataSet(revisionInformation.getDataSet(), revisionInformation.getProviderId(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp(),
-                        representation.getRepresentationName(), representation.getVersion(), representation.getCloudId());
+                removeSpecificRevision(representation);
             }
         }
     }
 
+    private void removeSpecificRevision(Representation representation) throws MCSException {
+        int retries = 2;
+        while (true) {
+            try {
+                revisionServiceClient.deleteRevisionFromDataSet(revisionInformation.getDataSet(), revisionInformation.getProviderId(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp(),
+                        representation.getRepresentationName(), representation.getVersion(), representation.getCloudId());
+                break;
+            } catch (Exception e) {
+                retries--;
+                LOGGER.warn("Error while removing the revision." + revisionInformation.getRevisionName() + "_" + revisionInformation.getRevisionProvider() + "_" + revisionInformation.getRevisionTimeStamp() + ". Will retry after 10 minutes. Retries left: " + retries);
+                waitForTheNextCall();
+                if (retries <= 0)
+                    throw e;
+            }
+        }
+
+    }
+
     private void removeRepresentationWithFilesAndRevisions(CloudTagsResponse cloudTagsResponse, Representation representation) throws MCSException {
-        recordServiceClient.deleteRepresentation(cloudTagsResponse.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+        int retries = 2;
+        while (true) {
+            try {
+                recordServiceClient.deleteRepresentation(cloudTagsResponse.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+                break;
+            } catch (Exception e) {
+                retries--;
+                LOGGER.warn("Error while removing the presentation Version. will retry after 10 minutes. Retries left: " + retries);
+                waitForTheNextCall();
+                if (retries <= 0)
+                    throw e;
+            }
+        }
     }
 
     void setRevisionInformation(RevisionInformation revisionInformation) {
         this.revisionInformation = revisionInformation;
+    }
+
+    private void waitForTheNextCall() {
+        try {
+            Thread.sleep(SLEEP_TIME);
+        } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(e1.getMessage());
+        }
     }
 }
