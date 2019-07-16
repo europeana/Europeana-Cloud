@@ -22,29 +22,30 @@ import java.util.List;
  */
 public class RevisionRemoverJob implements Runnable {
     static final Logger LOGGER = Logger.getLogger(RevisionRemoverJob.class);
+
     private DataSetServiceClient dataSetServiceClient;
     private RecordServiceClient recordServiceClient;
     private RevisionServiceClient revisionServiceClient;
 
 
     private RevisionInformation revisionInformation;
-    private String startFrom;
-
 
     public RevisionRemoverJob(DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, RevisionInformation revisionInformation, RevisionServiceClient revisionServiceClient) {
         this.dataSetServiceClient = dataSetServiceClient;
         this.recordServiceClient = recordServiceClient;
         this.revisionServiceClient = revisionServiceClient;
         this.revisionInformation = revisionInformation;
-        startFrom = null;
     }
 
     @Override
     public void run() {
         try {
+            int batchNumber = 1;
+            String startFrom = null;
             do {
-                ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(revisionInformation.getProviderId(), revisionInformation.getDataSet(), revisionInformation.getRepresentationName(),
-                        revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionProvider(), startFrom, null);
+                ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(revisionInformation.getProviderId(), revisionInformation.getDataSet(),
+                        revisionInformation.getRepresentationName(),
+                        revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp(), startFrom, null);
                 if (resultSlice == null || resultSlice.getResults() == null) {
                     throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
                 }
@@ -58,14 +59,15 @@ public class RevisionRemoverJob implements Runnable {
                     }
                 }
                 startFrom = resultSlice.getNextSlice();
+                LOGGER.info("The removal of revision " + revisionInformation.getRevisionName() + "_" + revisionInformation.getRevisionProvider() + "_" + revisionInformation.getRevisionTimeStamp() +
+                        " inside dataset: " + revisionInformation.getDataSet() + "_" + revisionInformation.getProviderId() + " is in progress!. This is the batch number: " + batchNumber);
+                batchNumber++;
             }
             while (startFrom != null);
-
             LOGGER.info("The removal of revision " + revisionInformation.getRevisionName() + "_" + revisionInformation.getRevisionProvider() + "_" + revisionInformation.getRevisionTimeStamp() +
                     " inside dataset: " + revisionInformation.getDataSet() + "_" + revisionInformation.getProviderId() + " was a success!");
+            LOGGER.info("***********************");
         } catch (Exception e) {
-            System.out.println("error");
-            e.printStackTrace();
             LOGGER.error("The removal of revision " + revisionInformation.getRevisionName() + "_" + revisionInformation.getRevisionProvider() + "_" + revisionInformation.getRevisionTimeStamp() +
                     " inside dataset: " + revisionInformation.getDataSet() + "_" + revisionInformation.getProviderId() + " was a failure. Please remove it again", e);
         }
