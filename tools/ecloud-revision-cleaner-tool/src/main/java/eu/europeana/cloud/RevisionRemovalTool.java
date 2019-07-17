@@ -33,6 +33,7 @@ public class RevisionRemovalTool {
     private static RecordServiceClient recordServiceClient;
     private static RevisionServiceClient revisionServiceClient;
     private static String DEFAULT_THREADS_NUMBER = "10";
+    private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
 
 
     public static void main(String[] args) {
@@ -76,9 +77,9 @@ public class RevisionRemovalTool {
         String mcs_url = cmd.getOptionValue(MCS_URL);
         String userName = cmd.getOptionValue(USER_NAME);
         String password = cmd.getOptionValue(PASSWORD);
-        dataSetServiceClient = new DataSetServiceClient(mcs_url, userName, password);
-        recordServiceClient = new RecordServiceClient(mcs_url, userName, password);
-        revisionServiceClient = new RevisionServiceClient(mcs_url, userName, password);
+        dataSetServiceClient = new DataSetServiceClient(mcs_url, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
+        recordServiceClient = new RecordServiceClient(mcs_url, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
+        revisionServiceClient = new RevisionServiceClient(mcs_url, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
 
     }
 
