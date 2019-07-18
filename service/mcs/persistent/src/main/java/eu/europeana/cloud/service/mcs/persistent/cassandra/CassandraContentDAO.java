@@ -65,15 +65,12 @@ public class CassandraContentDAO implements ContentDAO {
      */
     @Override
     public void copyContent(String sourceObjectId, String trgObjectId) throws FileNotExistsException, FileAlreadyExistsException, IOException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        try {
+        try(ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             getContent(sourceObjectId, -1, -1, os);
             checkIfObjectNotExists(trgObjectId);
             putContent(trgObjectId, new ByteArrayInputStream(os.toByteArray()));
         } catch (FileNotExistsException e) {
             throw new FileNotExistsException(String.format("File %s not exists", sourceObjectId));
-        } finally {
-            IOUtils.closeQuietly(os);
         }
     }
 

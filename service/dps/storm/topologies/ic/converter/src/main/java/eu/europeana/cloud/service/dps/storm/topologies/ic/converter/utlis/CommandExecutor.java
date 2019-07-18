@@ -38,19 +38,12 @@ public class CommandExecutor {
 
     private String readOutPut(InputStream stream) throws IOException {
         StringBuffer output = new StringBuffer();
-        BufferedReader reader = null;
-        try {
-            reader =
-                    new BufferedReader(new InputStreamReader(stream));
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             String line = "";
             while ((line = reader.readLine()) != null) {
                 output.append(line + "\n");
             }
-        } finally {
-            if (reader != null)
-                reader.close();
         }
-
         return output.toString();
 
     }
