@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.spouts.kafka.job;
 
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -39,10 +40,11 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 
 public class TaskExecutor implements Callable<Void> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutor.class);
-    private static final int INTERNAL_THREADS_NUMBER = 10;
+    static final int INTERNAL_THREADS_NUMBER = 10;
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
     public static final int MAX_BATCH_SIZE = 100;
+
 
     private TaskStatusChecker taskStatusChecker;
 
@@ -50,24 +52,17 @@ public class TaskExecutor implements Callable<Void> {
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
     private ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls;
 
-    private DataSetServiceClient dataSetServiceClient;
-    private RecordServiceClient recordServiceClient;
-    private FileServiceClient fileClient;
-
     private String mcsClientURL;
 
     private String stream;
     private DpsTask dpsTask;
 
-    public TaskExecutor(SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, FileServiceClient fileClient, String mcsClientURL, String stream, DpsTask dpsTask) {
+    public TaskExecutor(SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO,
+                        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, String mcsClientURL, String stream, DpsTask dpsTask) {
         this.collector = collector;
         this.taskStatusChecker = taskStatusChecker;
         this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
         this.tuplesWithFileUrls = tuplesWithFileUrls;
-
-        this.dataSetServiceClient = dataSetServiceClient;
-        this.recordServiceClient = recordServiceClient;
-        this.fileClient = fileClient;
 
         this.mcsClientURL = mcsClientURL;
 
@@ -77,11 +72,15 @@ public class TaskExecutor implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        execute();
+        try {
+            execute();
+        } catch (Exception e) {
+            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e), TaskState.DROPPED.toString());
+        }
         return null;
     }
 
-    private void execute() throws Exception {
+    void execute() throws Exception {
         final List<String> dataSets = dpsTask.getDataEntry(InputDataType.valueOf(stream));
         final String representationName = dpsTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         dpsTask.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
@@ -92,9 +91,16 @@ public class TaskExecutor implements Callable<Void> {
         final String revisionProvider = dpsTask.getParameter(PluginParameterKeys.REVISION_PROVIDER);
         dpsTask.getParameters().remove(PluginParameterKeys.REVISION_PROVIDER);
 
+
         final String authorizationHeader = dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+
+        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(mcsClientURL);
         dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
+
+        RecordServiceClient recordServiceClient = new RecordServiceClient(mcsClientURL);
         recordServiceClient.useAuthorizationHeader(authorizationHeader);
+
+        FileServiceClient fileClient = new FileServiceClient(mcsClientURL);
         fileClient.useAuthorizationHeader(authorizationHeader);
 
         final StormTaskTuple stormTaskTuple = new StormTaskTuple(

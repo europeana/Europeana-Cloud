@@ -2,9 +2,6 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -32,15 +29,10 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 public class MCSReaderSpout extends CustomKafkaSpout {
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
 
-    static final int INTERNAL_THREADS_NUMBER = 10;
-
     private SpoutOutputCollector collector;
-    private DataSetServiceClient dataSetServiceClient;
-    private RecordServiceClient recordServiceClient;
-    private FileServiceClient fileClient;
 
-    TaskDownloader taskDownloader;
-    String mcsClientURL;
+    public TaskDownloader taskDownloader;
+    private String mcsClientURL;
 
     public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password, String mcsClientURL) {
@@ -48,7 +40,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         this.mcsClientURL = mcsClientURL;
     }
 
-    MCSReaderSpout(SpoutConfig spoutConf) {
+    public MCSReaderSpout(SpoutConfig spoutConf) {
         super(spoutConf);
         taskDownloader = new TaskDownloader();
     }
@@ -58,11 +50,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                      SpoutOutputCollector collector) {
         this.collector = collector;
         taskDownloader = new TaskDownloader();
-
-        dataSetServiceClient = new DataSetServiceClient(mcsClientURL);
-        recordServiceClient = new RecordServiceClient(mcsClientURL);
-        fileClient = new FileServiceClient(mcsClientURL);
-
         super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
 
@@ -110,12 +97,16 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
     }
 
-    final class TaskDownloader extends Thread implements TaskQueueFiller {
+    public String getMcsClientURL() {
+        return mcsClientURL;
+    }
+
+    public final class TaskDownloader extends Thread implements TaskQueueFiller {
         private static final int MAX_SIZE = 100;
         private static final int INTERNAL_THREADS_NUMBER = 10;
 
-        ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
+        public ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
+        public ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
         private DpsTask currentDpsTask;
 
         public TaskDownloader() {
@@ -161,8 +152,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                         } else { // For data Sets
                             Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER).submit(
                                     new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                                            tuplesWithFileUrls, dataSetServiceClient, recordServiceClient, fileClient,
-                                            mcsClientURL, stream, currentDpsTask));
+                                            tuplesWithFileUrls, mcsClientURL, stream, currentDpsTask));
                         }
                     } else {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
