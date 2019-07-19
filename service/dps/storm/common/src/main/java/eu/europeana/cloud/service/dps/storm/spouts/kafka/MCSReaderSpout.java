@@ -106,8 +106,8 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     }
 
     public final class TaskDownloader extends Thread implements TaskQueueFiller {
-        private static final int MAX_SIZE = 100;
-        private static final int INTERNAL_THREADS_NUMBER = 10;
+        public static final int MAX_SIZE = 100;
+        public static final int INTERNAL_THREADS_NUMBER = 10;
 
         private ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         private ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
