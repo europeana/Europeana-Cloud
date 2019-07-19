@@ -16,7 +16,6 @@
     <sonar.skip>true</sonar.skip>
   </properties>
   <modules>
-      <!--<module>ecloud-dlf-ingestion-tool</module>-->
     <module>resource-migration-tool</module>
   </modules>
 </project>
