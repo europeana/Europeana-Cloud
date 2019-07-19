@@ -26,7 +26,7 @@ import java.util.Map;
  * Created by Tarek on 12/12/2018.
  */
 public class EDMEnrichmentBolt extends ReadFileBolt {
-
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 

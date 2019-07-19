@@ -13,6 +13,8 @@ import java.io.IOException;
 
 
 public class StatisticsBolt extends AbstractDpsBolt {
+    private static final long serialVersionUID = 1L;
+
     private String hosts;
     private int port;
     private String keyspaceName;

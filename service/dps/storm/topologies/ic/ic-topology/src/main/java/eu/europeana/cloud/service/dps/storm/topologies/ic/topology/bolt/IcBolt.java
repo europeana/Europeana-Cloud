@@ -20,9 +20,8 @@ import java.io.IOException;
  * compress image file from tiff to jp2 using its url and emits the file as separate {@link StormTaskTuple}.
  */
 public class IcBolt extends AbstractDpsBolt {
-
+    private static final long serialVersionUID = 1L;
     public static final Logger LOGGER = LoggerFactory.getLogger(IcBolt.class);
-
 
     /**
      * compress image file.

@@ -19,8 +19,9 @@ import java.util.Date;
  * Adds defined revisions to given representationVersion
  */
 public class RevisionWriterBolt extends AbstractDpsBolt {
-
+    private static final long serialVersionUID = 1L;
     public static final Logger LOGGER = LoggerFactory.getLogger(RevisionWriterBolt.class);
+
     protected RevisionServiceClient revisionsClient;
 
     private String ecloudMcsAddress;

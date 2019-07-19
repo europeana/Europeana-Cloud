@@ -22,6 +22,7 @@ import java.util.Map;
  * @author manos
  */
 public class StormTaskTuple implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private String fileUrl;
     private byte[] fileData;

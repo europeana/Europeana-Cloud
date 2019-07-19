@@ -12,6 +12,8 @@ import java.net.MalformedURLException;
  */
 public class ValidationRevisionWriter extends RevisionWriterBolt {
 
+    private static final long serialVersionUID = 1L;
+
     private String successNotificationMessage;
 
     public ValidationRevisionWriter(String ecloudMcsAddress, String successNotificationMessage) {

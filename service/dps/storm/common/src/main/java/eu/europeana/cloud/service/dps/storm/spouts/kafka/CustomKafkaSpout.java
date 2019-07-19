@@ -17,8 +17,9 @@ import java.util.Map;
  * Created by Tarek on 11/27/2017.
  */
 public class CustomKafkaSpout extends KafkaSpout {
-
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomKafkaSpout.class);
+
     protected static volatile TaskStatusChecker taskStatusChecker;
 
     private String hosts;

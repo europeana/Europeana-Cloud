@@ -47,14 +47,15 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
  * Created by Tarek on 4/27/2018.
  */
 public class HttpKafkaSpout extends CustomKafkaSpout {
-
-    private SpoutOutputCollector collector;
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpKafkaSpout.class);
 
     private static final int BATCH_MAX_SIZE = 1240 * 4;
     private static final String CLOUD_SEPARATOR = "_";
     private static final String MAC_TEMP_FOLDER = "__MACOSX";
     private static final String MAC_TEMP_FILE = ".DS_Store";
+
+    private SpoutOutputCollector collector;
 
     TaskDownloader taskDownloader;
 

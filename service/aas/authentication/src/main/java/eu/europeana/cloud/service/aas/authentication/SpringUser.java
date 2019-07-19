@@ -16,7 +16,8 @@ import java.util.*;
  * @author emmanouil.koufakis@theeuropeanlibrary.org
  */
 public class SpringUser extends User implements UserDetails {
-	
+    private static final long serialVersionUID = 1L;
+
 	private List<GrantedAuthority> roles  = new ArrayList<GrantedAuthority>(0);
 
     public SpringUser(final String username, final String password, final Set<String> userRoles) {

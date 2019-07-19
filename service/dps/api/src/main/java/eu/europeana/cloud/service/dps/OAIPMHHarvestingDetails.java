@@ -11,6 +11,7 @@ import java.util.Set;
 
 @XmlRootElement()
 public class OAIPMHHarvestingDetails implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Schemas to harvest - optional

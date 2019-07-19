@@ -21,14 +21,14 @@ import java.util.List;
  *
  */
 public class AddResultToDataSetBolt extends AbstractDpsBolt {
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
 
     private String ecloudMcsAddress;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
     private DataSetServiceClient dataSetServiceClient;
 
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-
     }
 
     @Override

@@ -25,6 +25,8 @@ import java.net.URI;
  * a new Record on the cloud, and emits the URL of the newly created record.
  */
 public class HarvestingWriteRecordBolt extends WriteRecordBolt {
+    private static final long serialVersionUID = 1L;
+
     private String ecloudUisAddress;
     private UISClient uisClient;
 

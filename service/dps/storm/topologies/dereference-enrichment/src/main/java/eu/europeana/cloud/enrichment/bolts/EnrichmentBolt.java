@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
  * as part of the emitted tuple.
  */
 public class EnrichmentBolt extends AbstractDpsBolt {
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentBolt.class);
 
     private String dereferenceURL;
