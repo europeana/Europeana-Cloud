@@ -46,7 +46,7 @@ public class MCSReaderSpoutTest {
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
         doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
-        mcsReaderSpout.taskDownloader.taskQueue.clear();
+        mcsReaderSpout.getTaskDownloader().getTaskQueue().clear();
     }
 
     private static void setStaticField(Field field, Object newValue) throws Exception {
@@ -58,11 +58,11 @@ public class MCSReaderSpoutTest {
     public void deactivateShouldClearTheTaskQueue() throws Exception {
         final int taskCount = 10;
         for (int i = 0; i < taskCount; i++) {
-            mcsReaderSpout.taskDownloader.taskQueue.put(new DpsTask());
+            mcsReaderSpout.getTaskDownloader().getTaskQueue().put(new DpsTask());
         }
-        assertTrue(!mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
+        assertTrue(!mcsReaderSpout.getTaskDownloader().getTaskQueue().isEmpty());
         mcsReaderSpout.deactivate();
-        assertTrue(mcsReaderSpout.taskDownloader.taskQueue.isEmpty());
+        assertTrue(mcsReaderSpout.getTaskDownloader().getTaskQueue().isEmpty());
         verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
     }
 }

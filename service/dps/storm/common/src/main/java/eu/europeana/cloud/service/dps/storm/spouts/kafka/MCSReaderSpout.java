@@ -31,7 +31,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
     private SpoutOutputCollector collector;
 
-    public TaskDownloader taskDownloader;
+    private TaskDownloader taskDownloader;
     private String mcsClientURL;
 
     public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
@@ -101,12 +101,16 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         return mcsClientURL;
     }
 
+    public TaskDownloader getTaskDownloader() {
+        return taskDownloader;
+    }
+
     public final class TaskDownloader extends Thread implements TaskQueueFiller {
         private static final int MAX_SIZE = 100;
         private static final int INTERNAL_THREADS_NUMBER = 10;
 
-        public ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
-        public ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
+        private ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
+        private ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
         private DpsTask currentDpsTask;
 
         public TaskDownloader() {
@@ -178,6 +182,14 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             if (task.getInputData().get(FILE_URLS) != null)
                 return FILE_URLS.name();
             return DATASET_URLS.name();
+        }
+
+        public ArrayBlockingQueue<DpsTask> getTaskQueue() {
+            return taskQueue;
+        }
+
+        public ArrayBlockingQueue<StormTaskTuple> getTuplesWithFileUrls() {
+            return tuplesWithFileUrls;
         }
     }
 

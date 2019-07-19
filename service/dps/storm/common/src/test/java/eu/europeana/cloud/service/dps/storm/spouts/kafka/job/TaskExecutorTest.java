@@ -33,18 +33,18 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+/**
+ * Created by Arek on 7/18/2019.
+ */
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(TaskExecutor.class)
@@ -84,7 +84,7 @@ public class TaskExecutorTest {
         doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
-        mcsReaderSpout.taskDownloader.taskQueue.clear();
+        mcsReaderSpout.getTaskDownloader().getTaskQueue().clear();
         mockMCSClient();
     }
 
@@ -127,14 +127,11 @@ public class TaskExecutorTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
 
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
-
-        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
+        assertEquals(mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls().size(), 2);
     }
 
     @Test
@@ -157,12 +154,9 @@ public class TaskExecutorTest {
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
-
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -189,12 +183,9 @@ public class TaskExecutorTest {
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
-
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -229,14 +220,11 @@ public class TaskExecutorTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
 
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
-
-        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
+        assertEquals(mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls().size(), 2);
     }
 
 
@@ -264,14 +252,11 @@ public class TaskExecutorTest {
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
 
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
-
-        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 65);
+        assertEquals(mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls().size(), 65);
     }
 
 
@@ -302,12 +287,9 @@ public class TaskExecutorTest {
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
-
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -343,12 +325,9 @@ public class TaskExecutorTest {
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
-
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -387,14 +366,11 @@ public class TaskExecutorTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
 
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
-
-        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 2);
+        assertEquals(mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls().size(), 2);
     }
 
 
@@ -425,14 +401,11 @@ public class TaskExecutorTest {
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
 
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
-
-        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 65);
+        assertEquals(mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls().size(), 65);
     }
 
     @Test
@@ -464,11 +437,9 @@ public class TaskExecutorTest {
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
         verify(fileServiceClient, times(1)).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
@@ -487,7 +458,7 @@ public class TaskExecutorTest {
         doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
@@ -503,7 +474,7 @@ public class TaskExecutorTest {
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
@@ -519,7 +490,7 @@ public class TaskExecutorTest {
         doThrow(DriverException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
@@ -535,11 +506,10 @@ public class TaskExecutorTest {
         doThrow(DriverException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
-
 
     @Test
     public void shouldStopEmittingFilesWhenTaskIsKilled() throws Exception {
@@ -560,13 +530,11 @@ public class TaskExecutorTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
 
-        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 1);
+        assertEquals(mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls().size(), 1);
     }
 
     @Test
@@ -588,13 +556,11 @@ public class TaskExecutorTest {
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                mcsReaderSpout.taskDownloader.tuplesWithFileUrls,
+                mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls(),
                 mcsReaderSpout.getMcsClientURL(), DATASET_URLS.name(), dpsTask);
+        taskExecutor.execute();
 
-        //ExecutorService executorService = Executors.newFixedThreadPool(TaskExecutor.INTERNAL_THREADS_NUMBER);
-        //executorService.submit().get();
-
-        assertEquals(mcsReaderSpout.taskDownloader.tuplesWithFileUrls.size(), 0);
+        assertEquals(mcsReaderSpout.getTaskDownloader().getTuplesWithFileUrls().size(), 0);
     }
 
     private DpsTask getDpsTask() {
