@@ -97,10 +97,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         }
     }
 
-    public String getMcsClientURL() {
-        return mcsClientURL;
-    }
-
     public TaskDownloader getTaskDownloader() {
         return taskDownloader;
     }
@@ -186,10 +182,6 @@ public class MCSReaderSpout extends CustomKafkaSpout {
 
         public ArrayBlockingQueue<DpsTask> getTaskQueue() {
             return taskQueue;
-        }
-
-        public ArrayBlockingQueue<StormTaskTuple> getTuplesWithFileUrls() {
-            return tuplesWithFileUrls;
         }
     }
 

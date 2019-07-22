@@ -27,7 +27,6 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(MCSReaderSpout.class)
 public class MCSReaderSpoutTest {
-    public static final String DATASET_URL = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
     @Mock(name = "collector")
     private SpoutOutputCollector collector;
 

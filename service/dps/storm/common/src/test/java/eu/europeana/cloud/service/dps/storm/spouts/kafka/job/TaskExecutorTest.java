@@ -25,7 +25,6 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -75,11 +74,6 @@ public class TaskExecutorTest {
     private FileServiceClient fileServiceClient;
     private RepresentationIterator representationIterator;
 
-    //@InjectMocks
-   //private MCSReaderSpout mcsReaderSpout = new MCSReaderSpout(null);
-
-
-
     @Before
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -109,30 +103,6 @@ public class TaskExecutorTest {
         field.setAccessible(true);
         field.set(null, newValue);
     }
-
-    @Test
-    public void t1() throws Exception {
-        List<String> dataSets = new ArrayList<>();
-        dataSets.add(DATASET_URL);
-        DpsTask dpsTask = prepareDpsTask(dataSets, prepareStormTaskTupleParameters());
-
-        Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date());
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(representation);
-        when(dataSetServiceClient.getRepresentationIterator(eq("testDataProvider"), eq("dataSet"))).thenReturn(representationIterator);
-        when(representationIterator.hasNext()).thenReturn(true, false);
-        when(representationIterator.next()).thenReturn(representation);
-
-
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
-        TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
-        taskExecutor.call();
-
-        assertEquals(0, tuplesWithFileUrls.size());
-    }
-
-
 
     @Test
     public void shouldEmitTheFilesWhenNoRevisionIsSpecified() throws Exception {
@@ -588,6 +558,27 @@ public class TaskExecutorTest {
 
         assertEquals(tuplesWithFileUrls.size(), 0);
     }
+
+
+    @Test
+    public void shouldReTry3TimesAndCheckDropTaskIfExceptionOccurs() throws Exception {
+        //given
+        when(collector.emit(anyList())).thenReturn(null);
+        List<String> dataSets = new ArrayList<>();
+        dataSets.add(DATASET_URL);
+        Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
+        DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+        doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
+
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+        taskExecutor.call();
+
+        verify(cassandraTaskInfoDAO, times(2)).dropTask(anyLong(), anyString(), anyString());
+    }
+
+
 
     private DpsTask getDpsTask() {
         List<String> dataSets = new ArrayList<>();
