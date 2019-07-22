@@ -16,8 +16,12 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
@@ -63,7 +67,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                 collector.emit(stormTaskTuple.toStormTuple());
             }
         } catch (Exception e) {
-            LOGGER.error("StaticDpsTaskSpout error: "+e.getMessage(), e);
+            LOGGER.error("StaticDpsTaskSpout error: " + e.getMessage(), e);
             if (stormTaskTuple != null)
                 cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         }
@@ -102,14 +106,16 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     }
 
     public final class TaskDownloader extends Thread implements TaskQueueFiller {
-        public static final int MAX_SIZE = 100;
-        public static final int INTERNAL_THREADS_NUMBER = 10;
+        private static final int MAX_SIZE = 100;
+        private static final int INTERNAL_THREADS_NUMBER = 10;
 
         private ArrayBlockingQueue<DpsTask> taskQueue = new ArrayBlockingQueue<>(MAX_SIZE);
         private ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(MAX_SIZE * INTERNAL_THREADS_NUMBER);
         private DpsTask currentDpsTask;
+        private ExecutorService executorService;
 
         public TaskDownloader() {
+            executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
             start();
         }
 
@@ -150,7 +156,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                                 tuplesWithFileUrls.put(fileTuple);
                             }
                         } else { // For data Sets
-                            Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER).submit(
+                            executorService.submit(
                                     new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                                             tuplesWithFileUrls, mcsClientURL, stream, currentDpsTask));
                         }
@@ -158,7 +164,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
                     }
                 } catch (Exception e) {
-                    LOGGER.error("StaticDpsTaskSpout error: "+e.getMessage(), e);
+                    LOGGER.error("StaticDpsTaskSpout error: " + e.getMessage(), e);
                     if (stormTaskTuple != null)
                         cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
                 }

@@ -10,22 +10,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.lang.reflect.Field;
 import java.util.Date;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
  * Created by Tarek on 5/21/2018.
  */
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MCSReaderSpout.class)
+@RunWith(MockitoJUnitRunner.class)
 public class MCSReaderSpoutTest {
     @Mock(name = "collector")
     private SpoutOutputCollector collector;

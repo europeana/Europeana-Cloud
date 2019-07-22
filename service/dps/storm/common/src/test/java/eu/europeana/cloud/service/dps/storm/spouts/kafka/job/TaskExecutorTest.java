@@ -50,11 +50,11 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(TaskExecutor.class)
 public class TaskExecutorTest {
-    public static final String DATASET_URL = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
+    private static final String DATASET_URL = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
     private final static String TASK_NAME = "TASK_NAME";
     private final static String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
     private final static String FILE_URL2 = "http://localhost:8080/mcs/records/sourceCloudId2/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName2";
-    private final static int QUEUE_MAX_SIZE = MCSReaderSpout.TaskDownloader.MAX_SIZE*MCSReaderSpout.TaskDownloader.INTERNAL_THREADS_NUMBER;
+    private final static int QUEUE_MAX_SIZE = 1000;
 
     @Mock(name = "collector")
     private SpoutOutputCollector collector;
@@ -561,7 +561,7 @@ public class TaskExecutorTest {
 
 
     @Test
-    public void shouldReTry3TimesAndCheckDropTaskIfExceptionOccurs() throws Exception {
+    public void shouldDropTaskInCaseOfException() throws Exception {
         //given
         when(collector.emit(anyList())).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
@@ -578,12 +578,9 @@ public class TaskExecutorTest {
 
         taskExecutor.call();
 
-        //in taskExecutor.execute 'dropTask' method is called one time (in finally part) but
-        //if Exception occured, 'dropTask' method is called second time in 'catch' part in 'call' method.
-        //In this test we expected this situation
+        //called twice, once per finally inside TaskExecutor.execute() and the other inside call() catch block
         verify(cassandraTaskInfoDAO, times(2)).dropTask(anyLong(), anyString(), anyString());
     }
-
 
 
     private DpsTask getDpsTask() {

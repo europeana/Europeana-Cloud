@@ -40,10 +40,10 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 
 public class TaskExecutor implements Callable<Void> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutor.class);
-    static final int INTERNAL_THREADS_NUMBER = 10;
+    private static final int INTERNAL_THREADS_NUMBER = 10;
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
-    public static final int MAX_BATCH_SIZE = 100;
+    private static final int MAX_BATCH_SIZE = 100;
 
 
     private TaskStatusChecker taskStatusChecker;
