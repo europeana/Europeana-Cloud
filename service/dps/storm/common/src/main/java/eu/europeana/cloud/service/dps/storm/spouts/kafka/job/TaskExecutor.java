@@ -71,7 +71,7 @@ public class TaskExecutor implements Callable<Void> {
     }
 
     @Override
-    public Void call() throws Exception {
+    public Void call() {
         try {
             execute();
         } catch (Exception e) {

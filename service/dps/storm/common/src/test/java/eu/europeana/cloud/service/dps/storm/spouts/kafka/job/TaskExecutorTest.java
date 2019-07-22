@@ -567,14 +567,20 @@ public class TaskExecutorTest {
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
         Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
+
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
+
         doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+
         taskExecutor.call();
 
+        //in taskExecutor.execute 'dropTask' method is called one time (in finally part) but
+        //if Exception occured, 'dropTask' method is called second time in 'catch' part in 'call' method.
+        //In this test we expected this situation
         verify(cassandraTaskInfoDAO, times(2)).dropTask(anyLong(), anyString(), anyString());
     }
 
