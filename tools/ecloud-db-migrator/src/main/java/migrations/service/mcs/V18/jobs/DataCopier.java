@@ -1,5 +1,7 @@
 package migrations.service.mcs.V18.jobs;
 
+import com.contrastsecurity.cassandra.migration.logging.Log;
+import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
@@ -14,13 +16,15 @@ import static migrations.common.TableCopier.hasNextRow;
  * Created by Tarek on 5/16/2019.
  */
 public class DataCopier implements Callable<String> {
+
+    private static final Log LOG = LogFactory.getLog(DataCopier.class);
+
     private static final String PROVIDER_ID = "provider_id";
     private static final String DATASET_ID = "dataset_id";
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
 
     private Session session;
-    private Row distinctPartitionKeysRow;
 
     private PreparedStatement selectStatement;
     private PreparedStatement insertStatement;
@@ -32,9 +36,13 @@ public class DataCopier implements Callable<String> {
     private static final String CDSID_SEPARATOR = "\n";
     private static final String BUCKET_TABLE_NAME = "latest_dataset_representation_revision_buckets";
 
-    public DataCopier(Session session, Row distinctPartitionKeysRow) {
+    private String providerId;
+    private String dataSetId;
+
+    public DataCopier(Session session, String provider_id, String dataset_id) {
         this.session = session;
-        this.distinctPartitionKeysRow = distinctPartitionKeysRow;
+        this.providerId = provider_id;
+        this.dataSetId = dataset_id;
         initStatements();
     }
 
@@ -58,39 +66,49 @@ public class DataCopier implements Callable<String> {
     @Override
     public String call() throws Exception {
         BucketsHandler bucketsHandler = new BucketsHandler(session);
-        long counter = 0;
-        final String providerId = distinctPartitionKeysRow.getString(PROVIDER_ID);
-        String dataSetId = distinctPartitionKeysRow.getString(DATASET_ID);
+        long insertsCounter = 0;
+        long readsCounter = 0;
+        LOG.info("Starting job for providerId: " + providerId + " and datasetId " + dataSetId + " fthe current progress is: " + readsCounter);
         BoundStatement boundStatement = selectStatement.bind(providerId, dataSetId);
         boundStatement.setFetchSize(1000);
         ResultSet rs = session.execute(boundStatement);
         Iterator<Row> ri = rs.iterator();
 
 
-        while (hasNextRow(ri)) {
-            Row latestProviderDatasetReplica = ri.next();
-            if (getRowCount(session, latestProviderDatasetReplica) == 0) {
+        try{
+            while (hasNextRow(ri)) {
+                Row latestProviderDatasetReplica = ri.next();
+                if (getRowCount(session, latestProviderDatasetReplica) == 0) {
 
-                Bucket bucket = bucketsHandler.getCurrentBucket(
-                        BUCKET_TABLE_NAME,
-                        createProviderDataSetId(latestProviderDatasetReplica.getString("provider_id"), latestProviderDatasetReplica.getString("dataset_id")));
+                    Bucket bucket = bucketsHandler.getCurrentBucket(
+                            BUCKET_TABLE_NAME,
+                            createProviderDataSetId(latestProviderDatasetReplica.getString("provider_id"), latestProviderDatasetReplica.getString("dataset_id")));
 
-                if (bucket == null || bucket.getRowsCount() >= BUCKET_SIZE) {
-                    bucket = new Bucket(
-                            createProviderDataSetId(latestProviderDatasetReplica.getString("provider_id"), latestProviderDatasetReplica.getString("dataset_id")),
-                            new com.eaio.uuid.UUID().toString(),
-                            0);
+                    if (bucket == null || bucket.getRowsCount() >= BUCKET_SIZE) {
+                        bucket = new Bucket(
+                                createProviderDataSetId(latestProviderDatasetReplica.getString("provider_id"), latestProviderDatasetReplica.getString("dataset_id")),
+                                new com.eaio.uuid.UUID().toString(),
+                                0);
+                    }
+                    bucketsHandler.increaseBucketCount(BUCKET_TABLE_NAME, bucket);
+                    //
+                    insertIntoNewTable(latestProviderDatasetReplica, bucket.getBucketId());
+                    //
+                    if (++insertsCounter % 10000 == 0) {
+                        LOG.info("Copy table for providerId: " + providerId + " and datasetId " + dataSetId + " the current progress for inserts is: " + insertsCounter);
+                    }
                 }
-                bucketsHandler.increaseBucketCount(BUCKET_TABLE_NAME, bucket);
-                //
-                insertIntoNewTable(latestProviderDatasetReplica, bucket.getBucketId());
-                //
-                if (++counter % 10000 == 0) {
-                    System.out.print("\rCopy table for providerId: " + providerId + " and datasetId " + dataSetId + "the current progress is:" + counter);
+
+                if (++readsCounter % 10000 == 0) {
+                    LOG.info("Copy table for providerId: " + providerId + " and datasetId " + dataSetId + " the current progress for reads is: " + readsCounter);
+
                 }
             }
+        }catch(Exception e){
+            LOG.error("Migration failed providerId: " + providerId + " and datasetId " + dataSetId + ". Reads: "+readsCounter+". Inserts: " + insertsCounter);
         }
-        return "................... The information for providerId: " + providerId + " and datasetId " + dataSetId + " is inserted correctly. The total number of inserted rows is:" + counter;
+        LOG.info("Finished job for providerId: " + providerId + " and datasetId " + dataSetId + ". Reads: "+readsCounter+". Inserts: " + insertsCounter);
+        return "................... The information for providerId: " + providerId + " and datasetId " + dataSetId + " is inserted correctly. The total number of inserted rows is:" + readsCounter;
     }
 
     private void insertIntoNewTable(Row row, String bucketId) {
