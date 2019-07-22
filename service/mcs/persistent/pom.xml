@@ -115,12 +115,7 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
-        <dependency>
-            <!-- forked kafka with fixed appender issue KAFKA-847 -->
-            <groupId>eu.europeana.cloud.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-        </dependency>
-	
+
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

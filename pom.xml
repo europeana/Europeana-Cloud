@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- LICENCE PLACEHOLDER -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
@@ -140,7 +141,7 @@
     </repositories>
     <properties>
         <sonar.skip>false</sonar.skip>
-        <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
+        <jacocoArgLine/> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>1.7</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
@@ -157,7 +158,7 @@
         <version.swift>1.9.2</version.swift>
         <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
-        <version.kafka>0.8.1.1</version.kafka>
+        <version.kafka>1.1.1</version.kafka>
         <version.cassandra-unit>2.1.3.1</version.cassandra-unit>
         <version.storm>1.1.3</version.storm>
         <!-- 0.10.0 is minimum -->
@@ -294,7 +295,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                                 <!-- copy-dependency plugin -->
@@ -308,7 +309,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
@@ -442,11 +443,6 @@
                 <type>jar</type>
                 <version>16.0</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_2.9.2</artifactId>
-                <version>${version.kafka}</version>
-            </dependency>
             <!--logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -473,13 +469,7 @@
                 <artifactId>log4j</artifactId>
                 <version>1.2.17</version>
             </dependency>
-            <dependency>
-                <!-- forked kafka with fixed appender, KAFKA-847 -->
-                <!-- TODO ECL-317 -->
-                <groupId>eu.europeana.cloud.kafka</groupId>
-                <artifactId>kafka_2.10</artifactId>
-                <version>0.8.1</version>
-            </dependency>
+
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
