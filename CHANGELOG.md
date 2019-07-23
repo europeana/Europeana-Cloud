@@ -1,5 +1,25 @@
 # Change Log
 
+## [v1.5.0](https://github.com/europeana/Europeana-Cloud/tree/v1.5.0) (2019-07-22)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.3.2...v1.5.0)
+
+**Merged pull requests:**
+
+- Met 2053 [\#232](https://github.com/europeana/Europeana-Cloud/pull/232) ([tarekkh](https://github.com/tarekkh))
+- MET-728, refactor UIS client [\#231](https://github.com/europeana/Europeana-Cloud/pull/231) ([tarekkh](https://github.com/tarekkh))
+- Met 2024 [\#230](https://github.com/europeana/Europeana-Cloud/pull/230) ([tarekkh](https://github.com/tarekkh))
+- MCS dependencies related with logging updated [\#229](https://github.com/europeana/Europeana-Cloud/pull/229) ([pWoz](https://github.com/pWoz))
+- MET-1914 Prepare scripts for files cleaning on monitoring stack [\#228](https://github.com/europeana/Europeana-Cloud/pull/228) ([margraf](https://github.com/margraf))
+- Met 1934 multithread migration tool [\#227](https://github.com/europeana/Europeana-Cloud/pull/227) ([tarekkh](https://github.com/tarekkh))
+
+## [v1.3.2](https://github.com/europeana/Europeana-Cloud/tree/v1.3.2) (2019-06-03)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.4.0...v1.3.2)
+
+**Merged pull requests:**
+
+- MET 1547 DPS REST log file is empty but application logs are in catal… [\#226](https://github.com/europeana/Europeana-Cloud/pull/226) ([margraf](https://github.com/margraf))
+- MET-1516 remove unnecessary keys/properties in config files [\#225](https://github.com/europeana/Europeana-Cloud/pull/225) ([tarekkh](https://github.com/tarekkh))
+
 ## [v1.4.0](https://github.com/europeana/Europeana-Cloud/tree/v1.4.0) (2019-05-21)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.3.1...v1.4.0)
 
@@ -9,14 +29,6 @@
 - MET-1922, handle deleted records [\#223](https://github.com/europeana/Europeana-Cloud/pull/223) ([tarekkh](https://github.com/tarekkh))
 - extract CollectorWrapper and use it to remove duplications [\#222](https://github.com/europeana/Europeana-Cloud/pull/222) ([tarekkh](https://github.com/tarekkh))
 - Met 1893 [\#221](https://github.com/europeana/Europeana-Cloud/pull/221) ([tarekkh](https://github.com/tarekkh))
-
-## [v1.3.2](https://github.com/europeana/Europeana-Cloud/tree/v1.3.2) (2019-06-03)
-[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.4.0...v1.3.2)
-
-**Merged pull requests:**
-
-- MET 1547 DPS REST log file is empty but application logs are in catal… [\#226](https://github.com/europeana/Europeana-Cloud/pull/226) ([margraf](https://github.com/margraf))
-- MET-1516 remove unnecessary keys/properties in config files [\#225](https://github.com/europeana/Europeana-Cloud/pull/225) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.3.1](https://github.com/europeana/Europeana-Cloud/tree/v1.3.1) (2019-04-16)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.3.0...v1.3.1)
@@ -112,6 +124,8 @@
 - Met 1192 [\#173](https://github.com/europeana/Europeana-Cloud/pull/173) ([tarekkh](https://github.com/tarekkh))
 - Oai spout fixing [\#172](https://github.com/europeana/Europeana-Cloud/pull/172) ([tarekkh](https://github.com/tarekkh))
 -  MET-1259 upgrade storm dependencies \(1.1.3\) [\#171](https://github.com/europeana/Europeana-Cloud/pull/171) ([olanowak](https://github.com/olanowak))
+- MET-1177 using europeana identifiers in OAI Topology [\#164](https://github.com/europeana/Europeana-Cloud/pull/164) ([olanowak](https://github.com/olanowak))
+- MET-1172 [\#162](https://github.com/europeana/Europeana-Cloud/pull/162) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.0.1](https://github.com/europeana/Europeana-Cloud/tree/v1.0.1) (2018-07-18)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.0...v1.0.1)
@@ -123,9 +137,7 @@
 - Met 597 [\#168](https://github.com/europeana/Europeana-Cloud/pull/168) ([tarekkh](https://github.com/tarekkh))
 - MET-1178 using europeana ids to create cloud in HTTP harvesting topology [\#167](https://github.com/europeana/Europeana-Cloud/pull/167) ([olanowak](https://github.com/olanowak))
 - Met 1076 [\#165](https://github.com/europeana/Europeana-Cloud/pull/165) ([pWoz](https://github.com/pWoz))
-- MET-1177 using europeana identifiers in OAI Topology [\#164](https://github.com/europeana/Europeana-Cloud/pull/164) ([olanowak](https://github.com/olanowak))
 - MET-1186 Add extra parameter handling in transformation topology. [\#163](https://github.com/europeana/Europeana-Cloud/pull/163) ([stzanakis](https://github.com/stzanakis))
-- MET-1172 [\#162](https://github.com/europeana/Europeana-Cloud/pull/162) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.0](https://github.com/europeana/Europeana-Cloud/tree/v1.0) (2018-06-14)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.7...v1.0)
@@ -241,13 +253,13 @@
 - Ecl 1127 [\#67](https://github.com/europeana/Europeana-Cloud/pull/67) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1156 record harvesting bolt [\#65](https://github.com/europeana/Europeana-Cloud/pull/65) ([pWoz](https://github.com/pWoz))
 - Ecl 1132 - cassandra backup script  [\#64](https://github.com/europeana/Europeana-Cloud/pull/64) ([akrystian](https://github.com/akrystian))
+- ECL-1109 - Unit Test fails randomly [\#63](https://github.com/europeana/Europeana-Cloud/pull/63) ([akrystian](https://github.com/akrystian))
 
 ## [v0.6.1](https://github.com/europeana/Europeana-Cloud/tree/v0.6.1) (2017-06-16)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.6...v0.6.1)
 
 **Merged pull requests:**
 
-- ECL-1109 - Unit Test fails randomly [\#63](https://github.com/europeana/Europeana-Cloud/pull/63) ([akrystian](https://github.com/akrystian))
 - ECL-1113 mimeType matching improved [\#62](https://github.com/europeana/Europeana-Cloud/pull/62) ([helinek](https://github.com/helinek))
 - Ecl 1122 [\#61](https://github.com/europeana/Europeana-Cloud/pull/61) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1107 limit java clients dependencies [\#60](https://github.com/europeana/Europeana-Cloud/pull/60) ([akrystian](https://github.com/akrystian))
