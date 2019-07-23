@@ -30,6 +30,7 @@ import java.net.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.*;
 
 public class ResourceMigrator {
@@ -109,7 +110,7 @@ public class ResourceMigrator {
         this.dataProvidersMapping = readDataProvidersMapping(dataProvidersMappingFile);
         if (threadsCount != null && !threadsCount.isEmpty()) {
             try {
-                this.threadsCount = Integer.valueOf(threadsCount);
+                this.threadsCount = Integer.parseInt(threadsCount);
                 if (this.threadsCount < 0)
                     this.threadsCount = DEFAULT_PROVIDER_POOL_SIZE;
             } catch (NumberFormatException e) {
@@ -180,7 +181,6 @@ public class ResourceMigrator {
         ExecutorService threadLocalIdPool = Executors
                 .newFixedThreadPool(threadsCount);
         List<Future<LocalIdVerificationResult>> results = null;
-        List<Callable<LocalIdVerificationResult>> tasks = new ArrayList<Callable<LocalIdVerificationResult>>();
 
         int parts = threadsCount;
 
@@ -193,6 +193,7 @@ public class ResourceMigrator {
                 idsPerThread++;
         }
 
+        List<Callable<LocalIdVerificationResult>> tasks = new ArrayList<Callable<LocalIdVerificationResult>>(parts);
         List<String> localIds = new ArrayList<String>(uniqueIds);
         // create task for each resource provider
         for (int i = 0; i < parts; i++) {
@@ -317,14 +318,17 @@ public class ResourceMigrator {
         List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>();
 
         // create task for each resource provider
-        for (String providerId : paths.keySet()) {
+        Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Entry<String, List<FilePaths>> entry = iterator.next();
+
             if (clean) {
-                logger.info("Cleaning " + providerId);
-                clean(providerId);
+                logger.info("Cleaning " + entry.getKey());
+                clean(entry.getKey());
             }
             if (!simulate) {
-                logger.info("Starting task thread for provider " + providerId + "...");
-                tasks.add(new ProviderMigrator(providerId, paths.get(providerId), null));
+                logger.info("Starting task thread for provider " + entry.getKey() + "...");
+                tasks.add(new ProviderMigrator(entry.getKey(), entry.getValue(), null));
             }
         }
 
@@ -577,13 +581,11 @@ public class ResourceMigrator {
                         // change filename extension to the one that processed file has
                         fileName = changeExtension(fileName, processed.getName());
                         mimeType = mimeFromExtension(fileName);
-                    }
-                    else {
+                    } else {
                         logger.error("Problem with processing file: " + path);
                         return null;
                     }
-                }
-                else
+                } else
                     is = fullURI.toURL().openStream();
 
                 if (logger.isDebugEnabled())
@@ -637,7 +639,7 @@ public class ResourceMigrator {
         int i = fileName.lastIndexOf('.');
         int j = newFileName.lastIndexOf('.');
         if (i > 0 && j > 0)
-            return fileName.substring(0, i) +  newFileName.substring(j, newFileName.length());
+            return fileName.substring(0, i) + newFileName.substring(j, newFileName.length());
 
         // when any of the extension does not exist return unchanged original fileName
         return fileName;
@@ -784,12 +786,12 @@ public class ResourceMigrator {
             try {
                 path = reader.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage() + ". Because of: " + e.getCause());
             } finally {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
                 }
             }
         } else
@@ -1045,12 +1047,14 @@ public class ResourceMigrator {
         logger.info("Scanning resource provider locations finished in " + String.valueOf(((float) (System.currentTimeMillis() - start) / (float) 1000)) + " sec.");
 
         List<Future<VerificationResult>> results = null;
-        List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>();
+        List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>(paths.size());
 
         // create task for each resource provider
-        for (String providerId : paths.keySet()) {
-            logger.info("Starting verification task thread for provider " + providerId + "...");
-            tasks.add(new ProviderVerifier(providerId, paths.get(providerId), null));
+        Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Entry<String, List<FilePaths>> entry = iterator.next();
+            logger.info("Starting verification task thread for provider " + entry.getKey() + "...");
+            tasks.add(new ProviderVerifier(entry.getKey(), entry.getValue(), null));
         }
 
         if (tasks.size() == 0)
@@ -1161,7 +1165,7 @@ public class ResourceMigrator {
                     // when we got here it means that for the current localId there is a cloud id and persistent representation - the whole record is migrated
                     migratedLocalIds.add(localId.intern());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
                     break;
                 } catch (RecordNotExistsException e) {
                     strings.add(line + " (upload " + localId + ")");
@@ -1169,7 +1173,8 @@ public class ResourceMigrator {
                     strings.add(line + " (upload " + localId + ")");
                 } catch (MCSException e) {
                     logger.error("Problem with getting representation.");
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
+
                 }
             }
             saveProgress(providerPaths.getIdentifier() != null ? providerPaths.getIdentifier() : resourceProviderId, strings, true, "verify_");
@@ -1178,7 +1183,7 @@ public class ResourceMigrator {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
                 }
             }
         }
@@ -1217,7 +1222,7 @@ public class ResourceMigrator {
                     success &= processProvider(providerId, fp);
             } else { // initial paths were split into more sets, for each set run separate thread and gather results
                 List<Future<MigrationResult>> results = null;
-                List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>();
+                List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>(split.size());
 
                 boolean mergeProgress = false;
 
@@ -1303,16 +1308,16 @@ public class ResourceMigrator {
 
     private class MigrationResult {
         // success indicator
-        Boolean success;
+        private Boolean success;
 
         // resource provider identifier
-        String providerId;
+        private String providerId;
 
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+        private float time;
 
         MigrationResult(Boolean success, String providerId, float time, String identifier) {
             this.success = success;
@@ -1372,7 +1377,7 @@ public class ResourceMigrator {
                     notMigrated += verifyProvider(providerId, fp);
             } else { // initial paths were split into more sets, for each set run separate thread and gather results
                 List<Future<VerificationResult>> results = null;
-                List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>();
+                List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>(split.size());
 
                 // create task for each file path
                 for (FilePaths fp : split) {
@@ -1407,16 +1412,16 @@ public class ResourceMigrator {
 
     private class VerificationResult {
         // resource provider identifier
-        String providerId;
+        private String providerId;
 
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+        private float time;
 
         // number of not migrated files
-        long notMigrated;
+        private long notMigrated;
 
         VerificationResult(long notMigrated, String providerId, float time, String identifier) {
             this.notMigrated = notMigrated;
@@ -1491,7 +1496,7 @@ public class ResourceMigrator {
                     try {
                         representations = mcs.getRepresentations(cloudId, resourceProvider.getRepresentationName());
                     } catch (MCSException e) {
-                        e.printStackTrace();
+                        logger.error(e.getMessage() + ". Because of: " + e.getCause());
                     }
                     if (representations == null || representations.size() == 0) {
                         strings.add(localId + ";" + "no representation");
@@ -1528,13 +1533,13 @@ public class ResourceMigrator {
 
     private class LocalIdVerificationResult {
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+        private float time;
 
         // number of not migrated files
-        long notMigrated;
+        private long notMigrated;
 
         LocalIdVerificationResult(long notMigrated, float time, String identifier) {
             this.notMigrated = notMigrated;
@@ -1703,13 +1708,13 @@ public class ResourceMigrator {
 
     private class PublicAccessGranterResult {
         // Part identifier
-        String identifier;
+        private String identifier;
 
         // execution time
-        float time;
+        private float time;
 
         // number of versions without public access
-        long notGranted;
+        private long notGranted;
 
         PublicAccessGranterResult(long notGranted, float time, String identifier) {
             this.notGranted = notGranted;

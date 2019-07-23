@@ -1,5 +1,26 @@
 # Change Log
 
+## [v1.4.0](https://github.com/europeana/Europeana-Cloud/tree/v1.4.0) (2019-05-21)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.3.1...v1.4.0)
+
+**Merged pull requests:**
+
+- Met 1943 [\#224](https://github.com/europeana/Europeana-Cloud/pull/224) ([margraf](https://github.com/margraf))
+- MET-1922, handle deleted records [\#223](https://github.com/europeana/Europeana-Cloud/pull/223) ([tarekkh](https://github.com/tarekkh))
+- extract CollectorWrapper and use it to remove duplications [\#222](https://github.com/europeana/Europeana-Cloud/pull/222) ([tarekkh](https://github.com/tarekkh))
+- Met 1893 [\#221](https://github.com/europeana/Europeana-Cloud/pull/221) ([tarekkh](https://github.com/tarekkh))
+
+## [v1.3.2](https://github.com/europeana/Europeana-Cloud/tree/v1.3.2) (2019-06-03)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.4.0...v1.3.2)
+
+**Merged pull requests:**
+
+- MET 1547 DPS REST log file is empty but application logs are in catal… [\#226](https://github.com/europeana/Europeana-Cloud/pull/226) ([margraf](https://github.com/margraf))
+- MET-1516 remove unnecessary keys/properties in config files [\#225](https://github.com/europeana/Europeana-Cloud/pull/225) ([tarekkh](https://github.com/tarekkh))
+
+## [v1.3.1](https://github.com/europeana/Europeana-Cloud/tree/v1.3.1) (2019-04-16)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.3.0...v1.3.1)
+
 ## [v1.3.0](https://github.com/europeana/Europeana-Cloud/tree/v1.3.0) (2019-03-26)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.2.0...v1.3.0)
 

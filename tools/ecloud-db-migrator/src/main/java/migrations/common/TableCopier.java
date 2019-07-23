@@ -10,7 +10,7 @@ public abstract class TableCopier {
 
     private final static int DEFAULT_RETRIES = 20;
 
-    private final static long SLEEP_TIME = 60000;
+    private final static long SLEEP_TIME = 1000;
 
     public void copyTable(Session session, PreparedStatement selectStatement, PreparedStatement insertStatement) {
         insertStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);
@@ -45,6 +45,7 @@ public abstract class TableCopier {
             } catch (Exception e) {
                 if (retries > 0){
                     try {
+                        System.out.println("Sleeping");
                         Thread.sleep(SLEEP_TIME * (DEFAULT_RETRIES - retries));
                     } catch (InterruptedException e1) {
                         e1.printStackTrace();

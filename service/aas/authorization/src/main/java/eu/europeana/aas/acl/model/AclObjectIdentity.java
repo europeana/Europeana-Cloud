@@ -235,7 +235,7 @@ public class AclObjectIdentity {
 		sb.append(", parentObjectClass: ").append(parentObjectClass);
 		sb.append(", ownerId: ").append(ownerId);
 		sb.append(", ownerPrincipal: ").append(ownerPrincipal);
-		sb.append(", entriesInheriting: ").append(entriesInheriting).append("]");
+		sb.append(", entriesInheriting: ").append(entriesInheriting).append(']');
 		return sb.toString();
 	}
 

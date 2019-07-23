@@ -13,7 +13,7 @@ public enum TargetIndexingDatabase {
     }
 
     private static List<String> initializeTargetIndexingDatabaseValues() {
-        List<String> values = new ArrayList<>();
+        List<String> values = new ArrayList<>(TargetIndexingDatabase.values().length);
         for (TargetIndexingDatabase targetIndexingDatabase : TargetIndexingDatabase.values())
             values.add(targetIndexingDatabase.toString());
         return values;

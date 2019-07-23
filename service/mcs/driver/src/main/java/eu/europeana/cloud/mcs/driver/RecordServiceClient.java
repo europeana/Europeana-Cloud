@@ -67,30 +67,30 @@ public class RecordServiceClient extends MCSClient {
         StringBuilder builder = new StringBuilder();
 
         builder.append(ParamConstants.RECORDS);
-        builder.append("/");
-        builder.append("{");
+        builder.append('/');
+        builder.append('{');
         builder.append(P_CLOUDID);
-        builder.append("}");
+        builder.append('}');
         recordPath = builder.toString();
 
-        builder.append("/");
+        builder.append('/');
         builder.append(ParamConstants.REPRESENTATIONS);
         representationsPath = builder.toString();
 
-        builder.append("/");
-        builder.append("{");
+        builder.append('/');
+        builder.append('{');
         builder.append(P_REPRESENTATIONNAME);
-        builder.append("}");
+        builder.append('}');
         represtationNamePath = builder.toString();
 
-        builder.append("/");
+        builder.append('/');
         builder.append(ParamConstants.VERSIONS);
         versionsPath = builder.toString();
 
-        builder.append("/");
-        builder.append("{");
+        builder.append('/');
+        builder.append('{');
         builder.append(ParamConstants.P_VER);
-        builder.append("}");
+        builder.append('}');
         versionPath = builder.toString();
 
         copyPath = versionPath + "/" + ParamConstants.COPY;

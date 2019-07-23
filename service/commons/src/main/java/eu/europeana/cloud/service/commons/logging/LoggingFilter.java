@@ -15,8 +15,7 @@ public class LoggingFilter implements ContainerResponseFilter, ContainerRequestF
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingFilter.class);
 
-    private StringBuilder logMessageBuilder;
-
+    
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         publishRequestStartTimeTo(requestContext);

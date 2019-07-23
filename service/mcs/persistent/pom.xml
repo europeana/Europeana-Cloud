@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>1.4.0</version>
+        <version>1.5.0</version>
     </parent>
 
     <artifactId>ecloud-service-mcs-persistent</artifactId>
@@ -115,12 +115,7 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
-        <dependency>
-            <!-- forked kafka with fixed appender issue KAFKA-847 -->
-            <groupId>eu.europeana.cloud.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-        </dependency>
-	
+
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
