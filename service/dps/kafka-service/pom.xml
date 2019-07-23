@@ -34,18 +34,6 @@
             <version>1.1.1</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j-over-slf4j</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
                     <artifactId>zookeeper</artifactId>
                     <groupId>org.apache.zookeeper</groupId>
                 </exclusion>
