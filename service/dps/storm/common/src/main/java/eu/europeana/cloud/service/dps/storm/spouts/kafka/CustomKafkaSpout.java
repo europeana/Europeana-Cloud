@@ -35,7 +35,6 @@ public class CustomKafkaSpout extends KafkaSpout {
 
     public CustomKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                             String userName, String password) {
-
         super(spoutConf);
         this.hosts = hosts;
         this.port = port;

@@ -56,3 +56,5 @@ service/ips/target/
 
 /ecloud-parent.ipr
 /ecloud-parent.iws
+
+create_changelog.sh

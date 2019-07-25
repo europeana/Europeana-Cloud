@@ -11,7 +11,6 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.TaskInfo} DAO
