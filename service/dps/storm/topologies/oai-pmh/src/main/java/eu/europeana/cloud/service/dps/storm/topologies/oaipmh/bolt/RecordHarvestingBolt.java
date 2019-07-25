@@ -24,8 +24,9 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDE
  * Storm bolt for harvesting single record from OAI endpoint.
  */
 public class RecordHarvestingBolt extends AbstractDpsBolt {
-    private Harvester harvester;
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordHarvestingBolt.class);
+
     private static final String METADATA_XPATH = "/*[local-name()='OAI-PMH']" +
             "/*[local-name()='GetRecord']" +
             "/*[local-name()='record']" +
@@ -37,6 +38,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
             "/*[local-name()='record']" +
             "/*[local-name()='header']" +
             "/@status)";
+
+    private Harvester harvester;
 
     private XPathExpression expr;
     private XPathExpression isDeletedExpression;

@@ -36,15 +36,9 @@ public class GzUnpackingService implements FileUnpackingService {
                 UnpackingServiceFactory.createUnpackingService(extension).unpackFile(file.getAbsolutePath(), file.getParent() + File.separator);
             }
         } else {
-            GzipCompressorInputStream inputStream = null;
-            FileOutputStream fileOutputStream = null;
-            try {
-                inputStream = new GzipCompressorInputStream(new FileInputStream(compressedFile));
-                fileOutputStream = new FileOutputStream(new File(FilenameUtils.removeExtension(compressedFile)));
+            try(GzipCompressorInputStream inputStream = new GzipCompressorInputStream(new FileInputStream(compressedFile));
+                  FileOutputStream fileOutputStream = new FileOutputStream(new File(FilenameUtils.removeExtension(compressedFile))) ) {
                 IOUtils.copy(inputStream, fileOutputStream);
-            } finally {
-                IOUtils.closeQuietly(inputStream);
-                IOUtils.closeQuietly(fileOutputStream);
             }
         }
     }

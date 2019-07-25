@@ -25,16 +25,15 @@ import java.net.URI;
  * a new Record on the cloud, and emits the URL of the newly created record.
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
+    private static final long serialVersionUID = 1L;
+    protected Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
+
     private String ecloudMcsAddress;
     protected RecordServiceClient recordServiceClient;
-    protected Logger LOGGER;
 
     public WriteRecordBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-        LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
-
     }
-
 
     @Override
     public void prepare() {

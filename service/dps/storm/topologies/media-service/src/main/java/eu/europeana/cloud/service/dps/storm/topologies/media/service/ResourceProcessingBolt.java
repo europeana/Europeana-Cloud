@@ -24,10 +24,9 @@ import java.util.List;
  * Created by Tarek on 12/11/2018.
  */
 public class ResourceProcessingBolt extends AbstractDpsBolt {
-
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
-
 
     static AmazonS3 amazonClient;
     private String awsAccessKey;
@@ -35,10 +34,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     private String awsEndPoint;
     private String awsBucket;
 
-
     private Gson gson;
     private MediaExtractor mediaExtractor;
-
 
     public ResourceProcessingBolt(String awsAccessKey, String awsSecretKey, String awsEndPoint, String awsBucket) {
         this.awsAccessKey = awsAccessKey;

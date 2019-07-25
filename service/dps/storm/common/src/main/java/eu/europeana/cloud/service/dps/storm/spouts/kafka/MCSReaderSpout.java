@@ -31,11 +31,12 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
  * Created by Tarek on 5/18/2018.
  */
 public class MCSReaderSpout extends CustomKafkaSpout {
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
 
     private SpoutOutputCollector collector;
 
-    private TaskDownloader taskDownloader;
+    TaskDownloader taskDownloader;
     private String mcsClientURL;
 
     public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,

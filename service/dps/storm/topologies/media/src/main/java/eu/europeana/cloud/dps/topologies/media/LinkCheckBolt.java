@@ -31,7 +31,7 @@ import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData.Status;
 
 public class LinkCheckBolt extends HttpClientBolt {
-
+    private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(LinkCheckBolt.class);
 
     private transient RequestConfig requestConfig;

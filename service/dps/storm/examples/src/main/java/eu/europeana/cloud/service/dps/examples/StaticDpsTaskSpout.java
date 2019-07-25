@@ -32,9 +32,10 @@ import java.util.Map;
  */
 public class StaticDpsTaskSpout extends BaseRichSpout {
 
-    private SpoutOutputCollector collector;
-
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(StaticDpsTaskSpout.class);
+
+    private SpoutOutputCollector collector;
 
     /**
      * The task to be consumed

@@ -35,8 +35,9 @@ import java.util.Map;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationBolt extends BaseRichBolt {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(NotificationBolt.class);
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBolt.class);
+
     protected Map stormConfig;
     protected TopologyContext topologyContext;
     protected OutputCollector outputCollector;

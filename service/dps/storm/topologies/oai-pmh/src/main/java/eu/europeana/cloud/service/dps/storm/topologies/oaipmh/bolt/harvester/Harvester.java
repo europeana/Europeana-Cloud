@@ -18,9 +18,9 @@ import java.io.Serializable;
  * Class harvest record from the external OAI-PMH repository.
  */
 public class Harvester implements Serializable {
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Harvester.class);
     private static final int DEFAULT_RETRIES = 3;
-
 
     /**
      * Harvest record

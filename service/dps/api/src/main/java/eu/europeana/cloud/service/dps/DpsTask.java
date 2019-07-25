@@ -9,7 +9,7 @@ import java.util.*;
 
 @XmlRootElement()
 public class DpsTask implements Serializable {
-
+    private static final long serialVersionUID = 1L;
 
     /* Map of input data:
     cloud-records - InputDataType.FILE_URLS
