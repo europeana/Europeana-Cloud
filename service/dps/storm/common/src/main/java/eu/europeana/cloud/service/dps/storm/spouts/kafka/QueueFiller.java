@@ -25,13 +25,13 @@ public class QueueFiller {
     ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls;
     private static final Logger LOGGER = LoggerFactory.getLogger(QueueFiller.class);
 
-     QueueFiller(TaskStatusChecker taskStatusChecker, SpoutOutputCollector collector, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls) {
+     public QueueFiller(TaskStatusChecker taskStatusChecker, SpoutOutputCollector collector, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls) {
         this.taskStatusChecker = taskStatusChecker;
         this.collector = collector;
         this.tuplesWithFileUrls = tuplesWithFileUrls;
     }
 
-     int addTupleToQueue(StormTaskTuple stormTaskTuple, FileServiceClient fileServiceClient, Representation representation) {
+     public int addTupleToQueue(StormTaskTuple stormTaskTuple, FileServiceClient fileServiceClient, Representation representation) {
         int count = 0;
         final long taskId = stormTaskTuple.getTaskId();
         if (representation != null) {
