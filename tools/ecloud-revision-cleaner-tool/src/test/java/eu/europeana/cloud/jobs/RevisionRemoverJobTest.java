@@ -78,7 +78,7 @@ public class RevisionRemoverJobTest {
         thread.start();
         thread.join();
 
-        verify(revisionServiceClient, times(NUMBER_OF_RESPONSES * NUMBER_OF_REVISIONS)).deleteRevisionFromDataSet(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(revisionServiceClient, times(NUMBER_OF_RESPONSES * NUMBER_OF_REVISIONS)).deleteRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
         verify(recordServiceClient, times(0)).deleteRepresentation(anyString(), anyString(), anyString());
 
     }
@@ -120,7 +120,7 @@ public class RevisionRemoverJobTest {
         thread.start();
         thread.join();
 
-        verify(revisionServiceClient, times(0)).deleteRevisionFromDataSet(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(revisionServiceClient, times(0)).deleteRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
         verify(recordServiceClient, times(NUMBER_OF_RESPONSES)).deleteRepresentation(anyString(), anyString(), anyString());
 
     }

@@ -205,21 +205,20 @@ public interface DataSetService {
     ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, Boolean isDeleted, int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
-
     /**
-     * Remove specific revision from a specific dataSet
+     * Remove a revision
      *
-     * @param dataSetId          data set identifier
-     * @param providerId         provider identifier
+     * @param cloudId            cloud Id
      * @param representationName representation name
+     * @param version            representation version
      * @param revisionName       revision name
-     * @param revisionProvider   revision provider
+     * @param revisionProviderId revision provider
      * @param revisionTimestamp  revision timestamp
      * @throws ProviderNotExistsException
-     * @throws DataSetNotExistsException
+     * @throws RepresentationNotExistsException
      */
-    void deleteRevisionFromDataSet(String dataSetId, String providerId, String revisionName, String revisionProvider, Date revisionTimestamp, String representationName, String version, String cloudId)
-            throws ProviderNotExistsException, DataSetNotExistsException,RepresentationNotExistsException;
+    void deleteRevision(String cloudId, String representationName, String version, String revisionName, String revisionProviderId, Date revisionTimestamp)
+            throws RepresentationNotExistsException;
 
 
     /**

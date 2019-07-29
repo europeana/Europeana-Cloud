@@ -63,6 +63,7 @@ public class CassandraRecordDAO {
     private PreparedStatement getAllVersionsForRevisionNameStatement;
 
     private PreparedStatement removeFileStatement;
+    private PreparedStatement removeRevisionFromRepresentationVersion;
 
     private PreparedStatement removeFileFromRepresentationRevisionsTableStatement;
 
@@ -119,6 +120,12 @@ public class CassandraRecordDAO {
         removeFileStatement = s
                 .prepare("DELETE files[?] FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
         removeFileStatement.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
+
+
+        removeRevisionFromRepresentationVersion = s
+                .prepare("DELETE revisions[?] FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
+        removeRevisionFromRepresentationVersion.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
         removeFileFromRepresentationRevisionsTableStatement = s
@@ -471,6 +478,26 @@ public class CassandraRecordDAO {
                                              String version, String fileName) throws NoHostAvailableException,
             QueryExecutionException {
         BoundStatement boundStatement = removeFileStatement.bind(fileName,
+                cloudId, schema, UUID.fromString(version));
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+    }
+
+
+    /**
+     * Removes revision entry from list of revisions belonging to record representation.
+     *
+     * @param cloudId  record if
+     * @param schema   schema id
+     * @param version  version id
+     * @param revisionIdentifier  revisionIdentifier od revision to be removed from representation
+     * @throws QueryExecutionException  if error occured while executing a query.
+     * @throws NoHostAvailableException if no Cassandra host are available.
+     */
+    public void removeRevisionFromRepresentationVersion(String cloudId, String schema,
+                                             String version, String revisionIdentifier) throws NoHostAvailableException,
+            QueryExecutionException {
+        BoundStatement boundStatement = removeRevisionFromRepresentationVersion.bind(revisionIdentifier,
                 cloudId, schema, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);

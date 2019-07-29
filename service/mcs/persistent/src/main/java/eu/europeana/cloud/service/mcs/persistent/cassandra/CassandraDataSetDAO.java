@@ -1280,7 +1280,10 @@ public class CassandraDataSetDAO {
                     timeStamp, globalId);
             ResultSet rs = connectionProvider.getSession().execute(bs);
             QueryTracer.logConsistencyLevel(bs, rs);
-            decreaseProviderDatasetBuckets(dataSetProviderId, dataSetId, bucketId);
+            if (rs.wasApplied()) {
+                decreaseProviderDatasetBuckets(dataSetProviderId, dataSetId, bucketId);
+                return;
+            }
             bucketId = getNextBucket(dataSetProviderId, dataSetId, bucketId);
         }
     }

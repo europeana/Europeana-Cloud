@@ -4,7 +4,6 @@ import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.junit.Before;
@@ -98,25 +97,19 @@ public class RevisionServiceClientTest {
 
     }
 
-    @Betamax(tape = "revisions/shouldRemoveRevisionFromDataSet")
+    @Betamax(tape = "revisions/shouldRemoveRevision")
     @org.junit.Test
-    public void shouldRemoveRevisionFromDataSet()
+    public void shouldRemoveRevision()
             throws MCSException {
-        instance.deleteRevisionFromDataSet(DATASET, PROVIDER_ID, REVISION_NAME, PROVIDER_ID, "2019-07-11", REPRESENTATION_NAME, VERSION, CLOUD_ID);
+        instance.deleteRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, "2019-07-11");
     }
 
-    @Betamax(tape = "revisions/shouldThrowDataSetDoesNotExistsException")
-    @org.junit.Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowDataSetDoesNotExistsException()
-            throws MCSException {
-        instance.deleteRevisionFromDataSet("WRONG_DATASET", PROVIDER_ID, REVISION_NAME, PROVIDER_ID, "2019-07-11", REPRESENTATION_NAME, VERSION, CLOUD_ID);
-    }
 
     @Betamax(tape = "revisions/shouldThrowDPresentationDoesNotExistsException")
     @org.junit.Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowDPresentationDoesNotExistsException()
             throws MCSException {
-        instance.deleteRevisionFromDataSet(DATASET, PROVIDER_ID, REVISION_NAME, PROVIDER_ID, "2019-07-11", "REP_NOT_FOUND", VERSION, CLOUD_ID);
+        instance.deleteRevision(CLOUD_ID, "REP_NOT_FOUND", VERSION, REVISION_NAME, PROVIDER_ID, "2019-07-11");
     }
 
 

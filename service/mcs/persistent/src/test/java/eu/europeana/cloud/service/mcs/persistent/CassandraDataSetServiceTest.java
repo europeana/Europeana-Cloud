@@ -958,25 +958,12 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertNotNull(responseResultSlice.getResults());
         assertEquals(1, responseResultSlice.getResults().size());
 
-        cassandraDataSetService.deleteRevisionFromDataSet(DATA_SET_NAME, PROVIDER_ID, REVISION, PROVIDER_ID, date, REPRESENTATION,
-                representation.getVersion(), cloudId);
+        cassandraDataSetService.deleteRevision(cloudId, REPRESENTATION, representation.getVersion(), REVISION, PROVIDER_ID, date);
 
         responseResultSlice = cassandraDataSetService.getDataSetsRevisions(ds.getProviderId(), ds.getId(), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representation.getRepresentationName(), null, 100);
         assertNotNull(responseResultSlice.getResults());
         assertEquals(0, responseResultSlice.getResults().size());
 
-    }
-
-    @Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowDatsetNotExistsException() throws Exception {
-        makeUISProviderSuccess();
-        makeUISSuccess();
-        Date date = new Date();
-        String cloudId = "2EEN23VWNXOW7LGLM6SKTDOZUBUOTKEWZ3IULSYEWEMERHISS6XA";
-
-        Representation representation = insertDummyPersistentRepresentation(cloudId, REPRESENTATION, PROVIDER_ID);
-        cassandraDataSetService.deleteRevisionFromDataSet(DATA_SET_NAME, PROVIDER_ID, REVISION, PROVIDER_ID, date, REPRESENTATION,
-                representation.getVersion(), cloudId);
     }
 
     @Test(expected = RepresentationNotExistsException.class)
@@ -988,8 +975,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Date date = new Date();
         String cloudId = "2EEN23VWNXOW7LGLM6SKTDOZUBUOTKEWZ3IULSYEWEMERHISS6XA";
 
-        cassandraDataSetService.deleteRevisionFromDataSet(DATA_SET_NAME, PROVIDER_ID, REVISION, PROVIDER_ID, date, REPRESENTATION,
-                "3d6381c0-a3cf-11e9-960f-fa163e8d4ae3", cloudId);
+        cassandraDataSetService.deleteRevision(cloudId, REPRESENTATION, "3d6381c0-a3cf-11e9-960f-fa163e8d4ae3", REVISION, PROVIDER_ID, date);
+
     }
 
 

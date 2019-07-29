@@ -4,7 +4,7 @@ interactions:
 - recorded: 2019-07-12T10:40:17.772Z
   request:
     method: DELETE
-    uri: http://localhost:8080/mcs/data-providers/test_provider_id/data-sets/DATASET/representations/REP_NOT_FOUND/revisions/test_revision_name/revisionProvider/test_provider_id/records/test_cloud_id/versions/de084210-a393-11e3-8614-50e549e85271?revisionTimestamp=2019-07-11
+    uri: http://localhost:8080/mcs/records/test_cloud_id/representations/REP_NOT_FOUND/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Authorization: Basic YWRtaW46YWRtaW4=

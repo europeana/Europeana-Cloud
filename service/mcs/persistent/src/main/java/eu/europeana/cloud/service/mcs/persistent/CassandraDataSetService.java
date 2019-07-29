@@ -586,22 +586,30 @@ public class CassandraDataSetService implements DataSetService {
         return new ResultSlice<>(nextToken, list);
     }
 
-    @Override
-    public void deleteRevisionFromDataSet(String dataSetId, String providerId, String revisionName, String revisionProvider, Date revisionTimestamp, String representationName,
-                                          String version, String cloudId)
-            throws ProviderNotExistsException, DataSetNotExistsException, RepresentationNotExistsException {
 
-        checkIfDatasetExists(dataSetId, providerId);
+    @Override
+    public void deleteRevision(String cloudId, String representationName, String version, String revisionName, String revisionProviderId, Date revisionTimestamp)
+            throws RepresentationNotExistsException {
+
         checkIfRepresentationExists(representationName, version, cloudId);
 
-        //data_set_assignments_by_revision_id_v1
-        dataSetDAO.removeDataSetsRevision(providerId, dataSetId, revisionName, revisionProvider, revisionTimestamp, representationName, cloudId);
+        Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(cloudId, representationName, version);
+        for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
 
-        //provider_dataset_representation
-        dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, cloudId, representationName, revisionTimestamp);
+            //data_set_assignments_by_revision_id_v1
+            dataSetDAO.removeDataSetsRevision(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), revisionName, revisionProviderId, revisionTimestamp, representationName, cloudId);
 
-        //representation revision
-        recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProvider, revisionName, revisionTimestamp);
+            //provider_dataset_representation
+            dataSetDAO.deleteProviderDatasetRepresentationInfo(compoundDataSetId.getDataSetId(), compoundDataSetId.getDataSetProviderId(), cloudId, representationName, revisionTimestamp);
+
+        }
+
+        //representation revisions
+        recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProviderId, revisionName, revisionTimestamp);
+
+        //representation version
+        recordDAO.removeRevisionFromRepresentationVersion(cloudId, representationName, version, RevisionUtils.getRevisionKey(revisionProviderId, revisionName, revisionTimestamp.getTime()));
+
 
     }
 

@@ -43,9 +43,9 @@ public class RevisionServiceClient extends MCSClient {
     private static final String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
             + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
 
+    private static final String REMOVE_REVISION_PATH = "records/{" + P_CLOUDID + "}/representations/{"
+            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}";
 
-    private static final String DATASET_REVISION = "/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/representations/{" +
-            P_REPRESENTATIONNAME + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}" + "/records/{" + P_CLOUDID + "}/versions/{" + P_VER + "}";
 
     /**
      * Constructs a RevisionServiceClient
@@ -223,22 +223,31 @@ public class RevisionServiceClient extends MCSClient {
     }
 
 
-   public void deleteRevisionFromDataSet(String dataSetId, String providerId, String revisionName, String revisionProvider, String revisionTimestamp, String representationName, String version, String cloudId)
+    /**
+     * Remove a revision
+     *
+     * @param cloudId            cloud Id
+     * @param representationName representation name
+     * @param version            representation version
+     * @param revisionName       revision name
+     * @param revisionProvider   revision provider
+     * @param revisionTimestamp  revision timestamp
+     * @throws RepresentationNotExistsException
+     */
+
+    public void deleteRevision(String cloudId, String representationName, String version, String revisionName, String revisionProvider, String revisionTimestamp)
             throws DriverException, MCSException {
-        WebTarget target = client.target(baseUrl).path(DATASET_REVISION)
-                .resolveTemplate(P_PROVIDER, providerId)
-                .resolveTemplate(P_DATASET, dataSetId)
-                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(P_REVISION_NAME, revisionName)
-                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProvider)
+        WebTarget target = client.target(baseUrl).path(REMOVE_REVISION_PATH)
                 .resolveTemplate(P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_VER, version).queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version)
+                .resolveTemplate(P_REVISION_NAME, revisionName)
+                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProvider).queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
 
         Invocation.Builder request = target.request();
         Response response = null;
         try {
             response = request.delete();
-            System.out.println(response);
             if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);

@@ -2,17 +2,14 @@ package eu.europeana.cloud.service.mcs.rest;
 
 
 import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +25,6 @@ import javax.ws.rs.core.Response;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static junit.framework.TestCase.assertNotNull;
@@ -69,48 +65,9 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     }
 
-
     @After
     public void cleanUp() throws Exception {
         Mockito.reset(uisHandler);
-    }
-
-
-    @Test
-    public void shouldRemoveRevisionSuccessfully() throws Exception {
-        // given
-        String datasetId = "dataset";
-        String providerId = "providerId";
-        String revisionName = "revisionName";
-        String revisionProviderId = "revisionProviderId";
-        String representationName = "representationName";
-        String cloudId = "cloudId";
-        String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-        FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("UTC"));
-        Date date = new Date();
-        String revisionTimeStamp = FORMATTER.format(date);
-
-        Revision revision = new Revision(revisionName, revisionProviderId, date, true, false, false);
-        Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider(providerId));
-        Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
-        Mockito.when(uisHandler.existsCloudId(cloudId)).thenReturn(true);
-        dataSetService.createDataSet(providerId, datasetId, "");
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
-
-        Representation representation = cassandraRecordDAO.createRepresentation(cloudId, representationName, providerId, new Date());
-
-        WebTarget dataSetWebTarget1 = target(DataSetRevisionsResource.class.getAnnotation(Path.class).value()).path("/records/{" + P_CLOUDID + "}/versions/{" + P_VER + "}");
-        // when
-        dataSetWebTarget1 = dataSetWebTarget1
-                .resolveTemplate(P_PROVIDER, providerId)
-                .resolveTemplate(P_DATASET, datasetId)
-                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(P_REVISION_NAME, revisionName)
-                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId)
-                .resolveTemplate(P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_VER, representation.getVersion()).queryParam(F_REVISION_TIMESTAMP, revisionTimeStamp);
-        Response response = dataSetWebTarget1.request().delete();
-        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
     @Test

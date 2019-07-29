@@ -87,8 +87,7 @@ public class RevisionRemoverJob implements Runnable {
         int retries = 2;
         while (true) {
             try {
-                revisionServiceClient.deleteRevisionFromDataSet(revisionInformation.getDataSet(), revisionInformation.getProviderId(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp(),
-                        representation.getRepresentationName(), representation.getVersion(), representation.getCloudId());
+                revisionServiceClient.deleteRevision(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp());
                 break;
             } catch (Exception e) {
                 retries--;
