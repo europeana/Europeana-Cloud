@@ -592,12 +592,14 @@ public class CassandraDataSetService implements DataSetService {
             throws RepresentationNotExistsException {
 
         checkIfRepresentationExists(representationName, version, cloudId);
+        Revision revision = new Revision(revisionName, revisionProviderId);
+        revision.setCreationTimeStamp(revisionTimestamp);
 
         Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(cloudId, representationName, version);
         for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
 
             //data_set_assignments_by_revision_id_v1
-            dataSetDAO.removeDataSetsRevision(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), revisionName, revisionProviderId, revisionTimestamp, representationName, cloudId);
+            dataSetDAO.removeDataSetsRevision(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), revision, representationName, cloudId);
 
             //provider_dataset_representation
             dataSetDAO.deleteProviderDatasetRepresentationInfo(compoundDataSetId.getDataSetId(), compoundDataSetId.getDataSetProviderId(), cloudId, representationName, revisionTimestamp);
@@ -608,7 +610,7 @@ public class CassandraDataSetService implements DataSetService {
         recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProviderId, revisionName, revisionTimestamp);
 
         //representation version
-        recordDAO.removeRevisionFromRepresentationVersion(cloudId, representationName, version, RevisionUtils.getRevisionKey(revisionProviderId, revisionName, revisionTimestamp.getTime()));
+        recordDAO.removeRevisionFromRepresentationVersion(cloudId, representationName, version,revision);
 
 
     }

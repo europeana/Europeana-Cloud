@@ -490,14 +490,14 @@ public class CassandraRecordDAO {
      * @param cloudId  record if
      * @param schema   schema id
      * @param version  version id
-     * @param revisionIdentifier  revisionIdentifier od revision to be removed from representation
+     * @param revision revision to be removed from representation
      * @throws QueryExecutionException  if error occured while executing a query.
      * @throws NoHostAvailableException if no Cassandra host are available.
      */
     public void removeRevisionFromRepresentationVersion(String cloudId, String schema,
-                                             String version, String revisionIdentifier) throws NoHostAvailableException,
+                                                        String version, Revision revision) throws NoHostAvailableException,
             QueryExecutionException {
-        BoundStatement boundStatement = removeRevisionFromRepresentationVersion.bind(revisionIdentifier,
+        BoundStatement boundStatement = removeRevisionFromRepresentationVersion.bind(RevisionUtils.getRevisionKey(revision),
                 cloudId, schema, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -573,12 +573,10 @@ public class CassandraRecordDAO {
     void validateRevision(Revision revision) throws RevisionIsNotValidException {
         if (revision == null) {
             throw new RevisionIsNotValidException("Revision can't be null");
-        }
-        else {
+        } else {
             if (revision.getRevisionProviderId() == null) {
                 throw new RevisionIsNotValidException("Revision should include revisionProviderId");
-            }
-            else if (revision.getRevisionName() == null)
+            } else if (revision.getRevisionName() == null)
                 throw new RevisionIsNotValidException("Revision should include revisionName");
             else if (revision.getCreationTimeStamp() == null)
                 throw new RevisionIsNotValidException("Revision should include creationTimestamp");
@@ -593,11 +591,10 @@ public class CassandraRecordDAO {
         BoundStatement boundStatement;
 
         // bind parameters to statement
-        if (revisionTimestamp != null){
+        if (revisionTimestamp != null) {
             boundStatement = getRepresentationRevisionStatement.bind(
                     cloudId, schema, revisionProviderId, revisionName, revisionTimestamp);
-        }
-        else
+        } else
             boundStatement = getLatestRepresentationRevisionStatement.bind(cloudId, schema, revisionProviderId, revisionName);
 
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
