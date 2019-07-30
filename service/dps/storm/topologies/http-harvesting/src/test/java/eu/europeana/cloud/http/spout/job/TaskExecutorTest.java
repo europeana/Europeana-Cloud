@@ -20,9 +20,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -31,8 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class TaskExecutorTest {
     @Mock(name = "collector")
@@ -304,6 +301,20 @@ public class TaskExecutorTest {
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, tuple,  new DpsTask());
         taskExecutor.execute();
+    }
+
+
+    @Test
+    public void shouldDropTaskInCaseOfException() throws Exception {
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, "UNDEFINED_URL", null, prepareStormTaskTupleParameters(), new Revision());
+
+        TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
+                tuplesWithFileUrls, tuple,  new DpsTask());
+        taskExecutor.call();
+
+        //called twice, once per finally inside TaskExecutor.execute() and the other inside call() catch exception block
+        verify(cassandraTaskInfoDAO, times(2)).dropTask(anyLong(), anyString(), anyString());
     }
 
 
