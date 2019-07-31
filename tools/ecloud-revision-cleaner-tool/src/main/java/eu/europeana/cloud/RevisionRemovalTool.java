@@ -32,7 +32,7 @@ public class RevisionRemovalTool {
     private static DataSetServiceClient dataSetServiceClient;
     private static RecordServiceClient recordServiceClient;
     private static RevisionServiceClient revisionServiceClient;
-    private static String DEFAULT_THREADS_NUMBER = "10";
+    private static final String DEFAULT_THREADS_NUMBER = "10";
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
 
 
@@ -74,12 +74,12 @@ public class RevisionRemovalTool {
     }
 
     private static void initMCSClients(CommandLine cmd) {
-        String mcs_url = cmd.getOptionValue(MCS_URL);
+        String mcsUrl = cmd.getOptionValue(MCS_URL);
         String userName = cmd.getOptionValue(USER_NAME);
         String password = cmd.getOptionValue(PASSWORD);
-        dataSetServiceClient = new DataSetServiceClient(mcs_url, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
-        recordServiceClient = new RecordServiceClient(mcs_url, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
-        revisionServiceClient = new RevisionServiceClient(mcs_url, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
+        dataSetServiceClient = new DataSetServiceClient(mcsUrl, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
+        recordServiceClient = new RecordServiceClient(mcsUrl, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
+        revisionServiceClient = new RevisionServiceClient(mcsUrl, userName, password,DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
 
     }
 
