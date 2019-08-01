@@ -95,7 +95,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
         thumbnailList.add(thumbnail);
 
         AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
-        ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResult(resourceMetadata, thumbnailList);
+        ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
         when(amazonClient.putObject(anyString(), anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(new PutObjectResult());
