@@ -875,6 +875,7 @@ public class CassandraDataSetDAO {
         }
     }
 
+
     public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String nextToken, int limit) {
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         List<Properties> result = new ArrayList<>(limit);
@@ -1262,7 +1263,10 @@ public class CassandraDataSetDAO {
                     timeStamp, globalId);
             ResultSet rs = connectionProvider.getSession().execute(bs);
             QueryTracer.logConsistencyLevel(bs, rs);
-            decreaseProviderDatasetBuckets(dataSetProviderId, dataSetId, bucketId);
+            if (rs.wasApplied()) {
+                decreaseProviderDatasetBuckets(dataSetProviderId, dataSetId, bucketId);
+                return;
+            }
             bucketId = getNextBucket(dataSetProviderId, dataSetId, bucketId);
         }
     }
@@ -1476,6 +1480,19 @@ public class CassandraDataSetDAO {
                 representation.getCloudId(),
                 revision.getRevisionName(),
                 revision.getRevisionProviderId()
+        );
+        ResultSet rs = connectionProvider.getSession().execute(bs);
+        QueryTracer.logConsistencyLevel(bs, rs);
+    }
+
+    public void removeLatestRevisionForDatasetAssignment(DataSet dataSet, Representation representation, String revisionProvider,String revisionName) {
+        BoundStatement bs = removeLatestRevisionForDatasetAssignment.bind(
+                dataSet.getProviderId(),
+                dataSet.getId(),
+                representation.getRepresentationName(),
+                representation.getCloudId(),
+                revisionName,
+               revisionProvider
         );
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);

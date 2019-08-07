@@ -96,8 +96,8 @@ public class DataSetResource {
                                                           @QueryParam(F_START_FROM) String startFrom)
             throws DataSetNotExistsException {
         ResultSlice<Representation> representations = dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
-        for(Representation rep : representations.getResults()){
-            EnrichUriUtil.enrich(uriInfo,rep);
+        for (Representation rep : representations.getResults()) {
+            EnrichUriUtil.enrich(uriInfo, rep);
         }
         return representations;
     }

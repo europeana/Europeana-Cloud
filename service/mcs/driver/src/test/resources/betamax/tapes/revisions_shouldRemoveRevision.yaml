@@ -1,0 +1,23 @@
+!tape
+name: revisions/shouldRemoveRevision
+interactions:
+- recorded: 2019-07-12T10:23:48.064Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.8.0_121)
+  response:
+    status: 204
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Fri, 12 Jul 2019 10:23:47 GMT
+      Expires: '0'
+      Pragma: no-cache
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block

@@ -1,0 +1,9 @@
+"dataSetId","providerId","representationName","revisionName","revisionProviderId","revisionTimestamp"
+8e04054d-4910-4930-a70a-3acee2e0a843,metis_test5,metadataRecord,NORMALIZATION,metis_test5,2019-07-03T09:39:20.479+02:00
+8e04054d-4910-4930-a70a-3acee2e0a843,metis_test5,metadataRecord,PREVIEW,metis_test5,2019-06-27T14:09:32.626+02:00
+07881641-5117-4279-9d39-478737a7ea17,metis_test5,metadataRecord,LINK_CHECKING,metis_test5,2019-07-10T08:57:16.000+02:00
+07881641-5117-4279-9d39-478737a7ea17,metis_test5,metadataRecord,PREVIEW,metis_test5,2019-06-27T10:54:45.766+02:00
+07881641-5117-4279-9d39-478737a7ea17,metis_test5,metadataRecord,HTTP_HARVEST,metis_test5,2019-07-10T09:35:36.961+02:00
+07881641-5117-4279-9d39-478737a7ea17,metis_test5,metadataRecord,LINK_CHECKING,metis_test5,2019-07-10T08:56:29.931+02:00
+07881641-5117-4279-9d39-478737a7ea17,metis_test5,metadataRecord,HTTP_HARVEST,metis_test5,2019-07-10T09:34:23.697+02:00
+07881641-5117-4279-9d39-478737a7ea17,metis_test5,metadataRecord,ENRICHMENT,metis_test5,2019-07-10T09:46:24.786+02:00

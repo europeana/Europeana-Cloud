@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RevisionIsNotValidExceptionMapper;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.JerseyTest;
@@ -29,11 +30,13 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 
@@ -48,6 +51,7 @@ public class RevisionResourceTest extends JerseyTest {
     private Revision revision;
     private WebTarget revisionWebTarget;
     private WebTarget revisionWebTargetWithTag;
+    private WebTarget removeRevisionWebTarget;
     private WebTarget revisionWebTargetWithMultipleTags;
     private static final String PROVIDER_ID = "providerId";
     private static final String TEST_REVESION_NAME = "revisionName";
@@ -89,12 +93,27 @@ public class RevisionResourceTest extends JerseyTest {
                         rep.getVersion(), P_REVISION_NAME,
                         TEST_REVESION_NAME, P_REVISION_PROVIDER_ID,
                         P_REVISION_PROVIDER_ID);
+
         String revisionWithTagPath = "records/{" + P_CLOUDID + "}/representations/{"
                 + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}";
         revisionWebTargetWithTag = target(revisionWithTagPath).resolveTemplates(revisionPathParamsWithTag);
         String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
                 + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
         revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
+
+
+        Map<String, Object> removeRevisionPathParams = ImmutableMap
+                .<String, Object>of(P_CLOUDID,
+                        rep.getCloudId(), P_REPRESENTATIONNAME,
+                        rep.getRepresentationName(), P_VER,
+                        rep.getVersion(), P_REVISION_NAME,
+                        TEST_REVESION_NAME, P_REVISION_PROVIDER_ID,
+                        P_REVISION_PROVIDER_ID);
+        String removeRevisionPath = "records/{" + P_CLOUDID + "}/representations/{"
+                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}";
+        removeRevisionWebTarget = target(removeRevisionPath).resolveTemplates(removeRevisionPathParams);
+
+
     }
 
     @After
@@ -221,8 +240,8 @@ public class RevisionResourceTest extends JerseyTest {
     public void shouldProperlyAddRevisionToDataSets() throws Exception {
         //given
         DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-        dataSetService.addAssignment(dataProvider.getId(),dataSet.getId(),rep.getCloudId(),rep.getRepresentationName
-                (),rep.getVersion());
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName
+                (), rep.getVersion());
 
         //when
         Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revisionForDataProvider));
@@ -230,7 +249,7 @@ public class RevisionResourceTest extends JerseyTest {
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
-        verify(dataSetService,times(1)).addDataSetsRevisions(
+        verify(dataSetService, times(1)).addDataSetsRevisions(
                 dataProvider.getId(),
                 dataSet.getId(),
                 revisionForDataProvider,
@@ -257,4 +276,29 @@ public class RevisionResourceTest extends JerseyTest {
                 rep.getVersion(),
                 revisionForDataProvider);
     }
+
+
+    @Test
+    public void shouldRemoveRevisionSuccessfully() throws Exception {
+        // given
+        String datasetId = "dataset";
+        String providerId = "providerId";
+        String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+        FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("UTC"));
+        Date date = new Date();
+        String revisionTimeStamp = FORMATTER.format(date);
+
+        Revision revision = new Revision(TEST_REVESION_NAME, P_REVISION_PROVIDER_ID, date, true, false, false);
+        Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider(providerId));
+        Mockito.when(uisHandler.existsProvider(P_REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(providerId, datasetId, "");
+        dataSetService.addAssignment(providerId, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, rep.getRepresentationName(), rep.getCloudId());
+
+        Response response = removeRevisionWebTarget.queryParam(F_REVISION_TIMESTAMP, revisionTimeStamp).request().delete();
+
+        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+    }
+
 }

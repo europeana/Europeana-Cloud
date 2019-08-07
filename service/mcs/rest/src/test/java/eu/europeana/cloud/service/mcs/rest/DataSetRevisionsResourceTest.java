@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
@@ -37,9 +38,10 @@ import static org.junit.Assert.assertThat;
  * @author akrystian
  */
 @RunWith(CassandraTestRunner.class)
-public class DataSetRevisionsResourceTest extends JerseyTest{
+public class DataSetRevisionsResourceTest extends JerseyTest {
 
     private DataSetService dataSetService;
+    private CassandraRecordDAO cassandraRecordDAO;
 
     private WebTarget dataSetWebTarget;
 
@@ -48,28 +50,28 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
     private SimpleDateFormat dateFormat;
 
     @Override
-    public Application configure(){
+    public Application configure() {
         return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
     }
 
     @Before
     public void mockUp()
-            throws Exception{
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
+        cassandraRecordDAO = applicationContext.getBean(CassandraRecordDAO.class);
         dataSetWebTarget = target(DataSetRevisionsResource.class.getAnnotation(Path.class).value());
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     }
 
-
     @After
-    public void cleanUp() throws Exception{
+    public void cleanUp() throws Exception {
         Mockito.reset(uisHandler);
     }
 
     @Test
-    public void shouldRetrieveCloudIdBelongToRevision() throws Exception{
+    public void shouldRetrieveCloudIdBelongToRevision() throws Exception {
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
@@ -80,7 +82,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         Revision revision = new Revision(revisionName, revisionProviderId, new Date(), true, false, false);
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
-        dataSetService.createDataSet(providerId, datasetId,"");
+        dataSetService.createDataSet(providerId, datasetId, "");
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
 
         // when
@@ -93,16 +95,17 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_LIMIT, 10);
         Response response = dataSetWebTarget.request().get();
+        System.out.println(response);
 
         //then
-        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
-        assertThat(cloudIds.size(),is(1));
+        assertThat(cloudIds.size(), is(1));
         assertThat(cloudIds.get(0).getCloudId(), is(cloudId));
     }
 
     @Test
-    public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision() throws Exception{
+    public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision() throws Exception {
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
@@ -115,7 +118,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         String cloudId = "cloudId";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
-        dataSetService.createDataSet(providerId, datasetId,"");
+        dataSetService.createDataSet(providerId, datasetId, "");
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
 
         // when
@@ -131,13 +134,13 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         Response response = dataSetWebTarget.request().get();
 
         //then
-        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
-        assertThat(cloudIds.size(),is(0));
+        assertThat(cloudIds.size(), is(0));
     }
 
     @Test
-    public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision2() throws Exception{
+    public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision2() throws Exception {
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
@@ -147,7 +150,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         String revisionTimestamp = "2016-12-02T01:08:28.059";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
-        dataSetService.createDataSet(providerId, datasetId,"");
+        dataSetService.createDataSet(providerId, datasetId, "");
 
         // when
         dataSetWebTarget = dataSetWebTarget.
@@ -161,14 +164,14 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         Response response = dataSetWebTarget.request().get();
 
         //then
-        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
-        assertThat(cloudIds.size(),is(0));
+        assertThat(cloudIds.size(), is(0));
     }
 
 
     @Test
-    public void shouldResultWithNotDefinedStart() throws Exception{
+    public void shouldResultWithNotDefinedStart() throws Exception {
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
@@ -181,7 +184,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         String cloudId3 = "cloudId3";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
-        dataSetService.createDataSet(providerId, datasetId,"");
+        dataSetService.createDataSet(providerId, datasetId, "");
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId2);
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId3);
@@ -198,14 +201,14 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         Response response = dataSetWebTarget.request().get();
 
         //then
-        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
         assertThat(cloudIds.size(), is(1));
         assertThat(cloudIds.get(0).getCloudId(), is(cloudId));
     }
 
     @Test
-    public void shouldRetrieveCloudIdsPageByPage() throws Exception{
+    public void shouldRetrieveCloudIdsPageByPage() throws Exception {
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
@@ -215,7 +218,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
 
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
-        dataSetService.createDataSet(providerId, datasetId,"");
+        dataSetService.createDataSet(providerId, datasetId, "");
 
         Revision revision = new Revision(revisionName, revisionProviderId, new Date(), true, false, false);
         String cloudId = "cloudId";
@@ -237,7 +240,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         Response response = target.request().get();
 
         // then
-        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         ResultSlice<CloudTagsResponse> slice = response.readEntity(ResultSlice.class);
         List<CloudTagsResponse> cloudIds = slice.getResults();
         assertThat(cloudIds.size(), is(1));
@@ -257,7 +260,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         response = target.request().get();
 
         // then
-        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         slice = response.readEntity(ResultSlice.class);
         cloudIds = slice.getResults();
         assertThat(cloudIds.size(), is(1));
@@ -277,7 +280,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         response = target.request().get();
 
         // then
-        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         slice = response.readEntity(ResultSlice.class);
         cloudIds = slice.getResults();
         assertThat(cloudIds.size(), is(1));

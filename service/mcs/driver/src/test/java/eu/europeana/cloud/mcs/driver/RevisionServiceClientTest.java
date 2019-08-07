@@ -5,6 +5,7 @@ import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -23,10 +24,12 @@ public class RevisionServiceClientTest {
 
     private static final String baseUrl = "http://localhost:8080/mcs/";
     private static final String CLOUD_ID = "test_cloud_id";
+    private static final String DATASET = "DATASET";
     private static final String REPRESENTATION_NAME = "test_representation";
     private static final String REVISION_NAME = "test_revision_name";
     private static final String PROVIDER_ID = "test_provider_id";
     private static final String VERSION = "de084210-a393-11e3-8614-50e549e85271";
+
 
     private static final String EXPECTED_REVISIONS_LOCATION = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions";
     private static final String EXPECTED_REVISION_PATH_WITH_ACCEPTED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tag/acceptance";
@@ -92,6 +95,21 @@ public class RevisionServiceClientTest {
         assertNotNull(uri);
         assertEquals(uri.toString(), EXPECTED_REVISION_PATH_MULTIPLE_TAGS);
 
+    }
+
+    @Betamax(tape = "revisions/shouldRemoveRevision")
+    @org.junit.Test
+    public void shouldRemoveRevision()
+            throws MCSException {
+        instance.deleteRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, "2019-07-11");
+    }
+
+
+    @Betamax(tape = "revisions/shouldThrowDPresentationDoesNotExistsException")
+    @org.junit.Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowDPresentationDoesNotExistsException()
+            throws MCSException {
+        instance.deleteRevision(CLOUD_ID, "REP_NOT_FOUND", VERSION, REVISION_NAME, PROVIDER_ID, "2019-07-11");
     }
 
 
