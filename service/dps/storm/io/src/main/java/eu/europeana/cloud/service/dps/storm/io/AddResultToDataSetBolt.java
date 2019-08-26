@@ -38,6 +38,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
+        LOGGER.info("Adding result to dataset");
         final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {

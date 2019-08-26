@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,6 +48,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
+        LOGGER.info("Starting resource processing");
+        long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
@@ -89,7 +92,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
             }
         }
-
+        LOGGER.info("Resource processing finished in: " + (new Date().getTime() - processingStartTime) + "ms");
     }
 
     @Override
