@@ -1485,7 +1485,7 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(bs, rs);
     }
 
-    public void removeLatestRevisionForDatasetAssignment(DataSet dataSet, Representation representation, String revisionProvider,String revisionName) {
+    public void removeLatestRevisionForDatasetAssignment(DataSet dataSet, Representation representation, String revisionProvider, String revisionName) {
         BoundStatement bs = removeLatestRevisionForDatasetAssignment.bind(
                 dataSet.getProviderId(),
                 dataSet.getId(),
