@@ -11,10 +11,12 @@ import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBo
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
-
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
-
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
@@ -128,6 +130,8 @@ public class IndexingBoltTest {
                 new HashMap<String, String>() {
                     {
                         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
+                        DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
+                        put(PluginParameterKeys.METIS_RECORD_DATE, dateFormat.format(new Date()));
                     }
                 }, new Revision());
     }
@@ -135,7 +139,7 @@ public class IndexingBoltTest {
     private void mockIndexerFactoryFor(Class clazz) throws  IndexingException {
         when(indexerPoolWrapper.getIndexerPool(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerPool);
         if (clazz != null) {
-            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.anyBoolean());
+            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean());
         }
     }
 }

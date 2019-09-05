@@ -1,19 +1,22 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
-
 import java.io.Closeable;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
-
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +28,7 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingBolt.class);
 
+    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
     private static final String MISSING_INDEXER_POOL_MESSAGE = "IndexerPool is missing. " +
             "Probably You are trying to use alternative environment that is not defined in properties file.";
 
@@ -34,6 +38,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     private transient IndexerPoolWrapper indexerPoolWrapper;
 
     private Properties indexingProperties;
+
 
     public IndexingBolt(Properties indexingProperties) {
         this.indexingProperties = indexingProperties;
@@ -65,8 +70,18 @@ public class IndexingBolt extends AbstractDpsBolt {
         final String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
         final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
         final String preserveTimestampsString = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
-        LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, preserve timestamps: {}).",
-                database, useAltEnv, preserveTimestampsString);
+        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
+        final Date recordDate;
+        try {
+            recordDate = dateFormat.parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+        } catch (ParseException e) {
+            LOGGER.error("Could not parse RECORD_DATE parameter");
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Could not parse RECORD_DATE parameter", "Error while indexing");
+            return;
+        }
+
+        LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
+                database, useAltEnv, recordDate, preserveTimestampsString);
 
         // Obtain indexer pool.
         final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
@@ -80,7 +95,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         final boolean preserveTimestamps = "true".equalsIgnoreCase(preserveTimestampsString);
         try {
             final String document = new String(stormTaskTuple.getFileData());
-            indexerPool.index(document, preserveTimestamps);
+            indexerPool.index(document, recordDate, preserveTimestamps);
             stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (IndexingException e) {
