@@ -101,5 +101,22 @@ public class HarvesterTest extends WiremockHelper {
         }
     }
 
+    @Test(expected = HarvesterException.class)
+    public void shouldHandleTimeout() throws IOException, HarvesterException {
+        //given
+        stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=mediateka" +
+                "&metadataPrefix=oai_dc"))
+                .willReturn(responsTimeoutMoreThanSocketTimeout(getFileContent("/sampleOaiRecord.xml"))
+                ));
+        final Harvester harvester = new Harvester();
+
+        //when
+        final InputStream result = harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
+                "oai_dc", expr, isDeletedExpression);
+
+        //then
+        //exception expected
+    }
+
 
 }
