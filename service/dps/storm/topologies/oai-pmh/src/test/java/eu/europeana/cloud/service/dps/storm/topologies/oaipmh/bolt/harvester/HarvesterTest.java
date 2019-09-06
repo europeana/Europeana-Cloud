@@ -106,7 +106,7 @@ public class HarvesterTest extends WiremockHelper {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=mediateka" +
                 "&metadataPrefix=oai_dc"))
-                .willReturn(responsTimeoutMoreThanSocketTimeout(getFileContent("/sampleOaiRecord.xml"))
+                .willReturn(responsTimeoutGreaterThanSocketTimeout(getFileContent("/sampleOaiRecord.xml"))
                 ));
         final Harvester harvester = new Harvester();
 
