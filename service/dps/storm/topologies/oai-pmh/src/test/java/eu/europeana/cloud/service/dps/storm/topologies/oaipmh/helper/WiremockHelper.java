@@ -45,7 +45,7 @@ public abstract class WiremockHelper {
         return Object.class.getResourceAsStream(name);
     }
 
-    public static ResponseDefinitionBuilder responsTimeoutMoreThanSocketTimeout(String fileContent) {
+    public static ResponseDefinitionBuilder responsTimeoutGreaterThanSocketTimeout(String fileContent) {
         return  aResponse()
                 .withHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
                 .withStatus(200)
