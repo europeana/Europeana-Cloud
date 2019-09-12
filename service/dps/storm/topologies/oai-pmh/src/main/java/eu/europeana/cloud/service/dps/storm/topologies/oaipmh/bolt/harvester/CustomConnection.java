@@ -22,24 +22,23 @@ import java.util.concurrent.TimeUnit;
 public class CustomConnection {
     private String baseUrl;
     private CloseableHttpClient httpclient;
-    private static final int TIME_TO_LIVE = 60*1000 /* = 1min */;
+    private static final int REQUEST_TIMEOUT = 60*1000 /* = 1min */;
     private static final int CONNECTION_TIMEOUT = 30*1000 /* = 30sec */;
-    public static final int SOCKET_TIMEOUT = 5*60*1000 /* = 5min */;
-    //public static final int SOCKET_TIMEOUT = 10*1000 /* = 10s */ /* rather use this value for testing unless you have too much time... */;
+    public static final int DEFAULT_SOCKET_TIMEOUT = 5*60*1000 /* = 5min */;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomConnection.class);
 
-    public CustomConnection(String baseUrl) {
+    public CustomConnection(String baseUrl, int socketTimeout) {
         this.baseUrl = baseUrl;
 
         RequestConfig rc = RequestConfig.custom()
                 .setConnectTimeout(CONNECTION_TIMEOUT)
-                .setSocketTimeout(SOCKET_TIMEOUT)
+                .setSocketTimeout(socketTimeout)
+                .setConnectionRequestTimeout(REQUEST_TIMEOUT)
                 .build();
 
         this.httpclient = HttpClientBuilder.create()
                 .setDefaultRequestConfig(rc)
-                .setConnectionTimeToLive(TIME_TO_LIVE, TimeUnit.SECONDS)
                 .build();
     }
 

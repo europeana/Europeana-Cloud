@@ -45,11 +45,11 @@ public abstract class WiremockHelper {
         return Object.class.getResourceAsStream(name);
     }
 
-    public static ResponseDefinitionBuilder responsTimeoutGreaterThanSocketTimeout(String fileContent) {
+    public static ResponseDefinitionBuilder responsTimeoutGreaterThanSocketTimeout(String fileContent, int timeout) {
         return  aResponse()
                 .withHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
                 .withStatus(200)
                 .withBody(fileContent)
-                .withFixedDelay((int)(1.1*(double)CustomConnection.SOCKET_TIMEOUT));
+                .withFixedDelay((int)(1.1*(double)timeout));
     }
 }

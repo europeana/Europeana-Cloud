@@ -37,6 +37,8 @@ public class HarvesterTest extends WiremockHelper {
             "/*[local-name()='header']" +
             "/@status)";
 
+    private static final int TEST_SOCKET_TIMEOUT = 10 * 1000; /* = 10sec */
+
     private XPathExpression isDeletedExpression;
     private XPathExpression expr;
 
@@ -106,9 +108,10 @@ public class HarvesterTest extends WiremockHelper {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=mediateka" +
                 "&metadataPrefix=oai_dc"))
-                .willReturn(responsTimeoutGreaterThanSocketTimeout(getFileContent("/sampleOaiRecord.xml"))
+                .willReturn(responsTimeoutGreaterThanSocketTimeout(getFileContent("/sampleOaiRecord.xml"), TEST_SOCKET_TIMEOUT)
                 ));
         final Harvester harvester = new Harvester();
+        harvester.setSocketTimeout(TEST_SOCKET_TIMEOUT);
 
         //when
         final InputStream result = harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
