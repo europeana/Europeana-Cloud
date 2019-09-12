@@ -18,7 +18,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -57,7 +59,7 @@ public class RepresentationRevisionsResource {
             + " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
             + " 'eu.europeana.cloud.common.model.Representation', read" + ") : true")
     @ReturnType("eu.europeana.cloud.common.model.Representation")
-    public Representation getRepresentationRevision(@Context UriInfo uriInfo,
+    public List<Representation> getRepresentationRevision(@Context UriInfo uriInfo,
                                                     @PathParam(P_CLOUDID) String globalId,
                                                     @PathParam(P_REPRESENTATIONNAME) String schema,
                                                     @PathParam(P_REVISION_NAME) String revisionName,
@@ -73,14 +75,22 @@ public class RepresentationRevisionsResource {
             DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
             revisionDate = utc.toDate();
         }
-        RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionDate);
-        Representation representation;
+        List<RepresentationRevisionResponse> info = recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionDate);
+        List<Representation> representations = new ArrayList<>();
         if (info != null) {
-            representation = recordService.getRepresentation(info.getCloudId(), info.getRepresentationName(), info.getVersion());
-            EnrichUriUtil.enrich(uriInfo, representation);
+            for (RepresentationRevisionResponse representationRevisionsResource : info) {
+                Representation representation;
+                representation = recordService.getRepresentation(
+                        representationRevisionsResource.getCloudId(),
+                        representationRevisionsResource.getRepresentationName(),
+                        representationRevisionsResource.getVersion());
+                EnrichUriUtil.enrich(uriInfo, representation);
+                //
+                representations.add(representation);
+            }
         } else
             throw new RepresentationNotExistsException("No representation was found");
 
-        return representation;
+        return representations;
     }
 }
