@@ -76,8 +76,8 @@ public class V19_1__fix_invalid_data implements JavaMigration {
     }
 
     private void swapValues(Session session, Row sourceRow, String providerId, String datasetId, UUID bucketId) {
-        deleteRow(session, providerId, datasetId, bucketId);
         insertRow(session, sourceRow, providerId, datasetId, bucketId);
+        deleteRow(session, providerId, datasetId, bucketId);
     }
 
     private void insertRow(Session session, Row sourceRow, String providerId, String datasetId, UUID bucketId) {
