@@ -2,10 +2,10 @@ package eu.europeana.cloud.mcs.driver;
 
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
+import co.freeside.betamax.TapeMode;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.junit.Ignore;
@@ -924,17 +924,18 @@ public class RecordServiceClientTest {
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
     }
 
-    @Betamax(tape = "records_shouldRetrieveRepresentationByRevision")
+    @Betamax(tape = "records_shouldRetrieveRepresentationByRevision",mode = TapeMode.READ_WRITE)
     @Test
     public void shouldRetrieveRepresentationRevision() throws MCSException {
 
-        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
+        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "metis_test", "1RkZBuVf");
         // retrieve representation by revision
-        Representation representation = instance.getRepresentationByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION1", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
-        assertNotNull(representation);
+        List<Representation> representations = instance.getRepresentationByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION1", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
+        assertNotNull(representations);
+        assertTrue(representations.size() == 1);
         assertEquals("REPRESENTATION1",
-                representation.getRepresentationName());
-        assertEquals("68b4cc30-aa8d-11e8-8289-1c6f653f9042", representation.getVersion());
+                representations.get(0).getRepresentationName());
+        assertEquals("68b4cc30-aa8d-11e8-8289-1c6f653f9042", representations.get(0).getVersion());
     }
 
     @Betamax(tape = "records_shouldThrowRepresentationNotExist")
