@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
@@ -10,7 +9,10 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
@@ -37,6 +39,8 @@ public class RepresentationRevisionsResource {
     @Autowired
     private RecordService recordService;
 
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
 
     /**
      * Returns the representation version which associates cloud identifier, representation name with revision identifier, provider and timestamp.
@@ -54,11 +58,6 @@ public class RepresentationRevisionsResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @PostAuthorize("returnObject.version != null ? hasPermission"
-            + "( "
-            + " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
-            + " 'eu.europeana.cloud.common.model.Representation', read" + ") : true")
-    @ReturnType("eu.europeana.cloud.common.model.Representation")
     public List<Representation> getRepresentationRevision(@Context UriInfo uriInfo,
                                                     @PathParam(P_CLOUDID) String globalId,
                                                     @PathParam(P_REPRESENTATIONNAME) String schema,
@@ -86,11 +85,22 @@ public class RepresentationRevisionsResource {
                         representationRevisionsResource.getVersion());
                 EnrichUriUtil.enrich(uriInfo, representation);
                 //
-                representations.add(representation);
+                if (userHasAccessTo(representation)) {
+                    representations.add(representation);
+                }
             }
         } else
             throw new RepresentationNotExistsException("No representation was found");
 
         return representations;
     }
+
+    private boolean userHasAccessTo(Representation representation){
+        SecurityContext ctx = SecurityContextHolder.getContext();
+        Authentication authentication = ctx.getAuthentication();
+        //
+        String targetId = representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion();
+        return permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
+    }
+
 }
