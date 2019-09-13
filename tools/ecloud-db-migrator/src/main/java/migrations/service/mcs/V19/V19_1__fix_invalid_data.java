@@ -15,75 +15,8 @@ public class V19_1__fix_invalid_data implements JavaMigration {
     private static final int RETRY_SLEEP_TIME = 5000;
     private static final int FETCH_SIZE = 1000;
 
-    /** Current (12.09.2019) set of providers. If this migration will be called in far future, this list should be updated (maybe) */
-    private static final Set<String> AVAILABLE_PROVIDERS;
-    static {
-        AVAILABLE_PROVIDERS = new HashSet<>(Arrays.asList(
-                //Provaiders in the production database
-                "AveroffMuseum",
-                "bakkerijmuseum",
-                "Boutari",
-                "CAG",
-                "COnnectingREpositories",
-                "DianthaOs",
-                "eCyclades",
-                "edoao",
-                "Europeana_Foundation",
-                "GreekWineCellars",
-                "hallwylskamuseet",
-                "Lazaridi",
-                "livrustkammaren",
-                "metis_production",
-                "MyEuropeana user abc1234",
-                "Mylonas",
-                "nagios-health-check",
-                "Nationalmuseum_Sweden",
-                "ola-test",
-                "p2",
-                "Papagianakos",
-                "Provider___ 2017_05_26_16_02_16_1_1",
-                "Provider___ 2017_08_02_08_43_12_1_2",
-                "Provider___ 2017_08_02_08_43_12_2_2",
-                "Provider___ 2017_08_02_08_43_29_1_1",
-                "Provider___ 2017_08_02_08_43_29_1_2",
-                "Provider___ 2017_08_02_08_43_29_2_1",
-                "Provider___ 2017_08_02_08_43_29_2_2",
-                "Provider___ 2017_12_14_08_33_35_1_1",
-                "Provider___ 2017_12_14_08_33_58_1_1",
-                "Provider___ 2017_12_14_08_34_14_1_1",
-                "Provider___ 2017_12_14_08_37_21_1_1",
-                "Provider___ 2017_12_14_08_37_39_1_1",
-                "Provider___ 2017_12_14_08_37_55_1_1",
-                "Provider___ 2017_12_14_08_39_17_1_1",
-                "Provider___ 2017_12_14_08_39_34_1_1",
-                "Provider___ 2017_12_14_08_39_57_1_1",
-                "Provider___ 2017_12_14_08_45_25_1_1",
-                "Provider___ 2017_12_14_08_46_25_1_1",
-                "Provider___ 2017_12_14_08_46_40_1_1",
-                "Provider___ 2017_12_14_08_46_50_1_1",
-                "Provider___ 2017_12_14_08_48_16_1_1",
-                "Provider___ 2017_12_14_08_48_28_1_1",
-                "Provider___ 2017_12_14_08_48_38_1_1",
-                "richard.doe@europeana.eu",
-                "rmca",
-                "skoklostersslott",
-                "Strofilia_1",
-                "The_European_Library",
-                "TheEuropeanLibrary",
-                "Vasileiou",
-                "VUALib",
-                //Provaiders in the test database
-                "prov",
-                "metis_acceptance",
-                "metis_test5",
-                "Arek-TEST-02",
-                "lalal_provider",
-                "Arek_provider",
-                "Arek-01-Test",
-                "prov2",
-                "ola-test1")
-        );
-    }
+    /** The name of metis provider. If this provider will be found in dataset_id column it is necessary to fix this item */
+    private static final String METIS_PROVIDER = "metis_production";
 
     private PreparedStatement datasetSelectValues;
     private PreparedStatement datasetDeleteRow;
@@ -128,7 +61,7 @@ public class V19_1__fix_invalid_data implements JavaMigration {
             String datasetId = row.getString("dataset_id");
             UUID bucketId = row.getUUID("bucket_id");
 
-            if(isRatherProviderId(datasetId)) {
+            if(isRatherProviderId(providerId, datasetId)) {
                 LOG.debug("Fixing item "+formatItemId(providerId, datasetId, bucketId));
                 swapValues(session, row, providerId, datasetId, bucketId);
                 fixedCounter++;
@@ -138,18 +71,18 @@ public class V19_1__fix_invalid_data implements JavaMigration {
                 " Total number of processed items: "+totalCounter+". Fixed items: "+fixedCounter+".");
     }
 
-    private boolean isRatherProviderId(String datasetId) {
-        return AVAILABLE_PROVIDERS.contains(datasetId);
+    private boolean isRatherProviderId(String providerId, String datasetId) {
+        return datasetId.equals(METIS_PROVIDER) && !providerId.equals(METIS_PROVIDER);
     }
 
     private void swapValues(Session session, Row sourceRow, String providerId, String datasetId, UUID bucketId) {
-        insertRow(session, sourceRow, providerId, datasetId, bucketId);
         deleteRow(session, providerId, datasetId, bucketId);
+        insertRow(session, sourceRow, providerId, datasetId, bucketId);
     }
 
     private void insertRow(Session session, Row sourceRow, String providerId, String datasetId, UUID bucketId) {
         BoundStatement datasetInsertRowStatement = datasetInsertRow.bind(
-                /* Here dataset_id and provider_id are swaped */
+                /* Here dataset_id and provider_id are swapped */
                 datasetId,
                 providerId,
 
