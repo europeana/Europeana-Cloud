@@ -106,6 +106,24 @@ public class IndexingBoltTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenDateIsUnParsable() throws IndexingException {
+        //given
+        StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+        tuple.getParameters().remove(PluginParameterKeys.METIS_RECORD_DATE);
+        tuple.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "UN_PARSABLE_DATE");
+        //when
+        indexingBolt.execute(tuple);
+
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
+        Values capturedValues = captor.getValue();
+        Map val = (Map) capturedValues.get(2);
+
+        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
+        Assert.assertTrue(val.get("info_text").toString().contains("Could not parse RECORD_DATE parameter"));
+        Assert.assertTrue(val.get("state").toString().equals("ERROR"));
+    }
+
+    @Test
     public void shouldThrowExceptionForUnknownEnv() throws IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
