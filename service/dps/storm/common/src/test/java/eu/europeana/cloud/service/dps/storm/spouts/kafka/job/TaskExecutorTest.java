@@ -107,7 +107,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldEmitTheFilesWhenNoRevisionIsSpecified() throws Exception {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -115,14 +115,13 @@ public class TaskExecutorTest {
         //when
 
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(representation);
+
         when(dataSetServiceClient.getRepresentationIterator(eq("testDataProvider"), eq("dataSet"))).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -133,7 +132,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldFailWhenReadFileThrowMCSExceptionWhenNoRevisionIsSpecified() throws Exception {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -141,15 +140,14 @@ public class TaskExecutorTest {
         //when
 
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date());
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(representation);
+
         when(dataSetServiceClient.getRepresentationIterator(eq("testDataProvider"), eq("dataSet"))).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -162,7 +160,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldFailPerEachFileWhenReadFileThrowDriverExceptionWhenNoRevisionIsSpecified() throws Exception {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -170,15 +168,14 @@ public class TaskExecutorTest {
         //when
 
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date());
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(representation);
+
         when(dataSetServiceClient.getRepresentationIterator(eq("testDataProvider"), eq("dataSet"))).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
 
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -192,30 +189,26 @@ public class TaskExecutorTest {
     @Test
     public void shouldEmitTheFilesWhenTaskWithSpecificRevision() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         DpsTask dpsTask = getDpsTask();
         //when
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL_FILE2, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>(2);
-        representations.add(firstRepresentation);
-        representations.add(secondRepresentation);
-
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
         ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
         resultSlice.setResults(cloudIdCloudTagsResponses);
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(firstRepresentation));
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(secondRepresentation));
 
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -227,15 +220,13 @@ public class TaskExecutorTest {
     @Test
     public void shouldEmitOnlySampleSizeWhenTaskWithSpecificRevision() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         DpsTask dpsTask = getDpsTask();
         //when
         dpsTask.addParameter(PluginParameterKeys.SAMPLE_SIZE, "65");
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(firstRepresentation);
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList(100);
         ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
@@ -243,11 +234,11 @@ public class TaskExecutorTest {
         resultSlice.setNextSlice(null);
 
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-        when(recordServiceClient.getRepresentationByRevision(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(firstRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(Collections.singletonList(firstRepresentation));
 
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -259,30 +250,26 @@ public class TaskExecutorTest {
     @Test
     public void shouldFailWhenReadFileThrowDriverExceptionWhenSpecificRevisionIsProvided() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         DpsTask dpsTask = getDpsTask();
         //when
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL_FILE2, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>(2);
-        representations.add(firstRepresentation);
-        representations.add(secondRepresentation);
-
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
         ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
         resultSlice.setResults(cloudIdCloudTagsResponses);
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(firstRepresentation));
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(secondRepresentation));
 
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(DriverException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -296,17 +283,13 @@ public class TaskExecutorTest {
     @Test
     public void shouldFailWhenReadFileThrowMCSExceptionWhenSpecificRevisionIsProvided() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         DpsTask dpsTask = getDpsTask();
         //when
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL_FILE2, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>(2);
-        representations.add(firstRepresentation);
-        representations.add(secondRepresentation);
-
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
         ResultSlice<CloudTagsResponse> resultSlice = new ResultSlice<>();
@@ -314,13 +297,13 @@ public class TaskExecutorTest {
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
 
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(firstRepresentation));
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(secondRepresentation));
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -335,7 +318,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldEmitTheFilesWhenTaskWithLatestRevision() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -344,9 +327,6 @@ public class TaskExecutorTest {
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>(2);
-        representations.add(firstRepresentation);
-        representations.add(secondRepresentation);
 
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
         ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
@@ -356,12 +336,12 @@ public class TaskExecutorTest {
 
 
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(firstRepresentation));
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(secondRepresentation));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL));
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL2));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -373,7 +353,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldEmitOnlySampleSizeWhenTaskWithLatestRevision() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -382,8 +362,6 @@ public class TaskExecutorTest {
         dpsTask.addParameter(PluginParameterKeys.SAMPLE_SIZE, "65");
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(firstRepresentation);
 
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date, 100);
         ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
@@ -393,10 +371,10 @@ public class TaskExecutorTest {
 
 
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
-        when(recordServiceClient.getRepresentationByRevision(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(firstRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(Collections.singletonList(firstRepresentation));
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(FILE_URL2));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -407,7 +385,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldFailWhenGettingFileThrowMCSExceptionWhenTaskWithLatestRevision() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -416,9 +394,6 @@ public class TaskExecutorTest {
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        List<Representation> representations = new ArrayList<>(2);
-        representations.add(firstRepresentation);
-        representations.add(secondRepresentation);
 
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
         ResultSlice<CloudIdAndTimestampResponse> resultSlice = new ResultSlice<>();
@@ -426,13 +401,13 @@ public class TaskExecutorTest {
         resultSlice.setNextSlice(null);
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), eq(false), anyString())).thenReturn(resultSlice);
 
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(firstRepresentation));
+        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(Collections.singletonList(secondRepresentation));
 
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
         doThrow(MCSException.class).when(fileServiceClient).getFileUri(eq(SOURCE + CLOUD_ID2), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -446,14 +421,14 @@ public class TaskExecutorTest {
     @Test(expected = MCSException.class)
     public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowMCSException() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
         Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
@@ -462,14 +437,14 @@ public class TaskExecutorTest {
     @Test(expected = MCSException.class)
     public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowMCSException() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         DpsTask dpsTask = getDpsTask();
         //when
 
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
@@ -478,14 +453,14 @@ public class TaskExecutorTest {
     @Test(expected = DriverException.class)
     public void shouldReTry3TimesAndFailWhenGettingLatestRevisionThrowDriverException() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
         Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
         DpsTask dpsTask = prepareDpsTask(dataSets, parametersWithRevision);
         doThrow(DriverException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
@@ -494,14 +469,14 @@ public class TaskExecutorTest {
     @Test(expected = DriverException.class)
     public void shouldReTry3TimesAndFailWhenSpecificRevisionThrowDriverException() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         DpsTask dpsTask = getDpsTask();
         //when
 
         doThrow(DriverException.class).when(dataSetServiceClient).getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt());
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
@@ -510,7 +485,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldStopEmittingFilesWhenTaskIsKilled() throws Exception {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false, false, true);
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -518,14 +493,13 @@ public class TaskExecutorTest {
         //when
 
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(representation);
+
         when(dataSetServiceClient.getRepresentationIterator(eq("testDataProvider"), eq("dataSet"))).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -536,7 +510,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldNotEmitAnyFilesWhenTaskIsKilledBeforeIteratingRepresentation() throws Exception {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(true);
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         //given
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
@@ -544,14 +518,13 @@ public class TaskExecutorTest {
         //when
 
         Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
-        List<Representation> representations = new ArrayList<>(1);
-        representations.add(representation);
+
         when(dataSetServiceClient.getRepresentationIterator(eq("testDataProvider"), eq("dataSet"))).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq("fileName"))).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
@@ -563,7 +536,7 @@ public class TaskExecutorTest {
     @Test
     public void shouldDropTaskInCaseOfException() throws Exception {
         //given
-        when(collector.emit(anyList())).thenReturn(null);
+        when(collector.emit(anyListOf(Object.class))).thenReturn(null);
         List<String> dataSets = new ArrayList<>();
         dataSets.add(DATASET_URL);
         Map<String, String> parametersWithRevision = prepareStormTaskTupleParametersForRevision();
@@ -572,7 +545,7 @@ public class TaskExecutorTest {
 
         doThrow(MCSException.class).when(dataSetServiceClient).getLatestDataSetCloudIdByRepresentationAndRevisionChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), anyString());
 
-        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue(QUEUE_MAX_SIZE);
+        ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
 

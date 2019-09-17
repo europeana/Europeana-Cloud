@@ -28,8 +28,10 @@ public class QueueFillerForLatestRevisionJob extends QueueFillerJobForRevision {
     public int fillTheQueue() throws MCSException {
         int count = 0;
         for (CloudIdAndTimestampResponse cloudIdAndTimestampResponse : cloudIdAndTimestampResponseList) {
-            final Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), cloudIdAndTimestampResponse.getCloudId());
-            count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
+            List<Representation> representations = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, DateHelper.getUTCDateString(cloudIdAndTimestampResponse.getRevisionTimestamp()), cloudIdAndTimestampResponse.getCloudId());
+            for (Representation representation: representations){
+                count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
+            }
         }
         return count;
     }
