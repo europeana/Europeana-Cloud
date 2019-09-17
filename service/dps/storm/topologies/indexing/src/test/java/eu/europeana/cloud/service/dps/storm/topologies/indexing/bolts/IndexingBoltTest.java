@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -11,23 +7,21 @@ import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBo
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Values;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.*;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Values;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+
+import static org.mockito.Mockito.*;
 
 public class IndexingBoltTest {
 
@@ -79,7 +73,7 @@ public class IndexingBoltTest {
 
 
     @Test
-    public void shouldEmitErrorNotificationForIndexerConfiguration() throws  IndexingException {
+    public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
         mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
@@ -95,7 +89,7 @@ public class IndexingBoltTest {
     }
 
     @Test
-    public void shouldEmitErrorNotificationForIndexing() throws  IndexingException {
+    public void shouldEmitErrorNotificationForIndexing() throws IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
         mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
@@ -111,13 +105,21 @@ public class IndexingBoltTest {
 
     }
 
-    @Test(expected = RuntimeException.class)
-    public void shouldThrowExceptionForUnknownEnv() throws  IndexingException {
+    @Test
+    public void shouldThrowExceptionForUnknownEnv() throws IndexingException {
         //given
         StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
         mockIndexerFactoryFor(RuntimeException.class);
         //when
         indexingBolt.execute(tuple);
+
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
+        Values capturedValues = captor.getValue();
+        Map val = (Map) capturedValues.get(2);
+
+        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
+        Assert.assertTrue(val.get("info_text").toString().contains("IndexerPool is missing"));
+        Assert.assertTrue(val.get("state").toString().equals("ERROR"));
     }
 
     private StormTaskTuple mockStormTupleFor(final String targetDatabase) {
@@ -136,7 +138,7 @@ public class IndexingBoltTest {
                 }, new Revision());
     }
 
-    private void mockIndexerFactoryFor(Class clazz) throws  IndexingException {
+    private void mockIndexerFactoryFor(Class clazz) throws IndexingException {
         when(indexerPoolWrapper.getIndexerPool(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerPool);
         if (clazz != null) {
             doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean());

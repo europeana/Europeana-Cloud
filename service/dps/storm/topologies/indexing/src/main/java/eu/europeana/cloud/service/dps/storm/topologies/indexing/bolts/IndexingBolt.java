@@ -9,6 +9,10 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -17,9 +21,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -34,6 +35,8 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private static final int MAX_IDLE_TIME_FOR_INDEXER_IN_SECS = 600;
     private static final int IDLE_TIME_CHECK_INTERVAL_IN_SECS = 60;
+    public static final String PARSE_RECORD_DATE_ERROR_MESSAGE = "Could not parse RECORD_DATE parameter";
+    public static final String INDEXING_FILE_ERROR_MESSAGE = "Unable to index file";
 
     private transient IndexerPoolWrapper indexerPoolWrapper;
 
@@ -51,6 +54,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                     IDLE_TIME_CHECK_INTERVAL_IN_SECS);
         } catch (IndexingException | URISyntaxException e) {
             LOGGER.error("Unable to initialize indexer", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -65,7 +69,6 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-
         // Get variables.
         final String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
         final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
@@ -73,35 +76,26 @@ public class IndexingBolt extends AbstractDpsBolt {
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
         try {
+            final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
             recordDate = dateFormat.parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
-        } catch (ParseException e) {
-            LOGGER.error("Could not parse RECORD_DATE parameter");
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Could not parse RECORD_DATE parameter", "Error while indexing");
-            return;
-        }
-
-        LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
-                database, useAltEnv, recordDate, preserveTimestampsString);
-
-        // Obtain indexer pool.
-        final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
-        if (indexerPool == null) {
-            LOGGER.error(MISSING_INDEXER_POOL_MESSAGE);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), MISSING_INDEXER_POOL_MESSAGE, "Error while indexing");
-            return;
-        }
-
-        // Perform indexing.
-        final boolean preserveTimestamps = "true".equalsIgnoreCase(preserveTimestampsString);
-        try {
             final String document = new String(stormTaskTuple.getFileData());
-            indexerPool.index(document, recordDate, preserveTimestamps);
+            indexerPool.index(document, recordDate, "true".equalsIgnoreCase(preserveTimestampsString));
             stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(stormTaskTuple.toStormTuple());
+            LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
+                    database, useAltEnv, recordDate, preserveTimestampsString);
+        } catch (RuntimeException e) {
+            logAndEmitError(e, MISSING_INDEXER_POOL_MESSAGE, stormTaskTuple);
+        } catch (ParseException e) {
+            logAndEmitError(e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
         } catch (IndexingException e) {
-            LOGGER.error("Unable to index file", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
+            logAndEmitError(e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
         }
+    }
+
+    private void logAndEmitError(Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
+        LOGGER.error(MISSING_INDEXER_POOL_MESSAGE, e);
+        emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage, "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
     }
 
     class IndexerPoolWrapper implements Closeable {
@@ -144,9 +138,9 @@ public class IndexingBolt extends AbstractDpsBolt {
         }
 
         private IndexerPool initIndexerPool(IndexingSettings indexingSettings,
-            long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs) {
+                                            long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs) {
             return new IndexerPool(indexingSettings, maxIdleTimeForIndexerInSecs,
-                idleTimeCheckIntervalInSecs);
+                    idleTimeCheckIntervalInSecs);
         }
 
         IndexerPool getIndexerPool(String altEnv, String database) {
