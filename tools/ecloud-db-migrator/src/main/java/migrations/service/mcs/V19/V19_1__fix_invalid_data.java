@@ -17,6 +17,7 @@ public class V19_1__fix_invalid_data implements JavaMigration {
 
     /** The name of metis provider. If this provider will be found in dataset_id column it is necessary to fix this item */
     private static final String METIS_PROVIDER = "metis_production";
+    private static final String METIS_TEST_PROVIDER = "metis_acceptance";
 
     private PreparedStatement datasetSelectValues;
     private PreparedStatement datasetDeleteRow;
@@ -49,11 +50,15 @@ public class V19_1__fix_invalid_data implements JavaMigration {
         ResultSet resultSet = session.execute(datasetValuesStatement);
         Iterator<Row> iterator = resultSet.iterator();
 
-        int totalCounter = 0;
-        int fixedCounter = 0;
+        long totalCounter = 0;
+        long fixedCounter = 0;
 
         while(iterator.hasNext()) {
             totalCounter++;
+
+            if(totalCounter % 100000 == 0) {
+                LOG.info("V19_1__fix_invalid_data is working; totalCounter = "+totalCounter);
+            }
 
             Row row = iterator.next();
 
@@ -72,7 +77,8 @@ public class V19_1__fix_invalid_data implements JavaMigration {
     }
 
     private boolean isRatherProviderId(String providerId, String datasetId) {
-        return datasetId.equals(METIS_PROVIDER) && !providerId.equals(METIS_PROVIDER);
+        return (datasetId.equals(METIS_PROVIDER) && !providerId.equals(METIS_PROVIDER)) ||
+                (datasetId.equals(METIS_TEST_PROVIDER) && !providerId.equals(METIS_TEST_PROVIDER));
     }
 
     private void swapValues(Session session, Row sourceRow, String providerId, String datasetId, UUID bucketId) {
