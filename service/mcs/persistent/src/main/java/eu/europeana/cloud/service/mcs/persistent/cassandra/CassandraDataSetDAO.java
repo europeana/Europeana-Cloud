@@ -1377,7 +1377,7 @@ public class CassandraDataSetDAO {
         connectionProvider.getSession().execute(insertStatement);
     }
 
-    private void insertRow(String dataSetId, String dataSetProviderId, Bucket bucket, String cloudId,
+    private void insertRow(String dataSetProviderId, String dataSetId, Bucket bucket, String cloudId,
                            String schema, String revisionName, String revisionProvider, Date timestamp, String versionId,
                            boolean acceptance, boolean published, boolean deleted) {
 
@@ -1492,7 +1492,7 @@ public class CassandraDataSetDAO {
                 representation.getRepresentationName(),
                 representation.getCloudId(),
                 revisionName,
-               revisionProvider
+                revisionProvider
         );
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);
