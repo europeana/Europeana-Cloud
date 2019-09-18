@@ -2,7 +2,6 @@ package eu.europeana.cloud.mcs.driver;
 
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
-import co.freeside.betamax.TapeMode;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -924,13 +923,13 @@ public class RecordServiceClientTest {
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
     }
 
-    @Betamax(tape = "records_shouldRetrieveRepresentationByRevision",mode = TapeMode.READ_WRITE)
+    @Betamax(tape = "records_shouldRetrieveRepresentationByRevision")
     @Test
     public void shouldRetrieveRepresentationRevision() throws MCSException {
 
         RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "metis_test", "1RkZBuVf");
         // retrieve representation by revision
-        List<Representation> representations = instance.getRepresentationByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION1", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
+        List<Representation> representations = instance.getRepresentationsByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION1", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
         assertNotNull(representations);
         assertTrue(representations.size() == 1);
         assertEquals("REPRESENTATION1",
@@ -943,7 +942,7 @@ public class RecordServiceClientTest {
     public void shouldThrowRepresentationNotExists() throws MCSException {
 
         RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
-        instance.getRepresentationByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION2", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
+        instance.getRepresentationsByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION2", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
 
     }
 }

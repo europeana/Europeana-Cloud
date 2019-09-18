@@ -583,7 +583,7 @@ public class CassandraRecordDAO {
         }
     }
 
-    public List<RepresentationRevisionResponse> getRepresentationRevision(String cloudId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
+    public List<RepresentationRevisionResponse> getRepresentationRevisions(String cloudId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
         // check parameters, none can be null
         if (cloudId == null || schema == null || revisionProviderId == null || revisionName == null) {
             throw new IllegalArgumentException("Parameters cannot be null");

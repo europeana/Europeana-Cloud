@@ -58,12 +58,12 @@ public class RepresentationRevisionsResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public List<Representation> getRepresentationRevision(@Context UriInfo uriInfo,
-                                                    @PathParam(P_CLOUDID) String globalId,
-                                                    @PathParam(P_REPRESENTATIONNAME) String schema,
-                                                    @PathParam(P_REVISION_NAME) String revisionName,
-                                                    @QueryParam(F_REVISION_PROVIDER_ID) String revisionProviderId,
-                                                    @QueryParam(F_REVISION_TIMESTAMP) String revisionTimestamp) throws RepresentationNotExistsException {
+    public List<Representation> getRepresentationRevisions(@Context UriInfo uriInfo,
+                                                           @PathParam(P_CLOUDID) String globalId,
+                                                           @PathParam(P_REPRESENTATIONNAME) String schema,
+                                                           @PathParam(P_REVISION_NAME) String revisionName,
+                                                           @QueryParam(F_REVISION_PROVIDER_ID) String revisionProviderId,
+                                                           @QueryParam(F_REVISION_TIMESTAMP) String revisionTimestamp) throws RepresentationNotExistsException {
         if (revisionProviderId == null) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorInfo("OTHER", F_REVISION_PROVIDER_ID + " parameter cannot be empty."))
@@ -74,7 +74,7 @@ public class RepresentationRevisionsResource {
             DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
             revisionDate = utc.toDate();
         }
-        List<RepresentationRevisionResponse> info = recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionDate);
+        List<RepresentationRevisionResponse> info = recordService.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, revisionDate);
         List<Representation> representations = new ArrayList<>();
         if (info != null) {
             for (RepresentationRevisionResponse representationRevisionsResource : info) {

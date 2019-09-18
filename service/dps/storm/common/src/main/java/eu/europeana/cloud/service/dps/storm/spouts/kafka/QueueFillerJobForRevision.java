@@ -47,7 +47,7 @@ public abstract class QueueFillerJobForRevision extends QueueFiller implements C
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
-                return recordServiceClient.getRepresentationByRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
+                return recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting representation revision. Retries Left{} ", retries);
