@@ -9,13 +9,13 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.task.InitialActionsExecutorFactory;
-import eu.europeana.cloud.service.dps.task.TaskInitialActionsExecutor;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -93,6 +93,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget errorsReportWebTarget;
     private WebTarget validationStatisticsReportWebTarget;
     private WebTarget elementReportWebTarget;
+    private WebTarget cleanDatasetWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -101,7 +102,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private FilesCounterFactory filesCounterFactory;
     private FilesCounter filesCounter;
     private KafkaSubmitService kafkaSubmitService;
-    private InitialActionsExecutorFactory initialActionsExecutorFactory;
     private TaskExecutionReportService reportService;
     private TaskExecutionKillService killService;
     private ValidationStatisticsReportService validationStatisticsService;
@@ -130,13 +130,12 @@ public class TopologyTasksResourceTest extends JerseyTest {
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         kafkaSubmitService = applicationContext.getBean(KafkaSubmitService.class);
-        initialActionsExecutorFactory = applicationContext.getBean(InitialActionsExecutorFactory.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
+        cleanDatasetWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/cleaner");
         errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
         validationStatisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
-
         elementReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/element");
         killTaskWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/kill");
     }
@@ -945,6 +944,35 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
 
+    @Test
+    public void shouldProperlyHandleCleaningRequest() throws MCSException, TaskSubmissionException, InterruptedException {
+        DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
+        mockSecurity(INDEXING_TOPOLOGY);
+        WebTarget enrichedWebTarget = cleanDatasetWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, INDEXING_TOPOLOGY).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+        Response response = enrichedWebTarget.request().post(Entity.entity(dataSetCleanerParameters, MediaType.APPLICATION_JSON_TYPE));
+        assertNotNull(response);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+    }
+
+    @Test
+    public void shouldThrowAccessDeniedWithNoCredentials() throws MCSException, TaskSubmissionException, InterruptedException {
+        DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
+        WebTarget enrichedWebTarget = cleanDatasetWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, INDEXING_TOPOLOGY).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+        Response response = enrichedWebTarget.request().post(Entity.entity(dataSetCleanerParameters, MediaType.APPLICATION_JSON_TYPE));
+        assertNotNull(response);
+        assertThat(response.getStatus(), is(Response.Status.METHOD_NOT_ALLOWED.getStatusCode()));
+
+    }
+
+    private DataSetCleanerParameters prepareDataSetCleanerParameters() {
+        DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters();
+        dataSetCleanerParameters.setCleaningDate(new Date());
+        dataSetCleanerParameters.setDataSetId("DATASET_ID");
+        dataSetCleanerParameters.setIsUsingALtEnv("true");
+        dataSetCleanerParameters.setTargetIndexingEnv(TargetIndexingDatabase.PREVIEW.toString());
+        return dataSetCleanerParameters;
+    }
 
 
     private TaskErrorsInfo createDummyErrorsInfo(boolean specific) {
@@ -1023,6 +1051,12 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
     private void prepareMocks(String topologyName) throws MCSException, TaskSubmissionException {
         //Mock security
+        mockSecurity(topologyName);
+        mockECloudClients();
+
+    }
+
+    private void mockSecurity(String topologyName) {
         HashMap<String, String> user = new HashMap<>();
         user.put(topologyName, "Smith");
         MutableAcl mutableAcl = mock(MutableAcl.class);
@@ -1033,6 +1067,9 @@ public class TopologyTasksResourceTest extends JerseyTest {
         doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class));
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
+    }
+
+    private void mockECloudClients() throws TaskSubmissionException, MCSException {
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
         when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
@@ -1040,13 +1077,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(eu.europeana.cloud.common.model.Permission.class));
-        when(initialActionsExecutorFactory.get(any(DpsTask.class), anyString())).thenReturn(new TaskInitialActionsExecutor() {
-
-            @Override
-            public void execute() {
-
-            }
-        });
     }
 
 }

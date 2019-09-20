@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -46,6 +47,7 @@ public class DpsClient {
     private static final String KILL_TASK = "kill";
 
     private static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
+    private static final String TASK_CLEAN_DATASET_URL = TASK_URL + "/cleaner";
     private static final String DETAILED_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/details";
     private static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
     private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
@@ -108,6 +110,31 @@ public class DpsClient {
         } finally {
             closeResponse(resp);
         }
+    }
+
+
+    /**
+     * clean METIS indexing dataset.
+     */
+    public void cleanMetisIndexingDataset(String topologyName, long taskId, DataSetCleanerParameters dataSetCleanerParameters) throws DpsException {
+
+        Response resp = null;
+        try {
+            resp = client.target(dpsUrl)
+                    .path(TASK_CLEAN_DATASET_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                    .resolveTemplate(TASK_ID, taskId)
+                    .request()
+                    .post(Entity.json(dataSetCleanerParameters));
+
+            if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
+                LOGGER.error("Submit Task Was not successful");
+                throw handleException(resp);
+            }
+        } finally {
+            closeResponse(resp);
+        }
+
     }
 
     private long getTaskId(URI uri) {
@@ -273,7 +300,7 @@ public class DpsClient {
         }
     }
 
-    public boolean checkIfErrorReportExists(final String topologyName, final long taskId){
+    public boolean checkIfErrorReportExists(final String topologyName, final long taskId) {
 
         Response response = null;
 
