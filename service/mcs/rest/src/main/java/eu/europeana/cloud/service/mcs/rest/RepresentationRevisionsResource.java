@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
@@ -58,6 +59,7 @@ public class RepresentationRevisionsResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ReturnType("java.util.List<eu.europeana.cloud.common.model.Representation>")
     public List<Representation> getRepresentationRevisions(@Context UriInfo uriInfo,
                                                            @PathParam(P_CLOUDID) String globalId,
                                                            @PathParam(P_REPRESENTATIONNAME) String schema,

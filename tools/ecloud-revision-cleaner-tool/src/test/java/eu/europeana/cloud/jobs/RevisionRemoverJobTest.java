@@ -16,10 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.junit.Assert.assertEquals;
@@ -72,8 +69,8 @@ public class RevisionRemoverJobTest {
         ResultSlice<CloudTagsResponse> resultSlice = getCloudTagsResponseResultSlice(NUMBER_OF_RESPONSES);
 
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(representation);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(representation);
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
         Thread thread = new Thread(revisionRemoverJob);
         thread.start();
         thread.join();
@@ -114,8 +111,8 @@ public class RevisionRemoverJobTest {
         ResultSlice<CloudTagsResponse> resultSlice = getCloudTagsResponseResultSlice(NUMBER_OF_RESPONSES);
 
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(representation);
-        when(recordServiceClient.getRepresentationByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(representation);
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
         Thread thread = new Thread(revisionRemoverJob);
         thread.start();
         thread.join();

@@ -927,7 +927,7 @@ public class RecordServiceClientTest {
     @Test
     public void shouldRetrieveRepresentationRevision() throws MCSException {
 
-        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "metis_test", "1RkZBuVf");
+        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
         // retrieve representation by revision
         List<Representation> representations = instance.getRepresentationsByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION1", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
         assertNotNull(representations);
