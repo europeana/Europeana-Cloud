@@ -241,19 +241,14 @@ public class TopologyTasksResource {
                         LOGGER.info("dataset{} cleaned successfully", cleanerParameters.getDataSetId());
                         taskDAO.setTaskStatus(Long.parseLong(taskId), TaskState.PROCESSED.toString());
                     } else {
-                        taskDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.ERROR_WHILE_REMOVING_FROM_SOLR_AND_MONGO.toString());
+                        taskDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.DROPPED.toString());
                     }
                 } catch (ParseException e) {
                     LOGGER.error("Dataset was not removed correctly. ", e);
-                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.ERROR_WHILE_REMOVING_FROM_SOLR_AND_MONGO.toString());
-                    Response response = Response.serverError().build();
-                    asyncResponse.resume(response);
-
+                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
                 } catch (DatasetCleaningException e) {
                     LOGGER.error("Dataset was not removed correctly. ", e);
-                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.ERROR_WHILE_REMOVING_FROM_SOLR_AND_MONGO.toString());
-                    Response response = Response.serverError().build();
-                    asyncResponse.resume(response);
+                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
                 }
             }
         }).start();
