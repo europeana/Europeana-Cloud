@@ -467,14 +467,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertSuccessfulRequest(response, OAI_TOPOLOGY);
     }
 
-    private void assertSuccessfulRequest(Response response, String topologyName) throws InterruptedException {
-        assertNotNull(response);
-        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-        Thread.sleep(5000);
-        verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
-        verifyNoMoreInteractions(kafkaSubmitService);
-    }
-
 
     @Test
     public void shouldThrowExceptionWhenMissingRequiredProviderId() throws MCSException, TaskSubmissionException {
@@ -952,7 +944,9 @@ public class TopologyTasksResourceTest extends JerseyTest {
         Response response = enrichedWebTarget.request().post(Entity.entity(dataSetCleanerParameters, MediaType.APPLICATION_JSON_TYPE));
         assertNotNull(response);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-
+        Thread.sleep(1000);
+        verify(taskDAO, times(1)).setTaskStatus(eq(TASK_ID), eq(TaskState.PROCESSED.toString()));
+        verifyNoMoreInteractions(taskDAO);
     }
 
     @Test
@@ -963,6 +957,27 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertNotNull(response);
         assertThat(response.getStatus(), is(Response.Status.METHOD_NOT_ALLOWED.getStatusCode()));
 
+    }
+
+    @Test
+    public void shouldDropTaskWhenCleanerParametersAreNull() throws MCSException, TaskSubmissionException, InterruptedException {
+        mockSecurity(INDEXING_TOPOLOGY);
+        WebTarget enrichedWebTarget = cleanDatasetWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, INDEXING_TOPOLOGY).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+        Response response = enrichedWebTarget.request().post(null);
+        assertNotNull(response);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Thread.sleep(1000);
+        verify(taskDAO, times(1)).dropTask(eq(TASK_ID), eq("cleaner parameters can not be null"), eq(TaskState.DROPPED.toString()));
+        verifyNoMoreInteractions(taskDAO);
+
+    }
+
+    private void assertSuccessfulRequest(Response response, String topologyName) throws InterruptedException {
+        assertNotNull(response);
+        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        Thread.sleep(5000);
+        verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
+        verifyNoMoreInteractions(kafkaSubmitService);
     }
 
     private DataSetCleanerParameters prepareDataSetCleanerParameters() {
