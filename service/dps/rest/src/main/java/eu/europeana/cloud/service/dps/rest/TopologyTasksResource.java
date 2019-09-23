@@ -236,8 +236,8 @@ public class TopologyTasksResource {
                     asyncResponse.resume("The request was received successfully");
                     if (cleanerParameters != null) {
                         LOGGER.info("cleaning dataset {} based on date: {}", cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
-                        DatasetCleaner indexingTaskInitialActionsExecutor = new DatasetCleaner(cleanerParameters);
-                        indexingTaskInitialActionsExecutor.execute();
+                        DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
+                        datasetCleaner.execute();
                         LOGGER.info("dataset{} cleaned successfully", cleanerParameters.getDataSetId());
                         taskDAO.setTaskStatus(Long.parseLong(taskId), TaskState.PROCESSED.toString());
                     } else {

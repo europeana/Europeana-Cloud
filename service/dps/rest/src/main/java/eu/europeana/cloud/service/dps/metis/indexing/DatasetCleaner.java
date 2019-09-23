@@ -58,21 +58,21 @@ public class DatasetCleaner {
         LOGGER.debug("Preparing IndexerFactory for removing datasets from Solr and Mongo");
         //
         final String altEnv = cleanerParameters.getIsUsingALtEnv();
-        final String database = cleanerParameters.getTargetIndexingEnv();
+        final String targetIndexingEnv= cleanerParameters.getTargetIndexingEnv();
         //
         IndexingSettings indexingSettings = null;
         try {
             if (altEnv != null && altEnv.equalsIgnoreCase("true")) {
                 IndexingSettingsGenerator s1 = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
+                if (TargetIndexingDatabase.PREVIEW.toString().equals(targetIndexingEnv))
                     indexingSettings = s1.generateForPreview();
-                else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
+                else if (TargetIndexingDatabase.PUBLISH.toString().equals(targetIndexingEnv))
                     indexingSettings = s1.generateForPublish();
             } else {
                 IndexingSettingsGenerator s2 = new IndexingSettingsGenerator(properties);
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
+                if (TargetIndexingDatabase.PREVIEW.toString().equals(targetIndexingEnv))
                     indexingSettings = s2.generateForPreview();
-                else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
+                else if (TargetIndexingDatabase.PUBLISH.toString().equals(targetIndexingEnv))
                     indexingSettings = s2.generateForPublish();
             }
         } catch (Exception e) {
