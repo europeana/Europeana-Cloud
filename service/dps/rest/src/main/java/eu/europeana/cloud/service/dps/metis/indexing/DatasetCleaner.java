@@ -57,12 +57,12 @@ public class DatasetCleaner {
     private void prepareIndexerFactory() {
         LOGGER.debug("Preparing IndexerFactory for removing datasets from Solr and Mongo");
         //
-        final String altEnv = cleanerParameters.getIsUsingALtEnv();
-        final String targetIndexingEnv= cleanerParameters.getTargetIndexingEnv();
+        boolean altEnv = cleanerParameters.getIsUsingALtEnv();
+        final String targetIndexingEnv = cleanerParameters.getTargetIndexingEnv();
         //
         IndexingSettings indexingSettings = null;
         try {
-            if (altEnv != null && altEnv.equalsIgnoreCase("true")) {
+            if (true == altEnv) {
                 IndexingSettingsGenerator s1 = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(targetIndexingEnv))
                     indexingSettings = s1.generateForPreview();

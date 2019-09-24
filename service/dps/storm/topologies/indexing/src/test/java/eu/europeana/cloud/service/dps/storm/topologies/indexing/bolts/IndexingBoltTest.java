@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
+import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
 import eu.europeana.indexing.IndexerPool;
@@ -16,11 +18,10 @@ import org.mockito.*;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 public class IndexingBoltTest {
@@ -34,8 +35,11 @@ public class IndexingBoltTest {
     @Mock
     private IndexerPool indexerPool;
 
+    @Mock
+    private Properties indexingProperties;
+
     @InjectMocks
-    private IndexingBolt indexingBolt = new IndexingBolt(null);
+    private IndexingBolt indexingBolt = new IndexingBolt(indexingProperties);
 
     @Before
     public void init() {
@@ -48,27 +52,43 @@ public class IndexingBoltTest {
     @Test
     public void shouldIndexFileForPreviewEnv() throws Exception {
         //given
-        StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+        String targetIndexingEnv = "PREVIEW";
+        StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
         mockIndexerFactoryFor(null);
         //when
         indexingBolt.execute(tuple);
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
-        Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
+        assertEquals(7, capturedValues.size());
+        assertEquals("sampleResourceUrl", capturedValues.get(2));
+        Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+        assertEquals(4, parameters.size());
+        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
+        assertFalse(dataSetCleanerParameters.getIsUsingALtEnv());
+        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
     public void shouldIndexFilePublishEnv() throws Exception {
         //given
-        StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
+        String targetIndexingEnv = "PUBLISH";
+        StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
         mockIndexerFactoryFor(null);
         //when
         indexingBolt.execute(tuple);
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
+
+
         Values capturedValues = captor.getValue();
-        Assert.assertEquals("sampleResourceUrl", capturedValues.get(2));
+        assertEquals(7, capturedValues.size());
+        assertEquals("sampleResourceUrl", capturedValues.get(2));
+        Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+        assertEquals(4, parameters.size());
+        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
+        assertFalse(dataSetCleanerParameters.getIsUsingALtEnv());
+        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
 
@@ -84,7 +104,7 @@ public class IndexingBoltTest {
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
-        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
+        assertEquals("sampleResourceUrl", val.get("resource"));
         Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
     }
 
@@ -100,7 +120,7 @@ public class IndexingBoltTest {
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
-        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
+        assertEquals("sampleResourceUrl", val.get("resource"));
         Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
 
     }
@@ -118,7 +138,7 @@ public class IndexingBoltTest {
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
-        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
+        assertEquals("sampleResourceUrl", val.get("resource"));
         Assert.assertTrue(val.get("info_text").toString().contains("Could not parse RECORD_DATE parameter"));
         Assert.assertTrue(val.get("state").toString().equals("ERROR"));
     }
@@ -135,7 +155,7 @@ public class IndexingBoltTest {
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
-        Assert.assertEquals("sampleResourceUrl", val.get("resource"));
+        assertEquals("sampleResourceUrl", val.get("resource"));
         Assert.assertTrue(val.get("info_text").toString().contains("IndexerPool is missing"));
         Assert.assertTrue(val.get("state").toString().equals("ERROR"));
     }

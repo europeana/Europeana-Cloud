@@ -79,7 +79,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dropTask.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
-        setStatus = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        setStatus = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO +" =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         setStatus.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
@@ -110,9 +110,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
 
-    public void setTaskStatus(long taskId, String state)
+    public void setTaskStatus(long taskId, String info, String state)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(setStatus.bind(state, taskId));
+        dbService.getSession().execute(setStatus.bind(state, info, taskId));
     }
 
     public void dropTask(long taskId, String info, String state)

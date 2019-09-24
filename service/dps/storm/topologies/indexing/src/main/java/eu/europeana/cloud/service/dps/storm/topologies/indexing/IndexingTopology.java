@@ -2,9 +2,10 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.IndexingNotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
@@ -62,12 +63,12 @@ public class IndexingTopology {
                 .setNumTasks(getAnInt(INDEXING_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(REVISION_WRITER_BOLT, new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE),
+        builder.setBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE),
                 getAnInt(REVISION_WRITER_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(INDEXING_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+        builder.setBolt(NOTIFICATION_BOLT, new IndexingNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         getAnInt(CASSANDRA_PORT),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),

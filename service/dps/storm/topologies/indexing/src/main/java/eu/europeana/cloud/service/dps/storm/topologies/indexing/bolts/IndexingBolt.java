@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
+import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
@@ -71,8 +73,10 @@ public class IndexingBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         // Get variables.
         final String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
+        final String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
         final String preserveTimestampsString = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
+        String dpsURL = indexingProperties.getProperty("DPS_URL");
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
         try {
@@ -80,7 +84,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             recordDate = dateFormat.parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
             final String document = new String(stormTaskTuple.getFileData());
             indexerPool.index(document, recordDate, "true".equalsIgnoreCase(preserveTimestampsString));
-            stormTaskTuple.setFileData((byte[]) null);
+            prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate, dpsURL);
             outputCollector.emit(stormTaskTuple.toStormTuple());
             LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
                     database, useAltEnv, recordDate, preserveTimestampsString);
@@ -93,9 +97,24 @@ public class IndexingBolt extends AbstractDpsBolt {
         }
     }
 
+    private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId, String database, Date recordDate, String dpsURL) {
+        stormTaskTuple.setFileData((byte[]) null);
+        DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters(datasetId, getBooleanFromString(useAltEnv), database, recordDate);
+        stormTaskTuple.addParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS, new Gson().toJson(dataSetCleanerParameters));
+        stormTaskTuple.addParameter(PluginParameterKeys.DPS_URL, dpsURL);
+
+    }
+
     private void logAndEmitError(Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
         LOGGER.error(MISSING_INDEXER_POOL_MESSAGE, e);
         emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage, "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
+    }
+
+    private boolean getBooleanFromString(String altEnv) {
+        if (altEnv != null && altEnv.equalsIgnoreCase("true"))
+            return true;
+        return false;
+
     }
 
     class IndexerPoolWrapper implements Closeable {
@@ -144,7 +163,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         }
 
         IndexerPool getIndexerPool(String altEnv, String database) {
-            if (altEnv != null && altEnv.equalsIgnoreCase("true")) {
+            if (getBooleanFromString(altEnv)) {
                 if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
                     return indexerPoolForPreviewDbInAnotherEnv;
                 else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))

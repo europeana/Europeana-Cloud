@@ -4,6 +4,7 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.common.model.dps.InformationTypes;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -70,6 +71,20 @@ public class NotificationTuple {
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
         parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATIONS, additionalInformations);
         parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
+        return new NotificationTuple(taskId, InformationTypes.NOTIFICATION, parameters);
+    }
+
+
+    public static NotificationTuple prepareIndexingNotification(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL, String resource,
+                                                                States state, String text, String additionalInformations, String resultResource) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(NotificationParameterKeys.RESOURCE, resource);
+        parameters.put(NotificationParameterKeys.STATE, state.toString());
+        parameters.put(NotificationParameterKeys.INFO_TEXT, text);
+        parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATIONS, additionalInformations);
+        parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
+        parameters.put(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS, dataSetCleanerParameters);
+        parameters.put(NotificationParameterKeys.DPS_URL, dpsURL);
         return new NotificationTuple(taskId, InformationTypes.NOTIFICATION, parameters);
     }
 

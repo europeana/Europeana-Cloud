@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
@@ -150,6 +151,13 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitSuccessNotification(long taskId, String resource,
                                            String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.SUCCESS, message, additionalInformation, resultResource);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
+    protected void emitSuccessNotificationForIndexing(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL, String resource,
+                                                      String message, String additionalInformation, String resultResource) {
+        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,
                 resource, States.SUCCESS, message, additionalInformation, resultResource);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }

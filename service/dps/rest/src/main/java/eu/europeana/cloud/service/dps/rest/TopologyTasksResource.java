@@ -239,7 +239,7 @@ public class TopologyTasksResource {
                         DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
                         datasetCleaner.execute();
                         LOGGER.info("dataset{} cleaned successfully", cleanerParameters.getDataSetId());
-                        taskDAO.setTaskStatus(Long.parseLong(taskId), TaskState.PROCESSED.toString());
+                        taskDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
                     } else {
                         taskDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.DROPPED.toString());
                     }

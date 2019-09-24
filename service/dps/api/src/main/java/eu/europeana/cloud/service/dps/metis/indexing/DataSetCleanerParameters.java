@@ -10,9 +10,17 @@ public class DataSetCleanerParameters {
     private static final long serialVersionUID = 123456789L;
 
     private String dataSetId;
-    private String isUsingALtEnv;
+    private boolean isUsingALtEnv;
     private String targetIndexingEnv;
     private Date cleaningDate;
+
+    public DataSetCleanerParameters(String dataSetId, boolean isUsingALtEnv, String targetIndexingEnv, Date cleaningDate) {
+        this.dataSetId = dataSetId;
+        this.isUsingALtEnv = isUsingALtEnv;
+        this.targetIndexingEnv = targetIndexingEnv;
+        this.cleaningDate = cleaningDate;
+    }
+
 
     public DataSetCleanerParameters() {
     }
@@ -25,11 +33,11 @@ public class DataSetCleanerParameters {
         this.dataSetId = dataSetId;
     }
 
-    public String getIsUsingALtEnv() {
+    public boolean getIsUsingALtEnv() {
         return isUsingALtEnv;
     }
 
-    public void setIsUsingALtEnv(String isUsingALtEnv) {
+    public void setIsUsingALtEnv(boolean isUsingALtEnv) {
         this.isUsingALtEnv = isUsingALtEnv;
     }
 
@@ -60,7 +68,7 @@ public class DataSetCleanerParameters {
         DataSetCleanerParameters cleanerParameters = (DataSetCleanerParameters) o;
 
         return Objects.equal(dataSetId, cleanerParameters.dataSetId) &&
-                Objects.equal(isUsingALtEnv, cleanerParameters.isUsingALtEnv) &&
+                isUsingALtEnv == cleanerParameters.isUsingALtEnv &&
                 Objects.equal(targetIndexingEnv, cleanerParameters.targetIndexingEnv) &&
                 Objects.equal(cleaningDate, cleanerParameters.cleaningDate);
     }

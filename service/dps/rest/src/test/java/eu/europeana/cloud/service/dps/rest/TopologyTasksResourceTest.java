@@ -945,7 +945,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertNotNull(response);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         Thread.sleep(1000);
-        verify(taskDAO, times(1)).setTaskStatus(eq(TASK_ID), eq(TaskState.PROCESSED.toString()));
+        verify(taskDAO, times(1)).setTaskStatus(eq(TASK_ID), eq("Completely process"), eq(TaskState.PROCESSED.toString()));
         verifyNoMoreInteractions(taskDAO);
     }
 
@@ -984,7 +984,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters();
         dataSetCleanerParameters.setCleaningDate(new Date());
         dataSetCleanerParameters.setDataSetId("DATASET_ID");
-        dataSetCleanerParameters.setIsUsingALtEnv("true");
+        dataSetCleanerParameters.setIsUsingALtEnv(true);
         dataSetCleanerParameters.setTargetIndexingEnv(TargetIndexingDatabase.PREVIEW.toString());
         return dataSetCleanerParameters;
     }
