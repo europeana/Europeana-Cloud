@@ -76,7 +76,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         final String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
         final String preserveTimestampsString = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
-        String dpsURL = indexingProperties.getProperty("DPS_URL");
+        String dpsURL = indexingProperties.getProperty(PluginParameterKeys.DPS_URL);
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
         try {
@@ -106,7 +106,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private void logAndEmitError(Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
-        LOGGER.error(MISSING_INDEXER_POOL_MESSAGE, e);
+        LOGGER.error(errorMessage, e);
         emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage, "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
     }
 

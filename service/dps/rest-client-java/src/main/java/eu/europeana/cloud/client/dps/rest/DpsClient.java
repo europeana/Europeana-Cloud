@@ -154,7 +154,7 @@ public class DpsClient {
                     .post(Entity.json(dataSetCleanerParameters));
 
             if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
-                LOGGER.error("Submit Task Was not successful");
+                LOGGER.error("Cleaning a dataset was not successful");
                 throw handleException(resp);
             }
         } finally {
@@ -179,7 +179,7 @@ public class DpsClient {
                     .post(Entity.json(dataSetCleanerParameters));
 
             if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
-                LOGGER.error("Submit Task Was not successful");
+                LOGGER.error("Cleaning a dataset was not successful");
                 throw handleException(resp);
             }
         } finally {
