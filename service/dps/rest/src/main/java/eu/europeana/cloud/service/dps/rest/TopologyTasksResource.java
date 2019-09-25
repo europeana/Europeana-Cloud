@@ -238,7 +238,7 @@ public class TopologyTasksResource {
                         LOGGER.info("cleaning dataset {} based on date: {}", cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
                         DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
                         datasetCleaner.execute();
-                        LOGGER.info("dataset {} cleaned successfully", cleanerParameters.getDataSetId());
+                        LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
                         taskDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
                     } else {
                         taskDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.DROPPED.toString());

@@ -32,9 +32,6 @@ public class IndexingBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingBolt.class);
 
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-    private static final String MISSING_INDEXER_POOL_MESSAGE = "IndexerPool is missing. " +
-            "Probably You are trying to use alternative environment that is not defined in properties file.";
-
     private static final int MAX_IDLE_TIME_FOR_INDEXER_IN_SECS = 600;
     private static final int IDLE_TIME_CHECK_INTERVAL_IN_SECS = 60;
     public static final String PARSE_RECORD_DATE_ERROR_MESSAGE = "Could not parse RECORD_DATE parameter";
@@ -89,7 +86,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
                     database, useAltEnv, recordDate, preserveTimestampsString);
         } catch (RuntimeException e) {
-            logAndEmitError(e, MISSING_INDEXER_POOL_MESSAGE, stormTaskTuple);
+            logAndEmitError(e, e.getMessage(), stormTaskTuple);
         } catch (ParseException e) {
             logAndEmitError(e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
         } catch (IndexingException e) {
