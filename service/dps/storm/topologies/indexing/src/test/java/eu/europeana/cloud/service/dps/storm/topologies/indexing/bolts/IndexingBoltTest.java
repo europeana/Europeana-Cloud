@@ -156,7 +156,6 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         assertEquals("sampleResourceUrl", val.get("resource"));
-        Assert.assertTrue(val.get("info_text").toString().contains("IndexerPool is missing"));
         Assert.assertTrue(val.get("state").toString().equals("ERROR"));
     }
 
