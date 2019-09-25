@@ -31,7 +31,7 @@ public class IndexingNotificationBolt extends NotificationBolt {
             LOGGER.info("DataSet {} will be sent to be cleaned", dataSetCleanerParameters.getDataSetId());
             dpsClient.cleanMetisIndexingDataset("indexer", taskId, dataSetCleanerParameters,
                     AUTHORIZATION, notificationTuple.getParameter(NotificationParameterKeys.AUTHORIZATION_HEADER).toString());
-            LOGGER.info("DataSet {} will is sent to be cleaned and the task is finished successfully from within Storm", dataSetCleanerParameters.getDataSetId());
+            LOGGER.info("DataSet {} is sent to be cleaned and the task is finished successfully from within Storm", dataSetCleanerParameters.getDataSetId());
         } catch (Exception e) {
             LOGGER.error("An error happened while ending the task ", e);
             taskInfoDAO.dropTask(taskId, e.getMessage(), TaskState.DROPPED.toString());
