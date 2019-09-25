@@ -29,7 +29,7 @@ public class IndexingNotificationBolt extends NotificationBolt {
             dpsClient = new DpsClient(notificationTuple.getParameter(NotificationParameterKeys.DPS_URL).toString());
             DataSetCleanerParameters dataSetCleanerParameters = (DataSetCleanerParameters) notificationTuple.getParameter(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS);
             LOGGER.info("DataSet {} will be sent to be cleaned", dataSetCleanerParameters.getDataSetId());
-            dpsClient.cleanMetisIndexingDataset("indexing_topology", taskId, dataSetCleanerParameters,
+            dpsClient.cleanMetisIndexingDataset("indexer", taskId, dataSetCleanerParameters,
                     AUTHORIZATION, notificationTuple.getParameter(NotificationParameterKeys.AUTHORIZATION_HEADER).toString());
             LOGGER.info("DataSet {} will is sent to be cleaned and the task is finished successfully from within Storm", dataSetCleanerParameters.getDataSetId());
         } catch (Exception e) {
