@@ -28,7 +28,8 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
             addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
             emitSuccessNotificationForIndexing(stormTaskTuple.getTaskId(), new Gson().fromJson(stormTaskTuple.getParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class),
                     stormTaskTuple.getParameter(PluginParameterKeys.DPS_URL),
-                    stormTaskTuple.getFileUrl(), successNotificationMessage, "", "");
+                    stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER),
+            stormTaskTuple.getFileUrl(), successNotificationMessage, "", "");
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause());

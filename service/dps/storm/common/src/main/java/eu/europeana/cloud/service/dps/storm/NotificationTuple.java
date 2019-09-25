@@ -75,8 +75,9 @@ public class NotificationTuple {
     }
 
 
-    public static NotificationTuple prepareIndexingNotification(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL, String resource,
-                                                                States state, String text, String additionalInformations, String resultResource) {
+    public static NotificationTuple prepareIndexingNotification(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,
+                                                                String authenticationHeader, String resource, States state, String text,
+                                                                String additionalInformations, String resultResource) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
@@ -85,6 +86,7 @@ public class NotificationTuple {
         parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
         parameters.put(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS, dataSetCleanerParameters);
         parameters.put(NotificationParameterKeys.DPS_URL, dpsURL);
+        parameters.put(NotificationParameterKeys.AUTHORIZATION_HEADER, authenticationHeader);
         return new NotificationTuple(taskId, InformationTypes.NOTIFICATION, parameters);
     }
 

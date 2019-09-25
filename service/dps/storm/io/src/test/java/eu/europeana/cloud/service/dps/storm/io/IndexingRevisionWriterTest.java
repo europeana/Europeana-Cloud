@@ -61,6 +61,7 @@ public class IndexingRevisionWriterTest {
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
         assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
         assertNotNull(parameters.get(NotificationParameterKeys.DPS_URL));
+        assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
 
     }
 
@@ -80,6 +81,7 @@ public class IndexingRevisionWriterTest {
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
         assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
         assertNotNull(parameters.get(NotificationParameterKeys.DPS_URL));
+        assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
     }
 
     @Test
@@ -138,6 +140,7 @@ public class IndexingRevisionWriterTest {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS, new Gson().toJson(prepareDataSetCleanerParameters()));
         parameters.put(PluginParameterKeys.DPS_URL, "DPS_URL");
+        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         return parameters;
     }
 
