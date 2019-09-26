@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
  */
 
 public class ParseFileBoltTest {
+    private static final long serialVersionUID = 1L;
 
     private static final String AUTHORIZATION = "Authorization";
     private static final String FILE_URL = "FILE_URL";

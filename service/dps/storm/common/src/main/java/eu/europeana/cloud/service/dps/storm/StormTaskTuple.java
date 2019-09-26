@@ -22,6 +22,7 @@ import java.util.Map;
  * @author manos
  */
 public class StormTaskTuple implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private String fileUrl;
     private byte[] fileData;
@@ -85,10 +86,8 @@ public class StormTaskTuple implements Serializable {
     }
 
     public void setFileData(InputStream is) throws IOException {
-        ByteArrayOutputStream tempByteArrayOutputStream = null;
-        try {
+        try(ByteArrayOutputStream tempByteArrayOutputStream = new ByteArrayOutputStream()) {
             if (is != null) {
-                tempByteArrayOutputStream = new ByteArrayOutputStream();
                 byte[] buffer = new byte[BATCH_MAX_SIZE];
                 IOUtils.copyLarge(is, tempByteArrayOutputStream, buffer);
                 this.fileData = tempByteArrayOutputStream.toByteArray();
@@ -96,11 +95,9 @@ public class StormTaskTuple implements Serializable {
                 this.fileData = null;
             }
         } finally {
+            //NOTE: is should be closed outside setFileData method or this method should named setFileDataAndClose
             if (is != null) {
                 is.close();
-            }
-            if (tempByteArrayOutputStream != null) {
-                tempByteArrayOutputStream.close();
             }
         }
     }

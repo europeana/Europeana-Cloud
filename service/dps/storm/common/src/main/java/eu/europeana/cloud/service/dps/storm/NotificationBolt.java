@@ -35,8 +35,9 @@ import java.util.Map;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationBolt extends BaseRichBolt {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(NotificationBolt.class);
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBolt.class);
+
     protected Map stormConfig;
     protected TopologyContext topologyContext;
     protected OutputCollector outputCollector;
@@ -46,12 +47,12 @@ public class NotificationBolt extends BaseRichBolt {
     private final String keyspaceName;
     private final String userName;
     private final String password;
-    private static LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
+    protected static LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
             50);
 
     private String topologyName;
     private static CassandraConnectionProvider cassandraConnectionProvider;
-    private static CassandraTaskInfoDAO taskInfoDAO;
+    protected static CassandraTaskInfoDAO taskInfoDAO;
     private static CassandraSubTaskInfoDAO subTaskInfoDAO;
     private static CassandraTaskErrorsDAO taskErrorDAO;
     private static final int PROCESSED_INTERVAL = 100;
@@ -112,7 +113,7 @@ public class NotificationBolt extends BaseRichBolt {
                 break;
             case NOTIFICATION:
                 notifyTask(notificationTuple, nCache, taskId);
-                storeFinishState(notificationTuple.getTaskId());
+                storeFinishState(notificationTuple);
                 break;
         }
     }
@@ -260,16 +261,21 @@ public class NotificationBolt extends BaseRichBolt {
         return date;
     }
 
-    private void storeFinishState(long taskId) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+    private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+        long taskId = notificationTuple.getTaskId();
         TaskInfo task = taskInfoDAO.searchById(taskId);
         if (task != null) {
             NotificationCache nCache = cache.get(taskId);
             int count = nCache.getProcessed();
             int expectedSize = task.getExpectedSize();
             if (count == expectedSize) {
-                taskInfoDAO.endTask(taskId, count, nCache.getErrors(), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+                endTask(notificationTuple, nCache.getErrors(), count);
             }
         }
+    }
+
+    protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
+        taskInfoDAO.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
@@ -305,7 +311,7 @@ public class NotificationBolt extends BaseRichBolt {
         cache.clear();
     }
 
-    private static class NotificationCache {
+    protected static class NotificationCache {
 
         int processed = 0;
         int errors = 0;

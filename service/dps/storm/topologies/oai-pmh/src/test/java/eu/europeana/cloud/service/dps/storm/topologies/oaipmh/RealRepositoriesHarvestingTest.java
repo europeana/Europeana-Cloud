@@ -149,7 +149,7 @@ public class RealRepositoriesHarvestingTest {
             throws OAIRequestException {
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
         while (true) {
-            CustomConnection client = new CustomConnection(oaiPmhEndpoint);
+            CustomConnection client = new CustomConnection(oaiPmhEndpoint, CustomConnection.DEFAULT_SOCKET_TIMEOUT);
             return client.execute(org.dspace.xoai.serviceprovider.parameters.Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
         }
     }

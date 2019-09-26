@@ -17,6 +17,8 @@ import java.util.Date;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Revision implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String revisionName;
     private String revisionProviderId;
 

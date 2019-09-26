@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>1.5.1</version>
+        <version>1.6.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -75,6 +75,13 @@
             <artifactId>ecloud-service-dps-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-rest-client-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -210,7 +217,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
-            <version>1.5.1</version>
+            <version>1.6.0</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

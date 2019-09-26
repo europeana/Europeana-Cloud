@@ -20,7 +20,7 @@ import java.util.Properties;
  * Created by Tarek on 12/5/2017.
  */
 public class ValidationBolt extends AbstractDpsBolt {
-
+    private static final long serialVersionUID = 1L;
     public static final Logger LOGGER = LoggerFactory.getLogger(ValidationBolt.class);
     private static final String XSLT_SORTER_FILE_NAME = "edm_sorter.xsl";
 

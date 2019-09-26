@@ -23,7 +23,6 @@ public class V18_1__copy_data_from_replica implements JavaMigration {
     public static final int THREADS = 25;
     private PreparedStatement selectDistinctPartitionKeysStatement;
 
-
     private void initStatements(Session session) {
         selectDistinctPartitionKeysStatement = session.prepare("SELECT DISTINCT provider_id,dataset_id FROM latest_provider_dataset_rep_rev_replica");
         selectDistinctPartitionKeysStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);

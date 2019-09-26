@@ -13,9 +13,9 @@ import org.apache.storm.utils.Utils;
 import java.util.Map;
 
 public class TestSpout extends BaseRichSpout {
+    private static final long serialVersionUID = 1L;
 
     private SpoutOutputCollector collector;
-
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {

@@ -29,7 +29,6 @@ import static org.mockito.Mockito.*;
  */
 public class QueueFillerTest {
 
-
     @Mock(name = "collector")
     private SpoutOutputCollector collector;
 

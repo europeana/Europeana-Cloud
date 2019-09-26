@@ -47,14 +47,15 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
  * Created by Tarek on 4/27/2018.
  */
 public class HttpKafkaSpout extends CustomKafkaSpout {
-
-    private SpoutOutputCollector collector;
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpKafkaSpout.class);
 
     private static final int BATCH_MAX_SIZE = 1240 * 4;
     private static final String CLOUD_SEPARATOR = "_";
     private static final String MAC_TEMP_FOLDER = "__MACOSX";
     private static final String MAC_TEMP_FILE = ".DS_Store";
+
+    private SpoutOutputCollector collector;
 
     TaskDownloader taskDownloader;
 
@@ -220,21 +221,16 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         private File downloadFile(String httpURL) throws IOException {
             URL url = new URL(httpURL);
             URLConnection conn = url.openConnection();
-            InputStream inputStream = conn.getInputStream();
-            OutputStream outputStream = null;
-            try {
-                String tempFileName = UUID.randomUUID().toString();
-                String folderPath = Files.createTempDirectory(tempFileName) + File.separator;
-                File file = new File(folderPath + FilenameUtils.getName(httpURL));
-                outputStream = new FileOutputStream(file.toPath().toString());
-                byte[] buffer = new byte[BATCH_MAX_SIZE];
+
+            String tempFileName = UUID.randomUUID().toString();
+            String folderPath = Files.createTempDirectory(tempFileName) + File.separator;
+            File file = new File(folderPath + FilenameUtils.getName(httpURL));
+            byte[] buffer = new byte[BATCH_MAX_SIZE];
+
+            try (InputStream inputStream = conn.getInputStream();
+                 OutputStream outputStream = new FileOutputStream(file.toPath().toString())) {
                 IOUtils.copyLarge(inputStream, outputStream, buffer);
                 return file;
-            } finally {
-                if (outputStream != null)
-                    outputStream.close();
-                if (inputStream != null)
-                    inputStream.close();
             }
         }
 
@@ -257,7 +253,6 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                         String readableFileName = filePath.substring(start.toString().length() + 1).replaceAll("\\\\", "/");
                         try {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
-                            expectedSize.set(expectedSize.incrementAndGet());
                         } catch (IOException | EuropeanaIdException e) {
                             LOGGER.error(e.getMessage());
                             emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
@@ -265,6 +260,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                             LOGGER.error(e.getMessage());
                             emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
                             Thread.currentThread().interrupt();
+                        }
+                        finally {
+                            expectedSize.set(expectedSize.incrementAndGet());
                         }
                     }
                     return FileVisitResult.CONTINUE;
@@ -290,11 +288,8 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         }
 
         private void prepareTuple(StormTaskTuple stormTaskTuple, String filePath, String readableFilePath, String mimeType, boolean useDefaultIdentifiers, String datasetId) throws IOException, InterruptedException, EuropeanaIdException {
-            FileInputStream fileInputStream = null;
-            try {
+            try (FileInputStream fileInputStream = new FileInputStream(new File(filePath));) {
                 StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-                File file = new File(filePath);
-                fileInputStream = new FileInputStream(file);
                 tuple.setFileData(fileInputStream);
                 tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, mimeType);
 
@@ -309,9 +304,6 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, localId);
                 tuple.setFileUrl(readableFilePath);
                 tuplesWithFileUrls.put(tuple);
-            } finally {
-                if (fileInputStream != null)
-                    fileInputStream.close();
             }
         }
 

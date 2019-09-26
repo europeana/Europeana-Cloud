@@ -37,6 +37,8 @@ public class HarvesterTest extends WiremockHelper {
             "/*[local-name()='header']" +
             "/@status)";
 
+    private static final int TEST_SOCKET_TIMEOUT = 10 * 1000; /* = 10sec */
+
     private XPathExpression isDeletedExpression;
     private XPathExpression expr;
 
@@ -99,6 +101,24 @@ public class HarvesterTest extends WiremockHelper {
             //then
             assertThat(e.getMessage(), is("Problem with harvesting record oai:mediateka.centrumzamenhofa.pl:19 for endpoint http://localhost:8181/oai-phm/ because of: Error querying service. Returned HTTP Status Code: 404"));
         }
+    }
+
+    @Test(expected = HarvesterException.class)
+    public void shouldHandleTimeout() throws IOException, HarvesterException {
+        //given
+        stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=mediateka" +
+                "&metadataPrefix=oai_dc"))
+                .willReturn(responsTimeoutGreaterThanSocketTimeout(getFileContent("/sampleOaiRecord.xml"), TEST_SOCKET_TIMEOUT)
+                ));
+        final Harvester harvester = new Harvester();
+        harvester.setSocketTimeout(TEST_SOCKET_TIMEOUT);
+
+        //when
+        final InputStream result = harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
+                "oai_dc", expr, isDeletedExpression);
+
+        //then
+        //exception expected
     }
 
 

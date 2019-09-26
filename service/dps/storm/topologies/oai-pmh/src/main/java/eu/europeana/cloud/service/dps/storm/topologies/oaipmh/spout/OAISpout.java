@@ -22,15 +22,17 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
 /**
  * Created by Tarek on 4/30/2018.
  */
 public class OAISpout extends CustomKafkaSpout {
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
 
     private SpoutOutputCollector collector;
-    private static final Logger LOGGER = LoggerFactory.getLogger(OAISpout.class);
     private TaskDownloader taskDownloader;
 
     public OAISpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
@@ -55,6 +57,7 @@ public class OAISpout extends CustomKafkaSpout {
             super.nextTuple();
             stormTaskTuple = taskDownloader.getTupleWithOAIIdentifier();
             if (stormTaskTuple != null) {
+                LOGGER.info("Emitting: " + stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
                 collector.emit(stormTaskTuple.toStormTuple());
             }
         } catch (Exception e) {

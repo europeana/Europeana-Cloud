@@ -17,17 +17,13 @@ public class ImageConverterUtil {
     }
 
     public static String persistStreamToTemporaryStorage(ByteArrayInputStream inputStream, String fileName, String extension) throws IOException, RuntimeException {
-        OutputStream outputStream = null;
-        String folderPath = null;
-        try {
-            folderPath = Files.createTempDirectory(fileName) + File.separator;
-            File file = new File(folderPath + fileName + extension);
-            outputStream = new FileOutputStream(file.toPath().toString());
+        String folderPath = Files.createTempDirectory(fileName) + File.separator;
+        File file = new File(folderPath + fileName + extension);
+
+        try(OutputStream outputStream = new FileOutputStream(file.toPath().toString())) {
             byte[] buffer = new byte[BATCH_MAX_SIZE];
             IOUtils.copyLarge(inputStream, outputStream, buffer);
         } finally {
-            if (outputStream != null)
-                outputStream.close();
             inputStream.close();
         }
         return folderPath;

@@ -18,9 +18,10 @@ import java.io.Serializable;
  * Class harvest record from the external OAI-PMH repository.
  */
 public class Harvester implements Serializable {
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Harvester.class);
     private static final int DEFAULT_RETRIES = 3;
-
+    private int socketTimeout = CustomConnection.DEFAULT_SOCKET_TIMEOUT;
 
     /**
      * Harvest record
@@ -40,7 +41,7 @@ public class Harvester implements Serializable {
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
         int retries = DEFAULT_RETRIES;
         while (true) {
-            CustomConnection client = new CustomConnection(oaiPmhEndpoint);
+            CustomConnection client = new CustomConnection(oaiPmhEndpoint, socketTimeout);
             try {
                 String record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
                 XmlXPath xmlXPath = new XmlXPath(record);
@@ -64,6 +65,17 @@ public class Harvester implements Serializable {
                 }
             }
         }
+    }
+
+    /**
+     * Set the socket timeout (maximum time for entire request with fetching data)
+     * Method dedicated for unit test. It allows decrease this value in test environment.
+     * Default value is {@link CustomConnection#DEFAULT_SOCKET_TIMEOUT}
+     *
+     * @param socketTimeout New value for socket timeout
+     */
+    public void setSocketTimeout(int socketTimeout) {
+        this.socketTimeout = socketTimeout;
     }
 }
 

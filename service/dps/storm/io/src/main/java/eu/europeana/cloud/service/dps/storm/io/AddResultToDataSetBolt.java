@@ -21,14 +21,14 @@ import java.util.List;
  *
  */
 public class AddResultToDataSetBolt extends AbstractDpsBolt {
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
 
     private String ecloudMcsAddress;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
     private DataSetServiceClient dataSetServiceClient;
 
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-
     }
 
     @Override
@@ -38,6 +38,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
+        LOGGER.info("Adding result to dataset");
         final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {

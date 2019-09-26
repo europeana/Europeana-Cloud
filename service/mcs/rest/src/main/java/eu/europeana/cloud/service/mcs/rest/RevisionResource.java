@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import jersey.repackaged.com.google.common.collect.Sets;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,6 +189,44 @@ public class RevisionResource {
             revision.setDeleted(true);
         }
         return revision;
+    }
+
+
+    /**
+     * Remove a revision
+     *
+     * @param cloudId            cloud Id
+     * @param representationName representation name
+     * @param version            representation version
+     * @param revisionName       revision name
+     * @param revisionProviderId revision provider
+     * @param revisionTimestamp  revision timestamp
+     * @throws ProviderNotExistsException
+     * @throws RepresentationNotExistsException
+     */
+
+
+    @DELETE
+    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}")
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
+            + " 'eu.europeana.cloud.common.model.Representation', read)")
+    public void deleteRevision(
+            @PathParam(P_CLOUDID) String cloudId,
+            @PathParam(P_REPRESENTATIONNAME) String representationName,
+            @PathParam(P_VER) String version,
+            @PathParam(P_REVISION_NAME) String revisionName,
+            @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
+            @QueryParam(F_REVISION_TIMESTAMP) String revisionTimestamp
+
+    )
+            throws RepresentationNotExistsException
+
+    {
+        if (revisionTimestamp == null) {
+            throw new WebApplicationException("Revision timestamp parameter cannot be null");
+        }
+        DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
+        dataSetService.deleteRevision(cloudId, representationName, version, revisionName, revisionProviderId, timestamp.toDate());
     }
 
 }

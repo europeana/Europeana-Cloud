@@ -16,6 +16,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
@@ -24,8 +25,9 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDE
  * Storm bolt for harvesting single record from OAI endpoint.
  */
 public class RecordHarvestingBolt extends AbstractDpsBolt {
-    private Harvester harvester;
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordHarvestingBolt.class);
+
     private static final String METADATA_XPATH = "/*[local-name()='OAI-PMH']" +
             "/*[local-name()='GetRecord']" +
             "/*[local-name()='record']" +
@@ -37,6 +39,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
             "/*[local-name()='record']" +
             "/*[local-name()='header']" +
             "/@status)";
+
+    private Harvester harvester;
 
     private XPathExpression expr;
     private XPathExpression isDeletedExpression;
@@ -55,6 +59,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
      */
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
+        long harvestingStartTime = new Date().getTime();
+        LOGGER.info("Starting harvesting for: " + stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         String endpointLocation = readEndpointLocation(stormTaskTuple);
         String recordId = readRecordId(stormTaskTuple);
         String metadataPrefix = readMetadataPrefix(stormTaskTuple);
@@ -83,6 +89,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     "Invalid parameters",
                     null);
         }
+        LOGGER.info("Harvesting finished in: " + (new Date().getTime() - harvestingStartTime) + "ms for " + stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
     }
 
     private void trimLocalId(StormTaskTuple stormTaskTuple) {

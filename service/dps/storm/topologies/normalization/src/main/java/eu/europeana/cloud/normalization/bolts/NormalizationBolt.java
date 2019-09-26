@@ -20,12 +20,11 @@ import java.net.MalformedURLException;
  * as part of the emitted tuple.
  */
 public class NormalizationBolt extends AbstractDpsBolt {
-
+    private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationBolt.class);
+    private static final String NORMALIZATION_EX_MESSAGE = "Unable to normalize file";
 
     private transient NormalizerFactory normalizerFactory;
-
-    private static final String NORMALIZATION_EX_MESSAGE = "Unable to normalize file";
 
     /**
      * Prepare the bolt for execution. Initializes NormalizerFactory.
