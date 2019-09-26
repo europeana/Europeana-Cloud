@@ -1,7 +1,5 @@
-package eu.europeana.cloud.service.dps.task;
+package eu.europeana.cloud.service.dps.metis.indexing;
 
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
@@ -12,45 +10,44 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.Properties;
 
 /**
- * Executes all preliminary jobs related with tasks submitted for indexing topology.
+ * Remove dataset based on a specific date for indexing topology.
  * <p>
  * Created by pwozniak on 10/2/18
  */
-public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExecutor {
+public class DatasetCleaner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IndexingTaskInitialActionsExecutor.class);
-
-    private DpsTask dpsTask;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
     private IndexerFactory indexerFactory;
-
     private Properties properties = new Properties();
 
-    public IndexingTaskInitialActionsExecutor(DpsTask task) {
-        this.dpsTask = task;
+    private DataSetCleanerParameters cleanerParameters;
+
+    public DatasetCleaner(DataSetCleanerParameters cleanerParameters) {
+        this.cleanerParameters = cleanerParameters;
         loadProperties();
     }
 
-    @Override
-    public void execute() throws InitialActionException {
+    public void execute() throws DatasetCleaningException, ParseException {
         LOGGER.info("Executing initial actions for indexing topology");
         if (properties.isEmpty()) {
             return;
         }
         prepareIndexerFactory();
         try {
-            removeDataSet(dpsTask.getParameter(PluginParameterKeys.METIS_DATASET_ID));
+            removeDataSet(cleanerParameters.getDataSetId());
         } catch (IndexingException e) {
             LOGGER.error("Dataset was not removed correctly. ", e);
-            throw new InitialActionException("Dataset was not removed correctly.", e);
+            throw new DatasetCleaningException("Dataset was not removed correctly.", e);
         }
     }
 
     private void loadProperties() {
         try {
-            InputStream input = IndexingTaskInitialActionsExecutor.class.getClassLoader().getResourceAsStream("indexing.properties");
+            InputStream input = DatasetCleaner.class.getClassLoader().getResourceAsStream("indexing.properties");
             properties.load(input);
         } catch (Exception e) {
             LOGGER.warn("Unable to read indexing.properties (are you sure that file exists?). Dataset will not  be cleared before indexing.");
@@ -60,22 +57,22 @@ public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExe
     private void prepareIndexerFactory() {
         LOGGER.debug("Preparing IndexerFactory for removing datasets from Solr and Mongo");
         //
-        final String altEnv = dpsTask.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
-        final String database = dpsTask.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
+        boolean altEnv = cleanerParameters.getIsUsingALtEnv();
+        final String targetIndexingEnv = cleanerParameters.getTargetIndexingEnv();
         //
         IndexingSettings indexingSettings = null;
         try {
-            if (altEnv != null && altEnv.equalsIgnoreCase("true")) {
+            if (true == altEnv) {
                 IndexingSettingsGenerator s1 = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
+                if (TargetIndexingDatabase.PREVIEW.toString().equals(targetIndexingEnv))
                     indexingSettings = s1.generateForPreview();
-                else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
+                else if (TargetIndexingDatabase.PUBLISH.toString().equals(targetIndexingEnv))
                     indexingSettings = s1.generateForPublish();
             } else {
                 IndexingSettingsGenerator s2 = new IndexingSettingsGenerator(properties);
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(database))
+                if (TargetIndexingDatabase.PREVIEW.toString().equals(targetIndexingEnv))
                     indexingSettings = s2.generateForPreview();
-                else if (TargetIndexingDatabase.PUBLISH.toString().equals(database))
+                else if (TargetIndexingDatabase.PUBLISH.toString().equals(targetIndexingEnv))
                     indexingSettings = s2.generateForPublish();
             }
         } catch (Exception e) {
@@ -84,9 +81,9 @@ public class IndexingTaskInitialActionsExecutor implements TaskInitialActionsExe
         indexerFactory = new IndexerFactory(indexingSettings);
     }
 
-    private void removeDataSet(String datasetId) throws IndexingException {
+    private void removeDataSet(String datasetId) throws IndexingException, ParseException {
         LOGGER.info("Removing data set {} from solr and mongo", datasetId);
-        indexerFactory.getIndexer().removeAll(datasetId);
+        indexerFactory.getIndexer().removeAll(datasetId, cleanerParameters.getCleaningDate());
         LOGGER.info("Data set removed");
     }
 }

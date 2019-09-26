@@ -121,7 +121,6 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
-    <bean id="initialActionsExecutorFactory" class="eu.europeana.cloud.service.dps.task.InitialActionsExecutorFactory"/>
 
     <import resource="authentication.xml"/>
     <import resource="authorization.xml"/>

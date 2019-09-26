@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsException;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -249,6 +250,32 @@ public class DPSClientTest {
     public void shouldThrowExceptionForStatisticsWhenTaskIdIsUnAccessible() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         dpsClient.getTaskStatisticsReport(TOPOLOGY_NAME, TASK_ID);
+    }
+
+
+    @Test
+    @Betamax(tape = "DPSClient_shouldCleanIndexingDataSet")
+    public void shouldCleanIndexingDataSet() throws DpsException {
+        DpsClient dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        dpsClient.cleanMetisIndexingDataset(TOPOLOGY_NAME, TASK_ID, new DataSetCleanerParameters());
+    }
+
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    @Betamax(tape = "DPSClient_shouldThrowAccessDeniedWhenTaskIdDoesNotExistOrUnAccessible")
+    public void shouldThrowAccessDeniedWhenTaskIdDoesNotExistOrUnAccessible() throws DpsException {
+        DpsClient dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        long missingTaskId = 111;
+        dpsClient.cleanMetisIndexingDataset(TOPOLOGY_NAME, missingTaskId, new DataSetCleanerParameters());
+
+    }
+
+
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    @Betamax(tape = "DPSClient_shouldThrowAccessDeniedWhenTopologyDoesNotExist")
+    public void shouldThrowAccessDeniedWhenTopologyDoesNotExist() throws DpsException {
+        DpsClient dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        String wrongTopologyName = "wrongTopology";
+        dpsClient.cleanMetisIndexingDataset(wrongTopologyName, TASK_ID, new DataSetCleanerParameters());
     }
 
 

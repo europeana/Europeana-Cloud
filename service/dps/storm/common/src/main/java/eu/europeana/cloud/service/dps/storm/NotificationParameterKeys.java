@@ -26,4 +26,10 @@ public class NotificationParameterKeys {
 
     public static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
     public static final String UNIFIED_ERROR_MESSAGE = "UNIFIED_ERROR_MESSAGE";
+
+    public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
+    public static final String DPS_URL = "DPS_URL";
+    public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
+
+
 }

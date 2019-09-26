@@ -1,0 +1,28 @@
+!tape
+name: DPSClient_shouldCleanIndexingDataSet
+interactions:
+- recorded: 2019-09-23T08:30:26.329Z
+  request:
+    method: POST
+    uri: http://localhost:8080/services/TopologyName/tasks/12345/cleaner
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Content-Length: '2'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.8.0_121)
+    body: '{}'
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: text/html
+      Date: Mon, 23 Sep 2019 08:30:26 GMT
+      Expires: '0'
+      Pragma: no-cache
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: The request was received successfully
