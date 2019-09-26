@@ -1,17 +1,26 @@
 package eu.europeana.cloud.service.dps.metis.indexing;
 
 import com.google.common.base.Objects;
+import eu.europeana.cloud.common.utils.DateAdapter;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Date;
 
-@XmlRootElement()
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class DataSetCleanerParameters {
     private static final long serialVersionUID = 123456789L;
 
     private String dataSetId;
     private boolean isUsingALtEnv;
     private String targetIndexingEnv;
+
+    @XmlElement(name = "cleaningDate", required = true)
+    @XmlJavaTypeAdapter(DateAdapter.class)
     private Date cleaningDate;
 
     public DataSetCleanerParameters(String dataSetId, boolean isUsingALtEnv, String targetIndexingEnv, Date cleaningDate) {
