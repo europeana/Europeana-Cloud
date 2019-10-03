@@ -12,12 +12,13 @@ import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.task.InitialActionException;
-import eu.europeana.cloud.service.dps.task.InitialActionsExecutorFactory;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
@@ -45,6 +46,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -100,9 +102,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
-
-    @Autowired
-    private InitialActionsExecutorFactory initialActionsExecutorFactory;
 
 
     private final static String TOPOLOGY_PREFIX = "Topology";
@@ -191,8 +190,6 @@ public class TopologyTasksResource {
                             taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime);
                         else {
                             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                            taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), "The task is in a pending mode, it is being removed from Solr/Mongo before submission", new Date());
-                            runTaskSpecificActions(task, topologyName);
                             submitService.submitTask(task, topologyName);
                             LOGGER.info("Task submitted successfully");
                             taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
@@ -202,7 +199,7 @@ public class TopologyTasksResource {
                         Response response = Response.serverError().build();
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                         asyncResponse.resume(response);
-                    } catch (TaskSubmissionException | InitialActionException e) {
+                    } catch (TaskSubmissionException e) {
                         LOGGER.error("Task submission failed: {}", e.getMessage());
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                     } catch (Exception e) {
@@ -217,6 +214,43 @@ public class TopologyTasksResource {
 
         }
         return Response.notModified().build();
+    }
+
+
+    @POST
+    @Consumes({MediaType.APPLICATION_JSON})
+    @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+    @Path("{taskId}/cleaner")
+    public void cleanIndexingDataSet(@Suspended final AsyncResponse asyncResponse,
+                                     @PathParam("topologyName") final String topologyName,
+                                     @PathParam("taskId") final String taskId,
+                                     final DataSetCleanerParameters cleanerParameters
+    ) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+        assertContainTopology(topologyName);
+        reportService.checkIfTaskExists(taskId, topologyName);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    asyncResponse.resume("The request was received successfully");
+                    if (cleanerParameters != null) {
+                        LOGGER.info("cleaning dataset {} based on date: {}", cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+                        DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
+                        datasetCleaner.execute();
+                        LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
+                        taskDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
+                    } else {
+                        taskDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.DROPPED.toString());
+                    }
+                } catch (ParseException e) {
+                    LOGGER.error("Dataset was not removed correctly. ", e);
+                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
+                } catch (DatasetCleaningException e) {
+                    LOGGER.error("Dataset was not removed correctly. ", e);
+                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
+                }
+            }
+        }).start();
     }
 
     private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
@@ -538,9 +572,6 @@ public class TopologyTasksResource {
         return filesCounter.getFilesCount(submittedTask);
     }
 
-    private void runTaskSpecificActions(DpsTask task, String topologyName) throws InitialActionException {
-        initialActionsExecutorFactory.get(task, topologyName).execute();
-    }
 
     //get TaskType
     private String getTaskType(DpsTask task) {

@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.CustomConnection;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 
@@ -17,6 +18,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_XML;
  * @author krystian.
  */
 public abstract class WiremockHelper {
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8181));
 
@@ -41,5 +43,13 @@ public abstract class WiremockHelper {
 
     public static InputStream getFileContentAsStream(String name) throws IOException {
         return Object.class.getResourceAsStream(name);
+    }
+
+    public static ResponseDefinitionBuilder responsTimeoutGreaterThanSocketTimeout(String fileContent, int timeout) {
+        return  aResponse()
+                .withHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
+                .withStatus(200)
+                .withBody(fileContent)
+                .withFixedDelay((int)(1.1*(double)timeout));
     }
 }

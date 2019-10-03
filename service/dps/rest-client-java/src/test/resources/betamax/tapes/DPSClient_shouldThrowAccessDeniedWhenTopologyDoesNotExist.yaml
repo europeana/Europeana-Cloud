@@ -1,0 +1,28 @@
+!tape
+name: DPSClient_shouldThrowAccessDeniedWhenTopologyDoesNotExist
+interactions:
+- recorded: 2019-09-23T08:50:52.726Z
+  request:
+    method: POST
+    uri: http://localhost:8080/services/wrongTopology/tasks/12345/cleaner
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Content-Length: '2'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.8.0_121)
+    body: '{}'
+  response:
+    status: 405
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Mon, 23 Sep 2019 08:50:52 GMT
+      Expires: '0'
+      Pragma: no-cache
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>
