@@ -779,7 +779,7 @@ public class RecordServiceClient extends MCSClient {
      * @throws RepresentationNotExistsException on representation does not exist
      * @throws MCSException                     on unexpected situations
      */
-    public Representation getRepresentationByRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
+    public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
             throws RepresentationNotExistsException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
                 .resolveTemplate(P_CLOUDID, cloudId)
@@ -801,7 +801,8 @@ public class RecordServiceClient extends MCSClient {
         try {
             response = request.get();
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(Representation.class);
+                return response.readEntity(new GenericType<List<Representation>>() {
+                });
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
