@@ -435,8 +435,8 @@ public class CassandraRecordService implements RecordService {
     }
 
     @Override
-    public RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
-        return recordDAO.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionTimestamp);
+    public List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
+        return recordDAO.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, revisionTimestamp);
     }
 
     @Override

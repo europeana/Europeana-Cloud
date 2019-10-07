@@ -102,19 +102,19 @@ public class CassandraRecordDAOTest extends CassandraTestBase {
         recordDAO.addOrReplaceFileInRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0, rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp(), file);
 
         //first check
-        RepresentationRevisionResponse response1 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp());
-        RepresentationRevisionResponse response2 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
+        List<RepresentationRevisionResponse> response1 = recordDAO.getRepresentationRevisions(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp());
+		List<RepresentationRevisionResponse> response2 = recordDAO.getRepresentationRevisions(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
 
-        Assert.assertThat(response1.getFiles().size(), is(1));
-        Assert.assertThat(response2.getFiles().size(), is(1));
+        Assert.assertThat(response1.get(0).getFiles().size(), is(1));
+        Assert.assertThat(response2.get(0).getFiles().size(), is(1));
 
         recordDAO.removeFileFromRepresentationRevisionsTable(rep, file.getFileName());
 
         //second check
-        response1 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp());
-        response2 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
+        response1 = recordDAO.getRepresentationRevisions(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp());
+        response2 = recordDAO.getRepresentationRevisions(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
 
-        Assert.assertThat(response1.getFiles().size(), is(0));
-        Assert.assertThat(response2.getFiles().size(), is(0));
+        Assert.assertThat(response1.get(0).getFiles().size(), is(0));
+        Assert.assertThat(response2.get(0).getFiles().size(), is(0));
     }
 }
