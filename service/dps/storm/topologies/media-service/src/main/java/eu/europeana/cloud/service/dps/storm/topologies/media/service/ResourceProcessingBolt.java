@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -17,6 +18,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
@@ -66,10 +68,9 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                             if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
                                 break;
                             try (InputStream stream = thumbnail.getContentStream()) {
-                                amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, null);
-                                LOGGER.info("The thumbnail {} was uploaded successfully to S3 in Bluemix", thumbnail.getTargetName());
+                                amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, prepareObjectMetadata(thumbnail));
                             } catch (Exception e) {
-                                String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage()+" because of: "+e.getCause();
+                                String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage() + " because of: " + e.getCause();
                                 LOGGER.error(errorMessage);
                                 buildErrorMessage(exception, errorMessage);
 
@@ -81,7 +82,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 }
             } catch (Exception e) {
                 LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
-                buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage()+" because of: "+e.getCause());
+                buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
             } finally {
                 stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
                 if (exception.length() > 0) {
@@ -124,6 +125,13 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                     awsSecretKey));
             amazonClient.setEndpoint(awsEndPoint);
         }
+    }
+
+    private ObjectMetadata prepareObjectMetadata(Thumbnail thumbnail) throws IOException {
+        final ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentType(thumbnail.getMimeType());
+        objectMetadata.setContentLength(thumbnail.getContentSize());
+        return objectMetadata;
     }
 
     private void buildErrorMessage(StringBuilder message, String newMessage) {
