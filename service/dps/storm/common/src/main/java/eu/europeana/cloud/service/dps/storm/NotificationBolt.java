@@ -139,9 +139,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private boolean isCounterUpdateRequired(NotificationCache nCache) {
-        Date now = new Date();
-        if (now.getTime() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS) {
-            nCache.setLastCounterUpdate(now);
+        if (new Date().getTime() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS) {
             return true;
         } else {
             return false;
