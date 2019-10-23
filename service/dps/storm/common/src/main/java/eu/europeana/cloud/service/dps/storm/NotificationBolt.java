@@ -139,11 +139,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private boolean isCounterUpdateRequired(NotificationCache nCache) {
-        if (new Date().getTime() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS) {
-            return true;
-        } else {
-            return false;
-        }
+        return new Date().getTime() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS;
     }
 
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
