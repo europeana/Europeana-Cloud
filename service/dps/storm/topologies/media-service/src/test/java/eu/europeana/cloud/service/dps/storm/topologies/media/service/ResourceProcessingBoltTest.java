@@ -106,7 +106,7 @@ public class ResourceProcessingBoltTest {
         when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
         resourceProcessingBolt.execute(stormTaskTuple);
 
-        verify(amazonClient, Mockito.times(thumbnailCount)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
+        verify(amazonClient, Mockito.times(thumbnailCount)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
         verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
@@ -134,7 +134,7 @@ public class ResourceProcessingBoltTest {
         when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(true);
 
         resourceProcessingBolt.execute(stormTaskTuple);
-        verify(amazonClient, Mockito.times(1)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
+        verify(amazonClient, Mockito.times(1)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
     }
 
 
@@ -152,10 +152,10 @@ public class ResourceProcessingBoltTest {
         String errorMessage = "The error was thrown because of something";
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
-        doThrow(new AmazonServiceException(errorMessage)).when(amazonClient).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
+        doThrow(new AmazonServiceException(errorMessage)).when(amazonClient).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
         resourceProcessingBolt.execute(stormTaskTuple);
 
-        verify(amazonClient, Mockito.times(3)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
+        verify(amazonClient, Mockito.times(3)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
         verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
