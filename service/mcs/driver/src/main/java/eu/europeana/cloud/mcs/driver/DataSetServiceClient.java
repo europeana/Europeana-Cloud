@@ -44,7 +44,7 @@ public class DataSetServiceClient extends MCSClient {
     private static final String dataSetPath; // = dataSetsPath + "/{" + ParamConstants.P_DATASET + "}";
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/assignments
     private static final String assignmentsPath; // = dataSetPath + "/" + ParamConstants.ASSIGNMENTS;
-    //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}"
+    //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}/revisionProvider/{REVISION_PROVIDER}"
     private static final String dataSetRevisionsPath;
 
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}
