@@ -424,19 +424,6 @@
                 <version>${version.jersey}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${version.spring-framework}</version>
-                <scope>compile</scope>
-                <exclusions>
-                    <!--without jcl - because we use log4j through slf4j -->
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <artifactId>guava</artifactId>
                 <groupId>com.google.guava</groupId>
                 <type>jar</type>
