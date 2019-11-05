@@ -88,6 +88,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
+            <version>${version.spring-framework}</version>
             <scope>compile</scope>
             <exclusions>
                 <!--without jcl - because we use log4j through slf4j -->
