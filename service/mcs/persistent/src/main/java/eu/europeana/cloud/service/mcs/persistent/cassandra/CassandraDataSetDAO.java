@@ -919,23 +919,35 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
 
         // get available results
-        int available = rs.getAvailableWithoutFetching();
-        for (int i = 0; i < available; i++) {
-            Row row = rs.one();
+        Iterator<Row> iterator = rs.iterator();
+        while(iterator.hasNext()){
+            Row row = iterator.next();
             Properties properties = new Properties();
             properties.put("cloudId", row.getString("cloud_id"));
             properties.put("acceptance", Boolean.valueOf(row.getBool("acceptance")).toString());
             properties.put("published", Boolean.valueOf(row.getBool("published")).toString());
             properties.put("deleted", Boolean.valueOf(row.getBool("mark_deleted")).toString());
             result.add(properties);
+
+            if (result.size() >= limit){
+                break;
+            }
         }
 
-        if (result.size() == limit && !rs.isExhausted()) {
-            // we reached the page limit, prepare the next slice string to be used for the next page
-            Properties properties = new Properties();
-            properties.put("nextSlice", ps.toString() + "_" + bucket.getBucketId());
-            result.add(properties);
-
+        if (result.size() == limit) {
+            if (!rs.isExhausted()) {
+                // we reached the page limit, prepare the next slice string to be used for the next page
+                Properties properties = new Properties();
+                properties.put("nextSlice", ps.toString() + "_" + bucket.getBucketId());
+                result.add(properties);
+            } else {
+                // we reached the end of bucket and limit - in this case if there are more buckets we should set proper nextSlice
+                if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
+                    Properties properties = new Properties();
+                    properties.put("nextSlice", "_" + bucket.getBucketId());
+                    result.add(properties);
+                }
+            }
         } else {
             // we reached the end of bucket but number of results is less than the page size - in this case if there are more buckets we should retrieve number of results that will feed the page
             if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
