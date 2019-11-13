@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.7.0](https://github.com/europeana/Europeana-Cloud/tree/v1.7.0) (2019-11-13)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.6.0...v1.7.0)
+
+**Merged pull requests:**
+
+- MET-2271 fix in iteration mechanism [\#246](https://github.com/europeana/Europeana-Cloud/pull/246) ([pWoz](https://github.com/pWoz))
+- Fix issue with dependency management of spring web. [\#245](https://github.com/europeana/Europeana-Cloud/pull/245) ([stzanakis](https://github.com/stzanakis))
+- Met 2251 change the counter behaviour [\#244](https://github.com/europeana/Europeana-Cloud/pull/244) ([jochen-vermeulen](https://github.com/jochen-vermeulen))
+- MET-2239 file metadata \(mimeType and size\) will be sent to s3 also [\#243](https://github.com/europeana/Europeana-Cloud/pull/243) ([pWoz](https://github.com/pWoz))
+- Met 2194 missing records [\#241](https://github.com/europeana/Europeana-Cloud/pull/241) ([pWoz](https://github.com/pWoz))
+
 ## [v1.6.0](https://github.com/europeana/Europeana-Cloud/tree/v1.6.0) (2019-09-26)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.5.1...v1.6.0)
 
@@ -244,9 +255,11 @@
 
 **Merged pull requests:**
 
+- Met 165 [\#82](https://github.com/europeana/Europeana-Cloud/pull/82) ([helinek](https://github.com/helinek))
 - Ecl 1190 bucketing on provider record [\#81](https://github.com/europeana/Europeana-Cloud/pull/81) ([helinek](https://github.com/helinek))
 - Ecl 1201 [\#80](https://github.com/europeana/Europeana-Cloud/pull/80) ([helinek](https://github.com/helinek))
 - Ecl 1205 [\#79](https://github.com/europeana/Europeana-Cloud/pull/79) ([tarekkh](https://github.com/tarekkh))
+- Ecl 1126 oai harvesting topology [\#77](https://github.com/europeana/Europeana-Cloud/pull/77) ([akrystian](https://github.com/akrystian))
 
 ## [v0.5.3](https://github.com/europeana/Europeana-Cloud/tree/v0.5.3) (2017-09-12)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.5.2...v0.5.3)
@@ -256,9 +269,7 @@
 
 **Merged pull requests:**
 
-- Met 165 [\#82](https://github.com/europeana/Europeana-Cloud/pull/82) ([helinek](https://github.com/helinek))
 - Ecl 1188 [\#78](https://github.com/europeana/Europeana-Cloud/pull/78) ([tarekkh](https://github.com/tarekkh))
-- Ecl 1126 oai harvesting topology [\#77](https://github.com/europeana/Europeana-Cloud/pull/77) ([akrystian](https://github.com/akrystian))
 - ECL-1185: creating new record corrected together with test for it [\#74](https://github.com/europeana/Europeana-Cloud/pull/74) ([helinek](https://github.com/helinek))
 - Ecl 1129 [\#73](https://github.com/europeana/Europeana-Cloud/pull/73) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1128 [\#72](https://github.com/europeana/Europeana-Cloud/pull/72) ([helinek](https://github.com/helinek))
