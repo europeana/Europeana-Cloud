@@ -10,6 +10,7 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 
@@ -42,11 +43,11 @@ public abstract class QueueFillerJobForRevision extends QueueFiller implements C
     }
 
 
-    protected Representation getRepresentationByRevision(RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String responseCloudId) throws MCSException {
+    protected List<Representation> getRepresentationByRevision(RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String responseCloudId) throws MCSException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
-                return recordServiceClient.getRepresentationByRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
+                return recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp);
             } catch (Exception e) {
                 if (retries-- > 0) {
                     LOGGER.warn("Error while getting representation revision. Retries Left{} ", retries);

@@ -33,8 +33,6 @@ public class NotificationBoltTest extends CassandraTestBase {
     private OutputCollector collector;
     private NotificationBolt testedBolt;
     private CassandraTaskInfoDAO taskInfoDAO;
-    private static final int PROCESSED_INTERVAL = 100;
-
 
     @Before
     public void setUp() throws Exception {
@@ -116,9 +114,12 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo beforeExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(tuple);
 
-        for (int i = 0; i < 99; i++) {
+        for (int i = 0; i < 98; i++) {
             testedBolt.execute(tuple);
         }
+        //we will wait 5 second to be sure that notification bolt will update progress counter
+        Thread.sleep(5001);
+        testedBolt.execute(tuple);
 
         TaskInfo afterOneHundredExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(tuple);
@@ -152,9 +153,12 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo middleExecute = null;
 
         for (int i = 0; i < tuples.size(); i++) {
-            testedBolt.execute(tuples.get(i));
-            if (i == middle - 1) {
+            if(i == middle - 1){
+                Thread.sleep(5001);
+                testedBolt.execute(tuples.get(i));
                 middleExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+            }else{
+                testedBolt.execute(tuples.get(i));
             }
         }
 
@@ -166,11 +170,11 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertEquals(beforeExecute.getProcessedPercentage(), 0);
 
         if (middleExecute != null) {
-            assertEquals(middleExecute.getProcessedElementCount(), (middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL);
+            assertEquals(middleExecute.getProcessedElementCount(), (middle));
             assertThat(middleExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-            assertEquals(middleExecute.getProcessedPercentage(), 100 * ((middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL) / expectedSize);
+            assertEquals(middleExecute.getProcessedPercentage(), 100 * middle / expectedSize);
         }
-        int totalProcessed = (expectedSize / PROCESSED_INTERVAL) * PROCESSED_INTERVAL;
+        int totalProcessed = expectedSize;
         assertEquals(afterExecute.getProcessedElementCount(), totalProcessed+(expectedSize - totalProcessed) );
         assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
         assertEquals(afterExecute.getProcessedPercentage(), 100 * ((afterExecute.getProcessedElementCount() / (totalProcessed+(expectedSize - totalProcessed)))));

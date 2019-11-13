@@ -18,14 +18,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.acls.AclPermissionEvaluator;
+import org.springframework.security.core.Authentication;
 
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
@@ -58,6 +63,15 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
+        //
+        AclPermissionEvaluator permissionEvaluator = applicationContext.getBean(AclPermissionEvaluator.class);
+        Mockito.when(
+                permissionEvaluator.hasPermission(
+                        Mockito.any(Authentication.class),
+                        Mockito.any(Serializable.class),
+                        Mockito.any(String.class),
+                        Mockito.anyObject()))
+                .thenReturn(true);
     }
 
     @SuppressWarnings("unused")
@@ -80,17 +94,23 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
                 null, null, representationRevisionResponse.getRevisionProviderId(), representationRevisionResponse.getFiles(), new ArrayList<Revision>(), false, representationRevisionResponse.getRevisionTimestamp());
 
 
-        when(recordService.getRepresentationRevision(globalId,
-                schema, revisionProviderId, revisionName, null)).thenReturn(new RepresentationRevisionResponse(representationResponse));
+        List<RepresentationRevisionResponse> expectedResponse = new ArrayList<>();
+        expectedResponse.add(representationRevisionResponse);
+
+        doReturn(expectedResponse).when(recordService).getRepresentationRevisions(globalId,
+                schema, revisionProviderId, revisionName, null);
+
         when(recordService.getRepresentation(globalId, representationResponse.getRepresentationName(), representationResponse.getVersion())).thenReturn(representation);
 
         Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId).request(mediaType)
                 .get();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getMediaType(), is(mediaType));
-        Representation entity = response.readEntity(Representation.class);
-        assertThat(entity, is(representation));
-        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
+        List<Representation> entity = response.readEntity(new GenericType<List<Representation>>() {
+        });
+        assertThat(entity.size(), is(1));
+        assertThat(entity.get(0), is(representation));
+        verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
         verify(recordService, times(1)).getRepresentation(globalId, schema, representationRevisionResponse.getVersion());
         verifyNoMoreInteractions(recordService);
     }
@@ -107,26 +127,31 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     @Test
     public void getRepresentationByRevisionsThrowExceptionWhenReturnsEmptyObjectIfRevisionDoesNotExists()
             throws Exception {
-        when(recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null)).thenReturn(new RepresentationRevisionResponse());
+        List<RepresentationRevisionResponse> expectedResponse = new ArrayList<>();
+        expectedResponse.add(new RepresentationRevisionResponse());
+
+        doReturn(expectedResponse).when(recordService).getRepresentationRevisions(globalId,
+                schema, revisionProviderId, revisionName, null);
+
         doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(anyString(), anyString(), anyString());
 
         Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
                 .request(MediaType.APPLICATION_XML).get();
 
         assertThat(response.getStatus(), is(500));
-        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
+        verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
         verify(recordService, times(1)).getRepresentation(anyString(), anyString(), anyString());
     }
 
     @Test
     public void getRepresentationByRevisionsThrowExceptionWhenReturnsRepresentationRevisionResponseIsNull()
             throws Exception {
-        when(recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null)).thenReturn(null);
+        when(recordService.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null)).thenReturn(null);
         Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
                 .request(MediaType.APPLICATION_XML).get();
 
         assertThat(response.getStatus(), is(500));
-        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
+        verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
 
     }
 }

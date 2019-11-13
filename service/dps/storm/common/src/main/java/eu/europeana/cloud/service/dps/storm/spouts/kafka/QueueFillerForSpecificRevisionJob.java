@@ -28,8 +28,10 @@ public class QueueFillerForSpecificRevisionJob extends QueueFillerJobForRevision
     public int fillTheQueue() throws MCSException {
         int count = 0;
         for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-            Representation representation = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, cloudTagsResponse.getCloudId());
-            count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
+            List<Representation> representations = getRepresentationByRevision(recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, cloudTagsResponse.getCloudId());
+            for (Representation representation: representations){
+                count += addTupleToQueue(stormTaskTuple, fileServiceClient, representation);
+            }
         }
         return count;
     }

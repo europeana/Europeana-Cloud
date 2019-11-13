@@ -10,7 +10,10 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
@@ -18,7 +21,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -35,6 +40,8 @@ public class RepresentationRevisionsResource {
     @Autowired
     private RecordService recordService;
 
+    @Autowired
+    private PermissionEvaluator permissionEvaluator;
 
     /**
      * Returns the representation version which associates cloud identifier, representation name with revision identifier, provider and timestamp.
@@ -52,17 +59,13 @@ public class RepresentationRevisionsResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @PostAuthorize("returnObject.version != null ? hasPermission"
-            + "( "
-            + " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
-            + " 'eu.europeana.cloud.common.model.Representation', read" + ") : true")
-    @ReturnType("eu.europeana.cloud.common.model.Representation")
-    public Representation getRepresentationRevision(@Context UriInfo uriInfo,
-                                                    @PathParam(P_CLOUDID) String globalId,
-                                                    @PathParam(P_REPRESENTATIONNAME) String schema,
-                                                    @PathParam(P_REVISION_NAME) String revisionName,
-                                                    @QueryParam(F_REVISION_PROVIDER_ID) String revisionProviderId,
-                                                    @QueryParam(F_REVISION_TIMESTAMP) String revisionTimestamp) throws RepresentationNotExistsException {
+    @ReturnType("java.util.List<eu.europeana.cloud.common.model.Representation>")
+    public List<Representation> getRepresentationRevisions(@Context UriInfo uriInfo,
+                                                           @PathParam(P_CLOUDID) String globalId,
+                                                           @PathParam(P_REPRESENTATIONNAME) String schema,
+                                                           @PathParam(P_REVISION_NAME) String revisionName,
+                                                           @QueryParam(F_REVISION_PROVIDER_ID) String revisionProviderId,
+                                                           @QueryParam(F_REVISION_TIMESTAMP) String revisionTimestamp) throws RepresentationNotExistsException {
         if (revisionProviderId == null) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorInfo("OTHER", F_REVISION_PROVIDER_ID + " parameter cannot be empty."))
@@ -73,14 +76,33 @@ public class RepresentationRevisionsResource {
             DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
             revisionDate = utc.toDate();
         }
-        RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionDate);
-        Representation representation;
+        List<RepresentationRevisionResponse> info = recordService.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, revisionDate);
+        List<Representation> representations = new ArrayList<>();
         if (info != null) {
-            representation = recordService.getRepresentation(info.getCloudId(), info.getRepresentationName(), info.getVersion());
-            EnrichUriUtil.enrich(uriInfo, representation);
+            for (RepresentationRevisionResponse representationRevisionsResource : info) {
+                Representation representation;
+                representation = recordService.getRepresentation(
+                        representationRevisionsResource.getCloudId(),
+                        representationRevisionsResource.getRepresentationName(),
+                        representationRevisionsResource.getVersion());
+                EnrichUriUtil.enrich(uriInfo, representation);
+                //
+                if (userHasAccessTo(representation)) {
+                    representations.add(representation);
+                }
+            }
         } else
             throw new RepresentationNotExistsException("No representation was found");
 
-        return representation;
+        return representations;
     }
+
+    private boolean userHasAccessTo(Representation representation){
+        SecurityContext ctx = SecurityContextHolder.getContext();
+        Authentication authentication = ctx.getAuthentication();
+        //
+        String targetId = representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion();
+        return permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
+    }
+
 }

@@ -274,7 +274,7 @@ public interface RecordService {
      * @param revisionTimestamp revision timestamp
      * @return RepresentationRevisionResponse object that associates cloud identifier, representation name, revision identifier, version identifier and files map
      */
-    RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp);
+    List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp);
 
     /**
      * Insert information about representation revision association.

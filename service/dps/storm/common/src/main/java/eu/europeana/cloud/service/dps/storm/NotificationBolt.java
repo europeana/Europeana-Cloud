@@ -55,7 +55,7 @@ public class NotificationBolt extends BaseRichBolt {
     protected static CassandraTaskInfoDAO taskInfoDAO;
     private static CassandraSubTaskInfoDAO subTaskInfoDAO;
     private static CassandraTaskErrorsDAO taskErrorDAO;
-    private static final int PROCESSED_INTERVAL = 100;
+    private static final int COUNTER_UPDATE_INTERVAL_IN_MS = 5 * 1000;
 
     private static final int DEFAULT_RETRIES = 3;
 
@@ -124,15 +124,22 @@ public class NotificationBolt extends BaseRichBolt {
         int processesFilesCount = nCache.getProcessed();
         int errors = nCache.getErrors();
 
+        //notification table (for single record)
         storeNotification(processesFilesCount, taskId,
                 notificationTuple.getParameters());
 
         if (error) {
             storeNotificationError(taskId, nCache, notificationTuple);
         }
-        if ((processesFilesCount % PROCESSED_INTERVAL) == 0) {
+        if(isCounterUpdateRequired(nCache)){
+            LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
             taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
+            nCache.setLastCounterUpdate(new Date());
         }
+    }
+
+    private boolean isCounterUpdateRequired(NotificationCache nCache) {
+        return new Date().getTime() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS;
     }
 
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
@@ -315,6 +322,8 @@ public class NotificationBolt extends BaseRichBolt {
 
         int processed = 0;
         int errors = 0;
+        private Date lastCounterUpdate = new Date();
+
         Map<String, String> errorTypes = new HashMap<>();
 
         NotificationCache() {
@@ -342,6 +351,14 @@ public class NotificationBolt extends BaseRichBolt {
                 errorTypes.put(infoText, errorType);
             }
             return errorType;
+        }
+
+        Date getLastCounterUpdate(){
+            return lastCounterUpdate;
+        }
+
+        void setLastCounterUpdate(Date lastCounterUpdate) {
+            this.lastCounterUpdate = lastCounterUpdate;
         }
     }
 
