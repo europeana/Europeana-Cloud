@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions;
+package eu.europeana.cloud.service.dps.oaipmh;
 
 /**
  * @author krystian.

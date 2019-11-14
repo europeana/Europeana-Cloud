@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers;
+package eu.europeana.cloud.service.dps.oaipmh;
 
 import org.dspace.xoai.serviceprovider.ServiceProvider;
 import org.dspace.xoai.serviceprovider.client.HttpOAIClient;

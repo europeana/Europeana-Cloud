@@ -1,8 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
+package eu.europeana.cloud.service.dps.oaipmh;
 
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.CustomConnection;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
@@ -140,7 +137,7 @@ public class RealRepositoriesHarvestingTest {
 
     @Test
     public void shouldReadGranularity() {
-        OAIHelper helper = new OAIHelper(endpoint);
+        OAIHelper helper = new OAIHelper(endpoint, 3, 1000);
         helper.getGranularity();
     }
 
@@ -149,12 +146,8 @@ public class RealRepositoriesHarvestingTest {
             throws OAIRequestException {
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
         while (true) {
-            CustomConnection client = new CustomConnection(oaiPmhEndpoint, CustomConnection.DEFAULT_SOCKET_TIMEOUT);
+            CustomConnection client = new CustomConnection(oaiPmhEndpoint);
             return client.execute(org.dspace.xoai.serviceprovider.parameters.Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
         }
     }
-
 }
-
-
-

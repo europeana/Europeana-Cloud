@@ -1,8 +1,12 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
+package eu.europeana.cloud.service.dps.oaipmh;
 
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
-import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
+import eu.europeana.cloud.service.dps.oaipmh.Harvester.ConnectionFactory;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -11,10 +15,12 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.TestHelper.convertToString;
-import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.TestHelper.isSimilarXml;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -39,6 +45,10 @@ public class HarvesterTest extends WiremockHelper {
 
     private static final int TEST_SOCKET_TIMEOUT = 10 * 1000; /* = 10sec */
 
+    private static final String EDM = "EDM";
+    private static final String RDF = "RDF";
+    private static final String OAI_DC = "OAI_DC";
+
     private XPathExpression isDeletedExpression;
     private XPathExpression expr;
 
@@ -56,15 +66,15 @@ public class HarvesterTest extends WiremockHelper {
                 "&metadataPrefix=oai_dc"))
                 .willReturn(response200XmlContent(getFileContent("/sampleOaiRecord.xml"))
                 ));
-        final Harvester harvester = new Harvester();
+        final Harvester harvester = new Harvester(DEFAULT_RETRIES, SLEEP_TIME);
 
         //when
         final InputStream result = harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
                 "oai_dc", expr, isDeletedExpression);
 
         //then
-        final String actual = convertToString(result);
-        assertThat(actual, isSimilarXml(getFileContent("/expectedOaiRecord.xml")));
+        final String actual = TestHelper.convertToString(result);
+        assertThat(actual, TestHelper.isSimilarXml(getFileContent("/expectedOaiRecord.xml")));
     }
 
 
@@ -75,7 +85,7 @@ public class HarvesterTest extends WiremockHelper {
                 "&metadataPrefix=oai_dc"))
                 .willReturn(response200XmlContent(getFileContent("/deletedOaiRecord.xml"))
                 ));
-        final Harvester harvester = new Harvester();
+        final Harvester harvester = new Harvester(DEFAULT_RETRIES, SLEEP_TIME);
 
         //when
         harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
@@ -84,13 +94,12 @@ public class HarvesterTest extends WiremockHelper {
     }
 
     @Test
-    public void shouldThrowExceptionHarvestedRecordNotFound() throws OAIRequestException, IOException,
-            HarvesterException {
+    public void shouldThrowExceptionHarvestedRecordNotFound() {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=oai%3Amediateka.centrumzamenhofa" +
                 ".pl%3A19&metadataPrefix=oai_dc"))
                 .willReturn(response404()));
-        final Harvester harvester = new Harvester();
+        final Harvester harvester = new Harvester(DEFAULT_RETRIES, SLEEP_TIME);
 
         //when
         try {
@@ -110,16 +119,61 @@ public class HarvesterTest extends WiremockHelper {
                 "&metadataPrefix=oai_dc"))
                 .willReturn(responsTimeoutGreaterThanSocketTimeout(getFileContent("/sampleOaiRecord.xml"), TEST_SOCKET_TIMEOUT)
                 ));
-        final Harvester harvester = new Harvester();
-        harvester.setSocketTimeout(TEST_SOCKET_TIMEOUT);
+        final ConnectionFactory connectionFactory = new ConnectionFactory() {
+            @Override
+            public CustomConnection createConnection(String oaiPmhEndpoint) {
+                return new CustomConnection(oaiPmhEndpoint, TEST_SOCKET_TIMEOUT, TEST_SOCKET_TIMEOUT, TEST_SOCKET_TIMEOUT);
+            }
+        };
+        final Harvester harvester = new Harvester(1, SLEEP_TIME);
 
         //when
-        final InputStream result = harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
-                "oai_dc", expr, isDeletedExpression);
+        harvester.harvestRecord(connectionFactory, OAI_PMH_ENDPOINT, "mediateka", "oai_dc", expr,
+                isDeletedExpression);
 
         //then
         //exception expected
     }
 
+    @Test
+    public void testGetSchemas(){
 
+        // Prepare
+        final String fileUrl = "file url";
+        final OAIHelper oaiHelper = mock(OAIHelper.class);
+        final Harvester harvester = spy(new Harvester(3, 1000));
+        when(harvester.createOaiHelper(fileUrl)).thenReturn(oaiHelper);
+
+        final MetadataFormat metadataFormat1 = new MetadataFormat();
+        metadataFormat1.withMetadataPrefix(EDM);
+
+        final MetadataFormat metadataFormat2 = new MetadataFormat();
+        metadataFormat2.withMetadataPrefix(RDF);
+
+        final MetadataFormat metadataFormat3 = new MetadataFormat();
+        metadataFormat3.withMetadataPrefix(OAI_DC);
+
+        // Create new iterator every time: otherwise we'd need to reset the iterator.
+        when(oaiHelper.listSchemas()).thenAnswer(new Answer<Iterator<MetadataFormat>>() {
+            @Override
+            public Iterator<MetadataFormat> answer(InvocationOnMock invocationOnMock) {
+                return Arrays.asList(metadataFormat1, metadataFormat2, metadataFormat3).iterator();
+            }
+        });
+
+        // Test without exclusions
+        final Set<String> schemasWithNullExclusions = harvester.getSchemas(fileUrl, null);
+        assertEquals(new HashSet<>(Arrays.asList(EDM, RDF, OAI_DC)), schemasWithNullExclusions);
+        final Set<String> schemasWithEmptyExclusions = harvester.getSchemas(fileUrl,
+                Collections.<String>emptySet());
+        assertEquals(new HashSet<>(Arrays.asList(EDM, RDF, OAI_DC)), schemasWithEmptyExclusions);
+
+        // Test with exclusions
+        final Set<String> schemasWithSomeExclusions = harvester.getSchemas(fileUrl,
+                new HashSet<>(Arrays.asList(OAI_DC, RDF)));
+        assertEquals(Collections.singleton(EDM), schemasWithSomeExclusions);
+        final Set<String> schemasWithAllExclusions = harvester.getSchemas(fileUrl,
+                new HashSet<>(Arrays.asList(EDM, OAI_DC, RDF)));
+        assertEquals(Collections.emptySet(), schemasWithAllExclusions);
+    }
 }

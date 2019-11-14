@@ -1,6 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
+package eu.europeana.cloud.service.dps.oaipmh;
 
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
@@ -47,9 +46,7 @@ class XmlXPath {
     public boolean isDeletedRecord(XPathExpression expr) throws HarvesterException {
         try {
             String status = evaluateExpression(expr);
-            if ("deleted".equalsIgnoreCase(status))
-                return true;
-            return false;
+            return "deleted".equalsIgnoreCase(status);
         } catch (XPathExpressionException e) {
             throw new HarvesterException("Cannot xpath XML!", e);
         }
@@ -73,8 +70,7 @@ class XmlXPath {
 
             throw new HarvesterException("More than one XML!");
         }
-        try (
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             Source xmlSource = new DOMSource(nodes.item(0));
             Result outputTarget = new StreamResult(outputStream);
             TransformerFactory transformerFactory = TransformerFactory.newInstance();

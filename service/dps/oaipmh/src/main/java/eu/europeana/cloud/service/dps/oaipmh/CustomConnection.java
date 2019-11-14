@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
+package eu.europeana.cloud.service.dps.oaipmh;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -22,19 +21,25 @@ import java.util.concurrent.TimeUnit;
 public class CustomConnection {
     private String baseUrl;
     private CloseableHttpClient httpclient;
-    private static final int REQUEST_TIMEOUT = 60*1000 /* = 1min */;
-    private static final int CONNECTION_TIMEOUT = 30*1000 /* = 30sec */;
-    public static final int DEFAULT_SOCKET_TIMEOUT = 5*60*1000 /* = 5min */;
+
+    private static final int DEFAULT_REQUEST_TIMEOUT = 60*1000 /* = 1min */;
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 30*1000 /* = 30sec */;
+    private static final int DEFAULT_SOCKET_TIMEOUT = 5*60*1000 /* = 5min */;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomConnection.class);
 
-    public CustomConnection(String baseUrl, int socketTimeout) {
+    public CustomConnection(String baseUrl) {
+        this(baseUrl, DEFAULT_REQUEST_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT, DEFAULT_SOCKET_TIMEOUT);
+    }
+
+    public CustomConnection(String baseUrl, int requestTimeout, int connectionTimeout,
+            int socketTimeout) {
         this.baseUrl = baseUrl;
 
         RequestConfig rc = RequestConfig.custom()
-                .setConnectTimeout(CONNECTION_TIMEOUT)
+                .setConnectTimeout(connectionTimeout)
                 .setSocketTimeout(socketTimeout)
-                .setConnectionRequestTimeout(REQUEST_TIMEOUT)
+                .setConnectionRequestTimeout(requestTimeout)
                 .build();
 
         this.httpclient = HttpClientBuilder.create()

@@ -1,6 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common;
+package eu.europeana.cloud.service.dps.oaipmh;
 
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
 import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
@@ -21,13 +20,14 @@ import static org.junit.Assert.assertThat;
  * @author krystian.
  */
 public class OAIHelperTest extends WiremockHelper {
+
     @Test
     public void shouldFetchSchemas() throws IOException {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=ListMetadataFormats"))
                 .willReturn(response200XmlContent(getFileContent("/schemas.xml"))
                 ));
-        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
+        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/", DEFAULT_RETRIES, SLEEP_TIME);
 
         //when
         final Iterator<MetadataFormat> result = underTest.listSchemas();
@@ -51,7 +51,7 @@ public class OAIHelperTest extends WiremockHelper {
     public void shouldRetrieveDayGranularity() throws IOException {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(response200XmlContent(getFileContent("/identifyDayGranularity.xml"))));
-        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
+        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/", DEFAULT_RETRIES, SLEEP_TIME);
         //when
         Granularity result = underTest.getGranularity();
         //then
@@ -62,7 +62,7 @@ public class OAIHelperTest extends WiremockHelper {
     public void shouldRetrieveSecondGranularity() throws IOException {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(response200XmlContent(getFileContent("/identifySecondGranularity.xml"))));
-        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
+        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/", DEFAULT_RETRIES, SLEEP_TIME);
         //when
         Granularity result = underTest.getGranularity();
         //then
@@ -73,13 +73,11 @@ public class OAIHelperTest extends WiremockHelper {
     public void shouldThrowIllegalArgumentExceptionWhenNoGranularityAvailable() throws IOException {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(response200XmlContent(getFileContent("/identifyNoGranularity.xml"))));
-        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
+        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/", DEFAULT_RETRIES, SLEEP_TIME);
         //when
         Granularity result = underTest.getGranularity();
         //then exception is thrown
     }
-
-
 
     @Test(expected = InvalidOAIResponse.class)
     public void shouldRetry10TimesAndFail() throws InvalidOAIResponse {
@@ -87,7 +85,7 @@ public class OAIHelperTest extends WiremockHelper {
             stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).inScenario("Retry and fail scenario")
                     .willReturn(response404()));
 
-        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
+        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/", DEFAULT_RETRIES, SLEEP_TIME);
         //when
         Granularity result = underTest.getGranularity();
         //then
@@ -104,7 +102,7 @@ public class OAIHelperTest extends WiremockHelper {
                 .whenScenarioStateIs("one time requested")
                 .willReturn(response200XmlContent(getFileContent("/identifySecondGranularity.xml"))));
 
-        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
+        final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/", DEFAULT_RETRIES, SLEEP_TIME);
         //when
         Granularity result = underTest.getGranularity();
         //then

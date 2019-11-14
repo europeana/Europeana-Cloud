@@ -1,6 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common;
+package eu.europeana.cloud.service.dps.oaipmh;
 
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.dspace.xoai.serviceprovider.ServiceProvider;
@@ -21,10 +20,14 @@ import java.util.Iterator;
 public class OAIHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIHelper.class);
 
-    private String resourceURL;
+    private final String resourceURL;
+    private final int numberOfRetries;
+    private final int timeBetweenRetries;
 
-    public OAIHelper(String resourceURL) {
+    OAIHelper(String resourceURL, int numberOfRetries, int timeBetweenRetries) {
         this.resourceURL = resourceURL;
+        this.numberOfRetries = numberOfRetries;
+        this.timeBetweenRetries = timeBetweenRetries;
     }
 
     private ServiceProvider initServiceProvider() {
@@ -33,7 +36,7 @@ public class OAIHelper {
     }
 
     public Iterator<MetadataFormat> listSchemas() {
-        int retries = AbstractDpsBolt.DEFAULT_RETRIES;
+        int retries = numberOfRetries;
 
         while (true) {
             try {
@@ -48,7 +51,7 @@ public class OAIHelper {
     }
 
     public Date getEarlierDate() {
-        int retries = AbstractDpsBolt.DEFAULT_RETRIES;
+        int retries = numberOfRetries;
 
         while (true) {
             try {
@@ -61,7 +64,7 @@ public class OAIHelper {
     }
 
     public Granularity getGranularity() {
-        int retries = AbstractDpsBolt.DEFAULT_RETRIES;
+        int retries = numberOfRetries;
 
         while (true) {
             try {
@@ -74,10 +77,11 @@ public class OAIHelper {
     }
 
     private int handleExceptionWithRetries(int retries, InvalidOAIResponse e, String message){
-        if (retries-- > 0) {
+        if (retries > 0) {
+            retries--;
             LOGGER.warn("Error {} . Retries left: {}", message, retries);
             try {
-                Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
+                Thread.sleep(timeBetweenRetries);
             } catch (InterruptedException e1) {
                 Thread.currentThread().interrupt();
                 LOGGER.error(e1.getMessage());

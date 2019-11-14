@@ -1,6 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester;
+package eu.europeana.cloud.service.dps.oaipmh;
 
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,9 +11,6 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.TestHelper.convertToString;
-import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.TestHelper.isSimilarXml;
-import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper.getFileContent;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
@@ -48,7 +44,7 @@ public class XmlXPathTest {
     @Test
     public void shouldFilterOaiDcResponse() throws IOException, HarvesterException {
         //given
-        final String fileContent = getFileContent("/sampleOaiRecord.xml");
+        final String fileContent = WiremockHelper.getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
         String content = IOUtils.toString(inputStream, "UTF-8");
 
@@ -57,15 +53,14 @@ public class XmlXPathTest {
         final InputStream result = new XmlXPath(content).xpath(expr);
 
         //then
-        final String actual = convertToString(result);
-        assertThat(actual, isSimilarXml(getFileContent("/expectedOaiRecord.xml")));
+        final String actual = TestHelper.convertToString(result);
+        assertThat(actual, TestHelper.isSimilarXml(WiremockHelper.getFileContent("/expectedOaiRecord.xml")));
     }
-
 
     @Test
     public void shouldReturnRecordIsDeleted() throws IOException, HarvesterException {
         //given
-        final String fileContent = getFileContent("/deletedOaiRecord.xml");
+        final String fileContent = WiremockHelper.getFileContent("/deletedOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
         String content = IOUtils.toString(inputStream, "UTF-8");
         assertTrue(new XmlXPath(content).isDeletedRecord(isDeletedExpression));
@@ -74,7 +69,7 @@ public class XmlXPathTest {
     @Test
     public void shouldReturnRecordIsNotDeleted() throws IOException, HarvesterException {
         //given
-        final String fileContent = getFileContent("/sampleOaiRecord.xml");
+        final String fileContent = WiremockHelper.getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
         String content = IOUtils.toString(inputStream, "UTF-8");
         assertFalse(new XmlXPath(content).isDeletedRecord(isDeletedExpression));
@@ -83,7 +78,7 @@ public class XmlXPathTest {
     @Test
     public void shouldThrowExceptionNonSingleOutputCandidate() throws IOException, HarvesterException, XPathExpressionException {
         //given
-        final String fileContent = getFileContent("/sampleOaiRecord.xml");
+        final String fileContent = WiremockHelper.getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
         String content = IOUtils.toString(inputStream, "UTF-8");
 
@@ -115,6 +110,4 @@ public class XmlXPathTest {
             assertThat(e.getMessage(), is("Cannot xpath XML!"));
         }
     }
-
-
 }

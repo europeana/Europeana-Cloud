@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper;
+package eu.europeana.cloud.service.dps.oaipmh;
 
 import org.apache.commons.io.IOUtils;
 import org.xmlunit.matchers.CompareMatcher;
