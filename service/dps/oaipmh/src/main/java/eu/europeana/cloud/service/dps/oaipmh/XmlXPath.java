@@ -17,7 +17,8 @@ import java.io.*;
  * @author krystian.
  */
 class XmlXPath {
-    private String input;
+
+    private final String input;
 
     XmlXPath(String input) {
         this.input = input;
@@ -28,29 +29,31 @@ class XmlXPath {
      *
      * @param expr expression
      * @return result of xpath
-     * @throws HarvesterException
+     * @throws HarvesterException in case there is a problem with the expression.
      */
-    public InputStream xpath(XPathExpression expr) throws HarvesterException, IOException {
+    InputStream xpathToStream(XPathExpression expr) throws HarvesterException {
         try {
             final InputSource inputSource = getInputSource();
-            final NodeList result = (NodeList) expr.evaluate(inputSource,
-                    XPathConstants.NODESET);
-
+            final NodeList result = (NodeList) expr.evaluate(inputSource, XPathConstants.NODESET);
             return convertToStream(result);
         } catch (XPathExpressionException | TransformerException e) {
             throw new HarvesterException("Cannot xpath XML!", e);
         }
     }
 
-
-    public boolean isDeletedRecord(XPathExpression expr) throws HarvesterException {
+    /**
+     * Xpath on xml based on passed expression.
+     *
+     * @param expr expression
+     * @return result of xpath
+     * @throws HarvesterException in case there is a problem with the expression.
+     */
+    String xpathToString(XPathExpression expr) throws HarvesterException {
         try {
-            String status = evaluateExpression(expr);
-            return "deleted".equalsIgnoreCase(status);
+            return evaluateExpression(expr);
         } catch (XPathExpressionException e) {
             throw new HarvesterException("Cannot xpath XML!", e);
         }
-
     }
 
     private InputSource getInputSource() {
@@ -62,7 +65,7 @@ class XmlXPath {
         return expr.evaluate(inputSource);
     }
 
-    private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException, IOException {
+    private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException {
         final int length = nodes.getLength();
         if (length < 1) {
             throw new HarvesterException("Empty XML!");
@@ -81,6 +84,9 @@ class XmlXPath {
 
             transformer.transform(xmlSource, outputTarget);
             return new ByteArrayInputStream(outputStream.toByteArray());
+        } catch (IOException e) {
+            // Cannot really happen.
+            throw new HarvesterException("Unexpected exception", e);
         }
     }
 }

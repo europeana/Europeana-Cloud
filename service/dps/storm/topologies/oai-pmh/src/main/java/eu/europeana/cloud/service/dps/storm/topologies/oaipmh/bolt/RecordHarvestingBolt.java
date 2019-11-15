@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -116,7 +117,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
 
-        harvester = new Harvester(DEFAULT_RETRIES, SLEEP_TIME);
+        harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
 
         try {
             XPath xpath = XPathFactory.newInstance().newXPath();

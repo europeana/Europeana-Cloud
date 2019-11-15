@@ -19,7 +19,6 @@ import java.util.Iterator;
 @RunWith(Parameterized.class)
 public class RealRepositoriesHarvestingTest {
 
-    private final SourceProvider sourceProvider = new SourceProvider();
     private final String endpoint;
     private final String schema;
     private final String set;
@@ -97,7 +96,7 @@ public class RealRepositoriesHarvestingTest {
             parameters.withSetSpec(set);
         System.out.println("Harvesting " + endpoint);
         int i = 0;
-        Iterator<Header> headerIterator = sourceProvider.provide(endpoint).listIdentifiers(parameters);
+        Iterator<Header> headerIterator = HarvesterImpl.createServiceProvider(endpoint).listIdentifiers(parameters);
         while (headerIterator.hasNext()) { //should go over few pages, as they usually have 50 headers per page
             Header header = headerIterator.next();
             System.out.println(i + " " + header.getIdentifier());
@@ -116,7 +115,7 @@ public class RealRepositoriesHarvestingTest {
             parameters.withSetSpec(set);
         System.out.println("Harvesting " + endpoint);
         int i = 0;
-        Iterator<Header> headerIterator = sourceProvider.provide(endpoint).listIdentifiers(parameters);
+        Iterator<Header> headerIterator = HarvesterImpl.createServiceProvider(endpoint).listIdentifiers(parameters);
         while (headerIterator.hasNext() && i < 110) { //should go over few pages, as they usually have 50 headers per page
             Header header = headerIterator.next();
             String record = harvestRecord(endpoint, header.getIdentifier(), schema);
@@ -134,20 +133,15 @@ public class RealRepositoriesHarvestingTest {
         System.out.println(record);
     }
 
-
-    @Test
-    public void shouldReadGranularity() {
-        OAIHelper helper = new OAIHelper(endpoint, 3, 1000);
-        helper.getGranularity();
-    }
-
     //this is how we download records, copy-pasted for simplicity
     private String harvestRecord(String oaiPmhEndpoint, String recordId, String metadataPrefix)
             throws OAIRequestException {
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
         while (true) {
-            CustomConnection client = new CustomConnection(oaiPmhEndpoint);
-            return client.execute(org.dspace.xoai.serviceprovider.parameters.Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
+            OaiPmhConnection client = new OaiPmhConnection(oaiPmhEndpoint,
+                    org.dspace.xoai.serviceprovider.parameters.Parameters.parameters()
+                            .withVerb(Verb.Type.GetRecord).include(params));
+            return client.execute();
         }
     }
 }

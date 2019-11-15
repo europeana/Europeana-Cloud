@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * Created by Tarek on 7/5/2017.
  */
-public class SpecificSchemasHandler extends SchemaHandler {
+public class SpecificSchemasHandler implements SchemaHandler {
 
     /**
      * return the task specific schemas after excluding the excluded schemas

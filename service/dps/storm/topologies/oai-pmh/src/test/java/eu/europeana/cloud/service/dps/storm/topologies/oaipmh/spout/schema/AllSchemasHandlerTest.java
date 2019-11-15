@@ -8,19 +8,18 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.util.HashSet;
 import org.junit.Test;
 
-
 /**
  * Created by Tarek on 5/4/2018.
  */
-
 public class AllSchemasHandlerTest {
 
     @Test
-    public void testGetSchemas() {
+    public void testGetSchemas() throws HarvesterException {
 
         // Create harvester and handler
         final Harvester harvester = mock(Harvester.class);

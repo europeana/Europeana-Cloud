@@ -1,12 +1,16 @@
 package eu.europeana.cloud.service.dps.oaipmh;
 
-import eu.europeana.cloud.service.dps.oaipmh.Harvester.ConnectionFactory;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterImpl.ConnectionFactory;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
+import org.dspace.xoai.serviceprovider.parameters.Parameters;
+import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +32,7 @@ import static org.junit.Assert.fail;
 /**
  * @author krystian.
  */
-public class HarvesterTest extends WiremockHelper {
+public class HarvesterImplTest extends WiremockHelper {
 
     private static final String OAI_PMH_ENDPOINT = "http://localhost:8181/oai-phm/";
     private static final String METADATA_XPATH = "/*[local-name()='OAI-PMH']" +
@@ -66,7 +70,7 @@ public class HarvesterTest extends WiremockHelper {
                 "&metadataPrefix=oai_dc"))
                 .willReturn(response200XmlContent(getFileContent("/sampleOaiRecord.xml"))
                 ));
-        final Harvester harvester = new Harvester(DEFAULT_RETRIES, SLEEP_TIME);
+        final HarvesterImpl harvester = new HarvesterImpl(DEFAULT_RETRIES, SLEEP_TIME);
 
         //when
         final InputStream result = harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
@@ -85,7 +89,7 @@ public class HarvesterTest extends WiremockHelper {
                 "&metadataPrefix=oai_dc"))
                 .willReturn(response200XmlContent(getFileContent("/deletedOaiRecord.xml"))
                 ));
-        final Harvester harvester = new Harvester(DEFAULT_RETRIES, SLEEP_TIME);
+        final HarvesterImpl harvester = new HarvesterImpl(DEFAULT_RETRIES, SLEEP_TIME);
 
         //when
         harvester.harvestRecord(OAI_PMH_ENDPOINT, "mediateka",
@@ -99,7 +103,7 @@ public class HarvesterTest extends WiremockHelper {
         stubFor(get(urlEqualTo("/oai-phm/?verb=GetRecord&identifier=oai%3Amediateka.centrumzamenhofa" +
                 ".pl%3A19&metadataPrefix=oai_dc"))
                 .willReturn(response404()));
-        final Harvester harvester = new Harvester(DEFAULT_RETRIES, SLEEP_TIME);
+        final HarvesterImpl harvester = new HarvesterImpl(DEFAULT_RETRIES, SLEEP_TIME);
 
         //when
         try {
@@ -121,11 +125,11 @@ public class HarvesterTest extends WiremockHelper {
                 ));
         final ConnectionFactory connectionFactory = new ConnectionFactory() {
             @Override
-            public CustomConnection createConnection(String oaiPmhEndpoint) {
-                return new CustomConnection(oaiPmhEndpoint, TEST_SOCKET_TIMEOUT, TEST_SOCKET_TIMEOUT, TEST_SOCKET_TIMEOUT);
+            public OaiPmhConnection createConnection(String oaiPmhEndpoint, Parameters parameters) {
+                return new OaiPmhConnection(oaiPmhEndpoint, parameters, TEST_SOCKET_TIMEOUT, TEST_SOCKET_TIMEOUT, TEST_SOCKET_TIMEOUT);
             }
         };
-        final Harvester harvester = new Harvester(1, SLEEP_TIME);
+        final HarvesterImpl harvester = new HarvesterImpl(1, SLEEP_TIME);
 
         //when
         harvester.harvestRecord(connectionFactory, OAI_PMH_ENDPOINT, "mediateka", "oai_dc", expr,
@@ -136,13 +140,11 @@ public class HarvesterTest extends WiremockHelper {
     }
 
     @Test
-    public void testGetSchemas(){
+    public void testGetSchemas() throws HarvesterException {
 
         // Prepare
         final String fileUrl = "file url";
-        final OAIHelper oaiHelper = mock(OAIHelper.class);
-        final Harvester harvester = spy(new Harvester(3, 1000));
-        when(harvester.createOaiHelper(fileUrl)).thenReturn(oaiHelper);
+        final HarvesterImpl harvester = spy(new HarvesterImpl(3, 1000));
 
         final MetadataFormat metadataFormat1 = new MetadataFormat();
         metadataFormat1.withMetadataPrefix(EDM);
@@ -154,12 +156,12 @@ public class HarvesterTest extends WiremockHelper {
         metadataFormat3.withMetadataPrefix(OAI_DC);
 
         // Create new iterator every time: otherwise we'd need to reset the iterator.
-        when(oaiHelper.listSchemas()).thenAnswer(new Answer<Iterator<MetadataFormat>>() {
+        doAnswer(new Answer<Iterator<MetadataFormat>>() {
             @Override
             public Iterator<MetadataFormat> answer(InvocationOnMock invocationOnMock) {
                 return Arrays.asList(metadataFormat1, metadataFormat2, metadataFormat3).iterator();
             }
-        });
+        }).when(harvester).getSchemaIterator(fileUrl);
 
         // Test without exclusions
         final Set<String> schemasWithNullExclusions = harvester.getSchemas(fileUrl, null);
@@ -175,5 +177,30 @@ public class HarvesterTest extends WiremockHelper {
         final Set<String> schemasWithAllExclusions = harvester.getSchemas(fileUrl,
                 new HashSet<>(Arrays.asList(EDM, OAI_DC, RDF)));
         assertEquals(Collections.emptySet(), schemasWithAllExclusions);
+    }
+
+    @Test
+    public void testGetSchemaIterator() throws IOException, HarvesterException {
+        //given
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListMetadataFormats"))
+                .willReturn(response200XmlContent(getFileContent("/schemas.xml"))
+                ));
+        final HarvesterImpl harvester = new HarvesterImpl(DEFAULT_RETRIES, SLEEP_TIME);
+
+        //when
+        final Iterator<MetadataFormat> result = harvester.getSchemaIterator(OAI_PMH_ENDPOINT);
+
+        //then
+        List<MetadataFormat> resultAsList = convertToList(result);
+        assertThat(resultAsList.size(), Is.is(1));
+        assertThat(resultAsList.get(0).getMetadataPrefix(), Is.is("oai_dc"));
+    }
+
+    private List<MetadataFormat> convertToList(Iterator<MetadataFormat> metadataFormatIterator) {
+        List<MetadataFormat> result = new ArrayList<>();
+        while (metadataFormatIterator.hasNext()){
+            result.add(metadataFormatIterator.next());
+        }
+        return result;
     }
 }

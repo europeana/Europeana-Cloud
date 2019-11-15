@@ -46,11 +46,11 @@ public class XmlXPathTest {
         //given
         final String fileContent = WiremockHelper.getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
-        String content = IOUtils.toString(inputStream, "UTF-8");
+        String content = IOUtils.toString(inputStream, ENCODING);
 
 
         //when
-        final InputStream result = new XmlXPath(content).xpath(expr);
+        final InputStream result = new XmlXPath(content).xpathToStream(expr);
 
         //then
         final String actual = TestHelper.convertToString(result);
@@ -62,8 +62,8 @@ public class XmlXPathTest {
         //given
         final String fileContent = WiremockHelper.getFileContent("/deletedOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
-        String content = IOUtils.toString(inputStream, "UTF-8");
-        assertTrue(new XmlXPath(content).isDeletedRecord(isDeletedExpression));
+        String content = IOUtils.toString(inputStream, ENCODING);
+        assertEquals("deleted", new XmlXPath(content).xpathToString(isDeletedExpression));
     }
 
     @Test
@@ -71,22 +71,22 @@ public class XmlXPathTest {
         //given
         final String fileContent = WiremockHelper.getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
-        String content = IOUtils.toString(inputStream, "UTF-8");
-        assertFalse(new XmlXPath(content).isDeletedRecord(isDeletedExpression));
+        String content = IOUtils.toString(inputStream, ENCODING);
+        assertFalse("deleted".equalsIgnoreCase(new XmlXPath(content).xpathToString(isDeletedExpression)));
     }
 
     @Test
-    public void shouldThrowExceptionNonSingleOutputCandidate() throws IOException, HarvesterException, XPathExpressionException {
+    public void shouldThrowExceptionNonSingleOutputCandidate() throws IOException, XPathExpressionException {
         //given
         final String fileContent = WiremockHelper.getFileContent("/sampleOaiRecord.xml");
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
-        String content = IOUtils.toString(inputStream, "UTF-8");
+        String content = IOUtils.toString(inputStream, ENCODING);
 
         try {
             //when
             XPath xpath = XPathFactory.newInstance().newXPath();
             expr = xpath.compile("/some/bad/xpath");
-            new XmlXPath(content).xpath(expr);
+            new XmlXPath(content).xpathToStream(expr);
             fail();
         } catch (HarvesterException e) {
             //then
@@ -95,15 +95,15 @@ public class XmlXPathTest {
     }
 
     @Test
-    public void shouldThrowExceptionOnEmpty() throws IOException, HarvesterException {
+    public void shouldThrowExceptionOnEmpty() throws IOException {
         //given
         final String fileContent = "";
         final InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING);
-        String content = IOUtils.toString(inputStream, "UTF-8");
+        String content = IOUtils.toString(inputStream, ENCODING);
 
         try {
             //when
-            new XmlXPath(content).xpath(expr);
+            new XmlXPath(content).xpathToStream(expr);
             fail();
         } catch (HarvesterException e) {
             //then

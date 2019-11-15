@@ -3,11 +3,11 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job;
 import com.google.common.base.Throwables;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.oaipmh.Harvester;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester.CancelTrigger;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaFactory;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaHandler;
@@ -99,9 +99,8 @@ public class IdentifierHarvester implements Callable<Void> {
         };
         final String fileUrl = stormTaskTuple.getFileUrl();
         final Set<String> excludedSets = stormTaskTuple.getSourceDetails().getExcludedSets();
-        final List<String> identifiers = new Harvester(DEFAULT_RETRIES, SLEEP_TIME)
-                .harvestIdentifiers(schema, dataset, fromDate, untilDate, fileUrl, excludedSets,
-                        cancelTrigger);
+        final List<String> identifiers = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME)
+                .harvestIdentifiers(schema, dataset, fromDate, untilDate, fileUrl, excludedSets, cancelTrigger);
         for (String identifier:identifiers){
             fillIdentifiersQueue(stormTaskTuple, identifier, schema);
         }
