@@ -5,20 +5,19 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.oaipmh.Harvester.CancelTrigger;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaFactory;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaHandler;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import org.dspace.xoai.model.oaipmh.Header;
-import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
-import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
@@ -44,7 +43,7 @@ public class IdentifierHarvester implements Callable<Void> {
     }
 
     @Override
-    public Void call() throws Exception {
+    public Void call() {
         try {
             execute(stormTaskTuple);
         } catch (Exception e) {
@@ -54,9 +53,9 @@ public class IdentifierHarvester implements Callable<Void> {
     }
 
 
-    public void execute(StormTaskTuple stormTaskTuple) throws BadArgumentException, InterruptedException {
+    private void execute(StormTaskTuple stormTaskTuple) throws InterruptedException, HarvesterException {
         startProgress(stormTaskTuple.getTaskId());
-        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
+        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple, DEFAULT_RETRIES, SLEEP_TIME);
         Set<String> schemas = schemaHandler.getSchemas(stormTaskTuple);
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
         int expectedSize = 0;
@@ -68,10 +67,11 @@ public class IdentifierHarvester implements Callable<Void> {
         for (String schema : schemas) {
             if (sets == null || sets.isEmpty()) {
                 expectedSize += harvestIdentifiers(schema, null, fromDate, untilDate, stormTaskTuple);
-            } else
+            } else {
                 for (String set : sets) {
                     expectedSize += harvestIdentifiers(schema, set, fromDate, untilDate, stormTaskTuple);
                 }
+            }
         }
 
         updateTaskBasedOnExpectedSize(stormTaskTuple, expectedSize);
@@ -89,33 +89,22 @@ public class IdentifierHarvester implements Callable<Void> {
         cassandraTaskInfoDAO.updateTask(taskId, "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
     }
 
-
-    private int harvestIdentifiers(String schema, String dataset, Date fromDate, Date untilDate, StormTaskTuple stormTaskTuple) throws InterruptedException
-            , BadArgumentException {
-        SourceProvider sourceProvider = new SourceProvider();
-        OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
-        String url = stormTaskTuple.getFileUrl();
-        ListIdentifiersParameters parameters = configureParameters(schema, dataset, fromDate, untilDate);
-        return parseHeaders(sourceProvider.provide(url).listIdentifiers(parameters), sourceDetails.getExcludedSets(), stormTaskTuple, schema);
-    }
-
-    /**
-     * Configure request parameters
-     *
-     * @return object representing parameters for ListIdentifiers request
-     */
-    private ListIdentifiersParameters configureParameters(String schema, String dataset, Date fromDate, Date untilDate) {
-        ListIdentifiersParameters parameters = ListIdentifiersParameters.request()
-                .withMetadataPrefix(schema);
-
-        if (fromDate != null)
-            parameters.withFrom(fromDate);
-        if (untilDate != null)
-            parameters.withUntil(untilDate);
-        if (dataset != null)
-            parameters.withSetSpec(dataset);
-
-        return parameters;
+    private int harvestIdentifiers(String schema, String dataset, Date fromDate, Date untilDate,
+            final StormTaskTuple stormTaskTuple) throws InterruptedException, HarvesterException {
+        final CancelTrigger cancelTrigger = new CancelTrigger() {
+            @Override
+            public boolean shouldCancel() {
+                return taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId());
+            }
+        };
+        final String fileUrl = stormTaskTuple.getFileUrl();
+        final Set<String> excludedSets = stormTaskTuple.getSourceDetails().getExcludedSets();
+        final List<String> identifiers = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME)
+                .harvestIdentifiers(schema, dataset, fromDate, untilDate, fileUrl, excludedSets, cancelTrigger);
+        for (String identifier:identifiers){
+            fillIdentifiersQueue(stormTaskTuple, identifier, schema);
+        }
+        return identifiers.size();
     }
 
     private void fillIdentifiersQueue(StormTaskTuple stormTaskTuple, String identifier, String schema) throws InterruptedException {
@@ -125,77 +114,6 @@ public class IdentifierHarvester implements Callable<Void> {
         tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, stormTaskTuple.getFileUrl());
         tuple.setFileUrl(identifier);
         oaiIdentifiers.put(tuple);
-
-    }
-
-    /**
-     * Parse headers returned by the OAI-PMH source
-     *
-     * @param headerIterator iterator of headers returned by the source
-     * @param excludedSets   sets to exclude
-     * @param stormTaskTuple tuple to be used for emitting identifier
-     * @return number of harvested identifiers
-     */
-    private int parseHeaders(Iterator<Header> headerIterator, Set<String> excludedSets, StormTaskTuple stormTaskTuple, String schema) throws InterruptedException {
-        int count = 0;
-        if (headerIterator == null) {
-            throw new IllegalArgumentException("Header iterator is null");
-        }
-
-        while (hasNext(headerIterator) && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
-            Header header = headerIterator.next();
-            if (filterHeader(header, excludedSets)) {
-                fillIdentifiersQueue(stormTaskTuple, header.getIdentifier(), schema);
-                count++;
-            }
-        }
-        return count;
-
-    }
-
-    private boolean hasNext(Iterator<Header> headerIterator) {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                return headerIterator.hasNext();
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while getting the next batch: {}. Retries left {}. The cause of the error is {}", e.getMessage(), retries, e.getMessage() + " " + e.getCause());
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while getting the next batch {}", e.getMessage());
-                    throw new IllegalStateException(" Error while getting the next batch of identifiers from the oai end-point.", e);
-                }
-            }
-        }
-    }
-
-    protected void waitForSpecificTime() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
-        }
-    }
-
-
-    /**
-     * Filter header by checking whether it belongs to any of excluded sets.
-     *
-     * @param header       header to filter
-     * @param excludedSets sets to exclude
-     */
-
-    private boolean filterHeader(Header header, Set<String> excludedSets) {
-        if (excludedSets != null && !excludedSets.isEmpty()) {
-            for (String set : excludedSets) {
-                if (header.getSetSpecs().contains(set)) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }
 

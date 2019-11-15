@@ -2,10 +2,9 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.oaipmh.Harvester;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Harvester;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
 import org.apache.storm.task.OutputCollector;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,13 +18,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link RecordHarvestingBolt}
  */
 
-public class RecordHarvestingBoltTest extends WiremockHelper {
+public class RecordHarvestingBoltTest {
     @Mock
     private OutputCollector outputCollector;
 
@@ -117,7 +117,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         verifySuccessfulEmit();
 
         verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertEquals(null, spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+        assertNull( spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
         assertEquals("http://data.europeana.eu/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
@@ -139,13 +139,13 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         verifySuccessfulEmit();
 
         verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertEquals(null, spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+        assertNull(spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
         assertEquals("/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
 
     @Test
-    public void shouldEmitErrorOnHarvestingExceptionWhenCannotExctractEuropeanaIdFromEDM() throws IOException, HarvesterException {
+    public void shouldEmitErrorOnHarvestingExceptionWhenCannotExctractEuropeanaIdFromEDM() throws HarvesterException {
 
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/corruptedEDMRecord.xml");
@@ -161,8 +161,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
     }
 
     @Test
-    public void shouldEmitErrorOnHarvestingException() throws IOException,
-            HarvesterException {
+    public void shouldEmitErrorOnHarvestingException() throws HarvesterException {
         //given
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenThrow(new
                 HarvesterException("Some!"));
@@ -279,4 +278,7 @@ public class RecordHarvestingBoltTest extends WiremockHelper {
         verify(outputCollector, times(0)).emit(Mockito.anyList());
     }
 
+    private static InputStream getFileContentAsStream(String name) {
+        return Object.class.getResourceAsStream(name);
+    }
 }

@@ -23,7 +23,7 @@ public class SchemaFactoryTest {
     public void shouldReturnAllSchemaHandler() {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         stormTaskTuple.setSourceDetails(oaipmhHarvestingDetails);
-        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
+        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple, 3, 1000);
         assertTrue(schemaHandler instanceof AllSchemasHandler);
     }
 
@@ -31,7 +31,7 @@ public class SchemaFactoryTest {
     public void shouldReturnSpecificSchemaHandler() {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails(SCHEMA);
         stormTaskTuple.setSourceDetails(oaipmhHarvestingDetails);
-        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
+        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple, 3, 1000);
         assertTrue(schemaHandler instanceof SpecificSchemasHandler);
     }
 

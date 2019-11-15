@@ -1,32 +1,33 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema;
 
-import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import eu.europeana.cloud.service.dps.oaipmh.Harvester;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
-import org.dspace.xoai.model.oaipmh.MetadataFormat;
-
-import java.util.*;
+import java.util.Set;
 
 /**
  * Created by Tarek on 4/30/2018.
  */
-public class AllSchemasHandler extends SchemaHandler {
+public class AllSchemasHandler implements SchemaHandler {
+
+    private final Harvester harvester;
+
+    AllSchemasHandler(Harvester harvester) {
+        this.harvester = harvester;
+    }
+
+    public AllSchemasHandler(int numberOfRetries, int timeBetweenRetries) {
+        this(HarvesterFactory.createHarvester(numberOfRetries, timeBetweenRetries));
+    }
+
     /**
      * List all the resource schemas
      */
-    public Set<String> getSchemas(StormTaskTuple stormTaskTuple) {
-        OAIHelper oaiHelper = new OAIHelper(stormTaskTuple.getFileUrl());
-        Iterator<MetadataFormat> metadataFormatIterator = oaiHelper.listSchemas();
-        OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
-        Set<String> excludedSchemas = oaipmhHarvestingDetails.getExcludedSchemas();
-        Set<String> schemas = new HashSet<>();
-        while (metadataFormatIterator.hasNext()) {
-            String schema = metadataFormatIterator.next().getMetadataPrefix();
-            if (excludedSchemas == null || !excludedSchemas.contains(schema)) {
-                schemas.add(schema);
-            }
-        }
-        return schemas;
-
+    @Override
+    public Set<String> getSchemas(StormTaskTuple stormTaskTuple) throws HarvesterException {
+        final String fileUrl = stormTaskTuple.getFileUrl();
+        final Set<String> excludedSchemas = stormTaskTuple.getSourceDetails().getExcludedSchemas();
+        return harvester.getSchemas(fileUrl, excludedSchemas);
     }
 }
