@@ -80,6 +80,7 @@
         <Environment name="dps/topology/nameList" type="java.lang.String" value="name1,ic_topology,xslt_topology"/>
 
         <Environment name="dps/mcsLocation" type="java.lang.String" value="http://iks-kbase.synat.pcss.pl:9090/mcs"/>
+        <Environment name="dps/appId" type="java.lang.String" value="<enter-application-id-here>"/>
 
         <!--Image publisher -->
         <Environment name="ips/iipHost" type="java.lang.String"
