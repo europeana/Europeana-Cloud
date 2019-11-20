@@ -99,4 +99,10 @@
             name="dps/mcsLocation"
             global="dps/mcsLocation"
             type="java.lang.String"/>
+
+    <ResourceLink
+            name="dps/appId"
+            global="dps/appId"
+            type="java.lang.String"/>
+
 </Context>
