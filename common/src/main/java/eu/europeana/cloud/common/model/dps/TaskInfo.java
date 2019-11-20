@@ -26,6 +26,7 @@ public class TaskInfo {
     private int processedElementCount;
     private TaskState state;
     private String info;
+    private String ownerId;
 
     private Date finishDate;
     private Date startDate;
@@ -106,6 +107,14 @@ public class TaskInfo {
 
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
     }
 
     private void calculateProgress() {
@@ -205,7 +214,12 @@ public class TaskInfo {
             if (taskInfo.finishDate != null) return false;
         if (finishDate != null && taskInfo.finishDate != null)
             if (finishDate.getTime() != taskInfo.finishDate.getTime()) return false;
-
+        if (ownerId == null)
+            if (taskInfo.ownerId != null) return false;
+        if (ownerId != null && taskInfo.ownerId == null)
+            return false;
+        if (ownerId != null)
+            if (!ownerId.equals(taskInfo.ownerId)) return false;
         return true;
     }
 
@@ -221,6 +235,7 @@ public class TaskInfo {
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (sentDate != null ? sentDate.hashCode() : 0);
+        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         return result;
     }
 }

@@ -14,6 +14,15 @@ CREATE TABLE basic_info (
     PRIMARY KEY(task_id)
 );
 
+CREATE TABLE tasks_by_task_state(
+    state varchar,
+    topology_name varchar,
+    task_id bigint,
+    application_id varchar,
+    start_time timestamp,
+    PRIMARY KEY(state,topology_name,task_id)
+);
+
 CREATE TABLE notifications (
     resource_num int,
     task_id bigint,

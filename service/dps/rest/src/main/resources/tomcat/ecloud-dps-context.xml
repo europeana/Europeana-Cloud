@@ -111,6 +111,10 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
+    <bean id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTasksDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+
 
     <bean id="killService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService">
         <constructor-arg ref="dpsCassandraProvider"/>
