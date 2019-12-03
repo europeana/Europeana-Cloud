@@ -170,6 +170,14 @@
             <artifactId>commons-collections</artifactId>
             <version>3.2.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>xoai-service-provider</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+
+
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>

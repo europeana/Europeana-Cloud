@@ -1,6 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common;
+package eu.europeana.cloud.service.dps.rest.oaiharvest;
 
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.dspace.xoai.serviceprovider.ServiceProvider;
@@ -21,6 +20,12 @@ import java.util.Iterator;
 public class OAIHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIHelper.class);
 
+    // default number of retries
+    public static final int DEFAULT_RETRIES = 3;
+
+    public static final int SLEEP_TIME = 5000;
+
+
     private String resourceURL;
 
     public OAIHelper(String resourceURL) {
@@ -33,7 +38,7 @@ public class OAIHelper {
     }
 
     public Iterator<MetadataFormat> listSchemas() {
-        int retries = AbstractDpsBolt.DEFAULT_RETRIES;
+        int retries = DEFAULT_RETRIES;
 
         while (true) {
             try {
@@ -48,7 +53,7 @@ public class OAIHelper {
     }
 
     public Date getEarlierDate() {
-        int retries = AbstractDpsBolt.DEFAULT_RETRIES;
+        int retries = DEFAULT_RETRIES;
 
         while (true) {
             try {
@@ -61,7 +66,7 @@ public class OAIHelper {
     }
 
     public Granularity getGranularity() {
-        int retries = AbstractDpsBolt.DEFAULT_RETRIES;
+        int retries = DEFAULT_RETRIES;
 
         while (true) {
             try {
@@ -77,7 +82,7 @@ public class OAIHelper {
         if (retries-- > 0) {
             LOGGER.warn("Error {} . Retries left: {}", message, retries);
             try {
-                Thread.sleep(AbstractDpsBolt.SLEEP_TIME);
+                Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e1) {
                 Thread.currentThread().interrupt();
                 LOGGER.error(e1.getMessage());

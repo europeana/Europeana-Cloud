@@ -1,8 +1,8 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema;
+package eu.europeana.cloud.service.dps.rest.oaiharvest.schema;
 
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.OAIHelper;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.OAIItem;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,13 +33,13 @@ public class AllSchemasHandlerTest {
     public static final String EDM = "EDM";
     public static final String RDF = "RDF";
     public static final String OAI_DC = "OAI_DC";
-    private StormTaskTuple stormTaskTuple;
+    private OAIItem  oaiItem;
     private OAIHelper oaiHelper;
     Iterator<MetadataFormat> iterator;
 
     @Before
     public void init() throws Exception {
-        stormTaskTuple = new StormTaskTuple();
+        oaiItem = new OAIItem();
         oaiHelper = Mockito.mock(OAIHelper.class);
         PowerMockito.whenNew(OAIHelper.class).withAnyArguments().thenReturn(oaiHelper);
 
@@ -62,13 +62,12 @@ public class AllSchemasHandlerTest {
     public void shouldReturnAllSchemasWithNoExcludedSchemas() throws Exception {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
 
-        stormTaskTuple.setSourceDetails(oaipmhHarvestingDetails);
+        oaiItem.setSourceDetails(oaipmhHarvestingDetails);
         when(oaiHelper.listSchemas()).thenReturn(iterator);
         AllSchemasHandler allSchemasHandler = new AllSchemasHandler();
-        Set<String> schemas = allSchemasHandler.getSchemas(stormTaskTuple);
+        Set<String> schemas = allSchemasHandler.getSchemas(oaiItem);
         assertNotNull(schemas);
         assertEquals(3, schemas.size());
-
     }
 
     @Test
@@ -76,13 +75,12 @@ public class AllSchemasHandlerTest {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         oaipmhHarvestingDetails.setExcludedSchemas(new HashSet<>(Arrays.asList(OAI_DC, RDF)));
 
-        stormTaskTuple.setSourceDetails(oaipmhHarvestingDetails);
+        oaiItem.setSourceDetails(oaipmhHarvestingDetails);
         when(oaiHelper.listSchemas()).thenReturn(iterator);
         AllSchemasHandler allSchemasHandler = new AllSchemasHandler();
-        Set<String> schemas = allSchemasHandler.getSchemas(stormTaskTuple);
+        Set<String> schemas = allSchemasHandler.getSchemas(oaiItem);
         assertNotNull(schemas);
         assertEquals(1, schemas.size());
         assertEquals(EDM,schemas.iterator().next());
-
     }
 }

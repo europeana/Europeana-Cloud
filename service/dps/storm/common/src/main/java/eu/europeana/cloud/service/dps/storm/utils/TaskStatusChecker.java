@@ -29,7 +29,6 @@ public class TaskStatusChecker {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusChecker.class);
 
     private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
-
         cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
                     public Boolean load(Long taskId) throws ExecutionException {
@@ -39,6 +38,16 @@ public class TaskStatusChecker {
         this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
     }
 
+    private TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
+        cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
+                .build(new CacheLoader<Long, Boolean>() {
+                    public Boolean load(Long taskId) throws ExecutionException {
+                        return isTaskKilled(taskId);
+                    }
+                });
+        this.taskDAO = taskDAO;
+    }
+
     public static synchronized TaskStatusChecker getTaskStatusChecker() {
         if (instance == null) {
             throw new IllegalStateException("TaskStatusChecker has not been initialized!. Please initialize it first");
@@ -46,12 +55,17 @@ public class TaskStatusChecker {
         return instance;
     }
 
-
     public static synchronized void init(CassandraConnectionProvider cassandraConnectionProvider) {
         if (instance == null) {
             instance = new TaskStatusChecker(cassandraConnectionProvider);
         } else
             throw new IllegalStateException("TaskStatusChecker has already been initialized");
+    }
+
+    public static synchronized void init(CassandraTaskInfoDAO taskDAO) {
+        if (instance == null) {
+            instance = new TaskStatusChecker(taskDAO);
+        }
     }
 
 

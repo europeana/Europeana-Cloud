@@ -1,6 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common;
+package eu.europeana.cloud.service.dps.rest.oaiharvest;
 
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
 import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
@@ -25,7 +24,7 @@ public class OAIHelperTest extends WiremockHelper {
     public void shouldFetchSchemas() throws IOException {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=ListMetadataFormats"))
-                .willReturn(response200XmlContent(getFileContent("/schemas.xml"))
+                .willReturn(WiremockHelper.response200XmlContent(WiremockHelper.getFileContent("/schemas.xml"))
                 ));
         final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
 
@@ -50,7 +49,7 @@ public class OAIHelperTest extends WiremockHelper {
     @Test
     public void shouldRetrieveDayGranularity() throws IOException {
         //given
-        stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(response200XmlContent(getFileContent("/identifyDayGranularity.xml"))));
+        stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(WiremockHelper.response200XmlContent(WiremockHelper.getFileContent("/identifyDayGranularity.xml"))));
         final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
         //when
         Granularity result = underTest.getGranularity();
@@ -61,7 +60,7 @@ public class OAIHelperTest extends WiremockHelper {
     @Test
     public void shouldRetrieveSecondGranularity() throws IOException {
         //given
-        stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(response200XmlContent(getFileContent("/identifySecondGranularity.xml"))));
+        stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(WiremockHelper.response200XmlContent(WiremockHelper.getFileContent("/identifySecondGranularity.xml"))));
         final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
         //when
         Granularity result = underTest.getGranularity();
@@ -72,7 +71,7 @@ public class OAIHelperTest extends WiremockHelper {
     @Test(expected = NoSuchElementException.class)
     public void shouldThrowIllegalArgumentExceptionWhenNoGranularityAvailable() throws IOException {
         //given
-        stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(response200XmlContent(getFileContent("/identifyNoGranularity.xml"))));
+        stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).willReturn(WiremockHelper.response200XmlContent(WiremockHelper.getFileContent("/identifyNoGranularity.xml"))));
         final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
         //when
         Granularity result = underTest.getGranularity();
@@ -85,7 +84,7 @@ public class OAIHelperTest extends WiremockHelper {
     public void shouldRetry10TimesAndFail() throws InvalidOAIResponse {
         for (int i = 0; i < 10; i++)
             stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).inScenario("Retry and fail scenario")
-                    .willReturn(response404()));
+                    .willReturn(WiremockHelper.response404()));
 
         final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
         //when
@@ -99,10 +98,10 @@ public class OAIHelperTest extends WiremockHelper {
         //given
         stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).inScenario("Retry and success scenario")
                 .whenScenarioStateIs(STARTED).willSetStateTo("one time requested")
-                .willReturn(response404()));
+                .willReturn(WiremockHelper.response404()));
         stubFor(get(urlEqualTo("/oai-phm/?verb=Identify")).inScenario("Retry and success scenario")
                 .whenScenarioStateIs("one time requested")
-                .willReturn(response200XmlContent(getFileContent("/identifySecondGranularity.xml"))));
+                .willReturn(WiremockHelper.response200XmlContent(WiremockHelper.getFileContent("/identifySecondGranularity.xml"))));
 
         final OAIHelper underTest = new OAIHelper("http://localhost:8181/oai-phm/");
         //when

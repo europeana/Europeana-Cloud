@@ -14,11 +14,14 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.IdentifierHarvester;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.OAIItem;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
@@ -60,7 +63,6 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @Component
 @Scope("request")
 public class TopologyTasksResource {
-
     @Value("${maxIdentifiersCount}")
     private int maxIdentifiersCount;
 
@@ -102,7 +104,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
-
 
     private final static String TOPOLOGY_PREFIX = "Topology";
 
@@ -146,6 +147,10 @@ public class TopologyTasksResource {
         return progress;
     }
 
+
+    //protected static volatile TaskStatusChecker taskStatusChecker;
+
+
     /**
      * Submits a Task for execution.
      * Each Task execution is associated with a specific plugin.
@@ -175,6 +180,8 @@ public class TopologyTasksResource {
             validateTask(task, topologyName);
             validateOutputDataSetsIfExist(task);
             final Date sentTime = new Date();
+            TaskStatusChecker.init(taskDAO);
+
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -190,10 +197,27 @@ public class TopologyTasksResource {
                             taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime);
                         else {
                             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                            submitService.submitTask(task, topologyName);
+                            submitService.submitTask(task, topologyName);  // /* === */ //wstawianie do kafki   ???
                             LOGGER.info("Task submitted successfully");
                             taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
+
+                            //TaskStatusChecker taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+                            if (!TaskStatusChecker.getTaskStatusChecker().hasKillFlag(task.getTaskId())) {
+                                OAIPMHHarvestingDetails oaipmhHarvestingDetails = task.getHarvestingDetails();
+                                if (oaipmhHarvestingDetails == null)
+                                    oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
+                                OAIItem oaiItem = new OAIItem(
+                                        task.getTaskId(),
+                                        task.getTaskName(),
+                                        task.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, task.getParameters(), task.getOutputRevision(), oaipmhHarvestingDetails);
+
+                                IdentifierHarvester ih = new IdentifierHarvester(oaiItem, taskDAO, TaskStatusChecker.getTaskStatusChecker());
+                                ih.harvest();
+                            } else {
+                                LOGGER.info("Skipping DROPPED task {}", task.getTaskId());
+                            }
                         }
+
                     } catch (URISyntaxException e) {
                         LOGGER.error("Task submission failed");
                         Response response = Response.serverError().build();
@@ -401,7 +425,7 @@ public class TopologyTasksResource {
 
 
     /**
-     * Retrieves a statistics report for the specified task. Only applicable for tasks executing {@link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
+     * Retrieves a statistics report for the specified task. Only applicable for tasks executing {link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
      * <p>
      * <p/>
      * <br/><br/>

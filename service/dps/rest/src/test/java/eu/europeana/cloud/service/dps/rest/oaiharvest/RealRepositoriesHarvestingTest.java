@@ -1,8 +1,7 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
+package eu.europeana.cloud.service.dps.rest.oaiharvest;
 
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.CustomConnection;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
+//import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.CustomConnection;
+import eu.europeana.cloud.service.dps.storm.utils.CustomConnection;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;

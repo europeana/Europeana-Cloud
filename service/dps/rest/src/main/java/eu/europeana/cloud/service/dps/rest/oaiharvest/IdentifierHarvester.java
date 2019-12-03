@@ -1,17 +1,16 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job;
+package eu.europeana.cloud.service.dps.rest.oaiharvest;
 
 import com.google.common.base.Throwables;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaFactory;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema.SchemaHandler;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.schema.SchemaFactory;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.schema.SchemaHandler;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import org.slf4j.Logger;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 
 /**
@@ -29,36 +27,41 @@ import java.util.concurrent.Callable;
 public class IdentifierHarvester implements Callable<Void> {
 
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
-    private ArrayBlockingQueue<StormTaskTuple> oaiIdentifiers;
-    private StormTaskTuple stormTaskTuple;
+    private OAIItem oaiItem;
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierHarvester.class);
     private TaskStatusChecker taskStatusChecker;
 
-    public IdentifierHarvester(StormTaskTuple stormTaskTuple, CassandraTaskInfoDAO cassandraTaskInfoDAO, ArrayBlockingQueue<StormTaskTuple> oaiIdentifiers, TaskStatusChecker taskStatusChecker) {
-        this.stormTaskTuple = stormTaskTuple;
+    public IdentifierHarvester(OAIItem oaiItem, CassandraTaskInfoDAO cassandraTaskInfoDAO, TaskStatusChecker taskStatusChecker) {
+        this.oaiItem = oaiItem;
         this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
-        this.oaiIdentifiers = oaiIdentifiers;
         this.taskStatusChecker = taskStatusChecker;
     }
 
     @Override
     public Void call() throws Exception {
         try {
-            execute(stormTaskTuple);
+            execute(oaiItem);
         } catch (Exception e) {
-            cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e), TaskState.DROPPED.toString());
+            cassandraTaskInfoDAO.dropTask(oaiItem.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e), TaskState.DROPPED.toString());
         }
         return null;
     }
 
+    public void harvest() {
+        try {
+            execute(oaiItem);
+        } catch (Exception e) {
+            cassandraTaskInfoDAO.dropTask(oaiItem.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e), TaskState.DROPPED.toString());
+        }
+    }
 
-    public void execute(StormTaskTuple stormTaskTuple) throws BadArgumentException, InterruptedException {
-        startProgress(stormTaskTuple.getTaskId());
-        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
-        Set<String> schemas = schemaHandler.getSchemas(stormTaskTuple);
-        OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
+    public void execute(OAIItem oaiItem) throws BadArgumentException, InterruptedException {
+        startProgress(oaiItem.getTaskId());
+        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(oaiItem);
+        Set<String> schemas = schemaHandler.getSchemas(oaiItem);
+        OAIPMHHarvestingDetails oaipmhHarvestingDetails = oaiItem.getSourceDetails();
         int expectedSize = 0;
 
         Date fromDate = oaipmhHarvestingDetails.getDateFrom();
@@ -67,21 +70,21 @@ public class IdentifierHarvester implements Callable<Void> {
 
         for (String schema : schemas) {
             if (sets == null || sets.isEmpty()) {
-                expectedSize += harvestIdentifiers(schema, null, fromDate, untilDate, stormTaskTuple);
+                expectedSize += harvestIdentifiers(schema, null, fromDate, untilDate, oaiItem);
             } else
                 for (String set : sets) {
-                    expectedSize += harvestIdentifiers(schema, set, fromDate, untilDate, stormTaskTuple);
+                    expectedSize += harvestIdentifiers(schema, set, fromDate, untilDate, oaiItem);
                 }
         }
 
-        updateTaskBasedOnExpectedSize(stormTaskTuple, expectedSize);
+        updateTaskBasedOnExpectedSize(oaiItem, expectedSize);
     }
 
-    private void updateTaskBasedOnExpectedSize(StormTaskTuple stormTaskTuple, int expectedSize) {
+    private void updateTaskBasedOnExpectedSize(OAIItem oaiItem, int expectedSize) {
         if (expectedSize > 0)
-            cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), expectedSize);
+            cassandraTaskInfoDAO.setUpdateExpectedSize(oaiItem.getTaskId(), expectedSize);
         else
-            cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
+            cassandraTaskInfoDAO.dropTask(oaiItem.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
     }
 
     private void startProgress(long taskId) {
@@ -90,13 +93,18 @@ public class IdentifierHarvester implements Callable<Void> {
     }
 
 
-    private int harvestIdentifiers(String schema, String dataset, Date fromDate, Date untilDate, StormTaskTuple stormTaskTuple) throws InterruptedException
+    private int harvestIdentifiers(String schema, String dataset, Date fromDate, Date untilDate, OAIItem oaiItem) throws InterruptedException
             , BadArgumentException {
         SourceProvider sourceProvider = new SourceProvider();
-        OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
-        String url = stormTaskTuple.getFileUrl();
+        OAIPMHHarvestingDetails sourceDetails = oaiItem.getSourceDetails();
+        String url = oaiItem.getFileUrl();
         ListIdentifiersParameters parameters = configureParameters(schema, dataset, fromDate, untilDate);
-        return parseHeaders(sourceProvider.provide(url).listIdentifiers(parameters), sourceDetails.getExcludedSets(), stormTaskTuple, schema);
+
+        ServiceProvider sp = sourceProvider.provide(url);
+        Iterator<Header> headerIterator = sp.listIdentifiers(parameters);
+        Set<String> excludedSets = sourceDetails.getExcludedSets();
+
+        return parseHeaders(headerIterator, excludedSets, oaiItem, schema);
     }
 
     /**
@@ -118,14 +126,14 @@ public class IdentifierHarvester implements Callable<Void> {
         return parameters;
     }
 
-    private void fillIdentifiersQueue(StormTaskTuple stormTaskTuple, String identifier, String schema) throws InterruptedException {
-        StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+    private void fillIdentifiersQueue(OAIItem oaiItem, String identifier, String schema) throws InterruptedException {
+        OAIItem tuple = new Cloner().deepClone(oaiItem);
         tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, identifier);
         tuple.addParameter(PluginParameterKeys.SCHEMA_NAME, schema);
-        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, stormTaskTuple.getFileUrl());
+        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, oaiItem.getFileUrl());
         tuple.setFileUrl(identifier);
-        oaiIdentifiers.put(tuple);
-
+        //oaiIdentifiers.put(tuple);
+        LOGGER.info("************"+tuple.toString());
     }
 
     /**
@@ -133,19 +141,19 @@ public class IdentifierHarvester implements Callable<Void> {
      *
      * @param headerIterator iterator of headers returned by the source
      * @param excludedSets   sets to exclude
-     * @param stormTaskTuple tuple to be used for emitting identifier
+     * @param oaiItem tuple to be used for emitting identifier
      * @return number of harvested identifiers
      */
-    private int parseHeaders(Iterator<Header> headerIterator, Set<String> excludedSets, StormTaskTuple stormTaskTuple, String schema) throws InterruptedException {
+    private int parseHeaders(Iterator<Header> headerIterator, Set<String> excludedSets, OAIItem oaiItem, String schema) throws InterruptedException {
         int count = 0;
         if (headerIterator == null) {
             throw new IllegalArgumentException("Header iterator is null");
         }
 
-        while (hasNext(headerIterator) && !taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
+        while (hasNext(headerIterator) && !taskStatusChecker.hasKillFlag(oaiItem.getTaskId())) {
             Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
-                fillIdentifiersQueue(stormTaskTuple, header.getIdentifier(), schema);
+                fillIdentifiersQueue(oaiItem, header.getIdentifier(), schema);
                 count++;
             }
         }

@@ -1,7 +1,7 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema;
+package eu.europeana.cloud.service.dps.rest.oaiharvest.schema;
 
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.OAIItem;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,26 +12,26 @@ import static org.junit.Assert.*;
  */
 public class SchemaFactoryTest {
     private final static String SCHEMA = "SCHEMA";
-    private StormTaskTuple stormTaskTuple;
+    private OAIItem oaiItem;
 
     @Before
     public void init() {
-        stormTaskTuple = new StormTaskTuple();
+        oaiItem = new OAIItem();
     }
 
     @Test
     public void shouldReturnAllSchemaHandler() {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
-        stormTaskTuple.setSourceDetails(oaipmhHarvestingDetails);
-        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
+        oaiItem.setSourceDetails(oaipmhHarvestingDetails);
+        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(oaiItem);
         assertTrue(schemaHandler instanceof AllSchemasHandler);
     }
 
     @Test
     public void shouldReturnSpecificSchemaHandler() {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new OAIPMHHarvestingDetails(SCHEMA);
-        stormTaskTuple.setSourceDetails(oaipmhHarvestingDetails);
-        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(stormTaskTuple);
+        oaiItem.setSourceDetails(oaipmhHarvestingDetails);
+        SchemaHandler schemaHandler = SchemaFactory.getSchemaHandler(oaiItem);
         assertTrue(schemaHandler instanceof SpecificSchemasHandler);
     }
 

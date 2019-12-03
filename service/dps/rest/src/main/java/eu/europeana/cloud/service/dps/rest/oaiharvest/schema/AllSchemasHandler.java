@@ -1,11 +1,13 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.schema;
+package eu.europeana.cloud.service.dps.rest.oaiharvest.schema;
 
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.OAIHelper;
+import eu.europeana.cloud.service.dps.rest.oaiharvest.OAIItem;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by Tarek on 4/30/2018.
@@ -14,10 +16,10 @@ public class AllSchemasHandler extends SchemaHandler {
     /**
      * List all the resource schemas
      */
-    public Set<String> getSchemas(StormTaskTuple stormTaskTuple) {
-        OAIHelper oaiHelper = new OAIHelper(stormTaskTuple.getFileUrl());
+    public Set<String> getSchemas(OAIItem oaiItem) {
+        OAIHelper oaiHelper = new OAIHelper(oaiItem.getFileUrl());
         Iterator<MetadataFormat> metadataFormatIterator = oaiHelper.listSchemas();
-        OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
+        OAIPMHHarvestingDetails oaipmhHarvestingDetails = oaiItem.getSourceDetails();
         Set<String> excludedSchemas = oaipmhHarvestingDetails.getExcludedSchemas();
         Set<String> schemas = new HashSet<>();
         while (metadataFormatIterator.hasNext()) {

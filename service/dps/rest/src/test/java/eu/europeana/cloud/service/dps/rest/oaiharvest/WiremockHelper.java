@@ -1,8 +1,7 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper;
+package eu.europeana.cloud.service.dps.rest.oaiharvest;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.CustomConnection;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 
