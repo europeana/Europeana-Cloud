@@ -27,7 +27,7 @@ import java.util.Properties;
  * Stores / retrieves dps tasks and task progress and reports from / to Kafka
  * topics.
  */
-public class KafkaSubmitService implements TaskExecutionSubmitService {
+public class TaskKafkaSubmitService implements TaskExecutionSubmitService {
 
 	private Producer<String, DpsTask> producer;
 
@@ -38,10 +38,10 @@ public class KafkaSubmitService implements TaskExecutionSubmitService {
 	private final static String ZOOKEEPER_SYNC_TIME = "200";
 	private final static String ZOOKEEPER_SESSION_TIMEOUT = "400";
 	private final static String AUTOCOMMIT_INTERVAL = "200";
-	private static final Logger LOGGER = LoggerFactory.getLogger(KafkaSubmitService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(TaskKafkaSubmitService.class);
 
-	public KafkaSubmitService(String kafkaBroker, String kafkaGroupId,
-			String zookeeperAddress) {
+	public TaskKafkaSubmitService(String kafkaBroker, String kafkaGroupId,
+								  String zookeeperAddress) {
 
 		this.kafkaGroupId = kafkaGroupId;
 		this.zookeeperAddress = zookeeperAddress;

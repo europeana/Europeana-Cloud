@@ -20,7 +20,7 @@
     <bean id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"
           scope="prototype"/>
 
-    <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
+    <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService">
         <constructor-arg name="kafkaBroker">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
         </constructor-arg>
@@ -31,6 +31,19 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
         </constructor-arg>
     </bean>
+
+    <bean id="recordSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService">
+        <constructor-arg name="kafkaBroker">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
+        </constructor-arg>
+        <constructor-arg name="kafkaGroupId">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/groupId"/>
+        </constructor-arg>
+        <constructor-arg name="zookeeperAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
+        </constructor-arg>
+    </bean>
+
     <bean id="taskReportService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService">
         <constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>

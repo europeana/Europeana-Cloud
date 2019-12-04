@@ -79,6 +79,9 @@ public class TopologyTasksResource {
     private TaskExecutionSubmitService submitService;
 
     @Autowired
+    private RecordExecutionSubmitService recordSubmitService;
+
+    @Autowired
     private TaskExecutionKillService killService;
 
     @Autowired
@@ -211,7 +214,7 @@ public class TopologyTasksResource {
                                         task.getTaskName(),
                                         task.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, task.getParameters(), task.getOutputRevision(), oaipmhHarvestingDetails);
 
-                                IdentifierHarvester ih = new IdentifierHarvester(oaiItem, taskDAO, TaskStatusChecker.getTaskStatusChecker());
+                                IdentifierHarvester ih = new IdentifierHarvester(topologyName, oaiItem, taskDAO, recordSubmitService, TaskStatusChecker.getTaskStatusChecker());
                                 ih.harvest();
                             } else {
                                 LOGGER.info("Skipping DROPPED task {}", task.getTaskId());

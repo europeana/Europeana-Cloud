@@ -11,7 +11,8 @@ import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
+import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
+import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
@@ -44,11 +45,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 
 public class TopologyTasksResourceTest extends JerseyTest {
@@ -101,7 +99,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private CassandraTaskInfoDAO taskDAO;
     private FilesCounterFactory filesCounterFactory;
     private FilesCounter filesCounter;
-    private KafkaSubmitService kafkaSubmitService;
+    private TaskKafkaSubmitService taskKafkaSubmitService;
+    private RecordKafkaSubmitService recordKafkaSubmitService;
     private TaskExecutionReportService reportService;
     private TaskExecutionKillService killService;
     private ValidationStatisticsReportService validationStatisticsService;
@@ -129,7 +128,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
-        kafkaSubmitService = applicationContext.getBean(KafkaSubmitService.class);
+        taskKafkaSubmitService = applicationContext.getBean(TaskKafkaSubmitService.class);
+        recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
@@ -630,7 +630,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         Thread.sleep(10000);
-        verifyZeroInteractions(kafkaSubmitService);
+        verifyZeroInteractions(taskKafkaSubmitService);
+        verifyZeroInteractions(recordKafkaSubmitService);
     }
 
 
@@ -976,8 +977,11 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertNotNull(response);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         Thread.sleep(5000);
-        verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
-        verifyNoMoreInteractions(kafkaSubmitService);
+        verify(taskKafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
+        verifyNoMoreInteractions(taskKafkaSubmitService);
+
+        verifyZeroInteractions(recordKafkaSubmitService);
+        //verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
     }
 
     private DataSetCleanerParameters prepareDataSetCleanerParameters() {

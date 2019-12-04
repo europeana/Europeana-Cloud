@@ -3,8 +3,7 @@ package eu.europeana.cloud.service.dps.rest.oaiharvest;
 import com.google.common.base.Throwables;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.rest.oaiharvest.schema.SchemaFactory;
 import eu.europeana.cloud.service.dps.rest.oaiharvest.schema.SchemaHandler;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -25,17 +24,21 @@ import java.util.concurrent.Callable;
  * Created by Tarek on 10/25/2018.
  */
 public class IdentifierHarvester implements Callable<Void> {
-
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
-    private OAIItem oaiItem;
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierHarvester.class);
+
+    private String topologyName;
+    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private OAIItem oaiItem;
+    private RecordExecutionSubmitService recordExecutionSubmitService;
     private TaskStatusChecker taskStatusChecker;
 
-    public IdentifierHarvester(OAIItem oaiItem, CassandraTaskInfoDAO cassandraTaskInfoDAO, TaskStatusChecker taskStatusChecker) {
+    public IdentifierHarvester(String topologyName, OAIItem oaiItem, CassandraTaskInfoDAO cassandraTaskInfoDAO, RecordExecutionSubmitService recordExecutionSubmitService, TaskStatusChecker taskStatusChecker) {
+        this.topologyName = topologyName;
         this.oaiItem = oaiItem;
         this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
+        this.recordExecutionSubmitService = recordExecutionSubmitService;
         this.taskStatusChecker = taskStatusChecker;
     }
 
@@ -81,10 +84,11 @@ public class IdentifierHarvester implements Callable<Void> {
     }
 
     private void updateTaskBasedOnExpectedSize(OAIItem oaiItem, int expectedSize) {
-        if (expectedSize > 0)
+        if (expectedSize > 0) {
             cassandraTaskInfoDAO.setUpdateExpectedSize(oaiItem.getTaskId(), expectedSize);
-        else
+        } else {
             cassandraTaskInfoDAO.dropTask(oaiItem.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
+        }
     }
 
     private void startProgress(long taskId) {
@@ -133,6 +137,7 @@ public class IdentifierHarvester implements Callable<Void> {
         tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, oaiItem.getFileUrl());
         tuple.setFileUrl(identifier);
         //oaiIdentifiers.put(tuple);
+        recordExecutionSubmitService.submitRecord(new DpsRecord(oaiItem.getTaskId(), identifier), topologyName);
         LOGGER.info("************"+tuple.toString());
     }
 

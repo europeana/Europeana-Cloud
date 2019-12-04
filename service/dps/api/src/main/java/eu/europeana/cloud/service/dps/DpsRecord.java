@@ -8,6 +8,15 @@ public class DpsRecord implements Serializable {
     private long taskId;
     private String recordId;
 
+    public DpsRecord() {
+        this(null, null);
+    }
+
+    public DpsRecord(Long taskId, String recordId) {
+        this.taskId = (taskId != null) ? taskId : 0L;
+        this.recordId = recordId;
+    }
+
     public String getRecordId() {
         return recordId;
     }
@@ -22,5 +31,10 @@ public class DpsRecord implements Serializable {
 
     public void setTaskId(long taskId) {
         this.taskId = taskId;
+    }
+
+    @Override
+    public String toString()  {
+        return getClass().getSimpleName()+"[taskId="+taskId+", recordId="+recordId+"]";
     }
 }
