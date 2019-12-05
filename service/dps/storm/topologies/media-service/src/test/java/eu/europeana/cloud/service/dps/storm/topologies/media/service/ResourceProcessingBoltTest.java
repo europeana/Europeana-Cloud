@@ -98,7 +98,7 @@ public class ResourceProcessingBoltTest {
         int thumbnailCount = 3;
         List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
-        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
+        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
@@ -125,7 +125,7 @@ public class ResourceProcessingBoltTest {
         int thumbnailCount = 3;
         List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
-        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
+        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
@@ -147,7 +147,7 @@ public class ResourceProcessingBoltTest {
         int thumbNailCount = 3;
         List<Thumbnail> thumbnailList = getThumbnails(thumbNailCount);
 
-        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100, false, 10, thumbnailList);
+        AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
         String errorMessage = "The error was thrown because of something";
 
