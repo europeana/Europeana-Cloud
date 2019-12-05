@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTasksDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class UnfinishedTasksExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);
 
     @Autowired
-    private CassandraTasksDAO tasksDAO;
+    private TasksByStateDAO tasksDAO;
 
     @Autowired
     private String applicationIdentifier;

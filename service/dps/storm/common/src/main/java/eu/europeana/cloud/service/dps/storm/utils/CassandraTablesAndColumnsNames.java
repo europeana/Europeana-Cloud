@@ -26,7 +26,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String SENT_TIME = "sent_time";
     public static final String PROCESSED_FILES_COUNT = "processed_files_count";
     public static final String ERRORS = "errors";
-
+    public static final String TASK_INFORMATIONS = "task_informations";
 
     //------- NOTIFICATION -------
     public static final String NOTIFICATION_TASK_ID = "task_id";
@@ -84,4 +84,5 @@ public class CassandraTablesAndColumnsNames {
     public static final String TASKS_BY_STATE_TOPOLOGY_NAME = "topology_name";
     public static final String TASKS_BY_STATE_TASK_ID_COL_NAME = "task_id";
     public static final String TASKS_BY_STATE_APP_ID_COL_NAME = "application_id";
+    public static final String TASKS_BY_STATE_START_TIME = "start_time";
 }

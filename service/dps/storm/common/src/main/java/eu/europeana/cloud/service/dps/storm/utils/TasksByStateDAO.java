@@ -10,22 +10,41 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
-public class CassandraTasksDAO extends CassandraDAO {
-
+public class TasksByStateDAO extends CassandraDAO {
     private PreparedStatement findTasksInGivenState;
+    private PreparedStatement insertStatement;
 
-    public CassandraTasksDAO(CassandraConnectionProvider dbService) {
+    public TasksByStateDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
 
     @Override
     void prepareStatements() {
+        insertStatement = dbService.getSession().prepare("INSERT INTO " + TASKS_BY_STATE_TABLE +
+                "("
+                + TASKS_BY_STATE_STATE_COL_NAME + ","
+                + TASKS_BY_STATE_TOPOLOGY_NAME + ","
+                + TASKS_BY_STATE_TASK_ID_COL_NAME + ","
+                + TASKS_BY_STATE_APP_ID_COL_NAME + ","
+                + TASKS_BY_STATE_START_TIME +
+                ") VALUES (?,?,?,?,?)");
+
         findTasksInGivenState = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + STATE + " = ?");
+    }
+
+    public void insert(String state, String topologyName, long taskId, String applicationId, Date startTime)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(insertStatement.bind(state, topologyName, taskId, applicationId, startTime));
+    }
+
+    public void insert(String state, String topologyName, long taskId, String applicationId) {
+        insert(state, topologyName, taskId, applicationId, new Date());
     }
 
     public List<TaskInfo> findTasksInGivenState(TaskState taskState)

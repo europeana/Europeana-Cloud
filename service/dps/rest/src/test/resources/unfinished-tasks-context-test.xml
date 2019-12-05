@@ -9,7 +9,7 @@
 
 
     <context:annotation-config/>
-    <mockito:mock id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTasksDAO"/>
+    <mockito:mock id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO"/>
 
     <bean id="applicationIdentifier" class="java.lang.String">
         <constructor-arg value="exampleAppIdentifier"/>

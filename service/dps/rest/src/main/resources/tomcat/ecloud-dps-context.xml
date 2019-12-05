@@ -124,7 +124,7 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
-    <bean id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTasksDAO">
+    <bean id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 

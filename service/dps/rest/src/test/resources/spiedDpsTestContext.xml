@@ -46,5 +46,5 @@
     <mockito:mock id="urlParser" class="eu.europeana.cloud.service.commons.urls.UrlParser"/>
 
     <!-- mockito:mock id="UnfinishedTasksExecutor" class="eu.europeana.cloud.service.dps.rest.UnfinishedTasksExecutor"/ -->
-    <mockito:mock id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTasksDAO"/>
+    <mockito:mock id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO"/>
 </beans>

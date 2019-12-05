@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTasksDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class UnfinishedTasksExecutorTest {
 
     @Autowired
-    private CassandraTasksDAO cassandraTasksDAO;
+    private TasksByStateDAO cassandraTasksDAO;
 
     @Autowired
     private UnfinishedTasksExecutor unfinishedTasksExecutor;

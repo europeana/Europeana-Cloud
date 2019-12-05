@@ -21,6 +21,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
+import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -28,6 +29,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -103,10 +106,16 @@ public class TopologyTasksResource {
     private DataSetServiceClient dataSetServiceClient;
 
     @Autowired
-    private CassandraTaskInfoDAO taskDAO;
+    private CassandraTaskInfoDAO taskInfoDAO;
+
+    @Autowired
+    private TasksByStateDAO taskDAO;
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
+
+    @Autowired
+    private String applicationIdentifier;
 
     private final static String TOPOLOGY_PREFIX = "Topology";
 
@@ -176,14 +185,16 @@ public class TopologyTasksResource {
                                @PathParam("topologyName") final String topologyName,
                                @Context final UriInfo uriInfo,
                                @HeaderParam("Authorization") final String authorizationHeader
-    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
+    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         if (task != null) {
             LOGGER.info("Submitting task");
             assertContainTopology(topologyName);
             validateTask(task, topologyName);
             validateOutputDataSetsIfExist(task);
             final Date sentTime = new Date();
-            TaskStatusChecker.init(taskDAO);
+            final String taskJSON = new ObjectMapper().writeValueAsString(task);
+
+            TaskStatusChecker.init(taskInfoDAO);
 
             new Thread(new Runnable() {
                 @Override
@@ -191,20 +202,20 @@ public class TopologyTasksResource {
                     try {
                         String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
                         Response response = Response.created(new URI(createdTaskUrl)).build();
-                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON);
                         permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         asyncResponse.resume(response);
                         LOGGER.info("The task is in a pending mode");
                         int expectedSize = getFilesCountInsideTask(task, topologyName);
                         if (expectedSize == 0)
-                            taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime);
+                            insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON);
                         else {
                             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                            submitService.submitTask(task, topologyName);  // /* === */ //wstawianie do kafki   ???
+                            submitService.submitTask(task, topologyName);
                             LOGGER.info("Task submitted successfully");
-                            taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
 
-                            //TaskStatusChecker taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+                            insertTask(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime, taskJSON);
+
                             if (!TaskStatusChecker.getTaskStatusChecker().hasKillFlag(task.getTaskId())) {
                                 OAIPMHHarvestingDetails oaipmhHarvestingDetails = task.getHarvestingDetails();
                                 if (oaipmhHarvestingDetails == null)
@@ -214,7 +225,7 @@ public class TopologyTasksResource {
                                         task.getTaskName(),
                                         task.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, task.getParameters(), task.getOutputRevision(), oaipmhHarvestingDetails);
 
-                                IdentifierHarvester ih = new IdentifierHarvester(topologyName, oaiItem, taskDAO, recordSubmitService, TaskStatusChecker.getTaskStatusChecker());
+                                IdentifierHarvester ih = new IdentifierHarvester(topologyName, oaiItem, taskInfoDAO, recordSubmitService, TaskStatusChecker.getTaskStatusChecker());
                                 ih.harvest();
                             } else {
                                 LOGGER.info("Skipping DROPPED task {}", task.getTaskId());
@@ -224,15 +235,15 @@ public class TopologyTasksResource {
                     } catch (URISyntaxException e) {
                         LOGGER.error("Task submission failed");
                         Response response = Response.serverError().build();
-                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON);
                         asyncResponse.resume(response);
                     } catch (TaskSubmissionException e) {
                         LOGGER.error("Task submission failed: {}", e.getMessage());
-                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON);
                     } catch (Exception e) {
                         String fullStacktrace = ExceptionUtils.getStackTrace(e);
                         LOGGER.error("Task submission failed: {}", fullStacktrace);
-                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), fullStacktrace, sentTime);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), fullStacktrace, sentTime, taskJSON);
                         Response response = Response.serverError().build();
                         asyncResponse.resume(response);
                     }
@@ -243,6 +254,10 @@ public class TopologyTasksResource {
         return Response.notModified().build();
     }
 
+    private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskInformations) {
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations);
+        taskDAO.insert(state, topologyName, taskId, applicationIdentifier);
+    }
 
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
@@ -265,16 +280,16 @@ public class TopologyTasksResource {
                         DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
                         datasetCleaner.execute();
                         LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
-                        taskDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
+                        taskInfoDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
                     } else {
-                        taskDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.DROPPED.toString());
+                        taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.DROPPED.toString());
                     }
                 } catch (ParseException e) {
                     LOGGER.error("Dataset was not removed correctly. ", e);
-                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
+                    taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
                 } catch (DatasetCleaningException e) {
                     LOGGER.error("Dataset was not removed correctly. ", e);
-                    taskDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
+                    taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
                 }
             }
         }).start();
