@@ -41,7 +41,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
     protected static final String AUTHORIZATION = "Authorization";
 
-
     // default number of retries
     public static final int DEFAULT_RETRIES = 3;
 

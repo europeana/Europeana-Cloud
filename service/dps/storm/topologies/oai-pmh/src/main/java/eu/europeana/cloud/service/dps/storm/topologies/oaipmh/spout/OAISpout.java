@@ -55,11 +55,7 @@ public class OAISpout extends CustomKafkaSpout {
         StormTaskTuple stormTaskTuple = null;
         try {
             super.nextTuple();
-            /* === */
-            //stormTaskTuple = taskDownloader.getTupleWithOAIIdentifier();
-
-            //pobierać/tworzyć stormTaskTuple w oparciu o zapis w bazie danych
-            //stormTaskTuple = cassandraTaskInfoDAO.readTeskTuple();
+            stormTaskTuple = taskDownloader.getTupleWithOAIIdentifier();
 
             if (stormTaskTuple != null) {
                 LOGGER.info("Emitting: " + stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));

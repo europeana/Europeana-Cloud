@@ -10,9 +10,8 @@
 
     <artifactId>ecloud-revision-cleaner</artifactId>
 
-    <name>ecloud-revision-cleaner</name>
-    <!-- FIXME change it to the project's website -->
-    <url>http://www.example.com</url>
+    <name>eCloud Revisions Cleanr Tool</name>
+    <url>http://europeana.eu</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

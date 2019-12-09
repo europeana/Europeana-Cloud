@@ -103,8 +103,11 @@ public class DataSetServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl) {
-        super(baseUrl);
+        this(baseUrl, null, null);
+    }
 
+    public DataSetServiceClient(String baseUrl, final String authorization) {
+        this(baseUrl, authorization, null, null, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
@@ -114,14 +117,18 @@ public class DataSetServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl, null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
-    public DataSetServiceClient(String baseUrl, final String username, final String password,
+    public DataSetServiceClient(String baseUrl, final String authorization, final String username, final String password,
                                 final int connectTimeoutInMillis, final int readTimeoutInMillis) {
-        this(baseUrl);
-        client
-                .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        super(baseUrl);
+
+        if(authorization != null) {
+            this.client.register(new ECloudBasicAuthFilter(authorization));
+        } else if(username != null || password != null) {
+            this.client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        }
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
         this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
@@ -650,7 +657,6 @@ public class DataSetServiceClient extends MCSClient {
 
     public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
-
     }
 
 

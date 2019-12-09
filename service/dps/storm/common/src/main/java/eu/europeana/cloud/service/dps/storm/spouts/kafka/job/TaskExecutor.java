@@ -94,8 +94,7 @@ public class TaskExecutor implements Callable<Void> {
 
         final String authorizationHeader = dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
 
-        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(mcsClientURL);
-        dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
+        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(mcsClientURL, authorizationHeader);
 
         RecordServiceClient recordServiceClient = new RecordServiceClient(mcsClientURL);
         recordServiceClient.useAuthorizationHeader(authorizationHeader);
