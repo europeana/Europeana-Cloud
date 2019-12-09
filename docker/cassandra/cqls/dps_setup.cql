@@ -11,6 +11,7 @@ CREATE TABLE basic_info (
     finish_time timestamp,
     sent_time timestamp,
     errors int,
+    task_informations text,
     PRIMARY KEY(task_id)
 );
 

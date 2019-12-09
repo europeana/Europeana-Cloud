@@ -7,6 +7,7 @@ public class DpsRecord implements Serializable {
 
     private long taskId;
     private String recordId;
+    private String schema;
 
     public DpsRecord() {
         this(null, null);
@@ -33,8 +34,16 @@ public class DpsRecord implements Serializable {
         this.taskId = taskId;
     }
 
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
+
     @Override
-    public String toString()  {
-        return getClass().getSimpleName()+"[taskId="+taskId+", recordId="+recordId+"]";
+    public String toString() {
+        return getClass().getSimpleName() + "[taskId=" + taskId + ", recordId=" + recordId + ", schema=" + schema + "]";
     }
 }

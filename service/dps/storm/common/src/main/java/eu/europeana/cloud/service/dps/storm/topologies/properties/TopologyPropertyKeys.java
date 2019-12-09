@@ -11,6 +11,8 @@ public final class TopologyPropertyKeys {
     public static final String WORKER_COUNT = "WORKER_COUNT";
     public static final String THRIFT_PORT = "THRIFT_PORT";
 
+    public static final String BOOTSTRAP_SERVERS = "BOOTSTRAP_SERVERS";
+    public static final String TOPICS = "TOPICS";
     public static final String INPUT_ZOOKEEPER_ADDRESS = "INPUT_ZOOKEEPER_ADDRESS";
     public static final String INPUT_ZOOKEEPER_PORT = "INPUT_ZOOKEEPER_PORT";
 

@@ -35,8 +35,18 @@ public class TaskInfo {
     private int processedPercentage;
     private int errors;
 
+    private String taskDefinition;
+
     public TaskInfo() {
 
+    }
+
+    public void setTaskDefinition(String taskDefinition) {
+        this.taskDefinition = taskDefinition;
+    }
+
+    public String getTaskDefinition() {
+        return taskDefinition;
     }
 
     public Date getFinishDate() {
