@@ -20,8 +20,8 @@ public class QueueFillerForLatestRevisionJob extends QueueFillerJobForRevision {
 
     private List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList;
 
-    public QueueFillerForLatestRevisionJob(FileServiceClient fileServiceClient, RecordServiceClient recordServiceClient, SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, StormTaskTuple stormTaskTuple, String representationName, String revisionName, String revisionProvider, List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList) {
-        super(recordServiceClient, fileServiceClient, representationName, stormTaskTuple, revisionName, revisionProvider, taskStatusChecker, collector, tuplesWithFileUrls);
+    public QueueFillerForLatestRevisionJob(RecordServiceClient recordServiceClient, SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, StormTaskTuple stormTaskTuple, String representationName, String revisionName, String revisionProvider, List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList) {
+        super(recordServiceClient, representationName, stormTaskTuple, revisionName, revisionProvider, taskStatusChecker, collector, tuplesWithFileUrls);
         this.cloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList;
     }
 

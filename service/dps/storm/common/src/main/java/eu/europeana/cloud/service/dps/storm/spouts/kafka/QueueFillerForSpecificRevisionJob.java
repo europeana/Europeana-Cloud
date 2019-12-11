@@ -19,8 +19,8 @@ public class QueueFillerForSpecificRevisionJob extends QueueFillerJobForRevision
     private String revisionTimestamp;
     private List<CloudTagsResponse> cloudTagsResponses;
 
-    public QueueFillerForSpecificRevisionJob(FileServiceClient fileServiceClient, RecordServiceClient recordServiceClient, SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, StormTaskTuple stormTaskTuple, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, List<CloudTagsResponse> cloudTagsResponses) {
-        super(recordServiceClient, fileServiceClient, representationName, stormTaskTuple, revisionName, revisionProvider, taskStatusChecker, collector, tuplesWithFileUrls);
+    public QueueFillerForSpecificRevisionJob(RecordServiceClient recordServiceClient, SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, StormTaskTuple stormTaskTuple, String representationName, String revisionName, String revisionProvider, String revisionTimestamp, List<CloudTagsResponse> cloudTagsResponses) {
+        super(recordServiceClient, representationName, stormTaskTuple, revisionName, revisionProvider, taskStatusChecker, collector, tuplesWithFileUrls);
         this.cloudTagsResponses = cloudTagsResponses;
         this.revisionTimestamp = revisionTimestamp;
     }

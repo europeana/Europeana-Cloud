@@ -120,12 +120,21 @@ public class DataSetServiceClient extends MCSClient {
         this(baseUrl, null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
-    public DataSetServiceClient(String baseUrl, final String authorization, final String username, final String password,
+    /**
+     * All parameters constructor used by another one
+     * @param baseUrl URL of the MCS Rest Service
+     * @param authorizationHeader Authorization header - used instead username/password pair
+     * @param username Username to HTTP authorisation  (use together with password)
+     * @param password Password to HTTP authorisation (use together with username)
+     * @param connectTimeoutInMillis Timeout for waiting for connecting
+     * @param readTimeoutInMillis Timeout for getting data
+     */
+    public DataSetServiceClient(String baseUrl, final String authorizationHeader, final String username, final String password,
                                 final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
 
-        if(authorization != null) {
-            this.client.register(new ECloudBasicAuthFilter(authorization));
+        if(authorizationHeader != null) {
+            this.client.register(new ECloudBasicAuthFilter(authorizationHeader));
         } else if(username != null || password != null) {
             this.client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         }

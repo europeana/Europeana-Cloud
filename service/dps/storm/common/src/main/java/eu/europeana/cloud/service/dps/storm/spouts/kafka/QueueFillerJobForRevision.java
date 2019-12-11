@@ -31,10 +31,9 @@ public abstract class QueueFillerJobForRevision extends QueueFiller implements C
     protected String revisionProvider;
 
 
-    public QueueFillerJobForRevision(RecordServiceClient recordServiceClient, FileServiceClient fileServiceClient, String representationName, StormTaskTuple stormTaskTuple, String revisionName, String revisionProvider, TaskStatusChecker taskStatusChecker, SpoutOutputCollector collector, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls) {
+    public QueueFillerJobForRevision(RecordServiceClient recordServiceClient, /*FileServiceClient fileServiceClient,*/ String representationName, StormTaskTuple stormTaskTuple, String revisionName, String revisionProvider, TaskStatusChecker taskStatusChecker, SpoutOutputCollector collector, ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls) {
         super(taskStatusChecker, collector, tuplesWithFileUrls);
         this.recordServiceClient = recordServiceClient;
-        this.fileServiceClient = fileServiceClient;
         this.representationName = representationName;
         this.stormTaskTuple = stormTaskTuple;
         this.revisionName = revisionName;

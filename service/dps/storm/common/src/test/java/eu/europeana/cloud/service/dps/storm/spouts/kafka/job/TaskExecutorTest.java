@@ -87,16 +87,13 @@ public class TaskExecutorTest {
 
     private void mockMCSClient() throws Exception {
         recordServiceClient = mock(RecordServiceClient.class);
-        whenNew(RecordServiceClient.class).withArguments(anyString()).thenReturn(recordServiceClient);
-        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        whenNew(RecordServiceClient.class).withArguments(anyString(), anyString()).thenReturn(recordServiceClient);
 
         dataSetServiceClient = mock(DataSetServiceClient.class);
-        whenNew(DataSetServiceClient.class).withArguments(anyString()).thenReturn(dataSetServiceClient);
-        doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
+        whenNew(DataSetServiceClient.class).withArguments(anyString(), anyString()).thenReturn(dataSetServiceClient);
 
         fileServiceClient = mock(FileServiceClient.class);
-        whenNew(FileServiceClient.class).withArguments(anyString()).thenReturn(fileServiceClient);
-        doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
+        whenNew(FileServiceClient.class).withArguments(anyString(), anyString()).thenReturn(fileServiceClient);
     }
 
     private static void setStaticField(Field field, Object newValue) throws Exception {
@@ -123,7 +120,8 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString", DATASET_URLS.name(), dpsTask);
+
         taskExecutor.call();
 
         assertEquals(tuplesWithFileUrls.size(), 2);
@@ -149,7 +147,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
@@ -177,7 +175,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
@@ -210,7 +208,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         assertEquals(tuplesWithFileUrls.size(), 2);
@@ -240,7 +238,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         assertEquals(tuplesWithFileUrls.size(), 65);
@@ -271,7 +269,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
@@ -305,7 +303,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
@@ -343,7 +341,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         assertEquals(tuplesWithFileUrls.size(), 2);
@@ -376,7 +374,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         assertEquals(tuplesWithFileUrls.size(), 65);
@@ -409,7 +407,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         verify(collector, times(0)).emit(anyListOf(Object.class));
@@ -430,7 +428,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
 
@@ -446,7 +444,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
 
@@ -462,7 +460,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
 
@@ -478,7 +476,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.execute();
     }
 
@@ -501,7 +499,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
         assertEquals(tuplesWithFileUrls.size(), 1);
@@ -547,7 +545,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "anyString()", DATASET_URLS.name(), dpsTask);
 
         taskExecutor.call();
 

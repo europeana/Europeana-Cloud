@@ -78,7 +78,7 @@ public class RevisionRemovalTool {
         String userName = cmd.getOptionValue(USER_NAME);
         String password = cmd.getOptionValue(PASSWORD);
         dataSetServiceClient = new DataSetServiceClient(mcsUrl, null, userName, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, 0);
-        recordServiceClient = new RecordServiceClient(mcsUrl, userName, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
+        recordServiceClient = new RecordServiceClient(mcsUrl, null, userName, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
         revisionServiceClient = new RevisionServiceClient(mcsUrl, userName, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,0);
 
     }

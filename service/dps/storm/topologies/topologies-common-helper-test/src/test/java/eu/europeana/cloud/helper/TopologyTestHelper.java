@@ -80,7 +80,6 @@ public class TopologyTestHelper {
     protected void mockFileSC() throws Exception {
         fileServiceClient = Mockito.mock(FileServiceClient.class);
         PowerMockito.whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
-
     }
 
     protected void mockDatSetClient() throws Exception {

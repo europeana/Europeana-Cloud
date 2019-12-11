@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.*;
@@ -95,9 +94,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private String mcsLocation;
-
-    @Autowired
-    private RecordServiceClient recordServiceClient;
 
     @Autowired
     private FileServiceClient fileServiceClient;
