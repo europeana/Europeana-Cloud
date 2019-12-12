@@ -128,7 +128,6 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
-
     <bean id="killService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
@@ -136,14 +135,17 @@
     <bean id="validationStatisticsService"
           class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService">
     </bean>
+
     <bean id="cassandraNodeStatisticsDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
+
     <bean id="cassandraAttributeStatisticsDAO"
           class="eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
+    <bean id="identifierHarvester" class="eu.europeana.cloud.service.dps.rest.oaiharvest.IdentifierHarvester"/>
 
     <import resource="authentication.xml"/>
     <import resource="authorization.xml"/>
