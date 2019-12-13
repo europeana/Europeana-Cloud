@@ -108,7 +108,7 @@ public class TopologyTasksResource {
     private CassandraTaskInfoDAO taskInfoDAO;
 
     @Autowired
-    private TasksByStateDAO taskDAO;
+    private TasksByStateDAO tasksByStateDAO;
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
@@ -258,7 +258,7 @@ public class TopologyTasksResource {
 
     private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskInformations) {
         taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations);
-        taskDAO.insert(state, topologyName, taskId, applicationIdentifier);
+        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier);
     }
 
     @POST

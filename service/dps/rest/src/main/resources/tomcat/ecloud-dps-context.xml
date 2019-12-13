@@ -120,11 +120,11 @@
     </bean>
 
 
-    <bean id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">
+    <bean id="taskInfoDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
-    <bean id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO">
+    <bean id="tasksByStateDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
@@ -148,7 +148,7 @@
     <bean id="identifierHarvester" class="eu.europeana.cloud.service.dps.rest.HarvesterWrapper"/>
 
     <bean id="taskStatusChecker" class="eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker">
-        <constructor-arg ref="taskDAO"/>
+        <constructor-arg ref="taskInfoDAO"/>
     </bean>
 
     <bean id="subTaskInfoDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO">
