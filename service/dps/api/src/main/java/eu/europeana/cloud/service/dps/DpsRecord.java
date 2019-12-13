@@ -7,15 +7,12 @@ public class DpsRecord implements Serializable {
 
     private long taskId;
     private String recordId;
-    private String schema;
+    private String metadataPrefix;
 
-    public DpsRecord() {
-        this(null, null);
-    }
-
-    public DpsRecord(Long taskId, String recordId) {
+    public DpsRecord(Long taskId, String recordId, String metadataPrefix) {
         this.taskId = (taskId != null) ? taskId : 0L;
         this.recordId = recordId;
+        this.metadataPrefix = metadataPrefix;
     }
 
     public String getRecordId() {
@@ -34,16 +31,16 @@ public class DpsRecord implements Serializable {
         this.taskId = taskId;
     }
 
-    public String getSchema() {
-        return schema;
+    public String getMetadataPrefix() {
+        return metadataPrefix;
     }
 
-    public void setSchema(String schema) {
-        this.schema = schema;
+    public void setMetadataPrefix(String metadataPrefix) {
+        this.metadataPrefix = metadataPrefix;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[taskId=" + taskId + ", recordId=" + recordId + ", schema=" + schema + "]";
+        return getClass().getSimpleName() + "[taskId=" + taskId + ", recordId=" + recordId + ", metadataPrefix=" + metadataPrefix + "]";
     }
 }

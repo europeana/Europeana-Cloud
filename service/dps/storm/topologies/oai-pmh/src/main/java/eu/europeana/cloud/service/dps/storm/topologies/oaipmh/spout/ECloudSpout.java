@@ -153,7 +153,7 @@ public class ECloudSpout extends KafkaSpout {
                     dpsTask.getHarvestingDetails());
             //
             stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
-            stormTaskTuple.addParameter(PluginParameterKeys.SCHEMA_NAME, dpsRecord.getSchema());
+            stormTaskTuple.addParameter(PluginParameterKeys.SCHEMA_NAME, dpsRecord.getMetadataPrefix());
             stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, stormTaskTuple.getFileUrl());
             //
             return stormTaskTuple;

@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -38,6 +39,7 @@ import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -47,7 +49,6 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-
 
 public class TopologyTasksResourceTest extends JerseyTest {
     private static final String DATA_SET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
@@ -65,14 +66,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final int[] ERROR_COUNTS = {5, 2, 7};
     private static final String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
     private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
-    private static final String VALIDATION_TOPOLOGY = "validation_topology";
-    private static final String NORMALIZATION_TOPOLOGY = "normalization_topology";
-    private static final String OAI_TOPOLOGY = "oai_topology";
-    private static final String INDEXING_TOPOLOGY = "indexing_topology";
     private static final String OAI_PMH_REPOSITORY_END_POINT = "http://example.com/oai-pmh-repository.xml";
     private static final String HTTP_COMPRESSED_FILE_URL = "http://example.com/zipFile.zip";
-    private static final String HTTP_TOPOLOGY = "http_topology";
-    private static final String ENRICHMENT_TOPOLOGY = "enrichment_topology";
     private static final String TOPOLOGY_NAME_PARAMETER_LABEL = "topologyName";
     private static final String TASK_ID_PARAMETER_LABEL = "taskId";
     private static final String EMPTY_STRING = "";

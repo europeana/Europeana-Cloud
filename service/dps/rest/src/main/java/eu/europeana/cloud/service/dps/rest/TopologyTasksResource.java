@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.rest.oaiharvest.IdentifierHarvester;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -22,6 +21,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
@@ -117,7 +117,7 @@ public class TopologyTasksResource {
     private String applicationIdentifier;
 
     @Autowired
-    private IdentifierHarvester identifierHarvester;
+    private HarvesterWrapper harvesterWrapper;
 
     private final static String TOPOLOGY_PREFIX = "Topology";
 
@@ -208,37 +208,30 @@ public class TopologyTasksResource {
                         permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         asyncResponse.resume(response);
                         LOGGER.info("The task is in a pending mode");
-                        int expectedSize = getFilesCountInsideTask(task, topologyName);
-                        if (expectedSize == 0) {
-                            insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON);
+                        int expectedCount = getFilesCountInsideTask(task, topologyName);
+                        if (expectedCount == 0) {
+                            insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON);
                         } else {
-                            if(topologyName.equals("oai_topology")) {
-                                insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON);
-                                identifierHarvester.harvest(topologyName, ""+task.getTaskId());
+                            if(topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
+                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON);
+                                int harvestedCount = harvesterWrapper.harvest(/*TaskStatusChecker.getTaskStatusChecker(),*/ topologyName, task);
+
+                                if (harvestedCount > 0) {
+                                    //Update real harvested records in db for given task
+                                    LOGGER.info("Task submitted successfully and records harvested");
+                                    taskInfoDAO.setUpdateExpectedSize(task.getTaskId(), harvestedCount);
+                                } else {
+                                    //Mark task as dropped if nothing harvested
+                                    LOGGER.info("Task dropped. No data harvested");
+                                    taskInfoDAO.dropTask(task.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
+                                }
                             } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
                                 LOGGER.info("Task submitted successfully");
 
-                                insertTask(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime, taskJSON);
+                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.SENT.toString(), "", sentTime, taskJSON);
                             }
-
-
-
-                            /*if (!TaskStatusChecker.getTaskStatusChecker().hasKillFlag(task.getTaskId())) {
-                                OAIPMHHarvestingDetails oaipmhHarvestingDetails = task.getHarvestingDetails();
-                                if (oaipmhHarvestingDetails == null)
-                                    oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
-                                OAIItem oaiItem = new OAIItem(
-                                        task.getTaskId(),
-                                        task.getTaskName(),
-                                        task.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, task.getParameters(), task.getOutputRevision(), oaipmhHarvestingDetails);
-
-                                IdentifierHarvester_old ih = new IdentifierHarvester_old(topologyName, oaiItem, taskInfoDAO, recordSubmitService, TaskStatusChecker.getTaskStatusChecker());
-                                ih.harvest();
-                            } else {
-                                LOGGER.info("Skipping DROPPED task {}", task.getTaskId());
-                            }*/
                         }
 
                     } catch (URISyntaxException e) {

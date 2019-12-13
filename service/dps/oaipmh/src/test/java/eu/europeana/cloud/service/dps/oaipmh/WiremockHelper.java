@@ -1,22 +1,24 @@
-package eu.europeana.cloud.service.dps.rest.oaiharvest;
-
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.commons.io.IOUtils;
-import org.junit.Rule;
-
-import java.io.IOException;
-import java.io.InputStream;
+package eu.europeana.cloud.service.dps.oaipmh;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_XML;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.io.IOException;
+import java.io.InputStream;
+import org.apache.commons.io.IOUtils;
+import org.junit.Rule;
+
 /**
  * @author krystian.
  */
 public abstract class WiremockHelper {
+
+    protected static final int DEFAULT_RETRIES = 3;
+    protected static final int SLEEP_TIME = 5000;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8181));
@@ -40,7 +42,7 @@ public abstract class WiremockHelper {
                 "UTF-8");
     }
 
-    public static InputStream getFileContentAsStream(String name) throws IOException {
+    public static InputStream getFileContentAsStream(String name) {
         return Object.class.getResourceAsStream(name);
     }
 

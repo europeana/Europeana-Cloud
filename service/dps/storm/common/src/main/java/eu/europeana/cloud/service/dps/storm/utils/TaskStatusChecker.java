@@ -22,9 +22,7 @@ public class TaskStatusChecker {
     private static TaskStatusChecker instance;
     private CassandraTaskInfoDAO taskDAO;
 
-
     private static volatile LoadingCache<Long, Boolean> cache;
-
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusChecker.class);
 
