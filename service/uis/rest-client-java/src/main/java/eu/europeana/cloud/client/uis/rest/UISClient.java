@@ -30,7 +30,7 @@ import javax.ws.rs.core.Response.Status;
 public class UISClient {
 
     private static final String CLOUD_IDS_PATH = "/cloudIds";
-    private static final String P_CLOUD_ID="CLOUD_ID";
+    private static final String P_CLOUD_ID = "CLOUD_ID";
     private static final String P_PROVIDER_ID = "PROVIDER_ID";
     private static final String DATA_PROVIDERS_PATH_WITH_PROVIDER_ID = "/data-providers/{PROVIDER_ID}";
     private static final String P_LOCAL_ID = "LOCAL_ID";
@@ -56,7 +56,10 @@ public class UISClient {
                      final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         LOGGER.info("UISClient starting...");
 
-        client.register(HttpAuthenticationFeature.basic(username, password));
+        if (username != null || password != null) {
+            client.register(HttpAuthenticationFeature.basic(username, password));
+        }
+
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
         this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
 
@@ -69,21 +72,17 @@ public class UISClient {
         LOGGER.info("UISClient started successfully.");
     }
 
+    public UISClient(final String uisUrl, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
+        this(uisUrl, null, null, connectTimeoutInMillis, readTimeoutInMillis);
+    }
+
     /**
      * Creates a new instance of this class, with a static UIS url.
      *
      * @param uisUrl The URL of some UIS instance to connect to.
      */
     public UISClient(final String uisUrl) {
-        LOGGER.info("UISClient starting...");
-
-        try {
-            urlProvider = new StaticUrlProvider(uisUrl);
-        } catch (final Exception e) {
-            LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
-        }
-
-        LOGGER.info("UISClient started successfully.");
+        this(uisUrl, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
