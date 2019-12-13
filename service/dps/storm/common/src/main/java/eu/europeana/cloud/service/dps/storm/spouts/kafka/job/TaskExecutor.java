@@ -96,11 +96,9 @@ public class TaskExecutor implements Callable<Void> {
 
         DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(mcsClientURL, authorizationHeader);
 
-        RecordServiceClient recordServiceClient = new RecordServiceClient(mcsClientURL);
-        recordServiceClient.useAuthorizationHeader(authorizationHeader);
+        RecordServiceClient recordServiceClient = new RecordServiceClient(mcsClientURL, authorizationHeader);
 
-        FileServiceClient fileClient = new FileServiceClient(mcsClientURL);
-        fileClient.useAuthorizationHeader(authorizationHeader);
+        FileServiceClient fileClient = new FileServiceClient(mcsClientURL, authorizationHeader);
 
         final StormTaskTuple stormTaskTuple = new StormTaskTuple(
                 dpsTask.getTaskId(),
