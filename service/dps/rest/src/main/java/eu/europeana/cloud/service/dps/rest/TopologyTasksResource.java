@@ -214,7 +214,7 @@ public class TopologyTasksResource {
                         } else {
                             if(topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON);
-                                int harvestedCount = harvesterWrapper.harvest(/*TaskStatusChecker.getTaskStatusChecker(),*/ topologyName, task);
+                                int harvestedCount = harvesterWrapper.harvest(topologyName, task);
 
                                 if (harvestedCount > 0) {
                                     //Update real harvested records in db for given task
