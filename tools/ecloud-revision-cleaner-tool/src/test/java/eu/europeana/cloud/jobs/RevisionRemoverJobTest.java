@@ -46,7 +46,7 @@ public class RevisionRemoverJobTest {
     Date date = new Date();
 
     @InjectMocks
-    RevisionRemoverJob revisionRemoverJob = new RevisionRemoverJob(dataSetServiceClient, recordServiceClient, revisionInformation, revisionServiceClient);
+    RevisionRemoverJob revisionRemoverJob = new RevisionRemoverJob(dataSetServiceClient, recordServiceClient, revisionInformation, revisionServiceClient, 1);
 
     @Test
     public void shouldRemoveRevisionsOnly() throws Exception {
