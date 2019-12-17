@@ -9,18 +9,19 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
-import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -91,6 +92,9 @@ public class TopologyTasksResource {
 
     @Autowired
     private PermissionManager permissionManager;
+
+    @Autowired
+    private HarvestsExecutor harvestsExecutor;
 
     @Autowired
     private String mcsLocation;
@@ -204,7 +208,7 @@ public class TopologyTasksResource {
                     try {
                         String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
                         Response response = Response.created(new URI(createdTaskUrl)).build();
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON);
                         permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         asyncResponse.resume(response);
                         LOGGER.info("The task is in a pending mode");
@@ -214,18 +218,8 @@ public class TopologyTasksResource {
                         } else {
                             if(topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON);
-                                int harvestedCount = harvesterWrapper.harvest(topologyName, task);
-
-                                if (harvestedCount > 0) {
-                                    //Update real harvested records in db for given task
-                                    LOGGER.info("Task submitted successfully and records harvested");
-                                    taskInfoDAO.setUpdateExpectedSize(task.getTaskId(), harvestedCount);
-                                } else {
-                                    //Mark task as dropped if nothing harvested
-                                    LOGGER.info("Task dropped. No data harvested");
-                                    taskInfoDAO.dropTask(task.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
-                                }
-                            } else {
+                                List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
+                                harvestsExecutor.execute(harvestsToByExecuted, task); } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
                                 LOGGER.info("Task submitted successfully");
