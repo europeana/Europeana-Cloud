@@ -145,8 +145,6 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
-    <bean id="harvesterWrapper" class="eu.europeana.cloud.service.dps.rest.HarvesterWrapper"/>
-
     <bean id="taskStatusChecker" class="eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker">
         <constructor-arg ref="taskInfoDAO"/>
     </bean>

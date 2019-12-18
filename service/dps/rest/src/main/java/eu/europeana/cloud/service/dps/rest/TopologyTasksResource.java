@@ -120,9 +120,6 @@ public class TopologyTasksResource {
     @Autowired
     private String applicationIdentifier;
 
-    @Autowired
-    private HarvesterWrapper harvesterWrapper;
-
     private final static String TOPOLOGY_PREFIX = "Topology";
 
     public final static String TASK_PREFIX = "DPS_Task";
@@ -164,10 +161,6 @@ public class TopologyTasksResource {
         TaskInfo progress = reportService.getTaskProgress(taskId);
         return progress;
     }
-
-
-    //protected static volatile TaskStatusChecker taskStatusChecker;
-
 
     /**
      * Submits a Task for execution.

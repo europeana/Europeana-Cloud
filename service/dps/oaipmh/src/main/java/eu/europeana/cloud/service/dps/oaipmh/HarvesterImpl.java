@@ -1,21 +1,13 @@
 package eu.europeana.cloud.service.dps.oaipmh;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import eu.europeana.cloud.service.dps.Harvest;
+import eu.europeana.cloud.service.dps.OAIHeader;
 import org.dspace.xoai.model.oaipmh.Header;
-import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.serviceprovider.ServiceProvider;
 import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
 import org.dspace.xoai.serviceprovider.exceptions.HttpException;
-import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
-import org.dspace.xoai.serviceprovider.model.Context;
 import org.dspace.xoai.serviceprovider.parameters.GetRecordParameters;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import org.dspace.xoai.serviceprovider.parameters.Parameters;
@@ -24,23 +16,21 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.xpath.XPathExpression;
 import java.io.InputStream;
+import java.util.Iterator;
 
-/**
- * This class implements the contract to provide harvesting functionality.
- */
-class HarvesterImpl implements Harvester {
+public class HarvesterImpl implements Harvester {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterImpl.class);
 
-    private final int numberOfRetries;
-    private final int timeBetweenRetries;
-
-    private static final ConnectionFactory DEFAULT_CONNECTION_FACTORY = new ConnectionFactory() {
+    private static final ConnectionFactory DEFAULT_CONNECTION_FACTORY = new HarvesterImpl.ConnectionFactory() {
         @Override
         public OaiPmhConnection createConnection(String oaiPmhEndpoint, Parameters parameters) {
             return new OaiPmhConnection(oaiPmhEndpoint, parameters);
         }
     };
+
+    private final int numberOfRetries;
+    private final int timeBetweenRetries;
 
     /**
      * Constructor.
@@ -53,17 +43,18 @@ class HarvesterImpl implements Harvester {
         this.timeBetweenRetries = timeBetweenRetries;
     }
 
+
     @Override
     public InputStream harvestRecord(String oaiPmhEndpoint, String recordId, String metadataPrefix,
-            XPathExpression expression, XPathExpression statusCheckerExpression)
+                                     XPathExpression expression, XPathExpression statusCheckerExpression)
             throws HarvesterException {
         return harvestRecord(DEFAULT_CONNECTION_FACTORY, oaiPmhEndpoint, recordId, metadataPrefix,
                 expression, statusCheckerExpression);
     }
 
     InputStream harvestRecord(ConnectionFactory connectionFactory, String oaiPmhEndpoint,
-            String recordId, String metadataPrefix, XPathExpression expression,
-            XPathExpression statusCheckerExpression) throws HarvesterException {
+                              String recordId, String metadataPrefix, XPathExpression expression,
+                              XPathExpression statusCheckerExpression) throws HarvesterException {
 
         final GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
         final Parameters parameters = Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params);
@@ -83,7 +74,7 @@ class HarvesterImpl implements Harvester {
                 if (retries > 0) {
                     retries--;
                     LOGGER.warn("Error harvesting record {}. Retries left:{} ", recordId, retries);
-                    waitForNextRetry();
+                    waitForSpecificTime();
                 } else {
                     throw new HarvesterException(String.format("Problem with harvesting record %1$s for endpoint %2$s because of: %3$s",
                             recordId, oaiPmhEndpoint, e.getMessage()), e);
@@ -92,8 +83,48 @@ class HarvesterImpl implements Harvester {
         }
     }
 
-    interface ConnectionFactory {
+    @Override
+    public Iterator<OAIHeader> harvestIdentifiers(Harvest harvest) throws HarvesterException {
+        try {
+            ListIdentifiersParameters listIdentifiersParameters = prepareParameters(harvest);
+            HttpOAIClient httpOAIClient = new HttpOAIClient(harvest.getUrl());
+            ServiceProvider provider = new ServiceProvider(new org.dspace.xoai.serviceprovider.model.Context().withOAIClient(httpOAIClient));
 
+            Iterator<Header> iterator = provider.listIdentifiers(listIdentifiersParameters);
+            return new OAIHeaderIterator(iterator, numberOfRetries);
+        } catch(BadArgumentException bae) {
+            throw new HarvesterException(bae.getMessage(), bae);
+        }
+    }
+
+    private ListIdentifiersParameters prepareParameters(Harvest harvest) {
+        ListIdentifiersParameters parameters = ListIdentifiersParameters.request()
+                .withMetadataPrefix(harvest.getMetadataPrefix());
+        if (harvest.getFrom() != null) {
+            parameters.withFrom(harvest.getFrom());
+        }
+        if (harvest.getUntil() != null) {
+            parameters.withUntil(harvest.getUntil());
+        }
+        if (harvest.getOaiSetSpec() != null) {
+            parameters.withSetSpec(harvest.getOaiSetSpec());
+        }
+        return parameters;
+    }
+
+    protected void waitForSpecificTime() {
+        try {
+            Thread.sleep(timeBetweenRetries);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(ie.getMessage());
+        }
+    }
+
+    /**
+     * Auxiliaru interface for harvesting records
+     */
+    interface ConnectionFactory {
         /**
          * Construct a connection based on the supplied information.
          *
@@ -104,149 +135,48 @@ class HarvesterImpl implements Harvester {
         OaiPmhConnection createConnection(String oaiPmhEndpoint, Parameters parameters);
     }
 
-    @Override
-    public Set<String> getSchemas(String oaiPmhEndpoint, Set<String> excludedSchemas)
-            throws HarvesterException {
-        Iterator<MetadataFormat> metadataFormatIterator = getSchemaIterator(oaiPmhEndpoint);
-        Set<String> schemas = new HashSet<>();
-        while (metadataFormatIterator.hasNext()) {
-            String schema = metadataFormatIterator.next().getMetadataPrefix();
-            if (excludedSchemas == null || !excludedSchemas.contains(schema)) {
-                schemas.add(schema);
-            }
-        }
-        return schemas;
-    }
+    /**
+     * Iterator for harvesting
+     */
+    public class OAIHeaderIterator implements Iterator<OAIHeader> {
 
-    Iterator<MetadataFormat> getSchemaIterator(String oaiPmhEndpoint) throws HarvesterException {
-        int retries = numberOfRetries;
-        while (true) {
-            try {
-                ServiceProvider serviceProvider = createServiceProvider(oaiPmhEndpoint);
-                return serviceProvider.listMetadataFormats();
-            } catch (InvalidOAIResponse e) {
-                if (retries > 0) {
-                    retries--;
-                    LOGGER.warn("Error while retrieving metadata schemas. Retries left: {}", retries);
-                    waitForNextRetry();
-                } else {
-                    LOGGER.error("Error while retrieving metadata schemas.");
-                    throw new HarvesterException("Problem while retrieving metadata schemas.", e);
+        private Iterator<Header> headerIterator;
+        private final int numberOfRetries;
+
+        public OAIHeaderIterator(Iterator<Header> headerIterator, int numberOfRetries) {
+            this.headerIterator = headerIterator;
+            this.numberOfRetries = numberOfRetries;
+        }
+
+        @Override
+        public boolean hasNext() {
+            int retries = numberOfRetries;
+            while (true) {
+                try {
+                    return headerIterator.hasNext();
+                } catch (Exception e) {
+                    if (retries-- > 0) {
+                        LOGGER.warn("Error while getting the next batch: {}. Retries left {}. The cause of the error is {}", e.getMessage(), retries, e.getMessage() + " " + e.getCause());
+                        HarvesterImpl.this.waitForSpecificTime();
+                    } else {
+                        LOGGER.error("Error while getting the next batch {}", e.getMessage());
+                        throw new IllegalStateException(" Error while getting the next batch of identifiers from the oai end-point.", e);
+                    }
                 }
-            } catch (IdDoesNotExistException e) {
-                //will never happen in here as we don't specify "identifier" argument
-                throw new HarvesterException("Unexpected exception.", e);
             }
         }
-    }
 
-    @Override
-    public List<String> harvestIdentifiers(String metadataPrefix, String dataset, Date fromDate,
-            Date untilDate, String oaiPmhEndpoint, Set<String> excludedSets, CancelTrigger cancelTrigger)
-            throws HarvesterException {
-        final ListIdentifiersParameters parameters = configureParameters(metadataPrefix, dataset, fromDate,
-                untilDate);
-        try {
-            return parseHeaders(createServiceProvider(oaiPmhEndpoint).listIdentifiers(parameters),
-                    excludedSets, cancelTrigger);
-        } catch (BadArgumentException e) {
-            throw new HarvesterException("Unable to harvest identifiers.", e);
-        }
-    }
-
-    static ServiceProvider createServiceProvider(String oaiPmhEndpoint) {
-        return new ServiceProvider(new Context().withOAIClient(new HttpOAIClient(oaiPmhEndpoint)));
-    }
-
-    /**
-     * Create ListIdentifiers request parameters given the input.
-     *
-     * @return object representing parameters for ListIdentifiers request
-     */
-    private ListIdentifiersParameters configureParameters(String metadataPrefix, String dataset,
-            Date fromDate, Date untilDate) {
-        ListIdentifiersParameters parameters = ListIdentifiersParameters.request()
-                .withMetadataPrefix(metadataPrefix);
-        if (fromDate != null) {
-            parameters.withFrom(fromDate);
-        }
-        if (untilDate != null) {
-            parameters.withUntil(untilDate);
-        }
-        if (dataset != null) {
-            parameters.withSetSpec(dataset);
-        }
-        return parameters;
-    }
-
-    /**
-     * Parse headers returned by the OAI-PMH source
-     *
-     * @param headerIterator iterator of headers returned by the source
-     * @param excludedSets sets to exclude
-     * @param cancelTrigger The cancel trigger
-     * @return number of harvested identifiers
-     */
-    private List<String> parseHeaders(Iterator<Header> headerIterator, Set<String> excludedSets,
-            CancelTrigger cancelTrigger) {
-        if (headerIterator == null) {
-            throw new IllegalArgumentException("Header iterator is null");
-        }
-        final List<String> result = new ArrayList<>();
-        while (hasNext(headerIterator) && !cancelTrigger.shouldCancel()) {
+        @Override
+        public OAIHeader next() {
             Header header = headerIterator.next();
-            if (filterHeader(header, excludedSets)) {
-                result .add(header.getIdentifier());
-            }
+            return OAIHeader.builder()
+                    .identifier(header.getIdentifier())
+                    .build();
         }
-        return result;
-    }
 
-    private boolean hasNext(Iterator<Header> headerIterator) {
-        int retries = numberOfRetries;
-        while (true) {
-            try {
-                return headerIterator.hasNext();
-            } catch (RuntimeException e) {
-                if (retries > 0) {
-                    retries--;
-                    LOGGER.warn(
-                            "Error while getting the next batch: {}. Retries left {}. The cause of the error is {}",
-                            e.getMessage(), retries, e.getMessage() + " " + e.getCause());
-                    waitForNextRetry();
-                } else {
-                    LOGGER.error("Error while getting the next batch {}", e.getMessage());
-                    throw new IllegalStateException(" Error while getting the next batch of identifiers from the oai end-point.", e);
-                }
-            }
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("OAI-PMH is a read-only interface");
         }
-    }
-
-    private void waitForNextRetry() {
-        try {
-            Thread.sleep(timeBetweenRetries);
-        } catch (InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
-        }
-    }
-
-    /**
-     * Filter header by checking whether it belongs to any of excluded sets.
-     *
-     * @param header header to filter
-     * @param excludedSets sets to exclude
-     */
-    private boolean filterHeader(Header header, Set<String> excludedSets) {
-        if (excludedSets != null && !excludedSets.isEmpty()) {
-            for (String set : excludedSets) {
-                if (header.getSetSpecs().contains(set)) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }
-
-

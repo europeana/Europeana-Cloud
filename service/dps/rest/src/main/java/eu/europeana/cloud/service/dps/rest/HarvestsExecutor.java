@@ -3,8 +3,12 @@ package eu.europeana.cloud.service.dps.rest;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.oaipmh.Harvester;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +23,9 @@ public class HarvestsExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestsExecutor.class);
 
+    private static final int DEFAULT_RETRIES = 3;
+    private static final int SLEEP_TIME = 5000;
+
     @Autowired
     private RecordExecutionSubmitService recordSubmitService;
 
@@ -28,19 +35,25 @@ public class HarvestsExecutor {
     @Autowired
     private CassandraSubTaskInfoDAO subTaskInfoDAO;
 
-    public void execute(List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws BadArgumentException {
+    /** Auxiliary object to check 'kill flag' for task */
+    @Autowired
+    private TaskStatusChecker taskStatusChecker;
+
+    public void execute(List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws BadArgumentException, HarvesterException {
         int counter = 0;
         for (Harvest harvest : harvestsToByExecuted) {
             LOGGER.info("Starting identifiers harvesting for: {}", harvest);
-            IdentifiersHarvester identifiersHarvester = new IdentifiersHarvester(harvest);
-            Iterator<OAIHeader> headerIterator = identifiersHarvester.harvestIdentifiers();
-            while (headerIterator.hasNext()) {
+            Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
+            Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
+
+            // *** Main harvesting loop for given task ***
+            while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                 OAIHeader oaiHeader = headerIterator.next();
                 DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
                 sentMessage(record);
                 updateRecordStatus(record, ++counter);
             }
-            LOGGER.info("Identifiers harvesting finished for: {}", harvest);
+            LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
         }
         if(counter == 0){
             LOGGER.info("Task dropped. No data harvested");

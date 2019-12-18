@@ -20,7 +20,7 @@ public class DpsTaskToHarvestConverter implements GenericOneToManyConverter<DpsT
                                 .url(repoUrl)
                                 .from(dpsTask.getHarvestingDetails().getDateFrom())
                                 .until(dpsTask.getHarvestingDetails().getDateUntil())
-                                .setSpec(set)
+                                .oaiSetSpec(set)
                                 .metadataPrefix(schema)
                                 .build();
                         harvestsToByExecuted.add(h);

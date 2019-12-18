@@ -21,5 +21,5 @@ public class Harvest implements Serializable {
     private String metadataPrefix;
     private Date from;
     private Date until;
-    private String setSpec;
+    private String oaiSetSpec;
 }

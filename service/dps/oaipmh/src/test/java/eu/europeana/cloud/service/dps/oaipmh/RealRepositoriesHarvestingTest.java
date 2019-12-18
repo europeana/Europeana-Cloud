@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.oaipmh;
 
+import eu.europeana.cloud.service.dps.Harvest;
+import eu.europeana.cloud.service.dps.OAIHeader;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
@@ -18,6 +20,9 @@ import java.util.Iterator;
 @Ignore
 @RunWith(Parameterized.class)
 public class RealRepositoriesHarvestingTest {
+
+    private static final int DEFAULT_RETRIES = 3;
+    private static final int SLEEP_TIME = 5*1000;
 
     private final String endpoint;
     private final String schema;
@@ -89,41 +94,46 @@ public class RealRepositoriesHarvestingTest {
 
     @Test
     public void shouldListIdentifiersWithoutSetSpecSpecified() throws Exception {
+        Harvest harvest = Harvest.builder()
+                .url(endpoint)
+                .oaiSetSpec(set != null && set.isEmpty() ?  null : set)
+                .metadataPrefix(schema)
+                .build();
 
-        ListIdentifiersParameters parameters = new ListIdentifiersParameters();
-        parameters.withMetadataPrefix(schema);
-        if (!set.isEmpty())
-            parameters.withSetSpec(set);
         System.out.println("Harvesting " + endpoint);
-        int i = 0;
-        Iterator<Header> headerIterator = HarvesterImpl.createServiceProvider(endpoint).listIdentifiers(parameters);
-        while (headerIterator.hasNext()) { //should go over few pages, as they usually have 50 headers per page
-            Header header = headerIterator.next();
-            System.out.println(i + " " + header.getIdentifier());
-            ++i;
+
+        Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
+        Iterator<OAIHeader> iterator = harvester.harvestIdentifiers(harvest);
+        int counter = 0;
+
+        while(iterator.hasNext()) {
+            OAIHeader oaiHeader = iterator.next();
+            System.out.println(++counter + " " + oaiHeader.getIdentifier());
         }
-        System.out.println(i + " identifiers harvested");
+        System.out.println(counter + " identifiers harvested");
         //then should not throw any xml parse exception
     }
 
     @Test
     public void shouldListIdentifiersAndGetRecordsWithoutSetSpecSpecified() throws Exception {
+        Harvest harvest = Harvest.builder()
+                .url(endpoint)
+                .oaiSetSpec(set != null && set.isEmpty() ?  null : set)
+                .metadataPrefix(schema)
+                .build();
 
-        ListIdentifiersParameters parameters = new ListIdentifiersParameters();
-        parameters.withMetadataPrefix(schema);
-        if (!set.isEmpty())
-            parameters.withSetSpec(set);
         System.out.println("Harvesting " + endpoint);
-        int i = 0;
-        Iterator<Header> headerIterator = HarvesterImpl.createServiceProvider(endpoint).listIdentifiers(parameters);
-        while (headerIterator.hasNext() && i < 110) { //should go over few pages, as they usually have 50 headers per page
-            Header header = headerIterator.next();
-            String record = harvestRecord(endpoint, header.getIdentifier(), schema);
-            System.out.println(record);
 
-            i++;
+        Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
+        Iterator<OAIHeader> iterator = harvester.harvestIdentifiers(harvest);
+        int counter = 0;
+
+        while(iterator.hasNext()) {
+            OAIHeader oaiHeader = iterator.next();
+            String record = harvestRecord(endpoint, oaiHeader.getIdentifier(), schema);
+            System.out.println(++counter + " " + record);
         }
-        System.out.println(i + " records harvested");
+        System.out.println(counter + " identifiers and records harvested");
         //then should not throw any xml parse exception
     }
 
