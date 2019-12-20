@@ -35,11 +35,13 @@ public class HarvestsExecutor {
     @Autowired
     private CassandraSubTaskInfoDAO subTaskInfoDAO;
 
-    /** Auxiliary object to check 'kill flag' for task */
+    /**
+     * Auxiliary object to check 'kill flag' for task
+     */
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public void execute(List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws BadArgumentException, HarvesterException {
+    public void execute(List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws BadArgumentException, HarvesterException {
         int counter = 0;
         for (Harvest harvest : harvestsToByExecuted) {
             LOGGER.info("Starting identifiers harvesting for: {}", harvest);
@@ -50,12 +52,12 @@ public class HarvestsExecutor {
             while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                 OAIHeader oaiHeader = headerIterator.next();
                 DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
-                sentMessage(record);
+                sentMessage(record, topicName);
                 updateRecordStatus(record, ++counter);
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
         }
-        if(counter == 0){
+        if (counter == 0) {
             LOGGER.info("Task dropped. No data harvested");
             taskInfoDAO.dropTask(dpsTask.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         }
@@ -69,9 +71,9 @@ public class HarvestsExecutor {
                 .build();
     }
 
-    private void sentMessage(DpsRecord record) {
+    private void sentMessage(DpsRecord record, String topicName) {
         LOGGER.debug("Sending records to messges queue: {}", record);
-        recordSubmitService.submitRecord(record, "oai_topology");
+        recordSubmitService.submitRecord(record, topicName);
     }
 
     private void updateRecordStatus(DpsRecord dpsRecord, int counter) {

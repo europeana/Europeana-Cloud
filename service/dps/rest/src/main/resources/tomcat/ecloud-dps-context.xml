@@ -109,6 +109,12 @@
         </constructor-arg>
     </bean>
 
+    <bean id="kafkaTopicSelector" class="eu.europeana.cloud.service.dps.utils.KafkaTopicSelector">
+        <constructor-arg>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/availableTopics"/>
+        </constructor-arg>
+    </bean>
+
     <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
         <property name="targetClass" value="org.springframework.security.core.context.SecurityContextHolder"/>
         <property name="targetMethod" value="setStrategyName"/>

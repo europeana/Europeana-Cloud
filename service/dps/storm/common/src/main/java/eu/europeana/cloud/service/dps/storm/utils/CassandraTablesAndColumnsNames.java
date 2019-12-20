@@ -84,5 +84,6 @@ public class CassandraTablesAndColumnsNames {
     public static final String TASKS_BY_STATE_TOPOLOGY_NAME = "topology_name";
     public static final String TASKS_BY_STATE_TASK_ID_COL_NAME = "task_id";
     public static final String TASKS_BY_STATE_APP_ID_COL_NAME = "application_id";
+    public static final String TASKS_BY_STATE_TOPIC_NAME_COL_NAME = "topic_name";
     public static final String TASKS_BY_STATE_START_TIME = "start_time";
 }
