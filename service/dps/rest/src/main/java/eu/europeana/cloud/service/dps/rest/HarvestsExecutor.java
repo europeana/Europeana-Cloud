@@ -39,7 +39,7 @@ public class HarvestsExecutor {
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public void execute(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws HarvesterException {
+    public void execute(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int counter = 0;
         for (Harvest harvest : harvestsToByExecuted) {
             LOGGER.info("Starting identifiers harvesting for: {}", harvest);
@@ -51,7 +51,7 @@ public class HarvestsExecutor {
                 OAIHeader oaiHeader = headerIterator.next();
                 DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
 
-                sentMessage(record, topologyName);
+                sentMessage(record, topicName);
                 updateRecordStatus(record, topologyName);
 
                 counter++;
@@ -65,7 +65,7 @@ public class HarvestsExecutor {
     }
 
     /*Merge code below when latest version of restart procedure will be done/known*/
-    public void executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws HarvesterException {
+    public void executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int counter = 0;
 
         for (Harvest harvest : harvestsToByExecuted) {
@@ -80,14 +80,14 @@ public class HarvestsExecutor {
                 ProcessedRecord processedRecord = processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), oaiHeader.getIdentifier());
                 if(processedRecord == null || processedRecord.getState() == RecordState.ERROR) {
                     DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
-                    sentMessage(record, topologyName);
+                    sentMessage(record, topicName);
                     updateRecordStatus(record, topologyName);
                     counter++;
                 }
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
         }
-        if(counter == 0){
+        if (counter == 0) {
             LOGGER.info("Task dropped. No data harvested");
             taskInfoDAO.dropTask(dpsTask.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         }
@@ -101,9 +101,9 @@ public class HarvestsExecutor {
                 .build();
     }
 
-    private void sentMessage(DpsRecord record, String topologyName) {
+    private void sentMessage(DpsRecord record, String topicName) {
         LOGGER.debug("Sending records to messges queue: {}", record);
-        recordSubmitService.submitRecord(record, topologyName);
+        recordSubmitService.submitRecord(record, topicName);
     }
 
     private void updateRecordStatus(DpsRecord dpsRecord, String topologyName) {

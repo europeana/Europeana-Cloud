@@ -12,6 +12,7 @@ public class V6_1__alter_basic_info implements JavaMigration {
                         "        topology_name varchar," +
                         "        task_id bigint," +
                         "        application_id varchar," +
+                        "        topic_name varchar," +
                         "        start_time timestamp," +
                         "        PRIMARY KEY(state,topology_name,task_id)" +
                         ");"

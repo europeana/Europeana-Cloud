@@ -81,8 +81,9 @@ CREATE TABLE tasks_by_task_state(
     topology_name varchar,
     task_id bigint,
     application_id varchar,
+    topic_name varchar,
     start_time timestamp,
-    PRIMARY KEY(state,topology_name,task_id)
+    PRIMARY KEY(state, topology_name, task_id)
 );
 
 CREATE TABLE processed_records (

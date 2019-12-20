@@ -105,4 +105,9 @@
             global="dps/appId"
             type="java.lang.String"/>
 
+    <ResourceLink
+            name="dps/topology/availableTopics"
+            global="dps/topology/availableTopics"
+            type="java.lang.String"/>
+
 </Context>
