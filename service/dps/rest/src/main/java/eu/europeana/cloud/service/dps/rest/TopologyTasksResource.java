@@ -13,16 +13,14 @@ import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
@@ -115,6 +113,9 @@ public class TopologyTasksResource {
     private TasksByStateDAO tasksByStateDAO;
 
     @Autowired
+    private ProcessedRecordsDAO processedRecordsDAO;
+
+    @Autowired
     private FilesCounterFactory filesCounterFactory;
 
     @Autowired
@@ -185,8 +186,43 @@ public class TopologyTasksResource {
                                @Context final UriInfo uriInfo,
                                @HeaderParam("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+        return doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, false);
+    }
+
+
+    /**
+     * Restarts a Task for execution.
+     * Each Task execution is associated with a specific plugin.
+     * <p/>
+     * <strong>Write permissions required</strong>.
+     *
+     * @param taskId         <strong>REQUIRED</strong> Task identifier to be processed.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @return URI with information about the submitted task execution.
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Submit Task
+     * @summary Submit Task
+     */
+    @POST
+    @Path("{taskId}/restart")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+    public Response restartTask(@Suspended final AsyncResponse asyncResponse,
+                                @PathParam("taskId") final long taskId,
+                                @PathParam("topologyName") final String topologyName,
+                                @Context final UriInfo uriInfo,
+                                @HeaderParam("Authorization") final String authorizationHeader
+    ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+        TaskInfo taskInfo =  taskInfoDAO.searchById(taskId);
+        DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
+        return doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, true);
+    }
+
+    private Response doSubmitTask(final AsyncResponse asyncResponse, final DpsTask task, final String topologyName,
+                                  final UriInfo uriInfo, final String authorizationHeader, final boolean restart)
+            throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         if (task != null) {
-            LOGGER.info("Submitting task");
+            LOGGER.info(!restart ? "Submitting task" : "Restarting task");
             assertContainTopology(topologyName);
             validateTask(task, topologyName);
             validateOutputDataSetsIfExist(task);
@@ -212,7 +248,14 @@ public class TopologyTasksResource {
                             if(topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON);
                                 List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
-                                harvestsExecutor.execute(harvestsToByExecuted, task); } else {
+
+                                if(!restart) {
+                                    harvestsExecutor.execute(topologyName, harvestsToByExecuted, task);
+                                } else {
+                                    harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task);
+                                }
+
+                            } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
                                 LOGGER.info("Task submitted successfully");
@@ -243,11 +286,6 @@ public class TopologyTasksResource {
         return Response.notModified().build();
     }
 
-    private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskInformations) {
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations);
-        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier);
-    }
-
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
@@ -265,13 +303,15 @@ public class TopologyTasksResource {
                 try {
                     asyncResponse.resume("The request was received successfully");
                     if (cleanerParameters != null) {
-                        LOGGER.info("cleaning dataset {} based on date: {}", cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+                        LOGGER.info("cleaning dataset {} based on date: {}",
+                                cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
                         DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
                         datasetCleaner.execute();
                         LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
                         taskInfoDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
                     } else {
-                        taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null", TaskState.DROPPED.toString());
+                        taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null",
+                                TaskState.DROPPED.toString());
                     }
                 } catch (ParseException e) {
                     LOGGER.error("Dataset was not removed correctly. ", e);
@@ -293,11 +333,14 @@ public class TopologyTasksResource {
                     dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
                     validateProviderId(task, dataSet.getProviderId());
                 } catch (MalformedURLException e) {
-                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL + " can not be submitted because: " + e.getMessage());
+                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                            + " can not be submitted because: " + e.getMessage());
                 } catch (DataSetNotExistsException e) {
-                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL + " Does not exist");
+                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                            + " Does not exist");
                 } catch (Exception e) {
-                    throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: " + dataSetURL + " because of: " + e.getMessage());
+                    throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
+                            + dataSetURL + " because of: " + e.getMessage());
                 }
             }
         }
@@ -307,8 +350,8 @@ public class TopologyTasksResource {
         String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
         if (providedProviderId != null)
             if (!providedProviderId.equals(providerId))
-                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId + " should be the same provider of the output dataSet: " + providerId);
-
+                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
+                        + " should be the same provider of the output dataSet: " + providerId);
     }
 
 
@@ -555,6 +598,8 @@ public class TopologyTasksResource {
 
     }
 
+
+
     private String buildTaskUrl(UriInfo uriInfo, DpsTask task, String topologyName) {
 
         StringBuilder taskUrl = new StringBuilder()
@@ -573,7 +618,6 @@ public class TopologyTasksResource {
     }
 
     private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
-
         String taskType = specifyTaskType(task, topologyName);
         DpsTaskValidator validator = DpsTaskValidatorFactory.createValidator(taskType);
         validator.validate(task);
@@ -609,5 +653,24 @@ public class TopologyTasksResource {
         //TODO sholud be done in more error prone way
         final InputDataType first = task.getInputData().keySet().iterator().next();
         return first.name();
+    }
+
+    /**
+     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
+     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
+     * NOTE: Operation is not in transaction! So on table can be modified but second one not
+     * Parameters corresponding to names of column in table(s)
+     * @param taskId
+     * @param topologyName
+     * @param expectedSize
+     * @param state
+     * @param info
+     * @param sentTime
+     * @param taskInformations
+     */
+    private void insertTask(long taskId, String topologyName, int expectedSize,
+                            String state, String info, Date sentTime, String taskInformations) {
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations);
+        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier);
     }
 }

@@ -1,15 +1,15 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.ProcessedRecord;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +33,13 @@ public class HarvestsExecutor {
     private CassandraTaskInfoDAO taskInfoDAO;
 
     @Autowired
-    private CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private ProcessedRecordsDAO processedRecordsDAO;
 
     /** Auxiliary object to check 'kill flag' for task */
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public void execute(List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws BadArgumentException, HarvesterException {
+    public void execute(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws HarvesterException {
         int counter = 0;
         for (Harvest harvest : harvestsToByExecuted) {
             LOGGER.info("Starting identifiers harvesting for: {}", harvest);
@@ -50,8 +50,40 @@ public class HarvestsExecutor {
             while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                 OAIHeader oaiHeader = headerIterator.next();
                 DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
-                sentMessage(record);
-                updateRecordStatus(record, ++counter);
+
+                sentMessage(record, topologyName);
+                updateRecordStatus(record, topologyName);
+
+                counter++;
+            }
+            LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
+        }
+        if(counter == 0){
+            LOGGER.info("Task dropped. No data harvested");
+            taskInfoDAO.dropTask(dpsTask.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
+        }
+    }
+
+    /*Merge code below when latest version of restart procedure will be done/known*/
+    public void executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask) throws HarvesterException {
+        int counter = 0;
+
+        for (Harvest harvest : harvestsToByExecuted) {
+            LOGGER.info("(Re-)starting identifiers harvesting for: {}", harvest);
+            Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
+            Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
+
+            // *** Main harvesting loop for given task ***
+            while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                OAIHeader oaiHeader = headerIterator.next();
+
+                ProcessedRecord processedRecord = processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), oaiHeader.getIdentifier());
+                if(processedRecord == null || processedRecord.getState() == RecordState.ERROR) {
+                    DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
+                    sentMessage(record, topologyName);
+                    updateRecordStatus(record, topologyName);
+                    counter++;
+                }
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
         }
@@ -69,13 +101,14 @@ public class HarvestsExecutor {
                 .build();
     }
 
-    private void sentMessage(DpsRecord record) {
+    private void sentMessage(DpsRecord record, String topologyName) {
         LOGGER.debug("Sending records to messges queue: {}", record);
-        recordSubmitService.submitRecord(record, "oai_topology");
+        recordSubmitService.submitRecord(record, topologyName);
     }
 
-    private void updateRecordStatus(DpsRecord dpsRecord, int counter) {
+    private void updateRecordStatus(DpsRecord dpsRecord, String topologyName) {
         LOGGER.debug("Updating record in notifications table: {}", dpsRecord);
-        subTaskInfoDAO.insert(counter, dpsRecord.getTaskId(), "oai_topology", dpsRecord.getRecordId(), States.QUEUED.toString(), "", "", "");
+        processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(),
+                "", topologyName, RecordState.QUEUED.toString(), "", "");
     }
 }

@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -59,7 +59,7 @@ public class QueueFiller {
 
      private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.ERROR, message, additionalInformations);
+                resource, RecordState.ERROR, message, additionalInformations);
         collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

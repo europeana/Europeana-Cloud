@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -143,7 +143,7 @@ public class ParseFileBoltTest {
         assertNotNull(valueMap);
         assertEquals(4, valueMap.size());
         assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
-        assertEquals(States.ERROR.toString(), valueMap.get("state"));
+        assertEquals(RecordState.ERROR.toString(), valueMap.get("state"));
         assertNull(valueMap.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
         verify(outputCollector, Mockito.times(0)).emit(anyList());
     }
@@ -161,7 +161,7 @@ public class ParseFileBoltTest {
             assertNotNull(valueMap);
             assertEquals(4, valueMap.size());
             assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
-            assertEquals(States.ERROR.toString(), valueMap.get("state"));
+            assertEquals(RecordState.ERROR.toString(), valueMap.get("state"));
             assertNull(valueMap.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
             verify(outputCollector, Mockito.times(0)).emit(anyList());
         }

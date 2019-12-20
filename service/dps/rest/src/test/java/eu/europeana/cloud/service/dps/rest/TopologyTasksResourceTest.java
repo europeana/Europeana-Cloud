@@ -17,7 +17,6 @@ import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -1039,7 +1038,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
     private List<SubTaskInfo> createDummySubTaskInfoList() {
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
-        SubTaskInfo subTaskInfo = new SubTaskInfo(1, RESOURCE_URL, States.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL);
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, RESOURCE_URL, RecordState.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL);
         subTaskInfoList.add(subTaskInfo);
         return subTaskInfoList;
     }

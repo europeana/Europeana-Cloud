@@ -66,9 +66,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.SENT_TIME + ","
                 + CassandraTablesAndColumnsNames.START_TIME + ","
                 + CassandraTablesAndColumnsNames.FINISH_TIME + ","
-                + CassandraTablesAndColumnsNames.ERRORS+ /* ","
-                + CassandraTablesAndColumnsNames.TASK_INFORMATIONS + */
-                ") VALUES (?,?,?,?,?,?,?,?,?,?"+/*,?*/")");
+                + CassandraTablesAndColumnsNames.ERRORS+  ","
+                + CassandraTablesAndColumnsNames.TASK_INFORMATIONS +
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         killTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
@@ -91,7 +91,15 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
             throw new TaskInfoDoesNotExistException();
         }
         Row row = rs.one();
-        TaskInfo task = new TaskInfo(row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID), row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME), TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.STATE)), row.getString(CassandraTablesAndColumnsNames.INFO), row.getDate(CassandraTablesAndColumnsNames.SENT_TIME), row.getDate(CassandraTablesAndColumnsNames.START_TIME), row.getDate(CassandraTablesAndColumnsNames.FINISH_TIME));
+        TaskInfo task = new TaskInfo(
+                row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID),
+                row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
+                TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.STATE)),
+                row.getString(CassandraTablesAndColumnsNames.INFO),
+                row.getDate(CassandraTablesAndColumnsNames.SENT_TIME),
+                row.getDate(CassandraTablesAndColumnsNames.START_TIME),
+                row.getDate(CassandraTablesAndColumnsNames.FINISH_TIME)
+        );
         task.setExpectedSize(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE));
         task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
         task.setTaskDefinition(row.getString("task_informations"));
@@ -101,7 +109,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, String state, String info, Date sentTime, Date startTime, Date finishTime, int errors, String taskInformations)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, state, info, sentTime, startTime, finishTime, errors /*,  taskInformations*/));
+        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, state, info, sentTime, startTime, finishTime, errors,  taskInformations));
     }
 
     public void updateTask(long taskId, String info, String state, Date startDate)

@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -104,7 +104,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
         String resource = "resource";
-        States state = States.SUCCESS;
+        RecordState state = RecordState.SUCCESS;
         String text = "text";
         String additionalInformation = "additionalInformation";
         String resultResource = "";
@@ -227,11 +227,11 @@ public class NotificationBoltTest extends CassandraTestBase {
         }
 
         for (int i = 0; i < errors; i++) {
-            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(i), States.ERROR, text, additionalInformation, resultResource)));
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(i), RecordState.ERROR, text, additionalInformation, resultResource)));
         }
 
         while (result.size() < size) {
-            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(result.size()), States.SUCCESS, text, additionalInformation, resultResource)));
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(result.size()), RecordState.SUCCESS, text, additionalInformation, resultResource)));
         }
         return result;
     }

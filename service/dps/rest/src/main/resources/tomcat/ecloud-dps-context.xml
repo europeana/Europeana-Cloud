@@ -153,6 +153,10 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
+    <bean id="processedRecordsDAO" class="eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+
     <import resource="authentication.xml"/>
     <import resource="authorization.xml"/>
 </beans>

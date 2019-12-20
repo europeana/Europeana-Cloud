@@ -14,6 +14,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String ATTRIBUTE_STATISTICS_TABLE = "attribute_statistics";
     public static final String STATISTICS_REPORTS_TABLE = "statistics_reports";
     public static final String TASKS_BY_STATE_TABLE = "tasks_by_task_state";
+    public static final String PROCESSED_RECORDS_TABLE = "processed_records";
 
     //------- BASIC INFO -------
     public static final String BASIC_TASK_ID = "task_id";
@@ -85,4 +86,13 @@ public class CassandraTablesAndColumnsNames {
     public static final String TASKS_BY_STATE_TASK_ID_COL_NAME = "task_id";
     public static final String TASKS_BY_STATE_APP_ID_COL_NAME = "application_id";
     public static final String TASKS_BY_STATE_START_TIME = "start_time";
+
+    //------- PROCESSED_RECORDS -------
+    public static final String PROCESSED_RECORDS_TASK_ID = "task_id";
+    public static final String PROCESSED_RECORDS_SRC_IDENTIFIER = "src_identifier";
+    public static final String PROCESSED_RECORDS_DST_IDENTIFIER = "dst_identifier";
+    public static final String PROCESSED_RECORDS_TOPOLOGY_NAME = "topology_name";
+    public static final String PROCESSED_RECORDS_STATE = "state";
+    public static final String PROCESSED_RECORDS_INFO_TEXT = "info_text";
+    public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
 }
