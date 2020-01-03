@@ -200,7 +200,7 @@ public class TopologyTasksResource {
      * <p/>
      * <strong>Write permissions required</strong>.
      *
-     * @param taskId         <strong>REQUIRED</strong> Task identifier to be processed.
+     * @param taskId       <strong>REQUIRED</strong> Task identifier to be processed.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return URI with information about the submitted task execution.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
@@ -217,7 +217,7 @@ public class TopologyTasksResource {
                                 @Context final UriInfo uriInfo,
                                 @HeaderParam("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        TaskInfo taskInfo =  taskInfoDAO.searchById(taskId);
+        TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, true);
     }
@@ -231,6 +231,7 @@ public class TopologyTasksResource {
             validateTask(task, topologyName);
             validateOutputDataSetsIfExist(task);
             final Date sentTime = new Date();
+            task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
             final String taskJSON = new ObjectMapper().writeValueAsString(task);
             final String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(topologyName);
             TaskStatusChecker.init(taskInfoDAO);
@@ -244,21 +245,21 @@ public class TopologyTasksResource {
                         insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, preferredTopicName);
                         permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         asyncResponse.resume(response);
-                        LOGGER.info("The task is in a pending mode");
                         int expectedCount = getFilesCountInsideTask(task, topologyName);
+                        LOGGER.info("The task {} is in a pending mode.Expected size: {}", task.getTaskId(), expectedCount);
                         if (expectedCount == 0) {
                             insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON, preferredTopicName);
                         } else {
-                            if(topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
+                            if (topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
                                 List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
 
-                                if(!restart) {
+                                if (!restart) {
                                     harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 } else {
                                     harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 }
-
+                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.SENT.toString(), "", sentTime, taskJSON, preferredTopicName);
                             } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
@@ -602,8 +603,6 @@ public class TopologyTasksResource {
 
     }
 
-
-
     private String buildTaskUrl(UriInfo uriInfo, DpsTask task, String topologyName) {
 
         StringBuilder taskUrl = new StringBuilder()
@@ -664,6 +663,7 @@ public class TopologyTasksResource {
      * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
      * NOTE: Operation is not in transaction! So on table can be modified but second one not
      * Parameters corresponding to names of column in table(s)
+     *
      * @param taskId
      * @param topologyName
      * @param expectedSize
@@ -675,6 +675,7 @@ public class TopologyTasksResource {
     private void insertTask(long taskId, String topologyName, int expectedSize,
                             String state, String info, Date sentTime, String taskInformations, String topicName) {
         taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations);
+        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
         tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
     }
 }

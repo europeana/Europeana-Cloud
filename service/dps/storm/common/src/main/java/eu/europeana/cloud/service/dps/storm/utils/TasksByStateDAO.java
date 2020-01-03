@@ -17,8 +17,9 @@ import java.util.List;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
 public class TasksByStateDAO extends CassandraDAO {
-    private PreparedStatement findTasksInGivenState;
     private PreparedStatement insertStatement;
+    private PreparedStatement deleteStatement;
+    private PreparedStatement findTasksInGivenState;
     private PreparedStatement listAllInUseTopicsForTopology;
 
     public TasksByStateDAO(CassandraConnectionProvider dbService) {
@@ -37,6 +38,11 @@ public class TasksByStateDAO extends CassandraDAO {
                 + TASKS_BY_STATE_START_TIME +
                 ") VALUES (?,?,?,?,?,?)");
 
+        deleteStatement = dbService.getSession().prepare("DELETE FROM " + TASKS_BY_STATE_TABLE +
+                " WHERE " + STATE + " = ?" +
+                " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
+                " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?");
+
         findTasksInGivenState = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + STATE + " = ?");
 
@@ -49,6 +55,9 @@ public class TasksByStateDAO extends CassandraDAO {
     public void insert(String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(insertStatement.bind(state, topologyName, taskId, applicationId, topicName, startTime));
+    }
+    public void delete(String state, String topologyName, long taskId){
+        dbService.getSession().execute(deleteStatement.bind(state, topologyName, taskId));
     }
 
     public void insert(String state, String topologyName, long taskId, String applicationId, String topicName) {

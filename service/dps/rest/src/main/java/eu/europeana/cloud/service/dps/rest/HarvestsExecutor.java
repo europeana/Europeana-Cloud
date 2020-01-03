@@ -39,9 +39,9 @@ public class HarvestsExecutor {
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public void execute(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+    public void execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int counter = 0;
-        for (Harvest harvest : harvestsToByExecuted) {
+        for (Harvest harvest : harvestsToBeExecuted) {
             LOGGER.info("Starting identifiers harvesting for: {}", harvest);
             Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
             Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
@@ -53,7 +53,7 @@ public class HarvestsExecutor {
 
                 sentMessage(record, topicName);
                 updateRecordStatus(record, topologyName);
-
+                logProgressFor(harvest, counter);
                 counter++;
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
@@ -61,6 +61,12 @@ public class HarvestsExecutor {
         if(counter == 0){
             LOGGER.info("Task dropped. No data harvested");
             taskInfoDAO.dropTask(dpsTask.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
+        }
+    }
+
+    private void logProgressFor(Harvest harvest, int counter) {
+        if (counter % 1000 == 0) {
+            LOGGER.info("Identifiers harvesting is progressing for: {}. Current counter: {}", harvest, counter);
         }
     }
 
