@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ public class TaskStatusChecker {
     private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
         cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
-                    public Boolean load(Long taskId) throws ExecutionException {
+                    public Boolean load(Long taskId) throws ExecutionException, TaskInfoDoesNotExistException {
                         return isTaskKilled(taskId);
                     }
                 });
@@ -39,7 +40,7 @@ public class TaskStatusChecker {
     private TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
         cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
-                    public Boolean load(Long taskId) throws ExecutionException {
+                    public Boolean load(Long taskId) throws ExecutionException, TaskInfoDoesNotExistException {
                         return isTaskKilled(taskId);
                     }
                 });
@@ -56,8 +57,7 @@ public class TaskStatusChecker {
     public static synchronized void init(CassandraConnectionProvider cassandraConnectionProvider) {
         if (instance == null) {
             instance = new TaskStatusChecker(cassandraConnectionProvider);
-        } else
-            throw new IllegalStateException("TaskStatusChecker has already been initialized");
+        }
     }
 
     public static synchronized void init(CassandraTaskInfoDAO taskDAO) {
@@ -80,7 +80,7 @@ public class TaskStatusChecker {
        This method will only be executed if there is no VALUE for KEY taskId inside cache or if refresh method was triggered.
        In the current implementation it will be triggered every 5 seconds if it was queried.
      */
-    private Boolean isTaskKilled(long taskId) {
+    private Boolean isTaskKilled(long taskId) throws TaskInfoDoesNotExistException {
         boolean isKilled = false;
         LOGGER.info("Checking the task status for the task id from backend: {}" , taskId);
         if (taskDAO.hasKillFlag(taskId)) {

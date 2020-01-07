@@ -66,7 +66,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.SENT_TIME + ","
                 + CassandraTablesAndColumnsNames.START_TIME + ","
                 + CassandraTablesAndColumnsNames.FINISH_TIME + ","
-                + CassandraTablesAndColumnsNames.ERRORS+  ","
+                + CassandraTablesAndColumnsNames.ERRORS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFORMATIONS +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -80,7 +80,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dropTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         dropTask.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        setStatus = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO +" =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        setStatus = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         setStatus.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
@@ -109,7 +109,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, String state, String info, Date sentTime, Date startTime, Date finishTime, int errors, String taskInformations)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, state, info, sentTime, startTime, finishTime, errors,  taskInformations));
+        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, state, info, sentTime, startTime, finishTime, errors, taskInformations));
     }
 
     public void updateTask(long taskId, String info, String state, Date startDate)
@@ -158,15 +158,18 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(killTask.bind(String.valueOf(TaskState.DROPPED), info, new Date(), taskId));
     }
 
-    public boolean hasKillFlag(long taskId) {
+    public boolean hasKillFlag(long taskId) throws TaskInfoDoesNotExistException {
         String state = getTaskStatus(taskId);
         if (state.equals(String.valueOf(TaskState.DROPPED)))
             return true;
         return false;
     }
 
-    private String getTaskStatus(long taskId) {
+    private String getTaskStatus(long taskId) throws TaskInfoDoesNotExistException {
         ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
+        if (!rs.iterator().hasNext()) {
+            throw new TaskInfoDoesNotExistException();
+        }
         Row row = rs.one();
         return row.getString(CassandraTablesAndColumnsNames.STATE);
     }

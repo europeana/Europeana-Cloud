@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout;
 
-import com.google.gson.Gson;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -12,7 +12,9 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
@@ -44,6 +46,7 @@ public class ECloudSpout extends KafkaSpout {
 
     protected CassandraTaskInfoDAO cassandraTaskInfoDAO;
     protected TaskStatusChecker taskStatusChecker;
+    protected ProcessedRecordsDAO processedRecordsDAO;
 
     public ECloudSpout(KafkaSpoutConfig kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -70,6 +73,7 @@ public class ECloudSpout extends KafkaSpout {
         cassandraTaskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+        processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
     }
 
     @Override
@@ -100,7 +104,8 @@ public class ECloudSpout extends KafkaSpout {
                     return Collections.emptyList();
                 }
                 TaskInfo taskInfo = prepareTaskInfo(message);
-                StormTaskTuple stormTaskTuple = prepareTaskForEmmision(taskInfo, message);
+                StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
+                updateRecordStatus(message);
                 return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -140,9 +145,9 @@ public class ECloudSpout extends KafkaSpout {
             return findTaskInDb(taskId);
         }
 
-        private StormTaskTuple prepareTaskForEmmision(TaskInfo taskInfo, DpsRecord dpsRecord) {
+        private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord) throws IOException {
             //
-            DpsTask dpsTask = new Gson().fromJson(taskInfo.getTaskDefinition(), DpsTask.class);
+            DpsTask dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
             StormTaskTuple stormTaskTuple = new StormTaskTuple(
                     dpsTask.getTaskId(),
                     dpsTask.getTaskName(),
@@ -157,6 +162,18 @@ public class ECloudSpout extends KafkaSpout {
             stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, stormTaskTuple.getFileUrl());
             //
             return stormTaskTuple;
+        }
+
+        private void updateRecordStatus(DpsRecord message) {
+            LOGGER.info("Updating record status for {} {}", message.getTaskId(), message.getRecordId());
+            processedRecordsDAO.insert(
+                    message.getTaskId(),
+                    message.getRecordId(),
+                    "",
+                    TopologiesNames.OAI_TOPOLOGY,
+                    RecordState.PROCESSED_BY_SPOUT.name(),
+                    "",
+                    "");
         }
     }
 }

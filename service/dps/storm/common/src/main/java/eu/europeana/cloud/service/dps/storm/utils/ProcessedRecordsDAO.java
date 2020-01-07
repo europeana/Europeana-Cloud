@@ -18,6 +18,15 @@ public class ProcessedRecordsDAO extends CassandraDAO {
     private PreparedStatement insertStatement;
     private PreparedStatement selectByPrimaryKeyStatement;
 
+    private static ProcessedRecordsDAO instance = null;
+
+    public static synchronized ProcessedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = new ProcessedRecordsDAO(cassandra);
+        }
+        return instance;
+    }
+
     public ProcessedRecordsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
@@ -41,7 +50,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_STATE + ","
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE "+PROCESSED_RECORDS_TASK_ID+" = ? AND "+ PROCESSED_RECORDS_SRC_IDENTIFIER +" = ?");
+                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_SRC_IDENTIFIER + " = ?");
 
     }
 
@@ -58,7 +67,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
         ResultSet rs = dbService.getSession().execute(selectByPrimaryKeyStatement.bind(taskId, srcIdentifier));
         Row row = rs.one();
-        if(row != null) {
+        if (row != null) {
             result = ProcessedRecord
                     .builder()
                     .taskId(taskId)

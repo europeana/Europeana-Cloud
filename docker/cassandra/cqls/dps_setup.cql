@@ -94,5 +94,5 @@ CREATE TABLE processed_records (
     state varchar,
     info_text text,
     additional_informations text,
-    PRIMARY KEY(task_id,src_identifier)
+    PRIMARY KEY(task_id, src_identifier)
 );
