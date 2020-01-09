@@ -39,7 +39,7 @@ public class HarvestsExecutor {
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public void execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+    public int execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int counter = 0;
         for (Harvest harvest : harvestsToBeExecuted) {
             LOGGER.info("Starting identifiers harvesting for: {}", harvest);
@@ -62,12 +62,7 @@ public class HarvestsExecutor {
             LOGGER.info("Task dropped. No data harvested");
             taskInfoDAO.dropTask(dpsTask.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         }
-    }
-
-    private void logProgressFor(Harvest harvest, int counter) {
-        if (counter % 1000 == 0) {
-            LOGGER.info("Identifiers harvesting is progressing for: {}. Current counter: {}", harvest, counter);
-        }
+        return counter;
     }
 
     /*Merge code below when latest version of restart procedure will be done/known*/
@@ -99,7 +94,7 @@ public class HarvestsExecutor {
         }
     }
 
-    private DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {
+    /*package visiblility*/ DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {
         return DpsRecord.builder()
                 .taskId(dpsTask.getTaskId())
                 .recordId(oaiHeader.getIdentifier())
@@ -107,14 +102,20 @@ public class HarvestsExecutor {
                 .build();
     }
 
-    private void sentMessage(DpsRecord record, String topicName) {
+    /*package visiblility*/ void sentMessage(DpsRecord record, String topicName) {
         LOGGER.debug("Sending records to messges queue: {}", record);
         recordSubmitService.submitRecord(record, topicName);
     }
 
-    private void updateRecordStatus(DpsRecord dpsRecord, String topologyName) {
+    /*package visiblility*/  void updateRecordStatus(DpsRecord dpsRecord, String topologyName) {
         LOGGER.debug("Updating record in notifications table: {}", dpsRecord);
         processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(),
                 "", topologyName, RecordState.QUEUED.toString(), "", "");
+    }
+
+    /*package visiblility*/ void logProgressFor(Harvest harvest, int counter) {
+        if (counter % 1000 == 0) {
+            LOGGER.info("Identifiers harvesting is progressing for: {}. Current counter: {}", harvest, counter);
+        }
     }
 }
