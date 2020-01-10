@@ -1,7 +1,7 @@
 package eu.europeana.cloud.http.spout;
 
 import com.rits.cloning.Cloner;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.http.common.CompressionFileExtension;
 import eu.europeana.cloud.http.common.UnpackingServiceFactory;
@@ -185,7 +185,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
         private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
             NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                    resource, States.ERROR, message, additionalInformations);
+                    resource, RecordState.ERROR, message, additionalInformations);
             collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
         }
 

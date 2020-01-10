@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -60,7 +60,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         Date startTime = new Date();
         TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, startTime, null);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, startTime, null, 0);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, startTime, null, 0, null);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, startTime));
         //when
         testedBolt.execute(tuple);
@@ -81,7 +81,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         Date finishDate = new Date();
         TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, null, finishDate);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, null, finishDate, 0);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, null, finishDate, 0, null);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareEndTask(taskId, taskInfo, taskState, finishDate));
         //when
         testedBolt.execute(tuple);
@@ -102,9 +102,9 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
         String resource = "resource";
-        States state = States.SUCCESS;
+        RecordState state = RecordState.SUCCESS;
         String text = "text";
         String additionalInformation = "additionalInformation";
         String resultResource = "";
@@ -142,7 +142,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);
 
@@ -191,7 +191,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);
 
@@ -227,11 +227,11 @@ public class NotificationBoltTest extends CassandraTestBase {
         }
 
         for (int i = 0; i < errors; i++) {
-            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(i), States.ERROR, text, additionalInformation, resultResource)));
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(i), RecordState.ERROR, text, additionalInformation, resultResource)));
         }
 
         while (result.size() < size) {
-            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(result.size()), States.SUCCESS, text, additionalInformation, resultResource)));
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(result.size()), RecordState.SUCCESS, text, additionalInformation, resultResource)));
         }
         return result;
     }

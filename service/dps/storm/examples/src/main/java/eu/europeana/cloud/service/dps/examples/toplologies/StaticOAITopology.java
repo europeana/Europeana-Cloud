@@ -14,16 +14,15 @@ import org.apache.storm.utils.Utils;
 
 
 import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
-
+import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.*;
 
 /**
  * Created by Tarek on 10/2/2017.
  */
 public class StaticOAITopology {
-    public static final String TOPOLOGY_NAME = "oai_topology";
 
     public static void main(String[] args) {
-        SpoutConfig kafkaConfig = new SpoutConfig(new ZkHosts(ZOOKEEPER_HOST), TOPOLOGY_NAME, "", "storm");
+        SpoutConfig kafkaConfig = new SpoutConfig(new ZkHosts(ZOOKEEPER_HOST), OAI_TOPOLOGY, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
@@ -31,9 +30,9 @@ public class StaticOAITopology {
         StormTopology stormTopology = SimpleStaticOAITopologyBuilder.buildTopology(kafkaSpout, UIS_URL, MCS_URL);
 
         LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology(TOPOLOGY_NAME, TopologyConfigBuilder.buildConfig(), stormTopology);
-        Utils.sleep(60000000);
-        cluster.killTopology(TOPOLOGY_NAME);
+        cluster.submitTopology(OAI_TOPOLOGY, TopologyConfigBuilder.buildConfig(), stormTopology);
+        Utils.sleep(1000*60*1000); //1000 minutes
+        cluster.killTopology(OAI_TOPOLOGY);
         cluster.shutdown();
 
     }

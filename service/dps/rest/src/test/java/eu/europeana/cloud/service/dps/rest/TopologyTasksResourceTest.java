@@ -11,7 +11,8 @@ import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
+import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
+import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
@@ -37,6 +38,7 @@ import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -44,12 +46,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isA;
-
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class TopologyTasksResourceTest extends JerseyTest {
     private static final String DATA_SET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
@@ -67,14 +65,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final int[] ERROR_COUNTS = {5, 2, 7};
     private static final String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
     private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
-    private static final String VALIDATION_TOPOLOGY = "validation_topology";
-    private static final String NORMALIZATION_TOPOLOGY = "normalization_topology";
-    private static final String OAI_TOPOLOGY = "oai_topology";
-    private static final String INDEXING_TOPOLOGY = "indexing_topology";
     private static final String OAI_PMH_REPOSITORY_END_POINT = "http://example.com/oai-pmh-repository.xml";
     private static final String HTTP_COMPRESSED_FILE_URL = "http://example.com/zipFile.zip";
-    private static final String HTTP_TOPOLOGY = "http_topology";
-    private static final String ENRICHMENT_TOPOLOGY = "enrichment_topology";
     private static final String TOPOLOGY_NAME_PARAMETER_LABEL = "topologyName";
     private static final String TASK_ID_PARAMETER_LABEL = "taskId";
     private static final String EMPTY_STRING = "";
@@ -101,7 +93,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private CassandraTaskInfoDAO taskDAO;
     private FilesCounterFactory filesCounterFactory;
     private FilesCounter filesCounter;
-    private KafkaSubmitService kafkaSubmitService;
+    private TaskKafkaSubmitService taskKafkaSubmitService;
+    private RecordKafkaSubmitService recordKafkaSubmitService;
     private TaskExecutionReportService reportService;
     private TaskExecutionKillService killService;
     private ValidationStatisticsReportService validationStatisticsService;
@@ -129,7 +122,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
-        kafkaSubmitService = applicationContext.getBean(KafkaSubmitService.class);
+        taskKafkaSubmitService = applicationContext.getBean(TaskKafkaSubmitService.class);
+        recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
@@ -630,7 +624,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         Thread.sleep(10000);
-        verifyZeroInteractions(kafkaSubmitService);
+        verifyZeroInteractions(taskKafkaSubmitService);
+        verifyZeroInteractions(recordKafkaSubmitService);
     }
 
 
@@ -976,8 +971,11 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertNotNull(response);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         Thread.sleep(5000);
-        verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
-        verifyNoMoreInteractions(kafkaSubmitService);
+        verify(taskKafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
+        verifyNoMoreInteractions(taskKafkaSubmitService);
+
+        verifyZeroInteractions(recordKafkaSubmitService);
+        //verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
     }
 
     private DataSetCleanerParameters prepareDataSetCleanerParameters() {
@@ -1040,7 +1038,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
     private List<SubTaskInfo> createDummySubTaskInfoList() {
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
-        SubTaskInfo subTaskInfo = new SubTaskInfo(1, RESOURCE_URL, States.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL);
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, RESOURCE_URL, RecordState.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL);
         subTaskInfoList.add(subTaskInfo);
         return subTaskInfoList;
     }
@@ -1079,7 +1077,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class));
+        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class), null);
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
     }

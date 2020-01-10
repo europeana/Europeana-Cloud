@@ -113,7 +113,7 @@ public class CassandraReportService implements TaskExecutionReportService {
         for (Row row : data) {
             SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
-                    States.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
+                    RecordState.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));

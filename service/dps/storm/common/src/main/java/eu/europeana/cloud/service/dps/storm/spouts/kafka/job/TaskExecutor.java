@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka.job;
 
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -331,7 +331,7 @@ public class TaskExecutor implements Callable<Void> {
 
     private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.ERROR, message, additionalInformations);
+                resource, RecordState.ERROR, message, additionalInformations);
         collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

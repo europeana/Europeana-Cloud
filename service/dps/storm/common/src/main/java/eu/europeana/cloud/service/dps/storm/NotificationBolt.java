@@ -5,7 +5,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -14,6 +14,7 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
 import org.apache.storm.Config;
@@ -50,16 +51,17 @@ public class NotificationBolt extends BaseRichBolt {
     protected static LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
             50);
 
-    private String topologyName;
+    protected String topologyName;
     private static CassandraConnectionProvider cassandraConnectionProvider;
     protected static CassandraTaskInfoDAO taskInfoDAO;
     private static CassandraSubTaskInfoDAO subTaskInfoDAO;
+    protected ProcessedRecordsDAO processedRecordsDAO;
     private static CassandraTaskErrorsDAO taskErrorDAO;
     private static final int COUNTER_UPDATE_INTERVAL_IN_MS = 5 * 1000;
 
-    private static final int DEFAULT_RETRIES = 3;
+    protected static final int DEFAULT_RETRIES = 3;
 
-    private static final int SLEEP_TIME = 5000;
+    protected static final int SLEEP_TIME = 5000;
 
     /**
      * Constructor of notification bolt.
@@ -147,7 +149,7 @@ public class NotificationBolt extends BaseRichBolt {
         Validate.notNull(parameters);
         String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
         String additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-        if (!String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(States.ERROR.toString()) && parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
+        if (!String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString()) && parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
             errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE));
             additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE));
         }
@@ -194,7 +196,7 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    private void waitForSpecificTime() {
+    protected void waitForSpecificTime() {
         try {
             Thread.sleep(SLEEP_TIME);
         } catch (InterruptedException e1) {
@@ -205,7 +207,7 @@ public class NotificationBolt extends BaseRichBolt {
 
 
     private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
-        if (String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(States.ERROR.toString())) {
+        if (String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString())) {
             nCache.inc(true);
             return true;
         } else if (notificationTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
@@ -222,6 +224,7 @@ public class NotificationBolt extends BaseRichBolt {
                 userName, password);
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
         this.stormConfig = stormConf;
@@ -295,7 +298,7 @@ public class NotificationBolt extends BaseRichBolt {
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
 
-    private void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
+    protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
         int retries = DEFAULT_RETRIES;
 
         while (true) {
