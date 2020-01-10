@@ -98,12 +98,28 @@ public class CassandraReportService implements TaskExecutionReportService {
     public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(String taskId, int from, int to) {
         Statement selectFromNotification = QueryBuilder.select()
                 .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
-                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.parseLong(taskId))).and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, from)).and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, to));
+                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.parseLong(taskId)))
+                    .and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, from))
+                    .and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, to));
 
         ResultSet detailedTaskReportResultSet = cassandra.getSession().execute(selectFromNotification);
 
         return convertDetailedTaskReportToListOfSubTaskInfo(detailedTaskReportResultSet);
     }
+
+    @Override
+    public List<SubTaskInfo> getDetailedTaskReportByPage(String taskId, int pageNo, int pageLen) {
+        Statement selectFromNotification = QueryBuilder.select()
+                .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
+                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.parseLong(taskId)))
+                    .and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, pageNo))
+                    .and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, pageLen));
+
+        ResultSet detailedTaskReportResultSet = cassandra.getSession().execute(selectFromNotification);
+
+        return convertDetailedTaskReportToListOfSubTaskInfo(detailedTaskReportResultSet);
+    }
+
 
 
     private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {

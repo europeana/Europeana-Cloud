@@ -259,7 +259,7 @@ public class TopologyTasksResource {
                                 } else {
                                     harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 }
-                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.SENT.toString(), "", sentTime, taskJSON, preferredTopicName);
+                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.QUEUED.toString(), "", sentTime, taskJSON, preferredTopicName);
                             } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
@@ -406,8 +406,14 @@ public class TopologyTasksResource {
     public List<SubTaskInfo> getTaskDetailedReport(@PathParam("taskId") String taskId, @PathParam("topologyName") final String topologyName, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        List<SubTaskInfo> taskInfo = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
-        return taskInfo;
+
+        List<SubTaskInfo> result = null;
+        if(!topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
+            result = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
+        } else {
+            result = reportService.getDetailedTaskReportByPage(taskId, from, to);
+        }
+        return result;
     }
 
 

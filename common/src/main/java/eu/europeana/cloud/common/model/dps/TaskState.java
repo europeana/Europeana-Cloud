@@ -5,16 +5,27 @@ package eu.europeana.cloud.common.model.dps;
  */
 public enum TaskState {
     /**
-     * Task is being prepared by the REST application.<br/>
-     * <p>1. Proper permissions are granted for the task;</p>
-     * <p>2. Number of element that has to be processed is calculated;</p>
+     * Task is being prepared by the REST application.
+     * <ol>
+     * <li>Proper permissions are granted for the task;</li>
+     * <li>Number of element that has to be processed is calculated;</li>
+     * <ol/>
      */
     PENDING,
     /**
-     *Task is being processed by the REST application.<br/>
-     * <p>1. For OAI topology identifiers are harvested and pushed to the kafka topic;</p>
+     * Task is being processed by the REST application.<br/>
+     * <ol>
+     * <li>For OAI topology identifiers are harvested and pushed to the kafka topic;</li>
+     * <ol/>
      */
     PROCESSING_BY_REST_APPLICATION,
+
+    /**
+     * All task's records pushed to Kafka queue and waits for topology processing.<br/>
+     * Some of the records may already be processed by topology.
+     */
+    QUEUED,
+
     SENT,
     CURRENTLY_PROCESSING,
     DROPPED,
