@@ -50,7 +50,7 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
     private void initTaskInfo(String topologyName) {
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(TopologyConstants.CASSANDRA_HOSTS, Integer.parseInt(TopologyConstants.CASSANDRA_PORT), TopologyConstants.CASSANDRA_KEYSPACE_NAME, TopologyConstants.CASSANDRA_USERNAME, TopologyConstants.CASSANDRA_SECRET_TOKEN);
         CassandraTaskInfoDAO taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
-        taskInfoDAO.insert(task.getTaskId(), topologyName, 0, String.valueOf(TaskState.CURRENTLY_PROCESSING), "", new Date());
+        taskInfoDAO.insert(task.getTaskId(), topologyName, 0, String.valueOf(TaskState.CURRENTLY_PROCESSING), "", new Date(), null);
     }
 
     @Override

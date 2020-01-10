@@ -4,14 +4,30 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement()
 public class SubTaskInfo {
-
-
     private int resourceNum;
     private String resource;
-    private States state;
+    private RecordState recordState;
     private String info;
     private String additionalInformations;
     private String resultResource;
+
+    public SubTaskInfo() {
+
+    }
+
+    public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info, String additionalInformations) {
+        this.resource=resource;
+        this.recordState = recordState;
+        this.info = info;
+        this.additionalInformations = additionalInformations;
+        this.resourceNum = resourceNum;
+
+    }
+
+    public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info, String additionalInformations, String resultResource) {
+        this(resourceNum, resource, recordState, info, additionalInformations);
+        this.resultResource = resultResource;
+    }
 
     public int getResourceNum() {
         return resourceNum;
@@ -41,24 +57,6 @@ public class SubTaskInfo {
         this.resultResource = resultResource;
     }
 
-    public SubTaskInfo() {
-
-    }
-
-    public SubTaskInfo(int resourceNum, String resource, States state, String info, String additionalInformations) {
-        this.resource=resource;
-        this.state = state;
-        this.info = info;
-        this.additionalInformations = additionalInformations;
-        this.resourceNum = resourceNum;
-
-    }
-
-    public SubTaskInfo(int resourceNum, String resource, States state, String info, String additionalInformations, String resultResource) {
-        this(resourceNum, resource, state, info, additionalInformations);
-        this.resultResource = resultResource;
-    }
-
     public SubTaskInfo(String resource) {
         this.resource = resource;
     }
@@ -67,12 +65,12 @@ public class SubTaskInfo {
         return resource;
     }
 
-    public States getState() {
-        return state;
+    public RecordState getRecordState() {
+        return recordState;
     }
 
-    public void setState(States state) {
-        this.state = state;
+    public void setRecordState(RecordState recordState) {
+        this.recordState = recordState;
     }
 
     public String getInfo() {
@@ -111,7 +109,7 @@ public class SubTaskInfo {
         if (resultResource != null ? !resultResource.equals(that.resultResource) : that.resultResource != null) {
             return false;
         }
-        if (state != that.state) {
+        if (recordState != that.recordState) {
             return false;
         }
 
@@ -121,7 +119,7 @@ public class SubTaskInfo {
     @Override
     public int hashCode() {
         int result = resource != null ? resource.hashCode() : 0;
-        result = 31 * result + (state != null ? state.hashCode() : 0);
+        result = 31 * result + (recordState != null ? recordState.hashCode() : 0);
         result = 31 * result + (info != null ? info.hashCode() : 0);
         result = 31 * result + (additionalInformations != null ? additionalInformations.hashCode() : 0);
         result = 31 * result + (resultResource != null ? resultResource.hashCode() : 0);

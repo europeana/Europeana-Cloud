@@ -35,10 +35,12 @@
 
     <bean id="topologyResource"  class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
 
-    <mockito:mock id="dpsSubmittingService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService"/>
+    <mockito:mock id="dpsSubmittingService" class="eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService"/>
     <mockito:mock id="dpsReportService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService"/>
     <mockito:mock id="statisticsService" class="eu.europeana.cloud.service.dps.ValidationStatisticsReportService"/>
     <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
     <mockito:mock id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"/>
 
+    <mockito:mock id="UnfinishedTasksExecutor" class="eu.europeana.cloud.service.dps.rest.UnfinishedTasksExecutor"/>
+    <mockito:mock id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO"/>
 </beans>

@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import eu.europeana.cloud.common.model.dps.InformationTypes;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.apache.storm.tuple.Fields;
@@ -53,7 +53,7 @@ public class NotificationTuple {
 
 
     public static NotificationTuple prepareNotification(long taskId, String resource,
-                                                        States state, String text, String additionalInformations) {
+                                                        RecordState state, String text, String additionalInformations) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
@@ -64,7 +64,7 @@ public class NotificationTuple {
     }
 
     public static NotificationTuple prepareNotification(long taskId, String resource,
-                                                        States state, String text, String additionalInformations, String resultResource) {
+                                                        RecordState state, String text, String additionalInformations, String resultResource) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
@@ -76,7 +76,7 @@ public class NotificationTuple {
 
 
     public static NotificationTuple prepareIndexingNotification(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,
-                                                                String authenticationHeader, String resource, States state, String text,
+                                                                String authenticationHeader, String resource, RecordState state, String text,
                                                                 String additionalInformations, String resultResource) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);

@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.RecordState;
 
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
@@ -129,14 +129,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.ERROR, message, additionalInformations);
+                resource, RecordState.ERROR, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
     protected void emitSuccessNotification(long taskId, String resource,
                                            String message, String additionalInformation, String resultResource, String unifiedErrorMessage, String detailedErrorMessage) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.SUCCESS, message, additionalInformation, resultResource);
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
         nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
@@ -151,14 +151,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitSuccessNotification(long taskId, String resource,
                                            String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.SUCCESS, message, additionalInformation, resultResource);
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
     protected void emitSuccessNotificationForIndexing(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
                                                       String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
-                resource, States.SUCCESS, message, additionalInformation, resultResource);
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

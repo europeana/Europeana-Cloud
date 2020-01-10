@@ -20,7 +20,7 @@
     <bean id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"
           scope="prototype"/>
 
-    <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
+    <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService">
         <constructor-arg name="kafkaBroker">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
         </constructor-arg>
@@ -31,6 +31,19 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
         </constructor-arg>
     </bean>
+
+    <bean id="recordSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService">
+        <constructor-arg name="kafkaBroker">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
+        </constructor-arg>
+        <constructor-arg name="kafkaGroupId">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/groupId"/>
+        </constructor-arg>
+        <constructor-arg name="zookeeperAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
+        </constructor-arg>
+    </bean>
+
     <bean id="taskReportService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService">
         <constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>
@@ -90,6 +103,18 @@
         </constructor-arg>
     </bean>
 
+    <bean id="applicationIdentifier" class="java.lang.String">
+        <constructor-arg>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/appId"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="kafkaTopicSelector" class="eu.europeana.cloud.service.dps.utils.KafkaTopicSelector">
+        <constructor-arg>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/availableTopics"/>
+        </constructor-arg>
+    </bean>
+
     <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
         <property name="targetClass" value="org.springframework.security.core.context.SecurityContextHolder"/>
         <property name="targetMethod" value="setStrategyName"/>
@@ -101,10 +126,13 @@
     </bean>
 
 
-    <bean id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">
+    <bean id="taskInfoDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
+    <bean id="tasksByStateDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
 
     <bean id="killService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService">
         <constructor-arg ref="dpsCassandraProvider"/>
@@ -113,14 +141,27 @@
     <bean id="validationStatisticsService"
           class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService">
     </bean>
+
     <bean id="cassandraNodeStatisticsDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
+
     <bean id="cassandraAttributeStatisticsDAO"
           class="eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
+    <bean id="taskStatusChecker" class="eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker">
+        <constructor-arg ref="taskInfoDAO"/>
+    </bean>
+
+    <bean id="subTaskInfoDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+
+    <bean id="processedRecordsDAO" class="eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
 
     <import resource="authentication.xml"/>
     <import resource="authorization.xml"/>
