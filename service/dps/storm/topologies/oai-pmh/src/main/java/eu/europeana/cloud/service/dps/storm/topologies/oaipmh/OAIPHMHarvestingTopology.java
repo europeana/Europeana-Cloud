@@ -12,7 +12,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvest
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
+import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
 import org.apache.storm.kafka.BrokerHosts;
