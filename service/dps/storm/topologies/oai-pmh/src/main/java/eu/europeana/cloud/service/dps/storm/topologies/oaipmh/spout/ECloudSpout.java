@@ -105,14 +105,13 @@ public class ECloudSpout extends KafkaSpout {
                 }
                 TaskInfo taskInfo = prepareTaskInfo(message);
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
-                markRecordAsSuccessfulyProcessed(message);
+                LOGGER.info("Emitting record to the subsequent bolt: {}", message.toString());
                 return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
             } catch (IOException e) {
                 LOGGER.error("Unable to read message", e);
                 return Collections.emptyList();
             } catch (TaskInfoDoesNotExistException e) {
-                markRecordAsError(message);
-                LOGGER.error("Task definition not found in DB: {}", message.getTaskId());
+                LOGGER.error("Task definition not found in DB for: {}", message.toString());
                 return Collections.emptyList();
             }
         }
@@ -164,27 +163,6 @@ public class ECloudSpout extends KafkaSpout {
             stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0));
             //
             return stormTaskTuple;
-        }
-
-        private void markRecordAsSuccessfulyProcessed(DpsRecord message) {
-            updateRecordStatus(message, RecordState.PROCESSED_BY_SPOUT, "");
-        }
-
-
-        private void markRecordAsError(DpsRecord message) {
-            updateRecordStatus(message, RecordState.ERROR, "Task definition not found in DB for given record");
-        }
-
-        private void updateRecordStatus(DpsRecord message, RecordState recordState, String detailedMessage) {
-            LOGGER.info("Updating record status for {} {}", message.getTaskId(), message.getRecordId());
-            processedRecordsDAO.insert(
-                    message.getTaskId(),
-                    message.getRecordId(),
-                    "",
-                    TopologiesNames.OAI_TOPOLOGY,
-                    recordState.name(),
-                    detailedMessage,
-                    "");
         }
     }
 }

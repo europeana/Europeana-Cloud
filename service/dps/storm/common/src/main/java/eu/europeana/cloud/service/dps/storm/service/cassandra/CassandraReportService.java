@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.service.cassandra;
 
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
@@ -143,7 +140,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      *
      * @param task task identifier
      * @return task error info object
-     * @throws AccessDeniedOrObjectDoesNotExistException
+     * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
      */
     @Override
     public TaskErrorsInfo getGeneralTaskErrorReport(String task, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
@@ -181,7 +178,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @param errorType error type
      * @param idsCount  number of identifiers to retrieve
      * @return list of identifiers that occurred for the specific error while processing the given task
-     * @throws AccessDeniedOrObjectDoesNotExistException
+     * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
      */
     private List<ErrorDetails> retrieveErrorDetails(long taskId, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
         List<ErrorDetails> errorDetails = new ArrayList<>();
@@ -210,7 +207,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @param errorMessages map of error messages
      * @param errorType     error type
      * @return error message
-     * @throws AccessDeniedOrObjectDoesNotExistException
+     * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
      */
     private String getErrorMessage(long taskId, Map<String, String> errorMessages, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
         String message = errorMessages.get(errorType);
@@ -251,7 +248,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @param taskId    task identifier
      * @param errorType error type
      * @return object initialized with the correct occurrence number
-     * @throws AccessDeniedOrObjectDoesNotExistException
+     * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
      */
     private TaskErrorInfo getTaskErrorInfo(long taskId, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
         ResultSet rs = cassandra.getSession().execute(selectErrorCounterStatement.bind(taskId, UUID.fromString(errorType)));

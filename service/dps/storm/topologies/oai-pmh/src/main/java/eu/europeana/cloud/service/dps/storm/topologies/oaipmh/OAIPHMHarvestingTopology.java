@@ -2,8 +2,8 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.OAINotificationBolt;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
@@ -15,12 +15,7 @@ import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.BrokerHosts;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
-import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
@@ -38,24 +33,18 @@ import static java.lang.Integer.parseInt;
  */
 public class OAIPHMHarvestingTopology {
     private static Properties topologyProperties;
-    private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
 
     public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public final StormTopology buildTopology(String oaiTopic, String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology(String ecloudMcsAddress, String uisAddress) {
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
 
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, oaiTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout(SPOUT,
@@ -93,7 +82,7 @@ public class OAIPHMHarvestingTopology {
                 .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
 
 
-        builder.setBolt(NOTIFICATION_BOLT, new OAINotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
@@ -131,10 +120,9 @@ public class OAIPHMHarvestingTopology {
                 OAIPHMHarvestingTopology oaiphmHarvestingTopology = new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
                 String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
 
-                String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
-                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
+                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(ecloudMcsAddress, ecloudUisAddress);
                 Config config = configureTopology(topologyProperties);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }
