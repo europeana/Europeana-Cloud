@@ -86,7 +86,7 @@ public class TasksByStateDAO extends CassandraDAO {
         ResultSet rs =
                 dbService.getSession().execute(
                         listAllInUseTopicsForTopology.bind(
-                                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), TaskState.CURRENTLY_PROCESSING.toString()), topologyName));
+                                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), TaskState.QUEUED.toString()), topologyName));
 
         for (Row row : rs) {
             results.add(row.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME));
