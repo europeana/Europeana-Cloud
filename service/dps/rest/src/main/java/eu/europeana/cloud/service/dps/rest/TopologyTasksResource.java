@@ -233,24 +233,24 @@ public class TopologyTasksResource {
             final Date sentTime = new Date();
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
             final String taskJSON = new ObjectMapper().writeValueAsString(task);
-            final String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(topologyName);
             TaskStatusChecker.init(taskInfoDAO);
 
-            new Thread(new Runnable() {
+                    new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
                         Response response = Response.created(new URI(createdTaskUrl)).build();
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, preferredTopicName);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
                         permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         asyncResponse.resume(response);
                         int expectedCount = getFilesCountInsideTask(task, topologyName);
                         LOGGER.info("The task {} is in a pending mode.Expected size: {}", task.getTaskId(), expectedCount);
                         if (expectedCount == 0) {
-                            insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON, preferredTopicName);
+                            insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON, "");
                         } else {
                             if (topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
+                                String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(topologyName);
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
                                 List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
 
@@ -263,7 +263,7 @@ public class TopologyTasksResource {
                             } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
-                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.SENT.toString(), "", sentTime, taskJSON, preferredTopicName);
+                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.SENT.toString(), "", sentTime, taskJSON, "");
                             }
                             LOGGER.info("Task submitted successfully to Kafka");
                         }
@@ -271,15 +271,15 @@ public class TopologyTasksResource {
                     } catch (URISyntaxException e) {
                         LOGGER.error("Task submission failed");
                         Response response = Response.serverError().build();
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, preferredTopicName);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
                         asyncResponse.resume(response);
                     } catch (TaskSubmissionException e) {
                         LOGGER.error("Task submission failed: {}", e.getMessage());
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, preferredTopicName);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
                     } catch (Exception e) {
                         String fullStacktrace = ExceptionUtils.getStackTrace(e);
                         LOGGER.error("Task submission failed: {}", fullStacktrace);
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), fullStacktrace, sentTime, taskJSON, preferredTopicName);
+                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), fullStacktrace, sentTime, taskJSON, "");
                         Response response = Response.serverError().build();
                         asyncResponse.resume(response);
                     }
