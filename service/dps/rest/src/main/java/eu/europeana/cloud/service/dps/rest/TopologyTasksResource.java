@@ -259,7 +259,7 @@ public class TopologyTasksResource {
                                 } else {
                                     harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 }
-                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.QUEUED.toString(), "", sentTime, taskJSON, preferredTopicName);
+                                taskInfoDAO.setTaskStatus(task.getTaskId(), "", TaskState.QUEUED.toString());
                             } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
