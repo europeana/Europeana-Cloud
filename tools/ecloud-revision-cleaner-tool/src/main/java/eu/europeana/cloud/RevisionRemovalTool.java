@@ -2,7 +2,7 @@ package eu.europeana.cloud;
 
 import eu.europeana.cloud.api.RevisionsReader;
 import eu.europeana.cloud.data.RevisionInformation;
-import eu.europeana.cloud.jobs.RevisionRemoverJob;
+import eu.europeana.cloud.jobs.RevisionRemover;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -45,8 +45,8 @@ public class RevisionRemovalTool {
             initMCSClients(cmd);
 
             for (RevisionInformation revisionInformation : revisionInformationList) {
-                new RevisionRemoverJob(dataSetServiceClient, recordServiceClient,
-                        revisionInformation, revisionServiceClient, getThreadsNumber(cmd)).run();
+                new RevisionRemover(dataSetServiceClient, recordServiceClient,
+                        revisionInformation, revisionServiceClient, getThreadsNumber(cmd)).execute();
             }
 
             LOGGER.info("Finished successfully");

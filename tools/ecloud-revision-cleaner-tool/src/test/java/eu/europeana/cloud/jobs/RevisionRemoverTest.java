@@ -31,7 +31,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  * Created by Tarek on 7/16/2019.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RevisionRemoverJobTest {
+public class RevisionRemoverTest {
 
     private TestHelper testHelper = new TestHelper();
     @Mock
@@ -46,7 +46,7 @@ public class RevisionRemoverJobTest {
     Date date = new Date();
 
     @InjectMocks
-    RevisionRemoverJob revisionRemoverJob = new RevisionRemoverJob(dataSetServiceClient, recordServiceClient, revisionInformation, revisionServiceClient, 1);
+    RevisionRemover revisionRemover = new RevisionRemover(dataSetServiceClient, recordServiceClient, revisionInformation, revisionServiceClient, 1);
 
     @Test
     public void shouldRemoveRevisionsOnly() throws Exception {
@@ -55,7 +55,7 @@ public class RevisionRemoverJobTest {
 
 
         RevisionInformation revisionInformation = new RevisionInformation("DATASET", DATA_PROVIDER, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date));
-        revisionRemoverJob.setRevisionInformation(revisionInformation);
+        revisionRemover.setRevisionInformation(revisionInformation);
 
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
 
@@ -71,9 +71,7 @@ public class RevisionRemoverJobTest {
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
         when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
         when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
-        Thread thread = new Thread(revisionRemoverJob);
-        thread.start();
-        thread.join();
+        revisionRemover.execute();
 
         verify(revisionServiceClient, times(NUMBER_OF_RESPONSES * NUMBER_OF_REVISIONS)).deleteRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
         verify(recordServiceClient, times(0)).deleteRepresentation(anyString(), anyString(), anyString());
@@ -97,7 +95,7 @@ public class RevisionRemoverJobTest {
 
 
         RevisionInformation revisionInformation = new RevisionInformation("DATASET", DATA_PROVIDER, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date));
-        revisionRemoverJob.setRevisionInformation(revisionInformation);
+        revisionRemover.setRevisionInformation(revisionInformation);
 
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
 
@@ -113,9 +111,7 @@ public class RevisionRemoverJobTest {
         when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
         when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
         when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
-        Thread thread = new Thread(revisionRemoverJob);
-        thread.start();
-        thread.join();
+        revisionRemover.execute();
 
         verify(revisionServiceClient, times(0)).deleteRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
         verify(recordServiceClient, times(NUMBER_OF_RESPONSES)).deleteRepresentation(anyString(), anyString(), anyString());

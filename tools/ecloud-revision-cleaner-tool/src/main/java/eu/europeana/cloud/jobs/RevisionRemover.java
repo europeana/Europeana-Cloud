@@ -24,8 +24,8 @@ import java.util.List;
 /**
  * Created by Tarek on 7/15/2019.
  */
-public class RevisionRemoverJob implements Runnable {
-    private static final Logger LOGGER = Logger.getLogger(RevisionRemoverJob.class);
+public class RevisionRemover {
+    private static final Logger LOGGER = Logger.getLogger(RevisionRemover.class);
 
     private DataSetServiceClient dataSetServiceClient;
     private RecordServiceClient recordServiceClient;
@@ -37,9 +37,9 @@ public class RevisionRemoverJob implements Runnable {
 
     private static final int SLEEP_TIME = 600000;
 
-    public RevisionRemoverJob(DataSetServiceClient dataSetServiceClient,
-            RecordServiceClient recordServiceClient, RevisionInformation revisionInformation,
-            RevisionServiceClient revisionServiceClient, int threadCount) {
+    public RevisionRemover(DataSetServiceClient dataSetServiceClient,
+                           RecordServiceClient recordServiceClient, RevisionInformation revisionInformation,
+                           RevisionServiceClient revisionServiceClient, int threadCount) {
         this.dataSetServiceClient = dataSetServiceClient;
         this.recordServiceClient = recordServiceClient;
         this.revisionServiceClient = revisionServiceClient;
@@ -47,8 +47,7 @@ public class RevisionRemoverJob implements Runnable {
         this.threadCount = threadCount;
     }
 
-    @Override
-    public void run() {
+    public void execute() {
 
         // Set up an executor service with the correct thread count.
         ExecutorService executorService = Executors.newFixedThreadPool(this.threadCount);
@@ -57,23 +56,7 @@ public class RevisionRemoverJob implements Runnable {
         String startFrom = null;
         int totalCounter = 0;
         do {
-
-            // Get the next result slice. Check that there is content.
-            ResultSlice<CloudTagsResponse> resultSlice = null;
-            try {
-                resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(
-                        revisionInformation.getProviderId(),
-                        revisionInformation.getDataSet(),
-                        revisionInformation.getRepresentationName(),
-                        revisionInformation.getRevisionName(),
-                        revisionInformation.getRevisionProvider(),
-                        revisionInformation.getRevisionTimeStamp(), startFrom, null);
-                if (resultSlice == null || resultSlice.getResults() == null) {
-                    LOGGER.error("Getting cloud IDs and revision tags: result chunk obtained but is empty.");
-                }
-            } catch (MCSException | RuntimeException e) {
-                logConnectionException(e);
-            }
+            ResultSlice<CloudTagsResponse> resultSlice = getDataSetRevisionChunk(startFrom);
 
             // If we have not obtained any results, we are done.
             if (resultSlice == null || resultSlice.getResults() == null) {
@@ -115,6 +98,27 @@ public class RevisionRemoverJob implements Runnable {
                     " inside dataset: " + revisionInformation.getDataSet() + "_" + revisionInformation.getProviderId() + " was a success! Removed " + total.get() + " records.");
             LOGGER.info("***********************");
         }
+    }
+
+    private ResultSlice<CloudTagsResponse> getDataSetRevisionChunk(String startFrom) {
+        // Get the next result slice. Check that there is content.
+        ResultSlice<CloudTagsResponse> resultSlice = null;
+        try {
+            resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(
+                    revisionInformation.getProviderId(),
+                    revisionInformation.getDataSet(),
+                    revisionInformation.getRepresentationName(),
+                    revisionInformation.getRevisionName(),
+                    revisionInformation.getRevisionProvider(),
+                    revisionInformation.getRevisionTimeStamp(), startFrom, null);
+            if (resultSlice == null || resultSlice.getResults() == null) {
+                LOGGER.error("Getting cloud IDs and revision tags: result chunk obtained but is empty.");
+            }
+        } catch (MCSException | RuntimeException e) {
+            logConnectionException(e);
+        }
+
+        return resultSlice;
     }
 
     private void logConnectionException(Exception e) {
