@@ -30,9 +30,6 @@ public class HarvestsExecutor {
     private RecordExecutionSubmitService recordSubmitService;
 
     @Autowired
-    private CassandraTaskInfoDAO taskInfoDAO;
-
-    @Autowired
     private ProcessedRecordsDAO processedRecordsDAO;
 
     /** Auxiliary object to check 'kill flag' for task */
@@ -58,18 +55,11 @@ public class HarvestsExecutor {
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
         }
-        if (counter == 0) {
-            LOGGER.info("Task dropped. No data harvested");
-            taskInfoDAO.dropTask(dpsTask.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
-        } else {
-            LOGGER.info("Updating task {} expected size to: {}", dpsTask.getTaskId(), counter);
-            taskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), counter);
-        }
         return counter;
     }
 
     /*Merge code below when latest version of restart procedure will be done/known*/
-    public void executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+    public int executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int counter = 0;
 
         for (Harvest harvest : harvestsToByExecuted) {
@@ -91,13 +81,8 @@ public class HarvestsExecutor {
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
         }
-        if (counter == 0) {
-            LOGGER.info("Task dropped. No data harvested");
-            taskInfoDAO.dropTask(dpsTask.getTaskId(), "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
-        } else {
-            LOGGER.info("Updating task {} expected size to: {}", dpsTask.getTaskId(), counter);
-            taskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), counter);
-        }
+
+        return counter;
     }
 
     /*package visiblility*/ DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {
