@@ -27,6 +27,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement updateProcessedFiles;
     private PreparedStatement killTask;
     private PreparedStatement setStatus;
+    private PreparedStatement updateStatusExpectedSizeStatement;
 
     private static CassandraTaskInfoDAO instance = null;
 
@@ -82,6 +83,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
         setStatus = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         setStatus.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        updateStatusExpectedSizeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + " = ?  WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public TaskInfo searchById(long taskId)
@@ -172,5 +176,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         }
         Row row = rs.one();
         return row.getString(CassandraTablesAndColumnsNames.STATE);
+    }
+
+    public void updateStatusExpectedSize(long taskId, String state, int expectedSize)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(updateStatusExpectedSizeStatement.bind(state, expectedSize, taskId));
     }
 }

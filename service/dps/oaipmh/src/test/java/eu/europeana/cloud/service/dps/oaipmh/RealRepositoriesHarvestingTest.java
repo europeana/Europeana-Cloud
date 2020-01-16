@@ -31,7 +31,7 @@ public class RealRepositoriesHarvestingTest {
     @Parameters
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
-                {"http://islandskort.is/oai", "edm", ""},
+               /* {"http://islandskort.is/oai", "edm", ""},
                 {"http://baekur.is/oai", "edm", ""},
                 {"http://adl2.kb.dk/oai", "ese", ""}, //cannot harvest records - GetRecord method doesn't work, identifiers like "/hertz11_lev"
                 {"http://panic.image.ece.ntua.gr:9000/photography/oai", "rdf", ""}, //extremely slow - might not work
@@ -61,7 +61,8 @@ public class RealRepositoriesHarvestingTest {
                 {"http://oaipmh.lnb.lv/repox/OAIHandler", "ese", "zlpics"},
                 {"http://repox.kamra.si:8080/repox/OAIHandler", "edm", "Europeana_Kamra_Multimedia"},
                 {"http://stary.webumenia.sk/oai-pmh", "ese", "Europeana SNG"},
-                {"http://test117.ait.co.at/oai-provider-edm/oai/", "edm", "MNHN"},
+                {"http://test117.ait.co.at/oai-provider-edm/oai/", "edm", "MNHN"},*/
+                {"http://test117.ait.co.at/oai-provider-edm/oai/", "edm", "ZFMK"} /*,
                 {"http://timarit.is/oai", "edm", "publications"},
                 {"http://www.kulturpool.at/rest/export/1.0/oai-pmh", "edm", "oeaw"},
                 {"http://www.manuscriptorium.com/oai/", "ese", "digitized"},
@@ -80,7 +81,7 @@ public class RealRepositoriesHarvestingTest {
                 {"http://www.moldavica.bnrm.md/biblielmo/oaiserver", "oai_dc", "cartipost"},
                 {"https://mint-monitor.socialhistoryportal.org/ialhi/oai", "rdf", "1001"},
                 {"https://www.rijksmuseum.nl/api2/oai/8zmxuaJ2", "europeana_edm", ""},
-                {"http://dare.uva.nl/cgi/arno/oai/oapen", "ese", ""}
+                {"http://dare.uva.nl/cgi/arno/oai/oapen", "ese", ""}*/
         };
         return Arrays.asList(data);
     }

@@ -254,12 +254,13 @@ public class TopologyTasksResource {
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
                                 List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
 
+                                int counter = 0;
                                 if (!restart) {
-                                    harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                    counter = harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 } else {
-                                    harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                    counter = harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 }
-                                taskInfoDAO.setTaskStatus(task.getTaskId(), "", TaskState.QUEUED.toString());
+                                updateTaskStatus(task.getTaskId(), counter);
                             } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
@@ -288,6 +289,16 @@ public class TopologyTasksResource {
 
         }
         return Response.notModified().build();
+    }
+
+    private void updateTaskStatus(long taskId, int counter) {
+        if (counter == 0) {
+            LOGGER.info("Task dropped. No data harvested");
+            taskInfoDAO.dropTask(taskId, "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
+        } else {
+            LOGGER.info("Updating task {} expected size to: {}", taskId, counter);
+            taskInfoDAO.updateStatusExpectedSize(taskId, TaskState.QUEUED.toString(), counter);
+        }
     }
 
 

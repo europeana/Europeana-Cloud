@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,9 +29,6 @@ public class HarvestExecutorTest {
     private RecordExecutionSubmitService recordSubmitService;
 
     @Mock
-    private CassandraTaskInfoDAO taskInfoDAO;
-
-    @Mock
     private ProcessedRecordsDAO processedRecordsDAO;
 
     @Mock
@@ -44,7 +42,8 @@ public class HarvestExecutorTest {
 
     private static final String[][] DATA = new String[][]{
             {"http://islandskort.is/oai", "edm", ""},
-            {"http://baekur.is/oai", "edm", ""}
+            {"http://baekur.is/oai", "edm", ""},
+            {"http://test117.ait.co.at/oai-provider-edm/oai", "edm", ""}
     };
 
     @Before
@@ -70,9 +69,9 @@ public class HarvestExecutorTest {
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(true);
 
-        harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
+        int counter = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
 
-        Mockito.verify(taskInfoDAO, Mockito.times(1)).dropTask(eq(TASK_ID), Matchers.anyString(), Matchers.anyString());
+        Assert.assertEquals(0, counter);
     }
 
     @Test
