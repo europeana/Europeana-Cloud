@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -69,9 +70,9 @@ public class HarvestExecutorTest {
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(true);
 
-        int counter = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
+        Pair<Integer, TaskState> harvestResult = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
 
-        Assert.assertEquals(0, counter);
+        Assert.assertEquals(TaskState.DROPPED, harvestResult.getObject2());
     }
 
     @Test
@@ -81,7 +82,7 @@ public class HarvestExecutorTest {
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
 
-        int count = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
+        int count = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME).getObject1();
 
         Mockito.verify(harvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OAIHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
         Mockito.verify(harvestsExecutor, Mockito.times(count)).sentMessage(Matchers.any(DpsRecord.class), Mockito.anyString());

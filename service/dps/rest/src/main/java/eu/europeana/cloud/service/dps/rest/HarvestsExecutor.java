@@ -36,31 +36,42 @@ public class HarvestsExecutor {
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public int execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
-        int counter = 0;
+    public Pair<Integer, TaskState> execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+        int resultCounter = 0;
+        TaskState resultState = TaskState.QUEUED;
+
         for (Harvest harvest : harvestsToBeExecuted) {
             LOGGER.info("Starting identifiers harvesting for: {}", harvest);
             Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
             Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
 
             // *** Main harvesting loop for given task ***
-            while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+            while (headerIterator.hasNext()) {
+                if(taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                    resultState = TaskState.DROPPED;
+                    LOGGER.info("Harvesting for task {} stopped by external signal", dpsTask.getTaskId());
+                    break;
+                }
+
                 OAIHeader oaiHeader = headerIterator.next();
                 DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
 
                 sentMessage(record, topicName);
                 updateRecordStatus(record, topologyName);
-                logProgressFor(harvest, counter);
-                counter++;
+                logProgressFor(harvest, resultCounter);
+                resultCounter++;
             }
-            LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
+            if(resultState == TaskState.QUEUED) {
+                LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
+            }
         }
-        return counter;
+        return new Pair<>(resultCounter, resultState);
     }
 
     /*Merge code below when latest version of restart procedure will be done/known*/
-    public int executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
-        int counter = 0;
+    public Pair<Integer, TaskState> executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+        int resultCounter = 0;
+        TaskState resultState = TaskState.QUEUED;
 
         for (Harvest harvest : harvestsToByExecuted) {
             LOGGER.info("(Re-)starting identifiers harvesting for: {}", harvest);
@@ -68,7 +79,13 @@ public class HarvestsExecutor {
             Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
 
             // *** Main harvesting loop for given task ***
-            while (headerIterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+            while (headerIterator.hasNext()) {
+                if(taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                    resultState = TaskState.DROPPED;
+                    LOGGER.info("Harvesting for task {} stopped by external signal", dpsTask.getTaskId());
+                    break;
+                }
+
                 OAIHeader oaiHeader = headerIterator.next();
 
                 ProcessedRecord processedRecord = processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), oaiHeader.getIdentifier());
@@ -76,13 +93,15 @@ public class HarvestsExecutor {
                     DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
                     sentMessage(record, topicName);
                     updateRecordStatus(record, topologyName);
-                    counter++;
+                    resultCounter++;
                 }
             }
-            LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, counter);
+            if(resultState == TaskState.QUEUED) {
+                LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
+            }
         }
 
-        return counter;
+        return new Pair<>(resultCounter, resultState);
     }
 
     /*package visiblility*/ DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {

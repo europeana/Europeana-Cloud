@@ -254,13 +254,13 @@ public class TopologyTasksResource {
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
                                 List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
 
-                                int counter = 0;
+                                Pair<Integer, TaskState> harvesterResult;
                                 if (!restart) {
-                                    counter = harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                    harvesterResult = harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 } else {
-                                    counter = harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                    harvesterResult = harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 }
-                                updateTaskStatus(task.getTaskId(), counter);
+                                updateTaskStatus(task.getTaskId(), harvesterResult);
                             } else {
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
@@ -291,13 +291,13 @@ public class TopologyTasksResource {
         return Response.notModified().build();
     }
 
-    private void updateTaskStatus(long taskId, int counter) {
-        if (counter == 0) {
+    private void updateTaskStatus(long taskId, Pair<Integer, TaskState> harvesterResult) {
+        if (harvesterResult.getObject2() != TaskState.DROPPED && harvesterResult.getObject1() == 0) {
             LOGGER.info("Task dropped. No data harvested");
             taskInfoDAO.dropTask(taskId, "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         } else {
-            LOGGER.info("Updating task {} expected size to: {}", taskId, counter);
-            taskInfoDAO.updateStatusExpectedSize(taskId, TaskState.QUEUED.toString(), counter);
+            LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getObject1());
+            taskInfoDAO.updateStatusExpectedSize(taskId, harvesterResult.getObject2().toString(), harvesterResult.getObject1());
         }
     }
 
