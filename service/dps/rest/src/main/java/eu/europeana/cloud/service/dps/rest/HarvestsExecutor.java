@@ -7,8 +7,6 @@ import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
-import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.slf4j.Logger;
@@ -37,7 +35,7 @@ public class HarvestsExecutor {
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public Pair<Integer, TaskState> execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+    public HarvestResult execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int resultCounter = 0;
 
         for (Harvest harvest : harvestsToBeExecuted) {
@@ -49,9 +47,9 @@ public class HarvestsExecutor {
             while (headerIterator.hasNext()) {
                 if(taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                     LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, dpsTask.getTaskId());
-                    return Pair.builder()
-                            .object1(resultCounter)
-                            .object2(TaskState.DROPPED).build();
+                    return HarvestResult.builder()
+                            .resultCounter(resultCounter)
+                            .taskState(TaskState.DROPPED).build();
                 }
 
                 OAIHeader oaiHeader = headerIterator.next();
@@ -64,11 +62,11 @@ public class HarvestsExecutor {
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
         }
-        return new Pair<>(resultCounter, TaskState.QUEUED);
+        return new HarvestResult(resultCounter, TaskState.QUEUED);
     }
 
     /*Merge code below when latest version of restart procedure will be done/known*/
-    public Pair<Integer, TaskState> executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+    public HarvestResult executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int resultCounter = 0;
 
         for (Harvest harvest : harvestsToByExecuted) {
@@ -80,9 +78,9 @@ public class HarvestsExecutor {
             while (headerIterator.hasNext()) {
                 if(taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                     LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, dpsTask.getTaskId());
-                    return Pair.builder()
-                            .object1(resultCounter)
-                            .object2(TaskState.DROPPED).build();
+                    return HarvestResult.builder()
+                            .resultCounter(resultCounter)
+                            .taskState(TaskState.DROPPED).build();
                 }
 
                 OAIHeader oaiHeader = headerIterator.next();
@@ -97,7 +95,7 @@ public class HarvestsExecutor {
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
         }
-        return new Pair<>(resultCounter, TaskState.QUEUED);
+        return new HarvestResult(resultCounter, TaskState.QUEUED);
     }
 
     /*package visiblility*/ DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {

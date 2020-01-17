@@ -70,9 +70,9 @@ public class HarvestExecutorTest {
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(true);
 
-        Pair<Integer, TaskState> harvestResult = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
+        HarvestResult harvestResult = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
 
-        Assert.assertEquals(TaskState.DROPPED, harvestResult.getObject2());
+        Assert.assertEquals(TaskState.DROPPED, harvestResult.getTaskState());
     }
 
     @Test
@@ -82,7 +82,7 @@ public class HarvestExecutorTest {
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
 
-        int count = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME).getObject1();
+        int count = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME).getResultCounter();
 
         Mockito.verify(harvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OAIHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
         Mockito.verify(harvestsExecutor, Mockito.times(count)).sentMessage(Matchers.any(DpsRecord.class), Mockito.anyString());

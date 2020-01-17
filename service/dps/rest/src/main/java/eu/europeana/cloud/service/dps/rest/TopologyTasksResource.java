@@ -254,7 +254,7 @@ public class TopologyTasksResource {
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
                                 List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
 
-                                Pair<Integer, TaskState> harvesterResult;
+                                HarvestResult harvesterResult;
                                 if (!restart) {
                                     harvesterResult = harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 } else {
@@ -291,13 +291,13 @@ public class TopologyTasksResource {
         return Response.notModified().build();
     }
 
-    private void updateTaskStatus(long taskId, Pair<Integer, TaskState> harvesterResult) {
-        if (harvesterResult.getObject2() != TaskState.DROPPED && harvesterResult.getObject1() == 0) {
+    private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
+        if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
             LOGGER.info("Task dropped. No data harvested");
             taskInfoDAO.dropTask(taskId, "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         } else {
-            LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getObject1());
-            taskInfoDAO.updateStatusExpectedSize(taskId, harvesterResult.getObject2().toString(), harvesterResult.getObject1());
+            LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
+            taskInfoDAO.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(), harvesterResult.getResultCounter());
         }
     }
 
