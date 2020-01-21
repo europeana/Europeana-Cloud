@@ -94,7 +94,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                 } catch (OAIRequestException e) {
                     String logMessage = "Cannot complete the request for the following repository URL " + repositoryUrl;
                     LOGGER.info(logMessage, e);
-                    throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage());
+                    throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage(), e);
                 }
             } else {
                 throw new TaskSubmissionException("The task was dropped because the repositoryUrl can not be null");
