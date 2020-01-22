@@ -25,7 +25,7 @@ interactions:
       X-Content-Type-Options: nosniff
       X-Frame-Options: DENY
       X-XSS-Protection: 1; mode=block
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><subTaskInfos><subTaskInfo><additionalInformations></additionalInformations> <info></info> <resource>resource</resource> <resourceNum>1</resourceNum> <resultResource>result</resultResource> <state>SUCCESS</state></subTaskInfo></subTaskInfos>
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><subTaskInfos><subTaskInfo><additionalInformations></additionalInformations> <info></info> <resource>resource</resource> <resourceNum>1</resourceNum> <resultResource>result</resultResource> <recordState>SUCCESS</recordState></subTaskInfo></subTaskInfos>
 - recorded: 2017-12-11T16:50:57.615Z
   request:
     method: GET
