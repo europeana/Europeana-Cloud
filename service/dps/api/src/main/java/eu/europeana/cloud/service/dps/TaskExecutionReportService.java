@@ -27,6 +27,11 @@ public interface TaskExecutionReportService {
 
 
     /**
+     * @return Info messages for the specified task between chunks
+     */
+    List<SubTaskInfo> getDetailedTaskReportByPage(String taskId, int pageNo, int pageLen);
+
+    /**
      * Retrieve all errors that occurred for the given task
      *
      * @param task task identifier

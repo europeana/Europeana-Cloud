@@ -171,7 +171,7 @@ public class DPSClientTest {
     @Betamax(tape = "DPSClient_getTaskDetailsReportTest")
     public final void shouldReturnedDetailsReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", States.SUCCESS, "", "", "result");
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", RecordState.SUCCESS, "", "", "result");
         List<SubTaskInfo> taskInfoList = new ArrayList<>(1);
         taskInfoList.add(subTaskInfo);
         assertThat(dpsClient.getDetailedTaskReport(TOPOLOGY_NAME, TASK_ID), is(taskInfoList));

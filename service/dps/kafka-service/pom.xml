@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>1.6.0</version>
+        <version>1.8.0</version>
     </parent>
 
     <artifactId>ecloud-service-dps-kafka</artifactId>
@@ -33,7 +33,6 @@
             <artifactId>kafka_2.12</artifactId>
             <version>1.1.1</version>
             <exclusions>
-
                 <exclusion>
                     <artifactId>zookeeper</artifactId>
                     <groupId>org.apache.zookeeper</groupId>

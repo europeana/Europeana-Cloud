@@ -44,7 +44,7 @@ public class DataSetServiceClient extends MCSClient {
     private static final String dataSetPath; // = dataSetsPath + "/{" + ParamConstants.P_DATASET + "}";
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/assignments
     private static final String assignmentsPath; // = dataSetPath + "/" + ParamConstants.ASSIGNMENTS;
-    //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}"
+    //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}/revisionProvider/{REVISION_PROVIDER}"
     private static final String dataSetRevisionsPath;
 
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}
@@ -103,8 +103,11 @@ public class DataSetServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl) {
-        super(baseUrl);
+        this(baseUrl, null, null);
+    }
 
+    public DataSetServiceClient(String baseUrl, final String authorization) {
+        this(baseUrl, authorization, null, null, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
@@ -114,14 +117,27 @@ public class DataSetServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl,null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
-    public DataSetServiceClient(String baseUrl, final String username, final String password,
+    /**
+     * All parameters constructor used by another one
+     * @param baseUrl URL of the MCS Rest Service
+     * @param authorizationHeader Authorization header - used instead username/password pair
+     * @param username Username to HTTP authorisation  (use together with password)
+     * @param password Password to HTTP authorisation (use together with username)
+     * @param connectTimeoutInMillis Timeout for waiting for connecting
+     * @param readTimeoutInMillis Timeout for getting data
+     */
+    public DataSetServiceClient(String baseUrl, final String authorizationHeader, final String username, final String password,
                                 final int connectTimeoutInMillis, final int readTimeoutInMillis) {
-        this(baseUrl);
-        client
-                .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        super(baseUrl);
+
+        if(authorizationHeader != null) {
+            this.client.register(new ECloudBasicAuthFilter(authorizationHeader));
+        } else if(username != null || password != null) {
+            this.client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        }
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
         this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
@@ -650,7 +666,6 @@ public class DataSetServiceClient extends MCSClient {
 
     public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
-
     }
 
 

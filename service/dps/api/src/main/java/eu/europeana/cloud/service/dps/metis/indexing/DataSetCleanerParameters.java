@@ -8,11 +8,12 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.io.Serializable;
 import java.util.Date;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DataSetCleanerParameters {
+public class DataSetCleanerParameters implements Serializable {
     private static final long serialVersionUID = 123456789L;
 
     private String dataSetId;

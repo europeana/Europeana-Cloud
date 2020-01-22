@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-parent</artifactId>
-        <version>1.6.0</version>
+        <version>1.8.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -26,14 +26,15 @@
     <modules>
         <module>api</module>
         <module>kafka-service</module>
+        <module>oaipmh</module>
         <module>rest</module>
         <module>rest-client-java</module>
+        <module>utils</module>
         <module>storm/common</module>
+        <module>storm/examples</module>
         <module>storm/io</module>
         <module>storm/topologies/xslt</module>
-        <module>storm/examples</module>
         <module>storm/topologies/ic</module>
-        <module>utils</module>
         <module>storm/topologies/topologies-common-helper-test</module>
         <module>storm/topologies/oai-pmh</module>
         <module>storm/topologies/validation</module>

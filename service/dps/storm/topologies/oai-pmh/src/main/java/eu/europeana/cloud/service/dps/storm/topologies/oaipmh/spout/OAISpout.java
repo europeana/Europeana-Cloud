@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CollectorWrapper;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.TaskQueueFiller;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job.IdentifierHarvester;
+//import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job.IdentifierHarvester;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -55,7 +55,12 @@ public class OAISpout extends CustomKafkaSpout {
         StormTaskTuple stormTaskTuple = null;
         try {
             super.nextTuple();
-            stormTaskTuple = taskDownloader.getTupleWithOAIIdentifier();
+            /* === */
+            //stormTaskTuple = taskDownloader.getTupleWithOAIIdentifier();
+
+            //pobierać/tworzyć stormTaskTuple w oparciu o zapis w bazie danych
+            //stormTaskTuple = cassandraTaskInfoDAO.readTeskTuple();
+
             if (stormTaskTuple != null) {
                 LOGGER.info("Emitting: " + stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
                 collector.emit(stormTaskTuple.toStormTuple());
@@ -95,6 +100,8 @@ public class OAISpout extends CustomKafkaSpout {
     }
 
 
+    /* === */
+    /* Przenieś generalnie klasę TaskDownloader do DPS app */
     final class TaskDownloader extends Thread implements TaskQueueFiller {
         private static final int MAX_SIZE = 100;
         private static final int INTERNAL_THREADS_NUMBER = 10;
@@ -135,7 +142,7 @@ public class OAISpout extends CustomKafkaSpout {
                                 currentDpsTask.getTaskId(),
                                 currentDpsTask.getTaskName(),
                                 currentDpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0), null, currentDpsTask.getParameters(), currentDpsTask.getOutputRevision(), oaipmhHarvestingDetails);
-                        executorService.submit(new IdentifierHarvester(stormTaskTuple, cassandraTaskInfoDAO, oaiIdentifiers, taskStatusChecker));
+                        //executorService.submit(new IdentifierHarvester(stormTaskTuple, cassandraTaskInfoDAO, oaiIdentifiers, taskStatusChecker));
                     } else {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
                     }

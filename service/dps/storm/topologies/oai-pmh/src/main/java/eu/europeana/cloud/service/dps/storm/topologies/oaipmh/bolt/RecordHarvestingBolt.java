@@ -1,10 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.oaipmh.Harvester;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Harvester;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -115,8 +116,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-
-        harvester = new Harvester();
+        harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
 
         try {
             XPath xpath = XPathFactory.newInstance().newXPath();
@@ -128,9 +128,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     }
 
     private boolean parametersAreValid(String endpointLocation, String recordId, String metadataPrefix) {
-        if (endpointLocation != null && recordId != null && metadataPrefix != null)
-            return true;
-        return false;
+        return endpointLocation != null && recordId != null && metadataPrefix != null;
     }
 
     private String readEndpointLocation(StormTaskTuple stormTaskTuple) {

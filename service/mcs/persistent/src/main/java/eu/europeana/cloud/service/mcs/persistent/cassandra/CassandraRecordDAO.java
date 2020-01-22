@@ -583,7 +583,7 @@ public class CassandraRecordDAO {
         }
     }
 
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
+    public List<RepresentationRevisionResponse> getRepresentationRevisions(String cloudId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
         // check parameters, none can be null
         if (cloudId == null || schema == null || revisionProviderId == null || revisionName == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
@@ -600,18 +600,18 @@ public class CassandraRecordDAO {
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
 
-        // retrieve one row, there should be only one
-        Row row = rs.one();
-        if (row != null) {
+        List<RepresentationRevisionResponse> representationRevisions = new ArrayList<>();
+        for (Row singleRow : rs.all()) {
             // prepare representation revision object from the fields in a row
             RepresentationRevisionResponse representationRevision = new RepresentationRevisionResponse(cloudId, schema,
-                    row.getUUID("version_id").toString(), revisionProviderId, revisionName, row.getDate("revision_timestamp"));
+                    singleRow.getUUID("version_id").toString(), revisionProviderId, revisionName, singleRow.getDate("revision_timestamp"));
             // retrieve files information from the map
-            representationRevision.setFiles(deserializeFiles(row.getMap("files", String.class,
+            representationRevision.setFiles(deserializeFiles(singleRow.getMap("files", String.class,
                     String.class)));
-            return representationRevision;
+
+            representationRevisions.add(representationRevision);
         }
-        return null;
+        return representationRevisions;
     }
 
     /**

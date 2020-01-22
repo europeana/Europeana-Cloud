@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
+import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -7,22 +8,14 @@ import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.OAISpout;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-
-
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.BrokerHosts;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
-import com.google.common.base.Throwables;
-import org.apache.storm.spout.SchemeAsMultiScheme;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
@@ -40,35 +33,33 @@ import static java.lang.Integer.parseInt;
  */
 public class OAIPHMHarvestingTopology {
     private static Properties topologyProperties;
-    private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
 
     public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public final StormTopology buildTopology(String oaiTopic, String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology(String ecloudMcsAddress, String uisAddress) {
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
 
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, oaiTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
 
-        CustomKafkaSpout kafkaSpout = new OAISpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+        builder.setSpout(SPOUT,
+                new ECloudSpout(
+                        KafkaSpoutConfig
+                                .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
+                                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
+                                .build(),
+                        topologyProperties.getProperty(CASSANDRA_HOSTS),
+                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                        topologyProperties.getProperty(CASSANDRA_USERNAME),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)), 1);
 
-
-        builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
-                .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
         builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(),
                 (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
@@ -129,10 +120,9 @@ public class OAIPHMHarvestingTopology {
                 OAIPHMHarvestingTopology oaiphmHarvestingTopology = new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
                 String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
 
-                String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
-                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
+                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(ecloudMcsAddress, ecloudUisAddress);
                 Config config = configureTopology(topologyProperties);
                 StormSubmitter.submitTopology(topologyName, config, stormTopology);
             }

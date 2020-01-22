@@ -2,7 +2,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>1.6.0</version>
+        <version>1.8.0</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -19,13 +19,6 @@
 
 
     <dependencies>
-
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jackson</artifactId>
-            <version>${version.jersey}</version>
-        </dependency>
-
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -44,22 +37,9 @@
             <artifactId>metis-enrichment-client</artifactId>
             <version>${version.metis}</version>
             <exclusions>
-
                 <exclusion>
                     <groupId>org.apache.maven.surefire</groupId>
                     <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

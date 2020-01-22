@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -51,12 +52,16 @@ public class RevisionRemoverJob implements Runnable {
                 }
                 List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
                 for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-                    Representation representation = recordServiceClient.getRepresentationByRevision(cloudTagsResponse.getCloudId(), revisionInformation.getRepresentationName(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp());
-                    if (representation.getRevisions().size() == 1) {
-                        removeRepresentationWithFilesAndRevisions(cloudTagsResponse, representation);
-                    } else {
-                        removeRevisionsOnly(representation);
+                    List<Representation> representations = recordServiceClient.getRepresentationsByRevision(cloudTagsResponse.getCloudId(), revisionInformation.getRepresentationName(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp());
+                    for (Representation representation : representations) {
+                        if (representation.getRevisions().size() == 1) {
+                            removeRepresentationWithFilesAndRevisions(cloudTagsResponse, representation);
+                            break;
+                        } else {
+                            removeRevisionsOnly(representation);
+                        }
                     }
+
                 }
                 startFrom = resultSlice.getNextSlice();
                 LOGGER.info("The removal of revision " + revisionInformation.getRevisionName() + "_" + revisionInformation.getRevisionProvider() + "_" + revisionInformation.getRevisionTimeStamp() +

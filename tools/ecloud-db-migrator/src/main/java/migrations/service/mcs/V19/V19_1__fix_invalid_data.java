@@ -4,6 +4,7 @@ import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.ReadTimeoutException;
 
 import java.util.*;
 
@@ -53,26 +54,53 @@ public class V19_1__fix_invalid_data implements JavaMigration {
         long totalCounter = 0;
         long fixedCounter = 0;
 
-        while(iterator.hasNext()) {
-            totalCounter++;
+        boolean hasNext = iterator.hasNext();
+            while (hasNext) {
+                totalCounter++;
 
-            if(totalCounter % 100000 == 0) {
-                LOG.info("V19_1__fix_invalid_data is working; totalCounter = "+totalCounter);
+                if (totalCounter % 100000 == 0) {
+                    LOG.info("V19_1__fix_invalid_data is working; totalCounter = " + totalCounter);
+                }
+
+                Row row = iterator.next();
+
+                String providerId = row.getString("provider_id");
+                String datasetId = row.getString("dataset_id");
+                UUID bucketId = row.getUUID("bucket_id");
+
+                if (isRatherProviderId(providerId, datasetId)) {
+                    LOG.debug("Fixing item " + formatItemId(providerId, datasetId, bucketId));
+                    swapValues(session, row, providerId, datasetId, bucketId);
+                    fixedCounter++;
+                }
+
+                int attempt = 3;
+                while(true) {
+                    try {
+                        if(attempt < 1) {
+                            hasNext = false;
+                            break;
+                        }
+                        attempt--;
+                        hasNext = iterator.hasNext();
+
+                        if(hasNext) {
+                            break;
+                        }
+                    } catch (ReadTimeoutException rte) {
+                        LOG.info("totalCounter = "+totalCounter + "; fixedCounter = "+fixedCounter);
+                        LOG.warn(rte.getMessage());
+                        try {
+                            LOG.info("Waiting 10s ...");
+                            Thread.sleep(10*1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
 
-            Row row = iterator.next();
-
-            String providerId = row.getString("provider_id");
-            String datasetId = row.getString("dataset_id");
-            UUID bucketId = row.getUUID("bucket_id");
-
-            if(isRatherProviderId(providerId, datasetId)) {
-                LOG.debug("Fixing item "+formatItemId(providerId, datasetId, bucketId));
-                swapValues(session, row, providerId, datasetId, bucketId);
-                fixedCounter++;
-            }
-        }
-        LOG.info("Fixing 'provider_id' <=> 'dataset_id' in 'latest_dataset_representation_revision_v1' ended." +
+        LOG.info("Fixing 'provider_id' <=> 'dataset_id' in 'latest_dataset_representation_revision_v1' finished." +
                 " Total number of processed items: "+totalCounter+". Fixed items: "+fixedCounter+".");
     }
 
