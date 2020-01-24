@@ -428,11 +428,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.dspace</groupId>
-            <artifactId>xoai-service-provider</artifactId>
-            <version>4.2.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
             <version>1.42</version>
