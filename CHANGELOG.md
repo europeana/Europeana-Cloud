@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.8.0](https://github.com/europeana/Europeana-Cloud/tree/v1.8.0) (2020-01-22)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.7.0...v1.8.0)
+
+**Merged pull requests:**
+
+- Feat/met 2227 oai topology by record instead of task [\#251](https://github.com/europeana/Europeana-Cloud/pull/251) ([margraf](https://github.com/margraf))
+- Met 2227 oai topology by record instead of task [\#249](https://github.com/europeana/Europeana-Cloud/pull/249) ([pWoz](https://github.com/pWoz))
+- Met 2315 id for dps app [\#248](https://github.com/europeana/Europeana-Cloud/pull/248) ([pWoz](https://github.com/pWoz))
+
 ## [v1.7.0](https://github.com/europeana/Europeana-Cloud/tree/v1.7.0) (2019-11-13)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.6.0...v1.7.0)
 
@@ -279,7 +288,6 @@
 - Ecl 1130 dpstask validator accept external sources [\#68](https://github.com/europeana/Europeana-Cloud/pull/68) ([akrystian](https://github.com/akrystian))
 - Ecl 1127 [\#67](https://github.com/europeana/Europeana-Cloud/pull/67) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1156 record harvesting bolt [\#65](https://github.com/europeana/Europeana-Cloud/pull/65) ([pWoz](https://github.com/pWoz))
-- Ecl 1132 - cassandra backup script  [\#64](https://github.com/europeana/Europeana-Cloud/pull/64) ([akrystian](https://github.com/akrystian))
 
 ## [v0.6.1](https://github.com/europeana/Europeana-Cloud/tree/v0.6.1) (2017-06-16)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.6...v0.6.1)
@@ -331,6 +339,7 @@
 
 **Merged pull requests:**
 
+- Ecl 1132 - cassandra backup script  [\#64](https://github.com/europeana/Europeana-Cloud/pull/64) ([akrystian](https://github.com/akrystian))
 - Ecl 1006 optimze cassandra unit tests [\#42](https://github.com/europeana/Europeana-Cloud/pull/42) ([akrystian](https://github.com/akrystian))
 - ECL-1039 - Update docker storm from 0.9.4 to 1.0.2 [\#41](https://github.com/europeana/Europeana-Cloud/pull/41) ([akrystian](https://github.com/akrystian))
 - Ecl 934 [\#40](https://github.com/europeana/Europeana-Cloud/pull/40) ([helinek](https://github.com/helinek))
@@ -345,6 +354,7 @@
 - Ecl 996 [\#27](https://github.com/europeana/Europeana-Cloud/pull/27) ([tarekkh](https://github.com/tarekkh))
 - Ecl 974 cassandra migration tool [\#26](https://github.com/europeana/Europeana-Cloud/pull/26) ([akrystian](https://github.com/akrystian))
 - ECL-879-records-downloader-tool [\#24](https://github.com/europeana/Europeana-Cloud/pull/24) ([tarekkh](https://github.com/tarekkh))
+- Ecl 936 batch request [\#23](https://github.com/europeana/Europeana-Cloud/pull/23) ([tarekkh](https://github.com/tarekkh))
 - Ecl 958 [\#21](https://github.com/europeana/Europeana-Cloud/pull/21) ([akrystian](https://github.com/akrystian))
 
 ## [test_env_23_09_2016](https://github.com/europeana/Europeana-Cloud/tree/test_env_23_09_2016) (2016-09-16)
@@ -353,7 +363,6 @@
 **Merged pull requests:**
 
 - Ecl 939 dps results to data set [\#25](https://github.com/europeana/Europeana-Cloud/pull/25) ([tarekkh](https://github.com/tarekkh))
-- Ecl 936 batch request [\#23](https://github.com/europeana/Europeana-Cloud/pull/23) ([tarekkh](https://github.com/tarekkh))
 - Ecl 864 [\#22](https://github.com/europeana/Europeana-Cloud/pull/22) ([akrystian](https://github.com/akrystian))
 - Ecl 964 [\#20](https://github.com/europeana/Europeana-Cloud/pull/20) ([tarekkh](https://github.com/tarekkh))
 - ECL-965 multiple versions from same representation can be assigned to… [\#19](https://github.com/europeana/Europeana-Cloud/pull/19) ([pWoz](https://github.com/pWoz))
