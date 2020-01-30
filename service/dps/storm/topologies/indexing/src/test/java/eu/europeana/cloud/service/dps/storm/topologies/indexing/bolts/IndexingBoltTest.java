@@ -1,5 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
 import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -9,20 +15,24 @@ import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBo
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 public class IndexingBoltTest {
 
@@ -178,7 +188,7 @@ public class IndexingBoltTest {
     private void mockIndexerFactoryFor(Class clazz) throws IndexingException {
         when(indexerPoolWrapper.getIndexerPool(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerPool);
         if (clazz != null) {
-            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean());
+            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean(), Mockito.anyList(), Mockito.anyBoolean());
         }
     }
 }

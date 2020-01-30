@@ -1,5 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
+import static eu.europeana.cloud.service.dps.test.TestConstants.MCS_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.TEST_END_BOLT;
+import static org.mockito.Mockito.when;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
+
 import com.mongodb.util.JSONParseException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.Revision;
@@ -16,8 +24,24 @@ import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
+import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.indexing.IndexerPool;
+import java.io.ByteArrayInputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -37,15 +61,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.io.ByteArrayInputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.mockito.Mockito.when;
-import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, IndexingRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, TaskStatusChecker.class})
@@ -120,6 +135,8 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
         taskParameters.put(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "TRUE");
         taskParameters.put(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS, "FALSE");
+        taskParameters.put(PluginParameterKeys.PERFORM_REDIRECTS, "TRUE");
+        taskParameters.put(PluginParameterKeys.DATASET_IDS_TO_REDIRECT_FROM, "dataset1, dataset2");
         DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
         taskParameters.put(PluginParameterKeys.METIS_RECORD_DATE, dateFormat.format(new Date()));
         dpsTask.setParameters(taskParameters);
