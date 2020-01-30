@@ -23,7 +23,7 @@ function copyApplications {
 			dest=services
 	    fi
             echo -e "\tCopying "$appLocation" to "$i
-				rsync -r $appLocation  centos@$i:$newAppDirectory/$dest
+				rsync -r $appLocation  centos@$i:$newAppDirectory/$dest --delete
 
 #scp -p -r -q $appLocation centos@chara-$i.man.poznan.pl:$newAppDirectory/$dest
         done
