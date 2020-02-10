@@ -4,9 +4,13 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.ErrorDetails;
+import eu.europeana.cloud.common.model.dps.TaskErrorInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
-import java.util.UUID;
+import java.util.*;
 
 /**
  * The {@link TaskInfo} DAO
@@ -21,9 +25,11 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     private PreparedStatement removeErrorNotifications;
 
     private PreparedStatement selectErrorTypeStatement;
+    private PreparedStatement selectErrorsStatement;
 
 
     private static CassandraTaskErrorsDAO instance = null;
+    private PreparedStatement selectErrorStatement;
 
     public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -69,6 +75,14 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? ");
         selectErrorTypeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
+        selectErrorsStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ?");
+        selectErrorsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        selectErrorStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT 1");
+        selectErrorStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         removeErrorCountsStatement = dbService.getSession().prepare("DELETE  FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? ");
@@ -119,7 +133,35 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         }
         return count;
     }
+    public Map<String, String> getMessagesUuids(long taskId) {
+        List<TaskErrorInfo> errors = new ArrayList<>();
+        TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
+        ResultSet rs = dbService.getSession().execute(selectErrorsStatement.bind(taskId));
+
+        Map<String, String> errorMessageToUuidMap = new HashMap<>();
+
+        while (rs.iterator().hasNext()) {
+            Row row = rs.one();
+
+            String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString();
+            Optional<String> message = getErrorMessage(taskId, errorType);
+            if(message.isPresent()) {
+                errorMessageToUuidMap.put(message.get(),errorType);
+            }
+        }
+        return errorMessageToUuidMap;
+    }
+
+    private Optional<String> getErrorMessage(long taskId, String errorType)  {
+        ResultSet rs = dbService.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType)));
+        if (!rs.iterator().hasNext()) {
+            return Optional.empty();
+        }
+
+        String message = rs.one().getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE);
+        return Optional.of(message);
+    }
 
     public void removeErrors(long taskId) {
         ResultSet rs = dbService.getSession().execute(selectErrorTypeStatement.bind(taskId));

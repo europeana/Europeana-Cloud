@@ -48,15 +48,15 @@ public class NotificationBolt extends BaseRichBolt {
     private final String keyspaceName;
     private final String userName;
     private final String password;
-    protected static LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
+    protected LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
             50);
 
     protected String topologyName;
-    private static CassandraConnectionProvider cassandraConnectionProvider;
-    protected static CassandraTaskInfoDAO taskInfoDAO;
-    private static CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private CassandraConnectionProvider cassandraConnectionProvider;
+    protected CassandraTaskInfoDAO taskInfoDAO;
+    private CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected ProcessedRecordsDAO processedRecordsDAO;
-    private static CassandraTaskErrorsDAO taskErrorDAO;
+    private CassandraTaskErrorsDAO taskErrorDAO;
     private static final int COUNTER_UPDATE_INTERVAL_IN_MS = 5 * 1000;
 
     protected static final int DEFAULT_RETRIES = 3;
@@ -90,7 +90,7 @@ public class NotificationBolt extends BaseRichBolt {
                     .fromStormTuple(tuple);
             NotificationCache nCache = cache.get(notificationTuple.getTaskId());
             if (nCache == null) {
-                nCache = new NotificationCache();
+                nCache = new NotificationCache(notificationTuple.getTaskId());
                 cache.put(notificationTuple.getTaskId(), nCache);
             }
             storeTaskDetails(notificationTuple, nCache);
@@ -213,9 +213,10 @@ public class NotificationBolt extends BaseRichBolt {
         } else if (notificationTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
             nCache.inc(false);
             return true;
+        } else {
+            nCache.inc(false);
+            return false;
         }
-        nCache.inc(false);
-        return false;
     }
 
     @Override
@@ -317,11 +318,11 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    public static void clearCache() {
+    public void clearCache() {
         cache.clear();
     }
 
-    protected static class NotificationCache {
+    protected class NotificationCache {
 
         int processed = 0;
         int errors = 0;
@@ -329,7 +330,13 @@ public class NotificationBolt extends BaseRichBolt {
 
         Map<String, String> errorTypes = new HashMap<>();
 
-        NotificationCache() {
+        NotificationCache(long taskId) {
+            processed=subTaskInfoDAO.getProcessedFilesCount(taskId);
+            if(processed>0){
+                errors=taskErrorDAO.getErrorCount(taskId);
+                errorTypes=taskErrorDAO.getMessagesUuids(taskId);
+                LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}",taskId,processed, errors, errorTypes);
+            }
         }
 
         public void inc(boolean error) {
