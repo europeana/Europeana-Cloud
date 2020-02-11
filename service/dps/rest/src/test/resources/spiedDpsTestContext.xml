@@ -51,4 +51,5 @@
     <mockito:mock id="processedRecordsDAO" class="eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO"/>
     <mockito:mock id="taskStatusChecker" class="eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker"/>
     <mockito:mock id="kafkaTopicSelector" class="eu.europeana.cloud.service.dps.utils.KafkaTopicSelector"/>
+    <mockito:mock id="harvesterExecutor" class="eu.europeana.cloud.service.dps.rest.HarvestsExecutor"/>
 </beans>

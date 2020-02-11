@@ -10,6 +10,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
@@ -98,6 +99,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private TaskExecutionReportService reportService;
     private TaskExecutionKillService killService;
     private ValidationStatisticsReportService validationStatisticsService;
+    private HarvestsExecutor harvestsExecutor;
 
     public TopologyTasksResourceTest() {
     }
@@ -124,6 +126,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         taskKafkaSubmitService = applicationContext.getBean(TaskKafkaSubmitService.class);
         recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
+        harvestsExecutor = applicationContext.getBean(HarvestsExecutor.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
@@ -450,15 +453,23 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldProperlySendTaskWithOaiPmhRepository() throws MCSException, TaskSubmissionException, InterruptedException {
-
+    public void shouldProperlySendTaskWithOaiPmhRepository() throws MCSException, TaskSubmissionException, InterruptedException, HarvesterException {
         DpsTask task = getDpsTaskWithRepositoryURL(OAI_PMH_REPOSITORY_END_POINT);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
-
+        OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
+        harvestingDetails.setSchemas(Collections.singleton("oai_dc"));
+        task.setHarvestingDetails(harvestingDetails);
+        when(harvestsExecutor.execute(anyString(),anyList(),any(DpsTask.class),anyString())).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
+
         Response response = sendTask(task, OAI_TOPOLOGY);
 
-        assertSuccessfulRequest(response, OAI_TOPOLOGY);
+        assertNotNull(response);
+        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        Thread.sleep( 1000);
+        verify(harvestsExecutor).execute(eq(OAI_TOPOLOGY),anyList(),any(DpsTask.class),anyString());
+        verifyZeroInteractions(taskKafkaSubmitService);
+        verifyZeroInteractions(recordKafkaSubmitService);
     }
 
 
@@ -1077,7 +1088,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class), null);
+        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class), anyString());
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
     }
