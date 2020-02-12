@@ -547,7 +547,7 @@ public class TaskExecutorTest {
 
         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls = new ArrayBlockingQueue<>(QUEUE_MAX_SIZE);
         TaskExecutor taskExecutor = new TaskExecutor(collector, taskStatusChecker, cassandraTaskInfoDAO,
-                tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
+                tuplesWithFileUrls, "http://localhost:8080/mcs/", DATASET_URLS.name(), dpsTask);
 
         taskExecutor.call();
 

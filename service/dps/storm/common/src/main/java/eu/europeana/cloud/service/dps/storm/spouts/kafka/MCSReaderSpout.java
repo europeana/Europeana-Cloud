@@ -45,9 +45,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
         this.mcsClientURL = mcsClientURL;
     }
 
-    public MCSReaderSpout(SpoutConfig spoutConf) {
+    public MCSReaderSpout(SpoutConfig spoutConf, String mcsClientURL) {
         super(spoutConf);
         taskDownloader = new TaskDownloader();
+        this.mcsClientURL = mcsClientURL;
     }
 
     @Override
