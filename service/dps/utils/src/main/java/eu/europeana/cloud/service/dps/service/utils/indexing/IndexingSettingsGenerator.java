@@ -24,6 +24,7 @@ public class IndexingSettingsGenerator {
     public static final String MONGO_INSTANCES = "mongo.instances";
     public static final String MONGO_PORT_NUMBER = "mongo.portNumber";
     public static final String MONGO_DB_NAME = "mongo.dbName";
+    public static final String MONGO_REDIRECTS_DB_NAME = "mongo.redirects.dbName";
     public static final String MONGO_USERNAME = "mongo.username";
     public static final String MONGO_SECRET = "mongo.password";
     public static final String MONGO_USE_SSL = "mongo.useSSL";
@@ -99,6 +100,7 @@ public class IndexingSettingsGenerator {
             indexingSettings.addMongoHost(new InetSocketAddress(instance, mongoPort));
         }
         indexingSettings.setMongoDatabaseName(properties.get(prefix + DELIMITER + MONGO_DB_NAME).toString());
+        indexingSettings.setRecordRedirectDatabaseName(properties.get(prefix + DELIMITER + MONGO_REDIRECTS_DB_NAME).toString());
 
         if (mongoCredentialsProvidedFor(prefix)) {
             indexingSettings.setMongoCredentials(

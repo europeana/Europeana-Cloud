@@ -11,18 +11,19 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -72,7 +73,11 @@ public class IndexingBolt extends AbstractDpsBolt {
         final String useAltEnv = stormTaskTuple.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
         final String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
-        final String preserveTimestampsString = stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS);
+        final boolean preserveTimestampsString = Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS));
+        final String datasetIdsToRedirectFrom = stormTaskTuple.getParameter(PluginParameterKeys.DATASET_IDS_TO_REDIRECT_FROM);
+        final List<String> datasetIdsToRedirectFromList = datasetIdsToRedirectFrom == null ? null
+            : Arrays.asList(datasetIdsToRedirectFrom.trim().split("\\s*,\\s*"));
+        final boolean performRedirects = Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
         String dpsURL = indexingProperties.getProperty(PluginParameterKeys.DPS_URL);
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
@@ -80,7 +85,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
             recordDate = dateFormat.parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
             final String document = new String(stormTaskTuple.getFileData());
-            indexerPool.index(document, recordDate, "true".equalsIgnoreCase(preserveTimestampsString));
+            indexerPool.index(document, recordDate, preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects);
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate, dpsURL);
             outputCollector.emit(stormTaskTuple.toStormTuple());
             LOGGER.info("Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
