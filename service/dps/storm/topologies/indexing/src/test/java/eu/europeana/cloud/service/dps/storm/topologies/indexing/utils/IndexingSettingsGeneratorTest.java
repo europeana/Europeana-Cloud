@@ -24,6 +24,7 @@ public class IndexingSettingsGeneratorTest {
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(prop);
         IndexingSettings settings = generator.generateForPreview();
         assertEquals(settings.getMongoDatabaseName(), prop.getProperty(IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
+        assertEquals(settings.getRecordRedirectDatabaseName(), prop.getProperty(IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_REDIRECTS_DB_NAME));
         List<ServerAddress> mongos = settings.getMongoHosts();
         for (ServerAddress mongo : mongos) {
             assertTrue(prop.getProperty(IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
@@ -39,6 +40,7 @@ public class IndexingSettingsGeneratorTest {
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(prop);
         IndexingSettings settings = generator.generateForPublish();
         assertEquals(settings.getMongoDatabaseName(), prop.getProperty(IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
+        assertEquals(settings.getRecordRedirectDatabaseName(), prop.getProperty(IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_REDIRECTS_DB_NAME));
         List<ServerAddress> mongos = settings.getMongoHosts();
         for (ServerAddress mongo : mongos) {
             assertTrue(prop.getProperty(IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
@@ -54,6 +56,7 @@ public class IndexingSettingsGeneratorTest {
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, prop);
         IndexingSettings settings = generator.generateForPreview();
         assertEquals(settings.getMongoDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
+        assertEquals(settings.getRecordRedirectDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_REDIRECTS_DB_NAME));
         List<ServerAddress> mongos = settings.getMongoHosts();
         for (ServerAddress mongo : mongos) {
             assertTrue(prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PREVIEW_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
@@ -69,6 +72,7 @@ public class IndexingSettingsGeneratorTest {
         IndexingSettingsGenerator generator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, prop);
         IndexingSettings settings = generator.generateForPublish();
         assertEquals(settings.getMongoDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_DB_NAME));
+        assertEquals(settings.getRecordRedirectDatabaseName(), prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_REDIRECTS_DB_NAME));
         List<ServerAddress> mongos = settings.getMongoHosts();
         for (ServerAddress mongo : mongos) {
             assertTrue(prop.getProperty(TargetIndexingEnvironment.ALTERNATIVE + "." + IndexingSettingsGenerator.PUBLISH_PREFIX + "." + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
