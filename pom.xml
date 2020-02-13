@@ -144,7 +144,7 @@
         <version.jdk>1.8</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
-        <version.powermock-mockito>1.5.3</version.powermock-mockito>
+        <version.powermock-mockito>1.5.6</version.powermock-mockito>
         <version.jersey>2.23.1</version.jersey>
         <version.org.glassfish.jersey.test-framework>2.23.1</version.org.glassfish.jersey.test-framework>
         <version.slf4j>1.7.12</version.slf4j>
