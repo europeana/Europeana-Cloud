@@ -20,7 +20,7 @@ import static org.mockito.Matchers.eq;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HarvestExecutorTest {
-    private static final int CASE = 0;
+    private static final int CASE = 1;
     private static final long TASK_ID = 1234567890L;
     private static final String OAI_TOPOLOGY_NAME = "OAI_TOPOLOGY";
     private static final String TOPIC_NAME = "topic";
