@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,9 +68,14 @@ public class TaskStatusCheckerTest {
 
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void TaskStatusCheckerShouldOnlyBeInitialedOnce() {
         TaskStatusChecker.init(cassandraConnectionProvider);
+        TaskStatusChecker firstTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+        TaskStatusChecker.init(cassandraConnectionProvider);
+        TaskStatusChecker secondTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+        Assert.assertEquals(firstTaskStatusChecker, secondTaskStatusChecker);
+
     }
 
 }
