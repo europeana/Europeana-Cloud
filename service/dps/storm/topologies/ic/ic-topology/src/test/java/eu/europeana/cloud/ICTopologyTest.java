@@ -49,7 +49,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, IcBolt.class, WriteRecordBolt.class, RevisionWriterBolt.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ImageConverterServiceImpl.class, TaskStatusChecker.class})
+@PrepareForTest({ReadFileBolt.class, IcBolt.class, WriteRecordBolt.class, RevisionWriterBolt.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ImageConverterServiceImpl.class, TaskStatusChecker.class,ProcessedRecordsDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 
 public class ICTopologyTest extends ICTestMocksHelper {

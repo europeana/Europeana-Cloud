@@ -103,6 +103,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
 
 
     @Ignore
+    @Test
     public final void testBasicTopology() throws MCSException, IOException, URISyntaxException {
         //given
         prepareForFileUrls();
@@ -131,6 +132,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
     }
 
     @Ignore
+    @Test
     public final void testBasicTopologyExternal() throws MCSException, IOException, URISyntaxException {
         //given
         prepareForFileForExternalUrls();

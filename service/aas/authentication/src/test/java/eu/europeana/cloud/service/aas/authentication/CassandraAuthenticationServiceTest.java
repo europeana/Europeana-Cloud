@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistE
 import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
