@@ -63,7 +63,6 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, MediaTopology.class, ResourceProcessingBolt.class, ParseFileBolt.class, EDMEnrichmentBolt.class, RevisionWriterBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, TaskStatusChecker.class, ProcessedRecordsDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
-@Ignore
 public class MediaTopologyTest extends TopologyTestHelper {
     private static StormTopology topology;
     private static final String AUTHORIZATION = "Authorization";
