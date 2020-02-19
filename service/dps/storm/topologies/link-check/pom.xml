@@ -21,6 +21,16 @@
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-media-service</artifactId>
             <version>${version.metis}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>org.springframework</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>org.springframework.security</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 

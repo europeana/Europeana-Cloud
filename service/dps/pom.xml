@@ -20,6 +20,9 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.directory>${project.parent.basedir}</main.directory>
+        <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
+        <spring-security.version>5.2.2.RELEASE</spring-security.version>
+
 
     </properties>
 

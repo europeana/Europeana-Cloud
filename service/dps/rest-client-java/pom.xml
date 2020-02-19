@@ -27,11 +27,25 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-acl</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-common</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-acl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-mcs-api</artifactId>

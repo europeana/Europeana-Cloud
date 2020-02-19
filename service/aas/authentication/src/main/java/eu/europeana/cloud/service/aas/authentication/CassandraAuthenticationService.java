@@ -32,7 +32,9 @@ public class CassandraAuthenticationService implements UserDetailsService, Authe
     public UserDetails loadUserByUsername(final String userName)
             throws UsernameNotFoundException {
         try {
-            return userDao.getUser(userName);
+            SpringUser springUser = userDao.getUser(userName);
+            springUser.setPassword("{noop}"+springUser.getPassword());
+            return springUser;
         } catch (DatabaseConnectionException ex) {
             throw new UsernameNotFoundException("Username '" + userName + "' could not be retrieved due to database error!", ex);
         } catch (UserDoesNotExistException ex) {
