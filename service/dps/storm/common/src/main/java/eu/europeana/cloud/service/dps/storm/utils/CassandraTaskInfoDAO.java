@@ -38,11 +38,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         return instance;
     }
 
-
     /**
      * @param dbService The service exposing the connection and session
      */
-    private CassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
+    public CassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
 

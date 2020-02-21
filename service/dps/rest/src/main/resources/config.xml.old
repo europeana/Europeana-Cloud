@@ -8,8 +8,8 @@
 		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="properties">
 			<value>
-				numberOfElementsOnPage=100
-				maxIdentifiersCount=100
+				numberOfElementsOnPage=44
+				maxIdentifiersCount=99
 			</value>
 		</property>
 	</bean>

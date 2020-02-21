@@ -617,7 +617,6 @@ public class TopologyTasksResource {
         reportService.checkIfTaskExists(taskId, topologyName);
         killService.killTask(Long.parseLong(taskId), info);
         return Response.ok("The task was killed because of " + info).build();
-
     }
 
     private String buildTaskUrl(UriInfo uriInfo, DpsTask task, String topologyName) {
@@ -695,4 +694,14 @@ public class TopologyTasksResource {
         tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
         tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
     }
+
+
+    @GET
+    @Path("devel")
+    public Response devel(@PathParam("topologyName") String topologyName)  {
+        LOGGER.info("================== devel ============================");
+        int a = 10;
+        return Response.ok("DEVEL: --"+String.valueOf(maxIdentifiersCount)).build();
+    }
+
 }
