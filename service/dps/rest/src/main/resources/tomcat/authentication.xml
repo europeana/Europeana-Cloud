@@ -13,14 +13,16 @@
     <!-- -->
     <!-- - Ecloud persistent authentication application context. Users are stored and retrieved from Cassandra. - -->
     <!-- -->
+<!--
     <b:bean id="cloudAuthenticationEntryPoint"
             class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint" />
-    
+
     <b:bean id="cloudSecuritySuccessHandler"
             class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler" />
 
     <b:bean id="cloudSecurityFailureHandler"
                 class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
+-->
 
     <http entry-point-ref="cloudAuthenticationEntryPoint" use-expressions="true" create-session="stateless">
         <http-basic />
@@ -30,26 +32,33 @@
             authentication-failure-handler-ref="cloudSecurityFailureHandler"
         />
     </http>
-	
+
     <authentication-manager alias="authenticationManager">
         <authentication-provider user-service-ref="authenticationService"></authentication-provider>
     </authentication-manager>
-	
+
     <!-- Automatically receives AuthenticationEvent messages -->
+<!--
     <b:bean id="loggerListener"
             class="org.springframework.security.authentication.event.LoggerListener" />
-	
+-->
+
     <!-- Delegates authorization to method calls. -->
+<!--
     <global-method-security pre-post-annotations="enabled" secured-annotations="enabled" proxy-target-class="true">
         <expression-handler ref="expressionHandler" />
     </global-method-security>
+-->
 
+<!--
     <b:bean id="encoder"
             class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+-->
 
     <!-- -->
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
+<!--
     <b:bean id="provider"  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <b:constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/hosts"/>
@@ -67,11 +76,12 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
         </b:constructor-arg>
     </b:bean>
-	
+
     <b:bean id="userDAO" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO">
         <b:constructor-arg ref="provider" />
     </b:bean>
-	
+
     <b:bean id="authenticationService" class="eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService"></b:bean>
+-->
 
 </b:beans>

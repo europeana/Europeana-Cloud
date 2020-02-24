@@ -28,11 +28,24 @@ import javax.naming.NamingException;
 
 @Configuration
 @PropertySource("classpath:dps.properties")
-public class DpsRestServiceConfiguration {
+public class ServiceConfiguration {
     private static final String JNDI_KEY_KAFKA_BROKER = "java:comp/env/dps/kafka/brokerLocation";
+    private static final String JNDI_KEY_KAFKA_GROUP_ID = "java:comp/env/dps/kafka/groupId";
+    private static final String JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS = "java:comp/env/dps/zookeeper/address";
+
+    private static final String JNDI_KEY_CASSANDRA_HOSTS = "java:comp/env/dps/cassandra/hosts";
+    private static final String JNDI_KEY_CASSANDRA_PORT = "java:comp/env/dps/cassandra/port";
+    private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "java:comp/env/dps/cassandra/keyspace";
+    private static final String JNDI_KEY_CASSANDRA_USERNAME = "java:comp/env/dps/cassandra/user";
+    private static final String JNDI_KEY_CASSANDRA_PASSWORD = "java:comp/env/dps/cassandra/password";
+
+    private static final String JNDI_KEY_TOPOLOGY_NAMELIST = "java:comp/env/dps/topology/nameList";
+    private static final String JNDI_KEY_TOPOLOGY_AVAILABLETOPICS = "java:comp/env/dps/topology/availableTopics";
+    private static final String JNDI_KEY_MCS_LOCATION = "java:comp/env/dps/mcsLocation";
+    private static final String JNDI_KEY_APPLICATION_ID = "java:comp/env/dps/appId";
 
     /** Default logger */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DpsRestServiceConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfiguration.class);
 
     @Bean
     public PropertySourcesPlaceholderConfigurer mappings() {
@@ -52,42 +65,42 @@ public class DpsRestServiceConfiguration {
 
     @Bean
     public TaskKafkaSubmitService taskSubmitService() {
-        String kafkaBroker = readJNDIValue("java:comp/env/dps/kafka/brokerLocation");
-        String kafkaGroupId = readJNDIValue("java:comp/env/dps/kafka/groupId");
-        String zookeeperAddress = readJNDIValue("java:comp/env/dps/zookeeper/address");
+        String kafkaBroker = readJNDIValue(JNDI_KEY_KAFKA_BROKER);
+        String kafkaGroupId = readJNDIValue(JNDI_KEY_KAFKA_GROUP_ID);
+        String zookeeperAddress = readJNDIValue(JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS);
 
         return new TaskKafkaSubmitService(kafkaBroker, kafkaGroupId, zookeeperAddress);
     }
 
     @Bean
     public RecordKafkaSubmitService recordSubmitService() {
-        String kafkaBroker = readJNDIValue("java:comp/env/dps/kafka/brokerLocation");
-        String kafkaGroupId = readJNDIValue("java:comp/env/dps/kafka/groupId");
-        String zookeeperAddress = readJNDIValue("java:comp/env/dps/zookeeper/address");
+        String kafkaBroker = readJNDIValue(JNDI_KEY_KAFKA_BROKER);
+        String kafkaGroupId = readJNDIValue(JNDI_KEY_KAFKA_GROUP_ID);
+        String zookeeperAddress = readJNDIValue(JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS);
 
         return new RecordKafkaSubmitService(kafkaBroker, kafkaGroupId, zookeeperAddress);
     }
 
     @Bean
     public CassandraReportService taskReportService() {
-        String hosts = readJNDIValue("java:comp/env/dps/cassandra/hosts");
-        Integer port = readJNDIValue("java:comp/env/dps/cassandra/port", Integer.class);
-        String keyspaceName = readJNDIValue("java:comp/env/dps/cassandra/keyspace");
-        String userName = readJNDIValue("java:comp/env/dps/cassandra/user");
-        String password = readJNDIValue("java:comp/env/dps/cassandra/password");
+        String hosts = readJNDIValue(JNDI_KEY_CASSANDRA_HOSTS);
+        Integer port = readJNDIValue(JNDI_KEY_CASSANDRA_PORT, Integer.class);
+        String keyspaceName = readJNDIValue(JNDI_KEY_CASSANDRA_KEYSPACE);
+        String userName = readJNDIValue(JNDI_KEY_CASSANDRA_USERNAME);
+        String password = readJNDIValue(JNDI_KEY_CASSANDRA_PASSWORD);
 
         return new CassandraReportService(hosts, port, keyspaceName, userName, password);
     }
 
     @Bean
     public TopologyManager topologyManger() {
-        String nameList = readJNDIValue("java:comp/env/dps/topology/nameList");
+        String nameList = readJNDIValue(JNDI_KEY_TOPOLOGY_NAMELIST);
         return new TopologyManager(nameList);
     }
 
     @Bean
     public String mcsLocation() {
-        return readJNDIValue("java:comp/env/dps/mcsLocation");
+        return readJNDIValue(JNDI_KEY_MCS_LOCATION);
     }
 
     // scope="prototype"
@@ -110,23 +123,23 @@ public class DpsRestServiceConfiguration {
 
     @Bean
     public CassandraConnectionProvider dpsCassandraProvider() {
-        String hosts = readJNDIValue("java:comp/env/dps/cassandra/hosts");
-        Integer port = readJNDIValue("java:comp/env/dps/cassandra/port", Integer.class);
-        String keyspaceName = readJNDIValue("java:comp/env/dps/cassandra/keyspace");
-        String userName = readJNDIValue("java:comp/env/dps/cassandra/user");
-        String password = readJNDIValue("java:comp/env/dps/cassandra/password");
+        String hosts = readJNDIValue(JNDI_KEY_CASSANDRA_HOSTS);
+        Integer port = readJNDIValue(JNDI_KEY_CASSANDRA_PORT, Integer.class);
+        String keyspaceName = readJNDIValue(JNDI_KEY_CASSANDRA_KEYSPACE);
+        String userName = readJNDIValue(JNDI_KEY_CASSANDRA_USERNAME);
+        String password = readJNDIValue(JNDI_KEY_CASSANDRA_PASSWORD);
 
         return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
     }
 
     @Bean
     public String applicationIdentifier() {
-        return readJNDIValue("java:comp/env/dps/appId");
+        return readJNDIValue(JNDI_KEY_APPLICATION_ID);
     }
 
     @Bean
     public KafkaTopicSelector kafkaTopicSelector() {
-        String topologiesTopics = readJNDIValue("java:comp/env/dps/topology/availableTopics");
+        String topologiesTopics = readJNDIValue(JNDI_KEY_TOPOLOGY_AVAILABLETOPICS);
         return new KafkaTopicSelector(topologiesTopics);
     }
 
@@ -193,7 +206,7 @@ public class DpsRestServiceConfiguration {
      * @param jndiKey Key for value
      * @return Value or null if error occurs
      */
-    private String readJNDIValue(String jndiKey) {
+    public static String readJNDIValue(String jndiKey) {
         return readJNDIValue(jndiKey, String.class);
     }
 
@@ -204,7 +217,7 @@ public class DpsRestServiceConfiguration {
      * @param clazz Class of returned object
      * @return Value or null if error occurs
      */
-    private <T> T readJNDIValue(String jndiKey, Class<T> clazz) {
+    public static <T> T readJNDIValue(String jndiKey, Class<T> clazz) {
         try {
             return new JndiTemplate().lookup(jndiKey, clazz);
         } catch(NamingException ne) {

@@ -20,17 +20,20 @@
     <!-- -->
 
     <!-- Custom success handler, answers requests with 200 OK. -->
+<!--
     <bean id="cloudSecuritySuccessHandler"
             class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler" />
 
-    <!-- Custom failure handler, answers requests with 401. -->
+    &lt;!&ndash; Custom failure handler, answers requests with 401. &ndash;&gt;
     <bean id="cloudSecurityFailureHandler"
                 class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
 
+-->
     <!-- -->
     <!-- ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= -->
     <!-- -->
 
+<!--
     <bean id="aclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
         <constructor-arg ref="aclRepository" />
         <constructor-arg name="aclCache">
@@ -40,7 +43,9 @@
         <constructor-arg ref="authorizationStrategy" />
         <constructor-arg ref="permissionFactory" />
     </bean>
+-->
 
+<!--
     <bean id="aclRepository"
               class="eu.europeana.aas.acl.repository.CassandraAclRepository">
         <constructor-arg ref="cassandraProvider" />
@@ -95,11 +100,14 @@
             </array>
         </constructor-arg>
     </bean>
+-->
 
     <!-- -->
     <!-- ========= Let's tell spring security to use our (Cassandra) ACL service when evaluating permission expressions. ========= -->
     <!-- -->
 
+
+<!--
     <bean id="expressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
         <property name="permissionEvaluator" ref="permissionEvaluator" />
         <property name="permissionCacheOptimizer">
@@ -109,10 +117,14 @@
             </bean>
         </property>
     </bean>
+-->
 
+
+<!--
     <bean id="permissionEvaluator"
               class="org.springframework.security.acls.AclPermissionEvaluator">
         <constructor-arg ref="aclService" />
     </bean>
+-->
 
 </beans>
