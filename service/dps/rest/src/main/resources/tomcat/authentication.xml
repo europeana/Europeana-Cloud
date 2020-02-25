@@ -24,18 +24,18 @@
                 class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
 -->
 
-    <http entry-point-ref="cloudAuthenticationEntryPoint" use-expressions="true" create-session="stateless">
+    <!--http entry-point-ref="cloudAuthenticationEntryPoint" use-expressions="true" create-session="stateless">
         <http-basic />
         <headers />
         <form-login 
             authentication-success-handler-ref="cloudSecuritySuccessHandler"
             authentication-failure-handler-ref="cloudSecurityFailureHandler"
         />
-    </http>
+    </http-->
 
-    <authentication-manager alias="authenticationManager">
+    <!--authentication-manager alias="authenticationManager">
         <authentication-provider user-service-ref="authenticationService"></authentication-provider>
-    </authentication-manager>
+    </authentication-manager-->
 
     <!-- Automatically receives AuthenticationEvent messages -->
 <!--
