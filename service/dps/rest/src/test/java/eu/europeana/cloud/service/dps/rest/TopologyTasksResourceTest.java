@@ -49,7 +49,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class TopologyTasksResourceTest extends JerseyTest {
+public class TopologyTasksResourceTest /*extends JerseyTest*/ {
     private static final String DATA_SET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
     private static final String IMAGE_TIFF = "image/tiff";
     private static final String IMAGE_JP2 = "image/jp2";
@@ -102,9 +102,10 @@ public class TopologyTasksResourceTest extends JerseyTest {
     public TopologyTasksResourceTest() {
     }
 
-    @Override
+    //@Override
     protected Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedDpsTestContext.xml");
+        //return new JerseyConfig().property("contextConfigLocation", "classpath:spiedDpsTestContext.xml");
+        return null;
     }
 
     @Before
@@ -124,6 +125,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         taskKafkaSubmitService = applicationContext.getBean(TaskKafkaSubmitService.class);
         recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
+/*
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
@@ -132,6 +134,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         validationStatisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
         elementReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/element");
         killTaskWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/kill");
+*/
     }
 
     @Test

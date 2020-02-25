@@ -23,10 +23,14 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jndi.JndiTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.naming.NamingException;
 
 @Configuration
+@EnableWebMvc
+@RequestMapping
 @PropertySource("classpath:dps.properties")
 public class ServiceConfiguration {
     private static final String JNDI_KEY_KAFKA_BROKER = "java:comp/env/dps/kafka/brokerLocation";

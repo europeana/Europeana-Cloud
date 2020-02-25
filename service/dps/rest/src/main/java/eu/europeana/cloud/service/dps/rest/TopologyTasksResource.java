@@ -37,6 +37,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -62,8 +65,10 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
  * Resource to fetch / submit Tasks to the DPS service
  */
 @Path("/{topologyName}/tasks")
-@Component
-@Scope("request")
+//@Scope("request")
+//@Controller
+@RequestMapping
+@RestController
 public class TopologyTasksResource {
     @Value("${maxIdentifiersCount}")
     private int maxIdentifiersCount;

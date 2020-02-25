@@ -275,6 +275,13 @@
         </dependency>
 
         <!--Jersey -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.4</version>
+        </dependency>
+<!--
         <dependency>
             <groupId>org.glassfish.jersey.bundles.repackaged</groupId>
             <artifactId>jersey-guava</artifactId>
@@ -301,6 +308,7 @@
             <artifactId>jersey-container-servlet</artifactId>
             <version>${version.jersey}</version>
         </dependency>
+-->
 
         <!-- JSON serialization with moxy -->
         <dependency>

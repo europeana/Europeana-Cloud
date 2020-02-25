@@ -205,5 +205,7 @@
 -->
 
     <import resource="authentication.xml"/>
+<!--
     <import resource="authorization.xml"/>
+-->
 </beans>
