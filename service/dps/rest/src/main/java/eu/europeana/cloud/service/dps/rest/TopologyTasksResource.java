@@ -36,14 +36,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
@@ -67,6 +65,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @RestController
 @Scope("request")
 @RequestMapping("/{topologyName}/tasks")
+@Validated
 public class TopologyTasksResource {
     @Value("${maxIdentifiersCount}")
     private int maxIdentifiersCount;
@@ -190,7 +189,7 @@ public class TopologyTasksResource {
                                final DpsTask task,
                                @PathVariable final String topologyName,
                                @Context final UriInfo uriInfo,
-                               @HeaderParam("Authorization") final String authorizationHeader
+                               @RequestHeader("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         return doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, false);
     }
@@ -215,7 +214,7 @@ public class TopologyTasksResource {
                                 @PathVariable final long taskId,
                                 @PathVariable final String topologyName,
                                 @Context final UriInfo uriInfo,
-                                @HeaderParam("Authorization") final String authorizationHeader
+                                @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
@@ -410,11 +409,12 @@ public class TopologyTasksResource {
      */
     @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    @Validated
     public List<SubTaskInfo> getTaskDetailedReport(
             @PathVariable String taskId,
             @PathVariable final String topologyName,
-            @Min(1) @DefaultValue("1") @QueryParam("from") int from,
-            @Min(1) @DefaultValue("100") @QueryParam("to") int to)
+             @RequestParam(defaultValue = "1")  @Min(1) int from,
+             @RequestParam(defaultValue = "100") @Min(1) int to)
                             throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
@@ -456,8 +456,8 @@ public class TopologyTasksResource {
     public TaskErrorsInfo getTaskErrorReport(
             @PathVariable String taskId,
             @PathVariable final String topologyName,
-            @QueryParam("error") String error,
-            @DefaultValue("0") @QueryParam("idsCount") int idsCount)
+            @RequestParam String error,
+            @RequestParam(defaultValue = "0") int idsCount)
                     throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
@@ -555,7 +555,7 @@ public class TopologyTasksResource {
     public List<NodeReport> getElementsValues(
             @PathVariable String topologyName,
             @PathVariable  String taskId,
-            @NotNull @QueryParam("path") String elementPath)
+            @NotNull @RequestParam("path") String elementPath)
                     throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
@@ -588,7 +588,7 @@ public class TopologyTasksResource {
     public Response grantPermissions(
             @PathVariable String topologyName,
             @PathVariable String taskId,
-            @FormParam("username") String username) throws AccessDeniedOrTopologyDoesNotExistException {
+            @RequestParam String username) throws AccessDeniedOrTopologyDoesNotExistException {
 
         assertContainTopology(topologyName);
 
@@ -623,7 +623,7 @@ public class TopologyTasksResource {
     public Response killTask(
             @PathVariable String topologyName,
             @PathVariable String taskId,
-            @QueryParam("info") @DefaultValue("Dropped by the user") String info)
+            @RequestParam(defaultValue = "Dropped by the user") String info)
                     throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);

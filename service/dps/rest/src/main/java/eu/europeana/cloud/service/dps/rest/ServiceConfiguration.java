@@ -23,6 +23,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jndi.JndiTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -65,6 +66,11 @@ public class ServiceConfiguration {
     @Bean
     public FilesCounterFactory filesCounterFactory() {
         return new FilesCounterFactory();
+    }
+
+    @Bean
+    public MethodValidationPostProcessor methodValidationPostProcessor() {
+        return new MethodValidationPostProcessor();
     }
 
     @Bean

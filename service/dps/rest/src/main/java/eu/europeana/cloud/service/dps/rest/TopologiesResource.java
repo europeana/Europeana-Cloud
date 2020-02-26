@@ -15,11 +15,12 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -62,7 +63,7 @@ public class TopologiesResource {
      */
     @PostMapping(path="/permit", consumes = {MediaType.APPLICATION_FORM_URLENCODED})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Response grantPermissionsToTopology(@FormParam("username") String userName, @PathParam("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException{
+    public Response grantPermissionsToTopology(@RequestParam("username") String userName, @PathVariable("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException{
         assertContainTopology(topology);
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
         MutableAcl topologyAcl = null;
