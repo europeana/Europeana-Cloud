@@ -23,7 +23,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)  //<expression-handler ref="expressionHandler" /> ??
-//@Order(1)
 public class AuthenticationConfiguration /*extends WebSecurityConfigurerAdapter*/ {
 
     private static final String JNDI_KEY_CASSANDRA_HOSTS = "java:comp/env/aas/cassandra/hosts";

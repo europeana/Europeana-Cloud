@@ -36,14 +36,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
@@ -64,11 +64,9 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 /**
  * Resource to fetch / submit Tasks to the DPS service
  */
-@Path("/{topologyName}/tasks")
-//@Scope("request")
-//@Controller
-@RequestMapping
 @RestController
+@Scope("request")
+@RequestMapping("/{topologyName}/tasks")
 public class TopologyTasksResource {
     @Value("${maxIdentifiersCount}")
     private int maxIdentifiersCount;
@@ -159,13 +157,13 @@ public class TopologyTasksResource {
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      * @summary Get Task Progress
      */
-    @GET
-    @Path("{taskId}/progress")
+
+    @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public TaskInfo getTaskProgress(
-            @PathParam("topologyName") String topologyName,
-            @PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
+            @PathVariable final String topologyName,
+            @PathVariable final String taskId) throws
+                            AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
         TaskInfo progress = reportService.getTaskProgress(taskId);
@@ -186,12 +184,11 @@ public class TopologyTasksResource {
      * @summary Submit Task
      * @summary Submit Task
      */
-    @POST
-    @Consumes({MediaType.APPLICATION_JSON})
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public Response submitTask(@Suspended final AsyncResponse asyncResponse,
                                final DpsTask task,
-                               @PathParam("topologyName") final String topologyName,
+                               @PathVariable final String topologyName,
                                @Context final UriInfo uriInfo,
                                @HeaderParam("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
@@ -212,13 +209,11 @@ public class TopologyTasksResource {
      * @summary Submit Task
      * @summary Submit Task
      */
-    @POST
-    @Path("{taskId}/restart")
-    @Consumes({MediaType.APPLICATION_JSON})
+    @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public Response restartTask(@Suspended final AsyncResponse asyncResponse,
-                                @PathParam("taskId") final long taskId,
-                                @PathParam("topologyName") final String topologyName,
+                                @PathVariable final long taskId,
+                                @PathVariable final String topologyName,
                                 @Context final UriInfo uriInfo,
                                 @HeaderParam("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
@@ -307,13 +302,11 @@ public class TopologyTasksResource {
     }
 
 
-    @POST
-    @Consumes({MediaType.APPLICATION_JSON})
+    @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @Path("{taskId}/cleaner")
     public void cleanIndexingDataSet(@Suspended final AsyncResponse asyncResponse,
-                                     @PathParam("topologyName") final String topologyName,
-                                     @PathParam("taskId") final String taskId,
+                                     @PathVariable final String topologyName,
+                                     @PathVariable final String taskId,
                                      final DataSetCleanerParameters cleanerParameters
     ) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
@@ -415,11 +408,14 @@ public class TopologyTasksResource {
      * @return Notification messages for the specified task.
      * @summary Retrieve task detailed report
      */
-    @GET
-    @Path("{taskId}/reports/details")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public List<SubTaskInfo> getTaskDetailedReport(@PathParam("taskId") String taskId, @PathParam("topologyName") final String topologyName, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public List<SubTaskInfo> getTaskDetailedReport(
+            @PathVariable String taskId,
+            @PathVariable final String topologyName,
+            @Min(1) @DefaultValue("1") @QueryParam("from") int from,
+            @Min(1) @DefaultValue("100") @QueryParam("to") int to)
+                            throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
 
@@ -455,11 +451,14 @@ public class TopologyTasksResource {
      * @return Errors that occurred for the specified task.
      * @summary Retrieve task detailed error report
      */
-    @GET
-    @Path("{taskId}/reports/errors")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @PathParam("topologyName") final String topologyName, @QueryParam("error") String error, @DefaultValue("0") @QueryParam("idsCount") int idsCount) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public TaskErrorsInfo getTaskErrorReport(
+            @PathVariable String taskId,
+            @PathVariable final String topologyName,
+            @QueryParam("error") String error,
+            @DefaultValue("0") @QueryParam("idsCount") int idsCount)
+                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
 
@@ -491,15 +490,16 @@ public class TopologyTasksResource {
      * @return if the error report exists
      * @summary Check if the task has error report
      */
-    @HEAD
-    @Path("{taskId}/reports/errors")
+    @RequestMapping(method = { RequestMethod.HEAD }, path = "{taskId}/reports/errors")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public Boolean checkIfErrorReportExists(@PathParam("taskId") String taskId, @PathParam("topologyName") final String topologyName) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public Boolean checkIfErrorReportExists(
+            @PathVariable String taskId,
+            @PathVariable final String topologyName)
+                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
         return reportService.checkIfReportExists(taskId);
     }
-
 
     /**
      * Retrieves a statistics report for the specified task. Only applicable for tasks executing {link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
@@ -519,11 +519,12 @@ public class TopologyTasksResource {
      * @return Statistics report for the specified task.
      * @summary Retrieve task statistics report
      */
-    @GET
-    @Path("{taskId}/statistics")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public StatisticsReport getTaskStatisticsReport(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public StatisticsReport getTaskStatisticsReport(
+            @PathVariable String topologyName,
+            @PathVariable  String taskId)
+                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
         return validationStatisticsService.getTaskStatisticsReport(Long.parseLong(taskId));
@@ -549,11 +550,13 @@ public class TopologyTasksResource {
      * @return List of distinct values and their occurrences.
      */
 
-    @GET
-    @Path("{taskId}/reports/element")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public List<NodeReport> getElementsValues(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId, @NotNull @QueryParam("path") String elementPath) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public List<NodeReport> getElementsValues(
+            @PathVariable String topologyName,
+            @PathVariable  String taskId,
+            @NotNull @QueryParam("path") String elementPath)
+                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
         return validationStatisticsService.getElementReport(Long.parseLong(taskId), elementPath);
@@ -579,12 +582,13 @@ public class TopologyTasksResource {
      * @summary Grant task permissions to user
      */
 
-    @POST
-    @Path("{taskId}/permit")
+    @PostMapping(path = "{taskId}/permit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @ReturnType("java.lang.Void")
-    public Response grantPermissions(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId,
-                                     @FormParam("username") String username) throws AccessDeniedOrTopologyDoesNotExistException {
+    public Response grantPermissions(
+            @PathVariable String topologyName,
+            @PathVariable String taskId,
+            @FormParam("username") String username) throws AccessDeniedOrTopologyDoesNotExistException {
 
         assertContainTopology(topologyName);
 
@@ -614,10 +618,13 @@ public class TopologyTasksResource {
      * @summary Kill task
      */
 
-    @POST
-    @Path("{taskId}/kill")
+    @PostMapping(path = "{taskId}/kill")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
-    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId, @QueryParam("info") @DefaultValue("Dropped by the user") String info) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public Response killTask(
+            @PathVariable String topologyName,
+            @PathVariable String taskId,
+            @QueryParam("info") @DefaultValue("Dropped by the user") String info)
+                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
         killService.killTask(Long.parseLong(taskId), info);
@@ -625,7 +632,6 @@ public class TopologyTasksResource {
     }
 
     private String buildTaskUrl(UriInfo uriInfo, DpsTask task, String topologyName) {
-
         StringBuilder taskUrl = new StringBuilder()
                 .append(uriInfo.getBaseUri().toString())
                 .append(topologyName)
@@ -701,12 +707,12 @@ public class TopologyTasksResource {
     }
 
 
-    @GET
-    @Path("devel")
-    public Response developerTest(@PathParam("topologyName") String topologyName)  {
+    @GetMapping(value = "/devel", produces = "text/plain")
+    public String developerTest(@PathVariable final String topologyName)  {
         LOGGER.info("================== devel ============================");
         int a = 10;
-        return Response.ok("DEVEL: --"+String.valueOf(maxIdentifiersCount)).build();
+        return "DEVEL:"+topologyName+" -- "+String.valueOf(maxIdentifiersCount);
+
     }
 
 }

@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -14,6 +15,9 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -22,8 +26,8 @@ import javax.ws.rs.core.Response;
 /**
  * Resource to manage topologies in the DPS service
  */
-@Path("/{topologyName}")
-@Component
+@RestController
+@RequestMapping("/{topologyName}")
 public class TopologiesResource {
 
     @Autowired
@@ -56,10 +60,8 @@ public class TopologiesResource {
      *
      * @return Empty response with status code indicating whether the operation was successful or not.
      */
-    @Path("/permit")
-    @POST
+    @PostMapping(path="/permit", consumes = {MediaType.APPLICATION_FORM_URLENCODED})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     public Response grantPermissionsToTopology(@FormParam("username") String userName, @PathParam("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException{
         assertContainTopology(topology);
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
