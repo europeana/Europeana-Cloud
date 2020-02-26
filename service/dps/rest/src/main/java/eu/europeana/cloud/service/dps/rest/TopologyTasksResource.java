@@ -703,7 +703,7 @@ public class TopologyTasksResource {
 
     @GET
     @Path("devel")
-    public Response devel(@PathParam("topologyName") String topologyName)  {
+    public Response developerTest(@PathParam("topologyName") String topologyName)  {
         LOGGER.info("================== devel ============================");
         int a = 10;
         return Response.ok("DEVEL: --"+String.valueOf(maxIdentifiersCount)).build();
