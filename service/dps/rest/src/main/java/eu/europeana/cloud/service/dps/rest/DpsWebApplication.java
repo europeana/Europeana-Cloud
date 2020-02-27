@@ -25,12 +25,14 @@ public class DpsWebApplication implements WebApplicationInitializer {
 
         AnnotationConfigWebApplicationContext context
                 = new AnnotationConfigWebApplicationContext();
-        context.setConfigLocation("eu.europeana.cloud.service.dps.rest");
+        context.setConfigLocations("eu.europeana.cloud.service.dps.rest","eu.europeana.cloud.service.dps.rest.exceptionmappers");
 
         container.addListener(new ContextLoaderListener(context));
 
+        DispatcherServlet servlet = new DispatcherServlet(context);
+        servlet.setThrowExceptionIfNoHandlerFound(true);
         ServletRegistration.Dynamic dispatcher = container
-                .addServlet("dispatcher", new DispatcherServlet(context));
+                .addServlet("dispatcher", servlet);
 
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("/");

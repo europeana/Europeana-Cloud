@@ -23,7 +23,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)  //<expression-handler ref="expressionHandler" /> ??
-//@Order(1)
 public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final String JNDI_KEY_CASSANDRA_HOSTS = "java:comp/env/aas/cassandra/hosts";
@@ -37,16 +36,6 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
         return new CloudAuthenticationEntryPoint();
     }
-
-//    @Bean
-//    public CloudAuthenticationSuccessHandler cloudSecuritySuccessHandler() {
-//        return new CloudAuthenticationSuccessHandler();
-//    }
-//
-//    @Bean
-//    public SimpleUrlAuthenticationFailureHandler cloudSecurityFailureHandler() {
-//        return new SimpleUrlAuthenticationFailureHandler();
-//    }
 
     //<http entry-point-ref="cloudAuthenticationEntryPoint" use-expressions="true" create-session="stateless">
    // @Override
@@ -69,17 +58,6 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     public LoggerListener loggerListener() {
         return new LoggerListener();
     }
-
-
-    /* Delegates authorization to method calls. */
-
-
-//    @Bean
-//    public BCryptPasswordEncoder encoder() {
-//        return new BCryptPasswordEncoder();
-//    }
-
-
 
     /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 

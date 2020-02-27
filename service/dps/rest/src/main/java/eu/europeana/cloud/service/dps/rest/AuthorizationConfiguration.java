@@ -69,8 +69,8 @@ public class AuthorizationConfiguration {
         return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
     }
 
-    //@Bean
-    private ConsoleAuditLogger auditLogger() {
+    @Bean
+    public ConsoleAuditLogger auditLogger() {
         return new ConsoleAuditLogger();
     }
 
@@ -80,11 +80,9 @@ public class AuthorizationConfiguration {
         return new DefaultPermissionGrantingStrategy(auditLogger());
     }
 
-    //@Bean
-    private SimpleGrantedAuthority simpleGrantedAuthority() {
+    public SimpleGrantedAuthority simpleGrantedAuthority() {
         return new SimpleGrantedAuthority("ROLE_ADMIN");
     }
-
 
     @Bean
     public AclAuthorizationStrategyImpl authorizationStrategy() {
@@ -111,7 +109,7 @@ public class AuthorizationConfiguration {
         return result;
     }
 
-    //@Bean
+    @Bean
     public AclPermissionCacheOptimizer permissionCacheOptimizer() {
         return new AclPermissionCacheOptimizer(aclService());
     }
