@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.rest.config;
 
+import eu.europeana.cloud.service.dps.rest.HarvestsExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ComponentScan;
@@ -13,11 +14,10 @@ import org.springframework.web.servlet.DispatcherServlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 
-@ComponentScan({ "eu.europeana.cloud.service.dps.rest" })
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class DpsWebApplication implements WebApplicationInitializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestsExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DpsWebApplication.class);
 
     @Override
     public void onStartup(ServletContext container) {
@@ -25,7 +25,7 @@ public class DpsWebApplication implements WebApplicationInitializer {
 
         AnnotationConfigWebApplicationContext context
                 = new AnnotationConfigWebApplicationContext();
-        context.setConfigLocations("eu.europeana.cloud.service.dps.rest","eu.europeana.cloud.service.dps.rest.exceptionmappers");
+        context.setConfigLocations("eu.europeana.cloud.service.dps.rest", "eu.europeana.cloud.service.dps.rest.exceptionmappers");
 
         container.addListener(new ContextLoaderListener(context));
 
