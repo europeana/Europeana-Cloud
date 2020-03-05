@@ -70,9 +70,6 @@ public class TopologyTasksResource {
     private int maxIdentifiersCount;
 
     @Autowired
-    ApplicationContext context;
-
-    @Autowired
     private TaskExecutionReportService reportService;
 
     @Autowired
@@ -80,9 +77,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private TaskExecutionSubmitService submitService;
-
-    @Autowired
-    private RecordExecutionSubmitService recordSubmitService;
 
     @Autowired
     private TaskExecutionKillService killService;
@@ -97,15 +91,6 @@ public class TopologyTasksResource {
     private HarvestsExecutor harvestsExecutor;
 
     @Autowired
-    private String mcsLocation;
-
-    @Autowired
-    private RecordServiceClient recordServiceClient;
-
-    @Autowired
-    private FileServiceClient fileServiceClient;
-
-    @Autowired
     private DataSetServiceClient dataSetServiceClient;
 
     @Autowired
@@ -113,9 +98,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private TasksByStateDAO tasksByStateDAO;
-
-    @Autowired
-    private ProcessedRecordsDAO processedRecordsDAO;
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
