@@ -315,12 +315,6 @@
         </dependency>
 -->
 
-        <!-- JSON serialization with moxy -->
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-moxy</artifactId>
-        </dependency>
-
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

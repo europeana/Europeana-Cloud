@@ -39,7 +39,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.container.AsyncResponse;
@@ -73,9 +72,6 @@ public class TopologyTasksResource {
     private int maxIdentifiersCount;
 
     @Autowired
-    ApplicationContext context;
-
-    @Autowired
     private TaskExecutionReportService reportService;
 
     @Autowired
@@ -83,9 +79,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private TaskExecutionSubmitService submitService;
-
-    @Autowired
-    private RecordExecutionSubmitService recordSubmitService;
 
     @Autowired
     private TaskExecutionKillService killService;
@@ -100,15 +93,6 @@ public class TopologyTasksResource {
     private HarvestsExecutor harvestsExecutor;
 
     @Autowired
-    private String mcsLocation;
-
-    @Autowired
-    private RecordServiceClient recordServiceClient;
-
-    @Autowired
-    private FileServiceClient fileServiceClient;
-
-    @Autowired
     private DataSetServiceClient dataSetServiceClient;
 
     @Autowired
@@ -116,9 +100,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private TasksByStateDAO tasksByStateDAO;
-
-    @Autowired
-    private ProcessedRecordsDAO processedRecordsDAO;
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
