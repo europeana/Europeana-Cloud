@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import org.junit.After;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,18 +10,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 
 
 /**
  * Helper class thats logs-in people to perform permission tests.
  */
-@ContextConfiguration(locations = {
-        "classpath:authentication-context-test.xml", // authentication uses a static InMemory list of usernames, passwords
-        "classpath:authorization-context-test.xml", // authorization uses Embedded cassandra
-		"classpath:aaTestContext.xml",
-        "classpath:record-context.xml"
-        })
-	public abstract class AbstractSecurityTest extends CassandraAATestRunner {
+@ContextConfiguration(classes = {AuthentificationTestContext.class, AuthorizationTestContext.class, PermissionManager.class, AbstractSecurityTestContext.class, RecordContext.class})
+@TestPropertySource(properties = {"numberOfElementsOnPage=100", "maxIdentifiersCount=100"})
+public abstract class AbstractSecurityTest extends CassandraAATestRunner {
 
     @Autowired
     @Qualifier("authenticationManager")
@@ -34,8 +35,8 @@ import org.springframework.test.context.ContextConfiguration;
         Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
         SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
     }
-    
+
     protected void logoutEveryone() {
-        SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false); 
+        SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
     }
 }

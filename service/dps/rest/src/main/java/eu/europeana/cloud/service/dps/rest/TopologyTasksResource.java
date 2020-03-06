@@ -56,6 +56,8 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 
@@ -185,13 +187,14 @@ public class TopologyTasksResource {
      */
     @PostMapping(consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    public Response submitTask(@Suspended final AsyncResponse asyncResponse,
-                               final DpsTask task,
+    public Response submitTask(                              final DpsTask task,
                                @PathVariable final String topologyName,
-                               @Context final UriInfo uriInfo,
+                               @RequestParam final UriInfo uriInfo,
                                @RequestHeader("Authorization") final String authorizationHeader
-    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        return doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, false);
+    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException, ExecutionException, InterruptedException {
+        CompletableFuture<Response> asyncResponse=new CompletableFuture<>();
+        doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, false);
+        return asyncResponse.get();
     }
 
 
@@ -210,18 +213,20 @@ public class TopologyTasksResource {
      */
     @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    public Response restartTask(@Suspended final AsyncResponse asyncResponse,
+    public Response restartTask(
                                 @PathVariable final long taskId,
                                 @PathVariable final String topologyName,
-                                @Context final UriInfo uriInfo,
+                                @RequestParam final UriInfo uriInfo,
                                 @RequestHeader("Authorization") final String authorizationHeader
-    ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+    ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException, ExecutionException, InterruptedException {
         TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
-        return doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, true);
+        CompletableFuture<Response> asyncResponse=new CompletableFuture<>();
+         doSubmitTask(asyncResponse, task, topologyName, uriInfo, authorizationHeader, true);
+         return asyncResponse.get();
     }
 
-    private Response doSubmitTask(final AsyncResponse asyncResponse, final DpsTask task, final String topologyName,
+    private Response doSubmitTask(CompletableFuture<Response> asyncResponse, final DpsTask task, final String topologyName,
                                   final UriInfo uriInfo, final String authorizationHeader, final boolean restart)
             throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         if (task != null) {
@@ -242,7 +247,7 @@ public class TopologyTasksResource {
                         Response response = Response.created(new URI(createdTaskUrl)).build();
                         insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
                         permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-                        asyncResponse.resume(response);
+                        asyncResponse.complete(response);
                         int expectedCount = getFilesCountInsideTask(task, topologyName);
                         LOGGER.info("The task {} is in a pending mode.Expected size: {}", task.getTaskId(), expectedCount);
                         if (expectedCount == 0) {
@@ -272,7 +277,7 @@ public class TopologyTasksResource {
                         LOGGER.error("Task submission failed");
                         Response response = Response.serverError().build();
                         insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
-                        asyncResponse.resume(response);
+                        asyncResponse.complete(response);
                     } catch (TaskSubmissionException e) {
                         LOGGER.error("Task submission failed: {}", e.getMessage(),e);
                         insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
@@ -281,7 +286,7 @@ public class TopologyTasksResource {
                         LOGGER.error("Task submission failed: {}", fullStacktrace);
                         insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), fullStacktrace, sentTime, taskJSON, "");
                         Response response = Response.serverError().build();
-                        asyncResponse.resume(response);
+                        asyncResponse.complete(response);
                     }
                 }
             }).start();

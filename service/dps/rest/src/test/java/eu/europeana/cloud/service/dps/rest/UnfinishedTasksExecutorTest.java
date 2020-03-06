@@ -16,8 +16,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(locations = {
-        "classpath:unfinished-tasks-context-test.xml"})
+@ContextConfiguration(classes={UnfinishedTasksContext.class,UnfinishedTasksExecutor.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class UnfinishedTasksExecutorTest {
 

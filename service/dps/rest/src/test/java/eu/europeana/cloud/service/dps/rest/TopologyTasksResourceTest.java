@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.*;
@@ -10,6 +12,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
@@ -21,16 +24,26 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.WebApplicationContext;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -48,7 +61,17 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = {SpiedDpsTestContext.class,TopologyTasksResource.class})
+@WebAppConfiguration
+@TestPropertySource(properties = {"numberOfElementsOnPage=100","maxIdentifiersCount=100"})
 public class TopologyTasksResourceTest /*extends JerseyTest*/ {
     private static final String DATA_SET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
     private static final String IMAGE_TIFF = "image/tiff";
@@ -78,14 +101,14 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
 
     private TopologyManager topologyManager;
     private MutableAclService mutableAclService;
-    private WebTarget webTarget;
-    private WebTarget detailedReportWebTarget;
-    private WebTarget progressReportWebTarget;
-    private WebTarget killTaskWebTarget;
-    private WebTarget errorsReportWebTarget;
-    private WebTarget validationStatisticsReportWebTarget;
-    private WebTarget elementReportWebTarget;
-    private WebTarget cleanDatasetWebTarget;
+    private String webTarget;
+    private String detailedReportWebTarget;
+    private String progressReportWebTarget;
+    private String killTaskWebTarget;
+    private String errorsReportWebTarget;
+    private String validationStatisticsReportWebTarget;
+    private String elementReportWebTarget;
+    private String cleanDatasetWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -98,19 +121,28 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
     private TaskExecutionReportService reportService;
     private TaskExecutionKillService killService;
     private ValidationStatisticsReportService validationStatisticsService;
+    private HarvestsExecutor harvestsExecutor;
 
     public TopologyTasksResourceTest() {
     }
 
-    //@Override
-    protected Application configure() {
-        //return new JerseyConfig().property("contextConfigLocation", "classpath:spiedDpsTestContext.xml");
-        return null;
-    }
+//    //@Override
+//    protected Application configure() {
+//        //return new JerseyConfig().property("contextConfigLocation", "classpath:spiedDpsTestContext.xml");
+//        return null;
+//    }
+
+    private MockMvc mockMvc;
+
+    @Autowired
+    private WebApplicationContext applicationContext;
 
     @Before
     public void init() {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+        mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
+                //.apply(springSecurity())
+                .build();
+       // ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         topologyManager = applicationContext.getBean(TopologyManager.class);
         mutableAclService = applicationContext.getBean(MutableAclService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
@@ -125,45 +157,46 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         taskKafkaSubmitService = applicationContext.getBean(TaskKafkaSubmitService.class);
         recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
-/*
-        webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
-        detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
-        progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
-        cleanDatasetWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/cleaner");
-        errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
-        validationStatisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
-        elementReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/element");
-        killTaskWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/kill");
-*/
+        harvestsExecutor = applicationContext.getBean(HarvestsExecutor.class);
+
+        webTarget = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
+        detailedReportWebTarget = webTarget + "/{taskId}/reports/details";
+        progressReportWebTarget = webTarget + "/{taskId}/progress";
+        cleanDatasetWebTarget = webTarget + "/{taskId}/cleaner";
+        errorsReportWebTarget = webTarget + "/{taskId}/reports/errors";
+        validationStatisticsReportWebTarget = webTarget + "/{taskId}/statistics";
+        elementReportWebTarget = webTarget + "/{taskId}/reports/element";
+        killTaskWebTarget = webTarget + "/{taskId}/kill";
+
     }
 
     @Test
-    public void shouldProperlySendTask() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTask() throws Exception {
         //given
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(MIME_TYPE, IMAGE_TIFF);
         task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
         prepareMocks(IC_TOPOLOGY);
-        Response response = sendTask(task, IC_TOPOLOGY);
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
         assertSuccessfulRequest(response, IC_TOPOLOGY);
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntry() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntry() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
         prepareMocks(IC_TOPOLOGY);
 
-        Response response = sendTask(task, IC_TOPOLOGY);
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
 
         assertSuccessfulRequest(response, IC_TOPOLOGY);
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryToValidationTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryToValidationTopology() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -172,17 +205,17 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
 
         prepareMocks(VALIDATION_TOPOLOGY);
 
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
         assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
     }
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToEnrichmentTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToEnrichmentTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareTaskWithRepresentationAndRevision(task);
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
-        Response response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
 
@@ -192,56 +225,56 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
     }
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToEnrichmentTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToEnrichmentTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
 
         prepareMocks(ENRICHMENT_TOPOLOGY);
-        Response response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
 
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
 
     @Test
-    public void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithWrongDataSetURL() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithWrongDataSetURL() throws Exception {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
-        Response response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToEnrichmentTopologyWithNotValidOutputRevision() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToEnrichmentTopologyWithNotValidOutputRevision() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(" ", REVISION_PROVIDER);
         task.setOutputRevision(revision);
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
-        Response response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetURLIsMalformed() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetURLIsMalformed() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "Malformed dataset");
         prepareMocks(TOPOLOGY_NAME);
 
-        Response response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = sendTask(task, TOPOLOGY_NAME);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetDoesNotExist() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetDoesNotExist() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
@@ -249,13 +282,13 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         doThrow(DataSetNotExistsException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
         prepareMocks(TOPOLOGY_NAME);
 
-        Response response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = sendTask(task, TOPOLOGY_NAME);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenUnexpectedExceptionHappens() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenUnexpectedExceptionHappens() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
@@ -263,13 +296,13 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
         prepareMocks(TOPOLOGY_NAME);
 
-        Response response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = sendTask(task, TOPOLOGY_NAME);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetProviderIsNotEqualToTheProviderIdParameter() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetProviderIsNotEqualToTheProviderIdParameter() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
@@ -278,13 +311,13 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<Representation>());
         prepareMocks(TOPOLOGY_NAME);
 
-        Response response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = sendTask(task, TOPOLOGY_NAME);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldProperlySendTaskWhithOutputDataSet() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWhithOutputDataSet() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
@@ -292,127 +325,127 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<Representation>());
         prepareMocks(TOPOLOGY_NAME);
 
-        Response response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = sendTask(task, TOPOLOGY_NAME);
 
         assertSuccessfulRequest(response, TOPOLOGY_NAME);
     }
 
     @Test
-    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(ENRICHMENT_TOPOLOGY);
-        Response response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
 
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToNormalizationTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToNormalizationTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
-        Response response = sendTask(task, NORMALIZATION_TOPOLOGY);
+        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
 
         assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
     }
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToNormalizationTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToNormalizationTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
-        Response response = sendTask(task, NORMALIZATION_TOPOLOGY);
+        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
 
         assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
     }
 
     @Test
-    public void shouldThrowDpsWhenSendingTaskToNormalizationTopologyWithWrongDataSetURL() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsWhenSendingTaskToNormalizationTopologyWithWrongDataSetURL() throws Exception {
 
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
-        Response response = sendTask(task, NORMALIZATION_TOPOLOGY);
+        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToNormalizationTopologyWithNotValidOutputRevision() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToNormalizationTopologyWithNotValidOutputRevision() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(EMPTY_STRING, REVISION_PROVIDER);
         task.setOutputRevision(revision);
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
-        Response response = sendTask(task, NORMALIZATION_TOPOLOGY);
+        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldProperlySendTaskWithFileEntryToNormalizationTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithFileEntryToNormalizationTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
-        Response response = sendTask(task, NORMALIZATION_TOPOLOGY);
+        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
 
         assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithFileEntryToValidationTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithFileEntryToValidationTopology() throws Exception {
         //given
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(VALIDATION_TOPOLOGY);
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
 
         assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingRequiredParameter() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingRequiredParameter() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(VALIDATION_TOPOLOGY);
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingOutputRevision() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingOutputRevision() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
 
         prepareMocks(VALIDATION_TOPOLOGY);
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision1() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision1() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -420,12 +453,12 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         task.setOutputRevision(revision);
         prepareMocks(VALIDATION_TOPOLOGY);
 
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision2() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision2() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -433,12 +466,12 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         task.setOutputRevision(revision);
         prepareMocks(VALIDATION_TOPOLOGY);
 
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision3() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision3() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -447,63 +480,71 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
 
         prepareMocks(VALIDATION_TOPOLOGY);
 
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithOaiPmhRepository() throws MCSException, TaskSubmissionException, InterruptedException {
-
+    public void shouldProperlySendTaskWithOaiPmhRepository() throws Exception {
         DpsTask task = getDpsTaskWithRepositoryURL(OAI_PMH_REPOSITORY_END_POINT);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
-
+        OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
+        harvestingDetails.setSchemas(Collections.singleton("oai_dc"));
+        task.setHarvestingDetails(harvestingDetails);
+        when(harvestsExecutor.execute(anyString(),anyList(),any(DpsTask.class),anyString())).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
-        Response response = sendTask(task, OAI_TOPOLOGY);
 
-        assertSuccessfulRequest(response, OAI_TOPOLOGY);
+        ResultActions response = sendTask(task, OAI_TOPOLOGY);
+
+        assertNotNull(response);
+        response.andExpect(status().isCreated());
+        Thread.sleep( 1000);
+        verify(harvestsExecutor).execute(eq(OAI_TOPOLOGY),anyList(),any(DpsTask.class),anyString());
+        verifyZeroInteractions(taskKafkaSubmitService);
+        verifyZeroInteractions(recordKafkaSubmitService);
     }
 
 
     @Test
-    public void shouldThrowExceptionWhenMissingRequiredProviderId() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionWhenMissingRequiredProviderId() throws Exception {
 
         DpsTask task = getDpsTaskWithRepositoryURL(OAI_PMH_REPOSITORY_END_POINT);
 
         prepareMocks(OAI_TOPOLOGY);
-        Response response = sendTask(task, OAI_TOPOLOGY);
+        ResultActions response = sendTask(task, OAI_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithHTTPRepository() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithHTTPRepository() throws Exception {
 
         DpsTask task = getDpsTaskWithRepositoryURL(HTTP_COMPRESSED_FILE_URL);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
 
         prepareMocks(HTTP_TOPOLOGY);
-        Response response = sendTask(task, HTTP_TOPOLOGY);
+        ResultActions response = sendTask(task, HTTP_TOPOLOGY);
 
         assertSuccessfulRequest(response, HTTP_TOPOLOGY);
     }
 
 
     @Test
-    public void shouldThrowExceptionWhenMissingRequiredProviderIdForHttpService() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionWhenMissingRequiredProviderIdForHttpService() throws Exception {
 
         DpsTask task = getDpsTaskWithRepositoryURL(HTTP_COMPRESSED_FILE_URL);
 
         prepareMocks(HTTP_TOPOLOGY);
-        Response response = sendTask(task, HTTP_TOPOLOGY);
+        ResultActions response = sendTask(task, HTTP_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldThrowExceptionWhenSubmittingTaskToHttpServiceWithNotValidOutputRevision() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionWhenSubmittingTaskToHttpServiceWithNotValidOutputRevision() throws Exception {
 
         DpsTask task = getDpsTaskWithRepositoryURL(HTTP_COMPRESSED_FILE_URL);
 
@@ -511,25 +552,25 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         task.setOutputRevision(revision);
         prepareMocks(HTTP_TOPOLOGY);
 
-        Response response = sendTask(task, HTTP_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, HTTP_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryWithOutputRevision() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryWithOutputRevision() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
 
         prepareMocks(IC_TOPOLOGY);
-        Response response = sendTask(task, IC_TOPOLOGY);
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
         assertSuccessfulRequest(response, IC_TOPOLOGY);
     }
 
     @Test
-    public void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -538,14 +579,14 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
 
         prepareMocks(INDEXING_TOPOLOGY);
         //when
-        Response response = sendTask(task, INDEXING_TOPOLOGY);
+        ResultActions response = sendTask(task, INDEXING_TOPOLOGY);
 
         //then
         assertSuccessfulRequest(response, INDEXING_TOPOLOGY);
     }
 
     @Test
-    public void shouldProperlySendTaskWithPublishsAsTargetIndexingDatabase() throws MCSException, TaskSubmissionException {
+    public void shouldProperlySendTaskWithPublishsAsTargetIndexingDatabase() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
 
@@ -555,14 +596,14 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         prepareMocks(INDEXING_TOPOLOGY);
 
         //when
-        Response sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
+        ResultActions sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
 
         //then
-        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        sendTaskResponse.andExpect(status().isCreated());
     }
 
     @Test
-    public void shouldProperlySendTaskWithTargetIndexingDatabaseAndFileUrls() throws MCSException, TaskSubmissionException {
+    public void shouldProperlySendTaskWithTargetIndexingDatabaseAndFileUrls() throws Exception {
         //given
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
@@ -570,15 +611,15 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         prepareMocks(INDEXING_TOPOLOGY);
 
         //when
-        Response sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
+        ResultActions sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
 
         //then
-        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        sendTaskResponse.andExpect(status().isCreated());
     }
 
 
     @Test
-    public void shouldThrowExceptionWhenTargetIndexingDatabaseIsMissing() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionWhenTargetIndexingDatabaseIsMissing() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
@@ -586,14 +627,14 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         prepareMocks(INDEXING_TOPOLOGY);
 
         //when
-        Response sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
+        ResultActions sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
 
         //then
-        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        sendTaskResponse.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowExceptionWhenTargetIndexingDatabaseIsNotProper() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionWhenTargetIndexingDatabaseIsNotProper() throws Exception {
         //given
         DpsTask task = new DpsTask("indexingTask");
         task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
@@ -604,18 +645,16 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         task.setOutputRevision(new Revision("REVISION_NAME", "REVISION_PROVIDER"));
         String topologyName = "indexing_topology";
         prepareMocks(topologyName);
-        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
 
-        //when
-        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        ResultActions response = sendTask(task, topologyName);
 
         //then
-        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldNotSubmitEmptyTask() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldNotSubmitEmptyTask() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
@@ -623,9 +662,9 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         prepareMocks(VALIDATION_TOPOLOGY);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
 
-        Response response = sendTask(task, VALIDATION_TOPOLOGY);
+        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        response.andExpect(status().isCreated());
         Thread.sleep(10000);
         verifyZeroInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
@@ -633,346 +672,343 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
 
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenMissingRepresentationName() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionWhenMissingRepresentationName() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
         task.addParameter(MIME_TYPE, IMAGE_TIFF);
 
         prepareMocks(IC_TOPOLOGY);
-        Response response = sendTask(task, IC_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionOnSendTask() throws MCSException, TaskSubmissionException {
+    public void shouldThrowDpsTaskValidationExceptionOnSendTask() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
 
         prepareMocks(IC_TOPOLOGY);
 
-        Response response = sendTask(task, IC_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision1() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision1() throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
         task.setOutputRevision(new Revision(EMPTY_STRING, REVISION_PROVIDER));
 
         prepareMocks(IC_TOPOLOGY);
-        Response response = sendTask(task, IC_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision2() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision2() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
         task.setOutputRevision(new Revision(EMPTY_STRING, EMPTY_STRING));
 
         prepareMocks(IC_TOPOLOGY);
-        Response response = sendTask(task, IC_TOPOLOGY);
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision3() throws MCSException, TaskSubmissionException {
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision3() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareCompleteParametersForIcTask(task);
         task.setOutputRevision(new Revision(null, null));
 
         prepareMocks(IC_TOPOLOGY);
-        Response response = sendTask(task, IC_TOPOLOGY);
+        ResultActions response = sendTask(task, IC_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldGetStatisticReport() throws TaskSubmissionException, MCSException {
+    public void shouldGetStatisticReport() throws Exception {
         when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
-        WebTarget enrichedWebTarget = validationStatisticsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        Response response = enrichedWebTarget.request().get();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertEquals(TASK_ID, response.readEntity(StatisticsReport.class).getTaskId());
+        ResultActions response = mockMvc.perform(get(validationStatisticsReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isOk()).andExpect(jsonPath("taskId").value(TASK_ID));
+
     }
 
 
     @Test
-    public void shouldGetElementReport() throws TaskSubmissionException, MCSException {
+    public void shouldGetElementReport() throws Exception {
         NodeReport nodeReport = new NodeReport("VALUE", 5, Arrays.asList(new AttributeStatistics("Attr1", "Value1", 10)));
         when(validationStatisticsService.getElementReport(TASK_ID, PATH_VALUE)).thenReturn(Arrays.asList(nodeReport));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
-        WebTarget enrichedWebTarget = elementReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        Response response = enrichedWebTarget.queryParam(PATH, PATH_VALUE).request().get();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        ResultActions response = mockMvc.perform(get(elementReportWebTarget, TOPOLOGY_NAME, TASK_ID).queryParam(PATH, PATH_VALUE));
+
+        response.andExpect(status().isOk());
     }
 
 
     @Test
-    public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws AccessDeniedOrObjectDoesNotExistException {
+    public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws Exception {
         when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
         when(topologyManager.containsTopology(anyString())).thenReturn(false);
-        WebTarget enrichedWebTarget = validationStatisticsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        Response response = enrichedWebTarget.request().get();
-        assertEquals(405, response.getStatus());
+        ResultActions response = mockMvc.perform(get(validationStatisticsReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+       response.andExpect(status().isMethodNotAllowed());
     }
 
     @Test
-    public void shouldGetDetailedReportForTheFirst100Resources() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
-        Response detailedReportResponse = enrichedWebTarget.request().get();
-        assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
+
+        ResultActions response = mockMvc.perform(get(detailedReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+
+        assertDetailedReportResponse(subTaskInfoList.get(0), response);
 
     }
 
     @Test
-    public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
-        Response detailedReportResponse = enrichedWebTarget.request().get();
-        assertThat(detailedReportResponse.getStatus(), is(Response.Status.METHOD_NOT_ALLOWED.getStatusCode()));
+        ResultActions response = mockMvc.perform(get(detailedReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isMethodNotAllowed());
     }
 
     @Test
-    public void shouldGetProgressReport() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldGetProgressReport() throws Exception {
 
         TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, EMPTY_STRING, 100, 100, 50, new Date(), new Date(), new Date());
 
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenReturn(taskInfo);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        Response detailedReportResponse = enrichedWebTarget.request().get();
-        TaskInfo resultedTaskInfo = detailedReportResponse.readEntity(TaskInfo.class);
+
+        ResultActions response = mockMvc.perform(get(progressReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+
+        TaskInfo resultedTaskInfo = new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(),TaskInfo.class);
         assertThat(taskInfo, is(resultedTaskInfo));
     }
 
     @Test
-    public void shouldKillTheTask() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldKillTheTask() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         String info = "Dropped by the user";
         doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
-        Response detailedReportResponse = enrichedWebTarget.request().post(null);
-        assertEquals(200, detailedReportResponse.getStatus());
-        assertEquals(detailedReportResponse.readEntity(String.class), "The task was killed because of " + info);
+
+        ResultActions response = mockMvc.perform(post(killTaskWebTarget, TOPOLOGY_NAME, TASK_ID));
+
+        response.andExpect(status().isOk());
+        response.andExpect(content().string("The task was killed because of " + info));
     }
 
 
     @Test
-    public void shouldKillTheTaskWhenPassingTheCauseOfKilling() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldKillTheTaskWhenPassingTheCauseOfKilling() throws Exception {
         String info = "The aggregator decided to do so";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
-        Response detailedReportResponse = enrichedWebTarget.queryParam("info", info).request().post(null);
-        assertEquals(200, detailedReportResponse.getStatus());
-        assertEquals(detailedReportResponse.readEntity(String.class), "The task was killed because of " + info);
+        ResultActions response = mockMvc.perform(post(killTaskWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isOk());
+        response.andExpect(content().string("The task was killed because of " + info));
+
     }
 
 
     @Test
-    public void killTaskShouldFailForNonExistedTopology() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void killTaskShouldFailForNonExistedTopology() throws Exception {
         String info = "Dropped by the user";
         doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
-        Response detailedReportResponse = enrichedWebTarget.request().post(null);
-        assertEquals(405, detailedReportResponse.getStatus());
+        ResultActions response = mockMvc.perform(post(killTaskWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isMethodNotAllowed());
     }
 
     @Test
-    public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = killTaskWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
         String info = "Dropped by the user";
         doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        Response detailedReportResponse = enrichedWebTarget.request().post(null);
-        assertEquals(405, detailedReportResponse.getStatus());
+        ResultActions response = mockMvc.perform(post(killTaskWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isMethodNotAllowed());
     }
 
     @Test
-    public void shouldGetGeneralErrorReportWithIdentifiers() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID).queryParam("idsCount", 10);
+    public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
         when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(10))).thenReturn(errorsInfo);
 
-        Response response = enrichedWebTarget.request().get();
-        TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
+        ResultActions response = mockMvc.perform(get(errorsReportWebTarget, TOPOLOGY_NAME, TASK_ID).queryParam("idsCount", "10"));
+        TaskErrorsInfo retrievedInfo = new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(),TaskErrorsInfo.class);
         assertThat(retrievedInfo, is(errorsInfo));
     }
 
 
     @Test
-    public void shouldCheckIfReportExists() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldCheckIfReportExists() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(reportService.checkIfReportExists(eq(Long.toString(TASK_ID)))).thenReturn(true);
-        Response response = enrichedWebTarget.request().head();
-        assertEquals(200, response.getStatus());
+        ResultActions response = mockMvc.perform(head(errorsReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isOk());
     }
 
     @Test
-    public void shouldReturn405InCaseOfException() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldReturn405InCaseOfException() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfReportExists(eq(Long.toString(TASK_ID)));
-        Response response = enrichedWebTarget.request().head();
-        assertEquals(405, response.getStatus());
+        ResultActions response = mockMvc.perform(head(errorsReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isMethodNotAllowed());
 
     }
 
     @Test
-    public void shouldGetSpecificErrorReport() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID).queryParam("error", ERROR_TYPES[0]);
+    public void shouldGetSpecificErrorReport() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
         when(reportService.getSpecificTaskErrorReport(eq(Long.toString(TASK_ID)), eq(ERROR_TYPES[0]), eq(100))).thenReturn(errorsInfo);
 
-        Response response = enrichedWebTarget.request().get();
-        TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
+        ResultActions response = mockMvc.perform(get(errorsReportWebTarget, TOPOLOGY_NAME, TASK_ID).queryParam("error", ERROR_TYPES[0]));
+        TaskErrorsInfo retrievedInfo = new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(),TaskErrorsInfo.class);
         assertThat(retrievedInfo, is(errorsInfo));
     }
 
     @Test
-    public void shouldGetGeneralErrorReport() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldGetGeneralErrorReport() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
         when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(0))).thenReturn(errorsInfo);
 
-        Response response = enrichedWebTarget.request().get();
-        TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
+        ResultActions response = mockMvc.perform(get(errorsReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+
+        TaskErrorsInfo retrievedInfo = new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(),TaskErrorsInfo.class);
         assertThat(retrievedInfo, is(errorsInfo));
     }
 
 
     @Test
-    public void shouldThrowExceptionIfTaskIdWasNotFound() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
+    public void shouldThrowExceptionIfTaskIdWasNotFound() throws Exception {
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        Response detailedReportResponse = enrichedWebTarget.request().get();
-        assertEquals(405, detailedReportResponse.getStatus());
+        ResultActions response = mockMvc.perform(get(progressReportWebTarget, TOPOLOGY_NAME, TASK_ID));
+        response.andExpect(status().isMethodNotAllowed());
     }
 
     @Test
-    public void shouldGetDetailedReportForSpecifiedResources() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, TOPOLOGY_NAME).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID).queryParam("from", 120).queryParam("to", 150);
+    public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        Response detailedReportResponse = enrichedWebTarget.request().get();
-        assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
+        ResultActions response = mockMvc.perform(get(detailedReportWebTarget, TOPOLOGY_NAME, TASK_ID).queryParam("from", "120").queryParam("to", "150"));
+        assertDetailedReportResponse(subTaskInfoList.get(0), response);
     }
 
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToLinkCheckTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryAndRevisionToLinkCheckTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         prepareTaskWithRepresentationAndRevision(task);
         prepareMocks(LINK_CHECKING_TOPOLOGY);
 
-        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
         assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
     }
 
     @Test
-    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToLinkCheckTopology() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToLinkCheckTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
 
         prepareMocks(LINK_CHECKING_TOPOLOGY);
-        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
 
         assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
     }
 
     @Test
-    public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckWithWrongDataSetURL() throws MCSException, TaskSubmissionException {
+    public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckWithWrongDataSetURL() throws Exception {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
         prepareMocks(LINK_CHECKING_TOPOLOGY);
 
-        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckTopologyWithNotValidOutputRevision() throws MCSException, TaskSubmissionException {
+    public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckTopologyWithNotValidOutputRevision() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         Revision revision = new Revision(" ", REVISION_PROVIDER);
         task.setOutputRevision(revision);
         prepareMocks(LINK_CHECKING_TOPOLOGY);
 
-        Response response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
 
-        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        response.andExpect(status().isBadRequest());
     }
 
 
     @Test
-    public void shouldProperlyHandleCleaningRequest() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldProperlyHandleCleaningRequest() throws Exception {
         DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
         mockSecurity(INDEXING_TOPOLOGY);
-        WebTarget enrichedWebTarget = cleanDatasetWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, INDEXING_TOPOLOGY).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        Response response = enrichedWebTarget.request().post(Entity.entity(dataSetCleanerParameters, MediaType.APPLICATION_JSON_TYPE));
+        ResultActions response = mockMvc.perform(
+                post(cleanDatasetWebTarget,INDEXING_TOPOLOGY,TASK_ID)
+                        .content(asJsonString(dataSetCleanerParameters))
+                        .contentType(MediaType.APPLICATION_JSON));
+
         assertNotNull(response);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        response.andExpect(status().isOk());
         Thread.sleep(1000);
         verify(taskDAO, times(1)).setTaskStatus(eq(TASK_ID), eq("Completely process"), eq(TaskState.PROCESSED.toString()));
         verifyNoMoreInteractions(taskDAO);
     }
 
     @Test
-    public void shouldThrowAccessDeniedWithNoCredentials() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldThrowAccessDeniedWithNoCredentials() throws Exception {
         DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
-        WebTarget enrichedWebTarget = cleanDatasetWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, INDEXING_TOPOLOGY).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        Response response = enrichedWebTarget.request().post(Entity.entity(dataSetCleanerParameters, MediaType.APPLICATION_JSON_TYPE));
+        ResultActions response = mockMvc.perform(
+                post(cleanDatasetWebTarget,INDEXING_TOPOLOGY,TASK_ID)
+                        .content(asJsonString(dataSetCleanerParameters))
+                        .contentType(MediaType.APPLICATION_JSON));
         assertNotNull(response);
-        assertThat(response.getStatus(), is(Response.Status.METHOD_NOT_ALLOWED.getStatusCode()));
+        response.andExpect(status().isMethodNotAllowed());
 
     }
 
     @Test
-    public void shouldDropTaskWhenCleanerParametersAreNull() throws MCSException, TaskSubmissionException, InterruptedException {
+    public void shouldDropTaskWhenCleanerParametersAreNull() throws Exception {
         mockSecurity(INDEXING_TOPOLOGY);
-        WebTarget enrichedWebTarget = cleanDatasetWebTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, INDEXING_TOPOLOGY).resolveTemplate(TASK_ID_PARAMETER_LABEL, TASK_ID);
-        Response response = enrichedWebTarget.request().post(null);
+        ResultActions response = mockMvc.perform(
+                post(cleanDatasetWebTarget,INDEXING_TOPOLOGY,TASK_ID));
         assertNotNull(response);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        response.andExpect(status().isOk());
         Thread.sleep(1000);
         verify(taskDAO, times(1)).dropTask(eq(TASK_ID), eq("cleaner parameters can not be null"), eq(TaskState.DROPPED.toString()));
         verifyNoMoreInteractions(taskDAO);
 
     }
 
-    private void assertSuccessfulRequest(Response response, String topologyName) throws InterruptedException {
+    private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
-        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        response.andExpect(status().isCreated());
         Thread.sleep(5000);
         verify(taskKafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
         verifyNoMoreInteractions(taskKafkaSubmitService);
@@ -1019,11 +1055,21 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         return task;
     }
 
-    private Response sendTask(DpsTask task, String topologyName) {
-        WebTarget enrichedWebTarget = webTarget.resolveTemplate(TOPOLOGY_NAME_PARAMETER_LABEL, topologyName);
-        return enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
-
+    private ResultActions sendTask(DpsTask task, String topologyName) throws Exception {
+        return mockMvc.perform(
+                post(webTarget,topologyName)
+                .content(asJsonString(task))
+                .contentType(MediaType.APPLICATION_JSON));
     }
+
+    public static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     private DpsTask getDpsTaskWithFileDataEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
@@ -1046,9 +1092,11 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         return subTaskInfoList;
     }
 
-    private void assertDetailedReportResponse(SubTaskInfo subTaskInfo, Response detailedReportResponse) {
-        assertThat(detailedReportResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
-        List<SubTaskInfo> resultedSubTaskInfoList = detailedReportResponse.readEntity(new GenericType<List<SubTaskInfo>>() {
+    private void assertDetailedReportResponse(SubTaskInfo subTaskInfo, ResultActions detailedReportResponse) throws Exception {
+        detailedReportResponse.andExpect(status().isOk());
+        String resultString = detailedReportResponse.andReturn().getResponse().getContentAsString();
+
+        List<SubTaskInfo> resultedSubTaskInfoList = new ObjectMapper().readValue(resultString,new TypeReference<List<SubTaskInfo>>() {
         });
         assertThat(resultedSubTaskInfoList.get(0), is(subTaskInfo));
     }
@@ -1080,7 +1128,7 @@ public class TopologyTasksResourceTest /*extends JerseyTest*/ {
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class), null);
+        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class), anyString());
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
     }
