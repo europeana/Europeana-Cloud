@@ -4,8 +4,6 @@ import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.*;
@@ -33,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -110,11 +107,11 @@ public class TopologyTasksResource {
     @Autowired
     private KafkaTopicSelector kafkaTopicSelector;
 
-    private final static String TOPOLOGY_PREFIX = "Topology";
+    private static final String TOPOLOGY_PREFIX = "Topology";
 
-    public final static String TASK_PREFIX = "DPS_Task";
+    public static final String TASK_PREFIX = "DPS_Task";
 
-    public final static String HTTP_TOPOLOGY = "http_topology";
+    public static final String HTTP_TOPOLOGY = "http_topology";
 
     private static final int UNKNOWN_EXPECTED_SIZE = -1;
 
@@ -148,8 +145,7 @@ public class TopologyTasksResource {
                             AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        TaskInfo progress = reportService.getTaskProgress(taskId);
-        return progress;
+        return reportService.getTaskProgress(taskId);
     }
 
     /**
@@ -312,10 +308,7 @@ public class TopologyTasksResource {
                         taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null",
                                 TaskState.DROPPED.toString());
                     }
-                } catch (ParseException e) {
-                    LOGGER.error("Dataset was not removed correctly. ", e);
-                    taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
-                } catch (DatasetCleaningException e) {
+                } catch (ParseException | DatasetCleaningException e) {
                     LOGGER.error("Dataset was not removed correctly. ", e);
                     taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
                 }
@@ -663,8 +656,6 @@ public class TopologyTasksResource {
         return filesCounter.getFilesCount(submittedTask);
     }
 
-
-    //get TaskType
     private String getTaskType(DpsTask task) {
         //TODO sholud be done in more error prone way
         final InputDataType first = task.getInputData().keySet().iterator().next();
@@ -690,15 +681,6 @@ public class TopologyTasksResource {
         taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations);
         tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
         tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
-    }
-
-
-    @GetMapping(value = "/devel", produces = "text/plain")
-    public String developerTest(@PathVariable final String topologyName)  {
-        LOGGER.info("================== devel ============================");
-        int a = 10;
-        return "DEVEL:"+topologyName+" -- "+String.valueOf(maxIdentifiersCount);
-
     }
 
 }

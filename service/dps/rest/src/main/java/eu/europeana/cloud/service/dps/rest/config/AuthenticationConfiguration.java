@@ -75,6 +75,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     public CassandraUserDAO userDAO() {
         return new CassandraUserDAO(provider());
     }
+    
     @Bean
     public CassandraAuthenticationService authenticationService() {
         return new CassandraAuthenticationService();

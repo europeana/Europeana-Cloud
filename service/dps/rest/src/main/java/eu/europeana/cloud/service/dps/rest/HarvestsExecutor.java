@@ -25,15 +25,18 @@ public class HarvestsExecutor {
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
 
-    @Autowired
     private RecordExecutionSubmitService recordSubmitService;
-
-    @Autowired
     private ProcessedRecordsDAO processedRecordsDAO;
-
-    /** Auxiliary object to check 'kill flag' for task */
+    /**
+     * Auxiliary object to check 'kill flag' for task
+     */
     @Autowired
     private TaskStatusChecker taskStatusChecker;
+
+    public HarvestsExecutor(RecordExecutionSubmitService recordSubmitService, ProcessedRecordsDAO processedRecordsDAO) {
+        this.recordSubmitService = recordSubmitService;
+        this.processedRecordsDAO = processedRecordsDAO;
+    }
 
     public HarvestResult execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int resultCounter = 0;
@@ -45,7 +48,7 @@ public class HarvestsExecutor {
 
             // *** Main harvesting loop for given task ***
             while (headerIterator.hasNext()) {
-                if(taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                if (taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                     LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, dpsTask.getTaskId());
                     return HarvestResult.builder()
                             .resultCounter(resultCounter)
@@ -76,7 +79,7 @@ public class HarvestsExecutor {
 
             // *** Main harvesting loop for given task ***
             while (headerIterator.hasNext()) {
-                if(taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+                if (taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
                     LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, dpsTask.getTaskId());
                     return HarvestResult.builder()
                             .resultCounter(resultCounter)
@@ -86,7 +89,7 @@ public class HarvestsExecutor {
                 OAIHeader oaiHeader = headerIterator.next();
 
                 ProcessedRecord processedRecord = processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), oaiHeader.getIdentifier());
-                if(processedRecord == null || processedRecord.getState() == RecordState.ERROR) {
+                if (processedRecord == null || processedRecord.getState() == RecordState.ERROR) {
                     DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
                     sentMessage(record, topicName);
                     updateRecordStatus(record, topologyName);

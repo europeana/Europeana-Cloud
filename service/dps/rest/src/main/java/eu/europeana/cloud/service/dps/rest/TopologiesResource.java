@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -25,7 +23,7 @@ import javax.ws.rs.core.Response;
 @RequestMapping("/{topologyName}")
 public class TopologiesResource {
 
-    private final static String TOPOLOGY_PREFIX = "Topology";
+    private static final String TOPOLOGY_PREFIX = "Topology";
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
     private MutableAclService mutableAclService;
     private TopologyManager topologyManager;
@@ -53,7 +51,9 @@ public class TopologiesResource {
      */
     @PostMapping(path = "/permit", consumes = {MediaType.APPLICATION_FORM_URLENCODED})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Response grantPermissionsToTopology(@RequestParam("username") String userName, @PathVariable("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+    public Response grantPermissionsToTopology(
+            @RequestParam("username") String userName,
+            @PathVariable("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException {
         assertContainTopology(topology);
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
         MutableAcl topologyAcl = null;
