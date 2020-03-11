@@ -31,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -46,6 +48,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.ws.Holder;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -55,6 +58,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 
@@ -70,6 +74,12 @@ public class TopologyTasksResource {
     private int maxIdentifiersCount;
 
     @Autowired
+    private ApplicationContext appCtx;
+
+    @Autowired
+    private TaskExecutor taskExecutor;
+
+    @Autowired
     private HttpServletRequest request;
 
     @Autowired
@@ -77,9 +87,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private ValidationStatisticsReportService validationStatisticsService;
-
-    @Autowired
-    private TaskExecutionSubmitService submitService;
 
     @Autowired
     private TaskExecutionKillService killService;
@@ -91,33 +98,14 @@ public class TopologyTasksResource {
     private PermissionManager permissionManager;
 
     @Autowired
-    private HarvestsExecutor harvestsExecutor;
-
-    @Autowired
     private DataSetServiceClient dataSetServiceClient;
 
     @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;
 
-    @Autowired
-    private TasksByStateDAO tasksByStateDAO;
-
-    @Autowired
-    private FilesCounterFactory filesCounterFactory;
-
-    @Autowired
-    private String applicationIdentifier;
-
-    @Autowired
-    private KafkaTopicSelector kafkaTopicSelector;
-
     private final static String TOPOLOGY_PREFIX = "Topology";
 
     public final static String TASK_PREFIX = "DPS_Task";
-
-    public final static String HTTP_TOPOLOGY = "http_topology";
-
-    private static final int UNKNOWN_EXPECTED_SIZE = -1;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
@@ -214,13 +202,25 @@ public class TopologyTasksResource {
         return doSubmitTask(task, topologyName, authorizationHeader, true);
     }
 
+    /**
+     *
+     * @param task
+     * @param topologyName
+     * @param authorizationHeader
+     * @param restart
+     * @return
+     * @throws AccessDeniedOrTopologyDoesNotExistException
+     * @throws DpsTaskValidationException
+     * @throws IOException
+     */
     private DeferredResult<Response> doSubmitTask(
             final DpsTask task, final String topologyName,
             final String authorizationHeader, final boolean restart)
             throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
 
-        DeferredResult result = new DeferredResult();
-        result.setResult(null);
+        final long SUBMIT_TASK_TIMEOUT = 5*60*1000;  //5min
+
+        DeferredResult result = new DeferredResult(SUBMIT_TASK_TIMEOUT);
 
         if (task != null) {
             LOGGER.info(!restart ? "Submitting task" : "Restarting task");
@@ -232,75 +232,37 @@ public class TopologyTasksResource {
             final String taskJSON = new ObjectMapper().writeValueAsString(task);
             TaskStatusChecker.init(taskInfoDAO);
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        URI createdTaskURI = buildTaskURI(request.getRequestURL(), task);
-                        ResponseEntity response = ResponseEntity.created(createdTaskURI).build();
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
-                        permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-                        result.setResult(response);
-                        int expectedCount = getFilesCountInsideTask(task, topologyName);
-                        LOGGER.info("The task {} is in a pending mode.Expected size: {}", task.getTaskId(), expectedCount);
-                        if (expectedCount == 0) {
-                            insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON, "");
-                        } else {
-                            if (topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
-                                String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(topologyName);
-                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
-                                List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
+            URI responsURI = null;
+            try {
+                responsURI = buildTaskURI(request.getRequestURL(), task);
+            } catch (URISyntaxException e) {
+                LOGGER.error("Task submission failed");
+                ResponseEntity response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
+                        TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON);
+                result.setResult(response);
+            }
 
-                                HarvestResult harvesterResult;
-                                if (!restart) {
-                                    harvesterResult = harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
-                                } else {
-                                    harvesterResult = harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
-                                }
-                                updateTaskStatus(task.getTaskId(), harvesterResult);
-                            } else {
-                                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                                submitService.submitTask(task, topologyName);
-                                insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.SENT.toString(), "", sentTime, taskJSON, "");
-                            }
-                            LOGGER.info("Task submitted successfully to Kafka");
-                        }
+            SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+                    .task(task)
+                    .topologyName(topologyName)
+                    .authorizationHeader(authorizationHeader)
+                    .restart(restart)
+                    .sentTime(sentTime)
+                    .taskJSON(taskJSON)
+                    .responsURI(responsURI)
+                    .deferredResult(result).build();
 
-                    } catch (URISyntaxException e) {
-                        LOGGER.error("Task submission failed");
-                        ResponseEntity response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
-                        result.setResult(response);
-                    } catch (TaskSubmissionException e) {
-                        LOGGER.error("Task submission failed: {}", e.getMessage(),e);
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
-                    } catch (Exception e) {
-                        String fullStacktrace = ExceptionUtils.getStackTrace(e);
-                        LOGGER.error("Task submission failed: {}", fullStacktrace);
-                        insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), fullStacktrace, sentTime, taskJSON, "");
-                        ResponseEntity response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                        result.setResult(response);
-                    }
-                }
-            }).start();
+            if (result.getResult() == null) {
+                Runnable workingThread = appCtx.getBean(SubmitTaskThread.class, parameters);
+                taskExecutor.execute(workingThread);
+            }
 
+            while(result.getResult() == null) { }
         }
-
-        while(result.getResult() == null) { }
 
         return result;
     }
-
-    private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
-        if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
-            LOGGER.info("Task dropped. No data harvested");
-            taskInfoDAO.dropTask(taskId, "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
-        } else {
-            LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
-            taskInfoDAO.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(), harvesterResult.getResultCounter());
-        }
-    }
-
 
     @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
@@ -308,10 +270,9 @@ public class TopologyTasksResource {
     public DeferredResult<Response> cleanIndexingDataSet(
             @PathVariable final String topologyName,
             @PathVariable final String taskId,
-            /*AAA*/final DataSetCleanerParameters cleanerParameters
+            /*check if input JSON is valid*/ @RequestBody final DataSetCleanerParameters cleanerParameters
     ) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         DeferredResult result = new DeferredResult();
-        result.setResult(null);
 
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
@@ -327,7 +288,8 @@ public class TopologyTasksResource {
                         DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
                         datasetCleaner.execute();
                         LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
-                        taskInfoDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
+                        taskInfoDAO.setTaskStatus(Long.parseLong(taskId), "Completely process",
+                                TaskState.PROCESSED.toString());
                     } else {
                         taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null",
                                 TaskState.DROPPED.toString());
@@ -670,45 +632,5 @@ public class TopologyTasksResource {
             return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
         }
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
-    }
-
-    /**
-     * @return The number of files inside the task.
-     */
-    private int getFilesCountInsideTask(DpsTask submittedTask, String topologyName) throws TaskSubmissionException {
-        if (topologyName.equals(HTTP_TOPOLOGY))
-            return UNKNOWN_EXPECTED_SIZE;
-        String taskType = getTaskType(submittedTask);
-        FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
-        return filesCounter.getFilesCount(submittedTask);
-    }
-
-
-    //get TaskType
-    private String getTaskType(DpsTask task) {
-        //TODO sholud be done in more error prone way
-        final InputDataType first = task.getInputData().keySet().iterator().next();
-        return first.name();
-    }
-
-    /**
-     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
-     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
-     * NOTE: Operation is not in transaction! So on table can be modified but second one not
-     * Parameters corresponding to names of column in table(s)
-     *
-     * @param taskId
-     * @param topologyName
-     * @param expectedSize
-     * @param state
-     * @param info
-     * @param sentTime
-     * @param taskInformations
-     */
-    private void insertTask(long taskId, String topologyName, int expectedSize,
-                            String state, String info, Date sentTime, String taskInformations, String topicName) {
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations);
-        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
-        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
     }
 }

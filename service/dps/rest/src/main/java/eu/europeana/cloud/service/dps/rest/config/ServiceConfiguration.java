@@ -17,11 +17,9 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -56,12 +54,17 @@ public class ServiceConfiguration {
     }
 
     @Bean
+    public ThreadPoolTaskExecutor taskExecutor() {
+        return new ThreadPoolTaskExecutor();
+    }
+
+    @Bean
     public PermissionManager permissionManager() {
         return new PermissionManager();
     }
 
-    //scope="prototype"
     @Bean
+    @Scope("prototype")
     public FilesCounterFactory filesCounterFactory() {
         return new FilesCounterFactory();
     }
