@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -14,7 +15,6 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * Resource to manage topologies in the DPS service
@@ -51,12 +51,25 @@ public class TopologiesResource {
      */
     @PostMapping(path = "/permit", consumes = {MediaType.APPLICATION_FORM_URLENCODED})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Response grantPermissionsToTopology(
+    public ResponseEntity<Void> grantPermissionsToTopology(
             @RequestParam("username") String userName,
             @PathVariable("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+
+        LOGGER.info("Adding permissions for user '{}' to topology: '{}'", userName, topology);
         assertContainTopology(topology);
+        addPermissionsToTopology(topology, userName);
+        return ResponseEntity.ok().build();
+    }
+
+    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+        if (!topologyManager.containsTopology(topology)) {
+            throw new AccessDeniedOrTopologyDoesNotExistException();
+        }
+    }
+
+    private void addPermissionsToTopology(String topology, String userName) {
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
-        MutableAcl topologyAcl = null;
+        MutableAcl topologyAcl;
 
         try {
             topologyAcl = (MutableAcl) mutableAclService.readAclById(topologyIdentity);
@@ -70,13 +83,5 @@ public class TopologiesResource {
 
         topologyAcl.insertAce(topologyAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(userName), true);
         mutableAclService.updateAcl(topologyAcl);
-
-        return Response.ok().build();
-    }
-
-    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
-        if (!topologyManager.containsTopology(topology)) {
-            throw new AccessDeniedOrTopologyDoesNotExistException();
-        }
     }
 }
