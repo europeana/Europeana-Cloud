@@ -332,10 +332,7 @@ public class TopologyTasksResource {
                         taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null",
                                 TaskState.DROPPED.toString());
                     }
-                } catch (ParseException e) {
-                    LOGGER.error("Dataset was not removed correctly. ", e);
-                    taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
-                } catch (DatasetCleaningException e) {
+                } catch (ParseException | DatasetCleaningException e) {
                     LOGGER.error("Dataset was not removed correctly. ", e);
                     taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
                 }
