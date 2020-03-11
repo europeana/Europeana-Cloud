@@ -76,6 +76,8 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+
+                    <!--
                     <webResources>
                         <resource>
                             <filtering>true</filtering>
@@ -85,6 +87,7 @@
                             </includes>
                         </resource>
                     </webResources>
+                    -->
                 </configuration>
             </plugin>
             <!--configuration of miredot - REST API documentation generator. -->
