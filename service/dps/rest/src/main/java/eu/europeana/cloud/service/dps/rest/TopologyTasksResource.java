@@ -16,8 +16,6 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
-import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -48,7 +46,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -72,7 +69,7 @@ public class TopologyTasksResource {
     public final static String TASK_PREFIX = "DPS_Task";
 
     @Autowired
-    private ApplicationContext appCtx;
+    private ApplicationContext applicationContext;
 
     @Autowired
     private TaskExecutor taskExecutor;
@@ -221,9 +218,9 @@ public class TopologyTasksResource {
             final String taskJSON = new ObjectMapper().writeValueAsString(task);
             TaskStatusChecker.init(taskInfoDAO);
 
-            URI responsURI = null;
+            URI responseURI = null;
             try {
-                responsURI = buildTaskURI(request.getRequestURL(), task);
+                responseURI = buildTaskURI(request.getRequestURL(), task);
             } catch (URISyntaxException e) {
                 LOGGER.error("Task submission failed");
                 ResponseEntity response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -239,11 +236,11 @@ public class TopologyTasksResource {
                     .restart(restart)
                     .sentTime(sentTime)
                     .taskJSON(taskJSON)
-                    .responsURI(responsURI)
+                    .responsURI(responseURI)
                     .deferredResult(result).build();
 
             if (result.getResult() == null) {
-                Runnable workingThread = appCtx.getBean(SubmitTaskThread.class, parameters);
+                Runnable workingThread = applicationContext.getBean(SubmitTaskThread.class, parameters);
                 taskExecutor.execute(workingThread);
             }
 
@@ -261,34 +258,16 @@ public class TopologyTasksResource {
             @PathVariable final String taskId,
             /*check if input JSON is valid*/ @RequestBody final DataSetCleanerParameters cleanerParameters
     ) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        DeferredResult result = new DeferredResult();
+        final long CLEAN_INDEXING_DATA_SET_TIMEOUT = 5*60*1000;  //5min
+
+        DeferredResult result = new DeferredResult(CLEAN_INDEXING_DATA_SET_TIMEOUT);
 
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    result.setResult(ResponseEntity.ok("The request was received successfully"));
 
-                    if (cleanerParameters != null) {
-                        LOGGER.info("cleaning dataset {} based on date: {}",
-                                cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
-                        DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
-                        datasetCleaner.execute();
-                        LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
-                        taskInfoDAO.setTaskStatus(Long.parseLong(taskId), "Completely process",
-                                TaskState.PROCESSED.toString());
-                    } else {
-                        taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null",
-                                TaskState.DROPPED.toString());
-                    }
-                } catch (ParseException | DatasetCleaningException e) {
-                    LOGGER.error("Dataset was not removed correctly. ", e);
-                    taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
-                }
-            }
-        }).start();
+        Runnable workingThread = applicationContext.getBean(CleanIndexingDataSetThread.class,
+                Long.parseLong(taskId), cleanerParameters, result);
+        taskExecutor.execute(workingThread);
 
         while(result.getResult() == null) {
         }

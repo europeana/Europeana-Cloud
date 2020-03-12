@@ -57,9 +57,11 @@ public class SubmitTaskThread extends Thread {
     private SubmitTaskParameters parameters;
 
     public SubmitTaskThread(SubmitTaskParameters parameters) {
+        super("submit-task-thread");
         this.parameters = parameters;
     }
 
+    @Override
     public void run() {
         try {
             ResponseEntity response = ResponseEntity.created(parameters.getResponsURI()).build();
