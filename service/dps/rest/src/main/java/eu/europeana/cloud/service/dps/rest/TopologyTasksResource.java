@@ -2,12 +2,15 @@ package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.*;
-import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.TaskExecutionKillService;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
@@ -15,22 +18,17 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
-import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
@@ -43,12 +41,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.ws.Holder;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -58,7 +53,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 
@@ -70,8 +64,12 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @RequestMapping("/{topologyName}/tasks")
 @Validated
 public class TopologyTasksResource {
-    @Value("${maxIdentifiersCount}")
-    private int maxIdentifiersCount;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
+
+    private final static String TOPOLOGY_PREFIX = "Topology";
+
+    public final static String TASK_PREFIX = "DPS_Task";
 
     @Autowired
     private ApplicationContext appCtx;
@@ -84,9 +82,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private TaskExecutionReportService reportService;
-
-    @Autowired
-    private ValidationStatisticsReportService validationStatisticsService;
 
     @Autowired
     private TaskExecutionKillService killService;
@@ -102,12 +97,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;
-
-    private final static String TOPOLOGY_PREFIX = "Topology";
-
-    public final static String TASK_PREFIX = "DPS_Task";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
     /**
      * Retrieves the current progress for the requested task.
@@ -337,7 +326,6 @@ public class TopologyTasksResource {
                         + " should be the same provider of the output dataSet: " + providerId);
     }
 
-
     private List<String> readDataSetsList(String listParameter) {
         if (listParameter == null)
             return null;
@@ -355,183 +343,6 @@ public class TopologyTasksResource {
         throw new MalformedURLException("The dataSet URL is not formulated correctly");
 
     }
-
-
-    /**
-     * Retrieves a detailed report for the specified task.It will return info about
-     * the first 100 resources unless you specified the needed chunk by using from&to parameters
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param from         The starting resource number should be bigger than 0
-     * @param to           The ending resource number should be bigger than 0
-     * @return Notification messages for the specified task.
-     * @summary Retrieve task detailed report
-     */
-    @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    @Validated
-    public List<SubTaskInfo> getTaskDetailedReport(
-            @PathVariable String taskId,
-            @PathVariable final String topologyName,
-             @RequestParam(defaultValue = "1")  @Min(1) int from,
-             @RequestParam(defaultValue = "100") @Min(1) int to)
-                            throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-
-        List<SubTaskInfo> result = null;
-        if(!topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
-            result = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
-        } else {
-            result = reportService.getDetailedTaskReportByPage(taskId, from, to);
-        }
-        return result;
-    }
-
-
-    /**
-     * If error param is not specified it retrieves a report of all errors that occurred for the specified task. For each error
-     * the number of occurrences is returned otherwise retrieves a report for a specific error that occurred in the specified task.
-     * A sample of identifiers is returned as well. The number of identifiers is between 0 and ${maxIdentifiersCount}.
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param error        Error type.
-     * @param idsCount     number of identifiers to retrieve
-     * @return Errors that occurred for the specified task.
-     * @summary Retrieve task detailed error report
-     */
-    @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public TaskErrorsInfo getTaskErrorReport(
-            @PathVariable String taskId,
-            @PathVariable final String topologyName,
-            @RequestParam String error,
-            @RequestParam(defaultValue = "0") int idsCount)
-                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-
-        if (idsCount < 0 || idsCount > maxIdentifiersCount) {
-            throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
-        }
-        if (error == null) {
-            return reportService.getGeneralTaskErrorReport(taskId, idsCount);
-        }
-        return reportService.getSpecificTaskErrorReport(taskId, error, idsCount > 0 ? idsCount : maxIdentifiersCount);
-    }
-
-
-    /**
-     * Check if the task has error report
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @return if the error report exists
-     * @summary Check if the task has error report
-     */
-    @RequestMapping(method = { RequestMethod.HEAD }, path = "{taskId}/reports/errors")
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public Boolean checkIfErrorReportExists(
-            @PathVariable String taskId,
-            @PathVariable final String topologyName)
-                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-        return reportService.checkIfReportExists(taskId);
-    }
-
-    /**
-     * Retrieves a statistics report for the specified task. Only applicable for tasks executing {link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @return Statistics report for the specified task.
-     * @summary Retrieve task statistics report
-     */
-    @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public StatisticsReport getTaskStatisticsReport(
-            @PathVariable String topologyName,
-            @PathVariable  String taskId)
-                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-        return validationStatisticsService.getTaskStatisticsReport(Long.parseLong(taskId));
-    }
-
-
-    /**
-     * Retrieves a list of distinct values and their occurrences for a specific element based on its path}
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param elementPath  <strong>REQUIRED</strong> Path for specific element.
-     * @return List of distinct values and their occurrences.
-     */
-
-    @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public List<NodeReport> getElementsValues(
-            @PathVariable String topologyName,
-            @PathVariable  String taskId,
-            @NotNull @RequestParam("path") String elementPath)
-                    throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-        return validationStatisticsService.getElementReport(Long.parseLong(taskId), elementPath);
-    }
-
 
     /**
      * Grants read / write permissions for a task to the specified user.

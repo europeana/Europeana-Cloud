@@ -62,7 +62,6 @@ public class SubmitTaskThread extends Thread {
 
     public void run() {
         try {
-            //URI createdTaskURI = buildTaskURI(request.getRequestURL(), task);
             ResponseEntity response = ResponseEntity.created(parameters.getResponsURI()).build();
             insertTask(0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", "");
             permissionManager.grantPermissionsForTask(String.valueOf(parameters.getTask().getTaskId()));
@@ -83,7 +82,7 @@ public class SubmitTaskThread extends Thread {
                     } else {
                         harvesterResult = harvestsExecutor.executeForRestart(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
                     }
-                    updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
+                    updateTaskStatus(harvesterResult);
                 } else {
                     parameters.getTask().addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
                     submitService.submitTask(parameters.getTask(), parameters.getTopologyName());
@@ -92,7 +91,7 @@ public class SubmitTaskThread extends Thread {
                 LOGGER.info("Task submitted successfully to Kafka");
             }
         } catch (TaskSubmissionException e) {
-            LOGGER.error("Task submission failed: {}", e.getMessage(),e);
+            LOGGER.error("Task submission failed: {}", e.getMessage(), e);
             insertTask(0, TaskState.DROPPED.toString(), e.getMessage(), "");
         } catch (Exception e) {
             String fullStacktrace = ExceptionUtils.getStackTrace(e);
@@ -125,13 +124,15 @@ public class SubmitTaskThread extends Thread {
     }
 
 
-    private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
+    private void updateTaskStatus(HarvestResult harvesterResult) {
         if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
             LOGGER.info("Task dropped. No data harvested");
-            taskInfoDAO.dropTask(taskId, "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
+            taskInfoDAO.dropTask(parameters.getTask().getTaskId(),
+                    "The task with the submitted parameters is empty", TaskState.DROPPED.toString());
         } else {
-            LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
-            taskInfoDAO.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(), harvesterResult.getResultCounter());
+            LOGGER.info("Updating task {} expected size to: {}", parameters.getTask().getTaskId(), harvesterResult.getResultCounter());
+            taskInfoDAO.updateStatusExpectedSize(parameters.getTask().getTaskId(),
+                    harvesterResult.getTaskState().toString(), harvesterResult.getResultCounter());
         }
     }
 
