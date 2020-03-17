@@ -17,12 +17,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({TopologyTasksResource.class,TopologiesResource.class})
+@Import({TopologyTasksResource.class,TopologiesResource.class,SubmitTaskThread.class})
 public class AbstractSecurityTestContext {
 
 
@@ -89,6 +90,12 @@ public class AbstractSecurityTestContext {
     @Bean
     public TasksByStateDAO tasksDAO(){
         return Mockito.mock(TasksByStateDAO.class);
+    }
+
+    @Bean
+    @Scope("prototype")
+    public ThreadPoolTaskExecutor taskExecutor() {
+        return new ThreadPoolTaskExecutor();
     }
 
 }
