@@ -4,6 +4,7 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.dps.rest.exceptionmappers.UnitedExceptionMapper;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -23,11 +24,15 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
+@Import({UnitedExceptionMapper.class, SubmitTaskThread.class})
 public class SpiedDpsTestContext {
 
     @Bean
@@ -151,5 +156,11 @@ public class SpiedDpsTestContext {
     @Bean
     public HarvestsExecutor harvesterExecutor() {
         return Mockito.mock(HarvestsExecutor.class);
+    }
+
+    @Bean
+    @Scope("prototype")
+    public ThreadPoolTaskExecutor taskExecutor() {
+        return new ThreadPoolTaskExecutor();
     }
 }
