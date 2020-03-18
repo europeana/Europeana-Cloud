@@ -304,7 +304,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
     }
 
@@ -322,7 +322,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
 
         login(RONALDO, RONALD_PASSWORD);
-        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
     }
@@ -367,7 +367,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
-        submitTaskAndWait( XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        submitTaskAndWait( XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
         //when
         try {
             topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
@@ -386,7 +386,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
-        submitTaskAndWait( XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        submitTaskAndWait( XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
         //when
         try {
             topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),"Dropped by the user");
@@ -403,7 +403,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, true);
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(ADMIN, SAMPLE_TOPOLOGY_NAME);
-        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
         login(RONALDO, RONALD_PASSWORD);
 
         //when
@@ -422,7 +422,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, true);
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(ADMIN, SAMPLE_TOPOLOGY_NAME);
-        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
         //when
         try {
             Response response = topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),"Dropped by the user");
@@ -433,7 +433,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         }
     }
 
-    void submitTaskAndWait(DpsTask dpsTask, String topologyName, UriInfo uriInfo, String authHeader) throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException, IOException, ExecutionException, InterruptedException {
+    void submitTaskAndWait(DpsTask dpsTask, String topologyName, String authHeader) throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException, IOException, ExecutionException, InterruptedException {
         topologyTasksResource.submitTask(dpsTask, topologyName, authHeader);
         try {
             Thread.sleep(5000);
