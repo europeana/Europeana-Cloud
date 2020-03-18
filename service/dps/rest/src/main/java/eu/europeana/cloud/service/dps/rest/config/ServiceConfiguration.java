@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
@@ -28,6 +30,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps.rest")
+@EnableAsync
 public class ServiceConfiguration {
     private static final String JNDI_KEY_KAFKA_BROKER = "/dps/kafka/brokerLocation";
     private static final String JNDI_KEY_KAFKA_GROUP_ID = "/dps/kafka/groupId";
@@ -195,6 +198,11 @@ public class ServiceConfiguration {
     @Bean
     public ProcessedRecordsDAO processedRecordsDAO() {
         return new ProcessedRecordsDAO(dpsCassandraProvider());
+    }
+
+    @Bean
+    public DatasetCleanerService datasetCleanerService(){
+        return new DatasetCleanerService(taskInfoDAO());
     }
 
 }

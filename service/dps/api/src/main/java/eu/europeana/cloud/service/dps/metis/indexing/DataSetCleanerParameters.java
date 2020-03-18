@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.metis.indexing;
 
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.utils.DateAdapter;
+import lombok.ToString;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -13,6 +14,7 @@ import java.util.Date;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+@ToString
 public class DataSetCleanerParameters implements Serializable {
     private static final long serialVersionUID = 123456789L;
 
