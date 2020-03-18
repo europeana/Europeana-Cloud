@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.security.acls.model.*;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
@@ -60,9 +59,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {SpiedDpsTestContext.class, TopologyTasksResource.class, SubmitTaskThread.class, CleanIndexingDataSetThread.class})
 @WebAppConfiguration
-@TestPropertySource(properties = {"numberOfElementsOnPage=100","maxIdentifiersCount=100"})
+@ContextConfiguration(classes = {SpiedDpsTestContext.class, TopologyTasksResource.class, SubmitTaskThread.class, CleanIndexingDataSetThread.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -129,6 +127,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         );
     }
 
+
     @Test
     public void shouldProperlySendTask() throws Exception {
         //given
@@ -168,6 +167,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
     }
 
+
     @Test
     public void shouldProperlySendTaskWithDataSetEntryAndRevisionToEnrichmentTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -178,10 +178,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
 
-    private void prepareTaskWithRepresentationAndRevision(DpsTask task) {
-        task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
-        setCorrectlyFormulatedOutputRevision(task);
-    }
 
     @Test
     public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToEnrichmentTopology() throws Exception {
@@ -193,6 +189,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
+
 
     @Test
     public void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithWrongDataSetURL() throws Exception {
@@ -232,6 +229,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetDoesNotExist() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -246,6 +244,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenUnexpectedExceptionHappens() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -259,6 +258,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         response.andExpect(status().isBadRequest());
     }
+
 
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetProviderIsNotEqualToTheProviderIdParameter() throws Exception {
@@ -275,6 +275,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldProperlySendTaskWhithOutputDataSet() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -288,6 +289,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         assertSuccessfulRequest(response, TOPOLOGY_NAME);
     }
+
 
     @Test
     public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws Exception {
@@ -315,6 +317,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
     }
 
+
     @Test
     public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToNormalizationTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -325,6 +328,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
     }
+
 
     @Test
     public void shouldThrowDpsWhenSendingTaskToNormalizationTopologyWithWrongDataSetURL() throws Exception {
@@ -352,6 +356,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldProperlySendTaskWithFileEntryToNormalizationTopology() throws Exception {
 
@@ -378,6 +383,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
     }
 
+
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingRequiredParameter() throws Exception {
 
@@ -403,6 +409,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision1() throws Exception {
 
@@ -416,6 +423,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision2() throws Exception {
 
@@ -428,6 +436,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
         response.andExpect(status().isBadRequest());
     }
+
 
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision3() throws Exception {
@@ -528,6 +537,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, IC_TOPOLOGY);
     }
 
+
     @Test
     public void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws Exception {
         //given
@@ -561,6 +571,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         sendTaskResponse.andExpect(status().isCreated());
     }
 
+
     @Test
     public void shouldProperlySendTaskWithTargetIndexingDatabaseAndFileUrls() throws Exception {
         //given
@@ -591,6 +602,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         //then
         sendTaskResponse.andExpect(status().isBadRequest());
     }
+
 
     @Test
     public void shouldThrowExceptionWhenTargetIndexingDatabaseIsNotProper() throws Exception {
@@ -654,6 +666,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision1() throws Exception {
 
@@ -679,6 +692,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision3() throws Exception {
         //given
@@ -691,6 +705,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         response.andExpect(status().isBadRequest());
     }
+
 
     @Test
     public void shouldGetProgressReport() throws Exception {
@@ -705,6 +720,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         TaskInfo resultedTaskInfo = new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(),TaskInfo.class);
         assertThat(taskInfo, is(resultedTaskInfo));
     }
+
 
     @Test
     public void shouldKillTheTask() throws Exception {
@@ -721,6 +737,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(jsonPath("$.entity", is("The task was killed because of " + info)));
     }
 
+
     @Test
     public void shouldKillTheTaskWhenPassingTheCauseOfKilling() throws Exception {
         String info = "The aggregator decided to do so";
@@ -734,6 +751,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isOk());
         response.andExpect(jsonPath("$.entity", is("The task was killed because of " + info)));
     }
+
 
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws Exception {
@@ -751,7 +769,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         }
     }
 
-     @Test
+
+    @Test
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
         String info = "Dropped by the user";
         doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
@@ -764,6 +783,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
             assertSame(AccessDeniedOrObjectDoesNotExistException.class, nse.getCause().getClass());
         }
     }
+
 
     @Test
     public void shouldThrowExceptionIfTaskIdWasNotFound() throws Exception {
@@ -789,6 +809,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
     }
 
+
     @Test
     public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToLinkCheckTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -799,6 +820,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
     }
+
 
     @Test
     public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckWithWrongDataSetURL() throws Exception {
@@ -811,6 +833,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
+
     @Test
     public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckTopologyWithNotValidOutputRevision() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -822,6 +845,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         response.andExpect(status().isBadRequest());
     }
+
 
     @Test
     public void shouldProperlyHandleCleaningRequest() throws Exception {
@@ -840,6 +864,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         verifyNoMoreInteractions(taskDAO);
     }
 
+
     @Test
     public void shouldThrowAccessDeniedWithNoCredentials() throws Exception {
         DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
@@ -852,6 +877,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
             assertSame(AccessDeniedOrTopologyDoesNotExistException.class, nse.getCause().getClass());
         }
     }
+
 
     @Test
     public void shouldDropTaskWhenCleanerParametersAreNull() throws Exception {
@@ -872,6 +898,13 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 );
         verifyNoMoreInteractions(taskDAO);
 
+    }
+
+    /* Utilities */
+
+    private void prepareTaskWithRepresentationAndRevision(DpsTask task) {
+        task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
+        setCorrectlyFormulatedOutputRevision(task);
     }
 
     private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {

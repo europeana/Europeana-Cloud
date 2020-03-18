@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.rest;
 
-
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -15,7 +14,6 @@ import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.junit.Before;
@@ -25,37 +23,47 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @WebAppConfiguration
 public class DpsResourceAATest extends AbstractSecurityTest {
+    /* Constants */
+    private final static String VAN_PERSIE = "Robin_Van_Persie";
+    private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
 
+    private final static String RONALDO = "Cristiano";
+    private final static String RONALD_PASSWORD = "Ronaldo";
 
+    private final static String ADMIN = "admin";
+    private final static String ADMIN_PASSWORD = "admin";
+    private final static long TASK_ID = 12345;
+    private final static String SAMPLE_METIS_DATASET_ID = "ORG_DSID_DSNAME";
+
+    private final static String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
+    private DpsTask XSLT_TASK;
+    private DpsTask XSLT_TASK2;
+    private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
+
+    private static final String AUTH_HEADER_VALUE = "header_value";
+
+    /* Beans and mocked beans */
     @Autowired
     @NotNull
     private TopologyTasksResource topologyTasksResource;
@@ -90,37 +98,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @Autowired
     private FilesCounter filesCounter;
 
-    /**
-     * Pre-defined users
-     */
-
-    private final static String VAN_PERSIE = "Robin_Van_Persie";
-    private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
-
-    private final static String RONALDO = "Cristiano";
-    private final static String RONALD_PASSWORD = "Ronaldo";
-
-    private final static String ADMIN = "admin";
-    private final static String ADMIN_PASSWORD = "admin";
-    private final static long TASK_ID = 12345;
-    private final static String SAMPLE_METIS_DATASET_ID = "ORG_DSID_DSNAME";
-
-    private final static String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
-    private final static String PROGRESS = "100%";
-    private DpsTask XSLT_TASK;
-    private DpsTask XSLT_TASK2;
-    private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
-    private DpsTask IC_TASK;
-
-    private UriInfo URI_INFO;
-    private  CompletableFuture<Response> asyncResponse;
-
-    private static final String AUTH_HEADER_VALUE = "header_value";
-
-
     @Before
     public void mockUp() throws Exception {
-
         XSLT_TASK = new DpsTask("xsltTask");
         XSLT_TASK.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
@@ -133,11 +112,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         XSLT_TASK_WITH_MALFORMED_URL.addDataEntry(FILE_URLS, Arrays.asList("httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
-        URI_INFO = Mockito.mock(UriInfo.class);
-        asyncResponse = Mockito.mock(CompletableFuture.class);
         TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, 0, new Date(), new Date(), new Date());
         Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
-        Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         Mockito.when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);

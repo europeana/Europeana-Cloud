@@ -32,8 +32,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {SpiedDpsTestContext.class, ReportResource.class})
 @WebAppConfiguration
+@ContextConfiguration(classes = {SpiedDpsTestContext.class, ReportResource.class})
 @TestPropertySource(properties = {"numberOfElementsOnPage=100","maxIdentifiersCount=100"})
 public class ReportResourceTest extends AbstractResourceTest {
 
@@ -94,6 +94,7 @@ public class ReportResourceTest extends AbstractResourceTest {
         }
     }
 
+
     @Test
     public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
@@ -103,6 +104,7 @@ public class ReportResourceTest extends AbstractResourceTest {
         ResultActions response = mockMvc.perform(get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("from", "120").queryParam("to", "150"));
         assertDetailedReportResponse(subTaskInfoList.get(0), response);
     }
+
 
     @Test
     public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
@@ -130,6 +132,7 @@ public class ReportResourceTest extends AbstractResourceTest {
         response.andExpect(status().isOk());
     }
 
+
     @Test
     public void shouldReturn405InCaseOfException() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
@@ -143,6 +146,7 @@ public class ReportResourceTest extends AbstractResourceTest {
             assertSame(AccessDeniedOrObjectDoesNotExistException.class, nse.getCause().getClass());
         }
     }
+
 
     @Test
     public void shouldGetSpecificErrorReport() throws Exception {
@@ -172,6 +176,7 @@ public class ReportResourceTest extends AbstractResourceTest {
         assertThat(retrievedInfo, is(errorsInfo));
     }
 
+
     @Test
     public void shouldGetStatisticReport() throws Exception {
         when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
@@ -186,6 +191,7 @@ public class ReportResourceTest extends AbstractResourceTest {
 
     }
 
+
     @Test
     public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws Exception {
         when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
@@ -199,6 +205,7 @@ public class ReportResourceTest extends AbstractResourceTest {
         }
     }
 
+
     @Test
     public void shouldGetElementReport() throws Exception {
         NodeReport nodeReport = new NodeReport("VALUE", 5, Arrays.asList(new AttributeStatistics("Attr1", "Value1", 10)));
@@ -210,7 +217,8 @@ public class ReportResourceTest extends AbstractResourceTest {
     }
 
 
-    /////////////////////
+    /* Utilities */
+
     private List<SubTaskInfo> createDummySubTaskInfoList() {
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
         SubTaskInfo subTaskInfo = new SubTaskInfo(1, TEST_RESOURCE_URL, RecordState.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL);
@@ -247,7 +255,5 @@ public class ReportResourceTest extends AbstractResourceTest {
         }
         return info;
     }
-
-
 
 }
