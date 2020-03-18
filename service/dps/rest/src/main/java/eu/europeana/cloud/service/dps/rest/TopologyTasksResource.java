@@ -229,6 +229,11 @@ public class TopologyTasksResource {
             } catch(DpsTaskValidationException e) {
                 responseFuture.complete(processException(e, "Task submission failed. Bad request.",
                         HttpStatus.BAD_REQUEST, task, topologyName, sentTime, taskJSON));
+                throw e;
+            } catch(AccessDeniedOrTopologyDoesNotExistException e) {
+                responseFuture.complete(processException(e, "Task submission failed. Internal server error.",
+                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON));
+                throw e;
             } catch(Exception e) {
                 responseFuture.complete(processException(e, "Task submission failed. Internal server error.",
                         HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON));
