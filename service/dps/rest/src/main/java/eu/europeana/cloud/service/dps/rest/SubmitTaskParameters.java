@@ -4,10 +4,12 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Set of parameters to submit task to
@@ -38,5 +40,5 @@ public class SubmitTaskParameters {
     private URI responsURI;
 
     /** Result holder for asynchronous call. It allow to set result (respons) one time and this respons will be returned from call */
-    private DeferredResult deferredResult;
+    private CompletableFuture<ResponseEntity> responseFuture;
 }

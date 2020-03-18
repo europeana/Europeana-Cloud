@@ -20,11 +20,13 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Component
 @Scope("prototype")
+@Repository
 public class SubmitTaskThread extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskThread.class);
 
@@ -67,7 +69,7 @@ public class SubmitTaskThread extends Thread {
             ResponseEntity response = ResponseEntity.created(parameters.getResponsURI()).build();
             insertTask(0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", "");
             permissionManager.grantPermissionsForTask(String.valueOf(parameters.getTask().getTaskId()));
-            parameters.getDeferredResult().setResult(response);
+            parameters.getResponseFuture().complete(response);
             int expectedCount = getFilesCountInsideTask();
             LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
             if (expectedCount == 0) {
@@ -95,12 +97,14 @@ public class SubmitTaskThread extends Thread {
         } catch (TaskSubmissionException e) {
             LOGGER.error("Task submission failed: {}", e.getMessage(), e);
             insertTask(0, TaskState.DROPPED.toString(), e.getMessage(), "");
+            ResponseEntity response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            parameters.getResponseFuture().complete(response);
         } catch (Exception e) {
             String fullStacktrace = ExceptionUtils.getStackTrace(e);
             LOGGER.error("Task submission failed: {}", fullStacktrace);
             insertTask(0, TaskState.DROPPED.toString(), fullStacktrace, "");
             ResponseEntity response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            parameters.getDeferredResult().setResult(response);
+            parameters.getResponseFuture().complete(response);
         }
     }
 
@@ -158,7 +162,3 @@ public class SubmitTaskThread extends Thread {
     }
 }
 
-
-//getTaskDetailReport
-//getTaskErrorReport
-//checkItTaskReportExists

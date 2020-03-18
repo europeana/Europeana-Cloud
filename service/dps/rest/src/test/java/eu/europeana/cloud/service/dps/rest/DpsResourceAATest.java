@@ -152,7 +152,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         DpsTask t = new DpsTask("xsltTask");
         String topology = "xsltTopology";
 
-        topologyTasksResource.submitTask( t, topology, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask( t, topology,  AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -165,7 +165,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
-        topologyTasksResource.submitTask( task, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask( task, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -180,7 +180,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         grantUserToTopology(topologyName, user);
         login(user, VAN_PERSIE_PASSWORD);
         //then
-        topologyTasksResource.submitTask( task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask( task, topologyName, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -195,7 +195,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask(task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(task, topologyName, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -215,7 +215,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask( task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask( task, topologyName, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -236,7 +236,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         grantUserToTopology(topologyName, user);
         login(user, VAN_PERSIE_PASSWORD);
         //then
-        topologyTasksResource.submitTask(task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(task, topologyName, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -252,7 +252,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         //then
         try {
-            topologyTasksResource.submitTask(task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(task, topologyName, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             assertThat(e.getMessage(), is("Parameter does not meet constraints. Parameter name: OUTPUT_MIME_TYPE"));
@@ -269,7 +269,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask(task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(task, topologyName, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -292,7 +292,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         logoutEveryone();
         login(RONALDO, RONALD_PASSWORD);
         DpsTask sampleTask = new DpsTask();
-        topologyTasksResource.submitTask( sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask( sampleTask, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
     }
 
     // -- progress report tests --
@@ -351,7 +351,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(RONALDO, RONALD_PASSWORD);
         //when
         try {
-            topologyTasksResource.submitTask(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
             fail();
             //then
         } catch (AccessDeniedOrTopologyDoesNotExistException e) {
@@ -434,7 +434,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     void submitTaskAndWait(DpsTask dpsTask, String topologyName, UriInfo uriInfo, String authHeader) throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException, IOException, ExecutionException, InterruptedException {
-        topologyTasksResource.submitTask(dpsTask, topologyName, uriInfo, authHeader);
+        topologyTasksResource.submitTask(dpsTask, topologyName, authHeader);
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {

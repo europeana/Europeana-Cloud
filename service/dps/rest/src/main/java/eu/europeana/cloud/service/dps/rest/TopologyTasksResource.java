@@ -36,12 +36,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -49,7 +47,10 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 
@@ -144,23 +145,13 @@ public class TopologyTasksResource {
     @PostMapping(consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     @Async
-    public DeferredResult<Response> submitTask(
+    public ResponseEntity submitTask(
             @RequestBody final DpsTask task,
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException, ExecutionException, InterruptedException {
         return doSubmitTask(task, topologyName, authorizationHeader, false);
     }
-
-    public DeferredResult<Response> submitTask(
-            final DpsTask task,
-            final String topologyName,
-            final UriInfo uriInfo,
-            final String authorizationHeader
-    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException, ExecutionException, InterruptedException {
-        return null;
-    }
-
 
     /**
      * Restarts a Task for execution.
@@ -178,7 +169,7 @@ public class TopologyTasksResource {
     @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     @Async
-    public DeferredResult<Response> restartTask(
+    public ResponseEntity restartTask(
             @PathVariable final long taskId,
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
@@ -199,77 +190,99 @@ public class TopologyTasksResource {
      * @throws DpsTaskValidationException
      * @throws IOException
      */
-    private DeferredResult<Response> doSubmitTask(
+    private ResponseEntity doSubmitTask(
             final DpsTask task, final String topologyName,
             final String authorizationHeader, final boolean restart)
             throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
 
-        final long SUBMIT_TASK_TIMEOUT = 5*60*1000;  //5min
+        final long SUBMIT_TASK_TIMEOUT_IN_MIN = 5;
+        final Date sentTime = new Date();
+        final String taskJSON = new ObjectMapper().writeValueAsString(task);
 
-        DeferredResult result = new DeferredResult(SUBMIT_TASK_TIMEOUT);
+        ResponseEntity result = null;
+        CompletableFuture<ResponseEntity> responseFuture = new CompletableFuture<>();
 
         if (task != null) {
-            LOGGER.info(!restart ? "Submitting task" : "Restarting task");
-            assertContainTopology(topologyName);
-            validateTask(task, topologyName);
-            validateOutputDataSetsIfExist(task);
-            final Date sentTime = new Date();
-            task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-            final String taskJSON = new ObjectMapper().writeValueAsString(task);
-            TaskStatusChecker.init(taskInfoDAO);
-
-            URI responseURI = null;
             try {
-                responseURI = buildTaskURI(request.getRequestURL(), task);
-            } catch (URISyntaxException e) {
-                LOGGER.error("Task submission failed");
-                ResponseEntity response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
-                        TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON);
-                result.setResult(response);
-            }
+                LOGGER.info(!restart ? "Submitting task" : "Restarting task");
+                assertContainTopology(topologyName);
+                validateTask(task, topologyName);
+                validateOutputDataSetsIfExist(task);
+                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+                TaskStatusChecker.init(taskInfoDAO);
 
-            SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                    .task(task)
-                    .topologyName(topologyName)
-                    .authorizationHeader(authorizationHeader)
-                    .restart(restart)
-                    .sentTime(sentTime)
-                    .taskJSON(taskJSON)
-                    .responsURI(responseURI)
-                    .deferredResult(result).build();
+                URI responseURI  = buildTaskURI(request.getRequestURL(), task);
 
-            if (result.getResult() == null) {
+                SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+                        .task(task)
+                        .topologyName(topologyName)
+                        .authorizationHeader(authorizationHeader)
+                        .restart(restart)
+                        .sentTime(sentTime)
+                        .taskJSON(taskJSON)
+                        .responsURI(responseURI)
+                        .responseFuture(responseFuture).build();
+
                 Runnable workingThread = applicationContext.getBean(SubmitTaskThread.class, parameters);
                 taskExecutor.execute(workingThread);
+
+            } catch(DpsTaskValidationException e) {
+                responseFuture.complete(processException(e, "Task submission failed. Bad request.",
+                        HttpStatus.BAD_REQUEST, task, topologyName, sentTime, taskJSON));
+            } catch(Exception e) {
+                responseFuture.complete(processException(e, "Task submission failed. Internal server error.",
+                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON));
             }
 
-            while(result.getResult() == null) { }
+            try {
+                result = responseFuture.get(SUBMIT_TASK_TIMEOUT_IN_MIN, TimeUnit.MINUTES);
+            }catch(InterruptedException | ExecutionException | TimeoutException e) {
+                result = processException(e, "Task submission failed. Internal server error.",
+                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON);
+            }
+        } else {
+            LOGGER.error("Task submission failed. Internal server error. DpsTask task is null.");
+            result = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return result;
     }
 
+    private ResponseEntity processException(Throwable throwable, String loggedMessage, HttpStatus httpStatus,
+                                            DpsTask task, String topologyName, Date sentTime, String taskJSON) {
+        LOGGER.error(loggedMessage);
+        ResponseEntity response = ResponseEntity.status(httpStatus).build();
+        taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
+                TaskState.DROPPED.toString(), throwable.getMessage(), sentTime, taskJSON);
+        return response;
+    }
+
+
     @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     @Async
-    public DeferredResult<Response> cleanIndexingDataSet(
+    public ResponseEntity cleanIndexingDataSet(
             @PathVariable final String topologyName,
             @PathVariable final String taskId,
             /*check if input JSON is valid*/ @RequestBody final DataSetCleanerParameters cleanerParameters
     ) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        final long CLEAN_INDEXING_DATA_SET_TIMEOUT = 5*60*1000;  //5min
+        final long CLEAN_INDEXING_DATA_SET_TIMEOUT_IN_MIN = 5;
 
-        DeferredResult result = new DeferredResult(CLEAN_INDEXING_DATA_SET_TIMEOUT);
+        CompletableFuture<ResponseEntity> responseFuture = new CompletableFuture<>();
 
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
 
         Runnable workingThread = applicationContext.getBean(CleanIndexingDataSetThread.class,
-                Long.parseLong(taskId), cleanerParameters, result);
+                Long.parseLong(taskId), cleanerParameters, responseFuture);
         taskExecutor.execute(workingThread);
 
-        while(result.getResult() == null) {
+        ResponseEntity result;
+        try {
+            result = responseFuture.get(CLEAN_INDEXING_DATA_SET_TIMEOUT_IN_MIN, TimeUnit.MINUTES);
+        }catch(InterruptedException | ExecutionException | TimeoutException e) {
+            LOGGER.error("Clean indexing dataSet failed. Internal server error.");
+            result = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return result;

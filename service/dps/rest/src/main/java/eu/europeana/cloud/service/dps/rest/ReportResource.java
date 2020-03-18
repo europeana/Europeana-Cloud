@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @RestController
@@ -123,7 +124,7 @@ public class ReportResource {
         if (idsCount < 0 || idsCount > maxIdentifiersCount) {
             throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
         }
-        if (error == null) {
+        if (error == null || error.equals("null")) {
             return reportService.getGeneralTaskErrorReport(taskId, idsCount);
         }
         return reportService.getSpecificTaskErrorReport(taskId, error, idsCount > 0 ? idsCount : maxIdentifiersCount);
@@ -225,5 +226,4 @@ public class ReportResource {
             throw new AccessDeniedOrTopologyDoesNotExistException("The topology doesn't exist");
         }
     }
-
 }

@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import java.text.ParseException;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope("prototype")
@@ -27,22 +27,22 @@ public class CleanIndexingDataSetThread extends Thread {
 
     private DataSetCleanerParameters cleanerParameters;
 
-    private DeferredResult<ResponseEntity> deferredResult;
+    private CompletableFuture<ResponseEntity> responseFuture;
 
     public CleanIndexingDataSetThread(long taskId, DataSetCleanerParameters cleanerParameters,
-                                      DeferredResult<ResponseEntity> deferredResult) {
+                                      CompletableFuture<ResponseEntity> responseFuture) {
         super("clean-indexing-dataSet-thread");
         this.taskId = taskId;
         this.cleanerParameters = cleanerParameters;
-        this.deferredResult = deferredResult;
+        this.responseFuture = responseFuture;
     }
 
     @Override
     public void run() {
         try {
-            deferredResult.setResult(ResponseEntity.ok("The request was received successfully"));
+            responseFuture.complete(ResponseEntity.ok("The request was received successfully"));
 
-            if (cleanerParameters != null) {
+            if (!areParametersNull(cleanerParameters)) {
                 LOGGER.info("cleaning dataset {} based on date: {}",
                         cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
                 DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
@@ -58,5 +58,12 @@ public class CleanIndexingDataSetThread extends Thread {
             LOGGER.error("Dataset was not removed correctly. ", e);
             taskInfoDAO.dropTask(taskId, e.getMessage(), TaskState.DROPPED.toString());
         }
+    }
+
+    boolean areParametersNull(DataSetCleanerParameters cleanerParameters) {
+        return cleanerParameters == null ||
+                (cleanerParameters.getDataSetId() == null
+                        && cleanerParameters.getTargetIndexingEnv() == null
+                        && cleanerParameters.getCleaningDate() == null);
     }
 }

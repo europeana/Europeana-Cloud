@@ -10,11 +10,7 @@ import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
@@ -23,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -30,6 +27,19 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 public class SpiedDpsTestContext {
 
+    /* REAL Beans */
+    @Bean
+    public ThreadPoolTaskExecutor taskExecutor() {
+        return new ThreadPoolTaskExecutor();
+    }
+
+    @Bean
+    public String mcsLocation() {
+        return "test";
+    }
+
+
+    /* MOCKED Beans */
     @Bean
     public ApplicationContext applicationContext() {
         return Mockito.mock(ApplicationContext.class);
@@ -39,7 +49,6 @@ public class SpiedDpsTestContext {
     public CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO() {
         return Mockito.mock(CassandraNodeStatisticsDAO.class);
     }
-
 
     @Bean
     public PermissionManager permissionManger() {
@@ -82,11 +91,6 @@ public class SpiedDpsTestContext {
     }
 
     @Bean
-    public String mcsLocation() {
-        return "test";
-    }
-
-    @Bean
     public RecordServiceClient recordServiceClient() {
         return Mockito.mock(RecordServiceClient.class);
     }
@@ -106,7 +110,6 @@ public class SpiedDpsTestContext {
         return Mockito.mock(CassandraTaskInfoDAO.class);
     }
 
-
     @Bean
     public FilesCounterFactory filesCounterFactory() {
         return Mockito.mock(FilesCounterFactory.class);
@@ -117,36 +120,30 @@ public class SpiedDpsTestContext {
         return Mockito.mock(FilesCounter.class);
     }
 
-
     @Bean
     public UrlParser urlParser() {
         return Mockito.mock(UrlParser.class);
     }
-
 
     @Bean
     public TasksByStateDAO tasksDAO() {
         return Mockito.mock(TasksByStateDAO.class);
     }
 
-
     @Bean
     public ProcessedRecordsDAO processedRecordsDAO() {
         return Mockito.mock(ProcessedRecordsDAO.class);
     }
-
 
     @Bean
     public TaskStatusChecker taskStatusChecker() {
         return Mockito.mock(TaskStatusChecker.class);
     }
 
-
     @Bean
     public KafkaTopicSelector kafkaTopicSelector() {
         return Mockito.mock(KafkaTopicSelector.class);
     }
-
 
     @Bean
     public HarvestsExecutor harvesterExecutor() {
