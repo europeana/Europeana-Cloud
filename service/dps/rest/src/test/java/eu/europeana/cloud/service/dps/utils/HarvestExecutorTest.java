@@ -1,24 +1,29 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.config.HarvestsExecutorContext;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.spy;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes={HarvestsExecutorContext.class, HarvestsExecutor.class})
 public class HarvestExecutorTest {
     private static final int CASE = 0;
     private static final long TASK_ID = 1234567890L;
@@ -26,17 +31,16 @@ public class HarvestExecutorTest {
     private static final String TOPIC_NAME = "topic";
     private final int HARVESTS_INDEX = 0;
 
-    @Mock
+    @Autowired
     private RecordExecutionSubmitService recordSubmitService;
 
-    @Mock
+    @Autowired
     private ProcessedRecordsDAO processedRecordsDAO;
 
-    @Mock
+    @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    @Spy
-    @InjectMocks
+    @Autowired
     private HarvestsExecutor harvestsExecutor;
 
     private List<Harvest> harvestList;
@@ -82,11 +86,12 @@ public class HarvestExecutorTest {
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
 
-        int count = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME).getResultCounter();
+        HarvestsExecutor spiedHarvestsExecutor = spy(harvestsExecutor);
+        int count = spiedHarvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME).getResultCounter();
 
-        Mockito.verify(harvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OAIHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
-        Mockito.verify(harvestsExecutor, Mockito.times(count)).sentMessage(Matchers.any(DpsRecord.class), Mockito.anyString());
-        Mockito.verify(harvestsExecutor, Mockito.times(count)).updateRecordStatus(Matchers.any(DpsRecord.class), Mockito.anyString());
-        Mockito.verify(harvestsExecutor, Mockito.times(count)).logProgressFor(eq(harvestList.get(HARVESTS_INDEX)), Mockito.anyInt());
+        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OAIHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
+        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).sentMessage(Matchers.any(DpsRecord.class), Mockito.anyString());
+        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).updateRecordStatus(Matchers.any(DpsRecord.class), Mockito.anyString());
+        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).logProgressFor(eq(harvestList.get(HARVESTS_INDEX)), Mockito.anyInt());
     }
 }

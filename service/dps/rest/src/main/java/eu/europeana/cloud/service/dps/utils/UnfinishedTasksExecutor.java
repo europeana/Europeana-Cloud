@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This component will check all tasks with status TaskState.PROCESSING_BY_REST_APPLICATION ({@link eu.europeana.cloud.common.model.dps.TaskState})
+ * This component will check all tasks with status TaskState.PROCESSING_BY_REST_APPLICATION
+ * ({@link eu.europeana.cloud.common.model.dps.TaskState})
  * and start harvesting again for them.
  */
 @Component

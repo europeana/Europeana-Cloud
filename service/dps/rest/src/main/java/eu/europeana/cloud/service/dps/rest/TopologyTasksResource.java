@@ -16,9 +16,11 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.rest.struct.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
@@ -29,13 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,9 +59,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
  * Resource to fetch / submit Tasks to the DPS service
  */
 @RestController
-@Scope("request")
 @RequestMapping("/{topologyName}/tasks")
-@Validated
 public class TopologyTasksResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
@@ -148,7 +146,6 @@ public class TopologyTasksResource {
      */
     @PostMapping(consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @Async
     public ResponseEntity submitTask(
             @RequestBody final DpsTask task,
             @PathVariable final String topologyName,
@@ -172,7 +169,6 @@ public class TopologyTasksResource {
      */
     @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @Async
     public ResponseEntity restartTask(
             @PathVariable final long taskId,
             @PathVariable final String topologyName,

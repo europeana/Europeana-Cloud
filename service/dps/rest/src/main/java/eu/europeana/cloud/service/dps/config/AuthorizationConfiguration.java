@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest.config;
+package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.aas.acl.CassandraMutableAclService;
 import eu.europeana.aas.acl.repository.CassandraAclRepository;

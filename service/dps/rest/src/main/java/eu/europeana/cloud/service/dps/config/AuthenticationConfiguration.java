@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest.config;
+package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService;

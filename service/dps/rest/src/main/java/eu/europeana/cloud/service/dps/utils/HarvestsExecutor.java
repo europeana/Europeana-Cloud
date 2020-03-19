@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
@@ -12,12 +12,12 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.List;
 
-@Service
+@Component
 public class HarvestsExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestsExecutor.class);

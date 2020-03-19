@@ -1,29 +1,31 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
+import eu.europeana.cloud.service.dps.rest.TopologiesResource;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
+import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
+import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
+import eu.europeana.cloud.service.dps.utils.UnfinishedTasksExecutor;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.cloud.service.dps.rest.TopologyTasksResource;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({TopologyTasksResource.class,TopologiesResource.class,SubmitTaskThread.class})
+@Import({TopologyTasksResource.class, TopologiesResource.class, SubmitTaskThread.class})
 public class AbstractSecurityTestContext {
 
 

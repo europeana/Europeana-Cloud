@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest.exceptionmappers;
+package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -28,7 +28,7 @@ import javax.validation.ConstraintViolationException;
  */
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ControllerAdvice
+@ControllerAdvice(basePackages={"eu.europeana.cloud.service.dps.rest"})
 public class UnitedExceptionMapper {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);

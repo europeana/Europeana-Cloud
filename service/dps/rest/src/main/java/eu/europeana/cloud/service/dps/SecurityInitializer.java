@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps;
 
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 

@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.reset;
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
@@ -117,6 +118,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         Mockito.when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
+
     }
 
     /*
@@ -285,14 +287,17 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test(expected = AuthenticationCredentialsNotFoundException.class)
-    public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCheckProgress() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
+    public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCheckProgress() throws
+            AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
 
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
     }
 
 
     @Test(expected = AccessDeniedException.class)
-    public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
+    public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException,
+            AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException, ExecutionException,
+            InterruptedException {
 
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
@@ -304,7 +309,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test(expected = AccessDeniedOrTopologyDoesNotExistException.class)
-    public void vanPersieShouldNotBeAbleGrantPermissionsToNotDefinedTopology() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
+    public void vanPersieShouldNotBeAbleGrantPermissionsToNotDefinedTopology() throws
+            AccessDeniedOrTopologyDoesNotExistException {
         final String FAIL_TOPOLOGY_NAME = "failTopology";
         //given
         login(ADMIN, ADMIN_PASSWORD);
@@ -319,7 +325,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void vanPersieShouldNotBeAbleSubmitTaskToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
         //given
 
-        Mockito.reset(topologyManager);
+        reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, false);
 
         login(ADMIN, ADMIN_PASSWORD);
@@ -335,10 +341,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void vanPersieShouldNotBeAbleGetTaskProgressToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
+    public void vanPersieShouldNotBeAbleGetTaskProgressToNotDefinedTopology() throws
+            AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException,
+            DpsTaskValidationException, IOException, ExecutionException, InterruptedException {
         //given
 
-        Mockito.reset(topologyManager);
+        reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
@@ -357,7 +365,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @Test
     public void UserShouldNotBeAbleKillTaskToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
         //given
-        Mockito.reset(topologyManager);
+        reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
@@ -375,7 +383,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @Test
     public void UserShouldNotBeAbleKillTaskHeDidNotSend() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
         //given
-        Mockito.reset(topologyManager);
+        reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, true);
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(ADMIN, SAMPLE_TOPOLOGY_NAME);
@@ -394,7 +402,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @Test
     public void UserShouldBeAbleKillTaskHeSent() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
         //given
-        Mockito.reset(topologyManager);
+        reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, true);
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(ADMIN, SAMPLE_TOPOLOGY_NAME);
@@ -409,7 +417,9 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         }
     }
 
-    void submitTaskAndWait(DpsTask dpsTask, String topologyName, String authHeader) throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException, IOException, ExecutionException, InterruptedException {
+    void submitTaskAndWait(DpsTask dpsTask, String topologyName, String authHeader)
+            throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException,
+            IOException, ExecutionException, InterruptedException {
         topologyTasksResource.submitTask(dpsTask, topologyName, authHeader);
         try {
             Thread.sleep(5000);

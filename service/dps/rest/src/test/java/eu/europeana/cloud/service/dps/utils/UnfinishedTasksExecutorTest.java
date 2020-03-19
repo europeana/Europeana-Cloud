@@ -1,14 +1,15 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.config.UnfinishedTasksContext;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,8 +17,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes={UnfinishedTasksContext.class,UnfinishedTasksExecutor.class})
-@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes={UnfinishedTasksContext.class, UnfinishedTasksExecutor.class})
+@RunWith(SpringRunner.class)
 public class UnfinishedTasksExecutorTest {
 
     @Autowired

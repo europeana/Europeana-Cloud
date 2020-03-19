@@ -12,13 +12,16 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.config.SpiedDpsTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
+import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
+import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
@@ -27,13 +30,13 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.util.NestedServletException;
 
 import javax.ws.rs.core.MediaType;
 import java.util.*;
@@ -44,7 +47,6 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
@@ -60,7 +62,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {SpiedDpsTestContext.class, TopologyTasksResource.class, SubmitTaskThread.class, CleanIndexingDataSetThread.class})
+@ContextConfiguration(classes = {SpiedDpsTestContext.class, TopologyTasksResource.class, SubmitTaskThread.class, DatasetCleanerService.class /*, UnitedExceptionMapper.class*/})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -83,6 +85,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private static final String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
 
     /* Beans (or mocked beans) */
+    private ApplicationContext context;
     private CassandraTaskInfoDAO taskDAO;
     private DataSetServiceClient dataSetServiceClient;
     private FileServiceClient fileServiceClient;
@@ -105,6 +108,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void init() {
         super.init();
 
+        context = applicationContext.getBean(ApplicationContext.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
@@ -760,13 +764,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
 
-        try {
-            ResultActions response = mockMvc.perform(
-                    post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
-            );
-        }catch(NestedServletException nse) {
-            assertSame(AccessDeniedOrTopologyDoesNotExistException.class, nse.getCause().getClass());
-        }
+        ResultActions response = mockMvc.perform(
+                post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+        );
+        response.andExpect(status().isMethodNotAllowed());
     }
 
 
@@ -777,11 +778,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
 
-        try {
-            ResultActions response = mockMvc.perform(post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
-        } catch(NestedServletException nse) {
-            assertSame(AccessDeniedOrObjectDoesNotExistException.class, nse.getCause().getClass());
-        }
+        ResultActions response = mockMvc.perform(
+                post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+        );
+        response.andExpect(status().isMethodNotAllowed());
     }
 
 
@@ -789,13 +789,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldThrowExceptionIfTaskIdWasNotFound() throws Exception {
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        try {
-            ResultActions response = mockMvc.perform(
-                    get(PROGRESS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
-            );
-        }catch(NestedServletException nse){
-            assertSame(AccessDeniedOrObjectDoesNotExistException.class, nse.getCause().getClass());
-        }
+
+        ResultActions response = mockMvc.perform(
+                get(PROGRESS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+        );
+        response.andExpect(status().isMethodNotAllowed());
     }
 
 
@@ -842,7 +840,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         prepareMocks(LINK_CHECKING_TOPOLOGY);
 
         ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
-
         response.andExpect(status().isBadRequest());
     }
 
@@ -868,14 +865,12 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void shouldThrowAccessDeniedWithNoCredentials() throws Exception {
         DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
-        try {
-            ResultActions response = mockMvc.perform(
-                    post(CLEAN_DATASET_WEB_TARGET,INDEXING_TOPOLOGY,TASK_ID)
-                            .content(asJsonString(dataSetCleanerParameters))
-                            .contentType(MediaType.APPLICATION_JSON));
-        }catch(NestedServletException nse){
-            assertSame(AccessDeniedOrTopologyDoesNotExistException.class, nse.getCause().getClass());
-        }
+
+        ResultActions response = mockMvc.perform(
+                post(CLEAN_DATASET_WEB_TARGET,INDEXING_TOPOLOGY,TASK_ID)
+                        .content(asJsonString(dataSetCleanerParameters))
+                        .contentType(MediaType.APPLICATION_JSON));
+        response.andExpect(status().isMethodNotAllowed());
     }
 
 

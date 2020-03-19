@@ -27,7 +27,7 @@ public class DatasetCleanerService {
     public void clean(String taskId, DataSetCleanerParameters cleanerParameters){
 
         try {
-            if (cleanerParameters != null) {
+            if (!areParametersNull(cleanerParameters)) {
                 LOGGER.info("cleaning dataset {} based on date: {}",
                         cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
                 DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
@@ -43,4 +43,12 @@ public class DatasetCleanerService {
             taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
         }
     }
+
+    boolean areParametersNull(DataSetCleanerParameters cleanerParameters) {
+        return cleanerParameters == null ||
+                (cleanerParameters.getDataSetId() == null
+                        && cleanerParameters.getTargetIndexingEnv() == null
+                        && cleanerParameters.getCleaningDate() == null);
+    }
+
 }

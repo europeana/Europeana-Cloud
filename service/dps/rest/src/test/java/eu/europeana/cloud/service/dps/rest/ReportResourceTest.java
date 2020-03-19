@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.config.SpiedDpsTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +15,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.util.NestedServletException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +22,6 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertSame;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -85,14 +83,12 @@ public class ReportResourceTest extends AbstractResourceTest {
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
-        try {
-            ResultActions response = mockMvc.perform(
-                    get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
-            );
-        } catch (NestedServletException nse) {
-            assertSame(AccessDeniedOrObjectDoesNotExistException.class, nse.getCause().getClass());
-        }
-    }
+
+        ResultActions response = mockMvc.perform(
+                get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+        );
+        response.andExpect(status().isMethodNotAllowed());
+ }
 
 
     @Test
@@ -138,13 +134,11 @@ public class ReportResourceTest extends AbstractResourceTest {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfReportExists(eq(Long.toString(TASK_ID)));
-        try {
-            ResultActions response = mockMvc.perform(
-                    head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
-            );
-        }catch(NestedServletException nse){
-            assertSame(AccessDeniedOrObjectDoesNotExistException.class, nse.getCause().getClass());
-        }
+
+        ResultActions response = mockMvc.perform(
+                head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+        );
+        response.andExpect(status().isMethodNotAllowed());
     }
 
 
@@ -196,13 +190,11 @@ public class ReportResourceTest extends AbstractResourceTest {
     public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws Exception {
         when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
         when(topologyManager.containsTopology(anyString())).thenReturn(false);
-        try {
-            ResultActions response = mockMvc.perform(
-                    get(VALIDATION_STATISTICS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
-            );
-        }catch (NestedServletException nse) {
-            assertSame(AccessDeniedOrTopologyDoesNotExistException.class, nse.getCause().getClass());
-        }
+
+        ResultActions response = mockMvc.perform(
+                get(VALIDATION_STATISTICS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+        );
+        response.andExpect(status().isMethodNotAllowed());
     }
 
 

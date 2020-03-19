@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.rest.struct;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import lombok.Builder;
