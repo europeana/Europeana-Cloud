@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -95,6 +96,9 @@ public class TopologyTasksResource {
 
     @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;
+
+    @Autowired
+    private DatasetCleanerService datasetCleanerService;
 
     /**
      * Retrieves the current progress for the requested task.
@@ -265,32 +269,17 @@ public class TopologyTasksResource {
 
     @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @Async
-    public ResponseEntity cleanIndexingDataSet(
+    public ResponseEntity<Void> cleanIndexingDataSet(
             @PathVariable final String topologyName,
             @PathVariable final String taskId,
-            /*check if input JSON is valid*/ @RequestBody final DataSetCleanerParameters cleanerParameters
+            @RequestBody final DataSetCleanerParameters cleanerParameters
     ) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        final long CLEAN_INDEXING_DATA_SET_TIMEOUT_IN_MIN = 5;
-
-        CompletableFuture<ResponseEntity> responseFuture = new CompletableFuture<>();
+        LOGGER.info("Cleaning parameters for: {}", cleanerParameters);
 
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-
-        Runnable workingThread = applicationContext.getBean(CleanIndexingDataSetThread.class,
-                Long.parseLong(taskId), cleanerParameters, responseFuture);
-        taskExecutor.execute(workingThread);
-
-        ResponseEntity result;
-        try {
-            result = responseFuture.get(CLEAN_INDEXING_DATA_SET_TIMEOUT_IN_MIN, TimeUnit.MINUTES);
-        }catch(InterruptedException | ExecutionException | TimeoutException e) {
-            LOGGER.error("Clean indexing dataSet failed. Internal server error.");
-            result = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        return result;
+        datasetCleanerService.clean(taskId, cleanerParameters);
+        return ResponseEntity.ok().build();
     }
 
     private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
