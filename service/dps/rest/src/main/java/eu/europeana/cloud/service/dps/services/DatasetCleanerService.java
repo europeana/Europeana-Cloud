@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +18,8 @@ public class DatasetCleanerService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(DatasetCleanerService.class);
 
+    @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;
-
-    public DatasetCleanerService(CassandraTaskInfoDAO taskInfoDAO){
-        this.taskInfoDAO = taskInfoDAO;
-    }
 
     @Async
     public void clean(String taskId, DataSetCleanerParameters cleanerParameters){

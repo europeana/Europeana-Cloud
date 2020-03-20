@@ -19,9 +19,11 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
-import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -32,11 +34,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -71,12 +75,6 @@ public class TopologyTasksResource {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private TaskExecutor taskExecutor;
-
-    @Autowired
-    private HttpServletRequest request;
-
-    @Autowired
     private TaskExecutionReportService reportService;
 
     @Autowired
@@ -95,7 +93,16 @@ public class TopologyTasksResource {
     private CassandraTaskInfoDAO taskInfoDAO;
 
     @Autowired
+    private TasksByStateDAO tasksByStateDAO;
+
+    @Autowired
     private DatasetCleanerService datasetCleanerService;
+
+    @Autowired
+    private SubmitTaskService submitTaskService;
+
+    @Autowired
+    private String applicationIdentifier;
 
     /**
      * Retrieves the current progress for the requested task.
@@ -146,11 +153,12 @@ public class TopologyTasksResource {
     @PostMapping(consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public ResponseEntity submitTask(
+            final HttpServletRequest request,
             @RequestBody final DpsTask task,
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        return doSubmitTask(task, topologyName, authorizationHeader, false);
+        return doSubmitTask(request, task, topologyName, authorizationHeader, false);
     }
 
     /**
@@ -169,13 +177,14 @@ public class TopologyTasksResource {
     @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public ResponseEntity restartTask(
+            final HttpServletRequest request,
             @PathVariable final long taskId,
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
-        return doSubmitTask(task, topologyName, authorizationHeader, true);
+        return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
 
     /**
@@ -190,16 +199,16 @@ public class TopologyTasksResource {
      * @throws IOException
      */
     private ResponseEntity<Void> doSubmitTask(
+            final HttpServletRequest request,
             final DpsTask task, final String topologyName,
             final String authorizationHeader, final boolean restart)
             throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
 
+        ResponseEntity<Void> result = null;
+
         final long SUBMIT_TASK_TIMEOUT_IN_MIN = 5;
         final Date sentTime = new Date();
         final String taskJSON = new ObjectMapper().writeValueAsString(task);
-
-        ResponseEntity<Void> result = null;
-        CompletableFuture<ResponseEntity<Void>> responseFuture = new CompletableFuture<>();
 
         if (task != null) {
             try {
@@ -211,36 +220,24 @@ public class TopologyTasksResource {
                 TaskStatusChecker.init(taskInfoDAO);
 
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
+                result = ResponseEntity.created(responseURI).build();
+
+                insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(),
+                        "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
+                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
+
 
                 SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                         .task(task)
                         .topologyName(topologyName)
                         .authorizationHeader(authorizationHeader)
-                        .restart(restart)
-                        .sentTime(sentTime)
-                        .taskJSON(taskJSON)
-                        .responsURI(responseURI)
-                        .responseFuture(responseFuture).build();
+                        .restart(restart).build();
 
-                Runnable workingThread = applicationContext.getBean(SubmitTaskThread.class, parameters);
-                taskExecutor.execute(workingThread);
+                submitTaskService.submitTask(parameters);
 
-            } catch(DpsTaskValidationException e) {
-                responseFuture.complete(processException(e, "Task submission failed. Bad request.",
-                        HttpStatus.BAD_REQUEST, task, topologyName, sentTime, taskJSON));
-                throw e;
-            } catch(AccessDeniedOrTopologyDoesNotExistException e) {
-                responseFuture.complete(processException(e, "Task submission failed. Internal server error.",
-                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON));
+            } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
                 throw e;
             } catch(Exception e) {
-                responseFuture.complete(processException(e, "Task submission failed. Internal server error.",
-                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON));
-            }
-
-            try {
-                result = responseFuture.get(SUBMIT_TASK_TIMEOUT_IN_MIN, TimeUnit.MINUTES);
-            }catch(InterruptedException | ExecutionException | TimeoutException e) {
                 result = processException(e, "Task submission failed. Internal server error.",
                         HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON);
             }
@@ -259,6 +256,24 @@ public class TopologyTasksResource {
         taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
                 TaskState.DROPPED.toString(), throwable.getMessage(), sentTime, taskJSON);
         return response;
+    }
+
+    /**
+     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
+     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
+     * NOTE: Operation is not in transaction! So on table can be modified but second one not
+     * Parameters corresponding to names of column in table(s)
+     *
+     * @param expectedSize
+     * @param state
+     * @param info
+     */
+    private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskJSON, String topicName) {
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON);
+
+        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
+
+        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
     }
 
 

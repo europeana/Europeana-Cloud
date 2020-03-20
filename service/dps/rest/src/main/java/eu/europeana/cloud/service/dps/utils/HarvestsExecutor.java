@@ -25,7 +25,10 @@ public class HarvestsExecutor {
     private final static int DEFAULT_RETRIES = 3;
     private final static int SLEEP_TIME = 5000;
 
+    @Autowired
     private RecordExecutionSubmitService recordSubmitService;
+
+    @Autowired
     private ProcessedRecordsDAO processedRecordsDAO;
     /**
      * Auxiliary object to check 'kill flag' for task
@@ -33,10 +36,10 @@ public class HarvestsExecutor {
     @Autowired
     private TaskStatusChecker taskStatusChecker;
 
-    public HarvestsExecutor(RecordExecutionSubmitService recordSubmitService, ProcessedRecordsDAO processedRecordsDAO) {
+    /*public HarvestsExecutor(RecordExecutionSubmitService recordSubmitService, ProcessedRecordsDAO processedRecordsDAO) {
         this.recordSubmitService = recordSubmitService;
         this.processedRecordsDAO = processedRecordsDAO;
-    }
+    }*/
 
     public HarvestResult execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int resultCounter = 0;

@@ -4,12 +4,11 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.dps.config.UnitedExceptionMapper;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
-import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
@@ -30,16 +29,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({UnitedExceptionMapper.class, SubmitTaskThread.class})
+@Import({UnitedExceptionMapper.class, SubmitTaskService.class})
 public class DPSServiceTestContext {
 
     /* REAL Beans */
-    @Bean
-    @Scope("prototype")
-    public ThreadPoolTaskExecutor taskExecutor() {
-        return new ThreadPoolTaskExecutor();
-    }
-
     @Bean
     public String mcsLocation() {
         return "test";

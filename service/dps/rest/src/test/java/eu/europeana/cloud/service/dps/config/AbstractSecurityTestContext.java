@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
 import eu.europeana.cloud.service.dps.rest.TopologiesResource;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
-import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.utils.UnfinishedTasksExecutor;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -25,7 +25,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({TopologyTasksResource.class, TopologiesResource.class, SubmitTaskThread.class})
+@Import({TopologyTasksResource.class, TopologiesResource.class, SubmitTaskService.class})
 public class AbstractSecurityTestContext {
 
 

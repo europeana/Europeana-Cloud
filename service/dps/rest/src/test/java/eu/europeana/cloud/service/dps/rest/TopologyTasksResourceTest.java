@@ -21,7 +21,7 @@ import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
-import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
@@ -62,7 +62,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, SubmitTaskThread.class, DatasetCleanerService.class /*, UnitedExceptionMapper.class*/})
+@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, SubmitTaskService.class, DatasetCleanerService.class /*, UnitedExceptionMapper.class*/})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */

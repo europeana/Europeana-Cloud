@@ -28,16 +28,4 @@ public class SubmitTaskParameters {
 
     /** Flag if task is subimtted <code>false<code/> or restarted <code>true<code/> */
     private boolean restart;
-
-    /** Start time of processing task */
-    private Date sentTime;
-
-    /** JSON representation of Task from request - for future use*/
-    private String taskJSON;
-
-    /** Reponse URL/URI - in practis it should be request URL with taskId added at the end of requests */
-    private URI responsURI;
-
-    /** Result holder for asynchronous call. It allow to set result (respons) one time and this respons will be returned from call */
-    private CompletableFuture<ResponseEntity<Void>> responseFuture;
 }

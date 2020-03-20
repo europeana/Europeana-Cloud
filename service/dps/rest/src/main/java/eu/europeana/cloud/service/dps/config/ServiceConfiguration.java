@@ -4,14 +4,17 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
@@ -57,11 +60,6 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public ThreadPoolTaskExecutor taskExecutor() {
-        return new ThreadPoolTaskExecutor();
-    }
-
-    @Bean
     public PermissionManager permissionManager() {
         return new PermissionManager();
     }
@@ -78,7 +76,7 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public TaskKafkaSubmitService taskSubmitService() {
+    public TaskKafkaSubmitService taskKafkaSubmitService() {
         return new TaskKafkaSubmitService(
                 environment.getProperty(JNDI_KEY_KAFKA_BROKER),
                 environment.getProperty(JNDI_KEY_KAFKA_GROUP_ID),
@@ -86,7 +84,7 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public RecordKafkaSubmitService recordSubmitService() {
+    public RecordExecutionSubmitService recordKafkaSubmitService() {
         return new RecordKafkaSubmitService(
                 environment.getProperty(JNDI_KEY_KAFKA_BROKER),
                 environment.getProperty(JNDI_KEY_KAFKA_GROUP_ID),
@@ -202,7 +200,17 @@ public class ServiceConfiguration {
 
     @Bean
     public DatasetCleanerService datasetCleanerService(){
-        return new DatasetCleanerService(taskInfoDAO());
+        return new DatasetCleanerService();
+    }
+
+    @Bean
+    public SubmitTaskService submitTaskService(){
+        return new SubmitTaskService();
+    }
+
+    @Bean
+    public HarvestsExecutor harvestsExecutor() {
+        return new HarvestsExecutor();
     }
 
 }
