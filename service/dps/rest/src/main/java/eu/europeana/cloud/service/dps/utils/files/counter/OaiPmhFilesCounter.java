@@ -4,7 +4,7 @@ import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.OAIResponseParseException;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
@@ -30,14 +30,14 @@ public class OaiPmhFilesCounter extends FilesCounter {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(OaiPmhFilesCounter.class);
 
-    private static final String COMPLETE_LIST_SIZE_XPATH =
+    private final static String COMPLETE_LIST_SIZE_XPATH =
             "/*[local-name()='OAI-PMH']" +
                     "/*[local-name()='ListIdentifiers']" +
                     "/*[local-name()='resumptionToken']";
-    public static final String COMPLETE_LIST_SIZE = "completeListSize";
-    private static final int DEFAULT_LIST_SIZE = -1;
-    private static final int DEFAULT_RETRIES = 3;
-    private static final int SLEEP_TIME = 5000;
+    public final static String COMPLETE_LIST_SIZE = "completeListSize";
+    private final static int DEFAULT_LIST_SIZE = -1;
+    private final static int DEFAULT_RETRIES = 3;
+    private final static int SLEEP_TIME = 5000;
 
     /**
      * Returns the number of records to harvest. Executes ListIdentifiers request on OAI endpoint and extracts

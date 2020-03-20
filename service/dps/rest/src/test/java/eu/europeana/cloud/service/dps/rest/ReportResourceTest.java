@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
-import eu.europeana.cloud.service.dps.config.SpiedDpsTestContext;
+import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,25 +31,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {SpiedDpsTestContext.class, ReportResource.class})
+@ContextConfiguration(classes = {DPSServiceTestContext.class, ReportResource.class})
 @TestPropertySource(properties = {"numberOfElementsOnPage=100","maxIdentifiersCount=100"})
 public class ReportResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
-    private static final String WEB_TARGET = ReportResource.class.getAnnotation(RequestMapping.class).value()[0];
-    private static final String DETAILED_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/reports/details";
-    private static final String ERRORS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/reports/errors";
-    private static final String VALIDATION_STATISTICS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/statistics";
-    private static final String ELEMENT_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/reports/element";
+    private final static String WEB_TARGET = ReportResource.class.getAnnotation(RequestMapping.class).value()[0];
+    private final static String DETAILED_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/reports/details";
+    private final static String ERRORS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/reports/errors";
+    private final static String VALIDATION_STATISTICS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/statistics";
+    private final static String ELEMENT_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/reports/element";
 
     /* Constants */
-    private static final String ERROR_MESSAGE = "Message";
-    private static final String[] ERROR_TYPES = {"bd0c7280-db47-11e7-ada4-e2f54b49d956", "bd0ac4d0-db47-11e7-ada4-e2f54b49d956", "4bb74640-db48-11e7-af3d-e2f54b49d956"};
-    private static final int[] ERROR_COUNTS = {5, 2, 7};
-    private static final String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
-    private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
-    public static final String PATH = "path";
-    public static final String PATH_VALUE = "ELEMENT";
+    private final static String ERROR_MESSAGE = "Message";
+    private final static String[] ERROR_TYPES = {"bd0c7280-db47-11e7-ada4-e2f54b49d956", "bd0ac4d0-db47-11e7-ada4-e2f54b49d956", "4bb74640-db48-11e7-af3d-e2f54b49d956"};
+    private final static int[] ERROR_COUNTS = {5, 2, 7};
+    private final static String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
+    private final static String ADDITIONAL_INFORMATIONS = "Additional informations ";
+    public final static String PATH = "path";
+    public final static String PATH_VALUE = "ELEMENT";
 
     /* Beans (or mocked beans) */
     private TaskExecutionReportService reportService;

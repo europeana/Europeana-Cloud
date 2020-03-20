@@ -23,8 +23,8 @@ import javax.ws.rs.core.MediaType;
 @RequestMapping("/{topologyName}")
 public class TopologiesResource {
 
-    private static final String TOPOLOGY_PREFIX = "Topology";
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
+    private final static String TOPOLOGY_PREFIX = "Topology";
+    private final static Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
     private MutableAclService mutableAclService;
     private TopologyManager topologyManager;
 

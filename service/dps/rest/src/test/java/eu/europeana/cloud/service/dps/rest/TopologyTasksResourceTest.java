@@ -12,10 +12,10 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
-import eu.europeana.cloud.service.dps.config.SpiedDpsTestContext;
+import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
@@ -62,27 +62,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {SpiedDpsTestContext.class, TopologyTasksResource.class, SubmitTaskThread.class, DatasetCleanerService.class /*, UnitedExceptionMapper.class*/})
+@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, SubmitTaskThread.class, DatasetCleanerService.class /*, UnitedExceptionMapper.class*/})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
-    private static final String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
-    private static final String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
-    private static final String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
-    private static final String CLEAN_DATASET_WEB_TARGET = WEB_TARGET + "/{taskId}/cleaner";
+    private final static String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
+    private final static String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
+    private final static String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
+    private final static String CLEAN_DATASET_WEB_TARGET = WEB_TARGET + "/{taskId}/cleaner";
 
     /* Constants */
-    private static final String DATA_SET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
-    private static final String IMAGE_TIFF = "image/tiff";
-    private static final String IMAGE_JP2 = "image/jp2";
-    private static final String IC_TOPOLOGY = "ic_topology";
-    private static final String TASK_NAME = "TASK_NAME";
+    private final static String DATA_SET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
+    private final static String IMAGE_TIFF = "image/tiff";
+    private final static String IMAGE_JP2 = "image/jp2";
+    private final static String IC_TOPOLOGY = "ic_topology";
+    private final static  String TASK_NAME = "TASK_NAME";
 
-    private static final String OAI_PMH_REPOSITORY_END_POINT = "http://example.com/oai-pmh-repository.xml";
-    private static final String HTTP_COMPRESSED_FILE_URL = "http://example.com/zipFile.zip";
-    private static final String WRONG_DATA_SET_URL = "http://wrongDataSet.com";
+    private final static String OAI_PMH_REPOSITORY_END_POINT = "http://example.com/oai-pmh-repository.xml";
+    private final static String HTTP_COMPRESSED_FILE_URL = "http://example.com/zipFile.zip";
+    private final static String WRONG_DATA_SET_URL = "http://wrongDataSet.com";
 
-    private static final String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
+    private final static String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
 
     /* Beans (or mocked beans) */
     private ApplicationContext context;
@@ -916,11 +916,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters();
         dataSetCleanerParameters.setCleaningDate(new Date());
         dataSetCleanerParameters.setDataSetId("DATASET_ID");
-        dataSetCleanerParameters.setIsUsingALtEnv(true);
+        dataSetCleanerParameters.setUsingAltEnv(true);
         dataSetCleanerParameters.setTargetIndexingEnv(TargetIndexingDatabase.PREVIEW.toString());
         return dataSetCleanerParameters;
     }
-
 
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);

@@ -13,7 +13,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
  * File counters inside a Record task
  */
 public class RecordFilesCounter extends FilesCounter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecordFilesCounter.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(RecordFilesCounter.class);
 
     public int getFilesCount(DpsTask task) {
         try {

@@ -4,7 +4,7 @@ import java.util.*;
 
 public class TopologiesTopicsParser {
 
-    private static final String INPUT_VALUE_REGEX = "(\\w+:(\\w*,?)+;?)+";
+    private final static String INPUT_VALUE_REGEX = "(\\w+:(\\w*,?)+;?)+";
 
     public Map<String, List<String>> parse(String topicsList) {
         if (isInputValid(topicsList)) {

@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,14 +14,12 @@ import org.slf4j.LoggerFactory;
  * File counters inside a dataset task
  */
 public class DatasetFilesCounter extends FilesCounter {
-    public static final int UNKNOWN_EXPECTED_SIZE = -1;
+    public final static int UNKNOWN_EXPECTED_SIZE = -1;
     private CassandraTaskInfoDAO taskDAO;
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
-
+    private final static Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
 
     DatasetFilesCounter(CassandraTaskInfoDAO taskDAO) {
         this.taskDAO = taskDAO;
-
     }
 
     public int getFilesCount(DpsTask task) throws TaskSubmissionException {

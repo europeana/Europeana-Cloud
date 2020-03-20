@@ -16,13 +16,13 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.rest.struct.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskThread;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -34,7 +34,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,7 +61,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @RequestMapping("/{topologyName}/tasks")
 public class TopologyTasksResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
     private final static String TOPOLOGY_PREFIX = "Topology";
 
@@ -150,7 +149,7 @@ public class TopologyTasksResource {
             @RequestBody final DpsTask task,
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
-    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException, ExecutionException, InterruptedException {
+    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         return doSubmitTask(task, topologyName, authorizationHeader, false);
     }
 
@@ -173,7 +172,7 @@ public class TopologyTasksResource {
             @PathVariable final long taskId,
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
-    ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException, ExecutionException, InterruptedException {
+    ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return doSubmitTask(task, topologyName, authorizationHeader, true);
@@ -190,7 +189,7 @@ public class TopologyTasksResource {
      * @throws DpsTaskValidationException
      * @throws IOException
      */
-    private ResponseEntity doSubmitTask(
+    private ResponseEntity<Void> doSubmitTask(
             final DpsTask task, final String topologyName,
             final String authorizationHeader, final boolean restart)
             throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
@@ -199,8 +198,8 @@ public class TopologyTasksResource {
         final Date sentTime = new Date();
         final String taskJSON = new ObjectMapper().writeValueAsString(task);
 
-        ResponseEntity result = null;
-        CompletableFuture<ResponseEntity> responseFuture = new CompletableFuture<>();
+        ResponseEntity<Void> result = null;
+        CompletableFuture<ResponseEntity<Void>> responseFuture = new CompletableFuture<>();
 
         if (task != null) {
             try {
@@ -253,10 +252,10 @@ public class TopologyTasksResource {
         return result;
     }
 
-    private ResponseEntity processException(Throwable throwable, String loggedMessage, HttpStatus httpStatus,
+    private ResponseEntity<Void> processException(Throwable throwable, String loggedMessage, HttpStatus httpStatus,
                                             DpsTask task, String topologyName, Date sentTime, String taskJSON) {
         LOGGER.error(loggedMessage);
-        ResponseEntity response = ResponseEntity.status(httpStatus).build();
+        ResponseEntity<Void> response = ResponseEntity.status(httpStatus).build();
         taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
                 TaskState.DROPPED.toString(), throwable.getMessage(), sentTime, taskJSON);
         return response;
@@ -280,22 +279,20 @@ public class TopologyTasksResource {
 
     private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
         List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-        if (dataSets != null) {
-            for (String dataSetURL : dataSets) {
-                try {
-                    DataSet dataSet = parseDataSetURl(dataSetURL);
-                    dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
-                    validateProviderId(task, dataSet.getProviderId());
-                } catch (MalformedURLException e) {
-                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
-                            + " can not be submitted because: " + e.getMessage());
-                } catch (DataSetNotExistsException e) {
-                    throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
-                            + " Does not exist");
-                } catch (Exception e) {
-                    throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
-                            + dataSetURL + " because of: " + e.getMessage());
-                }
+        for (String dataSetURL : dataSets) {
+            try {
+                DataSet dataSet = parseDataSetURl(dataSetURL);
+                dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
+                validateProviderId(task, dataSet.getProviderId());
+            } catch (MalformedURLException e) {
+                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                        + " can not be submitted because: " + e.getMessage());
+            } catch (DataSetNotExistsException e) {
+                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                        + " Does not exist");
+            } catch (Exception e) {
+                throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
+                        + dataSetURL + " because of: " + e.getMessage());
             }
         }
     }
@@ -309,9 +306,9 @@ public class TopologyTasksResource {
     }
 
     private List<String> readDataSetsList(String listParameter) {
-        if (listParameter == null)
-            return null;
-        return Arrays.asList(listParameter.split(","));
+        return listParameter == null ?
+                Arrays.asList() :
+                Arrays.asList(listParameter.split(","));
     }
 
     private DataSet parseDataSetURl(String url) throws MalformedURLException {

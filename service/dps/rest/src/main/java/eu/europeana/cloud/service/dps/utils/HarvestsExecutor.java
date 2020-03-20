@@ -20,10 +20,10 @@ import java.util.List;
 @Component
 public class HarvestsExecutor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestsExecutor.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(HarvestsExecutor.class);
 
-    private static final int DEFAULT_RETRIES = 3;
-    private static final int SLEEP_TIME = 5000;
+    private final static int DEFAULT_RETRIES = 3;
+    private final static int SLEEP_TIME = 5000;
 
     private RecordExecutionSubmitService recordSubmitService;
     private ProcessedRecordsDAO processedRecordsDAO;

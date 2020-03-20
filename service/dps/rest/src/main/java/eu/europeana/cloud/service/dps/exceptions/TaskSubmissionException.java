@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest.exceptions;
+package eu.europeana.cloud.service.dps.exceptions;
 
 public class TaskSubmissionException extends Exception {
 

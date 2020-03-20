@@ -20,7 +20,7 @@ import java.util.List;
 @Component
 public class UnfinishedTasksExecutor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);
 
     @Autowired
     private TasksByStateDAO tasksDAO;

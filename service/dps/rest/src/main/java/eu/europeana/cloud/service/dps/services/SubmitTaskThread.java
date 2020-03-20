@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.dps.services;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.rest.struct.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
@@ -30,9 +30,9 @@ import java.util.List;
 @Scope("prototype")
 @Repository
 public class SubmitTaskThread extends Thread {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskThread.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(SubmitTaskThread.class);
 
-    private static final int UNKNOWN_EXPECTED_SIZE = -1;
+    private final static int UNKNOWN_EXPECTED_SIZE = -1;
 
     @Autowired
     private HarvestsExecutor harvestsExecutor;
@@ -68,7 +68,7 @@ public class SubmitTaskThread extends Thread {
     @Override
     public void run() {
         try {
-            ResponseEntity response = ResponseEntity.created(parameters.getResponsURI()).build();
+            ResponseEntity<Void> response = ResponseEntity.created(parameters.getResponsURI()).build();
             insertTask(0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "The task is in a pending mode, it is being processed before submission", "");
             permissionManager.grantPermissionsForTask(String.valueOf(parameters.getTask().getTaskId()));
             parameters.getResponseFuture().complete(response);
@@ -99,13 +99,13 @@ public class SubmitTaskThread extends Thread {
         } catch (TaskSubmissionException e) {
             LOGGER.error("Task submission failed: {}", e.getMessage(), e);
             insertTask(0, TaskState.DROPPED.toString(), e.getMessage(), "");
-            ResponseEntity response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            ResponseEntity<Void> response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             parameters.getResponseFuture().complete(response);
         } catch (Exception e) {
             String fullStacktrace = ExceptionUtils.getStackTrace(e);
             LOGGER.error("Task submission failed: {}", fullStacktrace);
             insertTask(0, TaskState.DROPPED.toString(), fullStacktrace, "");
-            ResponseEntity response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            ResponseEntity<Void> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             parameters.getResponseFuture().complete(response);
         }
     }

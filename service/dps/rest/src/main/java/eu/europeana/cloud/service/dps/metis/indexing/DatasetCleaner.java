@@ -20,7 +20,7 @@ import java.util.Properties;
  */
 public class DatasetCleaner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
     private IndexerFactory indexerFactory;
     private Properties properties = new Properties();
 
@@ -57,7 +57,7 @@ public class DatasetCleaner {
     private void prepareIndexerFactory() {
         LOGGER.debug("Preparing IndexerFactory for removing datasets from Solr and Mongo");
         //
-        boolean altEnv = cleanerParameters.getIsUsingALtEnv();
+        boolean altEnv = cleanerParameters.isUsingAltEnv();
         final String targetIndexingEnv = cleanerParameters.getTargetIndexingEnv();
         //
         IndexingSettings indexingSettings = null;

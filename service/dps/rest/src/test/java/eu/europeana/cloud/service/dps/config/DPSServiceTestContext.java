@@ -31,7 +31,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @Configuration
 @EnableWebMvc
 @Import({UnitedExceptionMapper.class, SubmitTaskThread.class})
-public class SpiedDpsTestContext {
+public class DPSServiceTestContext {
 
     /* REAL Beans */
     @Bean

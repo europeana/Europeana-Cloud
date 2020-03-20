@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
@@ -62,7 +62,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     private DpsTask XSLT_TASK2;
     private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
 
-    private static final String AUTH_HEADER_VALUE = "header_value";
+    private final static String AUTH_HEADER_VALUE = "header_value";
 
     /* Beans and mocked beans */
     @Autowired

@@ -9,7 +9,7 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 
 public class DPSAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DPSAppInitializer.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(DPSAppInitializer.class);
 
     @Override
     protected Class<?>[] getRootConfigClasses() {

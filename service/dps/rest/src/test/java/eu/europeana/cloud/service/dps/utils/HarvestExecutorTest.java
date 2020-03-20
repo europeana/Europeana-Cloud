@@ -25,10 +25,10 @@ import static org.mockito.Mockito.spy;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes={HarvestsExecutorContext.class, HarvestsExecutor.class})
 public class HarvestExecutorTest {
-    private static final int CASE = 0;
-    private static final long TASK_ID = 1234567890L;
-    private static final String OAI_TOPOLOGY_NAME = "OAI_TOPOLOGY";
-    private static final String TOPIC_NAME = "topic";
+    private final static int CASE = 0;
+    private final static long TASK_ID = 1234567890L;
+    private final static String OAI_TOPOLOGY_NAME = "OAI_TOPOLOGY";
+    private final static String TOPIC_NAME = "topic";
     private final int HARVESTS_INDEX = 0;
 
     @Autowired
@@ -45,7 +45,7 @@ public class HarvestExecutorTest {
 
     private List<Harvest> harvestList;
 
-    private static final String[][] DATA = new String[][]{
+    private final static String[][] DATA = new String[][]{
             {"http://islandskort.is/oai", "edm", ""},
             {"http://baekur.is/oai", "edm", ""},
             {"http://test117.ait.co.at/oai-provider-edm/oai", "edm", ""}

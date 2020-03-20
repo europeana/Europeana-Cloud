@@ -16,21 +16,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 @RestController
 @Scope("request")
 @RequestMapping("/{topologyName}/tasks")
-@Validated
 public class ReportResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
 
     public final static String TASK_PREFIX = "DPS_Task";
 
@@ -68,7 +65,6 @@ public class ReportResource {
      */
     @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    @Validated
     public List<SubTaskInfo> getTaskDetailedReport(
             @PathVariable String taskId,
             @PathVariable final String topologyName,
