@@ -21,8 +21,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import javax.inject.Inject;
 import java.util.List;
 
 @Service
