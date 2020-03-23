@@ -33,14 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -51,10 +48,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 
@@ -187,96 +180,6 @@ public class TopologyTasksResource {
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
 
-    /**
-     *
-     * @param task
-     * @param topologyName
-     * @param authorizationHeader
-     * @param restart
-     * @return
-     * @throws AccessDeniedOrTopologyDoesNotExistException
-     * @throws DpsTaskValidationException
-     * @throws IOException
-     */
-    private ResponseEntity<Void> doSubmitTask(
-            final HttpServletRequest request,
-            final DpsTask task, final String topologyName,
-            final String authorizationHeader, final boolean restart)
-            throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-
-        ResponseEntity<Void> result = null;
-
-        final long SUBMIT_TASK_TIMEOUT_IN_MIN = 5;
-        final Date sentTime = new Date();
-        final String taskJSON = new ObjectMapper().writeValueAsString(task);
-
-        if (task != null) {
-            try {
-                LOGGER.info(!restart ? "Submitting task" : "Restarting task");
-                assertContainTopology(topologyName);
-                validateTask(task, topologyName);
-                validateOutputDataSetsIfExist(task);
-                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                TaskStatusChecker.init(taskInfoDAO);
-
-                URI responseURI  = buildTaskURI(request.getRequestURL(), task);
-                result = ResponseEntity.created(responseURI).build();
-
-                insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(),
-                        "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
-                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-
-
-                SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                        .task(task)
-                        .topologyName(topologyName)
-                        .authorizationHeader(authorizationHeader)
-                        .restart(restart).build();
-
-                submitTaskService.submitTask(parameters);
-
-            } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
-                throw e;
-            } catch(Exception e) {
-                result = processException(e, "Task submission failed. Internal server error.",
-                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON);
-            }
-        } else {
-            LOGGER.error("Task submission failed. Internal server error. DpsTask task is null.");
-            result = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        return result;
-    }
-
-    private ResponseEntity<Void> processException(Throwable throwable, String loggedMessage, HttpStatus httpStatus,
-                                            DpsTask task, String topologyName, Date sentTime, String taskJSON) {
-        LOGGER.error(loggedMessage);
-        ResponseEntity<Void> response = ResponseEntity.status(httpStatus).build();
-        taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
-                TaskState.DROPPED.toString(), throwable.getMessage(), sentTime, taskJSON);
-        return response;
-    }
-
-    /**
-     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
-     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
-     * NOTE: Operation is not in transaction! So on table can be modified but second one not
-     * Parameters corresponding to names of column in table(s)
-     *
-     * @param expectedSize
-     * @param state
-     * @param info
-     */
-    private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskJSON, String topicName) {
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON);
-
-        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
-
-        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
-    }
-
-
     @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public ResponseEntity<Void> cleanIndexingDataSet(
@@ -290,52 +193,6 @@ public class TopologyTasksResource {
         reportService.checkIfTaskExists(taskId, topologyName);
         datasetCleanerService.clean(taskId, cleanerParameters);
         return ResponseEntity.ok().build();
-    }
-
-    private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
-        List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-        for (String dataSetURL : dataSets) {
-            try {
-                DataSet dataSet = parseDataSetURl(dataSetURL);
-                dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
-                validateProviderId(task, dataSet.getProviderId());
-            } catch (MalformedURLException e) {
-                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
-                        + " can not be submitted because: " + e.getMessage());
-            } catch (DataSetNotExistsException e) {
-                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
-                        + " Does not exist");
-            } catch (Exception e) {
-                throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
-                        + dataSetURL + " because of: " + e.getMessage());
-            }
-        }
-    }
-
-    private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
-        String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
-        if (providedProviderId != null)
-            if (!providedProviderId.equals(providerId))
-                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
-                        + " should be the same provider of the output dataSet: " + providerId);
-    }
-
-    private List<String> readDataSetsList(String listParameter) {
-        return listParameter == null ?
-                Arrays.asList() :
-                Arrays.asList(listParameter.split(","));
-    }
-
-    private DataSet parseDataSetURl(String url) throws MalformedURLException {
-        UrlParser parser = new UrlParser(url);
-        if (parser.isUrlToDataset()) {
-            DataSet dataSet = new DataSet();
-            dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
-            dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
-            return dataSet;
-        }
-        throw new MalformedURLException("The dataSet URL is not formulated correctly");
-
     }
 
     /**
@@ -406,13 +263,151 @@ public class TopologyTasksResource {
         return Response.ok("The task was killed because of " + info).build();
     }
 
-   private URI buildTaskURI(StringBuffer base, DpsTask task) throws URISyntaxException {
+    /**
+     * Common method for submit/restart task. Mode is given in restart parameter
+     * @param task Task to process to
+     * @param topologyName Name of processing topology
+     * @param authorizationHeader Header for authorisation
+     * @param restart Mode (submit = <code>false</code> / restart = <code>true</code>) flag
+     * @return Respons for rest call
+     * @throws AccessDeniedOrTopologyDoesNotExistException
+     * @throws DpsTaskValidationException
+     * @throws IOException
+     */
+    private ResponseEntity<Void> doSubmitTask(
+            final HttpServletRequest request,
+            final DpsTask task, final String topologyName,
+            final String authorizationHeader, final boolean restart)
+            throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+
+        ResponseEntity<Void> result = null;
+
+        final Date sentTime = new Date();
+        final String taskJSON = new ObjectMapper().writeValueAsString(task);
+
+        if (task != null) {
+            try {
+                LOGGER.info(!restart ? "Submitting task" : "Restarting task");
+                assertContainTopology(topologyName);
+                validateTask(task, topologyName);
+                validateOutputDataSetsIfExist(task);
+                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+                TaskStatusChecker.init(taskInfoDAO);
+
+                URI responseURI  = buildTaskURI(request.getRequestURL(), task);
+                result = ResponseEntity.created(responseURI).build();
+
+                insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(),
+                        "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
+                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
+
+
+                SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+                        .task(task)
+                        .topologyName(topologyName)
+                        .authorizationHeader(authorizationHeader)
+                        .restart(restart).build();
+
+                submitTaskService.submitTask(parameters);
+
+            } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
+                throw e;
+            } catch(Exception e) {
+                result = getResponseForException(e, "Task submission failed. Internal server error.",
+                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON);
+            }
+        } else {
+            LOGGER.error("Task submission failed. Internal server error. DpsTask task is null.");
+            result = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return result;
+    }
+
+    /**
+     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
+     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
+     * NOTE: Operation is not in transaction! So on table can be modified but second one not
+     * Parameters corresponding to names of column in table(s)
+     *
+     * @param taskId Taski to submit to identifier
+     * @param topologyName Name of processing topology
+     * @param expectedSize Expected size for task (number of subitems)
+     * @param state Current task state
+     * @param info Additional information
+     * @param sentTime Time of sending task
+     * @param taskJSON Taske represented in json format for future use
+     */
+    private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskJSON, String topicName) {
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON);
+        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
+        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
+    }
+
+
+    private ResponseEntity<Void> getResponseForException(Exception exception, String loggedMessage, HttpStatus httpStatus,
+                                                  DpsTask task, String topologyName, Date sentTime, String taskJSON) {
+        LOGGER.error(loggedMessage);
+        ResponseEntity<Void> response = ResponseEntity.status(httpStatus).build();
+        taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
+                TaskState.DROPPED.toString(), exception.getMessage(), sentTime, taskJSON);
+        return response;
+    }
+
+
+    private URI buildTaskURI(StringBuffer base, DpsTask task) throws URISyntaxException {
         if(base.charAt(base.length()-1) != '/') {
             base.append('/');
         }
         base.append(task.getTaskId());
         return new URI(base.toString());
    }
+
+    private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
+        List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+        for (String dataSetURL : dataSets) {
+            try {
+                DataSet dataSet = parseDataSetURl(dataSetURL);
+                dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
+                validateProviderId(task, dataSet.getProviderId());
+            } catch (MalformedURLException e) {
+                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                        + " can not be submitted because: " + e.getMessage());
+            } catch (DataSetNotExistsException e) {
+                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                        + " Does not exist");
+            } catch (Exception e) {
+                throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
+                        + dataSetURL + " because of: " + e.getMessage());
+            }
+        }
+    }
+
+    private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
+        String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
+        if (providedProviderId != null)
+            if (!providedProviderId.equals(providerId))
+                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
+                        + " should be the same provider of the output dataSet: " + providerId);
+    }
+
+    private List<String> readDataSetsList(String listParameter) {
+        return listParameter == null ?
+                Arrays.asList() :
+                Arrays.asList(listParameter.split(","));
+    }
+
+    private DataSet parseDataSetURl(String url) throws MalformedURLException {
+        UrlParser parser = new UrlParser(url);
+        if (parser.isUrlToDataset()) {
+            DataSet dataSet = new DataSet();
+            dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
+            dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
+            return dataSet;
+        }
+        throw new MalformedURLException("The dataSet URL is not formulated correctly");
+
+    }
 
     private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
         if (!topologyManager.containsTopology(topology)) {
