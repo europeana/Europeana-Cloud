@@ -17,5 +17,5 @@ public interface TaskExecutionSubmitService {
     /**
      * @return Fetches a task from the list
      */
-    DpsTask fetchTask(String topology, long taskId);
+   // DpsTask fetchTask(String topology, long taskId);
 }
