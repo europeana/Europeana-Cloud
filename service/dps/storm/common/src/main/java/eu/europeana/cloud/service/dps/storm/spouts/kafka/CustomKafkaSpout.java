@@ -4,7 +4,9 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import org.apache.storm.kafka.*;
+//import org.apache.storm.kafka.*;
+import org.apache.storm.kafka.spout.KafkaSpout;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
@@ -29,11 +31,11 @@ public class CustomKafkaSpout extends KafkaSpout {
     private String password;
     protected CassandraTaskInfoDAO cassandraTaskInfoDAO;
 
-    protected CustomKafkaSpout(SpoutConfig spoutConf) {
+    protected CustomKafkaSpout(KafkaSpoutConfig spoutConf) {
         super(spoutConf);
     }
 
-    public CustomKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public CustomKafkaSpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                             String userName, String password) {
         super(spoutConf);
         this.hosts = hosts;

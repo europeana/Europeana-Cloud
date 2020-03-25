@@ -10,7 +10,8 @@ import eu.europeana.cloud.service.dps.storm.spouts.kafka.CollectorWrapper;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.TaskQueueFiller;
 //import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job.IdentifierHarvester;
-import org.apache.storm.kafka.SpoutConfig;
+//import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -35,7 +36,7 @@ public class OAISpout extends CustomKafkaSpout {
     private SpoutOutputCollector collector;
     private TaskDownloader taskDownloader;
 
-    public OAISpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public OAISpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                     String userName, String password) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
 

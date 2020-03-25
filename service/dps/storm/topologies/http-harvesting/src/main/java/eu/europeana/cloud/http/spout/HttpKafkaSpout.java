@@ -23,7 +23,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.storm.kafka.SpoutConfig;
+//import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -59,12 +60,12 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
     TaskDownloader taskDownloader;
 
-    HttpKafkaSpout(SpoutConfig spoutConf) {
+    HttpKafkaSpout(KafkaSpoutConfig spoutConf) {
         super(spoutConf);
         taskDownloader = new TaskDownloader();
     }
 
-    public HttpKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public HttpKafkaSpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
 

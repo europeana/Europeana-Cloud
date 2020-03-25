@@ -14,6 +14,5 @@ public class TopologyConstants {
     public static final String CASSANDRA_USERNAME = "cassandra";
     public static final String CASSANDRA_SECRET_TOKEN = "cassandra";
     public static final String ZOOKEEPER_HOST = "localhost";
-
-
+    public static final String KAFKA_HOST = "localhost";
 }

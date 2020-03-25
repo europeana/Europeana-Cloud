@@ -104,6 +104,7 @@
             </exclusions>
         </dependency>
 
+<!--
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka</artifactId>
@@ -127,7 +128,15 @@
                 </exclusion>
             </exclusions>
         </dependency>
+-->
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-kafka-client</artifactId>
+            <version>${version.storm-kafka.lib}</version>
+        </dependency>
 
+
+<!--
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.12</artifactId>
@@ -151,6 +160,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.apache.storm</groupId>

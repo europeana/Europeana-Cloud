@@ -9,7 +9,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.job.TaskExecutor;
-import org.apache.storm.kafka.SpoutConfig;
+//import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -39,13 +40,13 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     TaskDownloader taskDownloader;
     private String mcsClientURL;
 
-    public MCSReaderSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public MCSReaderSpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password, String mcsClientURL) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
         this.mcsClientURL = mcsClientURL;
     }
 
-    public MCSReaderSpout(SpoutConfig spoutConf) {
+    public MCSReaderSpout(KafkaSpoutConfig spoutConf) {
         super(spoutConf);
         taskDownloader = new TaskDownloader();
     }

@@ -158,8 +158,8 @@
         <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
-        <version.cassandra-unit>2.1.3.1</version.cassandra-unit>
         <version.storm>1.1.3</version.storm>
+        <version.cassandra-unit>2.1.3.1</version.cassandra-unit>
         <!-- 0.10.0 is minimum -->
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

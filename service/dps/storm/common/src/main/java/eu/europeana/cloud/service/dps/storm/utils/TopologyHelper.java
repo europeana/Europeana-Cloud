@@ -2,11 +2,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import org.apache.storm.Config;
-import org.apache.storm.kafka.BrokerHosts;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
-import org.apache.storm.spout.SchemeAsMultiScheme;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -65,6 +61,7 @@ public final class TopologyHelper {
         return config;
     }
 
+/*
     public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
         BrokerHosts brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, topic, "", "storm");
@@ -77,4 +74,24 @@ public final class TopologyHelper {
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
     }
+*/
+
+    public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
+        KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
+                .builder(
+                        topologyProperties.getProperty(BOOTSTRAP_SERVERS),
+                        topic)
+                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
+                .build();
+
+
+        return new MCSReaderSpout(kafkaConfig,
+                topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
+    }
+
 }

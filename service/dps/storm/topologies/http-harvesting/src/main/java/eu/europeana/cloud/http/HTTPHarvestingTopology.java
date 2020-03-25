@@ -13,12 +13,8 @@ import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.BrokerHosts;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
 import com.google.common.base.Throwables;
-import org.apache.storm.spout.SchemeAsMultiScheme;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
@@ -38,25 +34,34 @@ import static java.lang.Integer.parseInt;
  */
 public class HTTPHarvestingTopology {
     private static Properties topologyProperties;
-    private final BrokerHosts brokerHosts;
+    //private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvestingTopology.class);
 
     public HTTPHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
+        //brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
     }
 
     public final StormTopology buildTopology(String httpTopic, String ecloudMcsAddress, String uisAddress) {
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+/*
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, httpTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
+*/
+
         TopologyBuilder builder = new TopologyBuilder();
+
+        KafkaSpoutConfig kafkaConfig =
+                KafkaSpoutConfig.builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), httpTopic)
+                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
+                .build();
 
         HttpKafkaSpout httpKafkaSpout = new HttpKafkaSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),

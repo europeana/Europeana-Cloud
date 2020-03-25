@@ -222,6 +222,7 @@
             </exclusions>
         </dependency>
 
+<!--
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka</artifactId>
@@ -245,6 +246,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+-->
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-validation-service</artifactId>
