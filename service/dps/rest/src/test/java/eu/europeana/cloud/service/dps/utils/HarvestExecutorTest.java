@@ -32,12 +32,6 @@ public class HarvestExecutorTest {
     private final int HARVESTS_INDEX = 0;
 
     @Autowired
-    private RecordExecutionSubmitService recordSubmitService;
-
-    @Autowired
-    private ProcessedRecordsDAO processedRecordsDAO;
-
-    @Autowired
     private TaskStatusChecker taskStatusChecker;
 
     @Autowired

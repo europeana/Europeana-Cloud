@@ -17,24 +17,24 @@ public class TopologiesTopicsParserTest {
     public void shouldSuccessfullyParseTopicsList() {
         TopologiesTopicsParser t = new TopologiesTopicsParser();
         Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT);
-        Assert.assertTrue(topologiesTopicsList.size() == 2);
-        Assert.assertTrue(topologiesTopicsList.get("oai_topology") != null);
-        Assert.assertTrue(topologiesTopicsList.get("another_topology") != null);
+        Assert.assertEquals(2, topologiesTopicsList.size());
+        Assert.assertNotNull(topologiesTopicsList.get("oai_topology"));
+        Assert.assertNotNull(topologiesTopicsList.get("another_topology"));
 
-        Assert.assertTrue(topologiesTopicsList.get("oai_topology").size() == 3);
-        Assert.assertTrue(topologiesTopicsList.get("another_topology").size() == 2);
+        Assert.assertEquals(3, topologiesTopicsList.get("oai_topology").size());
+        Assert.assertEquals(2, topologiesTopicsList.get("another_topology").size());
     }
 
     @Test
     public void shouldSuccessfullyParseTopicsList_1() {
         TopologiesTopicsParser t = new TopologiesTopicsParser();
         Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT_1);
-        Assert.assertTrue(topologiesTopicsList.size() == 2);
-        Assert.assertTrue(topologiesTopicsList.get("oai_topology") != null);
-        Assert.assertTrue(topologiesTopicsList.get("another_topology") != null);
+        Assert.assertEquals(2, topologiesTopicsList.size());
+        Assert.assertNotNull(topologiesTopicsList.get("oai_topology"));
+        Assert.assertNotNull(topologiesTopicsList.get("another_topology"));
 
-        Assert.assertTrue(topologiesTopicsList.get("oai_topology").size() == 3);
-        Assert.assertTrue(topologiesTopicsList.get("another_topology").size() == 0);
+        Assert.assertEquals(3, topologiesTopicsList.get("oai_topology").size());
+        Assert.assertEquals(0, topologiesTopicsList.get("another_topology").size());
     }
 
     @Test(expected = RuntimeException.class)

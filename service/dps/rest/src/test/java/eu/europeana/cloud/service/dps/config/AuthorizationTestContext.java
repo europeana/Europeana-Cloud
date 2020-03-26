@@ -68,7 +68,7 @@ public class AuthorizationTestContext {
     }
 
     @Bean
-    public AclAuthorizationStrategyImpl authorizationStrategy(SimpleGrantedAuthority simpleGrantedAuthority) {
+    public AclAuthorizationStrategyImpl authorizationStrategy() {
         return new AclAuthorizationStrategyImpl(
                 simpleGrantedAuthority(),
                 simpleGrantedAuthority(),

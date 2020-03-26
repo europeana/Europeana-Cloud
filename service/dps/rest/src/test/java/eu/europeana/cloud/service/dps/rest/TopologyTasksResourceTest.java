@@ -271,7 +271,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         task.setOutputRevision(revision);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
         task.addParameter(PluginParameterKeys.PROVIDER_ID, "DIFFERENT_PROVIDER_ID");
-        when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<Representation>());
+        when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<>());
         prepareMocks(TOPOLOGY_NAME);
 
         ResultActions response = sendTask(task, TOPOLOGY_NAME);
@@ -286,7 +286,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
-        when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<Representation>());
+        when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<>());
         prepareMocks(TOPOLOGY_NAME);
 
         ResultActions response = sendTask(task, TOPOLOGY_NAME);
@@ -338,7 +338,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldThrowDpsWhenSendingTaskToNormalizationTopologyWithWrongDataSetURL() throws Exception {
 
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
+        task.addDataEntry(DATASET_URLS, Collections.singletonList(WRONG_DATA_SET_URL));
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
         ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
@@ -464,7 +464,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
         harvestingDetails.setSchemas(Collections.singleton("oai_dc"));
         task.setHarvestingDetails(harvestingDetails);
-        when(harvestsExecutor.execute(anyString(),anyList(),any(DpsTask.class),anyString())).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
+        when(harvestsExecutor.execute(anyString(),anyListOf(Harvest.class),any(DpsTask.class),anyString())).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
         ResultActions response = sendTask(task, OAI_TOPOLOGY);
@@ -472,7 +472,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep( 1000);
-        verify(harvestsExecutor).execute(eq(OAI_TOPOLOGY),anyList(),any(DpsTask.class),anyString());
+        verify(harvestsExecutor).execute(eq(OAI_TOPOLOGY),anyListOf(Harvest.class),any(DpsTask.class),anyString());
         verifyZeroInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
     }
@@ -612,7 +612,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldThrowExceptionWhenTargetIndexingDatabaseIsNotProper() throws Exception {
         //given
         DpsTask task = new DpsTask("indexingTask");
-        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addDataEntry(DATASET_URLS, Collections.singletonList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
         task.addParameter(OUTPUT_MIME_TYPE, "image/jp2");
         task.addParameter(MIME_TYPE, "image/tiff");
         task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
@@ -823,7 +823,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckWithWrongDataSetURL() throws Exception {
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
+        task.addDataEntry(DATASET_URLS, Collections.singletonList(WRONG_DATA_SET_URL));
         prepareMocks(LINK_CHECKING_TOPOLOGY);
 
         ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
@@ -923,7 +923,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(DATASET_URLS, Arrays.asList(DATA_SET_URL));
+        task.addDataEntry(DATASET_URLS, Collections.singletonList(DATA_SET_URL));
         task.addParameter(METIS_DATASET_ID, "sampleDS");
         return task;
     }
@@ -947,15 +947,14 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     private DpsTask getDpsTaskWithFileDataEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(FILE_URLS, Arrays.asList(TEST_RESOURCE_URL));
+        task.addDataEntry(FILE_URLS, Collections.singletonList(TEST_RESOURCE_URL));
         task.addParameter(METIS_DATASET_ID, "sampleDS");
         return task;
     }
 
     private DpsTask getDpsTaskWithRepositoryURL(String repositoryURL) {
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
-                (repositoryURL));
+        task.addDataEntry(REPOSITORY_URLS, Collections.singletonList(repositoryURL));
         return task;
     }
 
@@ -985,8 +984,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
     private void mockSecurity(String topologyName) {
-        HashMap<String, String> user = new HashMap<>();
-        user.put(topologyName, "Smith");
         MutableAcl mutableAcl = mock(MutableAcl.class);
         //Mock
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
