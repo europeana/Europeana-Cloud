@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.exception.*;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.SpringVersion;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,7 +34,10 @@ public class CassandraAuthenticationService implements UserDetailsService, Authe
             throws UsernameNotFoundException {
         try {
             SpringUser springUser = userDao.getUser(userName);
-            springUser.setPassword("{noop}"+springUser.getPassword());
+
+            if(!SpringVersion.getVersion().startsWith("3")){
+                springUser.setPassword("{noop}" + springUser.getPassword());
+            }
             return springUser;
         } catch (DatabaseConnectionException ex) {
             throw new UsernameNotFoundException("Username '" + userName + "' could not be retrieved due to database error!", ex);
