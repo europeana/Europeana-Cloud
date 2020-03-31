@@ -43,7 +43,6 @@ public class CustomKafkaSpout extends KafkaSpout {
         this.keyspaceName = keyspaceName;
         this.userName = userName;
         this.password = password;
-
     }
 
     @Override
@@ -65,16 +64,13 @@ public class CustomKafkaSpout extends KafkaSpout {
         }
     }
 
-
     @Override
     public void ack(Object msgId) {
         super.ack(msgId);
-
     }
 
     @Override
     public void fail(Object msgId) {
         super.ack(msgId);
-
     }
 }

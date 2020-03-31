@@ -19,8 +19,10 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
+			<groupId>com.google.guava</groupId>
+			<type>jar</type>
+			<version>16.0</version>
 		</dependency>
 
 		<dependency>

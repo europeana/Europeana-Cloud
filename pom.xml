@@ -423,12 +423,7 @@
                 <artifactId>jersey-bean-validation</artifactId>
                 <version>${version.jersey}</version>
             </dependency>
-            <dependency>
-                <artifactId>guava</artifactId>
-                <groupId>com.google.guava</groupId>
-                <type>jar</type>
-                <version>16.0</version>
-            </dependency>
+
             <!--logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>

@@ -167,19 +167,8 @@
             <artifactId>commons-collections</artifactId>
             <version>3.2.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
 
-        <!-- logging -->
-        <dependency>
-            <groupId>com.github.danielwegener</groupId>
-            <artifactId>logback-kafka-appender</artifactId>
-            <version>0.0.1</version>
-        </dependency>
         <!-- Testing -->
-
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>topologies-common-helper-test</artifactId>

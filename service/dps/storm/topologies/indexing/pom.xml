@@ -117,11 +117,6 @@
             <version>1.9.5</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>18.0</version>
-        </dependency>
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

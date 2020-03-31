@@ -118,13 +118,6 @@
             </exclusions>
         </dependency>
 
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>18.0</version>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
@@ -136,7 +129,6 @@
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
-
                 <exclusion>
                     <artifactId>log4j-over-slf4j</artifactId>
                     <groupId>org.slf4j</groupId>

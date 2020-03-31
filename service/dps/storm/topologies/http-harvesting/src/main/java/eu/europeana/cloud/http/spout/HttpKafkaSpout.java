@@ -23,7 +23,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-//import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -43,6 +42,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+
 
 /**
  * Created by Tarek on 4/27/2018.

@@ -56,11 +56,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <artifactId>guava</artifactId>
-            <groupId>com.google.guava</groupId>
-            <type>jar</type>
-        </dependency>
         <!-- logging -->
         <!-- Log4j 2 implementation -->
         <dependency>
@@ -114,7 +109,6 @@
         </dependency>
     </dependencies>
     <build>
-
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

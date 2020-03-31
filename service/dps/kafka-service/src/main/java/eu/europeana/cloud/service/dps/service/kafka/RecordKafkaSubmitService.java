@@ -26,7 +26,7 @@ public class RecordKafkaSubmitService implements RecordExecutionSubmitService {
 		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
 		properties.put(ProducerConfig.ACKS_CONFIG, "1");
 
-		producer = new KafkaProducer<String, DpsRecord>(properties);
+		producer = new KafkaProducer<>(properties);
 	}
 
 	@Override

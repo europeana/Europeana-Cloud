@@ -26,7 +26,7 @@ public class CollectorWrapper extends SpoutOutputCollector {
     @Override
     public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
         try {
-            DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
+            DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(4), DpsTask.class);
             if (dpsTask != null) {
                 taskQueueFiller.addNewTask(dpsTask);
             }

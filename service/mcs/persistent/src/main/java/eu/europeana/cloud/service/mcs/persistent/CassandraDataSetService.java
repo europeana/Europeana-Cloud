@@ -539,21 +539,6 @@ public class CassandraDataSetService implements DataSetService {
         return true;
     }
 
-    private String encodeParams(String... parts) {
-        byte[] paramsJoined = Joiner.on('\n').join(parts)
-                .getBytes(Charset.forName("UTF-8"));
-        return BaseEncoding.base32().encode(paramsJoined);
-
-    }
-
-    private List<String> decodeParams(String encodedParams) {
-        byte[] paramsDecoded = BaseEncoding.base32().decode(encodedParams);
-        String paramsDecodedString = new String(paramsDecoded,
-                Charset.forName("UTF-8"));
-        return Splitter.on('\n').splitToList(paramsDecodedString);
-    }
-
-
     /**
      * get a list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId;
@@ -603,7 +588,6 @@ public class CassandraDataSetService implements DataSetService {
 
             //provider_dataset_representation
             dataSetDAO.deleteProviderDatasetRepresentationInfo(compoundDataSetId.getDataSetId(), compoundDataSetId.getDataSetProviderId(), cloudId, representationName, revisionTimestamp);
-
         }
 
         //representation revisions
@@ -638,6 +622,5 @@ public class CassandraDataSetService implements DataSetService {
             throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
         }
     }
-
 
 }

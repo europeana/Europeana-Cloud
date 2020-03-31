@@ -122,11 +122,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>18.0</version>
-        </dependency>
+
         <!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -156,7 +152,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
 
         <dependency>
             <groupId>org.powermock</groupId>

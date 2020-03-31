@@ -151,12 +151,6 @@
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
-<!--
-                <exclusion>
-                    <artifactId>kafka_2.12</artifactId>
-                    <groupId>org.apache.kafka</groupId>
-                </exclusion>
--->
                 <exclusion>
                     <artifactId>log4j</artifactId>
                     <groupId>log4j</groupId>
@@ -164,20 +158,11 @@
             </exclusions>
         </dependency>
 
-<!--
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.12</artifactId>
-            <version>1.1.1</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>zookeeper</artifactId>
-                    <groupId>org.apache.zookeeper</groupId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-kafka-client</artifactId>
+            <version>${version.storm-kafka.lib}</version>
         </dependency>
--->
-
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -301,29 +286,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--logging -->
-        <dependency>
-            <groupId>com.github.danielwegener</groupId>
-            <artifactId>logback-kafka-appender</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-
-<!--
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-kafka</artifactId>
-            <version>${version.storm_kafka}</version>
-        </dependency>
--->
 
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
             <version>3.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
         </dependency>
 
         <!-- Testing -->

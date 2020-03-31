@@ -80,8 +80,8 @@ public final class TopologyHelper {
         KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
                 .builder(
                         topologyProperties.getProperty(BOOTSTRAP_SERVERS),
-                        topic)
-                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                        new String[]{topic})
+                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE)
                 .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                 .build();
 
