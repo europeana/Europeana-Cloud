@@ -39,11 +39,11 @@ public class HTTPHarvestingTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String httpTopic, String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology(String ecloudMcsAddress, String uisAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
         KafkaSpoutConfig kafkaConfig =
-                KafkaSpoutConfig.builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), httpTopic)
+                KafkaSpoutConfig.builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPOLOGY_NAME))
                 .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
                 .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                 .build();
@@ -107,20 +107,20 @@ public class HTTPHarvestingTopology {
 
     public static void main(String[] args) {
         try {
+            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
             if (args.length <= 1) {
+                String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
-                String providedPropertyFile = "";
-                if (args.length == 1) {
-                    providedPropertyFile = args[0];
-                }
                 HTTPHarvestingTopology httpHarvestingTopology = new HTTPHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-                String kafkaTopic = topologyName;
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
-                StormTopology stormTopology = httpHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
+
+                StormTopology stormTopology = httpHarvestingTopology.buildTopology(
+                        topologyProperties.getProperty(MCS_URL),
+                        topologyProperties.getProperty(UIS_URL));
                 Config config = configureTopology(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
             LOGGER.error("General error in HTTP harvesting topology", e);
