@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
@@ -18,6 +18,7 @@ import java.util.Map;
 /**
  * Created by Tarek on 11/27/2017.
  */
+@Deprecated
 public class CustomKafkaSpout extends KafkaSpout {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomKafkaSpout.class);

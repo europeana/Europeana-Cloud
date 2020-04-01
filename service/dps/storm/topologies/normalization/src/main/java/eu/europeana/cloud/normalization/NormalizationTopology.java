@@ -1,12 +1,15 @@
 package eu.europeana.cloud.normalization;
 
-import com.google.common.base.Throwables;
 import eu.europeana.cloud.normalization.bolts.NormalizationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
+import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -21,8 +24,6 @@ import java.util.Properties;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_TO_DATA_SET_BOLT;
 import static java.lang.Integer.parseInt;
 
 public class NormalizationTopology {
@@ -37,12 +38,10 @@ public class NormalizationTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public StormTopology buildTopology(String normalizationTopic, String ecloudMcsAddress) {
-
-        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, normalizationTopic, ecloudMcsAddress);
-
+    public StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topologyProperties);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
@@ -50,7 +49,7 @@ public class NormalizationTopology {
         NormalizationBolt normalizationBolt = new NormalizationBolt();
 
         // TOPOLOGY STRUCTURE!
-        builder.setSpout(SPOUT, mcsReaderSpout,
+        builder.setSpout(SPOUT, eCloudSpout,
                 getAnInt(KAFKA_SPOUT_PARALLEL))
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
@@ -115,28 +114,23 @@ public class NormalizationTopology {
 
     public static void main(String... args) {
         try {
+            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
             if (args.length <= 1) {
+                String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
-                String providedPropertyFile = "";
-                if (args.length == 1) {
-                    providedPropertyFile = args[0];
-                }
+                NormalizationTopology normalizationTopology =
+                        new NormalizationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                NormalizationTopology normalizationTopology = new NormalizationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-
-                // assuming kafka topic == topology name
-                String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = normalizationTopology.buildTopology(
-                        kafkaTopic,
-                        ecloudMcsAddress);
+                StormTopology stormTopology = normalizationTopology.buildTopology(ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
-
+            LOGGER.error("General error while setting up topology", e);
         }
     }
 

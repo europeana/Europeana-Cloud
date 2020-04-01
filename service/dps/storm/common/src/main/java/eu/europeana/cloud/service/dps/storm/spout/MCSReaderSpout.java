@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.job.TaskExecutor;
+import eu.europeana.cloud.service.dps.storm.spout.job.TaskExecutor;
 //import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -31,6 +31,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 /**
  * Created by Tarek on 5/18/2018.
  */
+@Deprecated
 public class MCSReaderSpout extends CustomKafkaSpout {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);

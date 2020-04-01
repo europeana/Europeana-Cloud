@@ -249,7 +249,7 @@ public class TopologyTasksResource {
                         if (expectedCount == 0) {
                             insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime, taskJSON, "");
                         } else {
-                            if (topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
+                            if (!topologyName.equals(TopologiesNames.HTTP_TOPOLOGY)) {
                                 String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(topologyName);
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
                                 List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
@@ -261,7 +261,7 @@ public class TopologyTasksResource {
                                     harvesterResult = harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
                                 }
                                 updateTaskStatus(task.getTaskId(), harvesterResult);
-                            } else {
+                            } else { // HTTP_TOPOLOGY only
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.SENT.toString(), "", sentTime, taskJSON, "");

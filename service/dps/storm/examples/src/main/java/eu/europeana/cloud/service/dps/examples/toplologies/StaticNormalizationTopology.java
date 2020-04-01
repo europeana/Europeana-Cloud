@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.examples.toplologies;
 import eu.europeana.cloud.normalization.bolts.NormalizationBolt;
 import eu.europeana.cloud.service.dps.examples.toplologies.builder.SimpleStaticTopologyBuilder;
 import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.StormTopology;

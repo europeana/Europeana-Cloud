@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.Representation;

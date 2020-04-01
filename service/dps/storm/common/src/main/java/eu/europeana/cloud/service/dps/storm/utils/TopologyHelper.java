@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
+import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import org.apache.storm.Config;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
@@ -34,9 +35,6 @@ public final class TopologyHelper {
     public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
 
     public static final String EDMEnrichmentBolt = "EDMEnrichmentBolt";
-    public static final String ParseFileBolt = "ParseFileBolt";
-    public static final String ResourceProcessingBolt = "ResourceProcessingBolt";
-
 
     public static Config configureTopology(Properties topologyProperties) {
         Config config = new Config();
@@ -61,21 +59,7 @@ public final class TopologyHelper {
         return config;
     }
 
-/*
-    public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
-        BrokerHosts brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, topic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        return new MCSReaderSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
-    }
-*/
-
+    @Deprecated
     public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
         KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
                 .builder(
@@ -92,6 +76,20 @@ public final class TopologyHelper {
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
+    }
+
+    public static ECloudSpout createECloudSpout(Properties topologyProperties) {
+        return new ECloudSpout(
+                KafkaSpoutConfig
+                        .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
+                        .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                        .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
+                        .build(),
+                topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
     }
 
 }
