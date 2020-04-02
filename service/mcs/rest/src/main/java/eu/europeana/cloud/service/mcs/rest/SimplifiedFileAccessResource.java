@@ -9,7 +9,8 @@ import eu.europeana.cloud.common.selectors.RepresentationSelector;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,13 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
@@ -37,9 +42,9 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  * Gives (read) access to files stored in ecloud in simplified (friendly) way. <br/>
  * The latest persistent version of representation is picked up.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}/representations/{" + P_REPRESENTATIONNAME + "}/{" + P_FILENAME + ":.+}")
+@RestController
+@RequestMapping("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}/representations/{" + P_REPRESENTATIONNAME + "}/{" + P_FILENAME + ":.+}")
 @Scope("request")
-@Component
 public class SimplifiedFileAccessResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimplifiedFileAccessResource.class);
@@ -68,7 +73,7 @@ public class SimplifiedFileAccessResource {
      * @summary Get file content using simplified url
      * @statuscode 204 object has been updated.
      */
-    @GET
+    @GetMapping
     public Response getFile(@Context UriInfo uriInfo,
                             @PathParam(P_PROVIDER) final String providerId,
                             @PathParam(P_LOCALID) final String localId,
@@ -102,11 +107,11 @@ public class SimplifiedFileAccessResource {
                         recordService.getContent(cloudId, representationName, representation.getVersion(), fileName, contentRange.getStart(), contentRange.getEnd(),
                                 output);
                     } catch (RepresentationNotExistsException ex) {
-                        throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                        throw new WebApplicationException();
                     } catch (FileNotExistsException ex) {
-                        throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                        throw new WebApplicationException();
                     } catch (WrongContentRangeException ex) {
-                        throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                        throw new WebApplicationException();
                     }
                 }
             };
@@ -136,7 +141,7 @@ public class SimplifiedFileAccessResource {
      * @throws RecordNotExistsException
      * @throws ProviderNotExistsException
      */
-    @HEAD
+    @RequestMapping(method = RequestMethod.HEAD)
     public Response getFileHeaders(@Context UriInfo uriInfo,
                                    @PathParam(P_PROVIDER) final String providerId,
                                    @PathParam(P_LOCALID) final String localId,

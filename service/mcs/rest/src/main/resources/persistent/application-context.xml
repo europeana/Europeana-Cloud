@@ -9,21 +9,32 @@
 						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
                         http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd">
 
+<!--
     <context:annotation-config/>
+-->
+<!--
     <import resource="classpath:config.xml" />
+-->
 
+<!--
     <context:component-scan
         base-package="eu.europeana.cloud.service.mcs.rest"/>
+-->
 
+<!--
     <aop:aspectj-autoproxy/>
-    <bean id="serviceExceptionTranslator" 
+-->
+<!--
+    <bean id="serviceExceptionTranslator"
           class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
-    
+-->
+
 
  <!-- 
  
     connection provider - with options the same as in embedded 
     cassandra-->
+<!--
     <bean id="dbService"
           class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
     
@@ -48,16 +59,20 @@
                              jndi-name="java:comp/env/mcs/cassandra/password"/>
         </constructor-arg>
     </bean>
+-->
 
-    <bean id="cassandraDataSetService" 
+<!--
+    <bean id="cassandraDataSetService"
           class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
-    <bean id="cassandraDataSetDAO" 
+    <bean id="cassandraDataSetDAO"
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
 
-    <bean id="cassandraRecordService" 
+    <bean id="cassandraRecordService"
           class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
-    <bean id="cassandraRecordDAO" 
+    <bean id="cassandraRecordDAO"
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
+-->
+<!--
     <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
         <constructor-arg value="524288" />
     </bean>
@@ -71,9 +86,13 @@
         </constructor-arg>
     </bean>
     <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
+-->
+<!--
     <bean id="swiftContentDAO"
           class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
-    <bean id="swiftConnectionProvider" 
+-->
+<!--
+    <bean id="swiftConnectionProvider"
           class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
         <constructor-arg name="provider" >
             <jee:jndi-lookup expected-type="java.lang.String" 
@@ -96,7 +115,9 @@
                              jndi-name="java:comp/env/mcs/swift/password"/>
         </constructor-arg>
     </bean>    
-    
+-->
+
+<!--
     <bean id="uisHandler"
           class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
     <bean id="uisClient" 
@@ -110,5 +131,6 @@
     <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
         <constructor-arg name="session" value="#{dbService.session}"/>
     </bean>
-    
+-->
+
 </beans>

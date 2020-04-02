@@ -7,8 +7,6 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
@@ -52,9 +50,9 @@ public class RepresentationVersionsResourceTest extends JerseyTest {
     @Override
     public Application configure() {
         return new ResourceConfig().registerClasses(RepresentationVersionsResource.class)
-                .registerClasses(RecordNotExistsExceptionMapper.class)
+ /*               .registerClasses(RecordNotExistsExceptionMapper.class)
                 .registerClasses(RepresentationNotExistsExceptionMapper.class)
-                .property("contextConfigLocation", "classpath:testContext.xml");
+*/                .property("contextConfigLocation", "classpath:testContext.xml");
     }
 
 

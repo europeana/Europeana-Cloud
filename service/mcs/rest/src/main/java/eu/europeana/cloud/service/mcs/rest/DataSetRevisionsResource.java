@@ -16,9 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -27,10 +31,9 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Resource to manage data sets.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/representations/{" +
+@RestController
+@RequestMapping("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/representations/{" +
         P_REPRESENTATIONNAME + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}")
-
-@Component
 @Scope("request")
 public class DataSetRevisionsResource {
 
@@ -59,9 +62,8 @@ public class DataSetRevisionsResource {
      * @throws DataSetNotExistsException no such data set exists.
      * @summary get representation versions from a data set
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<CloudTagsResponse>")
+    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response getDataSetContents(@PathParam(P_PROVIDER) String providerId,
                                        @PathParam(P_DATASET) String dataSetId,
                                        @PathParam(P_REPRESENTATIONNAME) String representationName,

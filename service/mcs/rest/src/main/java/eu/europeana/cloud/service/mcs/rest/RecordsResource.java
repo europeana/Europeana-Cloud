@@ -6,12 +6,16 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -21,8 +25,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 /**
  * Resource representing records.
  */
-@Path("/records/{" + P_CLOUDID + "}")
-@Component
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}")
 @Scope("request")
 public class RecordsResource {
 
@@ -37,8 +41,7 @@ public class RecordsResource {
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.model.Record")
     public Record getRecord(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException {

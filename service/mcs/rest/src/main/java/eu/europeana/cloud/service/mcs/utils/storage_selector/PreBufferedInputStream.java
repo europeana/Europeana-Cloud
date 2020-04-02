@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.rest.storage.selector;
+package eu.europeana.cloud.service.mcs.utils.storage_selector;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

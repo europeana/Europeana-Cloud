@@ -8,8 +8,6 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -40,8 +38,10 @@ public class RecordsResourceTest extends JerseyTest {
     @Override
     public Application configure() {
         return new ResourceConfig().registerClasses(RecordsResource.class)
+/*
                 .registerClasses(RecordNotExistsExceptionMapper.class)
                 .registerClasses(RepresentationNotExistsExceptionMapper.class)
+*/
                 .property("contextConfigLocation", "classpath:testContext.xml");
     }
 

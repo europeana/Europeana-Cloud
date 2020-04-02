@@ -6,8 +6,10 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
@@ -16,11 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -30,14 +31,14 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * FilesResource
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
 		+ "}/versions/{" + P_VER + "}/files")
-@Component
 @Scope("request")
 public class FilesResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
@@ -63,7 +64,7 @@ public class FilesResource {
 	 * </ul>
 	 *
 	 * <strong>Write permissions required.</strong>
-	 *@summary Add a new file to a representation version
+	 * @summary Add a new file to a representation version
 	 * @param globalId cloud id of the record (required).
 	 * @param schema schema of representation (required).
 	 * @param version a specific version of the representation(required).
@@ -85,8 +86,7 @@ public class FilesResource {
 	 * @throws FileAlreadyExistsException
 	 *             specified file already exist.
 	 */
-	@POST
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA})
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
 	public Response sendFile(@Context UriInfo uriInfo,

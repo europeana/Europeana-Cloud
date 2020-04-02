@@ -9,7 +9,7 @@
 						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
                         http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd">
 
-    <context:annotation-config/>    
+<!--    <context:annotation-config/>
 	<context:property-placeholder properties-ref="configurationLoader"/>
     <import resource="classpath:config.xml" />
 
@@ -21,7 +21,7 @@
           class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
           
           
-    <!--connection provider - with options the same as in embedded cassandra-->
+    &lt;!&ndash;connection provider - with options the same as in embedded cassandra&ndash;&gt;
     <bean id="dbService"
           class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <constructor-arg name="hosts" value="${mcs.cassandra.host}" />
@@ -56,7 +56,7 @@
         <constructor-arg name="password" value="${mcs.swift.password}" />
     </bean>    
     
-	<!-- UIS Discovery -->
+	&lt;!&ndash; UIS Discovery &ndash;&gt;
     <bean id="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient">
 		<constructor-arg name="uisProvider" ref="uisProvider"/>
     </bean>
@@ -65,5 +65,5 @@
     
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
-    
+    -->
 </beans>

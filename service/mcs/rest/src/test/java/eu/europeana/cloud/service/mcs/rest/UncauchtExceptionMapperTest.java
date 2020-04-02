@@ -26,7 +26,7 @@ public class UncauchtExceptionMapperTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:testContext.xml");
+        return null; //new JerseyConfig().property("contextConfigLocation", "classpath:testContext.xml");
     }
 
 

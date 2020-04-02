@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -31,9 +35,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Resource to manage representations.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
-        + "}/revisions/{" + P_REVISION_NAME + "}")
-@Component
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/revisions/{" + P_REVISION_NAME + "}")
 @Scope("request")
 public class RepresentationRevisionsResource {
 
@@ -57,8 +60,7 @@ public class RepresentationRevisionsResource {
      * @throws RepresentationNotExistsException when representation doesn't exist
      * @summary get a representation response object
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("java.util.List<eu.europeana.cloud.common.model.Representation>")
     public List<Representation> getRepresentationRevisions(@Context UriInfo uriInfo,
                                                            @PathParam(P_CLOUDID) String globalId,

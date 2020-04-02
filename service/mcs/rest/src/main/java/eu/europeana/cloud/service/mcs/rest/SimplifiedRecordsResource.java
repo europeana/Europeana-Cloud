@@ -8,14 +8,14 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -26,8 +26,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 /**
  * Gives (read) access to record stored in ecloud in simplified (friendly) way.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}")
-@Component
+@RestController
+@RequestMapping("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}")
 @Scope("request")
 public class SimplifiedRecordsResource {
 
@@ -48,8 +48,7 @@ public class SimplifiedRecordsResource {
      * @throws RecordNotExistsException
      * @summary Get record using simplified url
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Record getRecord(@Context UriInfo uriInfo,
                             @PathParam(P_PROVIDER) String providerId,
                             @PathParam(P_LOCALID) String localId) throws CloudException, RecordNotExistsException, ProviderNotExistsException {

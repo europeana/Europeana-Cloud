@@ -63,7 +63,7 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:hugeFileResourceTestContext.xml");
+        return null; //new JerseyConfig().property("contextConfigLocation", "classpath:hugeFileResourceTestContext.xml");
     }
 
 

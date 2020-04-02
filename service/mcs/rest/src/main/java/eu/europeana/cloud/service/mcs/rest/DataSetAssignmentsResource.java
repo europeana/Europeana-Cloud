@@ -3,20 +3,26 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource to assign and unassign representations to/from data sets.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/assignments")
-@Component
+@RestController
+@RequestMapping("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/assignments")
 @Scope("request")
 public class DataSetAssignmentsResource {
 
@@ -38,7 +44,7 @@ public class DataSetAssignmentsResource {
      * @throws RepresentationNotExistsException no such representation exists.
      * @statuscode 204 object assigned.
      */
-    @POST
+    @PostMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void addAssignment(@PathParam(P_PROVIDER) String providerId,
     		@PathParam(P_DATASET) String dataSetId,
@@ -62,7 +68,7 @@ public class DataSetAssignmentsResource {
      * @param schema schema of representation (required)
      * @throws DataSetNotExistsException no such data set exists
      */
-    @DELETE
+    @DeleteMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void removeAssignment(@PathParam(P_PROVIDER) String providerId,
     		@PathParam(P_DATASET) String dataSetId,

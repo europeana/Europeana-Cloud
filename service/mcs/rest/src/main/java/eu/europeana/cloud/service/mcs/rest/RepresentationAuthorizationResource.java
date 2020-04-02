@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,12 @@ import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.*;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
@@ -26,11 +30,15 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Resource to authorize other users to read specific versions.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
-@Component
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
 public class RepresentationAuthorizationResource {
 
-    private static final List<String> acceptedPermissionValues
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
+
+    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+
+    private static final List<String> ACCEPTED_PERMISSION_VALUES
             = Arrays.asList(
             eu.europeana.cloud.common.model.Permission.ALL.getValue(),
             eu.europeana.cloud.common.model.Permission.READ.getValue(),
@@ -43,10 +51,6 @@ public class RepresentationAuthorizationResource {
 
     @Autowired
     private PermissionsGrantingManager permissionsGrantingManager;
-
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
 
     /**
      * Removes permissions for selected user to selected representation version.<br/><br/>
@@ -65,8 +69,8 @@ public class RepresentationAuthorizationResource {
      * @return response tells you if authorization has been updated or not
      * @summary Permissions removal
      */
-    @DELETE
-    @Path("/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
+
+    @DeleteMapping(value = "/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response removePermissions(@PathParam(P_CLOUDID) String globalId,
@@ -81,7 +85,7 @@ public class RepresentationAuthorizationResource {
         ParamUtil.require(P_VER, version);
         ParamUtil.require(P_USER_NAME, userName);
         ParamUtil.require(P_PERMISSION, permission);
-        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
+        ParamUtil.validate(P_PERMISSION, permission, ACCEPTED_PERMISSION_VALUES);
 
         eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
 
@@ -112,9 +116,7 @@ public class RepresentationAuthorizationResource {
      * @statuscode 200 object has been updated.
      * @statuscode 204 object has not been updated.
      */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Path("/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
+    @PostMapping(value = "/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}", consumes = {MediaType.MULTIPART_FORM_DATA})
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response updateAuthorization(
@@ -130,7 +132,7 @@ public class RepresentationAuthorizationResource {
         ParamUtil.require(P_VER, version);
         ParamUtil.require(P_USER_NAME, username);
         ParamUtil.require(P_PERMISSION, permission);
-        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
+        ParamUtil.validate(P_PERMISSION, permission, ACCEPTED_PERMISSION_VALUES);
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 globalId + "/" + schema + "/" + version);
@@ -165,11 +167,9 @@ public class RepresentationAuthorizationResource {
      * @return response tells you if authorization has been updated or not
      * @statuscode 204 object has been updated.
      */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @PostMapping(value = "/permit", consumes = {MediaType.MULTIPART_FORM_DATA})
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
-    @Path("/permit")
     public Response giveReadAccessToEveryone(
             @PathParam(P_CLOUDID) String globalId,
             @PathParam(P_REPRESENTATIONNAME) String schema,

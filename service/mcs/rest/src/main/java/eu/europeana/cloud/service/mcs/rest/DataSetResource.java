@@ -13,6 +13,8 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +24,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -35,10 +39,11 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Resource to manage data sets.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}")
-@Component
+@RestController
+@RequestMapping("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}")
 @Scope("request")
 public class DataSetResource {
+    private final String DATASET_CLASS_NAME = DataSet.class.getName();
 
     @Autowired
     private DataSetService dataSetService;
@@ -49,8 +54,6 @@ public class DataSetResource {
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
-    private final String DATASET_CLASS_NAME = DataSet.class.getName();
-
     /**
      * Deletes data set.
      * <strong>Delete permissions required.</strong>
@@ -59,7 +62,7 @@ public class DataSetResource {
      * @param dataSetId  identifier of the deleted data set(required).
      * @throws DataSetNotExistsException data set not exists.
      */
-    @DELETE
+    @DeleteMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet(@PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId)
             throws DataSetNotExistsException {
@@ -87,8 +90,7 @@ public class DataSetResource {
      * @throws DataSetNotExistsException no such data set exists.
      * @summary get representation versions from a data set
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @GetMapping(produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.Representation>")
     public ResultSlice<Representation> getDataSetContents(@Context UriInfo uriInfo,
                                                           @PathParam(P_DATASET) String dataSetId,
@@ -115,7 +117,7 @@ public class DataSetResource {
      *                                                   or the resource does not exist at all
      * @statuscode 204 object has been updated.
      */
-    @PUT
+    @PutMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void updateDataSet(@PathParam(P_DATASET) String dataSetId,
                               @PathParam(P_PROVIDER) String providerId,
@@ -124,9 +126,7 @@ public class DataSetResource {
         dataSetService.updateDataSet(providerId, dataSetId, description);
     }
 
-    @Path("/representationsNames")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @GET
+    @GetMapping(value = "/representationsNames", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RepresentationNames getRepresentationsNames(
             @PathParam(P_DATASET) String dataSetId,
             @PathParam(P_PROVIDER) String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
@@ -136,10 +136,8 @@ public class DataSetResource {
         return representationNames;
     }
 
-    @Path("/representations/{" + P_REPRESENTATIONNAME + "}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<CloudVersionRevisionResponse>")
-    @GET
+    @GetMapping(value = "/representations/{" + P_REPRESENTATIONNAME + "}", produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(
             @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
             @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom, @QueryParam(F_TAG) String tag, @QueryParam(F_START_FROM) String startFrom)
@@ -169,11 +167,8 @@ public class DataSetResource {
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
      */
-
-    @Path("/revision/{" + P_REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER + "}/representations/{" + P_REPRESENTATIONNAME + "}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<CloudIdAndTimestampResponse>")
-    @GET
+    @GetMapping(value = "/revision/{" + P_REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER + "}/representations/{" + P_REPRESENTATIONNAME + "}", produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public ResultSlice<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevision(
             @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
             @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_START_FROM) String startFrom, @QueryParam(IS_DELETED) Boolean isDeleted)
@@ -196,9 +191,7 @@ public class DataSetResource {
      * @return version identifier of representation
      * @throws DataSetNotExistsException
      */
-    @Path("/latelyRevisionedVersion")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @GET
+    @GetMapping(value = "/latelyRevisionedVersion", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getLatelyTaggedRecords(
             @PathParam(P_DATASET) String dataSetId,
             @PathParam(P_PROVIDER) String providerId,

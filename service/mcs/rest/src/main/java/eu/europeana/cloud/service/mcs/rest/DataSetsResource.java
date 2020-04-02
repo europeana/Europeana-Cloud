@@ -7,6 +7,8 @@ import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -17,9 +19,14 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -30,10 +37,12 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Resource to get and create data set.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/data-sets")
-@Component
+@RestController
+@RequestMapping("/data-providers/{" + P_PROVIDER + "}/data-sets")
 @Scope("request")
 public class DataSetsResource {
+
+    private final String DATASET_CLASS_NAME = DataSet.class.getName();
 
     @Autowired
     private DataSetService dataSetService;
@@ -44,8 +53,6 @@ public class DataSetsResource {
     @Autowired
     private MutableAclService mutableAclService;
 
-    private final String DATASET_CLASS_NAME = DataSet.class.getName();
-
     /**
      * Returns all data sets for a provider. Result is returned in slices.
      * @summary get provider's data sets
@@ -55,9 +62,8 @@ public class DataSetsResource {
      * first slice of result will be returned.
      * @return slice of data sets for a given provider.
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.DataSet>")
+    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public ResultSlice<DataSet> getDataSets(@PathParam(P_PROVIDER) String providerId,
     		@QueryParam(F_START_FROM) String startFrom) {
         return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
@@ -78,8 +84,8 @@ public class DataSetsResource {
      * data set with this id already exists
      * @statuscode 201 object has been created.
      */
-    @POST
     @PreAuthorize("isAuthenticated()")
+    @PostMapping
     public Response createDataSet(@Context UriInfo uriInfo,
     		@PathParam(P_PROVIDER) String providerId,
     		@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)

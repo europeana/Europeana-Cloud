@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -19,6 +21,7 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -28,28 +31,20 @@ import javax.ws.rs.core.UriInfo;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
-
-
-
 /**
  * Resource to manage representations.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
-		+ "}")
-@Component
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}")
 @Scope("request")
 public class RepresentationResource {
+	private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
 	@Autowired
 	private RecordService recordService;
 
 	@Autowired
 	private MutableAclService mutableAclService;
-
-	private final String RECORD_CLASS_NAME = Record.class.getName();
-
-	private final String REPRESENTATION_CLASS_NAME = Representation.class
-			.getName();
 
 	/**
 	 * Returns the latest persistent version of a given representation .
@@ -64,8 +59,7 @@ public class RepresentationResource {
 	 *             representation does not exist or no persistent version of
 	 *             this representation exists.
 	 */
-	@GET
-	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@GetMapping(produces = { MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @PostAuthorize("hasPermission"
     	    + "( "
     	    + " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
@@ -91,7 +85,7 @@ public class RepresentationResource {
 	 * @throws RepresentationNotExistsException
 	 *             Representation does not exist.
 	 */
-	@DELETE
+	@DeleteMapping
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public void deleteRepresentation(@PathParam(P_CLOUDID) String globalId,
 			@PathParam(P_REPRESENTATIONNAME) String schema)
@@ -118,8 +112,7 @@ public class RepresentationResource {
 	 *             no provider with given id exists
 	 * @statuscode 201 object has been created.
 	 */
-	@POST
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED})
 	@PreAuthorize("isAuthenticated()")
 	public Response createRepresentation(@Context UriInfo uriInfo,
 			@PathParam(P_CLOUDID) String globalId,

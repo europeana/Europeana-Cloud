@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RevisionIsNotValidExceptionMapper;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.glassfish.jersey.client.ClientConfig;
@@ -104,9 +103,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation",
-                "classpath:spiedPersistentServicesTestContext.xml")
-                .registerClasses(RevisionIsNotValidExceptionMapper.class);
+        return null; //new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml").registerClasses(RevisionIsNotValidExceptionMapper.class);
     }
 
     @Override

@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,9 +17,9 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -29,18 +30,18 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Resource to manage representation versions.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
-@Component
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
 @Scope("request")
 public class RepresentationVersionResource {
+
+    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     @Autowired
     private RecordService recordService;
 
     @Autowired
     private MutableAclService mutableAclService;
-
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
      * Returns representation in a specified version.
@@ -54,8 +55,7 @@ public class RepresentationVersionResource {
      *                                          specified version.
      * @summary get representation by version
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     @ReturnType("eu.europeana.cloud.common.model.Representation")
@@ -82,7 +82,7 @@ public class RepresentationVersionResource {
      * @throws CannotModifyPersistentRepresentationException representation in
      *                                                       specified version is persistent and as such cannot be removed.
      */
-    @DELETE
+    @DeleteMapping
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteRepresentation(@PathParam(P_VER) String version,
                                      @PathParam(P_REPRESENTATIONNAME) String schema,
@@ -113,8 +113,7 @@ public class RepresentationVersionResource {
      *                                                       has no file attached and as such cannot be made persistent.
      * @statuscode 201 representation is made persistent.
      */
-    @POST
-    @Path("/persist")
+    @PostMapping(value = "/persist")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response persistRepresentation(@Context UriInfo uriInfo,
@@ -142,8 +141,7 @@ public class RepresentationVersionResource {
      * @summary copy information including file contents from one representation version to another
      * @statuscode 201 representation has been copied to a new one.
      */
-    @POST
-    @Path("/copy")
+    @PostMapping(value = "/copy")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response copyRepresentation(@Context UriInfo uriInfo,

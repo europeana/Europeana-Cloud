@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -17,9 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,14 +32,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Resource to manage representation version's files with their content.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files/{"
-        + P_FILENAME + ":(.+)?}")
-@Component
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{"
+        + P_VER + "}/files/{" + P_FILENAME + ":(.+)?}")
 @Scope("request")
 public class FileResource {
     private static final String HEADER_RANGE = "Range";
@@ -47,8 +50,6 @@ public class FileResource {
 	private MutableAclService mutableAclService;
     @Autowired
     private Integer objectStoreSizeThreshold;
-
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
      *  Updates a file in a representation version. MD5 of
@@ -77,8 +78,7 @@ public class FileResource {
      * @throws FileNotExistsException specified file does not exist.
      * @statuscode 204 object has been updated.
      */
-    @PUT
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @PutMapping(consumes = {MediaType.MULTIPART_FORM_DATA})
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response sendFile(@Context UriInfo uriInfo,
@@ -135,7 +135,7 @@ public class FileResource {
      * @throws FileNotExistsException representation version does not have file
      * with the specified name.
      */
-    @GET
+    @GetMapping
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response getFile(@PathParam(P_CLOUDID) final String globalId, 
@@ -177,11 +177,11 @@ public class FileResource {
                     recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end,
                             output);
                 } catch (RepresentationNotExistsException ex) {
-                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                    throw new WebApplicationException();
                 } catch (FileNotExistsException ex) {
-                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                    throw new WebApplicationException();
                 } catch (WrongContentRangeException ex) {
-                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                    throw new WebApplicationException();
                 }
             }
         };
@@ -204,7 +204,7 @@ public class FileResource {
      * @throws RepresentationNotExistsException
      * @throws FileNotExistsException
      */
-    @HEAD
+    @RequestMapping(method = RequestMethod.HEAD)
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response getFileHeaders(@Context UriInfo uriInfo,
@@ -243,7 +243,7 @@ public class FileResource {
      * representation version is persistent and deleting its files is not
      * allowed.
      */
-    @DELETE
+    @DeleteMapping
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteFile(@PathParam(P_CLOUDID) final String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, 

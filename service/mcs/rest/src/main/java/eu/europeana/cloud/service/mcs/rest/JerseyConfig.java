@@ -1,21 +1,21 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.service.commons.logging.LoggingFilter;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.*;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
+//import eu.europeana.cloud.service.commons.logging.LoggingFilter;
+//import eu.europeana.cloud.service.mcs.rest.exceptionmappers.*;
+//import org.glassfish.jersey.media.multipart.MultiPartFeature;
+//import org.glassfish.jersey.server.ResourceConfig;
+//import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
 /**
  * Jersey Configuration for Exception Mappers and Resources
  */
-public class JerseyConfig extends ResourceConfig {
+public class JerseyConfig /*extends ResourceConfig*/ {
 
     /**
      * Register JAX-RS application components.
      */
     public JerseyConfig() {
-        super();
+/*        super();
         //features
         register(MultiPartFeature.class);
 
@@ -60,5 +60,5 @@ public class JerseyConfig extends ResourceConfig {
         register(SimplifiedRepresentationResource.class);
         registerClasses(RevisionResource.class);
         registerClasses(RepresentationRevisionsResource.class);
-    }
+   */ }
 }

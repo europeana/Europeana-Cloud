@@ -8,7 +8,6 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RevisionNotExistsExceptionMapper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -54,7 +53,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     @Override
     public Application configure() {
         return new ResourceConfig().registerClasses(RepresentationRevisionsResource.class)
-                .registerClasses(RevisionNotExistsExceptionMapper.class)
+//                .registerClasses(RevisionNotExistsExceptionMapper.class)
                 .property("contextConfigLocation", "classpath:testContext.xml");
     }
 

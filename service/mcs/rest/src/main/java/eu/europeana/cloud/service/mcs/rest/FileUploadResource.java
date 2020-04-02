@@ -6,8 +6,10 @@ import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +21,10 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -33,15 +34,17 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Handles uploading the file when representation is not created yet.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/files")
-@Component
+@RestController
+@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/files")
 @Scope("request")
 public class FileUploadResource {
+
+    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     @Autowired
     private RecordService recordService;
@@ -51,10 +54,6 @@ public class FileUploadResource {
 
     @Autowired
     private Integer objectStoreSizeThreshold;
-
-
-    private final String REPRESENTATION_CLASS_NAME = Representation.class
-            .getName();
 
     /**
      * 
@@ -78,8 +77,7 @@ public class FileUploadResource {
      * 
      * @summary Upload file for non existing representation
      */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA})
     @PreAuthorize("isAuthenticated()")
     public Response sendFile(@Context UriInfo uriInfo,
                              @PathParam(P_CLOUDID) String globalId,
@@ -136,8 +134,7 @@ public class FileUploadResource {
     }
 
     private File addFileToRepresentation(Representation representation, InputStream data,
-                                         String mimeType, String fileName, Storage storage)
-            throws
+                                         String mimeType, String fileName, Storage storage) throws
             RepresentationNotExistsException,
             FileAlreadyExistsException,
             CannotModifyPersistentRepresentationException {
@@ -170,7 +167,10 @@ public class FileUploadResource {
         return f;
     }
 
-    private void persistRepresentation(Representation representation) throws CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, RepresentationNotExistsException {
+    private void persistRepresentation(Representation representation) throws
+            CannotModifyPersistentRepresentationException,
+            CannotPersistEmptyRepresentationException,
+            RepresentationNotExistsException {
         recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
     }
 }
