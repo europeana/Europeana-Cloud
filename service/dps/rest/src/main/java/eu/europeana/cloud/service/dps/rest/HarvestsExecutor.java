@@ -103,6 +103,7 @@ public class HarvestsExecutor {
                 .taskId(dpsTask.getTaskId())
                 .recordId(oaiHeader.getIdentifier())
                 .metadataPrefix(harvest.getMetadataPrefix())
+                .inputData(dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0))
                 .build();
     }
 

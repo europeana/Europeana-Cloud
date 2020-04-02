@@ -9,4 +9,8 @@ public class DpsTaskValidationException extends DpsException {
     public DpsTaskValidationException(String message) {
         super(message);
     }
+
+    public DpsTaskValidationException(String message,Throwable t) {
+        super(message,t);
+    }
 }
