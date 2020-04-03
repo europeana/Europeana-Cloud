@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -15,7 +15,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
@@ -62,6 +61,7 @@ public class MCSTaskSubmiter {
     private String topicName;
 
     private MCSReader reader;
+    private ExecutorService executorService;
 
     public MCSTaskSubmiter(CassandraTaskErrorsDAO taskErrorDAO, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, RecordExecutionSubmitService recordSubmitService, String topologyName, DpsTask task, String topicName, MCSReader reader) {
         this.taskErrorDAO = taskErrorDAO;
@@ -78,104 +78,92 @@ public class MCSTaskSubmiter {
 
         reader.open();
         try {
-            LOGGER.info("PENDING TASK TO TOPOLOGY " + topologyName + " BY KAFKA TOPIC " + topicName);
+            LOGGER.info("Sending task id=" + task.getTaskId() + " to topology " + topologyName + " by kafka topic " + topicName);
+            checkIfTaskIsKilled();
 
-            if (!taskStatusChecker.hasKillFlag(task.getTaskId())) {
-                startProgressing();
-                if (taskContainsFileUrls()) {
-                    executeForFilesList();
-                } else {
-                    executeForDatasets();
-                }
+            startProgressing();
+            if (taskContainsFileUrls()) {
+                executeForFilesList();
             } else {
-                //TODO moze zdrobić drooped exception
-                LOGGER.info("Skipping DROPPED task {}", task.getTaskId());
+                executeForDatasetList();
             }
-
+        } catch (SubmitingTaskWasKilled e) {
+            LOGGER.warn(e.getMessage(), e);
         } catch (Exception e) {
-            LOGGER.error("MCSReader error: " + e.getMessage(), e);
+            LOGGER.error("MCSTaskSubmiter error for taskId=" + task.getTaskId() + " error: " + e.getMessage(), e);
             cassandraTaskInfoDAO.dropTask(task.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
         } finally {
-            //TODO spradzić czy zamykanie moze wyrzucic wyjatek oraz rozważyć autoclosable
+            shutdownExecutor();
             reader.close();
         }
     }
 
-
-
-
     private void executeForFilesList() {
-        for (String file : task.getDataEntry(InputDataType.FILE_URLS)) {
+        List<String> filesList = task.getDataEntry(FILE_URLS);
+        for (String file : filesList) {
             submitRecord(file);
         }
+        cassandraTaskInfoDAO.setUpdateExpectedSize(task.getTaskId(), filesList.size());
     }
 
-
-
-    private void executeForDatasets() throws Exception {
-
-
+    private void executeForDatasetList() throws Exception {
         int expectedSize = 0;
         try {
             for (String dataSetUrl : task.getDataEntry(InputDataType.DATASET_URLS)) {
-                expectedSize+= executeForOneDataSet(dataSetUrl);
+                expectedSize += executeForOneDataSet(dataSetUrl);
             }
             cassandraTaskInfoDAO.setUpdateExpectedSize(task.getTaskId(), expectedSize);
         } finally {
-             if (expectedSize == 0)
+            if (expectedSize == 0) {
                 cassandraTaskInfoDAO.dropTask(task.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
+                LOGGER.warn("The task id=" + task.getTaskId() + " was dropped because it is empty.");
+            }
         }
 
 
     }
 
     private int executeForOneDataSet(String dataSetUrl) throws MCSException, InterruptedException, ExecutionException {
-        int expectedSize=0;
         try {
-
-            final UrlParser urlParser = new UrlParser(dataSetUrl);
-            if (urlParser.isUrlToDataset()) {
-                if (getRevisionName() != null && getRevisionProvider() != null) {
-                    expectedSize += executeForRevision(urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
-                }else{
-                    expectedSize += executeForEntireDataset(task, urlParser);
-
-                }
-
-            } else {
-                LOGGER.warn("dataSet url is not formulated correctly {}", dataSetUrl);
-                emitErrorNotification(dataSetUrl, "dataSet url is not formulated correctly", "");
+            UrlParser urlParser = new UrlParser(dataSetUrl);
+            if (!urlParser.isUrlToDataset()) {
+                throw new RuntimeException("DataSet URL is not formulated correctly: " + dataSetUrl);
             }
 
-        } catch (MalformedURLException ex) {
-            LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
-            emitErrorNotification(dataSetUrl, ex.getMessage(), task.getParameters().toString());
+            int expectedSize = 0;
+            if (getRevisionName() != null && getRevisionProvider() != null) {
+                expectedSize += executeForRevision(urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
+            } else {
+                expectedSize += executeForEntireDataset(task, urlParser);
+
+            }
+            return expectedSize;
+
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("MCSReaderSpout error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
         }
-        return expectedSize;
+
     }
 
-    private int executeForEntireDataset(DpsTask dpsTask,UrlParser urlParser) {
-        int expectedSize=0;
+    private int executeForEntireDataset(DpsTask dpsTask, UrlParser urlParser) {
+        int expectedSize = 0;
         RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
-        while (iterator.hasNext() && !taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+        while (iterator.hasNext()) {
+            checkIfTaskIsKilled();
             expectedSize += submitRecordsForAllFilesOfRepresentation(iterator.next());
         }
         return expectedSize;
     }
-
-
-
 
     private int executeForRevision(String datasetName, String datasetProvider) throws MCSException, DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
         int maxRecordsCount = Optional.ofNullable(task.getParameter(PluginParameterKeys.SAMPLE_SIZE)).map(Integer::parseInt).orElse(Integer.MAX_VALUE);
         int count = 0;
         String startFrom = null;
         final long taskId = task.getTaskId();
-        ExecutorService executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
         int total = 0;
         do {
-
+            checkIfTaskIsKilled();
             ResultSlice<CloudIdAndTimestampResponse> slice = getCloudIdsChunk(datasetName, datasetProvider, startFrom);
             List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = slice.getResults();
             total += cloudIdAndTimestampResponseList.size();
@@ -186,34 +174,34 @@ public class MCSTaskSubmiter {
                     break;
 
             final List<CloudIdAndTimestampResponse> finalCloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList;
-            futures.add(executorService.submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudIdAndTimestampResponseList)));
+            futures.add(getExecutor().submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudIdAndTimestampResponseList)));
 
-            if (futures.size() >= INTERNAL_THREADS_NUMBER*MAX_BATCH_SIZE) {
+            if (futures.size() >= INTERNAL_THREADS_NUMBER * MAX_BATCH_SIZE) {
                 count += getCountAndWait(futures);
             }
             startFrom = slice.getNextSlice();
         }
-        while (startFrom != null && !taskStatusChecker.hasKillFlag(taskId));
+        while (startFrom != null);
 
         if (futures.size() > 0)
             count += getCountAndWait(futures);
-        executorService.shutdown();
+
         return count;
     }
 
     private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom) throws MCSException {
         if (getRevisionTimestamp() != null) {
             ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(getRepresentationName(), getRevisionName(), getRevisionProvider(), getRevisionTimestamp(), datasetProvider, datasetName, startFrom);
-           return toCloudAndTimestampResponse(chunk,getRevisionTimestamp());
-        }else {
+            return toCloudAndTimestampResponse(chunk, getRevisionTimestamp());
+        } else {
             return reader.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(getRepresentationName(), getRevisionName(), getRevisionProvider(), datasetName, datasetProvider, startFrom);
         }
     }
 
     private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList) throws MCSException {
-        int count=0;
+        int count = 0;
         for (CloudIdAndTimestampResponse response : responseList) {
-            count+=executeGettingFileUrlsForOneCloudId(response);
+            count += executeGettingFileUrlsForOneCloudId(response);
         }
 
         return count;
@@ -231,26 +219,32 @@ public class MCSTaskSubmiter {
 
     private int submitRecordsForAllFilesOfRepresentation(Representation representation) {
         int count = 0;
-        if (representation != null) {
-            for (eu.europeana.cloud.common.model.File file : representation.getFiles()) {
-                String fileUrl = "";
-                if (!taskStatusChecker.hasKillFlag(task.getTaskId())) {
-                    try {
-                        fileUrl = reader.getFileUri(representation,file.getFileName());
-                        submitRecord(fileUrl);
-                        count++;
-                    } catch (Exception e) {
-                        LOGGER.warn("Error while getting File URI from MCS {}", e.getMessage());
-                        count++;
-                        emitErrorNotification(fileUrl, "Error while getting File URI from MCS " + e.getMessage(), "");
-                    }
-                } else
-                    break;
-            }
-        } else {
-            LOGGER.warn("Problem while reading representation");
+        if (representation == null) {
+            throw new RuntimeException("Problem while reading representation - representation is null.");
         }
+
+        for (File file : representation.getFiles()) {
+            checkIfTaskIsKilled();
+            String fileUrl = reader.getFileUri(representation, file.getFileName());
+            submitRecord(fileUrl);
+            count++;
+
+        }
+
         return count;
+    }
+
+    private ResultSlice<CloudIdAndTimestampResponse> toCloudAndTimestampResponse(ResultSlice<CloudTagsResponse> chunk, String revisionTimestamp) {
+        return new ResultSlice<>(chunk.getNextSlice(),
+                chunk.getResults()
+                        .stream()
+                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), Date.from(Instant.parse(revisionTimestamp))))
+                        .collect(Collectors.toList()));
+    }
+
+    private void submitRecord(String fileUrl) {
+        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).inputData(fileUrl).build();
+        recordSubmitService.submitRecord(record, topicName);
     }
 
     private void startProgressing() {
@@ -260,31 +254,6 @@ public class MCSTaskSubmiter {
 
     private boolean taskContainsFileUrls() {
         return task.getInputData().get(FILE_URLS) != null;
-
-    }
-
-    private ResultSlice<CloudIdAndTimestampResponse> toCloudAndTimestampResponse(ResultSlice<CloudTagsResponse> chunk, String revisionTimestamp) {
-        return new ResultSlice<>(chunk.getNextSlice(),
-                chunk.getResults()
-                     .stream()
-                     .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), Date.from(Instant.parse(revisionTimestamp))))
-                     .collect(Collectors.toList()));
-    }
-
-    private void emitErrorNotification(String resource, String message, String additionalInformations) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(task.getTaskId(),
-                resource, RecordState.ERROR, message, additionalInformations);
-        // insertError(task.getTaskId(),message,additionalInformations,)
-    }
-
-    private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
-        Retriever.retryOnError3Times("Error while inserting Error to cassandra.", () ->
-                taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation));
-
-    }
-    private void submitRecord(String fileUrl) {
-        DpsRecord record=DpsRecord.builder().taskId(task.getTaskId()).inputData(fileUrl).build();
-        recordSubmitService.submitRecord(record, topicName);
     }
 
     private int getCountAndWait(Set<Future<Integer>> futures) throws InterruptedException, ExecutionException {
@@ -294,6 +263,25 @@ public class MCSTaskSubmiter {
         }
         futures.clear();
         return count;
+    }
+
+    private void checkIfTaskIsKilled() {
+        if (taskStatusChecker.hasKillFlag(task.getTaskId())) {
+            throw new SubmitingTaskWasKilled(task);
+        }
+    }
+
+    private ExecutorService getExecutor() {
+        if (executorService == null) {
+            executorService = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
+        }
+        return executorService;
+    }
+
+    private void shutdownExecutor() {
+        if (executorService != null) {
+            executorService.shutdown();
+        }
     }
 
     private String getRevisionTimestamp() {

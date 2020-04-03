@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
