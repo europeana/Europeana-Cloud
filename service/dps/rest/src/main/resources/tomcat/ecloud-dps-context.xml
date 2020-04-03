@@ -171,6 +171,10 @@
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>
 
+    <bean id="taskErrorDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+
     <import resource="authentication.xml"/>
     <import resource="authorization.xml"/>
 </beans>

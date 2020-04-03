@@ -20,6 +20,8 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReader;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
@@ -124,6 +126,12 @@ public class TopologyTasksResource {
 
     @Autowired
     private KafkaTopicSelector kafkaTopicSelector;
+
+    @Autowired
+    private CassandraTaskErrorsDAO taskErrorDAO;
+
+    @Autowired
+    private TaskStatusChecker taskStatusChecker;
 
     private final static String TOPOLOGY_PREFIX = "Topology";
 
@@ -252,15 +260,23 @@ public class TopologyTasksResource {
                             if (!topologyName.equals(TopologiesNames.HTTP_TOPOLOGY)) {
                                 String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(topologyName);
                                 insertTask(task.getTaskId(), topologyName, expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", sentTime, taskJSON, preferredTopicName);
-                                List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
+                                if (topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
+                                    List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(task);
 
-                                HarvestResult harvesterResult;
-                                if (!restart) {
-                                    harvesterResult = harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                    HarvestResult harvesterResult;
+                                    if (!restart) {
+                                        harvesterResult = harvestsExecutor.execute(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                    } else {
+                                        harvesterResult = harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                    }
+                                    updateTaskStatus(task.getTaskId(), harvesterResult);
                                 } else {
-                                    harvesterResult = harvestsExecutor.executeForRestart(topologyName, harvestsToByExecuted, task, preferredTopicName);
+                                  //  task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
+                                    createMCSReader(topologyName, task, preferredTopicName).execute();
+
+                                    insertTask(task.getTaskId(), topologyName,
+                                            expectedCount, TaskState.SENT.toString(), "", sentTime,taskJSON,"");
                                 }
-                                updateTaskStatus(task.getTaskId(), harvesterResult);
                             } else { // HTTP_TOPOLOGY only
                                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                                 submitService.submitTask(task, topologyName);
@@ -695,4 +711,11 @@ public class TopologyTasksResource {
         tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
         tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
     }
+
+    private MCSTaskSubmiter createMCSReader(String topologyName, DpsTask task, String topicName){
+        String authorizationHeader = task.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        MCSReader reader=new MCSReader(mcsLocation,authorizationHeader);
+        return new MCSTaskSubmiter(taskErrorDAO,taskStatusChecker,taskInfoDAO,recordSubmitService,topologyName,task,topicName,reader);
+    }
+
 }

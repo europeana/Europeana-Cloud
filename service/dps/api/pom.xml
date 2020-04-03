@@ -22,7 +22,7 @@
 			<artifactId>guava</artifactId>
 			<groupId>com.google.guava</groupId>
 			<type>jar</type>
-			<version>16.0</version>
+			<version>${version.guava}</version>
 		</dependency>
 
 		<dependency>

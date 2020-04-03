@@ -68,6 +68,7 @@ public class MCSTaskSubmiterTest {
 
     private static final String TOPIC = "topic1";
     private static final String TOPOLOGY = "validation_topology";
+    private static final String SCHEMA_NAME="schema1";
 
     private static final String REPRESENTATION_NAME = "representationName1";
     //File 1
@@ -152,6 +153,7 @@ public class MCSTaskSubmiterTest {
         whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
         task.setTaskId(TASK_ID);
+        task.addParameter(PluginParameterKeys.SCHEMA_NAME, SCHEMA_NAME);
 
         //używane w większości
         when(fileServiceClient.getFileUri(eq(CLOUD_ID1),eq(REPRESENTATION_NAME),eq(VERSION_1),eq(FILE_NAME_1))).thenReturn(FILE_URI_1);
@@ -344,6 +346,7 @@ public class MCSTaskSubmiterTest {
             DpsRecord record = recordCaptor.getAllValues().get(i);
             assertEquals(fileUrls[i],record.getInputData());
             assertEquals(TASK_ID,record.getTaskId());
+            assertEquals(SCHEMA_NAME,record.getMetadataPrefix());
         }
     }
 }

@@ -243,7 +243,7 @@ public class MCSTaskSubmiter {
     }
 
     private void submitRecord(String fileUrl) {
-        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).inputData(fileUrl).build();
+        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName()).inputData(fileUrl).build();
         recordSubmitService.submitRecord(record, topicName);
     }
 
@@ -299,6 +299,11 @@ public class MCSTaskSubmiter {
     private String getRepresentationName() {
         return task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
     }
+
+    private String getSchemaName() {
+        return task.getParameter(PluginParameterKeys.SCHEMA_NAME);
+    }
+
 
 
 }
