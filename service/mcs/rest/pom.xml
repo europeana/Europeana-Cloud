@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>1.8.0</version>
+        <version>1.10.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ecloud-service-mcs-rest</artifactId>

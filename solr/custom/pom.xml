@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-solr</artifactId>
-        <version>1.8.0</version>
+        <version>1.10.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ecloud-solr-custom</artifactId>
@@ -98,15 +98,6 @@
                         <dependentWarExcludes>WEB-INF/lib/*slf4j*, WEB-INF\lib\httpclient-4.2.3.jar, WEB-INF\lib\httpcore-4.2.2.jar</dependentWarExcludes>
                     </configuration>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.6</source>
-                        <target>1.6</target>
-                    </configuration>
-                </plugin>
-
             </plugins>
         </pluginManagement>
     </build>

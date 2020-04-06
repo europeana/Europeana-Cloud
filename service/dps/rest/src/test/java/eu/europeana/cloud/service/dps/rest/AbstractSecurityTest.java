@@ -16,7 +16,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(locations = {
         "classpath:authentication-context-test.xml", // authentication uses a static InMemory list of usernames, passwords
         "classpath:authorization-context-test.xml", // authorization uses Embedded cassandra
-		"classpath:aaTestContext.xml"
+		"classpath:aaTestContext.xml",
+        "classpath:record-context.xml"
         })
 	public abstract class AbstractSecurityTest extends CassandraAATestRunner {
 

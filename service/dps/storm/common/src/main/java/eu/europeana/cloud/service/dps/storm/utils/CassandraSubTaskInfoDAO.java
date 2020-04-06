@@ -10,6 +10,7 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -89,8 +90,13 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     public int getProcessedFilesCount(long taskId) {
         ResultSet rs = dbService.getSession().execute(processedFilesCountStatement.bind(taskId));
-        Row row = rs.one();
-        return row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM);
+        Iterator<Row> iterator = rs.iterator();
+        if(iterator.hasNext()){
+            Row row = iterator.next();
+            return row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM);
+        }else{
+            return 0;
+        }
     }
 
     public void removeNotifications(long taskId) {

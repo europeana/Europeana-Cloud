@@ -47,4 +47,8 @@
 
     <!-- mockito:mock id="UnfinishedTasksExecutor" class="eu.europeana.cloud.service.dps.rest.UnfinishedTasksExecutor"/ -->
     <mockito:mock id="tasksDAO" class="eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO"/>
+
+    <mockito:mock id="processedRecordsDAO" class="eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO"/>
+    <mockito:mock id="taskStatusChecker" class="eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker"/>
+    <mockito:mock id="kafkaTopicSelector" class="eu.europeana.cloud.service.dps.utils.KafkaTopicSelector"/>
 </beans>

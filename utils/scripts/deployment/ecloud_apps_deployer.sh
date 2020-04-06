@@ -41,6 +41,14 @@ do
         cp -R $newAppDirectory$i/ $newAppDirectory$backupTime/$i/
 done
 
+echo "Unzipping apps"
+for i in "${applicationsToBeDeployed[@]}"
+do
+        echo -e "\tUnzipping: "$newAppDirectory$i/*.war
+        unzip -q $newAppDirectory$i/*.war -d $newAppDirectory$i/
+        rm $newAppDirectory$i/*.war
+done
+
 echo "Removing apps from tomcat server"
 removeApplications $webAppsDirectory
 

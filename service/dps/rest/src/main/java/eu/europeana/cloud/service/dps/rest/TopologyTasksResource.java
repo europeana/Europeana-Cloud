@@ -275,7 +275,7 @@ public class TopologyTasksResource {
                         insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
                         asyncResponse.resume(response);
                     } catch (TaskSubmissionException e) {
-                        LOGGER.error("Task submission failed: {}", e.getMessage());
+                        LOGGER.error("Task submission failed: {}", e.getMessage(),e);
                         insertTask(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime, taskJSON, "");
                     } catch (Exception e) {
                         String fullStacktrace = ExceptionUtils.getStackTrace(e);

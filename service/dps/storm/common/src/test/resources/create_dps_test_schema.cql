@@ -24,6 +24,7 @@ CREATE TABLE basic_info (
     finish_time timestamp,
     sent_time timestamp,
     errors int,
+    task_informations text,
     PRIMARY KEY(task_id)
 );
 
@@ -87,4 +88,25 @@ CREATE TABLE statistics_reports (
 task_id bigint,
 report_data blob,
 PRIMARY KEY(task_id)
+);
+
+CREATE TABLE tasks_by_task_state(
+    state varchar,
+    topology_name varchar,
+    task_id bigint,
+    application_id varchar,
+    topic_name varchar,
+    start_time timestamp,
+    PRIMARY KEY(state, topology_name, task_id)
+);
+
+CREATE TABLE processed_records (
+    task_id bigint,
+    src_identifier varchar,
+    dst_identifier varchar,
+    topology_name varchar,
+    state varchar,
+    info_text text,
+    additional_informations text,
+    PRIMARY KEY(task_id, src_identifier)
 );

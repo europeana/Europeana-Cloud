@@ -54,7 +54,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
      * </ul>
      * In case any of them happens, -1 is returned.
      *
-     * @param task                dps task
+     * @param task dps task
      * @return total number of records for given parameters or -1 if no value available in OAI
      * @throws TaskSubmissionException
      */
@@ -94,7 +94,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                 } catch (OAIRequestException e) {
                     String logMessage = "Cannot complete the request for the following repository URL " + repositoryUrl;
                     LOGGER.info(logMessage, e);
-                    throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage());
+                    throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage(), e);
                 }
             } else {
                 throw new TaskSubmissionException("The task was dropped because the repositoryUrl can not be null");
@@ -133,7 +133,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                 return readCompleteListSizeFromXML(listIdentifiersResponse);
             } catch (OAIRequestException e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Checking CompleteListSize. Retries left: {} " , retries);
+                    LOGGER.warn("Checking CompleteListSize. Retries left: {} ", retries);
                     try {
                         Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException ex) {

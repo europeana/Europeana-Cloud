@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.8.0</version>
+    <version>1.10.0-SNAPSHOT</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,7 +16,7 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-        <tag>v1.8.0</tag>
+        <tag>HEAD</tag>
     </scm>
     <developers>
         <developer>
@@ -141,14 +141,14 @@
     <properties>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
-        <version.jdk>1.7</version.jdk>
+        <version.jdk>1.8</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
         <version.powermock-mockito>1.5.3</version.powermock-mockito>
         <version.jersey>2.23.1</version.jersey>
         <version.org.glassfish.jersey.test-framework>2.23.1</version.org.glassfish.jersey.test-framework>
         <version.slf4j>1.7.12</version.slf4j>
-        <version.spring-framework>3.2.4.RELEASE</version.spring-framework>
+        <version.spring-framework>3.2.9.RELEASE</version.spring-framework>
         <version.servlet>2.5</version.servlet>
         <version.junitparams>1.0.2</version.junitparams>
         <version.commonscodec>1.10</version.commonscodec>
@@ -186,7 +186,7 @@
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
         <version.jacoco>0.8.1</version.jacoco>
-        <version.metis>1.7.0</version.metis>
+        <version.metis>1.9.0-SNAPSHOT</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
     </properties>
 

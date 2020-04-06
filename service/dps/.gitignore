@@ -37,3 +37,4 @@ nbactions.xml
 /service/dps/storm/topology/ic/ic-topology/target/
 /service/dps/storm/examples/target/
 /service/image-publisher/target/
+/oaipmh/target/
