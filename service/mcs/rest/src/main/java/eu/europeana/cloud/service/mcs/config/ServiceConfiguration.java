@@ -1,20 +1,30 @@
 package eu.europeana.cloud.service.mcs.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
+import eu.europeana.cloud.service.mcs.Storage;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
+import eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebMvc
@@ -34,6 +44,8 @@ public class ServiceConfiguration {
     private final static  String JNDI_KEY_SWIFT_ENDPOINTLIST = "/mcs/swift/endpointList";
     private final static  String JNDI_KEY_SWIFT_USER = "/mcs/swift/user";
     private final static  String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
+
+    private final static  String JNDI_KEY_UISURL = "/mcs/uis-url";
 
     private Environment environment;
 
@@ -70,9 +82,29 @@ public class ServiceConfiguration {
     public CassandraRecordService cassandraRecordService() {
         return new CassandraRecordService();
     }
-     @Bean
+    @Bean
     public CassandraRecordDAO cassandraRecordDAO() {
         return new CassandraRecordDAO();
+    }
+
+    @Bean
+    public CassandraContentDAO objectStoreSizeThreshold() {
+        return new CassandraContentDAO();
+    }
+
+    @Bean
+    public DynamicContentDAO dynamicContentDAO() {
+        Map<Storage, ContentDAO> params = new HashMap<>();
+
+        params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
+        params.put(Storage.DATA_BASE, cassandraContentDAO());
+
+        return new DynamicContentDAO(params);
+    }
+
+    @Bean
+    public CassandraContentDAO cassandraContentDAO() {
+        return new CassandraContentDAO();
     }
 
     @Bean
@@ -91,9 +123,18 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public AlwaysSuccessfulUISClientHandler uisHandler() {
-        return new AlwaysSuccessfulUISClientHandler();
+    public UISClientHandler uisHandler() {
+        return new UISClientHandlerImpl();
     }
+
+    @Bean
+    public UISClient uisClient() {
+        return new UISClient(environment.getProperty(JNDI_KEY_UISURL));
+    }
+
+    @Bean
+    public BucketsHandler bucketsHandler() {
+        return new BucketsHandler(dbService().getSession());
+    }
+    
 }
-
-
