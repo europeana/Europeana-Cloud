@@ -222,7 +222,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    &lt;!&ndash;valid until January 1st, 2020&ndash;&gt;
+                    &lt;!&ndash; valid until January 1st, 2020 &ndash;&gt;
                     <licence>cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==</licence>
                     <restModel>
                         <httpStatusCodes>
