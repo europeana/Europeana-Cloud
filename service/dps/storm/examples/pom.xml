@@ -161,7 +161,7 @@
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka-client</artifactId>
-            <version>${version.storm-kafka.lib}</version>
+            <version>${version.storm}</version>
         </dependency>
 
         <dependency>

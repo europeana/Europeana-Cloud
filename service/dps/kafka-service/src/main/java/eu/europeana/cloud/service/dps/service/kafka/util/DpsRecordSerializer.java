@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.service.kafka.util;
 
 import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.DpsTask;
 import org.apache.kafka.common.serialization.Serializer;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;

@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -42,7 +43,7 @@ public class EnrichmentTopology {
     public StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);

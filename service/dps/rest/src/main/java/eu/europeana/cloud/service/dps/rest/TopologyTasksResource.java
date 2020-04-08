@@ -71,9 +71,6 @@ public class TopologyTasksResource {
     private int maxIdentifiersCount;
 
     @Autowired
-    ApplicationContext context;
-
-    @Autowired
     private TaskExecutionReportService reportService;
 
     @Autowired
@@ -101,12 +98,6 @@ public class TopologyTasksResource {
     private String mcsLocation;
 
     @Autowired
-    private RecordServiceClient recordServiceClient;
-
-    @Autowired
-    private FileServiceClient fileServiceClient;
-
-    @Autowired
     private DataSetServiceClient dataSetServiceClient;
 
     @Autowired
@@ -114,9 +105,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private TasksByStateDAO tasksByStateDAO;
-
-    @Autowired
-    private ProcessedRecordsDAO processedRecordsDAO;
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
@@ -714,8 +702,9 @@ public class TopologyTasksResource {
 
     private MCSTaskSubmiter createMCSReader(String topologyName, DpsTask task, String topicName){
         String authorizationHeader = task.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        MCSReader reader=new MCSReader(mcsLocation,authorizationHeader);
-        return new MCSTaskSubmiter(taskErrorDAO,taskStatusChecker,taskInfoDAO,recordSubmitService,topologyName,task,topicName,reader);
+        MCSReader reader = new MCSReader(mcsLocation, authorizationHeader);
+        return new MCSTaskSubmiter(taskErrorDAO, taskStatusChecker, taskInfoDAO, recordSubmitService,
+                topologyName, task, topicName, reader);
     }
 
 }

@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -40,7 +41,7 @@ public class LinkCheckTopology {
     public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties);
 
         builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));

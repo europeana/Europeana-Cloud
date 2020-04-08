@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>${version.kafka.lib}</version>
+            <version>${version.kafka}</version>
         </dependency>
 
         <!--logging -->

@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.storm.Config;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
@@ -78,11 +79,12 @@ public final class TopologyHelper {
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
     }
 
-    public static ECloudSpout createECloudSpout(Properties topologyProperties) {
+    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties) {
         return new ECloudSpout(
                 KafkaSpoutConfig
                         .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                         .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                        .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                         .build(),
                 topologyProperties.getProperty(CASSANDRA_HOSTS),

@@ -15,8 +15,6 @@
     <name>Europeana Cloud: DPS</name>
 
     <properties>
-        <version.kafka.lib>${version.kafka}</version.kafka.lib>
-        <version.storm-kafka.lib>${version.storm}</version.storm-kafka.lib>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>

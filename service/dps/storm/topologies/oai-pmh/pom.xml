@@ -90,16 +90,6 @@
             </exclusions>
         </dependency>
 
-<!--
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-kafka-client</artifactId>
-            <version>${version.storm-kafka.lib}</version>
-        </dependency>
-
--->
-
-
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>

@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -47,7 +48,7 @@ public class ValidationTopology {
     public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);

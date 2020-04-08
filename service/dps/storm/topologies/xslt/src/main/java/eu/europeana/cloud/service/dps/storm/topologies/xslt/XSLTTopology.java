@@ -13,6 +13,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
 import com.google.common.base.Throwables;
 
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -52,7 +53,7 @@ public class XSLTTopology {
     public StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.XSLT_TOPOLOGY, topologyProperties);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
