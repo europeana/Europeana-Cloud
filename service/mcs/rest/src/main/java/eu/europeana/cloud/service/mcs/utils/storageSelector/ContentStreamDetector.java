@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.utils.storage_selector;
+package eu.europeana.cloud.service.mcs.utils.storageSelector;
 
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;

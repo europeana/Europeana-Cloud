@@ -14,7 +14,7 @@
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
         <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
-        <aversion.spring-security>5.2.2.RELEASE</aversion.spring-security>
+        <version.spring-security>5.2.2.RELEASE</version.spring-security>
     </properties>
 
     <profiles>
@@ -36,6 +36,7 @@
         </profile>
 
 
+<!--
         <profile>
             <id>persistent-authorization</id>
             <activation>
@@ -72,7 +73,9 @@
                 </plugins>
             </build>
         </profile>
+-->
 
+<!--
         <profile>
             <id>persistent-authentication</id>
             <activation>
@@ -109,41 +112,7 @@
                 </plugins>
             </build>
         </profile>
-
-        <profile>
-            <id>zookeeper</id>
-            <properties>
-                <spring.config.dir>zookeeper</spring.config.dir>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-mcs-persistent</artifactId>
-                    <version>${project.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <artifactId>zookeeper</artifactId>
-                            <groupId>org.apache.zookeeper</groupId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-
-            </dependencies>
-        </profile>
-
-        <profile>
-            <id>standalone</id>
-            <properties>
-                <spring.config.dir>standalone</spring.config.dir>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-mcs-persistent</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
+-->
     </profiles>
 
     <build>
@@ -152,8 +121,6 @@
                 <directory>src/main/resources</directory>
                 <excludes>
                     <exclude>persistent/</exclude>
-                    <exclude>standalone/</exclude>
-                    <exclude>zookeeper/</exclude>
                     <exclude>persistent-authentication/</exclude>
                     <exclude>persistent-authorization/</exclude>
                 </excludes>
@@ -424,17 +391,17 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>${aversion.spring-security}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${aversion.spring-security}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-taglibs</artifactId>
-            <version>${aversion.spring-security}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

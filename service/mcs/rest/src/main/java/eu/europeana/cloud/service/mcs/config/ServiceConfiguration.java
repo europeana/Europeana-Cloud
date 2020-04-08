@@ -41,7 +41,7 @@ public class ServiceConfiguration {
 
     private final static  String JNDI_KEY_SWIFT_PROVIDER = "/mcs/swift/provider";
     private final static  String JNDI_KEY_SWIFT_CONTAINER = "/mcs/swift/container";
-    private final static  String JNDI_KEY_SWIFT_ENDPOINTLIST = "/mcs/swift/endpointList";
+    private final static  String JNDI_KEY_SWIFT_ENDPOINT = "/mcs/swift/endpoint";
     private final static  String JNDI_KEY_SWIFT_USER = "/mcs/swift/user";
     private final static  String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
 
@@ -117,7 +117,7 @@ public class ServiceConfiguration {
         return new SimpleSwiftConnectionProvider(
                 environment.getProperty(JNDI_KEY_SWIFT_PROVIDER),
                 environment.getProperty(JNDI_KEY_SWIFT_CONTAINER),
-                environment.getProperty(JNDI_KEY_SWIFT_ENDPOINTLIST),
+                environment.getProperty(JNDI_KEY_SWIFT_ENDPOINT),
                 environment.getProperty(JNDI_KEY_SWIFT_USER),
                 environment.getProperty(JNDI_KEY_SWIFT_PASSWORD));
     }

@@ -6,8 +6,8 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storageSelector.StorageSelector;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.apache.commons.io.IOUtils;
@@ -31,7 +31,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedInputStream.wrap;
 
 /**
  * FilesResource

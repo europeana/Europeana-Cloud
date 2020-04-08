@@ -5,10 +5,15 @@ import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.acls.AclPermissionCacheOptimizer;
 import org.springframework.security.acls.AclPermissionEvaluator;
@@ -19,8 +24,11 @@ import org.springframework.security.acls.domain.DefaultPermissionGrantingStrateg
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 
+import java.util.*;
+
 @Configuration
 public class AuthorizationConfiguration {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationConfiguration.class);
 
     private final static String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
     private final static String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
@@ -86,6 +94,8 @@ public class AuthorizationConfiguration {
 
     @Bean
     public CassandraConnectionProvider cassandraProvider() {
+        listEnvironment();
+
         String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
         Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
         String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);
@@ -131,5 +141,22 @@ public class AuthorizationConfiguration {
         return new AclPermissionEvaluator(aclService());
     }
 
+    private void listEnvironment() {
+        Map<String, Object> map = new TreeMap<>();
+        for(Iterator it = ((AbstractEnvironment) environment).getPropertySources().iterator(); it.hasNext(); ) {
+            PropertySource propertySource = (PropertySource) it.next();
+            if (propertySource instanceof MapPropertySource) {
+                map.putAll(((MapPropertySource) propertySource).getSource());
+            }
+        }
 
+        Iterator<String> keyIterator = map.keySet().iterator();
+
+        LOGGER.info("###MAP: ");
+        while(keyIterator.hasNext()) {
+            String key = keyIterator.next();
+            Object value = map.get(key);
+            LOGGER.info("\t{}: {}", key, value);
+        }
+    }
 }
