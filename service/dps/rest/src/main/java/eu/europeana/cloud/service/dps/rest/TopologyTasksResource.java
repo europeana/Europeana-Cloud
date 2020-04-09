@@ -34,13 +34,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -117,7 +116,7 @@ public class TopologyTasksResource {
      * @summary Get Task Progress
      */
 
-    @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
     public TaskInfo getTaskProgress(
             @PathVariable final String topologyName,
@@ -143,7 +142,7 @@ public class TopologyTasksResource {
      * @summary Submit Task
      * @summary Submit Task
      */
-    @PostMapping(consumes = {MediaType.APPLICATION_JSON})
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public ResponseEntity submitTask(
             final HttpServletRequest request,
@@ -167,7 +166,7 @@ public class TopologyTasksResource {
      * @summary Submit Task
      * @summary Submit Task
      */
-    @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON})
+    @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public ResponseEntity restartTask(
             final HttpServletRequest request,
@@ -180,7 +179,7 @@ public class TopologyTasksResource {
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
 
-    @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON})
+    @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public ResponseEntity<Void> cleanIndexingDataSet(
             @PathVariable final String topologyName,
@@ -217,7 +216,7 @@ public class TopologyTasksResource {
     @PostMapping(path = "{taskId}/permit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @ReturnType("java.lang.Void")
-    public Response grantPermissions(
+    public ResponseEntity<Void> grantPermissions(
             @PathVariable String topologyName,
             @PathVariable String taskId,
             @RequestParam String username) throws AccessDeniedOrTopologyDoesNotExistException {
@@ -226,9 +225,9 @@ public class TopologyTasksResource {
 
         if (taskId != null) {
             permissionManager.grantPermissionsForTask(taskId, username);
-            return Response.ok().build();
+            return ResponseEntity.ok().build();
         }
-        return Response.notModified().build();
+        return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
     }
 
     /**
@@ -252,7 +251,7 @@ public class TopologyTasksResource {
 
     @PostMapping(path = "{taskId}/kill")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
-    public Response killTask(
+    public ResponseEntity<String> killTask(
             @PathVariable String topologyName,
             @PathVariable String taskId,
             @RequestParam(defaultValue = "Dropped by the user") String info)
@@ -260,7 +259,7 @@ public class TopologyTasksResource {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
         killService.killTask(Long.parseLong(taskId), info);
-        return Response.ok("The task was killed because of " + info).build();
+        return ResponseEntity.ok("The task was killed because of " + info);
     }
 
     /**

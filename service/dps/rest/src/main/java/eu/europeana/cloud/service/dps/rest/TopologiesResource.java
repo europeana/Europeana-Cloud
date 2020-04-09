@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
@@ -13,8 +14,6 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.ws.rs.core.MediaType;
 
 /**
  * Resource to manage topologies in the DPS service
@@ -49,7 +48,7 @@ public class TopologiesResource {
      * @return Empty response with status code indicating whether the operation was successful or not.
      * @summary Grant topology permissions
      */
-    @PostMapping(path = "/permit", consumes = {MediaType.APPLICATION_FORM_URLENCODED})
+    @PostMapping(path = "/permit", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> grantPermissionsToTopology(
             @RequestParam("username") String userName,

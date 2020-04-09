@@ -91,11 +91,7 @@ public class AuthorizationConfiguration {
 
     @Bean
     public AclAuthorizationStrategyImpl authorizationStrategy() {
-        return new AclAuthorizationStrategyImpl(
-                simpleGrantedAuthority(),
-                simpleGrantedAuthority(),
-                simpleGrantedAuthority()
-        );
+        return new AclAuthorizationStrategyImpl(simpleGrantedAuthority());
     }
 
     @Bean

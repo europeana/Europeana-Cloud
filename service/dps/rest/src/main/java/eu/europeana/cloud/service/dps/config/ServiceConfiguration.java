@@ -50,7 +50,6 @@ public class ServiceConfiguration {
     private final static  String JNDI_KEY_MCS_LOCATION = "/dps/mcsLocation";
     private final static  String JNDI_KEY_APPLICATION_ID = "/dps/appId";
 
-    /** Default logger */
     private final static  Logger LOGGER = LoggerFactory.getLogger(ServiceConfiguration.class);
 
     private Environment environment;
@@ -141,8 +140,6 @@ public class ServiceConfiguration {
         String topologiesTopics = environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLETOPICS);
         return new KafkaTopicSelector(topologiesTopics);
     }
-
-    //INSERT MethodInvokingFactoryBean here
 
     @Bean
     public MethodInvokingFactoryBean methodInvokingFactoryBean() {

@@ -15,10 +15,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)  //<expression-handler ref="expressionHandler" /> ??
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
 public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
     private final static String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
@@ -30,14 +31,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private Environment environment;
 
-
-    @Bean
-    public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
-        return new CloudAuthenticationEntryPoint();
-    }
-
-    //<http entry-point-ref="cloudAuthenticationEntryPoint" use-expressions="true" create-session="stateless">
-   // @Override
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.
                 httpBasic().and().
@@ -45,10 +39,10 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
                 csrf().disable();
     }
 
-   // @Override
-    @Autowired
-    protected void _configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(authenticationService());
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(authenticationService())
+                .passwordEncoder(NoOpPasswordEncoder.getInstance());
     }
 
     /* Automatically receives AuthenticationEvent messages */

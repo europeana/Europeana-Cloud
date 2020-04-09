@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -28,7 +29,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
@@ -413,9 +413,9 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         submitTaskAndWait(XSLT_TASK, SAMPLE_TOPOLOGY_NAME, AUTH_HEADER_VALUE);
         //when
         try {
-            Response response = topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),"Dropped by the user");
+            ResponseEntity<String> response = topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),"Dropped by the user");
             assertNotNull(response);
-            assertEquals(response.getStatus(), 200);
+            assertEquals(200, response.getStatusCodeValue());
         } catch (Exception e) {
             fail();
         }

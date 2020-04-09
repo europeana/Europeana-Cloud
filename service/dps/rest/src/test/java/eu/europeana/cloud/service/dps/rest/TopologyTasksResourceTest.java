@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.security.acls.model.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -38,7 +39,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.ws.rs.core.MediaType;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
@@ -57,6 +57,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -738,7 +739,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         );
 
         response.andExpect(status().isOk());
-        response.andExpect(jsonPath("$.entity", is("The task was killed because of " + info)));
+        response.andExpect(content().string("The task was killed because of " + info));
     }
 
 
@@ -753,7 +754,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("info", info)
         );
         response.andExpect(status().isOk());
-        response.andExpect(jsonPath("$.entity", is("The task was killed because of " + info)));
+        response.andExpect(content().string("The task was killed because of " + info));
     }
 
 

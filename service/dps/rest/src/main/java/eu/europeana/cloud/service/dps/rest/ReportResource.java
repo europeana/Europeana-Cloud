@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @RestController
@@ -63,7 +63,7 @@ public class ReportResource {
      * @return Notification messages for the specified task.
      * @summary Retrieve task detailed report
      */
-    @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
     public List<SubTaskInfo> getTaskDetailedReport(
             @PathVariable String taskId,
@@ -106,7 +106,7 @@ public class ReportResource {
      * @return Errors that occurred for the specified task.
      * @summary Retrieve task detailed error report
      */
-    @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
     public TaskErrorsInfo getTaskErrorReport(
             @PathVariable String taskId,
@@ -175,7 +175,7 @@ public class ReportResource {
      * @return Statistics report for the specified task.
      * @summary Retrieve task statistics report
      */
-    @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
     public StatisticsReport getTaskStatisticsReport(
             @PathVariable String topologyName,
@@ -205,7 +205,7 @@ public class ReportResource {
      * @param elementPath  <strong>REQUIRED</strong> Path for specific element.
      * @return List of distinct values and their occurrences.
      */
-    @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
     public List<NodeReport> getElementsValues(
             @PathVariable String topologyName,

@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 
 @Configuration
 @Import({eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint.class,
@@ -38,10 +39,11 @@ public class AuthentificationTestContext extends WebSecurityConfigurerAdapter {
     @Bean
     protected AuthenticationManager authenticationManager(ObjectPostProcessor objectPostProcessor) throws Exception {
         AuthenticationManagerBuilder auth=new AuthenticationManagerBuilder(objectPostProcessor);
-        auth.inMemoryAuthentication().withUser("admin").password("{noop}admin").roles("ADMIN","USER")
-                .and().withUser("Robin_Van_Persie").password("{noop}Feyenoord").roles("USER")
-                .and().withUser("Cristiano").password("{noop}Ronaldo").roles("USER")
-                .and().withUser("Anonymous").password("{noop}Anonymous").roles("ANONYMOUS");
+        auth.inMemoryAuthentication().withUser("admin").password("admin").roles("ADMIN","USER")
+                .and().withUser("Robin_Van_Persie").password("Feyenoord").roles("USER")
+                .and().withUser("Cristiano").password("Ronaldo").roles("USER")
+                .and().withUser("Anonymous").password("Anonymous").roles("ANONYMOUS")
+                .and().passwordEncoder(NoOpPasswordEncoder.getInstance());;
 
        return auth.build();
     }
@@ -50,12 +52,6 @@ public class AuthentificationTestContext extends WebSecurityConfigurerAdapter {
     public RecordExecutionSubmitService recordExecutionSubmitService() {
         return Mockito.mock(RecordExecutionSubmitService.class);
     }
-
-//    @Bean
-//    public PasswordEncoder passwordEncoder(){
-//        return NoOpPasswordEncoder.getInstance();
-//    }
-
 
     @Bean
     public ProcessedRecordsDAO processedRecordsDAO() {
@@ -72,8 +68,4 @@ public class AuthentificationTestContext extends WebSecurityConfigurerAdapter {
         return Mockito.mock(KafkaTopicSelector.class);
     }
 
-//    @Bean
-//    public AuthenticationManager exposeManagerBean() throws Exception {
-//        return authenticationManager();
-//    }
 }
