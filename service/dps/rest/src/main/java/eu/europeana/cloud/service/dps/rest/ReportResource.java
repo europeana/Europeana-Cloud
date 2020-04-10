@@ -111,7 +111,7 @@ public class ReportResource {
     public TaskErrorsInfo getTaskErrorReport(
             @PathVariable String taskId,
             @PathVariable final String topologyName,
-            @RequestParam String error,
+            @RequestParam(required = false) String error,
             @RequestParam(defaultValue = "0") int idsCount)
             throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);

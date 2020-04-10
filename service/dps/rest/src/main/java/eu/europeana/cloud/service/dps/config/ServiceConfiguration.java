@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -39,11 +38,17 @@ public class ServiceConfiguration {
     private final static  String JNDI_KEY_KAFKA_GROUP_ID = "/dps/kafka/groupId";
     private final static  String JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS = "/dps/zookeeper/address";
 
-    private final static  String JNDI_KEY_CASSANDRA_HOSTS = "/dps/cassandra/hosts";
-    private final static  String JNDI_KEY_CASSANDRA_PORT = "/dps/cassandra/port";
-    private final static  String JNDI_KEY_CASSANDRA_KEYSPACE = "/dps/cassandra/keyspace";
-    private final static  String JNDI_KEY_CASSANDRA_USERNAME = "/dps/cassandra/user";
-    private final static  String JNDI_KEY_CASSANDRA_PASSWORD = "/dps/cassandra/password";
+    private final static String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
+    private final static String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
+    private final static String JNDI_KEY_AAS_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
+    private final static String JNDI_KEY_AAS_CASSANDRA_USERNAME = "/aas/cassandra/user";
+    private final static String JNDI_KEY_AAS_CASSANDRA_PASSWORD = "/aas/cassandra/password";
+
+    private final static  String JNDI_KEY_DPS_CASSANDRA_HOSTS = "/dps/cassandra/hosts";
+    private final static  String JNDI_KEY_DPS_CASSANDRA_PORT = "/dps/cassandra/port";
+    private final static  String JNDI_KEY_DPS_CASSANDRA_KEYSPACE = "/dps/cassandra/keyspace";
+    private final static  String JNDI_KEY_DPS_CASSANDRA_USERNAME = "/dps/cassandra/user";
+    private final static  String JNDI_KEY_DPS_CASSANDRA_PASSWORD = "/dps/cassandra/password";
 
     private final static  String JNDI_KEY_TOPOLOGY_NAMELIST = "/dps/topology/nameList";
     private final static  String JNDI_KEY_TOPOLOGY_AVAILABLETOPICS = "/dps/topology/availableTopics";
@@ -93,11 +98,11 @@ public class ServiceConfiguration {
     @Bean
     public CassandraReportService taskReportService() {
         return new CassandraReportService(
-                environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS),
-                environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class),
-                environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE),
-                environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME),
-                environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD));
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_USERNAME),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PASSWORD));
     }
 
     @Bean
@@ -123,11 +128,22 @@ public class ServiceConfiguration {
     @Bean
     public CassandraConnectionProvider dpsCassandraProvider() {
         return new CassandraConnectionProvider(
-                environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS),
-                environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class),
-                environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE),
-                environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME),
-                environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD));
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_USERNAME),
+                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PASSWORD));
+    }
+
+    @Bean
+    public CassandraConnectionProvider aasCassandraProvider() {
+        String hosts = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_HOSTS);
+        Integer port = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PORT, Integer.class);
+        String keyspaceName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_KEYSPACE);
+        String userName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_USERNAME);
+        String password = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PASSWORD);
+
+        return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
     }
 
     @Bean
