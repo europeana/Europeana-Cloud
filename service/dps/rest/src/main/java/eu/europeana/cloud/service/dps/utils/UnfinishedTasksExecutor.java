@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.List;
  * ({@link eu.europeana.cloud.common.model.dps.TaskState})
  * and start harvesting again for them.
  */
-@Component
+@Service
 public class UnfinishedTasksExecutor {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);

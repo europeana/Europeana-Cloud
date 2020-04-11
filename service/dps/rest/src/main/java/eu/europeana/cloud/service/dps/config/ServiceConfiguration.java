@@ -18,8 +18,6 @@ import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -34,30 +32,28 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @ComponentScan("eu.europeana.cloud.service.dps.rest")
 @EnableAsync
 public class ServiceConfiguration {
-    private final static  String JNDI_KEY_KAFKA_BROKER = "/dps/kafka/brokerLocation";
-    private final static  String JNDI_KEY_KAFKA_GROUP_ID = "/dps/kafka/groupId";
-    private final static  String JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS = "/dps/zookeeper/address";
+    private static final String JNDI_KEY_KAFKA_BROKER = "/dps/kafka/brokerLocation";
+    private static final String JNDI_KEY_KAFKA_GROUP_ID = "/dps/kafka/groupId";
+    private static final String JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS = "/dps/zookeeper/address";
 
-    private final static String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
-    private final static String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
-    private final static String JNDI_KEY_AAS_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-    private final static String JNDI_KEY_AAS_CASSANDRA_USERNAME = "/aas/cassandra/user";
-    private final static String JNDI_KEY_AAS_CASSANDRA_PASSWORD = "/aas/cassandra/password";
+    private static final String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
+    private static final String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
+    private static final String JNDI_KEY_AAS_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
+    private static final String JNDI_KEY_AAS_CASSANDRA_USERNAME = "/aas/cassandra/user";
+    private static final String JNDI_KEY_AAS_CASSANDRA_PASSWORD = "/aas/cassandra/password";
 
-    private final static  String JNDI_KEY_DPS_CASSANDRA_HOSTS = "/dps/cassandra/hosts";
-    private final static  String JNDI_KEY_DPS_CASSANDRA_PORT = "/dps/cassandra/port";
-    private final static  String JNDI_KEY_DPS_CASSANDRA_KEYSPACE = "/dps/cassandra/keyspace";
-    private final static  String JNDI_KEY_DPS_CASSANDRA_USERNAME = "/dps/cassandra/user";
-    private final static  String JNDI_KEY_DPS_CASSANDRA_PASSWORD = "/dps/cassandra/password";
+    private static final String JNDI_KEY_DPS_CASSANDRA_HOSTS = "/dps/cassandra/hosts";
+    private static final String JNDI_KEY_DPS_CASSANDRA_PORT = "/dps/cassandra/port";
+    private static final String JNDI_KEY_DPS_CASSANDRA_KEYSPACE = "/dps/cassandra/keyspace";
+    private static final String JNDI_KEY_DPS_CASSANDRA_USERNAME = "/dps/cassandra/user";
+    private static final String JNDI_KEY_DPS_CASSANDRA_PASSWORD = "/dps/cassandra/password";
 
-    private final static  String JNDI_KEY_TOPOLOGY_NAMELIST = "/dps/topology/nameList";
-    private final static  String JNDI_KEY_TOPOLOGY_AVAILABLETOPICS = "/dps/topology/availableTopics";
-    private final static  String JNDI_KEY_MCS_LOCATION = "/dps/mcsLocation";
-    private final static  String JNDI_KEY_APPLICATION_ID = "/dps/appId";
+    private static final String JNDI_KEY_TOPOLOGY_NAMELIST = "/dps/topology/nameList";
+    private static final String JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS = "/dps/topology/availableTopics";
+    private static final String JNDI_KEY_MCS_LOCATION = "/dps/mcsLocation";
+    private static final String JNDI_KEY_APPLICATION_ID = "/dps/appId";
 
-    private final static  Logger LOGGER = LoggerFactory.getLogger(ServiceConfiguration.class);
-
-    private Environment environment;
+    private final Environment environment;
 
     public ServiceConfiguration(Environment environment){
         this.environment = environment;
@@ -153,7 +149,7 @@ public class ServiceConfiguration {
 
     @Bean
     public KafkaTopicSelector kafkaTopicSelector() {
-        String topologiesTopics = environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLETOPICS);
+        String topologiesTopics = environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS);
         return new KafkaTopicSelector(topologiesTopics);
     }
 
