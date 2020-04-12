@@ -2,22 +2,14 @@ package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
-import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
-import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
-import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -29,7 +21,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @Configuration
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
-@ComponentScan("eu.europeana.cloud.service.dps.rest")
+@ComponentScan("eu.europeana.cloud.service.dps")
 @EnableAsync
 public class ServiceConfiguration {
     private static final String JNDI_KEY_KAFKA_BROKER = "/dps/kafka/brokerLocation";
@@ -57,17 +49,6 @@ public class ServiceConfiguration {
 
     public ServiceConfiguration(Environment environment){
         this.environment = environment;
-    }
-
-    @Bean
-    public PermissionManager permissionManager() {
-        return new PermissionManager();
-    }
-
-    @Bean
-    @Scope("prototype")
-    public FilesCounterFactory filesCounterFactory() {
-        return new FilesCounterFactory();
     }
 
     @Bean
@@ -107,16 +88,6 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public RecordServiceClient recordServiceClient() {
-        return new RecordServiceClient(environment.getProperty(JNDI_KEY_MCS_LOCATION));
-    }
-
-    @Bean
-    public FileServiceClient fileServiceClient() {
-        return new FileServiceClient(environment.getProperty(JNDI_KEY_MCS_LOCATION));
-    }
-
-    @Bean
     public DataSetServiceClient dataSetServiceClient() {
         return new DataSetServiceClient(environment.getProperty(JNDI_KEY_MCS_LOCATION));
     }
@@ -145,12 +116,6 @@ public class ServiceConfiguration {
     @Bean
     public String applicationIdentifier() {
         return environment.getProperty(JNDI_KEY_APPLICATION_ID);
-    }
-
-    @Bean
-    public KafkaTopicSelector kafkaTopicSelector() {
-        String topologiesTopics = environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS);
-        return new KafkaTopicSelector(topologiesTopics);
     }
 
     @Bean
@@ -206,20 +171,4 @@ public class ServiceConfiguration {
     public ProcessedRecordsDAO processedRecordsDAO() {
         return new ProcessedRecordsDAO(dpsCassandraProvider());
     }
-
-    @Bean
-    public DatasetCleanerService datasetCleanerService(){
-        return new DatasetCleanerService();
-    }
-
-    @Bean
-    public SubmitTaskService submitTaskService(){
-        return new SubmitTaskService();
-    }
-
-    @Bean
-    public HarvestsExecutor harvestsExecutor() {
-        return new HarvestsExecutor();
-    }
-
 }
