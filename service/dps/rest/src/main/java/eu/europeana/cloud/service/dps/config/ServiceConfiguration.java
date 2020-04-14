@@ -13,36 +13,17 @@ import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 
 @Configuration
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
 public class ServiceConfiguration {
-    private static final String JNDI_KEY_KAFKA_BROKER = "/dps/kafka/brokerLocation";
-    private static final String JNDI_KEY_KAFKA_GROUP_ID = "/dps/kafka/groupId";
-    private static final String JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS = "/dps/zookeeper/address";
-
-    private static final String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
-    private static final String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
-    private static final String JNDI_KEY_AAS_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-    private static final String JNDI_KEY_AAS_CASSANDRA_USERNAME = "/aas/cassandra/user";
-    private static final String JNDI_KEY_AAS_CASSANDRA_PASSWORD = "/aas/cassandra/password";
-
-    private static final String JNDI_KEY_DPS_CASSANDRA_HOSTS = "/dps/cassandra/hosts";
-    private static final String JNDI_KEY_DPS_CASSANDRA_PORT = "/dps/cassandra/port";
-    private static final String JNDI_KEY_DPS_CASSANDRA_KEYSPACE = "/dps/cassandra/keyspace";
-    private static final String JNDI_KEY_DPS_CASSANDRA_USERNAME = "/dps/cassandra/user";
-    private static final String JNDI_KEY_DPS_CASSANDRA_PASSWORD = "/dps/cassandra/password";
-
-    private static final String JNDI_KEY_TOPOLOGY_NAMELIST = "/dps/topology/nameList";
-    private static final String JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS = "/dps/topology/availableTopics";
-    private static final String JNDI_KEY_MCS_LOCATION = "/dps/mcsLocation";
-    private static final String JNDI_KEY_APPLICATION_ID = "/dps/appId";
 
     private final Environment environment;
 

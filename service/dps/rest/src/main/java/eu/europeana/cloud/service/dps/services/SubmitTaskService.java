@@ -77,7 +77,7 @@ public class SubmitTaskService {
                     insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                             expectedCount, TaskState.SENT.toString(), "", "");
                 }
-                LOGGER.info("Task submitted successfully to Kafka");
+                LOGGER.info("Task {} submitted successfully to Kafka", parameters.getTask().getTaskId());
             }
         } catch (TaskSubmissionException e) {
             LOGGER.error("Task submission failed: {}", e.getMessage(), e);

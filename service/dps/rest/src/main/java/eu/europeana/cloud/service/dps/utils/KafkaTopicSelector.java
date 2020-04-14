@@ -9,10 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @Service
 public class KafkaTopicSelector {
-
-    private static final String JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS = "/dps/topology/availableTopics";
 
     private Map<String, List<String>> availableTopic;
 
