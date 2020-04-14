@@ -22,7 +22,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
-@EnableAsync
 public class ServiceConfiguration {
     private static final String JNDI_KEY_KAFKA_BROKER = "/dps/kafka/brokerLocation";
     private static final String JNDI_KEY_KAFKA_GROUP_ID = "/dps/kafka/groupId";
