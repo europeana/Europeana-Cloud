@@ -4,11 +4,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import org.springframework.http.ResponseEntity;
-
-import java.net.URI;
-import java.util.Date;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Set of parameters to submit task to
@@ -18,14 +13,14 @@ import java.util.concurrent.CompletableFuture;
 @ToString
 public class SubmitTaskParameters {
     /** Submitting task */
-    private DpsTask task;
+    private final DpsTask task;
 
     /** Name of processing topology */
-    private String topologyName;
+    private final String topologyName;
 
     /** Authorisation header for web request */
-    private String authorizationHeader;
+    private final String authorizationHeader;
 
     /** Flag if task is subimtted <code>false<code/> or restarted <code>true<code/> */
-    private boolean restart;
+    private final boolean restart;
 }

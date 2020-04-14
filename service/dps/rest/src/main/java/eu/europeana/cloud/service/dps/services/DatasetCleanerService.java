@@ -16,7 +16,7 @@ import java.text.ParseException;
 @Service
 public class DatasetCleanerService {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DatasetCleanerService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleanerService.class);
 
     @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;

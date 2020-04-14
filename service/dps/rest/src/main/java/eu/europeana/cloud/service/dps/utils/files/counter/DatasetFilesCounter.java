@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
  * File counters inside a dataset task
  */
 public class DatasetFilesCounter extends FilesCounter {
-    public final static int UNKNOWN_EXPECTED_SIZE = -1;
-    private CassandraTaskInfoDAO taskDAO;
-    private final static Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
+    public static final int UNKNOWN_EXPECTED_SIZE = -1;
+    private final CassandraTaskInfoDAO taskDAO;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
 
     DatasetFilesCounter(CassandraTaskInfoDAO taskDAO) {
         this.taskDAO = taskDAO;

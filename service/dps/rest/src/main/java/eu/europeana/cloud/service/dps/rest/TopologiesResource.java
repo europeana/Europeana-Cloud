@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/{topologyName}")
 public class TopologiesResource {
 
-    private final static String TOPOLOGY_PREFIX = "Topology";
-    private final static Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
-    private MutableAclService mutableAclService;
-    private TopologyManager topologyManager;
+    private static final String TOPOLOGY_PREFIX = "Topology";
+    private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
+    private final MutableAclService mutableAclService;
+    private final TopologyManager topologyManager;
 
     public TopologiesResource(MutableAclService mutableAclService, TopologyManager topologyManager) {
         this.mutableAclService = mutableAclService;

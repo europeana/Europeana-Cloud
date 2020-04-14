@@ -31,7 +31,7 @@ import javax.validation.ConstraintViolationException;
 @ControllerAdvice(basePackages={"eu.europeana.cloud.service.dps.rest"})
 public class UnitedExceptionMapper {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NoHandlerFoundException.class)

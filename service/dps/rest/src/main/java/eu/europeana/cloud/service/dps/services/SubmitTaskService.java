@@ -24,9 +24,9 @@ import java.util.List;
 
 @Service
 public class SubmitTaskService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(SubmitTaskService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskService.class);
 
-    private final static int UNKNOWN_EXPECTED_SIZE = -1;
+    private static final int UNKNOWN_EXPECTED_SIZE = -1;
 
     @Autowired
     private HarvestsExecutor harvestsExecutor;

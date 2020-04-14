@@ -20,7 +20,7 @@ import java.util.List;
 @Service
 public class UnfinishedTasksExecutor {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);
 
     @Autowired
     private TasksByStateDAO tasksDAO;
@@ -42,7 +42,7 @@ public class UnfinishedTasksExecutor {
     }
 
     private List<TaskInfo> findTasksForCurrentMachine(List<TaskInfo> results) {
-        LOGGER.info("Filtering tasks for current machine: {}" + applicationIdentifier);
+        LOGGER.info("Filtering tasks for current machine: {}", applicationIdentifier);
         List<TaskInfo> result = new ArrayList<>();
         for (TaskInfo taskInfo : results) {
             if (taskInfo.getOwnerId().equals(applicationIdentifier)) {
@@ -53,7 +53,7 @@ public class UnfinishedTasksExecutor {
     }
 
     private void restartExecutionFor(List<TaskInfo> tasksToBeRestarted) {
-        if (tasksToBeRestarted.size() == 0) {
+        if (tasksToBeRestarted.isEmpty()) {
             LOGGER.info("No tasks to be restarted");
         } else {
             for (TaskInfo taskInfo : tasksToBeRestarted) {

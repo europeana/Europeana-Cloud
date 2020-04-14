@@ -13,7 +13,7 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @Service
 public class KafkaTopicSelector {
 
-    private Map<String, List<String>> availableTopic;
+    private final Map<String, List<String>> availableTopic;
 
     @Autowired
     private TasksByStateDAO tasksByStateDAO;

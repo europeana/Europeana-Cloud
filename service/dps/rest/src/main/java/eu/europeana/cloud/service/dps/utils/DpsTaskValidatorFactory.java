@@ -12,31 +12,31 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 
 public class DpsTaskValidatorFactory {
 
-    private final static DpsTaskValidator EMPTY_VALIDATOR = new DpsTaskValidator();
-    private final static String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
-    private final static String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
-    private final static String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
-    private final static String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
-    private final static String VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS = "validation_topology_file_urls";
-    private final static String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
+    private static final DpsTaskValidator EMPTY_VALIDATOR = new DpsTaskValidator();
+    private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
+    private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
+    private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
+    private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
+    private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS = "validation_topology_file_urls";
+    private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
 
-    private final static String IC_TOPOLOGY_TASK_WITH_FILE_URLS = "ic_topology_file_urls";
-    private final static String IC_TOPOLOGY_TASK_WITH_DATASETS = "ic_topology_dataset_urls";
+    private static final String IC_TOPOLOGY_TASK_WITH_FILE_URLS = "ic_topology_file_urls";
+    private static final String IC_TOPOLOGY_TASK_WITH_DATASETS = "ic_topology_dataset_urls";
 
-    private final static String NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS = "normalization_topology_file_urls";
-    private final static String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology_dataset_urls";
+    private static final String NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS = "normalization_topology_file_urls";
+    private static final String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology_dataset_urls";
 
-    private final static String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
-    private final static String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
-    private final static String JP2_MIME_TYPE = "image/jp2";
-    private final static String INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS = "indexing_topology_file_urls";
-    private final static String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
+    private static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
+    private static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
+    private static final String JP2_MIME_TYPE = "image/jp2";
+    private static final String INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS = "indexing_topology_file_urls";
+    private static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
 
 
-    private final static String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
-    private final static String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
+    private static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
+    private static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
 
-    private static Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
+    private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
     private DpsTaskValidatorFactory() {
     }

@@ -27,9 +27,9 @@ import java.util.List;
 @Scope("request")
 @RequestMapping("/{topologyName}/tasks")
 public class ReportResource {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
 
-    public final static String TASK_PREFIX = "DPS_Task";
+    public static final String TASK_PREFIX = "DPS_Task";
 
     @Value("${maxIdentifiersCount}")
     private int maxIdentifiersCount;

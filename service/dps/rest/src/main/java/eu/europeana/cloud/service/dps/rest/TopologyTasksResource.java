@@ -57,11 +57,11 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @RequestMapping("/{topologyName}/tasks")
 public class TopologyTasksResource {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
-    private final static String TOPOLOGY_PREFIX = "Topology";
+    private static final String TOPOLOGY_PREFIX = "Topology";
 
-    public final static String TASK_PREFIX = "DPS_Task";
+    public static final String TASK_PREFIX = "DPS_Task";
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -144,7 +144,7 @@ public class TopologyTasksResource {
      */
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    public ResponseEntity submitTask(
+    public ResponseEntity<Void> submitTask(
             final HttpServletRequest request,
             @RequestBody final DpsTask task,
             @PathVariable final String topologyName,
@@ -168,7 +168,7 @@ public class TopologyTasksResource {
      */
     @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    public ResponseEntity restartTask(
+    public ResponseEntity<Void> restartTask(
             final HttpServletRequest request,
             @PathVariable final long taskId,
             @PathVariable final String topologyName,

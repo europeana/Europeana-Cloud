@@ -20,26 +20,23 @@ import java.util.List;
 @Service
 public class HarvestsExecutor {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(HarvestsExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestsExecutor.class);
 
-    private final static int DEFAULT_RETRIES = 3;
-    private final static int SLEEP_TIME = 5000;
+    private static final int DEFAULT_RETRIES = 3;
+    private static final int SLEEP_TIME = 5000;
 
-    @Autowired
-    private RecordExecutionSubmitService recordSubmitService;
-
-    @Autowired
-    private ProcessedRecordsDAO processedRecordsDAO;
+    private final RecordExecutionSubmitService recordSubmitService;
+    private final ProcessedRecordsDAO processedRecordsDAO;
     /**
      * Auxiliary object to check 'kill flag' for task
      */
-    @Autowired
-    private TaskStatusChecker taskStatusChecker;
+    private final TaskStatusChecker taskStatusChecker;
 
-    /*public HarvestsExecutor(RecordExecutionSubmitService recordSubmitService, ProcessedRecordsDAO processedRecordsDAO) {
+    public HarvestsExecutor(RecordExecutionSubmitService recordSubmitService, ProcessedRecordsDAO processedRecordsDAO, TaskStatusChecker taskStatusChecker) {
         this.recordSubmitService = recordSubmitService;
         this.processedRecordsDAO = processedRecordsDAO;
-    }*/
+        this.taskStatusChecker = taskStatusChecker;
+    }
 
     public HarvestResult execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
         int resultCounter = 0;
