@@ -6,7 +6,7 @@ import com.google.common.collect.Sets;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class OaiPmhFilesCounterTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
 
-    private static final String OAI_PMH_ENDPOINT = "http://localhost:9999/oai-phm/";
+    private final static String OAI_PMH_ENDPOINT = "http://localhost:9999/oai-phm/";
 
     @Test
     public void shouldGetCorrectCompleteListSize() throws Exception {

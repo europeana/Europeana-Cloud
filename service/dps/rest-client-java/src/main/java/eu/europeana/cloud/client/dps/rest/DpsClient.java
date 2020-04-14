@@ -7,12 +7,13 @@ import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
@@ -29,11 +30,13 @@ public class DpsClient {
 
     private static final String ERROR = "error";
     private static final String IDS_COUNT = "idsCount";
-    private Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
 
-    private String dpsUrl;
+    private final String dpsUrl;
 
-    private final Client client = JerseyClientBuilder.newClient();
+    private final Client client = ClientBuilder.newBuilder()
+            .register(JacksonFeature.class)
+            .build();
 
     private static final String TOPOLOGY_NAME = "TopologyName";
     private static final String TASK_ID = "TaskId";
@@ -364,9 +367,7 @@ public class DpsClient {
                     .resolveTemplate(TASK_ID, taskId)
                     .request().head();
 
-            if (response.getStatus() == Response.Status.OK.getStatusCode())
-                return true;
-            return false;
+            return response.getStatus() == Response.Status.OK.getStatusCode();
 
         } finally {
             closeResponse(response);
@@ -419,7 +420,7 @@ public class DpsClient {
         }
     }
 
-    private DpsException handleException(Response response) throws DpsException {
+    private DpsException handleException(Response response) {
         try {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             return DPSExceptionProvider.generateException(errorInfo);

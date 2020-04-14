@@ -37,7 +37,7 @@ public class TaskStatusChecker {
         this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
     }
 
-    private TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
+    public TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
         cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
                     public Boolean load(Long taskId) throws ExecutionException, TaskInfoDoesNotExistException {
