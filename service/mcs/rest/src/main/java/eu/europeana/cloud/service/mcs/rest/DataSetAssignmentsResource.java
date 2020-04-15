@@ -3,26 +3,16 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.ws.rs.FormParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Resource to assign and unassign representations to/from data sets.
  */
 @RestController
-@RequestMapping("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/assignments")
+@RequestMapping("/data-providers/{providerId}/data-sets/{dataSetId}/assignments")
 @Scope("request")
 public class DataSetAssignmentsResource {
 
@@ -36,9 +26,9 @@ public class DataSetAssignmentsResource {
      *
      * @param providerId identifier of provider(required)
      * @param dataSetId identifier of data set (required)
-     * @param recordId cloud id of record (required)
-     * @param schema schema of representation (required)
-     * @param representationVersion version of representation. If not provided,
+     * @param cloudId cloud id of record (required)
+     * @param representationName schema of representation (required)
+     * @param version version of representation. If not provided,
      * latest persistent version will be assigned to data set.
      * @throws DataSetNotExistsException no such data set exists
      * @throws RepresentationNotExistsException no such representation exists.
@@ -46,14 +36,14 @@ public class DataSetAssignmentsResource {
      */
     @PostMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
-    public void addAssignment(@PathParam(P_PROVIDER) String providerId,
-    		@PathParam(P_DATASET) String dataSetId,
-    		@FormParam(F_CLOUDID) String recordId, @FormParam(F_REPRESENTATIONNAME) String schema,
-            @FormParam(F_VER) String representationVersion)
+    public void addAssignment(
+            @PathVariable String providerId,
+            @PathVariable String dataSetId,
+            @RequestParam String cloudId,
+            @RequestParam String representationName,
+            @RequestParam(required = false) String version)
             throws DataSetNotExistsException, RepresentationNotExistsException {
-        ParamUtil.require(F_CLOUDID, recordId);
-        ParamUtil.require(F_REPRESENTATIONNAME, schema);
-        dataSetService.addAssignment(providerId, dataSetId, recordId, schema, representationVersion);
+        dataSetService.addAssignment(providerId, dataSetId, cloudId, representationName, version);
     }
 
     /**
@@ -64,19 +54,19 @@ public class DataSetAssignmentsResource {
      *@summary Unassign representation from a data set.
      * @param providerId identifier of provider(required)
      * @param dataSetId identifier of data set (required)
-     * @param recordId cloud id of record (required)
-     * @param schema schema of representation (required)
+     * @param cloudId cloud id of record (required)
+     * @param representationName schema of representation (required)
      * @throws DataSetNotExistsException no such data set exists
      */
     @DeleteMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
-    public void removeAssignment(@PathParam(P_PROVIDER) String providerId,
-    		@PathParam(P_DATASET) String dataSetId,
-    		@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema, @QueryParam(F_VER) String versionId)
+    public void removeAssignment(
+            @PathVariable String providerId,
+            @PathVariable String dataSetId,
+    		@RequestParam String cloudId, //@RequestParam
+            @RequestParam String representationName,
+            @RequestParam String version)
             throws DataSetNotExistsException {
-        ParamUtil.require(F_CLOUDID, recordId);
-        ParamUtil.require(F_REPRESENTATIONNAME, schema);
-        ParamUtil.require(F_VER, versionId);
-        dataSetService.removeAssignment(providerId, dataSetId, recordId, schema, versionId);
+        dataSetService.removeAssignment(providerId, dataSetId, cloudId, representationName, version);
     }
 }

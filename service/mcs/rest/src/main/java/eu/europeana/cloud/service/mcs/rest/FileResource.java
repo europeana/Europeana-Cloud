@@ -15,14 +15,14 @@ import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,8 +37,7 @@ import static eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedIn
  * Resource to manage representation version's files with their content.
  */
 @RestController
-@RequestMapping("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{"
-        + P_VER + "}/files/{" + P_FILENAME + ":(.+)?}")
+@RequestMapping("/records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName:(.+)?}")
 @Scope("request")
 public class FileResource {
     private static final String HEADER_RANGE = "Range";
@@ -62,34 +61,35 @@ public class FileResource {
      *
      *<strong>Write permissions required.</strong>
      *@summary Updates a file in a representation version
-     * @param globalId cloud id of the record in which the file will be updated (required)
-     * @param schema schema of representation (required)
+     * @param cloudId cloud id of the record in which the file will be updated (required)
+     * @param representationName schema of representation (required)
      * @param version a specific version of the representation(required)
      * @param fileName the name of the file(required)
      * @param mimeType mime type of file
      * @param data binary stream of file content (required)
      * @return URI of the uploaded content file in content-location
-     * @throws RepresentationNotExistsException representation does not exist in
-     * specified version.
-     * @throws CannotModifyPersistentRepresentationException specified
-     * representation version is persistent and modifying its files is not
-     * allowed.
+     * @throws RepresentationNotExistsException representation does not exist in specified version.
+     * @throws CannotModifyPersistentRepresentationException specified representation version is persistent and modifying
+     *                                                       its files is not allowed.
      * @throws FileNotExistsException specified file does not exist.
      * @statuscode 204 object has been updated.
      */
-    @PutMapping(consumes = {MediaType.MULTIPART_FORM_DATA})
+    @PutMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
-    public Response sendFile(@Context UriInfo uriInfo,
-    		@PathParam(P_CLOUDID) String globalId,
-    		@PathParam(P_REPRESENTATIONNAME) String schema,
-    		@PathParam(P_VER) String version,
-    		@PathParam(P_FILENAME) String fileName,
-    		@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-            FileNotExistsException {
+    public ResponseEntity<?> sendFile(
+            HttpServletRequest httpServletRequest,
+    		@PathVariable String cloudId,
+    		@PathVariable String representationName,
+    		@PathVariable String version,
+    		@PathVariable String fileName,
+    		@FormDataParam(F_FILE_MIME) String mimeType,
+            @FormDataParam(F_FILE_DATA) InputStream data) throws RepresentationNotExistsException,
+                CannotModifyPersistentRepresentationException, FileNotExistsException {
+
         ParamUtil.require(F_FILE_DATA, data);
         ParamUtil.require(F_FILE_MIME, mimeType);
+
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileName(fileName);
@@ -98,12 +98,16 @@ public class FileResource {
         f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 
         // For throw  FileNotExistsException if specified file does not exist.
-        recordService.getFile(globalId, schema, version, fileName);
-        recordService.putContent(globalId, schema, version, f, prebufferedInputStream);
+        recordService.getFile(cloudId, representationName, version, fileName);
+        recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
         IOUtils.closeQuietly(prebufferedInputStream);
-        EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
+        EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
 
-        return Response.status(Response.Status.NO_CONTENT).location(f.getContentUri()).tag(f.getMd5()).build();
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .location(f.getContentUri())
+                .eTag(f.getMd5())
+                .build();
     }
 
     /**
@@ -120,7 +124,7 @@ public class FileResource {
      *
      * <strong>Read permissions required.</strong>
      * @summary get file contents from a representation version
-     * @param globalId cloud id of the record (required).
+     * @param cloudId cloud id of the record (required).
      * @param schema schema of representation (required).
      * @param version a specific version of the representation(required).
      * @param fileName the name of the file(required).
@@ -137,10 +141,11 @@ public class FileResource {
     @GetMapping
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', read)")
-    public Response getFile(@PathParam(P_CLOUDID) final String globalId, 
-    		@PathParam(P_REPRESENTATIONNAME) final String schema,
-    		@PathParam(P_VER) final String version,
-    		@PathParam(P_FILENAME) final String fileName,
+    public ResponseEntity<?> getFile(
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+    		@PathVariable String version,
+    		@PathVariable final String fileName,
     		@HeaderParam(HEADER_RANGE) String range)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
@@ -155,12 +160,12 @@ public class FileResource {
         // get file md5 if complete file is requested
         String md5 = null;
         String fileMimeType = null;
-        Response.Status status;
+        HttpStatus status;
         if (contentRange.isSpecified()) {
-            status = Response.Status.PARTIAL_CONTENT;
+            status = HttpStatus.PARTIAL_CONTENT;
         } else {
-            status = Response.Status.OK;
-            final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
+            status = HttpStatus.OK;
+            final File requestedFile = recordService.getFile(cloudId, representationName, version, fileName);
             md5 = requestedFile.getMd5();
             if(StringUtils.isNotBlank(requestedFile.getMimeType())){
                 fileMimeType = requestedFile.getMimeType();
@@ -185,7 +190,12 @@ public class FileResource {
             }
         };
 
-        return Response.status(status).entity(output).type(fileMimeType).tag(md5).build();
+        return ResponseEntity
+                .status(status)
+                .body(output)
+                .type(fileMimeType)
+                .tag(md5)
+                .build();
     }
 
     /**
@@ -207,7 +217,7 @@ public class FileResource {
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response getFileHeaders(@Context UriInfo uriInfo,
-                                   @PathParam(P_CLOUDID) final String globalId,
+                                   @PathVariable String cloudId,
                                    @PathParam(P_REPRESENTATIONNAME) final String schema,
                                    @PathParam(P_VER) final String version,
                                    @PathParam(P_FILENAME) final String fileName)
@@ -245,7 +255,9 @@ public class FileResource {
     @DeleteMapping
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
-    public void deleteFile(@PathParam(P_CLOUDID) final String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, 
+    public void deleteFile(
+            @PathVariable String cloudId,
+            @PathParam(P_REPRESENTATIONNAME) String schema,
     		@PathParam(P_VER) String version,
     		@PathParam(P_FILENAME) String fileName)
             throws RepresentationNotExistsException, FileNotExistsException,

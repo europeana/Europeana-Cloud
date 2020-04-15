@@ -9,24 +9,17 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
-
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Resource representing records.
  */
 @RestController
-@RequestMapping("/records/{" + P_CLOUDID + "}")
+@RequestMapping("/records/{cloudId}")
 @Scope("request")
 public class RecordsResource {
 
@@ -36,17 +29,18 @@ public class RecordsResource {
     /**
      * Returns record with all its latest persistent representations.
      *
-     * @param globalId cloud id of the record (required).
+     * @param cloudId cloud id of the record (required).
      * @return record.
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      */
-    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ReturnType("eu.europeana.cloud.common.model.Record")
-    public Record getRecord(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
-            throws RecordNotExistsException {
-        Record record = recordService.getRecord(globalId);
-        prepare(uriInfo, record);
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody Record getRecord(
+            HttpServletRequest httpServletRequest,
+            @PathVariable String cloudId) throws RecordNotExistsException {
+
+        Record record = recordService.getRecord(cloudId);
+        prepare(httpServletRequest, record);
         return record;
     }
 
@@ -57,17 +51,18 @@ public class RecordsResource {
      * <strong>Admin permissions required.</strong>
      *
      * @summary delete a record
-     * @param globalId cloud id of the record (required).
+     * @param cloudId cloud id of the record (required).
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      * @throws RepresentationNotExistsException thrown if no representation can
      * be found for requested record. Service cannot delete such record.
      */
-    @DELETE
+    @DeleteMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')") 
-    public void deleteRecord(@PathParam(P_CLOUDID) String globalId)
-            throws RecordNotExistsException, RepresentationNotExistsException {
-        recordService.deleteRecord(globalId);
+    public void deleteRecord(
+            @PathVariable String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
+
+        recordService.deleteRecord(cloudId);
     }
 
     /**
@@ -76,8 +71,8 @@ public class RecordsResource {
      *
      * @param record
      */
-    private void prepare(@Context UriInfo uriInfo, Record record) {
-        EnrichUriUtil.enrich(uriInfo, record);
+    private void prepare(HttpServletRequest httpServletRequest, Record record) {
+        EnrichUriUtil.enrich(httpServletRequest, record);
         for (Representation representation : record.getRepresentations()) {
 //            representation.setFiles(null);
             representation.setCloudId(null);

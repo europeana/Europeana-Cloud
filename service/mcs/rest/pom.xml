@@ -387,7 +387,6 @@
     </build>
 
     <dependencies>
-
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
@@ -418,6 +417,33 @@
             <artifactId>spring-webmvc</artifactId>
             <version>${version.spring-framework}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-oxm</artifactId>
+            <version>${version.spring-framework}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+            <version>1.4.11.1</version>
+        </dependency>
+<!--
+                <dependency>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                    <version>2.10.3</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                    <version>2.10.3</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-mapper-asl</artifactId>
+                    <version>1.9.13</version>
+                </dependency>
+        -->
 
 
         <dependency>
@@ -492,7 +518,6 @@
             <version>${version.servlet}</version>
             <scope>provided</scope>
         </dependency>
-
 
         <!--Jersey -->
 <!--

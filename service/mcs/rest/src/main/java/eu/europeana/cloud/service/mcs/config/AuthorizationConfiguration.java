@@ -79,11 +79,7 @@ public class AuthorizationConfiguration {
 
     @Bean
     public AclAuthorizationStrategyImpl authorizationStrategy() {
-        return new AclAuthorizationStrategyImpl(
-                simpleGrantedAuthority(),
-                simpleGrantedAuthority(),
-                simpleGrantedAuthority()
-        );
+        return new AclAuthorizationStrategyImpl(simpleGrantedAuthority());
     }
 
 
@@ -143,7 +139,7 @@ public class AuthorizationConfiguration {
 
     private void listEnvironment() {
         Map<String, Object> map = new TreeMap<>();
-        for(Iterator it = ((AbstractEnvironment) environment).getPropertySources().iterator(); it.hasNext(); ) {
+        for(Iterator it = ((AbstractEnvironment)environment).getPropertySources().iterator(); it.hasNext(); ) {
             PropertySource propertySource = (PropertySource) it.next();
             if (propertySource instanceof MapPropertySource) {
                 map.putAll(((MapPropertySource) propertySource).getSource());

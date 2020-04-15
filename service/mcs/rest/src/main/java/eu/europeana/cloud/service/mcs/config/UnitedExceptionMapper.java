@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -260,7 +261,7 @@ public class UnitedExceptionMapper {
      */
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     @ExceptionHandler(RevisionIsNotValidException.class)
-    @ResponseBody public ErrorInfo handleRevisionIsNotValidException(Exception exception) {
+    public @ResponseBody ErrorInfo handleRevisionIsNotValidException(Exception exception) {
         return buildResponse(McsErrorCode.REVISION_IS_NOT_VALID, exception);
     }
 
@@ -274,17 +275,21 @@ public class UnitedExceptionMapper {
      */
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(RevisionNotExistsException.class)
-    @ResponseBody public ErrorInfo handleRevisionNotExistsException(Exception exception) {
+    public @ResponseBody ErrorInfo handleRevisionNotExistsException(Exception exception) {
         return buildResponse(McsErrorCode.REVISION_NOT_EXISTS, exception);
     }
 
 
-/*
-    private static Response buildResponse(Response.Status httpStatus, McsErrorCode errorCode, Exception e) {
-        return buildResponse(httpStatus.getStatusCode(), errorCode, e);
+    /**
+     * Method below is instead {@link eu.europeana.cloud.service.mcs.utils.ParamUtil#require(String, Object)}
+     * @param exception
+     * @return
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public @ResponseBody ErrorInfo handleMissingServletRequestParameterException(MissingServletRequestParameterException exception) {
+        return buildResponse(McsErrorCode.OTHER, exception.getParameterName() + " is a required parameter");
     }
-*/
-
 
     private static ResponseEntity<ErrorInfo> buildResponse(HttpStatus httpStatusCode, McsErrorCode errorCode, Exception e) {
         return ResponseEntity

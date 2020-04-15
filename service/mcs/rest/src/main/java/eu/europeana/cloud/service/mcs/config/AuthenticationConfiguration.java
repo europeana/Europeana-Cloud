@@ -12,13 +12,14 @@ import org.springframework.security.authentication.event.LoggerListener;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)  //<expression-handler ref="expressionHandler" /> ??
-public class AuthenticationConfiguration {
+public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
     private final static String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
     private final static String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
@@ -29,6 +30,7 @@ public class AuthenticationConfiguration {
     @Autowired
     private Environment environment;
 
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic()
                 .and()

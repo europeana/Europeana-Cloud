@@ -9,13 +9,13 @@ import eu.europeana.cloud.common.selectors.RepresentationSelector;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -26,12 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -43,7 +37,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  * The latest persistent version of representation is picked up.
  */
 @RestController
-@RequestMapping("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}/representations/{" + P_REPRESENTATIONNAME + "}/{" + P_FILENAME + ":.+}")
+@RequestMapping("/data-providers/{providerId}/records/{localId:.+}/representations/{representationName}/{fileName:.+}")
 @Scope("request")
 public class SimplifiedFileAccessResource {
 
@@ -74,12 +68,13 @@ public class SimplifiedFileAccessResource {
      * @statuscode 204 object has been updated.
      */
     @GetMapping
-    public Response getFile(@Context UriInfo uriInfo,
-                            @PathParam(P_PROVIDER) final String providerId,
-                            @PathParam(P_LOCALID) final String localId,
-                            @PathParam(P_REPRESENTATIONNAME) final String representationName,
-                            @PathParam(P_FILENAME) final String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
+    public ResponseEntity<> getFile(
+            @Context UriInfo uriInfo,
+            @PathParam(P_PROVIDER) final String providerId,
+            @PathParam(P_LOCALID) final String localId,
+            @PathParam(P_REPRESENTATIONNAME) final String representationName,
+            @PathParam(P_FILENAME) final String fileName) throws RepresentationNotExistsException,
+                FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
 
         LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
                 providerId, localId, representationName, fileName);

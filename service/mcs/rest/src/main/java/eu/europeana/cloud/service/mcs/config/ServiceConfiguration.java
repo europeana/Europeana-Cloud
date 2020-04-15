@@ -21,9 +21,16 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.xml.MarshallingHttpMessageConverter;
+import org.springframework.oxm.xstream.XStreamMarshaller;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.xml.stream.XMLStreamConstants;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -32,7 +39,7 @@ import java.util.Map;
 @ComponentScan("eu.europeana.cloud.service.mcs.rest")
 //@EnableAsync
 //@AspectJAutoProxy  !! EXPLAIN ???
-public class ServiceConfiguration {
+public class ServiceConfiguration implements WebMvcConfigurer {
     private final static  String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
     private final static  String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
     private final static  String JNDI_KEY_CASSANDRA_KEYSPACE = "/mcs/cassandra/keyspace";
@@ -52,6 +59,27 @@ public class ServiceConfiguration {
     public ServiceConfiguration(Environment environment){
         this.environment = environment;
     }
+
+
+    @Override
+    public void configureMessageConverters(
+            List<HttpMessageConverter<?>> converters) {
+
+        converters.add(createXmlHttpMessageConverter());
+        converters.add(new MappingJackson2HttpMessageConverter());
+    }
+
+    private HttpMessageConverter<Object> createXmlHttpMessageConverter() {
+        MarshallingHttpMessageConverter xmlConverter =
+                new MarshallingHttpMessageConverter();
+
+        XStreamMarshaller xstreamMarshaller = new XStreamMarshaller();
+        xmlConverter.setMarshaller(xstreamMarshaller);
+        xmlConverter.setUnmarshaller(xstreamMarshaller);
+
+        return xmlConverter;
+    }
+
 
     @Bean
     public ServiceExceptionTranslator serviceExceptionTranslator() {

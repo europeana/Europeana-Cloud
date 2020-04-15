@@ -23,6 +23,7 @@ public final class ParamUtil {
      * @param parameterName  form parameter name
      * @param parameterValue form parameter value
      */
+    @Deprecated
     public static void require(String parameterName, Object parameterValue) {
         if (parameterValue == null) {
             ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), parameterName + " is a required parameter");

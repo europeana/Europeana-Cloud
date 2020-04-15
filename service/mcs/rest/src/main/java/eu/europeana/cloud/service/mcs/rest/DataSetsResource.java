@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
@@ -8,10 +7,11 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -19,26 +19,16 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 
 /**
  * Resource to get and create data set.
  */
 @RestController
-@RequestMapping("/data-providers/{" + P_PROVIDER + "}/data-sets")
+@RequestMapping("/data-providers/{providerId}/data-sets")
 @Scope("request")
 public class DataSetsResource {
 
@@ -62,10 +52,11 @@ public class DataSetsResource {
      * first slice of result will be returned.
      * @return slice of data sets for a given provider.
      */
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.DataSet>")
-    @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public ResultSlice<DataSet> getDataSets(@PathParam(P_PROVIDER) String providerId,
-    		@QueryParam(F_START_FROM) String startFrom) {
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody ResultSlice<DataSet> getDataSets(
+            @PathVariable String providerId,
+    		@RequestParam String startFrom) {
+
         return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
     }
 
@@ -86,29 +77,26 @@ public class DataSetsResource {
      */
     @PreAuthorize("isAuthenticated()")
     @PostMapping
-    public Response createDataSet(@Context UriInfo uriInfo,
-    		@PathParam(P_PROVIDER) String providerId,
-    		@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)
-            throws ProviderNotExistsException, DataSetAlreadyExistsException {
-        ParamUtil.require(F_DATASET, dataSetId);
-
+    public ResponseEntity<URI> createDataSet(
+            HttpServletRequest httpServletRequest,
+            @PathVariable String providerId,
+            @RequestParam String dataSetId,
+            @RequestParam(required = false) String description) throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
-        EnrichUriUtil.enrich(uriInfo, dataSet);
-        final Response response = Response.created(dataSet.getUri()).build();
+        EnrichUriUtil.enrich(httpServletRequest, dataSet);
+        final ResponseEntity<URI> response = ResponseEntity.created(dataSet.getUri()).build();
         
         String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {
-            ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
-            		dataSetId + "/" + providerId);
+            ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME, dataSetId + "/" + providerId);
 
             MutableAcl datasetAcl = mutableAclService.createAcl(dataSetIdentity);
 
             datasetAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
             datasetAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
             datasetAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            datasetAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
-                    true);
+            datasetAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
 
             mutableAclService.updateAcl(datasetAcl);
         }
