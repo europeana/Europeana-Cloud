@@ -4,8 +4,12 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReader;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
@@ -17,6 +21,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +54,18 @@ public class SubmitTaskService {
     @Autowired
     private TaskExecutionSubmitService submitService;
 
+    @Autowired
+    private CassandraTaskErrorsDAO taskErrorDAO;
+
+    @Autowired
+    private TaskStatusChecker taskStatusChecker;
+
+    @Autowired
+    private RecordExecutionSubmitService recordSubmitService;
+
+    @Value("${/dps/mcsLocation}")
+    private String mcsClientURL;
+
     @Async
     public void submitTask(SubmitTaskParameters parameters) {
         try {
@@ -58,20 +75,29 @@ public class SubmitTaskService {
                 insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                         expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", "");
             } else {
-                if (parameters.getTopologyName().equals(TopologiesNames.OAI_TOPOLOGY)) {
+                if (!parameters.getTopologyName().equals(TopologiesNames.HTTP_TOPOLOGY)) {
                     String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
                     insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                             expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", preferredTopicName);
-                    List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(parameters.getTask());
 
-                    HarvestResult harvesterResult;
-                    if (!parameters.isRestart()) {
-                        harvesterResult = harvestsExecutor.execute(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
+                    if (parameters.getTopologyName().equals(TopologiesNames.OAI_TOPOLOGY)) {
+                        List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(parameters.getTask());
+
+                        HarvestResult harvesterResult;
+                        if (!parameters.isRestart()) {
+                            harvesterResult = harvestsExecutor.execute(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
+                        } else {
+                            harvesterResult = harvestsExecutor.executeForRestart(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
+                        }
+                        updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
                     } else {
-                        harvesterResult = harvestsExecutor.executeForRestart(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
+                        parameters.getTask().addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
+                        createMCSReader(parameters.getTopologyName(), parameters.getTask(), preferredTopicName).execute();
+                        insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
+                                expectedCount, TaskState.SENT.toString(), "", "");
                     }
-                    updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
-                } else {
+
+                } else { // HTTP_TOPOLOGY only
                     parameters.getTask().addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
                     submitService.submitTask(parameters.getTask(), parameters.getTopologyName());
                     insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
@@ -89,6 +115,12 @@ public class SubmitTaskService {
             insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),0,
                     TaskState.DROPPED.toString(), fullStacktrace, "");
         }
+    }
+
+    private MCSTaskSubmiter createMCSReader(String topologyName, DpsTask task, String topicName){
+        String authorizationHeader = task.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        MCSReader reader=new MCSReader(mcsClientURL,authorizationHeader);
+        return new MCSTaskSubmiter(taskErrorDAO,taskStatusChecker,taskInfoDAO,recordSubmitService,topologyName,task,topicName,reader);
     }
 
     /**

@@ -109,6 +109,11 @@ public class DPSServiceTestContext {
     }
 
     @Bean
+    public CassandraTaskErrorsDAO cassandraTaskErrorsDAO(){
+        return Mockito.mock(CassandraTaskErrorsDAO.class);
+    }
+
+    @Bean
     public FilesCounterFactory filesCounterFactory() {
         return Mockito.mock(FilesCounterFactory.class);
     }

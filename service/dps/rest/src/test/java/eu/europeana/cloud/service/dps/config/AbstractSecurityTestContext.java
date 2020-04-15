@@ -6,6 +6,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
 import eu.europeana.cloud.service.dps.rest.TopologiesResource;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.utils.UnfinishedTasksExecutor;
@@ -77,6 +78,11 @@ public class AbstractSecurityTestContext {
     @Bean
     public CassandraTaskInfoDAO taskDAO(){
         return Mockito.mock(CassandraTaskInfoDAO.class);
+    }
+
+    @Bean
+    public CassandraTaskErrorsDAO cassandraTaskErrorsDAO(){
+        return Mockito.mock(CassandraTaskErrorsDAO.class);
     }
 
     @Bean

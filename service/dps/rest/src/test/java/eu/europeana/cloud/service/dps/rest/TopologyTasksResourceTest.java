@@ -500,7 +500,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         prepareMocks(HTTP_TOPOLOGY);
         ResultActions response = sendTask(task, HTTP_TOPOLOGY);
 
-        assertSuccessfulRequest(response, HTTP_TOPOLOGY);
+        assertSuccessfulHttpTopologyRequest(response, HTTP_TOPOLOGY);
     }
 
 
@@ -903,7 +903,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         setCorrectlyFormulatedOutputRevision(task);
     }
 
-    private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
+    private void assertSuccessfulHttpTopologyRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep(5000);
@@ -911,6 +911,13 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         verifyNoMoreInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
         //verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
+    }
+
+    private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
+        assertNotNull(response);
+        response.andExpect(status().isCreated());
+        Thread.sleep(5000);
+        verifyZeroInteractions(taskKafkaSubmitService);
     }
 
     private DataSetCleanerParameters prepareDataSetCleanerParameters() {

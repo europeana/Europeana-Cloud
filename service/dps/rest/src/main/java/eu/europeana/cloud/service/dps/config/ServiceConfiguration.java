@@ -39,17 +39,13 @@ public class ServiceConfiguration {
     @Bean
     public TaskKafkaSubmitService taskKafkaSubmitService() {
         return new TaskKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
-                environment.getProperty(JNDI_KEY_KAFKA_GROUP_ID),
-                environment.getProperty(JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS));
+                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
     }
 
     @Bean
     public RecordExecutionSubmitService recordKafkaSubmitService() {
         return new RecordKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
-                environment.getProperty(JNDI_KEY_KAFKA_GROUP_ID),
-                environment.getProperty(JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS));
+                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
     }
 
     @Bean
@@ -110,6 +106,11 @@ public class ServiceConfiguration {
     @Bean
     public CassandraTaskInfoDAO taskInfoDAO() {
         return new CassandraTaskInfoDAO(dpsCassandraProvider());
+    }
+
+    @Bean
+    public CassandraTaskErrorsDAO taskErrorDAO() {
+        return CassandraTaskErrorsDAO.getInstance(dpsCassandraProvider());
     }
 
     @Bean
