@@ -36,7 +36,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     /**
      * @param dbService The service exposing the connection and session
      */
-    private CassandraSubTaskInfoDAO(CassandraConnectionProvider dbService) {
+    public CassandraSubTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
 

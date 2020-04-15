@@ -4,7 +4,7 @@ import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.OAIResponseParseException;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public class OaiPmhFilesCounter extends FilesCounter {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(OaiPmhFilesCounter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhFilesCounter.class);
 
     private static final String COMPLETE_LIST_SIZE_XPATH =
             "/*[local-name()='OAI-PMH']" +

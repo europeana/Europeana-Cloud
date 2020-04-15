@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,10 +24,10 @@ public class DatasetFilesCounterTest {
 
     private DatasetFilesCounter datasetFilesCounter;
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
-    private static final long TASK_ID = 1234;
-    private static final int EXPECTED_SIZE = 100;
-    private static final int DEFAULT_FILES_COUNT = -1;
-    private static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
+    private final static long TASK_ID = 1234;
+    private final static int EXPECTED_SIZE = 100;
+    private final static int DEFAULT_FILES_COUNT = -1;
+    private final static String TOPOLOGY_NAME = "TOPOLOGY_NAME";
     private DpsTask dpsTask;
 
 

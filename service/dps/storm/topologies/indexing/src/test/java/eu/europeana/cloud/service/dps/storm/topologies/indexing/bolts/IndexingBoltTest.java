@@ -75,7 +75,7 @@ public class IndexingBoltTest {
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(4, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertFalse(dataSetCleanerParameters.getIsUsingALtEnv());
+        assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
@@ -97,7 +97,7 @@ public class IndexingBoltTest {
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(4, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertFalse(dataSetCleanerParameters.getIsUsingALtEnv());
+        assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 

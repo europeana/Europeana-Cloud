@@ -55,6 +55,14 @@
 					<groupId>org.apache.logging.log4j</groupId>
 					<artifactId>log4j-core</artifactId>
 				</exclusion>
+				<exclusion>
+					<artifactId>org.springframework</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.springframework.security</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -119,6 +127,14 @@
 				<exclusion>
 					<artifactId>log4j</artifactId>
 					<groupId>log4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.springframework</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.springframework.security</artifactId>
+					<groupId>*</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>

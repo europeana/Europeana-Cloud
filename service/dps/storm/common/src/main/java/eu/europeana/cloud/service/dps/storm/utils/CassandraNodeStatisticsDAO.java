@@ -59,7 +59,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
     /**
      * @param dbService The service exposing the connection and session
      */
-    private CassandraNodeStatisticsDAO(CassandraConnectionProvider dbService) {
+    public CassandraNodeStatisticsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
         cassandraAttributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(dbService);
     }

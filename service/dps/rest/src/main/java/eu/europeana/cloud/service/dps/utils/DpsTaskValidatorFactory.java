@@ -36,7 +36,7 @@ public class DpsTaskValidatorFactory {
     private static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
     private static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
 
-    private static Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
+    private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
     private DpsTaskValidatorFactory() {
     }
