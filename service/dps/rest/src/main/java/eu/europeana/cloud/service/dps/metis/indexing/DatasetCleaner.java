@@ -22,9 +22,9 @@ public class DatasetCleaner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
     private IndexerFactory indexerFactory;
-    private Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
-    private DataSetCleanerParameters cleanerParameters;
+    private final DataSetCleanerParameters cleanerParameters;
 
     public DatasetCleaner(DataSetCleanerParameters cleanerParameters) {
         this.cleanerParameters = cleanerParameters;
@@ -57,7 +57,7 @@ public class DatasetCleaner {
     private void prepareIndexerFactory() {
         LOGGER.debug("Preparing IndexerFactory for removing datasets from Solr and Mongo");
         //
-        boolean altEnv = cleanerParameters.getIsUsingALtEnv();
+        boolean altEnv = cleanerParameters.isUsingAltEnv();
         final String targetIndexingEnv = cleanerParameters.getTargetIndexingEnv();
         //
         IndexingSettings indexingSettings = null;
@@ -81,7 +81,7 @@ public class DatasetCleaner {
         indexerFactory = new IndexerFactory(indexingSettings);
     }
 
-    private void removeDataSet(String datasetId) throws IndexingException, ParseException {
+    private void removeDataSet(String datasetId) throws IndexingException {
         LOGGER.info("Removing data set {} from solr and mongo", datasetId);
         indexerFactory.getIndexer().removeAll(datasetId, cleanerParameters.getCleaningDate());
         LOGGER.info("Data set removed");

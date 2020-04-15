@@ -11,6 +11,7 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.Config;
 import org.apache.storm.testing.CompleteTopologyParam;
@@ -39,6 +40,7 @@ public class TopologyTestHelper {
     protected DataSetServiceClient dataSetClient;
     protected RecordServiceClient recordServiceClient;
     protected RevisionServiceClient revisionServiceClient;
+    protected ProcessedRecordsDAO processedRecordsDAO;
 
     protected static MkClusterParam prepareMKClusterParm() {
         MkClusterParam mkClusterParam = new MkClusterParam();
@@ -62,6 +64,11 @@ public class TopologyTestHelper {
         subTaskInfoDAO = Mockito.mock(CassandraSubTaskInfoDAO.class);
         PowerMockito.mockStatic(CassandraSubTaskInfoDAO.class);
         when(CassandraSubTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(subTaskInfoDAO);
+
+        processedRecordsDAO = Mockito.mock(ProcessedRecordsDAO.class);
+        PowerMockito.mockStatic(ProcessedRecordsDAO.class);
+        when(ProcessedRecordsDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(processedRecordsDAO);
+
         taskErrorsDAO = Mockito.mock(CassandraTaskErrorsDAO.class);
         PowerMockito.mockStatic(CassandraTaskErrorsDAO.class);
         when(CassandraTaskErrorsDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskErrorsDAO);

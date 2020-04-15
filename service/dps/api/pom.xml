@@ -22,7 +22,7 @@
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<artifactId>guava</artifactId>
 			<groupId>com.google.guava</groupId>

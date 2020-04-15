@@ -9,8 +9,8 @@ import org.junit.Before;
  *
  */
 public abstract class CassandraAATestRunner {
-    private static final String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
-    private static final String KEYSPACE = "ecloud_aas_tests";
+    private final static String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
+    private final static String KEYSPACE = "ecloud_aas_tests";
 
 
     /**

@@ -1,6 +1,8 @@
 *.iml
 *.idea
 *.DS_Store
+tests.log.*
+tests.log
 /services/mcs/nb-configuration.xml
 /target
 /.settings
