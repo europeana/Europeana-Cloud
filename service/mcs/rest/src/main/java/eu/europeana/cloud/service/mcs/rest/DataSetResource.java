@@ -197,7 +197,7 @@ public class DataSetResource {
      * @throws DataSetNotExistsException
      */
     @GetMapping(value = "/latelyRevisionedVersion", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> getLatelyTaggedRecords(
+    public ResponseEntity<String> getLatelyTaggedRecords(
             @PathVariable String dataSetId,
             @PathVariable String providerId,
             @RequestParam String cloudId,

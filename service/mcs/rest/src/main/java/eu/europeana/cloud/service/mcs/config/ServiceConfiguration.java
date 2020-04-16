@@ -25,6 +25,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MarshallingHttpMessageConverter;
 import org.springframework.oxm.xstream.XStreamMarshaller;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -40,19 +41,20 @@ import java.util.Map;
 //@EnableAsync
 //@AspectJAutoProxy  !! EXPLAIN ???
 public class ServiceConfiguration implements WebMvcConfigurer {
-    private final static  String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
-    private final static  String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
-    private final static  String JNDI_KEY_CASSANDRA_KEYSPACE = "/mcs/cassandra/keyspace";
-    private final static  String JNDI_KEY_CASSANDRA_USERNAME = "/mcs/cassandra/user";
-    private final static  String JNDI_KEY_CASSANDRA_PASSWORD = "/mcs/cassandra/password";
+    private static final String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
+    private static final String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
+    private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/mcs/cassandra/keyspace";
+    private static final String JNDI_KEY_CASSANDRA_USERNAME = "/mcs/cassandra/user";
+    private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/mcs/cassandra/password";
 
-    private final static  String JNDI_KEY_SWIFT_PROVIDER = "/mcs/swift/provider";
-    private final static  String JNDI_KEY_SWIFT_CONTAINER = "/mcs/swift/container";
-    private final static  String JNDI_KEY_SWIFT_ENDPOINT = "/mcs/swift/endpoint";
-    private final static  String JNDI_KEY_SWIFT_USER = "/mcs/swift/user";
-    private final static  String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
+    private static final String JNDI_KEY_SWIFT_PROVIDER = "/mcs/swift/provider";
+    private static final String JNDI_KEY_SWIFT_CONTAINER = "/mcs/swift/container";
+    private static final String JNDI_KEY_SWIFT_ENDPOINT = "/mcs/swift/endpoint";
+    private static final String JNDI_KEY_SWIFT_USER = "/mcs/swift/user";
+    private static final String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
 
-    private final static  String JNDI_KEY_UISURL = "/mcs/uis-url";
+    private static final String JNDI_KEY_UISURL = "/mcs/uis-url";
+    private static final long MAX_UPLOAD_SIZE = 128*1024*1024;
 
     private Environment environment;
 
@@ -164,5 +166,11 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     public BucketsHandler bucketsHandler() {
         return new BucketsHandler(dbService().getSession());
     }
-    
+
+    @Bean
+    public CommonsMultipartResolver multipartResolver() {
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
+        return multipartResolver;
+    }
 }

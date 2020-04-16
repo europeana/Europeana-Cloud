@@ -24,7 +24,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  * Utility class that inserts absolute uris into classes that will be used as REST responses.
  */
 public final class EnrichUriUtil {
-    private final static Logger LOGGER = LoggerFactory.getLogger(EnrichUriUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnrichUriUtil.class);
 
     private EnrichUriUtil() {
     }

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
@@ -10,13 +9,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
 import java.util.List;
-
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 
 /**
  * Resource that represents record representations.

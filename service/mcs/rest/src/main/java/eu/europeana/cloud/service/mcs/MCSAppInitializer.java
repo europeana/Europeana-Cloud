@@ -9,7 +9,7 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 
 public class MCSAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(MCSAppInitializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MCSAppInitializer.class);
 
     @Override
     protected Class<?>[] getRootConfigClasses() {

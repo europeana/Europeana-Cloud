@@ -77,7 +77,7 @@ public class DataSetsResource {
      */
     @PreAuthorize("isAuthenticated()")
     @PostMapping
-    public ResponseEntity<URI> createDataSet(
+    public ResponseEntity<?> createDataSet(
             HttpServletRequest httpServletRequest,
             @PathVariable String providerId,
             @RequestParam String dataSetId,
@@ -85,7 +85,7 @@ public class DataSetsResource {
 
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
         EnrichUriUtil.enrich(httpServletRequest, dataSet);
-        final ResponseEntity<URI> response = ResponseEntity.created(dataSet.getUri()).build();
+        final ResponseEntity<?> response = ResponseEntity.created(dataSet.getUri()).build();
         
         String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {

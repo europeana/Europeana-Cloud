@@ -112,7 +112,7 @@ public class RepresentationVersionResource {
     @PostMapping(value = "/persist")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
-    public ResponseEntity<URI> persistRepresentation(
+    public ResponseEntity<?> persistRepresentation(
             HttpServletRequest httpServletRequest,
             @PathVariable String version,
             @PathVariable String representationName,
@@ -141,7 +141,7 @@ public class RepresentationVersionResource {
     @PostMapping(value = "/copy")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public ResponseEntity<URI> copyRepresentation(
+    public ResponseEntity<?> copyRepresentation(
             HttpServletRequest httpServletRequest,
             @PathVariable String version,
             @PathVariable String representationName,

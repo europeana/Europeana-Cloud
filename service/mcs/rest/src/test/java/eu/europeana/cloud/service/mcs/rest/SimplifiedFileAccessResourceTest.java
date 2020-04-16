@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,8 +28,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -64,7 +67,7 @@ public class SimplifiedFileAccessResourceTest {
     private static String existingRepresentationName = "existingRepresentationName";
     private static final String NOT_EXISTING_REPRESENTATION_NAME = "notExistingRepresentationName";
     
-    private UriInfo URI_INFO;
+    private HttpServletRequest URI_INFO; /****/
 
     private static boolean setUpIsDone = false;
 
@@ -103,19 +106,19 @@ public class SimplifiedFileAccessResourceTest {
     }
 
     @Test
-    public void fileShouldBeReadSuccessfully() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException, ProviderNotExistsException, URISyntaxException {
+    public void fileShouldBeReadSuccessfully() throws IOException, RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException, ProviderNotExistsException, URISyntaxException {
         setupUriInfo();
-        Response response = fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, existingRepresentationName, "fileWithoutReadRights");
-        Assert.assertEquals(response.getStatus(), 200);
+        ResponseEntity<?> response = fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, existingRepresentationName, "fileWithoutReadRights");
+        Assert.assertEquals(response.getStatusCodeValue(), 200);
         response.toString();
     }
     
     @Test
     public void fileHeadersShouldBeReadSuccessfully() throws CloudException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, URISyntaxException {
         setupUriInfo();
-        Response response = fileAccessResource.getFileHeaders(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, existingRepresentationName, "fileWithoutReadRights");
-        Assert.assertEquals(response.getStatus(), 200);
-        Assert.assertNotNull(response.getHeaderString("Location"));
+        ResponseEntity<?> response = fileAccessResource.getFileHeaders(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, existingRepresentationName, "fileWithoutReadRights");
+        Assert.assertEquals(response.getStatusCodeValue(), 200);
+        Assert.assertNotNull(response.getHeaders().get("Location"));
         response.toString();
     }
     
@@ -182,8 +185,8 @@ public class SimplifiedFileAccessResourceTest {
     }
     
     private void setupUriInfo() throws URISyntaxException {
-        URI_INFO = Mockito.mock(UriInfo.class);
-        Mockito.when(URI_INFO.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
-        Mockito.when(URI_INFO.resolve(Mockito.any(URI.class))).thenReturn(new URI("sdfsdfd"));
+        URI_INFO = Mockito.mock(HttpServletRequest.class);
+       // Mockito.when(URI_INFO.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
+       // Mockito.when(URI_INFO.resolve(Mockito.any(URI.class))).thenReturn(new URI("sdfsdfd"));
     }
 }

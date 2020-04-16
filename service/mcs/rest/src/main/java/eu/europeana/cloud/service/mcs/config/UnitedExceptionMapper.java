@@ -27,7 +27,7 @@ import javax.ws.rs.WebApplicationException;
 @ControllerAdvice(basePackages={"eu.europeana.cloud.service.mcs.rest"})
 public class UnitedExceptionMapper {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
 
     /**
      * Maps {@link CannotModifyPersistentRepresentationException} to {@link ResponseEntity}. Returns a response with HTTP

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;

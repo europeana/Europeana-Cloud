@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 
@@ -79,8 +80,8 @@ public class SimplifiedRecordsResourceTest {
 
     @Test
     public void properRecordShouldBeReturned() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
-        UriInfo info = Mockito.mock(UriInfo.class);
-        Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
+        HttpServletRequest info = Mockito.mock(HttpServletRequest.class);
+        //Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
         Record record = recordsResource.getRecord(info, PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD);
 

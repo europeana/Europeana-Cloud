@@ -21,6 +21,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -49,7 +50,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	private static final String PROVIDER_ID = "provider";
 	private static final String DESCRIPTION = "description";
 	
-	private UriInfo uriInfo;
+	private HttpServletRequest uriInfo; /****/
 
 	/**
 	 * Pre-defined users
@@ -75,13 +76,13 @@ public class DataSetsAATest extends AbstractSecurityTest {
 		dataset.setProviderId(PROVIDER_ID);
 		dataset.setDescription(DESCRIPTION);
 		
-		uriInfo = Mockito.mock(UriInfo.class);
+		uriInfo = Mockito.mock(HttpServletRequest.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 
-        Mockito.doReturn(uriBuilder).when(uriInfo).getBaseUriBuilder();
+       // Mockito.doReturn(uriBuilder).when(uriInfo).getBaseUriBuilder();
         Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(uriInfo).resolve((URI) Mockito.anyObject());
+       // Mockito.doReturn(new URI("")).when(uriInfo).resolve((URI) Mockito.anyObject());
 
 		ApplicationContext applicationContext = ApplicationContextUtils
 				.getApplicationContext();

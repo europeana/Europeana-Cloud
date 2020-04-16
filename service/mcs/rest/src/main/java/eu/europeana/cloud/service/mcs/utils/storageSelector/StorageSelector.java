@@ -15,8 +15,7 @@ import java.util.Set;
  * @author krystian.
  */
 public class StorageSelector {
-    private static final Set<MediaType> STORE_ONLY_IN_OBJECT_STORAGE =
-            ImmutableSet.of(MediaType.image("jp2"));
+    private static final Set<MediaType> STORE_ONLY_IN_OBJECT_STORAGE = ImmutableSet.of(MediaType.image("jp2"));
 
     private final PreBufferedInputStream inputStream;
     private final int objectStoreSizeThreshold;

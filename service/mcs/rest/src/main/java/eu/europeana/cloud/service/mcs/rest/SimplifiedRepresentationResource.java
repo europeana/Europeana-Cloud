@@ -14,21 +14,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Gives access to latest persistent representation using 'friendly' URL
  */
 @RestController
-@RequestMapping("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}/representations/{" + P_REPRESENTATIONNAME + "}")
+@RequestMapping("/data-providers/{providerId}/records/{localId:.+}/representations/{representationName}")
 @Scope("request")
 public class SimplifiedRepresentationResource {
 
@@ -43,7 +37,7 @@ public class SimplifiedRepresentationResource {
     /**
      * Returns the latest persistent version of a given representation.
      *
-     * @param uriInfo
+     * @param httpServletRequest
      * @param providerId
      * @param localId
      * @param representationName
@@ -57,21 +51,23 @@ public class SimplifiedRepresentationResource {
             + "( "
             + " (returnObject.cloudId).concat('/').concat(#representationName).concat('/').concat(returnObject.version) ,"
             + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
-    public Representation getRepresentation(@Context UriInfo uriInfo,
-                                            @PathParam(P_PROVIDER) String providerId,
-                                            @PathParam(P_LOCALID) String localId,
-                                            @PathParam(P_REPRESENTATIONNAME) String representationName) throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
+    public @ResponseBody  Representation getRepresentation(
+            HttpServletRequest httpServletRequest,
+            @PathVariable String providerId,
+            @PathVariable String localId,
+            @PathVariable String representationName) throws RepresentationNotExistsException,
+                                                            ProviderNotExistsException, RecordNotExistsException {
 
         LOGGER.info("Reading representation '{}' using 'friendly' approach for providerId: {} and localId: {}", representationName, providerId, localId);
         final String cloudId = findCloudIdFor(providerId, localId);
 
         Representation representation = recordService.getRepresentation(cloudId, representationName);
-        EnrichUriUtil.enrich(uriInfo, representation);
+        EnrichUriUtil.enrich(httpServletRequest, representation);
 
         return representation;
     }
 
-    private String findCloudIdFor(String providerID, String localId) throws CloudException, ProviderNotExistsException, RecordNotExistsException {
+    private String findCloudIdFor(String providerID, String localId) throws ProviderNotExistsException, RecordNotExistsException {
         CloudId foundCloudId = uisClientHandler.getCloudIdFromProviderAndLocalId(providerID, localId);
         return foundCloudId.getId();
     }

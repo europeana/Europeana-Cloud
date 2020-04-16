@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -62,7 +63,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	private static final String COPIED_REPRESENTATION_VERSION = "KIT_KAT_COPIED";
 	private static final String REPRESENTATION_NO_PERMISSIONS_FOR_VERSION = "KIT_KAT_NO_PERMISSIONS_FOR";
 	
-	private UriInfo URI_INFO;
+	private HttpServletRequest URI_INFO; /****/
 	
 	private Record record;
 	private Record recordWithManyRepresentations;
@@ -114,14 +115,14 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		recordWithManyRepresentations.setCloudId(GLOBAL_ID);
 		recordWithManyRepresentations.setRepresentations(ImmutableList.of(representation, representationYouDontHavePermissionsFor));
 
-		URI_INFO = Mockito.mock(UriInfo.class);
+		URI_INFO = Mockito.mock(HttpServletRequest.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 
-        Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
+       // Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
         Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
+       // Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
         
 		Mockito.doReturn(representation).when(recordService).getRepresentation(Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(representation).when(recordService).getRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());

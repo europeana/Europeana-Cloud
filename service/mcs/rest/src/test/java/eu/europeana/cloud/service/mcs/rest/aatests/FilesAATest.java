@@ -16,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -55,9 +57,9 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	private static final String PROVIDER_ID = "provider";
 	
-	private UriInfo URI_INFO;
+	private HttpServletRequest URI_INFO; /****/
 	private Representation representation;
-	private InputStream INPUT_STREAM;
+	private MultipartFile INPUT_STREAM; /****/
 
 	/**
 	 * Pre-defined users
@@ -94,24 +96,18 @@ public class FilesAATest extends AbstractSecurityTest {
 		file2 = new File();
 		file2.setFileName(FILE_NAME_2);
 		file2.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
-		URI_INFO = Mockito.mock(UriInfo.class);
+		URI_INFO = Mockito.mock(HttpServletRequest.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 		
-        Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
+    //    Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
         Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
+     //   Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
 
 		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         
-		INPUT_STREAM = new InputStream() {
-			
-			@Override
-			public int read() throws IOException {
-				return 0;
-			}
-		};
+		INPUT_STREAM = Mockito.mock(MultipartFile.class);;
 	}
 	
 	// -- GET FILE -- //
@@ -133,7 +129,7 @@ public class FilesAATest extends AbstractSecurityTest {
 
 	@Test
 	public void shouldBeAbleToGetAllFilesIfHeIsTheOwner() 
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+			throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
 				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
@@ -152,7 +148,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	@Test
 	public void shouldBeAbleToGetFileIfHeIsTheOwner() 
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+			throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
 				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
 
 		
@@ -169,14 +165,14 @@ public class FilesAATest extends AbstractSecurityTest {
 	// -- ADD FILE -- //
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAddFile() throws RepresentationNotExistsException,
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAddFile() throws IOException, RepresentationNotExistsException,
 		CannotModifyPersistentRepresentationException, FileAlreadyExistsException {
 	
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, null, FILE_NAME);
 	}
 	
 	@Test
-	public void shouldBeAbleToAddFileWhenAuthenticated() throws RepresentationNotExistsException,
+	public void shouldBeAbleToAddFileWhenAuthenticated() throws IOException, RepresentationNotExistsException,
 		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -188,7 +184,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	}
 	
 	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenVanPersieTriesToAddFileToRonaldoRepresentations() throws RepresentationNotExistsException,
+	public void shouldThrowExceptionWhenVanPersieTriesToAddFileToRonaldoRepresentations() throws IOException, RepresentationNotExistsException,
 		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -219,7 +215,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	}
 	
 	@Test
-	public void shouldBeAbleToDeleteFileIfHeIsTheOwner() throws RepresentationNotExistsException, 
+	public void shouldBeAbleToDeleteFileIfHeIsTheOwner() throws IOException, RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -232,7 +228,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	}
 	
 	@Test
-	public void shouldBeAbleToRecreateDeletedFile() throws RepresentationNotExistsException, 
+	public void shouldBeAbleToRecreateDeletedFile() throws IOException, RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -246,7 +242,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	}
 	
 	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosFiles() throws RepresentationNotExistsException,
+	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosFiles() throws IOException, RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -260,14 +256,14 @@ public class FilesAATest extends AbstractSecurityTest {
 	// -- UPDATE FILE -- //
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateFile() throws RepresentationNotExistsException,
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateFile() throws IOException, RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileNotExistsException {
 
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, null);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenRandomUserTriesToUpdateFile() throws RepresentationNotExistsException,
+	public void shouldThrowExceptionWhenRandomUserTriesToUpdateFile() throws IOException, RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileNotExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);

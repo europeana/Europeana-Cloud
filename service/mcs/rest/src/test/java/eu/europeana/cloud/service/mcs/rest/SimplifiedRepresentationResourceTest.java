@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriInfo;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -79,8 +80,8 @@ public class SimplifiedRepresentationResourceTest {
 
     @Test
     public void properRepresentationShouldBeReturned() throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
-        UriInfo info = Mockito.mock(UriInfo.class);
-        Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
+        HttpServletRequest info = Mockito.mock(HttpServletRequest.class);
+        // Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
         Representation rep = representationResource.getRepresentation(info, PROVIDER_ID, LOCAL_ID, EXISTING_REPRESENTATION_NAME);
         //

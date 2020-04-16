@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -8,7 +7,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
@@ -24,10 +22,7 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.net.URI;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource to manage representations.
@@ -112,7 +107,7 @@ public class RepresentationResource {
 	 */
 	@PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<URI> createRepresentation(
+	public ResponseEntity<?> createRepresentation(
 			HttpServletRequest httpServletRequest,
 			@PathVariable String cloudId,
 			@PathVariable String representationName,
@@ -130,14 +125,10 @@ public class RepresentationResource {
 			MutableAcl versionAcl = mutableAclService
 					.createAcl(versionIdentity);
 
-			versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(
-					creatorName), true);
-			versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(
-					creatorName), true);
-			versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(
-					creatorName), true);
-			versionAcl.insertAce(3, BasePermission.ADMINISTRATION,
-					new PrincipalSid(creatorName), true);
+			versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+			versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+			versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+			versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
 
 			mutableAclService.updateAcl(versionAcl);
 		}

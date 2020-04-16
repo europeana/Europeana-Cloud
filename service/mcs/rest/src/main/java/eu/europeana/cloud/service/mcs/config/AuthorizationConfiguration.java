@@ -30,11 +30,11 @@ import java.util.*;
 public class AuthorizationConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationConfiguration.class);
 
-    private final static String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
-    private final static String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
-    private final static String JNDI_KEY_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-    private final static String JNDI_KEY_CASSANDRA_USERNAME = "/aas/cassandra/user";
-    private final static String JNDI_KEY_CASSANDRA_PASSWORD = "/aas/cassandra/password";
+    private static final String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
+    private static final String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
+    private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
+    private static final String JNDI_KEY_CASSANDRA_USERNAME = "/aas/cassandra/user";
+    private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/aas/cassandra/password";
 
     @Autowired
     private Environment environment;

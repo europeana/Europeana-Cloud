@@ -15,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -33,7 +34,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 
 	private static final String GLOBAL_ID = "GLOBAL_ID";
 	
-	private UriInfo URI_INFO;
+	private HttpServletRequest URI_INFO;  /****/
 	
 	private Record record;
 	
@@ -58,14 +59,14 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 		record = new Record();
 		record.setCloudId(GLOBAL_ID);
 		
-		URI_INFO = Mockito.mock(UriInfo.class);
+		URI_INFO = Mockito.mock(HttpServletRequest.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 
-        Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
+        //Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
         Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
+        //Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
         
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 	}
