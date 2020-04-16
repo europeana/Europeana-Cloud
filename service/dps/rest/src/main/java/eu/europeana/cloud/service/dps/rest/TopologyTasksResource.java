@@ -282,15 +282,15 @@ public class TopologyTasksResource {
         ResponseEntity<Void> result = null;
 
         final Date sentTime = new Date();
-        final String taskJSON = new ObjectMapper().writeValueAsString(task);
 
         if (task != null) {
+            LOGGER.info(!restart ? "Submitting task" : "Restarting task");
+            task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+            String taskJSON = new ObjectMapper().writeValueAsString(task);
             try {
-                LOGGER.info(!restart ? "Submitting task" : "Restarting task");
                 assertContainTopology(topologyName);
                 validateTask(task, topologyName);
                 validateOutputDataSetsIfExist(task);
-                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                 TaskStatusChecker.init(taskInfoDAO);
 
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
@@ -304,7 +304,6 @@ public class TopologyTasksResource {
                 SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                         .task(task)
                         .topologyName(topologyName)
-                        .authorizationHeader(authorizationHeader)
                         .restart(restart).build();
 
                 submitTaskService.submitTask(parameters);
