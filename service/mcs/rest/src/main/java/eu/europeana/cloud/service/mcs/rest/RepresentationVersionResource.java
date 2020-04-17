@@ -21,15 +21,18 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource to manage representation versions.
  */
 @RestController
-@RequestMapping("/records/{cloudId}/representations/{representationName}/versions/{version}")
+@RequestMapping(RepresentationVersionResource.CLASS_MAPPING)
 @Scope("request")
 public class RepresentationVersionResource {
+
+    public static final String CLASS_MAPPING = "/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}";
 
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
@@ -56,9 +59,9 @@ public class RepresentationVersionResource {
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public @ResponseBody  Representation getRepresentationVersion(
             HttpServletRequest httpServletRequest,
-            @PathVariable String version,
-            @PathVariable String representationName,
-            @PathVariable String cloudId) throws RepresentationNotExistsException {
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(VERSION) String version) throws RepresentationNotExistsException {
 
         Representation representation = recordService.getRepresentation(cloudId, representationName, version);
         EnrichUriUtil.enrich(httpServletRequest, representation);
@@ -80,9 +83,9 @@ public class RepresentationVersionResource {
     @DeleteMapping
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteRepresentation(
-            @PathVariable String version,
-            @PathVariable String representationName,
-            @PathVariable String cloudId) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(VERSION) String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
 
         recordService.deleteRepresentation(cloudId, representationName, version);
 
@@ -114,9 +117,9 @@ public class RepresentationVersionResource {
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> persistRepresentation(
             HttpServletRequest httpServletRequest,
-            @PathVariable String version,
-            @PathVariable String representationName,
-            @PathVariable String cloudId) throws RepresentationNotExistsException,
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(VERSION) String version) throws RepresentationNotExistsException,
                         CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException {
 
         Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
@@ -143,9 +146,9 @@ public class RepresentationVersionResource {
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<?> copyRepresentation(
             HttpServletRequest httpServletRequest,
-            @PathVariable String version,
-            @PathVariable String representationName,
-            @PathVariable String cloudId) throws RepresentationNotExistsException {
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(VERSION) String version) throws RepresentationNotExistsException {
 
         Representation representationCopy = recordService.copyRepresentation(cloudId, representationName, version);
         EnrichUriUtil.enrich(httpServletRequest, representationCopy);

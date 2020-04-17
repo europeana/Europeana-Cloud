@@ -28,13 +28,17 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+
 /**
  * Resource to manage data sets.
  */
 @RestController
-@RequestMapping("/data-providers/{providerId}/data-sets/{dataSetId}")
+@RequestMapping(DataSetResource.CLASS_MAPPING)
 @Scope("request")
 public class DataSetResource {
+    public static final String CLASS_MAPPING = "/data-providers/{"+PROVIDER_ID+"}/data-sets/{"+DATA_SET_ID+"}";
+
     private final String DATASET_CLASS_NAME = DataSet.class.getName();
 
     @Autowired
@@ -57,8 +61,8 @@ public class DataSetResource {
     @DeleteMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId) throws DataSetNotExistsException {
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId) throws DataSetNotExistsException {
 
         dataSetService.deleteDataSet(providerId, dataSetId);
 
@@ -86,8 +90,8 @@ public class DataSetResource {
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public @ResponseBody ResultSlice<Representation> getDataSetContents(
             HttpServletRequest httpServletRequest,
-            @PathVariable String dataSetId,
-            @PathVariable String providerId,
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId,
             @RequestParam String startFrom) throws DataSetNotExistsException {
 
         ResultSlice<Representation> representations =
@@ -115,8 +119,8 @@ public class DataSetResource {
     @PutMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void updateDataSet(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId,
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId,
             @RequestParam String description) throws DataSetNotExistsException {
 
         dataSetService.updateDataSet(providerId, dataSetId, description);
@@ -124,20 +128,20 @@ public class DataSetResource {
 
     @GetMapping(value = "/representationsNames", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public @ResponseBody RepresentationNames getRepresentationsNames(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
 
         RepresentationNames representationNames = new RepresentationNames();
         representationNames.setNames(dataSetService.getAllDataSetRepresentationsNames(providerId, dataSetId));
         return representationNames;
     }
 
-    @GetMapping(value = "/representations/{representationName}",
+    @GetMapping(value = "/representations/{"+REPRESENTATION_NAME+"}",
             produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public @ResponseBody  ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId,
-            @PathVariable String representationName,
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
             @RequestParam String creationDateFrom,
             @RequestParam String tag,
             @RequestParam String startFrom) throws ProviderNotExistsException, DataSetNotExistsException {
@@ -167,14 +171,14 @@ public class DataSetResource {
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
      */
-    @GetMapping(value = "/revision/{revisionName}/revisionProvider/{revisionProvider}/representations/{representationName}",
+    @GetMapping(value = "/revision/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER+"}/representations/{"+REPRESENTATION_NAME+"}",
             produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public @ResponseBody  ResultSlice<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevision(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId,
-            @PathVariable String revisionName,
-            @PathVariable String revisionProvider,
-            @PathVariable String representationName,
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId,
+            @PathVariable(REVISION_NAME) String revisionName,
+            @PathVariable(REVISION_PROVIDER) String revisionProvider,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
             @RequestParam String startFrom,
             @RequestParam Boolean deleted) throws ProviderNotExistsException, DataSetNotExistsException {
 
@@ -198,9 +202,9 @@ public class DataSetResource {
      */
     @GetMapping(value = "/latelyRevisionedVersion", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<String> getLatelyTaggedRecords(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId,
-            @RequestParam String cloudId,
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId,
+            @RequestParam(CLOUD_ID) String cloudId,
             @RequestParam String representationName,
             @RequestParam String revisionName,
             @RequestParam String revisionProviderId) throws DataSetNotExistsException {

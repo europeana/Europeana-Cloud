@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+
 //http://localhost:8080/mcs/records/2YRDQTLJMPCN264Y75CVIJ65RPZP5DJFS36CYAGMNIGT3GLKLMDA/representations/edm/versions
 //https://test.ecloud.psnc.pl/api/records/2YRDQTLJMPCN264Y75CVIJ65RPZP5DJFS36CYAGMNIGT3GLKLMDA/representations/edm/versions
 
@@ -19,9 +22,11 @@ import java.util.List;
  * Resource to manage representation versions.
  */
 @RestController
-@RequestMapping("/records/{cloudId}/representations/{representation}/versions")
+@RequestMapping(RepresentationVersionsResource.CLASS_MAPPING)
 @Scope("request")
 public class RepresentationVersionsResource {
+
+    public static final String CLASS_MAPPING = "/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions";
 
     @Autowired
     private RecordService recordService;
@@ -37,11 +42,11 @@ public class RepresentationVersionsResource {
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public @ResponseBody List<Representation> listVersions(
             final HttpServletRequest request,
-            @PathVariable String cloudId,
-            @PathVariable String representation)
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName)
             throws RepresentationNotExistsException {
 
-        List<Representation> representationVersions = recordService.listRepresentationVersions(cloudId, representation);
+        List<Representation> representationVersions = recordService.listRepresentationVersions(cloudId, representationName);
         for (Representation representationVersion : representationVersions) {
             EnrichUriUtil.enrich(request, representationVersion);
         }

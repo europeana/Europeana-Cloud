@@ -22,8 +22,6 @@ public interface ParamConstants {
 
     String REVISIONS = "revisions";
 
-    String REVISION_PROVIDER = "revisionProvider";
-
     String COPY = "copy";
 
     String PERSIST = "persist";
@@ -31,19 +29,43 @@ public interface ParamConstants {
     String PERMIT = "permit";
 
     // path parameters' names
+    @Deprecated
     String P_CLOUDID = "CLOUDID";
 
+    String CLOUD_ID = "cloudId";
+
+    @Deprecated
     String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
 
-    String P_REVISIONID = "P_REVISIONID";
 
+    String REPRESENTATION_NAME = "representationName";
+
+
+    //String P_REVISIONID = "P_REVISIONID";
+
+    @Deprecated
     String P_VER = "VERSION";
 
+    String VERSION = "version";
+
+    @Deprecated
     String P_PROVIDER = "DATAPROVIDER";
 
+    String PROVIDER_ID = "providerId";
+
+    @Deprecated
     String P_DATASET = "DATASET";
 
+    String DATA_SET_ID = "dataSetId";
+
+    String REVISION_NAME= "revisionName";
+
+    String REVISION_PROVIDER = "revisionProvider";
+
+    @Deprecated
     String P_FILENAME = "FILENAME";
+
+    String FILE_NAME = "fileName";
 
     String P_LOCALID = "LOCALID";
 
@@ -53,7 +75,7 @@ public interface ParamConstants {
 
     String P_TAG = "TAG";
 
-    String P_TAGS = "TAGS";
+    //String P_TAGS = "TAGS";
 
     // form parameters' names (also used as query parameters' names)
     String F_DATASET = "dataSetId";

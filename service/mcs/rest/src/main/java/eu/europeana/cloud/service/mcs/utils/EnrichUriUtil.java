@@ -5,18 +5,22 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.mcs.rest.DataSetResource;
 import eu.europeana.cloud.service.mcs.rest.FileResource;
 import eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource;
 import eu.europeana.cloud.service.mcs.rest.RepresentationVersionsResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.PropertyPlaceholderHelper;
+import scala.sys.Prop;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriInfo;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Properties;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -25,6 +29,9 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  */
 public final class EnrichUriUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(EnrichUriUtil.class);
+
+    private  static  final  PropertyPlaceholderHelper PROPERTY_PLACEHOLDER_HELPER
+            = new PropertyPlaceholderHelper("{", "}");
 
     private EnrichUriUtil() {
     }
@@ -70,14 +77,15 @@ public final class EnrichUriUtil {
     }
 
     public static void enrich(HttpServletRequest httpServletRequest, Representation representation) {
-        try {
-            representation.setAllVersionsUri(new URI(httpServletRequest.getRequestURL().toString()));
+        Properties properties = new Properties();
+        properties.setProperty(CLOUD_ID, representation.getCloudId());
+        properties.setProperty(REPRESENTATION_NAME, representation.getRepresentationName());
 
-            if (representation.getVersion() != null) {
-                representation.setUri(new URI(httpServletRequest.getRequestURL().toString() + "/" + representation.getVersion()));
-            }
-        } catch (URISyntaxException urise) {
-            LOGGER.warn("Error while enrich data", urise);
+        representation.setAllVersionsUri(createURI(httpServletRequest, RepresentationVersionsResource.CLASS_MAPPING, properties));
+
+        if(representation.getVersion() != null) {
+            properties.setProperty(VERSION, representation.getVersion());
+            representation.setUri(createURI(httpServletRequest, RepresentationVersionResource.CLASS_MAPPING, properties));
         }
 
         if (representation.getFiles() != null) {
@@ -86,14 +94,6 @@ public final class EnrichUriUtil {
             }
         }
 
-    }
-
-    public static void enrich(UriInfo uriInfo, RepresentationRevisionResponse representationRevision) {
-        if (representationRevision.getFiles() != null) {
-            for (File f : representationRevision.getFiles()) {
-                enrich(uriInfo, representationRevision.getCloudId(), representationRevision.getRepresentationName(), representationRevision.getVersion(), f);
-            }
-        }
     }
 
     @Deprecated
@@ -106,22 +106,24 @@ public final class EnrichUriUtil {
     }
 
     @Deprecated
-    public static void enrich(UriInfo uriInfo, String recordId, String schema, String version, File file) {
+    public static void enrich(UriInfo uriInfo, String cloudId, String representationName, String version, File file) {
         URI fileUri = uriInfo
                 .getBaseUriBuilder()
                 .path(FileResource.class)
                 .buildFromMap(
-                    ImmutableMap.of(P_CLOUDID, recordId, P_REPRESENTATIONNAME, schema, P_VER, version, P_FILENAME,
+                    ImmutableMap.of(P_CLOUDID, cloudId, P_REPRESENTATIONNAME, representationName, P_VER, version, P_FILENAME,
                         file.getFileName()));
         file.setContentUri(uriInfo.resolve(fileUri));
     }
 
-    public static void enrich(HttpServletRequest httpServletRequest, String recordId, String schema, String version, File file) {
-        try {
-            file.setContentUri(new URI(httpServletRequest.getRequestURL().toString() + "/" + version + "/" + file.getFileName()));
-        } catch (URISyntaxException urise) {
-            LOGGER.warn("Error while enrich data", urise);
-        }
+    public static void enrich(HttpServletRequest httpServletRequest, String cloudId, String representationName, String version, File file) {
+        Properties properties = new Properties();
+        properties.setProperty(CLOUD_ID, cloudId);
+        properties.setProperty(REPRESENTATION_NAME, representationName);
+        properties.setProperty(VERSION, version);
+        properties.setProperty(FILE_NAME, file.getFileName());
+
+        file.setContentUri(createURI(httpServletRequest, FileResource.CLASS_MAPPING, properties));
     }
 
     @Deprecated
@@ -132,17 +134,35 @@ public final class EnrichUriUtil {
     }
 
     public static void enrich(HttpServletRequest httpServletRequest, DataSet dataSet) {
-        StringBuffer uriBuffer = httpServletRequest.getRequestURL();
-        uriBuffer.append("/data-providers/");
-        uriBuffer.append(dataSet.getProviderId());
-        uriBuffer.append("/data-sets/");
-        uriBuffer.append(dataSet.getId());
+        Properties properties = new Properties();
+
+        properties.setProperty(PROVIDER_ID, dataSet.getProviderId());
+        properties.setProperty(DATA_SET_ID, dataSet.getId());
+
+        dataSet.setUri(createURI(httpServletRequest, DataSetResource.CLASS_MAPPING, properties));
+    }
+
+    private static URI createURI(HttpServletRequest httpServletRequest, String path, Properties properties) {
+        URI result = null;
+
+        StringBuilder uriSpec = new StringBuilder();
+        uriSpec.append(httpServletRequest.getContextPath());
+        uriSpec.append(PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(path, properties));
 
         try {
-            dataSet.setUri(new URI(uriBuffer.toString()));
-        }catch (URISyntaxException urise) {
-            LOGGER.warn("Error while enrich data", urise);
+            URL url = new URL(
+                    httpServletRequest.getScheme(),
+                    httpServletRequest.getServerName(),
+                    httpServletRequest.getServerPort(),
+                    uriSpec.toString());
+
+            result= url.toURI();
+        } catch (MalformedURLException | URISyntaxException ure) {
+            LOGGER.warn("Invalid URL/URI", ure);
         }
+
+        return result;
     }
+
 
 }
