@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.mcs.rest.RepresentationVersionsResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.PropertyPlaceholderHelper;
-import scala.sys.Prop;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriInfo;

@@ -19,12 +19,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+
 /**
  * Resource to manage data sets.
  */
 @RestController
-@RequestMapping("/data-providers/{providerId}/data-sets/{dataSetId}/representations/" +
-        "{representationName}/revisions/{revisionName}/revisionProvider/{revisionProviderId}")
+@RequestMapping("/data-providers/{"+PROVIDER_ID+"}/data-sets/{"+DATA_SET_ID+"}/representations/" +
+        "{"+REPRESENTATION_NAME+"}/revisions/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER_ID+"}")
 @Scope("request")
 public class DataSetRevisionsResource {
 
@@ -55,11 +57,11 @@ public class DataSetRevisionsResource {
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<ResultSlice<CloudTagsResponse>> getDataSetContents(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
-            @PathVariable String representationName,
-            @PathVariable String revisionName,
-            @PathVariable String revisionProviderId,
+            @PathVariable(PROVIDER_ID) String providerId,
+            @PathVariable(DATA_SET_ID) String dataSetId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(REVISION_NAME) String revisionName,
+            @PathVariable(REVISION_PROVIDER_ID) String revisionProviderId,
             @RequestParam String revisionTimestamp,
             @RequestParam(required = false) String startFrom,
             @RequestParam(required = false) int limit) throws DataSetNotExistsException, ProviderNotExistsException {
@@ -69,7 +71,8 @@ public class DataSetRevisionsResource {
 
         DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
 
-        ResultSlice<CloudTagsResponse> result = dataSetService.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
+        ResultSlice<CloudTagsResponse> result = dataSetService.getDataSetsRevisions(providerId, dataSetId,
+                revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
         return ResponseEntity.ok(result);
     }
 }

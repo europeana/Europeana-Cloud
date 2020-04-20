@@ -8,11 +8,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+
 /**
  * Resource to assign and unassign representations to/from data sets.
  */
 @RestController
-@RequestMapping("/data-providers/{providerId}/data-sets/{dataSetId}/assignments")
+@RequestMapping("/data-providers/{"+PROVIDER_ID+"}/data-sets/{"+DATA_SET_ID+"}/assignments")
 @Scope("request")
 public class DataSetAssignmentsResource {
 
@@ -37,8 +40,8 @@ public class DataSetAssignmentsResource {
     @PostMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void addAssignment(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId,
+            @PathVariable(DATA_SET_ID) String dataSetId,
             @RequestParam String cloudId,
             @RequestParam String representationName,
             @RequestParam(required = false) String version)
@@ -61,8 +64,8 @@ public class DataSetAssignmentsResource {
     @DeleteMapping
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void removeAssignment(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
+            @PathVariable(PROVIDER_ID) String providerId,
+            @PathVariable(DATA_SET_ID) String dataSetId,
     		@RequestParam String cloudId, //@RequestParam
             @RequestParam String representationName,
             @RequestParam String version)

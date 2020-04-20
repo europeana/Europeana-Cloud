@@ -62,18 +62,33 @@ public interface ParamConstants {
 
     String REVISION_PROVIDER = "revisionProvider";
 
+    String REVISION_PROVIDER_ID = "revisionProviderId";
+
     @Deprecated
     String P_FILENAME = "FILENAME";
 
     String FILE_NAME = "fileName";
 
+    @Deprecated
     String P_LOCALID = "LOCALID";
 
+    String LOCAL_ID = "localId";
+
+    @Deprecated
     String P_USERNAME = "USERNAME";
 
+    String USER_NAME = "userName";
+
+    @Deprecated
     String P_PERMISSION_TYPE = "PERMISSION_TYPE";
 
+    String PERMISSION = "permission";
+
+    @Deprecated
     String P_TAG = "TAG";
+
+    String TAG = "tag";
+
 
     //String P_TAGS = "TAGS";
 

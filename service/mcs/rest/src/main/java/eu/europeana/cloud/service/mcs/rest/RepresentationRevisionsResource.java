@@ -21,11 +21,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+
 /**
  * Resource to manage representations.
  */
 @RestController
-@RequestMapping("/records/{cloudId}/representations/{representationName}/revisions/{revisionName}")
+@RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/revisions/{"+REVISION_NAME+"}")
 @Scope("request")
 public class RepresentationRevisionsResource {
 
@@ -52,9 +54,9 @@ public class RepresentationRevisionsResource {
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public @ResponseBody List<Representation> getRepresentationRevisions(
             HttpServletRequest httpServletRequest,
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String revisionName,
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(REVISION_NAME) String revisionName,
             @RequestParam String revisionProviderId,
             @RequestParam(required = false) String revisionTimestamp) throws RepresentationNotExistsException {
 

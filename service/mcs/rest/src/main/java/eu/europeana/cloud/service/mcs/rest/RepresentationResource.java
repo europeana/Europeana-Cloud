@@ -24,11 +24,14 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+
 /**
  * Resource to manage representations.
  */
 @RestController
-@RequestMapping("/records/{cloudId}/representations/{representationName}")
+@RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}")
 @Scope("request")
 public class RepresentationResource {
 	private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
@@ -59,8 +62,8 @@ public class RepresentationResource {
     	    + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
 	public @ResponseBody Representation getRepresentation(
 			HttpServletRequest httpServletRequest,
-			@PathVariable String cloudId,
-			@PathVariable String representationName) throws RepresentationNotExistsException {
+			@PathVariable(CLOUD_ID) String cloudId,
+			@PathVariable(REPRESENTATION_NAME) String representationName) throws RepresentationNotExistsException {
 
 		Representation info = recordService.getRepresentation(cloudId, representationName);
 		prepare(httpServletRequest, info);
@@ -80,9 +83,9 @@ public class RepresentationResource {
 	@DeleteMapping
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public void deleteRepresentation(
-			@PathVariable String cloudId,
-			@PathVariable String representationName)
-			throws RepresentationNotExistsException {
+			@PathVariable(CLOUD_ID) String cloudId,
+			@PathVariable(REPRESENTATION_NAME) String representationName) throws RepresentationNotExistsException {
+
 		recordService.deleteRepresentation(cloudId, representationName);
 	}
 

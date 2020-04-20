@@ -29,13 +29,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
 import static eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedInputStream.wrap;
 
 /**
  * Handles uploading the file when representation is not created yet.
  */
 @RestController
-@RequestMapping("/records/{cloudId}/representations/{representationName}/files")
+@RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/files")
 @Scope("request")
 public class FileUploadResource {
 
@@ -76,8 +78,8 @@ public class FileUploadResource {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> sendFile(
             HttpServletRequest httpServletRequest,
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
             @RequestParam String fileName,
             @RequestParam String providerId,
             @RequestParam String mimeType,

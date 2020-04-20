@@ -30,12 +30,14 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+
 /**
  * Gives (read) access to files stored in ecloud in simplified (friendly) way. <br/>
  * The latest persistent version of representation is picked up.
  */
 @RestController
-@RequestMapping("/data-providers/{providerId}/records/{localId:.+}/representations/{representationName}/{fileName:.+}")
+@RequestMapping("/data-providers/{"+PROVIDER_ID+"}/records/{"+LOCAL_ID+":.+}/representations/{"+REPRESENTATION_NAME+"}/{"+FILE_NAME+":.+}")
 @Scope("request")
 public class SimplifiedFileAccessResource {
 
@@ -68,10 +70,10 @@ public class SimplifiedFileAccessResource {
     @GetMapping
     public ResponseEntity<StreamingResponseBody> getFile(
             HttpServletRequest httpServletRequest,
-            @PathVariable final String providerId,
-            @PathVariable final String localId,
-            @PathVariable final String representationName,
-            @PathVariable final String fileName) throws RepresentationNotExistsException,
+            @PathVariable(PROVIDER_ID) final String providerId,
+            @PathVariable(LOCAL_ID) final String localId,
+            @PathVariable(REPRESENTATION_NAME) final String representationName,
+            @PathVariable(FILE_NAME) final String fileName) throws RepresentationNotExistsException,
                 FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
 
         LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
@@ -134,10 +136,10 @@ public class SimplifiedFileAccessResource {
     @RequestMapping(method = RequestMethod.HEAD)
     public ResponseEntity<?> getFileHeaders(
             HttpServletRequest httpServletRequest,
-            @PathVariable final String providerId,
-            @PathVariable final String localId,
-            @PathVariable final String representationName,
-            @PathVariable final String fileName) throws RepresentationNotExistsException,
+            @PathVariable(PROVIDER_ID) final String providerId,
+            @PathVariable(LOCAL_ID) final String localId,
+            @PathVariable(REPRESENTATION_NAME) final String representationName,
+            @PathVariable(FILE_NAME) final String fileName) throws RepresentationNotExistsException,
                     FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
 
         LOGGER.info("Reading file headers in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",

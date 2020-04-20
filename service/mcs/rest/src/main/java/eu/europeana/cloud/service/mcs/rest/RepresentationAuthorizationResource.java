@@ -20,11 +20,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+
 /**
  * Resource to authorize other users to read specific versions.
  */
 @RestController
-@RequestMapping("/records/{cloudId}/representations/{representationName}/versions/{version}")
+@RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}")
 public class RepresentationAuthorizationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
@@ -63,15 +65,15 @@ public class RepresentationAuthorizationResource {
      * @summary Permissions removal
      */
 
-    @DeleteMapping(value = "/permissions/{permission}/users/{userName}")
+    @DeleteMapping(value = "/permissions/{"+PERMISSION+"}/users/{"+USER_NAME+"}")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> removePermissions(
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String version,
-            @PathVariable String userName,
-            @PathVariable String permission) {
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(VERSION) String version,
+            @PathVariable(PERMISSION) String permission,
+            @PathVariable(USER_NAME) String userName) {
 
         ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
@@ -108,11 +110,11 @@ public class RepresentationAuthorizationResource {
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> updateAuthorization(
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String version,
-            @PathVariable String userName,
-            @PathVariable String permission) {
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(VERSION) String version,
+            @PathVariable(PERMISSION) String permission,
+            @PathVariable(USER_NAME) String userName) {
 
         ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
@@ -157,9 +159,9 @@ public class RepresentationAuthorizationResource {
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> giveReadAccessToEveryone(
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String version) {
+            @PathVariable(CLOUD_ID) String cloudId,
+            @PathVariable(REPRESENTATION_NAME) String representationName,
+            @PathVariable(VERSION) String version) {
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 cloudId + "/" + representationName + "/" + version);

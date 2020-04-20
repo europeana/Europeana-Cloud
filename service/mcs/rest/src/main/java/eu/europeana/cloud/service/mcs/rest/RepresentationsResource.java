@@ -12,11 +12,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+
 /**
  * Resource that represents record representations.
  */
 @RestController
-@RequestMapping("/records/{cloudId}/representations")
+@RequestMapping("/records/{"+CLOUD_ID+"}/representations")
 @Scope("request")
 public class RepresentationsResource {
 
@@ -34,7 +36,7 @@ public class RepresentationsResource {
     @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public @ResponseBody List<Representation> getRepresentations(
             HttpServletRequest httpServletRequest,
-            @PathVariable String cloudId) throws RecordNotExistsException {
+            @PathVariable(CLOUD_ID) String cloudId) throws RecordNotExistsException {
 
         List<Representation> representationInfos = recordService.getRecord(cloudId).getRepresentations();
         prepare(httpServletRequest, representationInfos);
