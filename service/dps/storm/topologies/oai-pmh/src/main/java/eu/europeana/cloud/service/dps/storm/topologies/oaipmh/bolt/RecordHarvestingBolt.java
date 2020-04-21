@@ -61,7 +61,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
         long harvestingStartTime = new Date().getTime();
-        LOGGER.info("Starting harvesting for: " + stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
+        LOGGER.info("Starting harvesting for: {}", stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         String endpointLocation = readEndpointLocation(stormTaskTuple);
         String recordId = readRecordId(stormTaskTuple);
         String metadataPrefix = readMetadataPrefix(stormTaskTuple);

@@ -59,7 +59,6 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             if (revisionToBeApplied.getCreationTimeStamp() == null)
                 revisionToBeApplied.setCreationTimeStamp(new Date());
             addRevision(urlParser, revisionToBeApplied,stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-            stormTaskTuple.setRevisionToBeApplied(null);
         } else {
             LOGGER.info("Revisions list is empty");
         }

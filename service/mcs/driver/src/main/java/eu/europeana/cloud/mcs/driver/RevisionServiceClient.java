@@ -258,6 +258,30 @@ public class RevisionServiceClient extends MCSClient {
 
     }
 
+    public void deleteRevision(String cloudId, String representationName, String version, String revisionName, String revisionProvider, String revisionTimestamp,
+                               String key,String value)
+            throws DriverException, MCSException {
+        WebTarget target = client.target(baseUrl).path(REMOVE_REVISION_PATH)
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version)
+                .resolveTemplate(P_REVISION_NAME, revisionName)
+                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProvider).queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
+
+        Invocation.Builder request = target.request().header(key, value);
+        Response response = null;
+        try {
+            response = request.delete();
+            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
+        }
+
+    }
+
 
     private void closeResponse(Response response) {
         if (response != null) {
