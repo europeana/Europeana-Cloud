@@ -76,9 +76,10 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(DUPLICATES_DETECTOR_BOLT,new DuplicatedRecordsProcessorBolt(ecloudMcsAddress),1)
-                .setNumTasks(1)
-                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
+        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(ecloudMcsAddress),
+                (getAnInt(DUPLICATES_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
+                .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.taskIdFieldName));
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,

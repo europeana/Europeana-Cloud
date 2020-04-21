@@ -28,7 +28,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     private static final Logger logger = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
     private RecordServiceClient recordServiceClient;
     private RevisionServiceClient revisionServiceClient;
-    private String ecloudMcsAddress;
+    private final String ecloudMcsAddress;
 
     public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -48,8 +48,10 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             List<Representation> representations = findRepresentationsWithSameRevision(tuple, representation);
             if (representationsWithSameRevisionExists(representations)) {
                 handleDuplicatedRepresentation(tuple, representation);
+                return;
             }
             logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+            outputCollector.emit(tuple.toStormTuple());
         } catch (MalformedURLException | MCSException e) {
             e.printStackTrace();
         }
