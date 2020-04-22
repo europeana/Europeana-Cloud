@@ -72,7 +72,6 @@ public class SubmitTaskService {
                     }
                     updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
                 } else {
-                    parameters.getTask().addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
                     submitService.submitTask(parameters.getTask(), parameters.getTopologyName());
                     insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                             expectedCount, TaskState.SENT.toString(), "", "");

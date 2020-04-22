@@ -52,14 +52,15 @@ public class UnitedExceptionMapper {
         return buildResponse(DpsErrorCode.BAD_REQUEST, exception);
     }
 
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseBody public ErrorInfo handleAccessDeniedException(Exception exception) {
+        return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
+    }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody public ErrorInfo handleRuntimeException(Exception exception) {
-    	if (exception instanceof AccessDeniedException) {
-            return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
-    	}
-
         LOGGER.error("Unexpected error occured.", exception);
         return buildResponse( DpsErrorCode.OTHER, exception);
     }

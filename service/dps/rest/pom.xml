@@ -371,10 +371,6 @@
                     <groupId>eu.europeana.corelib</groupId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-slf4j-impl</artifactId>
-                </exclusion>
-                <exclusion>
                     <artifactId>org.springframework</artifactId>
                     <groupId>*</groupId>
                 </exclusion>
