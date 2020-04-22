@@ -11,11 +11,13 @@ import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.RestTemplate;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -39,8 +41,13 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  */
 public class RecordServiceClient extends MCSClient {
 
-    private final Client client = ClientBuilder.newClient().register(MultiPartFeature.class);
     private static final Logger logger = LoggerFactory.getLogger(RecordServiceClient.class);
+
+    private final Client client = ClientBuilder.newBuilder()
+            .register(JacksonFeature.class)
+            .build();
+
+    //RestTemplate
 
     //records/{CLOUDID}
     private static final String recordPath;
@@ -69,17 +76,17 @@ public class RecordServiceClient extends MCSClient {
         builder.append(ParamConstants.RECORDS);
         builder.append('/');
         builder.append('{');
-        builder.append(P_CLOUDID);
+        builder.append(CLOUD_ID);
         builder.append('}');
         recordPath = builder.toString();
 
         builder.append('/');
-        builder.append(ParamConstants.REPRESENTATIONS);
+        builder.append(REPRESENTATIONS);
         representationsPath = builder.toString();
 
         builder.append('/');
         builder.append('{');
-        builder.append(P_REPRESENTATIONNAME);
+        builder.append(REPRESENTATION_NAME);
         builder.append('}');
         represtationNamePath = builder.toString();
 
@@ -89,7 +96,7 @@ public class RecordServiceClient extends MCSClient {
 
         builder.append('/');
         builder.append('{');
-        builder.append(ParamConstants.P_VER);
+        builder.append(VERSION);
         builder.append('}');
         versionPath = builder.toString();
 
@@ -298,11 +305,11 @@ public class RecordServiceClient extends MCSClient {
             throws ProviderNotExistsException, RecordNotExistsException, MCSException {
 
         WebTarget target = client.target(baseUrl).path(represtationNamePath)
-                .resolveTemplate(P_CLOUDID, cloudId)
-                .resolveTemplate(P_REPRESENTATIONNAME, representationName);
+                .resolveTemplate(CLOUD_ID, cloudId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
         Form form = new Form();
-        form.param("providerId", providerId);
+        form.param(PROVIDER_ID, providerId);
 
         Response response = null;
         return handleRepresentationResponse(form, request, response);
@@ -461,8 +468,40 @@ public class RecordServiceClient extends MCSClient {
      */
     public List<Representation> getRepresentations(String cloudId, String representationName)
             throws RepresentationNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path(versionsPath).resolveTemplate(P_CLOUDID, cloudId)
-                .resolveTemplate(P_REPRESENTATIONNAME, representationName);
+        WebTarget target = client
+                .target(baseUrl)
+                .path(versionsPath)
+                .resolveTemplate(CLOUD_ID, cloudId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName);
+        Builder request = target.request(/*MediaType.APPLICATION_JSON*/);
+
+        Response response = null;
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                List<Representation> list = response.readEntity(new GenericType<List<Representation>>() {
+                });
+                return list;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+
+    public List<Representation> getRepresentations_2(String cloudId, String representationName)
+            throws RepresentationNotExistsException, MCSException {
+        WebTarget target = client
+                .target(baseUrl)
+                .path(versionsPath)
+                .resolveTemplate(CLOUD_ID, cloudId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
 
         Response response = null;
@@ -476,10 +515,14 @@ public class RecordServiceClient extends MCSClient {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
+        }catch(Exception e) {
+            e.printStackTrace();
+            return null;
         } finally {
             closeResponse(response);
         }
     }
+
 
     /**
      * Returns representation in specified version.

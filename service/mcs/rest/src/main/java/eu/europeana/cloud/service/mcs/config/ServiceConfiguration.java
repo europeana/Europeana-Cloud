@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -16,20 +17,28 @@ import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
+import org.codehaus.jackson.map.util.ISO8601DateFormat;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MarshallingHttpMessageConverter;
+import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
 import javax.xml.stream.XMLStreamConstants;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +72,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
 
+/*
     @Override
     public void configureMessageConverters(
             List<HttpMessageConverter<?>> converters) {
@@ -70,17 +80,63 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         converters.add(createXmlHttpMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter());
     }
+*/
 
+
+/*
     private HttpMessageConverter<Object> createXmlHttpMessageConverter() {
         MarshallingHttpMessageConverter xmlConverter =
                 new MarshallingHttpMessageConverter();
 
         XStreamMarshaller xstreamMarshaller = new XStreamMarshaller();
+
+
+/ *
+        Map<String, Class<?>> aliases = new HashMap<>();
+        aliases.put("representation", eu.europeana.cloud.common.model.Representation.class);
+        aliases.put("file", eu.europeana.cloud.common.model.File.class);
+        aliases.put("representations", new ArrayList<Representation>().getClass());
+        xstreamMarshaller.setAliases(aliases);
+* /
+
+        //Map<String, String> fAliases = new HashMap<>();
+        //fAliases.put("representations", "representationVersions");
+        //xstreamMarshaller.setFieldAliases(fAliases);
+        //xstreamMarshaller.setAutodetectAnnotations(true);
+
+        //xstreamMarshaller.getXStream().
+
         xmlConverter.setMarshaller(xstreamMarshaller);
         xmlConverter.setUnmarshaller(xstreamMarshaller);
 
         return xmlConverter;
     }
+*/
+/*
+    @Bean
+    public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
+        RequestMappingHandlerAdapter r = new RequestMappingHandlerAdapter();
+        r.getMessageConverters().add(new SourceHttpMessageConverter<>());
+        r.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        r.getMessageConverters().add(new ByteArrayHttpMessageConverter());
+        r.getMessageConverters().add(new FormHttpMessageConverter());
+        r.getMessageConverters().add(new StringHttpMessageConverter());
+        return r;
+    }
+*/
+
+/*
+        <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.xml.SourceHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.FormHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+            </list>
+        </property>
+*/
 
 
     @Bean
@@ -173,4 +229,16 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
         return multipartResolver;
     }
+
+/*
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
+        return new Jackson2ObjectMapperBuilderCustomizer() {
+            @Override
+            public void customize(Jackson2ObjectMapperBuilder builder) {
+                builder.dateFormat(new ISO8601DateFormat());
+            }
+        };
+    }
+*/
 }
