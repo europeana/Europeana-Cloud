@@ -8,6 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 
 /**
@@ -18,6 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
         "classpath:authorization-context-test.xml", // authorization uses Embedded cassandra
 		"classpath:aaTestContext.xml"
         })
+    @TestPropertySource(properties = {"numberOfElementsOnPage=100"})
 	public abstract class AbstractSecurityTest extends CassandraAATestRunner {
 
     @Autowired
