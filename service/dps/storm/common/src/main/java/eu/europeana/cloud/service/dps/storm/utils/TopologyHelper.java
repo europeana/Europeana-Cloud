@@ -34,8 +34,9 @@ public final class TopologyHelper {
     public static final String EDM_ENRICHMENT_BOLT = "EDMEnrichmentBolt";
     public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
     public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
-
     public static final String EDMEnrichmentBolt = "EDMEnrichmentBolt";
+
+    public static final Integer MAX_POLL_RECORDS = 100;
 
     public static Config configureTopology(Properties topologyProperties) {
         Config config = new Config();
@@ -85,6 +86,7 @@ public final class TopologyHelper {
                         .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                         .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
+                        .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
                         .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                         .build(),
                 topologyProperties.getProperty(CASSANDRA_HOSTS),
