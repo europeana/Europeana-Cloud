@@ -160,7 +160,10 @@ public class HarvesterImpl implements Harvester {
                         HarvesterImpl.this.waitForSpecificTime();
                     } else {
                         LOGGER.error("Error while getting the next batch {}", e.getMessage());
-                        throw new IllegalStateException(" Error while getting the next batch of identifiers from the oai end-point.", e);
+                        throw new IllegalStateException(
+                                String.format("Error while getting the next batch of identifiers from the oai end-point." +
+                                        " Number of attempts: %d. Time between attempts: %.0g seconds",
+                                        numberOfRetries, (double)timeBetweenRetries/1000.0 ), e);
                     }
                 }
             }
