@@ -107,8 +107,7 @@ public class TopologyTasksResource {
                             AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
         taskSubmissionValidator.assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        TaskInfo progress = reportService.getTaskProgress(taskId);
-        return progress;
+        return reportService.getTaskProgress(taskId);
     }
 
     /**
@@ -272,7 +271,6 @@ public class TopologyTasksResource {
                 LOGGER.info(!restart ? "Submitting task" : "Restarting task");
                 taskSubmissionValidator.validateTaskSubmission(task, topologyName);
                 task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                TaskStatusChecker.init(taskInfoDAO);
 
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();

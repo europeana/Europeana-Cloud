@@ -31,8 +31,6 @@ import java.util.List;
 public class SubmitTaskService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskService.class);
 
-    private static final int UNKNOWN_EXPECTED_SIZE = -1;
-
     @Autowired
     private HarvestsExecutor harvestsExecutor;
 
@@ -156,19 +154,8 @@ public class SubmitTaskService {
      * @return The number of files inside the task.
      */
     private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {
-        if (TopologiesNames.HTTP_TOPOLOGY.equals(topologyName)) {
-            return UNKNOWN_EXPECTED_SIZE;
-        }
-        String taskType = getTaskType(task);
-        FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
+        FilesCounter filesCounter = filesCounterFactory.createFilesCounter(task, topologyName);
         return filesCounter.getFilesCount(task);
-    }
-
-    //get TaskType
-    private String getTaskType(DpsTask task) {
-        //TODO sholud be done in more error prone way
-        final InputDataType first = task.getInputData().keySet().iterator().next();
-        return first.name();
     }
 }
 
