@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.DuplicatedRec
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -33,6 +34,7 @@ import static java.lang.Integer.parseInt;
  *
  */
 public class OAIPHMHarvestingTopology {
+    public static final Integer MAX_POLL_RECORDS = 100;
     private static Properties topologyProperties;
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
@@ -53,6 +55,7 @@ public class OAIPHMHarvestingTopology {
                         KafkaSpoutConfig
                                 .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                                 .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                                .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
                                 .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                                 .setGroupId("oai_topology_spout")
                                 .build(),
