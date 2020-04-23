@@ -54,6 +54,7 @@ public class OAIPHMHarvestingTopology {
                                 .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                                 .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
                                 .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
+                                .setGroupId("oai_topology_spout")
                                 .build(),
                         topologyProperties.getProperty(CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
