@@ -1,0 +1,124 @@
+package eu.europeana.cloud.service.dps.services.validation;
+
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import org.springframework.stereotype.Service;
+
+import java.net.MalformedURLException;
+import java.util.Arrays;
+import java.util.List;
+
+import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+
+/**
+ * This service will be used during submission time to validate if given task submission is correct.<br/>
+ * For now we are checking this constraints:
+ * <li>if task submission is done for the topology that exists (that is handled by this DPS application)</li>
+ * <li>if the task is valid</li>
+ * <li>if the datasets specified in the submission request exists in the ECloud</li>
+ */
+@Service
+public class TaskSubmissionValidator {
+
+    private final DataSetServiceClient dataSetServiceClient;
+    private final TopologyManager topologyManager;
+
+    public TaskSubmissionValidator(DataSetServiceClient dataSetServiceClient, TopologyManager topologyManager) {
+        this.dataSetServiceClient = dataSetServiceClient;
+        this.topologyManager = topologyManager;
+    }
+
+    public void validateTaskSubmission(DpsTask task, String topologyName) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
+        assertContainTopology(topologyName);
+        validateTask(task, topologyName);
+        validateOutputDataSetsIfExist(task);
+    }
+
+    /**
+     * Checks if provided topology name is on the list of all the topologies that are handled by the DPS application
+     *
+     * @param topology topologyName to be checked
+     * @throws AccessDeniedOrTopologyDoesNotExistException thrown in case there is no provided topology name on the list of all supported topologies
+     */
+    public void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+        if (!topologyManager.containsTopology(topology)) {
+            throw new AccessDeniedOrTopologyDoesNotExistException("The topology doesn't exist");
+        }
+    }
+
+    private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
+        String taskType = specifyTaskType(task, topologyName);
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidator(taskType);
+        validator.validate(task);
+    }
+
+    private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
+        List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+        for (String dataSetURL : dataSets) {
+            try {
+                DataSet dataSet = parseDataSetURl(dataSetURL);
+                dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
+                validateProviderId(task, dataSet.getProviderId());
+            } catch (MalformedURLException e) {
+                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                        + " can not be submitted because: " + e.getMessage());
+            } catch (DataSetNotExistsException e) {
+                throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
+                        + " Does not exist");
+            } catch (Exception e) {
+                throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
+                        + dataSetURL + " because of: " + e.getMessage());
+            }
+        }
+    }
+
+    private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
+        String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
+        if (providedProviderId != null)
+            if (!providedProviderId.equals(providerId))
+                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
+                        + " should be the same provider of the output dataSet: " + providerId);
+    }
+
+    private DataSet parseDataSetURl(String url) throws MalformedURLException {
+        UrlParser parser = new UrlParser(url);
+        if (parser.isUrlToDataset()) {
+            DataSet dataSet = new DataSet();
+            dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
+            dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
+            return dataSet;
+        }
+        throw new MalformedURLException("The dataSet URL is not formulated correctly");
+
+    }
+
+    private List<String> readDataSetsList(String listParameter) {
+        return listParameter == null ?
+                Arrays.asList() :
+                Arrays.asList(listParameter.split(","));
+    }
+
+    private String specifyTaskType(DpsTask task, String topologyName) throws DpsTaskValidationException {
+        if (task.getDataEntry(FILE_URLS) != null) {
+            return topologyName + "_" + FILE_URLS.name().toLowerCase();
+        }
+        if (task.getDataEntry(DATASET_URLS) != null) {
+            return topologyName + "_" + DATASET_URLS.name().toLowerCase();
+        }
+        if (task.getDataEntry(REPOSITORY_URLS) != null) {
+            return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
+        }
+        throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
+    }
+}
