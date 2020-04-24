@@ -858,7 +858,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isOk());
         Thread.sleep(1000);
         verify(taskDAO, times(1))
-                .setTaskStatus(eq(TASK_ID), eq("Completely process"), eq(TaskState.PROCESSED.toString()));
+                .setTaskCompletelyProcessed(eq(TASK_ID), eq("Completely process"));
         verifyNoMoreInteractions(taskDAO);
     }
 
@@ -888,12 +888,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isOk());
         Thread.sleep(1000);
         verify(taskDAO, times(1))
-                .dropTask(eq(TASK_ID),
-                        eq("cleaner parameters can not be null"),
-                        eq(TaskState.DROPPED.toString())
+                .setTaskDropped(eq(TASK_ID),
+                        eq("cleaner parameters can not be null")
                 );
         verifyNoMoreInteractions(taskDAO);
-
     }
 
     /* Utilities */

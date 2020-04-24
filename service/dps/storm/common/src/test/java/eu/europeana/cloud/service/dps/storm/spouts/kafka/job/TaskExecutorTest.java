@@ -79,7 +79,7 @@ public class TaskExecutorTest {
         MockitoAnnotations.initMocks(this);
         representationIterator = mock(RepresentationIterator.class);
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
-        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
+        doNothing().when(cassandraTaskInfoDAO).setTaskDropped(anyLong(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
         mockMCSClient();
@@ -552,7 +552,7 @@ public class TaskExecutorTest {
         taskExecutor.call();
 
         //called twice, once per finally inside TaskExecutor.execute() and the other inside call() catch block
-        verify(cassandraTaskInfoDAO, times(2)).dropTask(anyLong(), anyString(), anyString());
+        verify(cassandraTaskInfoDAO, times(2)).setTaskDropped(anyLong(), anyString());
     }
 
 

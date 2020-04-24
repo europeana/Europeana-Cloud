@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
@@ -33,9 +32,6 @@ public class SubmitTaskService {
 
     @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;
-
-    @Autowired
-    private TasksByStateDAO tasksByStateDAO;
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
@@ -70,13 +66,15 @@ public class SubmitTaskService {
                     } else {
                         harvesterResult = harvestsExecutor.executeForRestart(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
                     }
-                    updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
+                    updateTaskStatus(parameters.getTask().getTaskId(),harvesterResult);
+                    LOGGER.info("Task {} submitted successfully to Kafka on topic {}", parameters.getTask().getTaskId(), preferredTopicName);
                 } else {
                     submitService.submitTask(parameters.getTask(), parameters.getTopologyName());
                     insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                             expectedCount, TaskState.SENT.toString(), "", "");
+                    LOGGER.info("Task {} submitted successfully to Kafka for topology {}", parameters.getTask().getTaskId(), parameters.getTopologyName());
                 }
-                LOGGER.info("Task {} submitted successfully to Kafka", parameters.getTask().getTaskId());
+
             }
         } catch (TaskSubmissionException e) {
             LOGGER.error("Task submission failed: {}", e.getMessage(), e);
@@ -85,7 +83,7 @@ public class SubmitTaskService {
         } catch (Exception e) {
             String fullStacktrace = ExceptionUtils.getStackTrace(e);
             LOGGER.error("Task submission failed: {}", fullStacktrace);
-            insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),0,
+            insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(), 0,
                     TaskState.DROPPED.toString(), fullStacktrace, "");
         }
     }
@@ -101,17 +99,14 @@ public class SubmitTaskService {
      * @param info
      */
     private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, String topicName) {
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info);
-        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
-        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info,applicationIdentifier,topicName);
     }
 
 
     private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
         if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
             LOGGER.info("Task dropped. No data harvested");
-            taskInfoDAO.dropTask(taskId, "The task with the submitted parameters is empty",
-                    TaskState.DROPPED.toString());
+            taskInfoDAO.setTaskDropped(taskId, "The task with the submitted parameters is empty");
         } else {
             LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
             taskInfoDAO.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(),

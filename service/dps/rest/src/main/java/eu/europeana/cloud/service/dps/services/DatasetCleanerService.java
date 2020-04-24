@@ -31,14 +31,13 @@ public class DatasetCleanerService {
                 DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
                 datasetCleaner.execute();
                 LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
-                taskInfoDAO.setTaskStatus(Long.parseLong(taskId), "Completely process", TaskState.PROCESSED.toString());
+                taskInfoDAO.setTaskCompletelyProcessed(Long.parseLong(taskId), "Completely process");
             } else {
-                taskInfoDAO.dropTask(Long.parseLong(taskId), "cleaner parameters can not be null",
-                        TaskState.DROPPED.toString());
+                taskInfoDAO.setTaskDropped(Long.parseLong(taskId), "cleaner parameters can not be null");
             }
         } catch (ParseException | DatasetCleaningException e) {
             LOGGER.error("Dataset was not removed correctly. ", e);
-            taskInfoDAO.dropTask(Long.parseLong(taskId), e.getMessage(), TaskState.DROPPED.toString());
+            taskInfoDAO.setTaskDropped(Long.parseLong(taskId), e.getMessage());
         }
     }
 

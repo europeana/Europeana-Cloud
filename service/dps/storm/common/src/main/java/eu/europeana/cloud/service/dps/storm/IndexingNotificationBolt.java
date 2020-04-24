@@ -34,7 +34,7 @@ public class IndexingNotificationBolt extends NotificationBolt {
             LOGGER.info("DataSet {} is sent to be cleaned and the task is finished successfully from within Storm", dataSetCleanerParameters.getDataSetId());
         } catch (Exception e) {
             LOGGER.error("An error happened while ending the task ", e);
-            taskInfoDAO.dropTask(taskId, e.getMessage(), TaskState.DROPPED.toString());
+            taskInfoDAO.setTaskDropped(taskId, e.getMessage());
         } finally {
             if (dpsClient != null)
                 dpsClient.close();

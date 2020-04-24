@@ -44,7 +44,7 @@ public class MCSReaderSpoutTest {
     @Before
     public void init() throws Exception {
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
-        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
+        doNothing().when(cassandraTaskInfoDAO).setTaskDropped(anyLong(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         mcsReaderSpout.getTaskDownloader().getTaskQueue().clear();
     }
@@ -63,6 +63,6 @@ public class MCSReaderSpoutTest {
         assertTrue(!mcsReaderSpout.getTaskDownloader().getTaskQueue().isEmpty());
         mcsReaderSpout.deactivate();
         assertTrue(mcsReaderSpout.getTaskDownloader().getTaskQueue().isEmpty());
-        verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
+        verify(cassandraTaskInfoDAO, atLeast(taskCount)).setTaskDropped(anyLong(), anyString());
     }
 }

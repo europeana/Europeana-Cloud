@@ -2,7 +2,6 @@ package eu.europeana.cloud.http.spout;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -110,7 +109,7 @@ public class HttpKafkaSpoutTest {
                         .withBodyFile("zipWithCorrectAndCorruptedEDM.zip")));
 
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
-        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
+        doNothing().when(cassandraTaskInfoDAO).setTaskDropped(anyLong(), anyString());
         httpKafkaSpout.taskDownloader.taskQueue.clear();
         setStaticField(HttpKafkaSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
 
@@ -264,7 +263,7 @@ public class HttpKafkaSpoutTest {
         assertTrue(!httpKafkaSpout.taskDownloader.taskQueue.isEmpty());
         httpKafkaSpout.deactivate();
         assertTrue(httpKafkaSpout.taskDownloader.taskQueue.isEmpty());
-        verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
+        verify(cassandraTaskInfoDAO, atLeast(taskCount)).setTaskDropped(anyLong(), anyString());
     }
 
 

@@ -25,10 +25,11 @@ public class KafkaTopicSelector {
     public String findPreferredTopicNameFor(String topologyName) {
         List<String> topicsCurrentlyInUse = tasksByStateDAO.listAllInUseTopicsFor(topologyName);
 
-        for (String topicName : availableTopic.get(topologyName)) {
+        List<String> topicsForOneTopology = availableTopic.get(topologyName);
+        for (String topicName : topicsForOneTopology) {
             if (!topicsCurrentlyInUse.contains(topicName))
                 return topicName;
         }
-        return availableTopic.get(topologyName).get(new Random().nextInt(availableTopic.size()));
+        return topicsForOneTopology.get(new Random().nextInt(topicsForOneTopology.size()));
     }
 }

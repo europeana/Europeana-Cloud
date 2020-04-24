@@ -75,7 +75,7 @@ public class TaskExecutor implements Callable<Void> {
         try {
             execute();
         } catch (Exception e) {
-            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e), TaskState.DROPPED.toString());
+            cassandraTaskInfoDAO.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e));
         }
         return null;
     }
@@ -147,7 +147,7 @@ public class TaskExecutor implements Callable<Void> {
             dataSetServiceClient.close();
             recordServiceClient.close();
             if (expectedSize == 0)
-                cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
+                cassandraTaskInfoDAO.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because it is empty");
 
         }
     }
