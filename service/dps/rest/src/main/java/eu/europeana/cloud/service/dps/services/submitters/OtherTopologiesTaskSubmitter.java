@@ -58,6 +58,7 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
         if (expectedCount == 0) {
             insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                     expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", "");
+            return;
         }
 
         String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());

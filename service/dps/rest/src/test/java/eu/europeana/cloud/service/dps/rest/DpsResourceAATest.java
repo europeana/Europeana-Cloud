@@ -39,6 +39,7 @@ import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.reset;
@@ -120,7 +121,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
-        Mockito.when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
+        Mockito.when(filesCounterFactory.createFilesCounter(any(DpsTask.class), anyString())).thenReturn(filesCounter);
         request = new MockHttpServletRequest();
 
     }

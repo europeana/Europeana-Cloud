@@ -46,9 +46,11 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
         if (expectedCount == 0) {
             taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                     expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", "");
+            return;
         }
 
         String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
+        LOGGER.info("Selected topic name: {} for {}", preferredTopicName, parameters.getTask().getTaskId());
         taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                 expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", preferredTopicName);
 

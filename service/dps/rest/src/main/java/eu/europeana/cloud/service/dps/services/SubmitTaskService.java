@@ -16,7 +16,6 @@ public class SubmitTaskService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskService.class);
 
     private final TaskSubmitterFactory taskSubmitterFactory;
-
     private final TaskStatusUpdater taskStatusUpdater;
 
     public SubmitTaskService(TaskSubmitterFactory taskSubmitterFactory, TaskStatusUpdater taskStatusUpdater){

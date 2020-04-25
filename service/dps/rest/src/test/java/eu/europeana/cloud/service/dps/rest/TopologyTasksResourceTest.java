@@ -1005,7 +1005,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private void mockECloudClients() throws TaskSubmissionException, MCSException {
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
-        when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
+        when(filesCounterFactory.createFilesCounter(any(DpsTask.class),anyString())).thenReturn(filesCounter);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(1);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());

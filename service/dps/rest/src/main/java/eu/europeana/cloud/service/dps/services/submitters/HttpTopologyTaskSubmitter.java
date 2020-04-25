@@ -39,6 +39,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
         if (expectedCount == 0) {
             taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                     expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", "");
+            return;
         }
 
         parameters.getTask().addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
