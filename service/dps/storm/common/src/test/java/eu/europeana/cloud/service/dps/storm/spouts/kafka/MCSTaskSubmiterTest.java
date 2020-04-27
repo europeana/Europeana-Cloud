@@ -148,7 +148,7 @@ public class MCSTaskSubmiterTest {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        submiter = new MCSTaskSubmiter(taskErrorDAO,taskStatusChecker,cassandraTaskInfoDAO,recordSubmitService,TOPOLOGY,task,TOPIC,reader);
+        submiter = new MCSTaskSubmiter(taskStatusChecker,cassandraTaskInfoDAO,recordSubmitService,TOPOLOGY,task,TOPIC,reader);
         whenNew(DataSetServiceClient.class).withAnyArguments().thenReturn(dataSetServiceClient);
         whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
