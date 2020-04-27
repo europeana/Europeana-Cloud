@@ -12,16 +12,14 @@ import eu.europeana.cloud.service.uis.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -30,27 +28,19 @@ import java.util.List;
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 17, 2013
  */
-@Component
-@Path("/cloudIds")
-@Scope("request")
+@RestController
+@RequestMapping("/cloudIds")
 public class UniqueIdentifierResource {
 
+    private static final String CLOUDID = "cloudId";
+    private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierResource.class);
+    private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
-
     @Autowired
     private DataProviderResource dataProviderResource;
-
-    private static final String CLOUDID = "cloudId";
-
     @Autowired
     private ACLServiceWrapper aclWrapper;
-
-
-    private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierResource.class);
-
 
     /**
      * Invokes the generation of a cloud identifier using the provider
@@ -79,19 +69,16 @@ public class UniqueIdentifierResource {
      * @throws CloudIdAlreadyExistException  Cloud identifier was created previously
      * @summary Cloud identifier generation
      */
-    @POST
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @PostMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
-    public Response createCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
-                                  @QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
+    public ResponseEntity createCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
+                                        @RequestParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
             RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
         final CloudId cId = (localId != null) ? (uniqueIdentifierService.createCloudId(providerId, localId))
                 : (uniqueIdentifierService.createCloudId(providerId));
-
-        final Response response = Response.ok().entity(cId).build();
 
         // CloudId created => let's assign permissions to the owner
         String creatorName = SpringUserUtils.getUsername();
@@ -103,7 +90,7 @@ public class UniqueIdentifierResource {
             aclWrapper.updateAcl(cloudIdAcl);
         }
         dataProviderResource.grantPermissionsToLocalId(cId, providerId);
-        return response;
+        return ResponseEntity.ok(cId);
     }
 
     /**
@@ -120,14 +107,13 @@ public class UniqueIdentifierResource {
      * @throws RecordDatasetEmptyException   dataset is empty
      * @summary Cloud identifier retrieval
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
-    public Response getCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
-                               @QueryParam(UISParamConstants.Q_RECORD_ID) String recordId)
+    public ResponseEntity getCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
+                                     @RequestParam(UISParamConstants.Q_RECORD_ID) String recordId)
             throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
-        return Response.ok(uniqueIdentifierService.getCloudId(providerId, recordId)).build();
+        return ResponseEntity.ok(uniqueIdentifierService.getCloudId(providerId, recordId));
     }
 
 
@@ -145,16 +131,14 @@ public class UniqueIdentifierResource {
      * @throws RecordDatasetEmptyException   datset is empty
      * @summary List of record identifiers retrieval
      */
-    @GET
-    @Path("{" + CLOUDID + "}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @GetMapping(value = "{" + CLOUDID + "}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
-    public Response getLocalIds(@PathParam(CLOUDID) String cloudId)
+    public ResponseEntity getLocalIds(@PathVariable(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
         pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
-        return Response.ok(pList).build();
+        return ResponseEntity.ok(pList);
     }
 
 
@@ -181,11 +165,9 @@ public class UniqueIdentifierResource {
      * @throws RecordIdDoesNotExistException record identifier does not exist
      * @summary Cloud identifier removal
      */
-    @DELETE
-    @Path("{" + CLOUDID + "}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @DeleteMapping(value = "{" + CLOUDID + "}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Response deleteCloudId(@PathParam(CLOUDID) String cloudId)
+    public ResponseEntity deleteCloudId(@PathVariable(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordIdDoesNotExistException {
 
@@ -201,6 +183,6 @@ public class UniqueIdentifierResource {
         // let's delete the permissions as well
         ObjectIdentity cloudIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cloudId);
         aclWrapper.deleteAcl(cloudIdentity, false);
-        return Response.ok("CloudId marked as deleted").build();
+        return ResponseEntity.ok("CloudId marked as deleted");
     }
 }
