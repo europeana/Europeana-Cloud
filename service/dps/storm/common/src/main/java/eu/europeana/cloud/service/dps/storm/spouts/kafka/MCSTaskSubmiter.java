@@ -15,7 +15,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -44,27 +43,24 @@ public class MCSTaskSubmiter {
     private static final int INTERNAL_THREADS_NUMBER = 10;
     private static final int MAX_BATCH_SIZE = 100;
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(MCSTaskSubmiter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MCSTaskSubmiter.class);
 
-    private CassandraTaskErrorsDAO taskErrorDAO;
+    private final TaskStatusChecker taskStatusChecker;
 
-    private TaskStatusChecker taskStatusChecker;
+    private final CassandraTaskInfoDAO cassandraTaskInfoDAO;
 
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private final RecordExecutionSubmitService recordSubmitService;
 
-    private RecordExecutionSubmitService recordSubmitService;
+    private final String topologyName;
 
-    private String topologyName;
+    private final DpsTask task;
 
-    private DpsTask task;
+    private final String topicName;
 
-    private String topicName;
-
-    private MCSReader reader;
+    private final MCSReader reader;
     private ExecutorService executorService;
 
-    public MCSTaskSubmiter(CassandraTaskErrorsDAO taskErrorDAO, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, RecordExecutionSubmitService recordSubmitService, String topologyName, DpsTask task, String topicName, MCSReader reader) {
-        this.taskErrorDAO = taskErrorDAO;
+    public MCSTaskSubmiter(TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, RecordExecutionSubmitService recordSubmitService, String topologyName, DpsTask task, String topicName, MCSReader reader) {
         this.taskStatusChecker = taskStatusChecker;
         this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
         this.recordSubmitService = recordSubmitService;
@@ -78,7 +74,8 @@ public class MCSTaskSubmiter {
 
         reader.open();
         try {
-            LOGGER.info("Sending task id=" + task.getTaskId() + " to topology " + topologyName + " by kafka topic " + topicName);
+            LOGGER.info("Sending task id={} to topology {} by kafka topic {}", task.getTaskId(), topologyName, topicName);
+
             checkIfTaskIsKilled();
 
             startProgressing();
@@ -116,7 +113,7 @@ public class MCSTaskSubmiter {
         } finally {
             if (expectedSize == 0) {
                 cassandraTaskInfoDAO.dropTask(task.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
-                LOGGER.warn("The task id=" + task.getTaskId() + " was dropped because it is empty.");
+                LOGGER.warn("The task id={} was dropped because it is empty.", task.getTaskId());
             }
         }
 
@@ -134,7 +131,7 @@ public class MCSTaskSubmiter {
             if (getRevisionName() != null && getRevisionProvider() != null) {
                 expectedSize += executeForRevision(urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
             } else {
-                expectedSize += executeForEntireDataset(task, urlParser);
+                expectedSize += executeForEntireDataset(urlParser);
 
             }
             return expectedSize;
@@ -145,7 +142,7 @@ public class MCSTaskSubmiter {
 
     }
 
-    private int executeForEntireDataset(DpsTask dpsTask, UrlParser urlParser) {
+    private int executeForEntireDataset(UrlParser urlParser) {
         int expectedSize = 0;
         RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
         while (iterator.hasNext()) {
@@ -159,7 +156,6 @@ public class MCSTaskSubmiter {
         int maxRecordsCount = Optional.ofNullable(task.getParameter(PluginParameterKeys.SAMPLE_SIZE)).map(Integer::parseInt).orElse(Integer.MAX_VALUE);
         int count = 0;
         String startFrom = null;
-        final long taskId = task.getTaskId();
         Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
         int total = 0;
         do {
@@ -168,10 +164,11 @@ public class MCSTaskSubmiter {
             List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = slice.getResults();
             total += cloudIdAndTimestampResponseList.size();
             if (total > maxRecordsCount)
-                if (total - maxRecordsCount < MAX_BATCH_SIZE)
+                if (total - maxRecordsCount < MAX_BATCH_SIZE) {
                     cloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList.subList(0, maxRecordsCount % MAX_BATCH_SIZE);
-                else
+                } else {
                     break;
+                }
 
             final List<CloudIdAndTimestampResponse> finalCloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList;
             futures.add(getExecutor().submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudIdAndTimestampResponseList)));

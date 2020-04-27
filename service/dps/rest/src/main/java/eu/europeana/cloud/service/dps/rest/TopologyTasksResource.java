@@ -279,7 +279,6 @@ public class TopologyTasksResource {
                         "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
 
-
                 SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                         .task(task)
                         .topologyName(topologyName)

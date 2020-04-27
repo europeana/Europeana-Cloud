@@ -15,7 +15,6 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,17 +24,21 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OaiTopologyTaskSubmitter.class);
 
-    @Autowired
-    private HarvestsExecutor harvestsExecutor;
+    private final HarvestsExecutor harvestsExecutor;
+    private final KafkaTopicSelector kafkaTopicSelector;
+    private final FilesCounterFactory filesCounterFactory;
+    private final TaskStatusUpdater taskStatusUpdater;
 
-    @Autowired
-    private KafkaTopicSelector kafkaTopicSelector;
-
-    @Autowired
-    private FilesCounterFactory filesCounterFactory;
-
-    @Autowired
-    private TaskStatusUpdater taskStatusUpdater;
+    public OaiTopologyTaskSubmitter(HarvestsExecutor harvestsExecutor,
+                                    KafkaTopicSelector kafkaTopicSelector,
+                                    FilesCounterFactory filesCounterFactory,
+                                    TaskStatusUpdater taskStatusUpdater
+    ) {
+        this.harvestsExecutor = harvestsExecutor;
+        this.kafkaTopicSelector = kafkaTopicSelector;
+        this.filesCounterFactory = filesCounterFactory;
+        this.taskStatusUpdater = taskStatusUpdater;
+    }
 
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
