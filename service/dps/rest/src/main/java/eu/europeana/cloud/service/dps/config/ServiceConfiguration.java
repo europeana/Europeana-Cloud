@@ -23,6 +23,7 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
+@Import(TaskStatusUpdater.class)
 public class ServiceConfiguration {
 
     private final Environment environment;

@@ -92,7 +92,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         } catch (Exception e) {
             LOGGER.error("Spout error: {}", e.getMessage());
             if (stormTaskTuple != null)
-                cassandraTaskInfoDAO.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
+                taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
         }
     }
 
@@ -113,13 +113,13 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     private void deactivateWaitingTasks() {
         DpsTask dpsTask;
         while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
-            cassandraTaskInfoDAO.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of redeployment");
+            taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of redeployment");
     }
 
     private void deactivateCurrentTask() {
         DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
         if (currentDpsTask != null) {
-            cassandraTaskInfoDAO.setTaskDropped(currentDpsTask.getTaskId(), "The task was dropped because of redeployment");
+            taskStatusUpdater.setTaskDropped(currentDpsTask.getTaskId(), "The task was dropped because of redeployment");
         }
     }
 
@@ -167,14 +167,14 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
                     if (stormTaskTuple != null)
-                        cassandraTaskInfoDAO.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
+                        taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
                 }
             }
         }
 
         private void startProgress(long taskId) {
             LOGGER.info("Start progressing for Task with id {}", currentDpsTask.getTaskId());
-            cassandraTaskInfoDAO.updateTask(taskId, "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
+            taskStatusUpdater.updateTask(taskId, "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
 
         }
 
@@ -198,7 +198,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 if (!useDefaultIdentifiers) {
                     metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
                     if (StringUtils.isEmpty(metisDatasetId)) {
-                        cassandraTaskInfoDAO.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because METIS_DATASET_ID not provided");
+                        taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because METIS_DATASET_ID not provided");
                         return;
                     }
                 }
@@ -209,11 +209,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 fileUnpackingService.unpackFile(file.getAbsolutePath(), file.getParent() + File.separator);
                 Path start = Paths.get(new File(file.getParent()).toURI());
                 expectedSize = iterateOverFiles(start, stormTaskTuple, useDefaultIdentifiers, metisDatasetId);
-                cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), expectedSize);
+                taskStatusUpdater.setUpdateExpectedSize(stormTaskTuple.getTaskId(), expectedSize);
             } finally {
                 removeTempFolder(file);
                 if (expectedSize == 0)
-                    cassandraTaskInfoDAO.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because it is empty");
+                    taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because it is empty");
 
             }
         }

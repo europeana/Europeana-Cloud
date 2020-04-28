@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dps.services;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,7 @@ public class DatasetCleanerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleanerService.class);
 
     @Autowired
-    private CassandraTaskInfoDAO taskInfoDAO;
+    private TaskStatusUpdater taskStatusUpdater;
 
     @Async
     public void clean(String taskId, DataSetCleanerParameters cleanerParameters){
@@ -31,13 +30,13 @@ public class DatasetCleanerService {
                 DatasetCleaner datasetCleaner = new DatasetCleaner(cleanerParameters);
                 datasetCleaner.execute();
                 LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
-                taskInfoDAO.setTaskCompletelyProcessed(Long.parseLong(taskId), "Completely process");
+                taskStatusUpdater.setTaskCompletelyProcessed(Long.parseLong(taskId), "Completely process");
             } else {
-                taskInfoDAO.setTaskDropped(Long.parseLong(taskId), "cleaner parameters can not be null");
+                taskStatusUpdater.setTaskDropped(Long.parseLong(taskId), "cleaner parameters can not be null");
             }
         } catch (ParseException | DatasetCleaningException e) {
             LOGGER.error("Dataset was not removed correctly. ", e);
-            taskInfoDAO.setTaskDropped(Long.parseLong(taskId), e.getMessage());
+            taskStatusUpdater.setTaskDropped(Long.parseLong(taskId), e.getMessage());
         }
     }
 

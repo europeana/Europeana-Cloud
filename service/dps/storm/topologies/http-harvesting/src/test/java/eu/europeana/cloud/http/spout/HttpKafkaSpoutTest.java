@@ -6,8 +6,8 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,9 +40,8 @@ public class HttpKafkaSpoutTest {
     @Mock(name = "collector")
     private SpoutOutputCollector collector;
 
-    @Mock(name = "cassandraTaskInfoDAO")
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
-
+    @Mock
+    private TaskStatusUpdater cassandraTaskInfoDAO;
 
     @Mock
     private TaskStatusChecker taskStatusChecker;

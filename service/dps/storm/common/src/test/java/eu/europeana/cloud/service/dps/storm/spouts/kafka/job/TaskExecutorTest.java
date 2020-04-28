@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.test.TestHelper;
@@ -60,7 +60,7 @@ public class TaskExecutorTest {
     private SpoutOutputCollector collector;
 
     @Mock(name = "cassandraTaskInfoDAO")
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private TaskStatusUpdater cassandraTaskInfoDAO;
 
     @Mock
     private TaskStatusChecker taskStatusChecker;

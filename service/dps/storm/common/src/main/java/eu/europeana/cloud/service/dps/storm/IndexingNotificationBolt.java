@@ -25,7 +25,7 @@ public class IndexingNotificationBolt extends NotificationBolt {
         long taskId = notificationTuple.getTaskId();
         DpsClient dpsClient = null;
         try {
-            taskInfoDAO.endTask(taskId, count, errors, TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), new Date());
+            taskStatusUpdater.endTask(taskId, count, errors, TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), new Date());
             dpsClient = new DpsClient(notificationTuple.getParameter(NotificationParameterKeys.DPS_URL).toString());
             DataSetCleanerParameters dataSetCleanerParameters = (DataSetCleanerParameters) notificationTuple.getParameter(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS);
             LOGGER.info("DataSet {} will be sent to be cleaned", dataSetCleanerParameters.getDataSetId());
@@ -34,7 +34,7 @@ public class IndexingNotificationBolt extends NotificationBolt {
             LOGGER.info("DataSet {} is sent to be cleaned and the task is finished successfully from within Storm", dataSetCleanerParameters.getDataSetId());
         } catch (Exception e) {
             LOGGER.error("An error happened while ending the task ", e);
-            taskInfoDAO.setTaskDropped(taskId, e.getMessage());
+            taskStatusUpdater.setTaskDropped(taskId, e.getMessage());
         } finally {
             if (dpsClient != null)
                 dpsClient.close();

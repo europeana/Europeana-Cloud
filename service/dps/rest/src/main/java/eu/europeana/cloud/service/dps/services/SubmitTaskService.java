@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
@@ -31,13 +31,10 @@ public class SubmitTaskService {
     private HarvestsExecutor harvestsExecutor;
 
     @Autowired
-    private CassandraTaskInfoDAO taskInfoDAO;
+    private TaskStatusUpdater taskStatusUpdater;
 
     @Autowired
     private FilesCounterFactory filesCounterFactory;
-
-    @Autowired
-    private String applicationIdentifier;
 
     @Autowired
     private KafkaTopicSelector kafkaTopicSelector;
@@ -99,17 +96,17 @@ public class SubmitTaskService {
      * @param info
      */
     private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, String topicName) {
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info,applicationIdentifier,topicName);
+        taskStatusUpdater.insert(taskId, topologyName, expectedSize, state, info,topicName);
     }
 
 
     private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
         if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
             LOGGER.info("Task dropped. No data harvested");
-            taskInfoDAO.setTaskDropped(taskId, "The task with the submitted parameters is empty");
+            taskStatusUpdater.setTaskDropped(taskId, "The task with the submitted parameters is empty");
         } else {
             LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
-            taskInfoDAO.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(),
+            taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(),
                     harvesterResult.getResultCounter());
         }
     }

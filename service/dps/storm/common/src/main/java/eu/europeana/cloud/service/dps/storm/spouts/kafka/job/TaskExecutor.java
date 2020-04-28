@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka.job;
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -22,7 +21,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.QueueFiller;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.QueueFillerForLatestRevisionJob;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.QueueFillerForSpecificRevisionJob;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -49,7 +48,7 @@ public class TaskExecutor implements Callable<Void> {
     private TaskStatusChecker taskStatusChecker;
 
     private SpoutOutputCollector collector;
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private TaskStatusUpdater taskStatusUpdater;
     private ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls;
 
     private String mcsClientURL;
@@ -57,11 +56,11 @@ public class TaskExecutor implements Callable<Void> {
     private String stream;
     private DpsTask dpsTask;
 
-    public TaskExecutor(SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO,
+    public TaskExecutor(SpoutOutputCollector collector, TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater,
                         ArrayBlockingQueue<StormTaskTuple> tuplesWithFileUrls, String mcsClientURL, String stream, DpsTask dpsTask) {
         this.collector = collector;
         this.taskStatusChecker = taskStatusChecker;
-        this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
+        this.taskStatusUpdater = taskStatusUpdater;
         this.tuplesWithFileUrls = tuplesWithFileUrls;
 
         this.mcsClientURL = mcsClientURL;
@@ -75,7 +74,7 @@ public class TaskExecutor implements Callable<Void> {
         try {
             execute();
         } catch (Exception e) {
-            cassandraTaskInfoDAO.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e));
+            taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of " + e.getMessage() + ". The full exception is" + Throwables.getStackTraceAsString(e));
         }
         return null;
     }
@@ -141,13 +140,13 @@ public class TaskExecutor implements Callable<Void> {
                     emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
                 }
             }
-            cassandraTaskInfoDAO.setUpdateExpectedSize(dpsTask.getTaskId(), expectedSize);
+            taskStatusUpdater.setUpdateExpectedSize(dpsTask.getTaskId(), expectedSize);
         } finally {
             fileClient.close();
             dataSetServiceClient.close();
             recordServiceClient.close();
             if (expectedSize == 0)
-                cassandraTaskInfoDAO.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because it is empty");
+                taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because it is empty");
 
         }
     }

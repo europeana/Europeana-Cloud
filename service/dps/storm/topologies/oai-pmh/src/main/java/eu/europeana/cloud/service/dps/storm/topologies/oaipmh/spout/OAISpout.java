@@ -66,7 +66,7 @@ public class OAISpout extends CustomKafkaSpout {
         } catch (Exception e) {
             LOGGER.error("Spout error: {}", e.getMessage());
             if (stormTaskTuple != null)
-                cassandraTaskInfoDAO.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
+                taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
         }
     }
 
@@ -87,13 +87,13 @@ public class OAISpout extends CustomKafkaSpout {
     private void deactivateWaitingTasks() {
         DpsTask dpsTask;
         while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
-            cassandraTaskInfoDAO.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of redeployment");
+            taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of redeployment");
     }
 
     private void deactivateCurrentTask() {
         DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
         if (currentDpsTask != null) {
-            cassandraTaskInfoDAO.setTaskDropped(currentDpsTask.getTaskId(), "The task was dropped because of redeployment");
+            taskStatusUpdater.setTaskDropped(currentDpsTask.getTaskId(), "The task was dropped because of redeployment");
         }
     }
 
@@ -147,7 +147,7 @@ public class OAISpout extends CustomKafkaSpout {
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
                     if (stormTaskTuple != null)
-                        cassandraTaskInfoDAO.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
+                        taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
                 }
             }
         }
