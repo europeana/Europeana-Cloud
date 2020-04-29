@@ -15,7 +15,8 @@ public class IdentifierErrorInfo {
 	private Status httpCode;
 	
 	private ErrorInfo errorInfo;
-	
+
+	public IdentifierErrorInfo(){}
 	/**
 	 * Creates a new instance of this class.
 	 * @param httpCode The http status code

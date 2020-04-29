@@ -98,13 +98,14 @@ public class DataProviderResource {
      */
     @PutMapping(consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
-    public void updateProvider(
+    public ResponseEntity<Void> updateProvider(
             @RequestBody DataProviderProperties dataProviderProperties,
             @PathVariable(P_PROVIDER) String providerId,
             HttpServletRequest httpServletRequest)
             throws ProviderDoesNotExistException {
 
         providerService.updateProvider(providerId, dataProviderProperties);
+        return ResponseEntity.noContent().build();
     }
 
 
