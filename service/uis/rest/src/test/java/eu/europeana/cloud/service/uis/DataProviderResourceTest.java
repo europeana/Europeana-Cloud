@@ -1,194 +1,174 @@
 package eu.europeana.cloud.service.uis;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.*;
-import eu.europeana.cloud.service.uis.rest.DataProviderResource;
-import eu.europeana.cloud.service.uis.rest.JerseyConfig;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-import org.apache.commons.lang3.StringUtils;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * DataProviderResourceTest
  */
-public class DataProviderResourceTest extends JerseyTest {
+@RunWith(SpringRunner.class)
+@WebAppConfiguration
+@ContextConfiguration(classes = {TestConfiguration.class})
+public class DataProviderResourceTest {
 
+    MockMvc mockMvc;
+    @Autowired
     private DataProviderService dataProviderService;
-
+    @Autowired
+    private WebApplicationContext wac;
+    @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
 
-    private WebTarget dataProviderWebTarget;
-
-    @Override
-    public Application configure() {
-	return new JerseyConfig().property("contextConfigLocation",
-		"classpath:/uis-context-test.xml");
+    private static LocalId createLocalId(String providerId, String recordId) {
+        LocalId localId = new LocalId();
+        localId.setProviderId(providerId);
+        localId.setRecordId(recordId);
+        return localId;
     }
 
-    /**
-     * Retrieve the spring enabled mockups from the application context
-     */
+    private static CloudId createCloudId(String providerId, String recordId) {
+        CloudId cloudId = new CloudId();
+        cloudId.setLocalId(createLocalId(providerId, recordId));
+        cloudId.setId(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + recordId));
+        return cloudId;
+    }
+
     @Before
     public void mockUp() {
-	ApplicationContext applicationContext = ApplicationContextUtils
-		.getApplicationContext();
-	dataProviderService = applicationContext
-		.getBean(DataProviderService.class);
-	uniqueIdentifierService = applicationContext
-		.getBean(UniqueIdentifierService.class);
-	Mockito.reset(dataProviderService);
-	dataProviderWebTarget = target(DataProviderResource.class
-		.getAnnotation(Path.class).value());
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
     }
 
-    /**
-     * Update a provider
-     * 
-     * @throws ProviderAlreadyExistsException
-     * @throws ProviderDoesNotExistException
-     * @throws MalformedURLException
-     */
     @Test
-    public void shouldUpdateProvider() throws ProviderAlreadyExistsException,
-	    ProviderDoesNotExistException, MalformedURLException {
-	// given certain provider data
-	String providerName = "provident";
+    public void shouldUpdateProvider() throws Exception {
 
-	DataProvider dp = new DataProvider();
-	dp.setId(providerName);
-	// when the provider is updated
-	DataProviderProperties properties = new DataProviderProperties();
-	properties.setOrganisationName("Organizacja");
-	properties.setRemarks("Remarks");
-	dp.setProperties(properties);
-	Mockito.when(
-		dataProviderService.updateProvider(providerName, properties))
-		.thenReturn(dp);
-	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
-		ParamConstants.P_PROVIDER, providerName);
-	Response putResponse = providentWebTarget.request().put(
-		Entity.json(properties));
-	assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
-		putResponse.getStatus());
-	dp.setProperties(properties);
-	Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(
-		dp);
-	// then the inserted provider should be in service
-	DataProvider retProvider = dataProviderService
-		.getProvider(providerName);
-	assertEquals(providerName, retProvider.getId());
-	assertEquals(properties, retProvider.getProperties());
+        // given certain provider data
+        String providerName = "provider";
+
+        DataProvider dp = new DataProvider();
+        dp.setId(providerName);
+        // when the provider is updated
+        DataProviderProperties properties = new DataProviderProperties();
+        properties.setOrganisationName("Organizacja");
+        properties.setRemarks("Remarks");
+        dp.setProperties(properties);
+        Mockito.doReturn(dp).when(dataProviderService).updateProvider(providerName, properties);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String requestJson = mapper.writer().writeValueAsString(properties);
+
+        mockMvc.perform(put("/data-providers/{" + P_PROVIDER + "}", providerName)
+                .content(requestJson).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        dp.setProperties(properties);
+
+        Mockito.doReturn(dp).when(dataProviderService).getProvider(providerName);
+
+        // then the inserted provider should be in service
+        DataProvider retProvider = dataProviderService
+                .getProvider(providerName);
+
+        assertEquals(providerName, retProvider.getId());
+        assertEquals(properties, retProvider.getProperties());
+
     }
 
-    /**
-     * Get provider Unit tests
-     * 
-     * @throws ProviderAlreadyExistsException
-     * @throws ProviderDoesNotExistException
-     */
     @Test
-    public void shouldGetProvider() throws ProviderAlreadyExistsException,
-	    ProviderDoesNotExistException {
-	// given certain provider in service
-	DataProviderProperties properties = new DataProviderProperties();
-	properties.setOrganisationName("Organizacja");
-	properties.setRemarks("Remarks");
-	String providerName = "provident";
+    public void shouldGetProvider() throws Exception {
+        // given certain provider in service
+        DataProviderProperties properties = new DataProviderProperties();
+        properties.setOrganisationName("Organizacja");
+        properties.setRemarks("Remarks");
+        String providerName = "provident";
 
-	DataProvider dp = new DataProvider();
-	dp.setId(providerName);
+        DataProvider dp = new DataProvider();
+        dp.setId(providerName);
 
-	dp.setProperties(properties);
-	Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(
-			dp);
-	// dataProviderService.createProvider(providerName, properties);
+        dp.setProperties(properties);
+        Mockito.doReturn(dp).when(dataProviderService).getProvider(providerName);
 
-	// when you get provider by rest api
-	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
-			ParamConstants.P_PROVIDER, providerName);
-	Response getResponse = providentWebTarget.request().get();
-	assertEquals(Response.Status.OK.getStatusCode(),
-			getResponse.getStatus());
-	DataProvider receivedDataProvider = getResponse
-		.readEntity(DataProvider.class);
+        // when you get provider by rest api
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/{" + P_PROVIDER + "}", providerName).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
 
-	// then received provider should be the same as inserted
-	assertEquals(providerName, receivedDataProvider.getId());
-	assertEquals(properties, receivedDataProvider.getProperties());
+        String content = mvcResult.getResponse().getContentAsString();
+        DataProvider receivedDataProvider = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, DataProvider.class);
+
+        // then received provider should be the same as inserted
+        assertEquals(providerName, receivedDataProvider.getId());
+        assertEquals(properties, receivedDataProvider.getProperties());
     }
 
     /**
      * Test Non Existing provider
-     * 
-     * @throws ProviderDoesNotExistException
      */
     @Test
     public void shouldReturn404OnNotExistingProvider()
-	    throws ProviderDoesNotExistException {
-	// given there is no provider in service
-	Mockito.when(dataProviderService.getProvider("provident")).thenThrow(
-		new ProviderDoesNotExistException(new IdentifierErrorInfo(
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getHttpCode(),
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getErrorInfo("provident"))));
-	// when you get certain provider
-	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
-			ParamConstants.P_PROVIDER, "provident");
-	Response getResponse = providentWebTarget.request().get();
+            throws Exception {
+        // given there is no provider in service
+        Mockito.doThrow(
+                new ProviderDoesNotExistException(new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getErrorInfo("provident")))
+        ).when(dataProviderService).getProvider("provident");
 
-	// then you should get error that such does not exist
-	assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
-		getResponse.getStatus());
-	ErrorInfo deleteErrorInfo = getResponse.readEntity(ErrorInfo.class);
-	assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-		.getErrorInfo("provident").getErrorCode(),
-		deleteErrorInfo.getErrorCode());
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/{" + P_PROVIDER + "}", "provident").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo deleteErrorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                        .getErrorInfo("provident").getErrorCode(),
+                deleteErrorInfo.getErrorCode());
     }
 
-	@Test
-	public void shouldDeleteProvider() throws Exception{
-		WebTarget providerWebTarget = dataProviderWebTarget.resolveTemplate(
-				ParamConstants.P_PROVIDER, "provident");
-		Response deleteResponse = providerWebTarget.request().delete();
-		
-		assertEquals(deleteResponse.getStatus(), 200);
-	}
-	
+    @Test
+    public void shouldDeleteProvider() throws Exception {
+        mockMvc.perform(delete("/data-providers/{" + P_PROVIDER + "}", "provident").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
     /**
      * Test the retrieval of local Ids by a provider
-     * 
-     * @throws Exception
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetLocalIdsByProvider()
             throws Exception {
@@ -196,11 +176,17 @@ public class DataProviderResourceTest extends JerseyTest {
         List<CloudId> localIdList = new ArrayList<>();
         localIdList.add(createCloudId("providerId", "recordId"));
         lidListWrapper.setResults(localIdList);
-        when(uniqueIdentifierService.getLocalIdsByProvider("providerId", "recordId", 10000)).thenReturn(localIdList);
-        Response response = target("/data-providers/providerId/localIds").queryParam("from", "recordId").request()
-                .get();
-        assertThat(response.getStatus(), is(200));
-        ResultSlice<CloudId> retList = response.readEntity(ResultSlice.class);
+        Mockito.doReturn(localIdList).when(uniqueIdentifierService).getLocalIdsByProvider("providerId", "recordId", 10000);
+
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/localIds").param("from", "recordId").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ResultSlice<CloudId> retList = new ObjectMapper().readValue(
+                content, new TypeReference<ResultSlice<CloudId>>() {
+                });
+
+
         assertThat(retList.getResults().size(), is(lidListWrapper.getResults().size()));
         assertEquals(retList.getResults().get(0).getLocalId().getProviderId(), lidListWrapper.getResults().get(0)
                 .getLocalId().getProviderId());
@@ -210,111 +196,46 @@ public class DataProviderResourceTest extends JerseyTest {
 
     /**
      * Test the database exception
-     * 
-     * @throws Exception
      */
     @Test
     public void testGetLocalIdsByProviderDBException() throws Exception {
-	Throwable exception = new DatabaseConnectionException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getHttpCode(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getPort(), "")));
+        Throwable exception = new DatabaseConnectionException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getErrorInfo(
+                                        uniqueIdentifierService.getHostList(),
+                                        uniqueIdentifierService.getPort(), "")));
 
-	when(
-		uniqueIdentifierService.getLocalIdsByProvider("providerId",
-			"recordId", 10000)).thenThrow(exception);
+        Mockito.doThrow(exception).when(uniqueIdentifierService).getLocalIdsByProvider("providerId",
+                "recordId", 10000);
 
-	Response resp = target("/data-providers/providerId/localIds")
-		.queryParam("from", "recordId").request().get();
-	assertThat(resp.getStatus(), is(500));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
-			uniqueIdentifierService.getHostList(),
-			uniqueIdentifierService.getHostList(), "")
-			.getErrorCode());
-	StringUtils
-		.equals(errorInfo.getDetails(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getHostList(),
-					"").getDetails());
-    }
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/localIds").param("from", "recordId")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is5xxServerError()).andReturn();
 
-    /**
-     * Test the exception that a provider does not exist
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testGetLocalIdsByProviderProviderDoesNotExistException()
-	    throws Exception {
-	Throwable exception = new ProviderDoesNotExistException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getHttpCode(),
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getErrorInfo("providerId")));
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
 
-	when(
-		uniqueIdentifierService.getLocalIdsByProvider("providerId",
-			"recordId", 10000)).thenThrow(exception);
-
-	Response resp = target("/data-providers/providerId/localIds")
-		.queryParam("from", "recordId").request().get();
-	assertThat(resp.getStatus(), is(404));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
-			"providerId").getErrorCode());
-	StringUtils.equals(
-		errorInfo.getDetails(),
-		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
-			"providerId").getDetails());
-    }
-
-    /**
-     * The the retrieval of cloud ids based on a provider
-     * 
-     * @throws Exception
-     */
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetCloudIdsByProvider()
-            throws Exception {
-        //given
-        ResultSlice<CloudId> cloudIdListWrapper = new ResultSlice<>();
-        List<CloudId> cloudIdList = new ArrayList<>();
-        cloudIdList.add(createCloudId("providerId", "recordId"));
-        cloudIdListWrapper.setResults(cloudIdList);
-        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 10001)).thenReturn(cloudIdList);
-        //when
-        Response response = target("/data-providers/providerId/cloudIds").queryParam("from", "recordId").request()
-                .get();
-        //then
-        assertThat(response.getStatus(), is(200));
-        ResultSlice<CloudId> retList = response.readEntity(ResultSlice.class);
-        assertThat(retList.getResults().size(), is(cloudIdListWrapper.getResults().size()));
-        assertEquals(retList.getResults().get(0).getId(), cloudIdListWrapper.getResults().get(0).getId());
-        assertEquals(retList.getResults().get(0).getLocalId().getProviderId(), cloudIdListWrapper.getResults().get(0)
-                .getLocalId().getProviderId());
-        assertEquals(retList.getResults().get(0).getLocalId().getRecordId(), cloudIdListWrapper.getResults().get(0)
-                .getLocalId().getRecordId());
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+                        uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "")
+                        .getErrorCode());
+        assertEquals(errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                        .getErrorInfo(
+                                uniqueIdentifierService.getHostList(),
+                                uniqueIdentifierService.getHostList(),
+                                "").getDetails());
     }
 
     /**
      * The the retrieval of cloud ids based on a provider with specified limit
-     *
-     * @throws Exception
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetCloudIdsByProviderWithLimit()
             throws Exception {
@@ -325,13 +246,20 @@ public class DataProviderResourceTest extends JerseyTest {
         CloudId nextSliceCloudId = createCloudId("providerId", "recordId2");
         List<CloudId> cloudIds = new ArrayList<>(Arrays.asList(cloudId, nextSliceCloudId));
         resultSlice.setResults(cloudIds);
-        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 2)).thenReturn(cloudIds);
-        //when
-        Response response = target("/data-providers/providerId/cloudIds").queryParam(UISParamConstants.Q_FROM, "recordId").queryParam(UISParamConstants.Q_LIMIT, limit).request()
-                .get();
-        //then
-        assertThat(response.getStatus(), is(200));
-        ResultSlice<CloudId> result = response.readEntity(ResultSlice.class);
+
+        Mockito.doReturn(cloudIds).when(uniqueIdentifierService).getCloudIdsByProvider("providerId", "recordId", 2);
+
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/cloudIds")
+                .param(UISParamConstants.Q_FROM, "recordId")
+                .param(UISParamConstants.Q_LIMIT, String.valueOf(limit))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ResultSlice<CloudId> result = new ObjectMapper().readValue(
+                content, new TypeReference<ResultSlice<CloudId>>() {
+                });
+
         assertThat(result.getResults().size(), is(limit));
         CloudId firstEntryFromResultSlice = result.getResults().get(0);
         assertEquals(firstEntryFromResultSlice.getId(), cloudId.getId());
@@ -344,10 +272,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
     /**
      * The the retrieval of cloud ids based on a provider with less than specified limit
-     *
-     * @throws Exception
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetCloudIdsByProviderWithLessThanLimit()
             throws Exception {
@@ -358,13 +283,20 @@ public class DataProviderResourceTest extends JerseyTest {
         CloudId nextSliceCloudId = createCloudId("providerId", "recordId2");
         List<CloudId> cloudIds = new ArrayList<>(Arrays.asList(cloudId, nextSliceCloudId));
         resultSlice.setResults(cloudIds);
-        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 4)).thenReturn(cloudIds);
-        //when
-        Response response = target("/data-providers/providerId/cloudIds").queryParam(UISParamConstants.Q_FROM, "recordId").queryParam(UISParamConstants.Q_LIMIT, limit).request()
-                .get();
-        //then
-        assertThat(response.getStatus(), is(200));
-        ResultSlice<CloudId> result = response.readEntity(ResultSlice.class);
+
+        Mockito.doReturn(cloudIds).when(uniqueIdentifierService).getCloudIdsByProvider("providerId", "recordId", 4);
+
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/cloudIds")
+                .param(UISParamConstants.Q_FROM, "recordId")
+                .param(UISParamConstants.Q_LIMIT, String.valueOf(limit))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ResultSlice<CloudId> result = new ObjectMapper().readValue(
+                content, new TypeReference<ResultSlice<CloudId>>() {
+                });
+
         assertThat(result.getResults().size(), is(2));
         CloudId firstEntryFromResultSlice = result.getResults().get(0);
         assertEquals(firstEntryFromResultSlice.getId(), cloudId.getId());
@@ -376,372 +308,430 @@ public class DataProviderResourceTest extends JerseyTest {
     }
 
     /**
+     * Test the exception that a provider does not exist
+     */
+    @Test
+    public void testGetLocalIdsByProviderProviderDoesNotExistException()
+            throws Exception {
+        Throwable exception = new ProviderDoesNotExistException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getErrorInfo("providerId")));
+
+        Mockito.doThrow(exception).when(uniqueIdentifierService).getLocalIdsByProvider("providerId",
+                "recordId", 10000);
+
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/localIds").param("from", "recordId")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+                        "providerId").getErrorCode());
+        assertEquals(
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+                        "providerId").getDetails());
+    }
+
+    /**
+     * The the retrieval of cloud ids based on a provider
+     */
+    @Test
+    public void testGetCloudIdsByProvider()
+            throws Exception {
+        //given
+        ResultSlice<CloudId> cloudIdListWrapper = new ResultSlice<>();
+        List<CloudId> cloudIdList = new ArrayList<>();
+        cloudIdList.add(createCloudId("providerId", "recordId"));
+        cloudIdListWrapper.setResults(cloudIdList);
+
+        Mockito.doReturn(cloudIdList).when(uniqueIdentifierService).getCloudIdsByProvider("providerId", "recordId", 10001);
+
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/cloudIds").param("from", "recordId")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ResultSlice<CloudId> retList = new ObjectMapper().readValue(
+                content, new TypeReference<ResultSlice<CloudId>>() {
+                });
+
+        assertThat(retList.getResults().size(), is(cloudIdListWrapper.getResults().size()));
+        assertEquals(retList.getResults().get(0).getId(), cloudIdListWrapper.getResults().get(0).getId());
+        assertEquals(retList.getResults().get(0).getLocalId().getProviderId(), cloudIdListWrapper.getResults().get(0)
+                .getLocalId().getProviderId());
+        assertEquals(retList.getResults().get(0).getLocalId().getRecordId(), cloudIdListWrapper.getResults().get(0)
+                .getLocalId().getRecordId());
+    }
+
+    /**
      * Test the database exception
-     * 
-     * @throws Exception
      */
     @Test
     public void testGetCloudIdsByProviderDBException() throws Exception {
-	Throwable exception = new DatabaseConnectionException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getHttpCode(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getPort(), "")));
+        Throwable exception = new DatabaseConnectionException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getErrorInfo(
+                                        uniqueIdentifierService.getHostList(),
+                                        uniqueIdentifierService.getPort(), "")));
 
-	when(
-		uniqueIdentifierService.getCloudIdsByProvider("providerId",
-			"recordId", 10001)).thenThrow(exception);
+        Mockito.doThrow(exception).when(uniqueIdentifierService).getCloudIdsByProvider("providerId",
+                "recordId", 10001);
 
-	Response resp = target("/data-providers/providerId/cloudIds")
-		.queryParam("from", "recordId").request().get();
-	assertThat(resp.getStatus(), is(500));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
-			uniqueIdentifierService.getHostList(),
-			uniqueIdentifierService.getHostList(), "")
-			.getErrorCode());
-	StringUtils
-		.equals(errorInfo.getDetails(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getHostList(),
-					"").getDetails());
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/cloudIds").param("from", "recordId")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is5xxServerError()).andReturn();
+
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+                        uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "")
+                        .getErrorCode());
+        assertEquals(errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                        .getErrorInfo(
+                                uniqueIdentifierService.getHostList(),
+                                uniqueIdentifierService.getHostList(),
+                                "").getDetails());
     }
 
     /**
      * Test the exception of cloud ids when a provider does not exist
-     * 
-     * @throws Exception
      */
     @Test
     public void testGetCloudIdsByProviderProviderDoesNotExistException()
-	    throws Exception {
-	Throwable exception = new ProviderDoesNotExistException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getHttpCode(),
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getErrorInfo("providerId")));
+            throws Exception {
+        Throwable exception = new ProviderDoesNotExistException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getErrorInfo("providerId")));
 
-	when(
-		uniqueIdentifierService.getCloudIdsByProvider("providerId",
-			"recordId", 10001)).thenThrow(exception);
+        Mockito.doThrow(exception).when(uniqueIdentifierService).getCloudIdsByProvider("providerId",
+                "recordId", 10001);
 
-	Response resp = target("/data-providers/providerId/cloudIds")
-		.queryParam("from", "recordId").request().get();
-	assertThat(resp.getStatus(), is(404));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
-			"providerId").getErrorCode());
-	StringUtils.equals(
-		errorInfo.getDetails(),
-		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
-			"providerId").getDetails());
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/cloudIds").param("from", "recordId")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()).andReturn();
+
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+                        "providerId").getErrorCode());
+        assertEquals(
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+                        "providerId").getDetails());
     }
 
     /**
      * Test the retrieval of an empty dataset based on provider search
-     * 
-     * @throws Exception
      */
     @Test
     public void testGetCloudIdsByProviderRecordDatasetEmptyException()
-	    throws Exception {
-	Throwable exception = new RecordDatasetEmptyException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.RECORDSET_EMPTY.getHttpCode(),
-			IdentifierErrorTemplate.RECORDSET_EMPTY
-				.getErrorInfo("providerId")));
+            throws Exception {
+        Throwable exception = new RecordDatasetEmptyException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.RECORDSET_EMPTY.getHttpCode(),
+                        IdentifierErrorTemplate.RECORDSET_EMPTY
+                                .getErrorInfo("providerId")));
 
-	when(
-		uniqueIdentifierService.getCloudIdsByProvider("providerId",
-			"recordId", 10001)).thenThrow(exception);
+        Mockito.doThrow(exception).when(uniqueIdentifierService).getCloudIdsByProvider("providerId",
+                "recordId", 10001);
 
-	Response resp = target("/data-providers/providerId/cloudIds")
-		.queryParam("from", "recordId").request().get();
-	assertThat(resp.getStatus(), is(404));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(
-			"providerId").getErrorCode());
-	StringUtils.equals(
-		errorInfo.getDetails(),
-		IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(
-			"providerId").getDetails());
+        MvcResult mvcResult = mockMvc.perform(get("/data-providers/providerId/cloudIds").param("from", "recordId")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(
+                        "providerId").getErrorCode());
+        assertEquals(
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(
+                        "providerId").getDetails());
     }
 
     /**
      * Test the creation of a mapping between a cloud id and a record id
-     * 
-     * @throws Exception
      */
     @Test
     public void testCreateMapping() throws Exception {
-	CloudId gid = createCloudId("providerId", "recordId");
-	when(uniqueIdentifierService.createCloudId("providerId", "recordId"))
-		.thenReturn(gid);
-	when(uniqueIdentifierService.createIdMapping(Mockito.anyString(),Mockito.anyString())).thenReturn(gid);
-	when(uniqueIdentifierService.createIdMapping(Mockito.anyString(),Mockito.anyString(),Mockito.anyString())).thenReturn(gid);
-	// Create a single object test
-	target("cloudIds")
-		.queryParam(UISParamConstants.Q_PROVIDER_ID, "providerId")
-		.queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
-		.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
-		.post(null);
-	Response res = target(
-		"/data-providers/providerId/cloudIds/" + gid.getId())
-		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
-		.post(Entity.text(""));
-	assertThat(res.getStatus(), is(200));
+        CloudId gid = createCloudId("providerId", "recordId");
+
+        Mockito.doReturn(gid).when(uniqueIdentifierService).createCloudId("providerId", "recordId");
+        Mockito.doReturn(gid).when(uniqueIdentifierService).createIdMapping(Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(gid).when(uniqueIdentifierService).createIdMapping(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        mockMvc.perform(post("/cloudIds")
+                .param(UISParamConstants.Q_PROVIDER_ID, "providerId")
+                .param(UISParamConstants.Q_RECORD_ID, "recordId")
+                .accept(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(post("/data-providers/providerId/cloudIds/" + gid.getId())
+                .param(UISParamConstants.Q_RECORD_ID, "local1")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
     }
 
     /**
      * Test the database exception
-     * 
-     * @throws Exception
      */
     @Test
     public void testCreateMappingDBException() throws Exception {
-	Throwable exception = new DatabaseConnectionException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getHttpCode(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getPort(), "")));
+        Throwable exception = new DatabaseConnectionException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getErrorInfo(
+                                        uniqueIdentifierService.getHostList(),
+                                        uniqueIdentifierService.getPort(), "")));
 
-	doThrow(exception).when(uniqueIdentifierService).createIdMapping(
-		"cloudId", "providerId", "local1");
+        Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
+                "cloudId", "providerId", "local1");
 
-	Response resp = target("/data-providers/providerId/cloudIds/cloudId")
-		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
-		.post(Entity.text(""));
-	assertThat(resp.getStatus(), is(500));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
-			uniqueIdentifierService.getHostList(),
-			uniqueIdentifierService.getHostList(), "")
-			.getErrorCode());
-	StringUtils
-		.equals(errorInfo.getDetails(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getHostList(),
-					"").getDetails());
+        MvcResult mvcResult = mockMvc.perform(post("/data-providers/providerId/cloudIds/cloudId")
+                .param(UISParamConstants.Q_RECORD_ID, "local1")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is5xxServerError()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+                        uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "")
+                        .getErrorCode());
+        assertEquals(errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                        .getErrorInfo(
+                                uniqueIdentifierService.getHostList(),
+                                uniqueIdentifierService.getHostList(),
+                                "").getDetails());
     }
 
     /**
      * Test the exception of a a missing cloud id between the mapping of a cloud
      * id and a record id
-     * 
-     * @throws Exception
      */
     @Test
     public void testCreateMappingCloudIdException() throws Exception {
-	Throwable exception = new CloudIdDoesNotExistException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
-				.getHttpCode(),
-			IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
-				.getErrorInfo("cloudId")));
+        Throwable exception = new CloudIdDoesNotExistException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
+                                .getErrorInfo("cloudId")));
 
-	doThrow(exception).when(uniqueIdentifierService).createIdMapping(
-		"cloudId", "providerId", "local1");
+        Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
+                "cloudId", "providerId", "local1");
 
-	Response resp = target("/data-providers/providerId/cloudIds/cloudId")
-		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
-		.post(Entity.text(""));
-	assertThat(resp.getStatus(), is(404));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(
-			"cloudId").getErrorCode());
-	StringUtils.equals(
-		errorInfo.getDetails(),
-		IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(
-			"cloudId").getDetails());
+        MvcResult mvcResult = mockMvc.perform(post("/data-providers/providerId/cloudIds/cloudId")
+                .param(UISParamConstants.Q_RECORD_ID, "local1")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(
+                        "cloudId").getErrorCode());
+        assertEquals(
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(
+                        "cloudId").getDetails());
     }
 
     /**
      * Test the exception when a recordd id is mapped twice
-     * 
-     * @throws Exception
      */
     @Test
     public void testCreateMappingIdHasBeenMapped() throws Exception {
-	Throwable exception = new IdHasBeenMappedException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
-				.getHttpCode(),
-			IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
-				.getErrorInfo("local1", "providerId", "cloudId")));
+        Throwable exception = new IdHasBeenMappedException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
+                                .getErrorInfo("local1", "providerId", "cloudId")));
 
-	doThrow(exception).when(uniqueIdentifierService).createIdMapping(
-		"cloudId", "providerId", "local1");
+        Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
+                "cloudId", "providerId", "local1");
 
-	Response resp = target("/data-providers/providerId/cloudIds/cloudId")
-		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
-		.post(Entity.text(""));
-	assertThat(resp.getStatus(), is(409));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
-			"local1", "providerId", "cloudId").getErrorCode());
-	StringUtils.equals(
-		errorInfo.getDetails(),
-		IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
-			"local1", "providerId", "cloudId").getDetails());
+        MvcResult mvcResult = mockMvc.perform(post("/data-providers/providerId/cloudIds/cloudId")
+                .param(UISParamConstants.Q_RECORD_ID, "local1")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
+                        "local1", "providerId", "cloudId").getErrorCode());
+        assertEquals(
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
+                        "local1", "providerId", "cloudId").getDetails());
     }
 
     /**
      * Test the removal of a mapping between a cloud id and a record id
-     * 
-     * @throws Exception
      */
     @Test
     public void testRemoveMapping() throws Exception {
-	CloudId gid = createCloudId("providerId", "recordId");
-	when(uniqueIdentifierService.createCloudId("providerId", "recordId"))
-		.thenReturn(gid);
-	target("/cloudIds").queryParam("providerId", "providerId")
-		.queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
-		.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
-		.get();
-	Response resp = target("/data-providers/providerId/localIds/recordId")
-		.request().delete();
-	assertThat(resp.getStatus(), is(200));
+        CloudId gid = createCloudId("providerId", "recordId");
+        Mockito.reset(uniqueIdentifierService);
+        Mockito.when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
 
+        mockMvc.perform(get("/cloudIds")
+                .param("providerId", "providerId")
+                .param(UISParamConstants.Q_RECORD_ID, "recordId")
+                .accept(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(delete("/data-providers/providerId/localIds/recordId"))
+                .andExpect(status().isOk());
     }
 
     /**
      * Test the database exception
-     * 
-     * @throws Exception
      */
     @Test
     public void testRemoveMappingDBException() throws Exception {
-	Throwable exception = new DatabaseConnectionException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getHttpCode(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getPort(), "")));
+        Throwable exception = new DatabaseConnectionException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                .getErrorInfo(
+                                        uniqueIdentifierService.getHostList(),
+                                        uniqueIdentifierService.getPort(), "")));
 
-	doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
-		"providerId", "recordId");
+        Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
+                "providerId", "recordId");
 
-	Response resp = target("/data-providers/providerId/localIds/recordId")
-		.request().delete();
-	assertThat(resp.getStatus(), is(500));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
-			uniqueIdentifierService.getHostList(),
-			uniqueIdentifierService.getHostList(), "")
-			.getErrorCode());
-	StringUtils
-		.equals(errorInfo.getDetails(),
-			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				.getErrorInfo(
-					uniqueIdentifierService.getHostList(),
-					uniqueIdentifierService.getHostList(),
-					"").getDetails());
+        MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is5xxServerError()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+                        uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "")
+                        .getErrorCode());
+        assertEquals(errorInfo.getDetails(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                        .getErrorInfo(
+                                uniqueIdentifierService.getHostList(),
+                                uniqueIdentifierService.getHostList(),
+                                "").getDetails());
     }
 
     /**
      * Test the exception when the provider used for the removal of a mapping is
      * non existent
-     * 
-     * @throws Exception
      */
     @Test
     public void testRemoveMappingProviderDoesNotExistException()
-	    throws Exception {
-	Throwable exception = new ProviderDoesNotExistException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getHttpCode(),
-			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-				.getErrorInfo("providerId")));
+            throws Exception {
+        Throwable exception = new ProviderDoesNotExistException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                                .getErrorInfo("providerId")));
 
-	doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
-		"providerId", "recordId");
+        Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
+                "providerId", "recordId");
 
-	Response resp = target("/data-providers/providerId/localIds/recordId")
-		.request().delete();
-	assertThat(resp.getStatus(), is(404));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
-			"providerId").getErrorCode());
-	StringUtils.equals(
-		errorInfo.getDetails(),
-		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
-			"providerId").getDetails());
+        MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()).andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
+
+        assertEquals(errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+                        "providerId").getErrorCode());
+        assertEquals(errorInfo.getDetails(),
+                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+                        "providerId").getDetails());
     }
 
     /**
      * Test the exception when a record to be removed does not exist
-     * 
-     * @throws Exception
      */
     @Test
     public void testRemoveMappingRecordIdDoesNotExistException()
-	    throws Exception {
-	Throwable exception = new RecordIdDoesNotExistException(
-		new IdentifierErrorInfo(
-			IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
-				.getHttpCode(),
-			IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
-				.getErrorInfo("recordId")));
+            throws Exception {
+        Throwable exception = new RecordIdDoesNotExistException(
+                new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
+                                .getHttpCode(),
+                        IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
+                                .getErrorInfo("recordId")));
 
-	doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
-		"providerId", "recordId");
+        Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
+                "providerId", "recordId");
 
-	Response resp = target("/data-providers/providerId/localIds/recordId")
-		.request().delete();
-	assertThat(resp.getStatus(), is(404));
-	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-	StringUtils.equals(
-		errorInfo.getErrorCode(),
-		IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
-			"recordId").getErrorCode());
-	StringUtils.equals(
-		errorInfo.getDetails(),
-		IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
-			"recordId").getDetails());
-    }
+        MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()).andReturn();
 
-    private static LocalId createLocalId(String providerId, String recordId) {
-	LocalId localId = new LocalId();
-	localId.setProviderId(providerId);
-	localId.setRecordId(recordId);
-	return localId;
-    }
+        String content = mvcResult.getResponse().getContentAsString();
+        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                content, ErrorInfo.class);
 
-    private static CloudId createCloudId(String providerId, String recordId) {
-	CloudId cloudId = new CloudId();
-	cloudId.setLocalId(createLocalId(providerId, recordId));
-	cloudId.setId(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + recordId));
-	return cloudId;
+        assertEquals(
+                errorInfo.getErrorCode(),
+                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
+                        "recordId").getErrorCode());
+        assertEquals(
+                errorInfo.getDetails(),
+                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
+                        "recordId").getDetails());
     }
 }

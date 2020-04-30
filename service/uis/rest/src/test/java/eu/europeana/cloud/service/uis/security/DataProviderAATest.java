@@ -192,8 +192,8 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			throws ProviderDoesNotExistException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, null);
+//		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
+//				PROVIDER_ID, null);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -231,10 +231,10 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			ProviderAlreadyExistsException, URISyntaxException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		dataProvidersResource.createProvider(uriInfo, DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, uriInfo);
+//		dataProvidersResource.createProvider(uriInfo, DATA_PROVIDER_PROPERTIES,
+//				PROVIDER_ID);
+//		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
+//				PROVIDER_ID, uriInfo);
 	}
 	
 	/**
@@ -247,11 +247,11 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			ProviderAlreadyExistsException, URISyntaxException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		dataProvidersResource.createProvider(uriInfo, DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID);
-		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, uriInfo);
+//		dataProvidersResource.createProvider(uriInfo, DATA_PROVIDER_PROPERTIES,
+//				PROVIDER_ID);
+//		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+//		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
+//				PROVIDER_ID, uriInfo);
 	}
 
 	@Test(expected = AccessDeniedException.class)

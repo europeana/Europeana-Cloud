@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.persistent;
+package eu.europeana.cloud.service.uis.service;
 
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.persistent;
+package eu.europeana.cloud.service.uis.service;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -6,9 +6,10 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.*;
-import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
-import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
+import eu.europeana.cloud.service.uis.service.CassandraUniqueIdentifierService;
+import eu.europeana.cloud.service.uis.dao.CassandraCloudIdDAO;
+import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
+import eu.europeana.cloud.service.uis.dao.CassandraLocalIdDAO;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

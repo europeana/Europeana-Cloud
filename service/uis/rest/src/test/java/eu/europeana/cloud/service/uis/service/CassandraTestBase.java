@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.persistent;
+package eu.europeana.cloud.service.uis.service;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;

@@ -1,9 +1,10 @@
-package eu.europeana.cloud.service.uis.persistent.dao;
+package eu.europeana.cloud.service.uis.dao;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.service.uis.TestAAConfiguration;
 import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.persistent.CassandraTestBase;
+import eu.europeana.cloud.service.uis.service.CassandraTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,12 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:/default-context.xml" })
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = {TestAAConfiguration.class})
 public class CassandraCloudIdDAOTest extends CassandraTestBase {
 
     @Autowired
@@ -30,16 +31,16 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
     /**
      * Prepare the unit tests
      */
-    @Before
-    public void prepare() {
-	@SuppressWarnings("resource")
-	ApplicationContext context = new ClassPathXmlApplicationContext(
-		"default-context.xml");
-	localIdDao = (CassandraLocalIdDAO) context.getBean("localIdDao");
-	service = (CassandraCloudIdDAO) context.getBean("cloudIdDao");
-	dataProviderDao = (CassandraDataProviderDAO) context
-		.getBean("dataProviderDao");
-    }
+//    @Before
+//    public void prepare() {
+//	@SuppressWarnings("resource")
+//	ApplicationContext context = new ClassPathXmlApplicationContext(
+//		"default-context.xml");
+//	localIdDao = (CassandraLocalIdDAO) context.getBean("localIdDao");
+//	service = (CassandraCloudIdDAO) context.getBean("cloudIdDao");
+//	dataProviderDao = (CassandraDataProviderDAO) context
+//		.getBean("dataProviderDao");
+//    }
 
     @Test(expected = CloudIdAlreadyExistException.class)
     public void insert_tryInsertTheSameContentTwice_ThrowsCloudIdAlreadyExistException()
