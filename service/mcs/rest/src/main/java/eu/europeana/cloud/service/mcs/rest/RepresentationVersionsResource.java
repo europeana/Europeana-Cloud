@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -42,7 +45,9 @@ public class RepresentationVersionsResource {
      * @throws RepresentationNotExistsException representation does not exist.
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody List<Representation> listVersions(
+    @ResponseBody
+    //public List<Representation> listVersions(
+    public RepresentationsWrapper listVersions(
             final HttpServletRequest request,
             @PathVariable(CLOUD_ID) String cloudId,
             @PathVariable(REPRESENTATION_NAME) String representationName)
@@ -53,6 +58,19 @@ public class RepresentationVersionsResource {
             EnrichUriUtil.enrich(request, representationVersion);
         }
 
-        return representationVersions;
+        //return representationVersions;
+        return new RepresentationsWrapper(representationVersions);
     }
+
+    @JsonRootName("representations")
+    class RepresentationsWrapper {
+        @JacksonXmlProperty(localName = "representation")
+        @JacksonXmlElementWrapper(useWrapping = false)
+        public List<Representation> representation;
+
+        public RepresentationsWrapper(List<Representation> representation) {
+            this.representation = representation;
+        }
+    }
+
 }

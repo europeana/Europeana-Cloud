@@ -1,5 +1,8 @@
 package eu.europeana.cloud.common.model;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.ArrayList;
@@ -11,6 +14,7 @@ import java.util.Objects;
  * Representation of a record in specific version.
  */
 @XmlRootElement
+@JacksonXmlRootElement(localName = "representation")
 public class Representation {
 
     /**
@@ -46,7 +50,8 @@ public class Representation {
     /**
      * A list of files which constitute this representation.
      */
-    private List<File> files = new ArrayList<File>(0);
+    @JacksonXmlElementWrapper(useWrapping = false)
+    private List<File> files = new ArrayList<>(0);
 
     /**
      * If this is temporary representation version: date of this object creation; If this is persistent representation
