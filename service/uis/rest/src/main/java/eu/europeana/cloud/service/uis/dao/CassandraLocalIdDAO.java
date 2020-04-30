@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.persistent.dao;
+package eu.europeana.cloud.service.uis.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;

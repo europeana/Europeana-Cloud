@@ -33,7 +33,7 @@ public class UnifiedExceptionsMapper {
             CloudIdAlreadyExistException.class,
             CloudIdDoesNotExistException.class
     })
-    public ResponseEntity<IdentifierErrorInfo> handleException(GenericException e) {
+    public ResponseEntity<ErrorInfo> handleException(GenericException e) {
         LOGGER.info("Exception handling fired");
         return buildResponse(e);
     }
@@ -51,9 +51,8 @@ public class UnifiedExceptionsMapper {
                 .body(new ErrorInfo("OTHER", e.getMessage()));
     }
 
-    private ResponseEntity<IdentifierErrorInfo> buildResponse(GenericException e) {
-        return ResponseEntity
-                .status(e.getErrorInfo().getHttpCode().getStatusCode())
-                .body(e.getErrorInfo());
+    private ResponseEntity<ErrorInfo> buildResponse(GenericException e) {
+        return ResponseEntity.status(e.getErrorInfo().getHttpCode().getStatusCode())
+                .body(e.getErrorInfo().getErrorInfo());
     }
 }
