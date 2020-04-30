@@ -24,19 +24,16 @@ import java.util.UUID;
  * operations
  *
  * @author Yorgos.Mamakis@ kb.nl
- *
  */
 public class CassandraLocalIdDAO {
 
-    private CassandraConnectionProvider dbService;
+    private static final String PROVIDER_RECORD_ID_BUCKETS_TABLE = "provider_record_id_buckets";
+    private final CassandraConnectionProvider dbService;
     private PreparedStatement insertStatement;
     private PreparedStatement deleteStatement;
     private PreparedStatement searchByProviderStatement;
     private PreparedStatement searchByRecordIdStatement;
     private PreparedStatement searchByProviderPaginatedStatement;
-
-    private static final String PROVIDER_RECORD_ID_BUCKETS_TABLE = "provider_record_id_buckets";
-
     @Autowired
     private BucketsHandler bucketsHandler;
 
@@ -48,24 +45,6 @@ public class CassandraLocalIdDAO {
     public CassandraLocalIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
         prepareStatements();
-    }
-
-    private void prepareStatements() {
-        insertStatement = dbService.getSession().prepare(
-                "INSERT INTO Provider_Record_Id(provider_id,bucket_id, record_id,cloud_id) VALUES(?,?,?,?)");
-        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        deleteStatement = dbService.getSession().prepare(
-                "DELETE FROM Provider_Record_Id WHERE provider_id= ? AND bucket_id = ? AND record_Id= ?");
-        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchByProviderStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id = ? AND bucket_id = ?");
-        searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchByRecordIdStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id=?");
-        searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchByProviderPaginatedStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id>=? LIMIT ?");
-        searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public List<CloudId> searchById(String... args) throws DatabaseConnectionException {
@@ -91,7 +70,6 @@ public class CassandraLocalIdDAO {
         }
     }
 
-
     /**
      * Enable pagination search on active local Id information
      *
@@ -107,7 +85,7 @@ public class CassandraLocalIdDAO {
         while (bucket != null) {
             ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(providerId, UUID.fromString(bucket.getBucketId()), start, end));
             result.addAll(createCloudIdsFromRs(rs));
-            if(result.size() >= end){
+            if (result.size() >= end) {
                 break;
             }
             bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId, bucket);
@@ -164,6 +142,24 @@ public class CassandraLocalIdDAO {
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
         }
+    }
+
+    private void prepareStatements() {
+        insertStatement = dbService.getSession().prepare(
+                "INSERT INTO Provider_Record_Id(provider_id,bucket_id, record_id,cloud_id) VALUES(?,?,?,?)");
+        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        deleteStatement = dbService.getSession().prepare(
+                "DELETE FROM Provider_Record_Id WHERE provider_id= ? AND bucket_id = ? AND record_Id= ?");
+        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        searchByProviderStatement = dbService.getSession().prepare(
+                "SELECT * FROM Provider_Record_Id WHERE provider_id = ? AND bucket_id = ?");
+        searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        searchByRecordIdStatement = dbService.getSession().prepare(
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id=?");
+        searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        searchByProviderPaginatedStatement = dbService.getSession().prepare(
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id>=? LIMIT ?");
+        searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     private List<CloudId> createCloudIdsFromRs(ResultSet rs) {

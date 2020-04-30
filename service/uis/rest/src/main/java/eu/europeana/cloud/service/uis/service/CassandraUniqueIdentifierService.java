@@ -26,12 +26,12 @@ import java.util.List;
 @Service
 public class CassandraUniqueIdentifierService implements UniqueIdentifierService {
 
-    private CassandraCloudIdDAO cloudIdDao;
-    private CassandraLocalIdDAO localIdDao;
-    private CassandraDataProviderDAO dataProviderDao;
-    private String hostList;
-    private String keyspace;
-    private String port;
+    private final CassandraCloudIdDAO cloudIdDao;
+    private final CassandraLocalIdDAO localIdDao;
+    private final CassandraDataProviderDAO dataProviderDao;
+    private final String hostList;
+    private final String keyspace;
+    private final String port;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraUniqueIdentifierService.class);
 
@@ -58,8 +58,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
     @Override
     public CloudId createCloudId(String... recordInfo)
-            throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
-            RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
+            throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException, CloudIdAlreadyExistException {
         LOGGER.info("createCloudId() creating cloudId");
         String providerId = recordInfo[0];
         LOGGER.info("createCloudId() creating cloudId providerId={}", providerId);
@@ -92,8 +91,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
     @Override
     public CloudId getCloudId(String providerId, String recordId)
-            throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
-            RecordDatasetEmptyException {
+            throws DatabaseConnectionException, RecordDoesNotExistException {
         LOGGER.info("getCloudId() providerId='{}', recordId='{}'", providerId, recordId);
         List<CloudId> cloudIds = localIdDao.searchById(providerId, recordId);
         if (cloudIds.isEmpty()) {
@@ -109,8 +107,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
     @Override
     public List<CloudId> getLocalIdsByCloudId(String cloudId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
-            RecordDatasetEmptyException {
+            throws DatabaseConnectionException, CloudIdDoesNotExistException {
         LOGGER.info("getLocalIdsByCloudId() cloudId='{}'", cloudId);
         List<CloudId> cloudIds = cloudIdDao.searchById(cloudId);
         if (cloudIds.isEmpty()) {
@@ -132,7 +129,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
     @Override
     public List<CloudId> getLocalIdsByProvider(String providerId, String start, int end)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+            throws DatabaseConnectionException, ProviderDoesNotExistException {
 
         LOGGER.info("getLocalIdsByProvider() providerId='{}', start='{}', end='{}'", providerId, start, end);
         if (dataProviderDao.getProvider(providerId) == null) {
@@ -158,7 +155,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
     @Override
     public List<CloudId> getCloudIdsByProvider(String providerId, String startRecordId, int limit)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+            throws DatabaseConnectionException, ProviderDoesNotExistException {
 
         LOGGER.info("getCloudIdsByProvider() providerId='{}', startRecordId='{}', end='{}'", providerId, startRecordId, limit);
         if (dataProviderDao.getProvider(providerId) == null) {
@@ -179,7 +176,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
     @Override
     public CloudId createIdMapping(String cloudId, String providerId, String recordId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
-            ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
+            ProviderDoesNotExistException, CloudIdAlreadyExistException {
         LOGGER.info("createIdMapping() creating mapping for cloudId='{}', providerId='{}', recordId='{}'",
                 cloudId, providerId, recordId);
         if (dataProviderDao.getProvider(providerId) == null) {
@@ -227,7 +224,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
     @Override
     public void removeIdMapping(String providerId, String recordId)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
+            throws DatabaseConnectionException, ProviderDoesNotExistException {
         LOGGER.info("removeIdMapping() removing Id mapping for providerId='{}', recordId='{}' ...", providerId,
                 recordId);
         if (dataProviderDao.getProvider(providerId) == null) {

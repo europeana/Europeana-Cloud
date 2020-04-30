@@ -72,7 +72,7 @@ public class UniqueIdentifierResource {
     @PostMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity createCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
+    public ResponseEntity<CloudId> createCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
                                         @RequestParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
             RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
@@ -109,7 +109,7 @@ public class UniqueIdentifierResource {
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
-    public ResponseEntity getCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
+    public ResponseEntity<CloudId> getCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
                                      @RequestParam(UISParamConstants.Q_RECORD_ID) String recordId)
             throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
@@ -133,7 +133,7 @@ public class UniqueIdentifierResource {
      */
     @GetMapping(value = "{" + CLOUDID + "}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
-    public ResponseEntity getLocalIds(@PathVariable(CLOUDID) String cloudId)
+    public ResponseEntity<ResultSlice<CloudId>> getLocalIds(@PathVariable(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -167,7 +167,7 @@ public class UniqueIdentifierResource {
      */
     @DeleteMapping(value = "{" + CLOUDID + "}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity deleteCloudId(@PathVariable(CLOUDID) String cloudId)
+    public ResponseEntity<String> deleteCloudId(@PathVariable(CLOUDID) String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordIdDoesNotExistException {
 

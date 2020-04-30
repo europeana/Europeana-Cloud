@@ -169,7 +169,6 @@ public class DataProviderResource {
      *             dataset is empty
      *
      */
-    //TODO
     @GetMapping(path = "localIds", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public ResponseEntity<ResultSlice<CloudId>> getLocalIdsByProvider(
