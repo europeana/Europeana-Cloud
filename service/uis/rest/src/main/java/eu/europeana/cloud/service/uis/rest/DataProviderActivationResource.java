@@ -18,8 +18,11 @@ public class DataProviderActivationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataProviderActivationResource.class);
 
-    @Autowired
     private DataProviderService providerService;
+
+    public DataProviderActivationResource(DataProviderService providerService){
+        this.providerService = providerService;
+    }
 
     /**
      * Activates data provider (sets flag 'active' to true)

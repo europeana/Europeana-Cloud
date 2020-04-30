@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,14 +35,17 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 @RequestMapping("/data-providers/{" + P_PROVIDER + "}")
 public class DataProviderResource {
 
-    @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
-
-    @Autowired
     private DataProviderService providerService;
-
-    @Autowired
     private ACLServiceWrapper aclWrapper;
+
+    public DataProviderResource(UniqueIdentifierService uniqueIdentifierService,
+                                DataProviderService providerService,
+                                ACLServiceWrapper aclWrapper) {
+        this.uniqueIdentifierService = uniqueIdentifierService;
+        this.providerService = providerService;
+        this.aclWrapper = aclWrapper;
+    }
 
     protected final String LOCAL_ID_CLASS_NAME = "LocalId";
 

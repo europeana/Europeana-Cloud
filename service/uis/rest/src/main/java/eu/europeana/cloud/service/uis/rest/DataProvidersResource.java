@@ -30,17 +30,18 @@ import java.net.URISyntaxException;
 @RequestMapping("/data-providers")
 public class DataProvidersResource {
 
-    @Autowired
     private DataProviderService providerService;
+	private ACLServiceWrapper aclWrapper;
 
 	private final int numberOfElementsOnPage = 100;
+    private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
 
-    @Autowired
-    private ACLServiceWrapper aclWrapper;
-
-    private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class
-	    .getName();
-
+	public DataProvidersResource(
+			DataProviderService providerService,
+			ACLServiceWrapper aclWrapper) {
+		this.providerService = providerService;
+		this.aclWrapper = aclWrapper;
+	}
     /**
      * Lists all providers stored in eCloud. Result is returned in slices.
      *

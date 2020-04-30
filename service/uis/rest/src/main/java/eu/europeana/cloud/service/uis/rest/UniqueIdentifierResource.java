@@ -32,15 +32,22 @@ import java.util.List;
 @RequestMapping("/cloudIds")
 public class UniqueIdentifierResource {
 
+    private UniqueIdentifierService uniqueIdentifierService;
+    private DataProviderResource dataProviderResource;
+    private ACLServiceWrapper aclWrapper;
+
     private static final String CLOUDID = "cloudId";
     private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierResource.class);
     private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
-    @Autowired
-    private UniqueIdentifierService uniqueIdentifierService;
-    @Autowired
-    private DataProviderResource dataProviderResource;
-    @Autowired
-    private ACLServiceWrapper aclWrapper;
+
+    public UniqueIdentifierResource(
+            UniqueIdentifierService uniqueIdentifierService,
+            DataProviderResource dataProviderResource,
+            ACLServiceWrapper aclWrapper) {
+        this.uniqueIdentifierService = uniqueIdentifierService;
+        this.dataProviderResource = dataProviderResource;
+        this.aclWrapper = aclWrapper;
+    }
 
     /**
      * Invokes the generation of a cloud identifier using the provider

@@ -23,7 +23,6 @@ import java.util.List;
  *
  * @author Yorgos.Mamakis@ kb.nl
  */
-@Service
 public class CassandraUniqueIdentifierService implements UniqueIdentifierService {
 
     private final CassandraCloudIdDAO cloudIdDao;

@@ -60,8 +60,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraDataProviderService cassandraDataProviderService() {
-        return new CassandraDataProviderService();
+    public CassandraDataProviderService cassandraDataProviderService(CassandraDataProviderDAO dataProviderDAO) {
+        return new CassandraDataProviderService(dataProviderDAO);
     }
 
     @Bean

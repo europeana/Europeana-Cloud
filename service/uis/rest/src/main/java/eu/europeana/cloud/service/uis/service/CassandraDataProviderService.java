@@ -19,12 +19,14 @@ import java.util.List;
 /**
  * Data provider service using Cassandra as database.
  */
-@Service
 public class CassandraDataProviderService implements DataProviderService {
 
-    @Autowired
     private CassandraDataProviderDAO dataProviderDao;
-    
+
+    public CassandraDataProviderService(CassandraDataProviderDAO dataProviderDao) {
+        this.dataProviderDao = dataProviderDao;
+    }
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataProviderService.class);
 
     @Override
