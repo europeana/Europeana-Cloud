@@ -22,6 +22,5 @@
 		<module>persistent</module>
 		<module>rest</module>
 		<module>rest-client-java</module>
-		<module>utils</module>
 	</modules>
 </project>
