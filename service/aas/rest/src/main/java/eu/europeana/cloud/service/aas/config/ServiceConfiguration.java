@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.aas.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -59,12 +57,4 @@ public class ServiceConfiguration {
         return new MethodValidationPostProcessor();
     }
 
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean result = new MethodInvokingFactoryBean();
-        result.setTargetClass(SecurityContextHolder.class);
-        result.setTargetMethod("setStrategyName");
-        result.setArguments("MODE_INHERITABLETHREADLOCAL");
-        return result;
-    }
 }

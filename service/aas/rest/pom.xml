@@ -25,6 +25,13 @@
             <artifactId>spring-webmvc</artifactId>
             <version>${version.spring-framework}</version>
         </dependency>
+        <!--This dependency is included here only because Miredot complaints. We can remove it when (if)
+        miredot will be removed. This dependency will still be included as a transitive dependency-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
