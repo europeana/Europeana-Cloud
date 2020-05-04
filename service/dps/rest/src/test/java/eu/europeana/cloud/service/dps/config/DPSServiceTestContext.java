@@ -27,7 +27,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({UnitedExceptionMapper.class, SubmitTaskService.class})
+@Import({UnitedExceptionMapper.class, SubmitTaskService.class,TaskStatusUpdater.class})
 public class DPSServiceTestContext {
 
     /* REAL Beans */

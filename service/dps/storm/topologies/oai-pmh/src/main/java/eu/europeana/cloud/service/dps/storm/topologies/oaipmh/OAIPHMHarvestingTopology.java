@@ -7,13 +7,13 @@ import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
@@ -68,10 +68,15 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
+        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(ecloudMcsAddress),
+                (getAnInt(DUPLICATES_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
+                .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.taskIdFieldName));
+
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
                 (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
+                .customGrouping(DUPLICATES_DETECTOR_BOLT, new ShuffleGrouping());
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
@@ -90,6 +95,8 @@ public class OAIPHMHarvestingTopology {
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(DUPLICATES_DETECTOR_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
         return builder.createTopology();

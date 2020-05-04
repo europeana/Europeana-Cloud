@@ -16,9 +16,7 @@ import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -62,10 +60,7 @@ public class TopologyTasksResource {
     private PermissionManager permissionManager;
 
     @Autowired
-    private CassandraTaskInfoDAO taskInfoDAO;
-
-    @Autowired
-    private TasksByStateDAO tasksByStateDAO;
+    private TaskStatusUpdater taskStatusUpdater;
 
     @Autowired
     private DatasetCleanerService datasetCleanerService;
@@ -76,10 +71,7 @@ public class TopologyTasksResource {
     @Autowired
     private TaskSubmissionValidator taskSubmissionValidator;
 
-    @Autowired
-    private String applicationIdentifier;
-
-    /**
+      /**
      * Retrieves the current progress for the requested task.
      * <p/>
      * <br/><br/>
@@ -156,7 +148,7 @@ public class TopologyTasksResource {
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
+        TaskInfo taskInfo = taskStatusUpdater.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
@@ -264,13 +256,13 @@ public class TopologyTasksResource {
         ResponseEntity<Void> result = null;
 
         final Date sentTime = new Date();
-        final String taskJSON = new ObjectMapper().writeValueAsString(task);
 
         if (task != null) {
+            LOGGER.info(!restart ? "Submitting task" : "Restarting task");
+            task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+            String taskJSON = new ObjectMapper().writeValueAsString(task);
             try {
-                LOGGER.info(!restart ? "Submitting task" : "Restarting task");
                 taskSubmissionValidator.validateTaskSubmission(task, topologyName);
-                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
 
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();
@@ -282,7 +274,6 @@ public class TopologyTasksResource {
                 SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                         .task(task)
                         .topologyName(topologyName)
-                        .authorizationHeader(authorizationHeader)
                         .restart(restart).build();
 
                 submitTaskService.submitTask(parameters);
@@ -316,17 +307,15 @@ public class TopologyTasksResource {
      * @param taskJSON Taske represented in json format for future use
      */
     private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskJSON, String topicName) {
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON);
-        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
-        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
+        taskStatusUpdater.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON, topicName );
     }
 
     private ResponseEntity<Void> getResponseForException(Exception exception, String loggedMessage, HttpStatus httpStatus,
                                                   DpsTask task, String topologyName, Date sentTime, String taskJSON) {
         LOGGER.error(loggedMessage);
         ResponseEntity<Void> response = ResponseEntity.status(httpStatus).build();
-        taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
-                TaskState.DROPPED.toString(), exception.getMessage(), sentTime, taskJSON);
+        insertTask(task.getTaskId(), topologyName, 0,
+                TaskState.DROPPED.toString(), exception.getMessage(), sentTime, taskJSON,"");
         return response;
     }
 

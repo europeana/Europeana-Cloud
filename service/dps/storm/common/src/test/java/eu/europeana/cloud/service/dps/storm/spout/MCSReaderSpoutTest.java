@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.junit.Before;
@@ -31,8 +31,8 @@ public class MCSReaderSpoutTest {
     @Mock(name = "collector")
     private SpoutOutputCollector collector;
 
-    @Mock(name = "cassandraTaskInfoDAO")
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    @Mock
+    private TaskStatusUpdater taskStatusUpdater;
 
     @Mock
     private TaskStatusChecker taskStatusChecker;
@@ -43,8 +43,8 @@ public class MCSReaderSpoutTest {
 
     @Before
     public void init() throws Exception {
-        doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
-        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
+        doNothing().when(taskStatusUpdater).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
+        doNothing().when(taskStatusUpdater).setTaskDropped(anyLong(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         mcsReaderSpout.getTaskDownloader().getTaskQueue().clear();
     }
@@ -63,6 +63,6 @@ public class MCSReaderSpoutTest {
         assertTrue(!mcsReaderSpout.getTaskDownloader().getTaskQueue().isEmpty());
         mcsReaderSpout.deactivate();
         assertTrue(mcsReaderSpout.getTaskDownloader().getTaskQueue().isEmpty());
-        verify(cassandraTaskInfoDAO, atLeast(taskCount)).dropTask(anyLong(), anyString(), eq(TaskState.DROPPED.toString()));
+        verify(taskStatusUpdater, atLeast(taskCount)).setTaskDropped(anyLong(), anyString());
     }
 }

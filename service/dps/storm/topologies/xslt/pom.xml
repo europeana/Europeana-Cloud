@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>1.9.0-SNAPSHOT</version>
+        <version>1.10.0-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -42,38 +42,6 @@
             <artifactId>metis-transformation-service</artifactId>
             <version>${version.metis}</version>
             <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-slf4j-impl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j</artifactId>
-                    <groupId>log4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-core</artifactId>
-                </exclusion>
                 <exclusion>
                     <artifactId>org.springframework</artifactId>
                     <groupId>*</groupId>

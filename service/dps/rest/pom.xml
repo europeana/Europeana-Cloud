@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>1.9.0-SNAPSHOT</version>
+        <version>1.10.0-SNAPSHOT</version>
     </parent>
 
 
@@ -369,10 +369,6 @@
                 <exclusion>
                     <artifactId>corelib-media-storage</artifactId>
                     <groupId>eu.europeana.corelib</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-slf4j-impl</artifactId>
                 </exclusion>
                 <exclusion>
                     <artifactId>org.springframework</artifactId>
