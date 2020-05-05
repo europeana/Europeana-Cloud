@@ -17,8 +17,8 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
 import org.junit.Test;
@@ -117,7 +117,7 @@ public class MCSTaskSubmiterTest {
     private TaskStatusChecker taskStatusChecker;
 
     @Mock
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private TaskStatusUpdater taskStatusUpdater;
 
     @Mock
     private RecordExecutionSubmitService recordSubmitService;
@@ -148,7 +148,7 @@ public class MCSTaskSubmiterTest {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        submiter = new MCSTaskSubmiter(taskStatusChecker,cassandraTaskInfoDAO,recordSubmitService,TOPOLOGY,task,TOPIC,reader);
+        submiter = new MCSTaskSubmiter(taskStatusChecker, taskStatusUpdater,recordSubmitService,TOPOLOGY,task,TOPIC,reader);
         whenNew(DataSetServiceClient.class).withAnyArguments().thenReturn(dataSetServiceClient);
         whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
@@ -176,18 +176,18 @@ public class MCSTaskSubmiterTest {
         submiter.execute();
 
 
-        verify(cassandraTaskInfoDAO).updateTask(eq(TASK_ID), anyString(), eq(String.valueOf(TaskState.CURRENTLY_PROCESSING)), any(Date.class));
+        verify(taskStatusUpdater).updateTask(eq(TASK_ID), anyString(), eq(String.valueOf(TaskState.CURRENTLY_PROCESSING)), any(Date.class));
     }
 
     @Test
     public void executeMcsBasedTask_errorInExecution_verifyTaskDropped() {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
-        doThrow(new RuntimeException("Błąd uruchamiania task")).when(cassandraTaskInfoDAO).updateTask(anyLong(),anyString(),anyString(),any(Date.class));
+        doThrow(new RuntimeException("Błąd uruchamiania task")).when(taskStatusUpdater).updateTask(anyLong(),anyString(),anyString(),any(Date.class));
 
         submiter.execute();
 
 
-        verify(cassandraTaskInfoDAO).dropTask(anyLong(),anyString(),anyString());
+        verify(taskStatusUpdater).setTaskDropped(anyLong(),anyString());
     }
 
     @Test

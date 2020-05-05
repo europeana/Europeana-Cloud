@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.services.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
@@ -42,7 +42,6 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             return;
         }
 
-        parameters.getTask().addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
         submitService.submitTask(parameters.getTask(), parameters.getTopologyName());
         taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                 expectedCount, TaskState.SENT.toString(), "", "");

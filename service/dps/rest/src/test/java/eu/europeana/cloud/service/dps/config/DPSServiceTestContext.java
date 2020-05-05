@@ -8,6 +8,11 @@ import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
+import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
+import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
@@ -27,7 +32,9 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({UnitedExceptionMapper.class, SubmitTaskService.class,TaskStatusUpdater.class})
+@Import({UnitedExceptionMapper.class, TaskSubmissionValidator.class, SubmitTaskService.class, TaskSubmitterFactory.class,
+        OaiTopologyTaskSubmitter.class, HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class,
+        TaskStatusUpdater.class})
 public class DPSServiceTestContext {
 
     /* REAL Beans */

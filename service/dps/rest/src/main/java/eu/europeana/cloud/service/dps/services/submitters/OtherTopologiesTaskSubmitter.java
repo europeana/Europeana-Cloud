@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.services.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReader;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.*;
@@ -23,9 +22,6 @@ import org.springframework.stereotype.Service;
 public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OtherTopologiesTaskSubmitter.class);
-
-    @Autowired
-    private CassandraTaskInfoDAO taskInfoDAO;
 
     @Autowired
     private KafkaTopicSelector kafkaTopicSelector;
@@ -61,7 +57,6 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
         taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                 expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", preferredTopicName);
 
-        parameters.getTask().addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, parameters.getAuthorizationHeader());
         createMCSReader(parameters.getTopologyName(), parameters.getTask(), preferredTopicName).execute();
         taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
                 expectedCount, TaskState.SENT.toString(), "", "");
@@ -70,7 +65,7 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
     private MCSTaskSubmiter createMCSReader(String topologyName, DpsTask task, String topicName){
         String authorizationHeader = task.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         MCSReader reader=new MCSReader(mcsClientURL,authorizationHeader);
-        return new MCSTaskSubmiter(taskStatusChecker,taskInfoDAO,recordSubmitService,topologyName,task,topicName,reader);
+        return new MCSTaskSubmiter(taskStatusChecker,taskStatusUpdater,recordSubmitService,topologyName,task,topicName,reader);
     }
 
     private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {

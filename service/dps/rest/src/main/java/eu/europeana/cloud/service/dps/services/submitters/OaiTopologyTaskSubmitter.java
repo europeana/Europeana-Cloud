@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
-import eu.europeana.cloud.service.dps.services.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
@@ -83,7 +83,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
     private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
         if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
             LOGGER.info("Task dropped. No data harvested");
-            taskStatusUpdater.dropTask(taskId, "The task with the submitted parameters is empty");
+            taskStatusUpdater.setTaskDropped(taskId, "The task with the submitted parameters is empty");
         } else {
             LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
             taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(),

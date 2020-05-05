@@ -15,9 +15,9 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class MCSTaskSubmiter {
 
     private final TaskStatusChecker taskStatusChecker;
 
-    private final CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private final TaskStatusUpdater taskStatusUpdater;
 
     private final RecordExecutionSubmitService recordSubmitService;
 
@@ -60,9 +60,9 @@ public class MCSTaskSubmiter {
     private final MCSReader reader;
     private ExecutorService executorService;
 
-    public MCSTaskSubmiter(TaskStatusChecker taskStatusChecker, CassandraTaskInfoDAO cassandraTaskInfoDAO, RecordExecutionSubmitService recordSubmitService, String topologyName, DpsTask task, String topicName, MCSReader reader) {
+    public MCSTaskSubmiter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordExecutionSubmitService recordSubmitService, String topologyName, DpsTask task, String topicName, MCSReader reader) {
         this.taskStatusChecker = taskStatusChecker;
-        this.cassandraTaskInfoDAO = cassandraTaskInfoDAO;
+        this.taskStatusUpdater = taskStatusUpdater;
         this.recordSubmitService = recordSubmitService;
         this.topologyName = topologyName;
         this.task = task;
@@ -88,7 +88,7 @@ public class MCSTaskSubmiter {
             LOGGER.warn(e.getMessage(), e);
         } catch (Exception e) {
             LOGGER.error("MCSTaskSubmiter error for taskId=" + task.getTaskId() + " error: " + e.getMessage(), e);
-            cassandraTaskInfoDAO.dropTask(task.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
+            taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because " + e.getMessage());
         } finally {
             shutdownExecutor();
             reader.close();
@@ -100,7 +100,7 @@ public class MCSTaskSubmiter {
         for (String file : filesList) {
             submitRecord(file);
         }
-        cassandraTaskInfoDAO.setUpdateExpectedSize(task.getTaskId(), filesList.size());
+        taskStatusUpdater.setUpdateExpectedSize(task.getTaskId(), filesList.size());
     }
 
     private void executeForDatasetList() throws Exception {
@@ -109,10 +109,10 @@ public class MCSTaskSubmiter {
             for (String dataSetUrl : task.getDataEntry(InputDataType.DATASET_URLS)) {
                 expectedSize += executeForOneDataSet(dataSetUrl);
             }
-            cassandraTaskInfoDAO.setUpdateExpectedSize(task.getTaskId(), expectedSize);
+            taskStatusUpdater.setUpdateExpectedSize(task.getTaskId(), expectedSize);
         } finally {
             if (expectedSize == 0) {
-                cassandraTaskInfoDAO.dropTask(task.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
+                taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because it is empty");
                 LOGGER.warn("The task id={} was dropped because it is empty.", task.getTaskId());
             }
         }
@@ -246,7 +246,7 @@ public class MCSTaskSubmiter {
 
     private void startProgressing() {
         LOGGER.info("Start progressing for Task with id {}", task.getTaskId());
-        cassandraTaskInfoDAO.updateTask(task.getTaskId(), "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
+        taskStatusUpdater.updateTask(task.getTaskId(), "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
     }
 
     private boolean taskContainsFileUrls() {

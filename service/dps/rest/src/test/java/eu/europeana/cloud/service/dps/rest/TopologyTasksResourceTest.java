@@ -20,6 +20,11 @@ import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
+import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
+import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
@@ -64,7 +69,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, SubmitTaskService.class, DatasetCleanerService.class , TaskStatusUpdater.class})
+@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
+        TaskSubmissionValidator.class, SubmitTaskService.class, OaiTopologyTaskSubmitter.class,
+        HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, DatasetCleanerService.class,
+        TaskStatusUpdater.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */

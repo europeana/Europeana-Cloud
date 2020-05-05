@@ -57,6 +57,10 @@ public class TaskStatusUpdater {
      * @param info
      */
 
+    public void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, String topicName) {
+        insert(taskId, topologyName, expectedSize, state, info, new Date(), "", "");
+    }
+
     public void insert(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskInformations)
             throws NoHostAvailableException, QueryExecutionException {
         insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations, "");
