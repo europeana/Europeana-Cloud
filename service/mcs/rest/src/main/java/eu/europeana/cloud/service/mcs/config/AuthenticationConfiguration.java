@@ -58,16 +58,10 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
         return new LoggerListener();
     }
 
-    // ???
-    @Bean
-    public BCryptPasswordEncoder encoder() {
-        return new BCryptPasswordEncoder();
-    }
-
     /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 
     @Bean
-    public CassandraConnectionProvider provider() {
+    public CassandraConnectionProvider aasCassandraProvider() {
         String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
         Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
         String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);
@@ -79,7 +73,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
     public CassandraUserDAO userDAO() {
-        return new CassandraUserDAO(provider());
+        return new CassandraUserDAO(aasCassandraProvider());
     }
 
     @Bean

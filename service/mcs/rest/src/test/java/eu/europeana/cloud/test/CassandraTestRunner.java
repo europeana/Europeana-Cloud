@@ -12,7 +12,9 @@ public class CassandraTestRunner extends BlockJUnit4ClassRunner {
     public CassandraTestRunner(Class c)
             throws InitializationError {
         super(c);
-        CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL, KEYSPACE);
+        CassandraTestInstance
+                .getInstance(KEYSPACE_SCHEMA_CQL, KEYSPACE)
+                .initKeyspaceIfNeeded("aas_setup.cql","ecloud_aas");
     }
 
     @Override

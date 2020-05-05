@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -85,7 +86,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
         RepresentationRevisionResponse representationRevisionResponse = new RepresentationRevisionResponse(representationResponse);
         ArrayList<File> files = new ArrayList<>(1);
         files.add(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-                "2013-01-01", 12345L, URI.create("http://localhost:9998/records/" + globalId
+                "2013-01-01", 12345L, URI.create("http://localhost:80/records/" + globalId
                 + "/representations/" + schema + "/versions/" + version + "/files/1.xml")));
         representationRevisionResponse.setFiles(files);
 

@@ -1,49 +1,57 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import com.google.common.collect.ImmutableMap;
-import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.test.web.servlet.ResultActions;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static org.junit.Assert.*;
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.IS_DELETED;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.reset;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**
  * RevisionResourceTest
  */
 @RunWith(CassandraTestRunner.class)
-public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
+public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstractResourceTest {
 
     private RecordService recordService;
     private Representation rep;
 
-    private WebTarget revisionAndRepresenttaionWebTargetInsideDataSet;
+    //private String revisionAndRepresenttaionWebTargetInsideDataSet;
 
     private final static String TEST_REVISION_NAME = "revisionNameTest";
     private final static String DATE_SET_NAME = "dataSetId";
@@ -54,11 +62,8 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
     private Revision revisionForDataProvider;
     private String revisionAndRepresentationPath;
 
-
     @Before
     public void mockUp() throws Exception {
-        ApplicationContext applicationContext = ApplicationContextUtils
-                .getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
@@ -75,21 +80,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         rep = recordService.createRepresentation("1", "1", "1");
         revisionForDataProvider = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, new Date(), true, true, true);
 
-        String dataSetPath = DataSetResource.class.getAnnotation(Path.class).value();
-
-        revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID+ "}/representations/{" + REPRESENTATION_NAME + "}";
-
-        Map<String, Object> revisionAndRepresentation = ImmutableMap
-                .<String, Object>of(PROVIDER_ID,
-                        dataProvider.getId(), DATA_SET_ID,
-                        DATE_SET_NAME, REPRESENTATION_NAME,
-                        rep.getRepresentationName(), REVISION_NAME,
-                        TEST_REVISION_NAME, REVISION_PROVIDER_ID,
-                        TEST_REVISION_PROVIDER_ID);
-
-
-        revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentation);
-
+        revisionAndRepresentationPath = DataSetResource.CLASS_MAPPING + "/revision" + "/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/representations/{" + REPRESENTATION_NAME + "}";
 
     }
 
@@ -101,15 +92,11 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         reset(dataSetService);
     }
 
-    @Override
-    public Application configure() {
-        return null; //new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml").registerClasses(RevisionIsNotValidExceptionMapper.class);
-    }
-
-    @Override
-    protected void configureClient(ClientConfig config) {
-        config.register(MultiPartFeature.class);
-    }
+    //new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml").registerClasses(RevisionIsNotValidExceptionMapper.class);
+//    @Override
+//    protected void configureClient(ClientConfig config) {
+//        config.register(MultiPartFeature.class);
+//    }
 
 
     @Test
@@ -130,25 +117,20 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         assertTrue(cloudIdAndTimestampResponseList.isEmpty());
     }
 
-    private List<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(Boolean isDeleted) throws ProviderNotExistsException, DataSetAlreadyExistsException, RevisionIsNotValidException, DataSetNotExistsException, RepresentationNotExistsException {
+    private List<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(Boolean isDeleted) throws Exception {
         //given
         PrepareTest(dataProvider.getId(), DATE_SET_NAME);
 
         makeExistsProviderPass();
 
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).queryParam(IS_DELETED, isDeleted).request().get();
+        ResultActions response = mockMvc.perform(get(revisionAndRepresentationPath, dataProvider.getId(),
+                DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, TEST_REVISION_PROVIDER_ID)
+                .queryParam(IS_DELETED, isDeleted.toString()))
+                .andExpect(status().isOk());
         //then
-        assertSuccessfulCallToLatestRevisionAndRepresentation(response);
-        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = response.readEntity(ResultSlice.class);
-        return cloudIdAndTimestampResponseResultSlice.getResults();
+        return responseContentAsCloudIdAndTimestampResultSlice(response).getResults();
 
-    }
-
-
-    private void assertSuccessfulCallToLatestRevisionAndRepresentation(Response response) {
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 200);
     }
 
     private void makeExistsProviderPass() {
@@ -166,16 +148,16 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
     @Test
     public void shouldReturnDataSetNotExistError() throws Exception {
-
         PrepareTest(dataProvider.getId(), "None_Existed_Dataset");
         makeExistsProviderPass();
 
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).queryParam(IS_DELETED, null).request().get();
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 404);
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-        assertEquals(McsErrorCode.DATASET_NOT_EXISTS.toString(), errorInfo.getErrorCode());
+        ResultActions response = mockMvc.perform(get(revisionAndRepresentationPath, dataProvider.getId(),
+                DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, TEST_REVISION_PROVIDER_ID))
+                .andExpect(status().isNotFound());
 
+
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response);
+        assertEquals(McsErrorCode.DATASET_NOT_EXISTS.toString(), errorInfo.getErrorCode());
     }
 
     @Test
@@ -193,12 +175,11 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                         TEST_REVISION_NAME, REVISION_PROVIDER_ID,
                         dataProvider.getId());
 
-        revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentationNoneExistedProviderId);
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).queryParam(IS_DELETED, null).request().get();
+        ResultActions response = mockMvc.perform(get(revisionAndRepresentationPath, dataProvider.getId(),
+                DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, dataProvider.getId()))
+                .andExpect(status().isNotFound());
         //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 404);
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response);
         assertEquals(McsErrorCode.PROVIDER_NOT_EXISTS.toString(), errorInfo.getErrorCode());
 
 

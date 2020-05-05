@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;

@@ -150,7 +150,7 @@ public final class CassandraTestInstance {
         }
     }
 
-    private void initKeyspaceIfNeeded(String keyspaceSchemaCql, String keyspace) {
+    public void initKeyspaceIfNeeded(String keyspaceSchemaCql, String keyspace) {
         if (!keyspaceSessions.containsKey(keyspace)) {
             initKeyspace(keyspaceSchemaCql, keyspace);
         } else {

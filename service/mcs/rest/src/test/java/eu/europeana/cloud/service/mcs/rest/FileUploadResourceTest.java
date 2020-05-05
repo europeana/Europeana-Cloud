@@ -5,55 +5,37 @@ import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(CassandraTestRunner.class)
-public class FileUploadResourceTest extends JerseyTest {
+public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
 
-    private WebTarget fileWebTarget;
+    private String fileWebTarget;
 
     private File file;
 
-    @Override
-    public Application configure() {
-        return null; //new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-    }
-    @Override
-    protected void configureClient(ClientConfig config) {
-        config.register(MultiPartFeature.class);
-    }
 
     @Before
     public void init(){
         CassandraTestInstance.truncateAllData(false);
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         UISClientHandler uisHandler = applicationContext.getBean(UISClientHandler.class);
         Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
@@ -69,26 +51,23 @@ public class FileUploadResourceTest extends JerseyTest {
                 REPRESENTATION_NAME, rep.getRepresentationName(),
                 VERSION, rep.getVersion());
 
-        fileWebTarget = target(FileUploadResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
+        fileWebTarget = "/records/{"+rep.getCloudId()+"/representations/"+rep.getRepresentationName()+"/files";
     }
     
     @Test
-    public void shouldUploadFileForNonExistingRepresentation()  {
+    public void shouldUploadFileForNonExistingRepresentation() throws Exception {
         //given
         String providerId = "providerId";
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        FormDataMultiPart multipart = new FormDataMultiPart()
-                .field(ParamConstants.F_PROVIDER,providerId)
-                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
-                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
-                        MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+        MockMultipartFile multipart= new MockMultipartFile(file.getFileName(),null, file.getMimeType(),content);
         //when
-        Response uploadFileResponse = fileWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        mockMvc.perform(putMultipart(fileWebTarget).file(multipart)
+                .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM))
         //then
-        assertThat("Unexpected status code",uploadFileResponse.getStatus(),is(201));
-        assertThat("File content tag does not match",uploadFileResponse.getEntityTag().getValue(),is(contentMd5));
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string(HttpHeaders.ETAG,contentMd5));
     }
 
 
