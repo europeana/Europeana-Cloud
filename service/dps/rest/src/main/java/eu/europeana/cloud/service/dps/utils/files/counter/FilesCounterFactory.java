@@ -2,8 +2,8 @@ package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.springframework.stereotype.Component;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
@@ -14,10 +14,10 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @Component
 public class FilesCounterFactory {
 
-    private TaskStatusUpdater taskStatusUpdater;
+    private CassandraTaskInfoDAO taskInfoDAO;
 
-    public FilesCounterFactory(TaskStatusUpdater taskStatusUpdater) {
-        this.taskStatusUpdater = taskStatusUpdater;
+    public FilesCounterFactory(CassandraTaskInfoDAO taskInfoDAO) {
+        this.taskInfoDAO = taskInfoDAO;
     }
 
     public FilesCounter createFilesCounter(DpsTask task, String topologyName) {
@@ -30,7 +30,7 @@ public class FilesCounterFactory {
             return new RecordFilesCounter();
         }
         if (DATASET_URLS.name().equals(taskType)) {
-            return new DatasetFilesCounter(taskStatusUpdater);
+            return new DatasetFilesCounter(taskInfoDAO);
         }
         if (REPOSITORY_URLS.name().equals(taskType)) {
             return new OaiPmhFilesCounter();

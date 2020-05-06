@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
@@ -47,15 +47,17 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
         if (expectedCount == 0) {
-            taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
-                    expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", "");
+            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task doesn't include any records");
             return;
         }
 
         String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
+        parameters.setTopicName(preferredTopicName);
+        parameters.setInfo("Task submitted successfully and processed by REST app");
+        parameters.setExpectedSize(expectedCount);
+        parameters.setStatus(TaskState.PROCESSING_BY_REST_APPLICATION);
         LOGGER.info("Selected topic name: {} for {}", preferredTopicName, parameters.getTask().getTaskId());
-        taskStatusUpdater.insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
-                expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", preferredTopicName);
+        taskStatusUpdater.insertTask(parameters);
 
         List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(parameters.getTask());
 

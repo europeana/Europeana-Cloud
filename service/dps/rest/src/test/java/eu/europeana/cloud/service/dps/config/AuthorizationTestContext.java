@@ -4,7 +4,6 @@ import eu.europeana.aas.acl.CassandraMutableAclService;
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -24,11 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Configuration
 @Import({AclPermissionEvaluator.class})
 public class AuthorizationTestContext {
-
-    @Bean
-    CassandraKillService taskKillService() {
-        return Mockito.mock(CassandraKillService.class);
-    }
 
     @Bean
     TopologyManager topologyManager() {

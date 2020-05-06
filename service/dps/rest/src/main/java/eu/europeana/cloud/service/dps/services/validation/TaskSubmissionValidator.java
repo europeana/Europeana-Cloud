@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import org.springframework.stereotype.Service;
@@ -39,10 +40,10 @@ public class TaskSubmissionValidator {
         this.topologyManager = topologyManager;
     }
 
-    public void validateTaskSubmission(DpsTask task, String topologyName) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
-        assertContainTopology(topologyName);
-        validateTask(task, topologyName);
-        validateOutputDataSetsIfExist(task);
+    public void validateTaskSubmission(SubmitTaskParameters parameters) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
+        assertContainTopology(parameters.getTopologyName());
+        validateTask(parameters.getTask(), parameters.getTopologyName());
+        validateOutputDataSetsIfExist(parameters.getTask());
     }
 
     /**

@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.TaskExecutionKillService;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
@@ -15,9 +14,9 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -34,8 +33,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
-
-import static eu.europeana.cloud.service.dps.InputDataType.*;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -54,10 +51,10 @@ public class TopologyTasksResource {
     private TaskExecutionReportService reportService;
 
     @Autowired
-    private TaskExecutionKillService killService;
+    private PermissionManager permissionManager;
 
     @Autowired
-    private PermissionManager permissionManager;
+    private CassandraTaskInfoDAO taskInfoDAO;
 
     @Autowired
     private TaskStatusUpdater taskStatusUpdater;
@@ -148,7 +145,7 @@ public class TopologyTasksResource {
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        TaskInfo taskInfo = taskStatusUpdater.searchById(taskId);
+        TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
@@ -232,7 +229,7 @@ public class TopologyTasksResource {
                     throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         taskSubmissionValidator.assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        killService.killTask(Long.parseLong(taskId), info);
+        taskStatusUpdater.setTaskDropped(Long.parseLong(taskId), info);
         return ResponseEntity.ok("The task was killed because of " + info);
     }
 
@@ -253,36 +250,32 @@ public class TopologyTasksResource {
             final String authorizationHeader, final boolean restart)
             throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
 
-        ResponseEntity<Void> result = null;
-
-        final Date sentTime = new Date();
+        ResponseEntity<Void> result;
 
         if (task != null) {
             LOGGER.info(!restart ? "Submitting task" : "Restarting task");
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
             String taskJSON = new ObjectMapper().writeValueAsString(task);
+            SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+                    .sentTime(new Date())
+                    .task(task)
+                    .topologyName(topologyName)
+                    .status(TaskState.PROCESSING_BY_REST_APPLICATION)
+                    .info("The task is in a pending mode, it is being processed before submission")
+                    .taskJSON(taskJSON)
+                    .restart(restart).build();
             try {
-                taskSubmissionValidator.validateTaskSubmission(task, topologyName);
-
+                taskStatusUpdater.insertTask(parameters);
+                taskSubmissionValidator.validateTaskSubmission(parameters);
+                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
+                submitTaskService.submitTask(parameters);
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();
-
-                insertTask(task.getTaskId(), topologyName, 0, TaskState.PROCESSING_BY_REST_APPLICATION.toString(),
-                        "The task is in a pending mode, it is being processed before submission", sentTime, taskJSON, "");
-                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-
-                SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                        .task(task)
-                        .topologyName(topologyName)
-                        .restart(restart).build();
-
-                submitTaskService.submitTask(parameters);
-
             } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
                 throw e;
             } catch(Exception e) {
                 result = getResponseForException(e, "Task submission failed. Internal server error.",
-                        HttpStatus.INTERNAL_SERVER_ERROR, task, topologyName, sentTime, taskJSON);
+                        HttpStatus.INTERNAL_SERVER_ERROR, parameters);
             }
         } else {
             LOGGER.error("Task submission failed. Internal server error. DpsTask task is null.");
@@ -292,30 +285,12 @@ public class TopologyTasksResource {
         return result;
     }
 
-    /**
-     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
-     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
-     * NOTE: Operation is not in transaction! So on table can be modified but second one not
-     * Parameters corresponding to names of column in table(s)
-     *
-     * @param taskId Taski to submit to identifier
-     * @param topologyName Name of processing topology
-     * @param expectedSize Expected size for task (number of subitems)
-     * @param state Current task state
-     * @param info Additional information
-     * @param sentTime Time of sending task
-     * @param taskJSON Taske represented in json format for future use
-     */
-    private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskJSON, String topicName) {
-        taskStatusUpdater.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON, topicName );
-    }
 
     private ResponseEntity<Void> getResponseForException(Exception exception, String loggedMessage, HttpStatus httpStatus,
-                                                  DpsTask task, String topologyName, Date sentTime, String taskJSON) {
+                                                         SubmitTaskParameters parameters) {
         LOGGER.error(loggedMessage);
         ResponseEntity<Void> response = ResponseEntity.status(httpStatus).build();
-        insertTask(task.getTaskId(), topologyName, 0,
-                TaskState.DROPPED.toString(), exception.getMessage(), sentTime, taskJSON,"");
+        taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), exception.getMessage());
         return response;
     }
 

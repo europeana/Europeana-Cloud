@@ -6,10 +6,11 @@ import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -23,7 +24,6 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
-@Import(TaskStatusUpdater.class)
 public class ServiceConfiguration {
 
     private final Environment environment;
@@ -120,11 +120,6 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraKillService killService() {
-        return new CassandraKillService(dpsCassandraProvider());
-    }
-
-    @Bean
     public CassandraValidationStatisticsService validationStatisticsService() {
         return new CassandraValidationStatisticsService();
     }
@@ -153,4 +148,16 @@ public class ServiceConfiguration {
     public ProcessedRecordsDAO processedRecordsDAO() {
         return new ProcessedRecordsDAO(dpsCassandraProvider());
     }
+
+    @Bean
+    public TaskStatusUpdater taskStatusUpdater() {
+        return new TaskStatusUpdater(taskInfoDAO(),tasksByStateDAO(),applicationIdentifier());
+    }
+
+    @Bean
+    public MCSTaskSubmiter mcsTaskSubmiter() {
+        String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
+        return new MCSTaskSubmiter(taskStatusChecker(),taskStatusUpdater(),recordKafkaSubmitService(),mcsLocation);
+    }
+
 }

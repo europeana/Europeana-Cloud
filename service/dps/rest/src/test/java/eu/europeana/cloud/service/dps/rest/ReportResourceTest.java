@@ -6,6 +6,8 @@ import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {DPSServiceTestContext.class, ReportResource.class})
+@ContextConfiguration(classes = {DPSServiceTestContext.class, ReportResource.class, TaskStatusUpdater.class,
+        MCSTaskSubmiter.class})
 @TestPropertySource(properties = {"numberOfElementsOnPage=100","maxIdentifiersCount=100"})
 public class ReportResourceTest extends AbstractResourceTest {
 

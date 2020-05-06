@@ -25,6 +25,7 @@ import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitt
 import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
@@ -72,7 +73,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
         TaskSubmissionValidator.class, SubmitTaskService.class, OaiTopologyTaskSubmitter.class,
         HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, DatasetCleanerService.class,
-        TaskStatusUpdater.class})
+        TaskStatusUpdater.class, MCSTaskSubmiter.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -105,7 +106,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private MutableAclService mutableAclService;
     private RecordKafkaSubmitService recordKafkaSubmitService;
     private RecordServiceClient recordServiceClient;
-    private TaskExecutionKillService killService;
     private TaskExecutionReportService reportService;
     private TaskKafkaSubmitService taskKafkaSubmitService;
 
@@ -125,7 +125,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         filesCounter = applicationContext.getBean(FilesCounter.class);
         filesCounterFactory = applicationContext.getBean(FilesCounterFactory.class);
         harvestsExecutor = applicationContext.getBean(HarvestsExecutor.class);
-        killService = applicationContext.getBean(TaskExecutionKillService.class);
         mutableAclService = applicationContext.getBean(MutableAclService.class);
         recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
@@ -742,7 +741,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         String info = "Dropped by the user";
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
 
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -759,7 +757,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         //String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("info", info)
         );
@@ -771,7 +768,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws Exception {
         String info = "Dropped by the user";
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
 
@@ -785,7 +781,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
         String info = "Dropped by the user";
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
 

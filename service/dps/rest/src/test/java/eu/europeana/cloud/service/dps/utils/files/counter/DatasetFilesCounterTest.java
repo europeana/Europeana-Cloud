@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 public class DatasetFilesCounterTest {
 
     private DatasetFilesCounter datasetFilesCounter;
-    private TaskStatusUpdater taskStatusUpdater;
+    private CassandraTaskInfoDAO taskInfoDAO;
     private final static long TASK_ID = 1234;
     private final static int EXPECTED_SIZE = 100;
     private final static int DEFAULT_FILES_COUNT = -1;
@@ -34,8 +34,8 @@ public class DatasetFilesCounterTest {
 
     @Before
     public void init() {
-        taskStatusUpdater = mock(TaskStatusUpdater.class);
-        datasetFilesCounter = new DatasetFilesCounter(taskStatusUpdater);
+        taskInfoDAO = mock(CassandraTaskInfoDAO.class);
+        datasetFilesCounter = new DatasetFilesCounter(taskInfoDAO);
         dpsTask = new DpsTask();
     }
 
@@ -43,7 +43,7 @@ public class DatasetFilesCounterTest {
     @Test
     public void shouldReturnProcessedFiles() throws Exception {
         TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", EXPECTED_SIZE, EXPECTED_SIZE, 0, new Date(), new Date(), new Date());
-        when(taskStatusUpdater.searchById(TASK_ID)).thenReturn(taskInfo);
+        when(taskInfoDAO.searchById(TASK_ID)).thenReturn(taskInfo);
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
         int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
         assertEquals(EXPECTED_SIZE, expectedFilesCount);
@@ -65,7 +65,7 @@ public class DatasetFilesCounterTest {
     @Test
     public void shouldReturnedDefaultFilesCountWhenPreviousTaskIdDoesNotExist() throws Exception {
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
-        doThrow(TaskInfoDoesNotExistException.class).when(taskStatusUpdater).searchById(TASK_ID);
+        doThrow(TaskInfoDoesNotExistException.class).when(taskInfoDAO).searchById(TASK_ID);
         int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
         assertEquals(DEFAULT_FILES_COUNT, expectedFilesCount);
     }
@@ -73,7 +73,7 @@ public class DatasetFilesCounterTest {
     @Test(expected = TaskSubmissionException.class)
     public void shouldThrowExceptionWhenQueryingDatabaseUsingPreviousTaskIdThrowAnExceptionOtherThanTaskInfoDoesNotExistException() throws Exception {
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
-        doThrow(Exception.class).when(taskStatusUpdater).searchById(TASK_ID);
+        doThrow(Exception.class).when(taskInfoDAO).searchById(TASK_ID);
         datasetFilesCounter.getFilesCount(dpsTask);
     }
 

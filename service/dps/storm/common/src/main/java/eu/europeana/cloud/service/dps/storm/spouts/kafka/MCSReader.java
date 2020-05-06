@@ -19,7 +19,7 @@ import java.util.List;
 
 import static eu.europeana.cloud.service.dps.storm.utils.Retriever.*;
 
-public class MCSReader {
+public class MCSReader implements  AutoCloseable{
     private final static Logger LOGGER = LoggerFactory.getLogger(MCSReader.class);
     private final String authorizationHeader;
     private String mcsClientURL;
@@ -30,9 +30,12 @@ public class MCSReader {
 
     private RecordServiceClient recordServiceClient;
 
-    public MCSReader(String mcsClientURL,String authorizationHeader){
-        this.mcsClientURL=mcsClientURL;
-        this.authorizationHeader=authorizationHeader;
+    public MCSReader(String mcsClientURL, String authorizationHeader) {
+        this.mcsClientURL = mcsClientURL;
+        this.authorizationHeader = authorizationHeader;
+        dataSetServiceClient = new DataSetServiceClient(mcsClientURL, authorizationHeader);
+        recordServiceClient = new RecordServiceClient(mcsClientURL, authorizationHeader);
+        fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
     }
 
     public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, String startFrom) throws MCSException, DriverException {
@@ -74,11 +77,7 @@ public class MCSReader {
         return dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
     }
 
-    public void open() {
-        dataSetServiceClient = new DataSetServiceClient(mcsClientURL, authorizationHeader);
-        recordServiceClient = new RecordServiceClient(mcsClientURL, authorizationHeader);
-        fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
-    }
+
 
     public void close() {
         if (dataSetServiceClient != null) {

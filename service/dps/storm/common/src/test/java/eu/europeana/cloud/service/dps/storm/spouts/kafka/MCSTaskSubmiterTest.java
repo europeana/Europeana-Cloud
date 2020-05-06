@@ -111,9 +111,6 @@ public class MCSTaskSubmiterTest {
     private RecordServiceClient recordServiceClient;
 
     @Mock
-    private CassandraTaskErrorsDAO taskErrorDAO;
-
-    @Mock
     private TaskStatusChecker taskStatusChecker;
 
     @Mock
@@ -121,8 +118,6 @@ public class MCSTaskSubmiterTest {
 
     @Mock
     private RecordExecutionSubmitService recordSubmitService;
-
-    private MCSReader reader=new MCSReader("","");
 
     private MCSTaskSubmiter submiter;
 
@@ -144,18 +139,20 @@ public class MCSTaskSubmiterTest {
 
     private List<CloudTagsResponse> dataList=new ArrayList<>();
 
+    private SubmitTaskParameters submitParameters;
 
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        submiter = new MCSTaskSubmiter(taskStatusChecker, taskStatusUpdater,recordSubmitService,TOPOLOGY,task,TOPIC,reader);
+        submiter=new MCSTaskSubmiter(taskStatusChecker,taskStatusUpdater,recordSubmitService,null);
         whenNew(DataSetServiceClient.class).withAnyArguments().thenReturn(dataSetServiceClient);
         whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
         task.setTaskId(TASK_ID);
         task.addParameter(PluginParameterKeys.SCHEMA_NAME, SCHEMA_NAME);
+        submitParameters=SubmitTaskParameters.builder().task(task).topologyName(TOPOLOGY).topicName(TOPIC).build();
 
-        //używane w większości
+        //used in most tests
         when(fileServiceClient.getFileUri(eq(CLOUD_ID1),eq(REPRESENTATION_NAME),eq(VERSION_1),eq(FILE_NAME_1))).thenReturn(FILE_URI_1);
     }
 
@@ -164,7 +161,7 @@ public class MCSTaskSubmiterTest {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
         when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(true);
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
         verify(recordSubmitService,never()).submitRecord(any(DpsRecord.class),anyString());
     }
@@ -173,19 +170,17 @@ public class MCSTaskSubmiterTest {
     public void executeMcsBasedTask_taskIsNotKilled_verifyUpdateTaskInfoInCassandra() {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-
-        verify(taskStatusUpdater).updateTask(eq(TASK_ID), anyString(), eq(String.valueOf(TaskState.CURRENTLY_PROCESSING)), any(Date.class));
+        verify(taskStatusUpdater).updateStatusExpectedSize(eq(TASK_ID), eq(String.valueOf(TaskState.QUEUED)),eq(1));
     }
 
     @Test
     public void executeMcsBasedTask_errorInExecution_verifyTaskDropped() {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
-        doThrow(new RuntimeException("Błąd uruchamiania task")).when(taskStatusUpdater).updateTask(anyLong(),anyString(),anyString(),any(Date.class));
+        doThrow(new RuntimeException("Error in task execution")).when(recordSubmitService).submitRecord(any(DpsRecord.class),anyString());
 
-        submiter.execute();
-
+        submiter.execute(submitParameters);
 
         verify(taskStatusUpdater).setTaskDropped(anyLong(),anyString());
     }
@@ -194,9 +189,9 @@ public class MCSTaskSubmiterTest {
     public void executeMcsBasedTask_oneFileUrl() {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1);
     }
 
 
@@ -205,9 +200,9 @@ public class MCSTaskSubmiterTest {
     public void executeMcsBasedTask_threeFileUrls() {
         task.addDataEntry(InputDataType.FILE_URLS, Arrays.asList(FILE_URL_1,FILE_URL_2,FILE_URL_3));
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1,FILE_URL_2,FILE_URL_3);
+        verifyValidTaskSent(FILE_URL_1,FILE_URL_2,FILE_URL_3);
     }
 
     @Test
@@ -218,9 +213,9 @@ public class MCSTaskSubmiterTest {
         when(representationIterator.next()).thenReturn(REPRESENTATION_1);
 
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1);
     }
 
     @Test
@@ -230,9 +225,9 @@ public class MCSTaskSubmiterTest {
         when(representationIterator.hasNext()).thenReturn(true,true,true,false);
         when(representationIterator.next()).thenReturn(REPRESENTATION_1);
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1,FILE_URL_1,FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1,FILE_URL_1,FILE_URL_1);
     }
 
     @Test
@@ -248,18 +243,18 @@ public class MCSTaskSubmiterTest {
         when(recordServiceClient.getRepresentationsByRevision(eq(CLOUD_ID1),eq(REPRESENTATION_NAME),eq(REVISION_NAME),eq(REVISION_PROVIDER_1),anyString())).thenReturn(Collections.singletonList(REPRESENTATION_1));
 
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1);
     }
 
     @Test
     public void executeMcsBasedTask_lastRevisionsForTwoObject_verifyTwoRecordsSentToKafka() throws MCSException {
         prepareInvocationForLastRevisionOfTwoObjects();
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1,FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1,FILE_URL_1);
     }
 
     @Test
@@ -267,9 +262,9 @@ public class MCSTaskSubmiterTest {
         prepareInvocationForLastRevisionOfTwoObjects();
         task.addParameter(PluginParameterKeys.SAMPLE_SIZE,"1");
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1);
     }
 
     private void prepareInvocationForLastRevisionOfTwoObjects() throws MCSException {
@@ -290,21 +285,20 @@ public class MCSTaskSubmiterTest {
     public void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyThreeRecordsSentToKafka() throws MCSException {
         prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1,FILE_URL_1,FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1,FILE_URL_1,FILE_URL_1);
     }
 
-//    @Ignore //TO się faktycznie wywało
-//    @Test
-//    public void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyOnlyTwoRecordSentToKafka() throws MCSException {
-//        prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
-//        task.addParameter(PluginParameterKeys.SAMPLE_SIZE,"2");
-//
-//        reader.executeMcsBasedTask();
-//
-//        verifyValidRecordsSentToKafka(FILE_URL_1,FILE_URL_1);
-//    }
+    @Test
+    public void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyOnlyTwoRecordSentToKafka() throws MCSException {
+        prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
+        task.addParameter(PluginParameterKeys.SAMPLE_SIZE,"2");
+
+        submiter.execute(submitParameters);
+
+        verifyValidTaskSent(FILE_URL_1,FILE_URL_1);
+    }
 
 
     private void prepareInvocationForLastRevisionForThreeObjectsInThreeChunks() throws MCSException {
@@ -334,13 +328,18 @@ public class MCSTaskSubmiterTest {
         when(recordServiceClient.getRepresentationsByRevision(eq(CLOUD_ID1),eq(REPRESENTATION_NAME),eq(REVISION_NAME),eq(REVISION_PROVIDER_1),anyString())).thenReturn(Collections.singletonList(REPRESENTATION_1));
 
 
-        submiter.execute();
+        submiter.execute(submitParameters);
 
-        verifyValidRecordsSentToKafka(FILE_URL_1);
+        verifyValidTaskSent(FILE_URL_1);
     }
 
 
-    private void verifyValidRecordsSentToKafka(String... fileUrls) {
+    private void verifyValidTaskSent(String... fileUrls) {
+        verifyValidRecordsSentToKafka(fileUrls);
+        verifyValidStateAndExpectedSizeSavedInCassandra(fileUrls);
+    }
+
+    private void verifyValidRecordsSentToKafka(String[] fileUrls) {
         verify(recordSubmitService,times(fileUrls.length)).submitRecord(recordCaptor.capture(),anyString());
         for(int i=0;i<fileUrls.length;i++){
             DpsRecord record = recordCaptor.getAllValues().get(i);
@@ -348,5 +347,9 @@ public class MCSTaskSubmiterTest {
             assertEquals(TASK_ID,record.getTaskId());
             assertEquals(SCHEMA_NAME,record.getMetadataPrefix());
         }
+    }
+
+    private void verifyValidStateAndExpectedSizeSavedInCassandra(String[] fileUrls) {
+        verify(taskStatusUpdater).updateStatusExpectedSize(eq(TASK_ID), eq(String.valueOf(TaskState.QUEUED)),eq(fileUrls.length));
     }
 }

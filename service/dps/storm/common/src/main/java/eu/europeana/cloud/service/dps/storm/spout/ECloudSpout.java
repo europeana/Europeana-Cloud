@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -42,6 +43,7 @@ public class ECloudSpout extends KafkaSpout {
     private String userName;
     private String password;
 
+    protected CassandraTaskInfoDAO taskInfoDAO;
     protected TaskStatusUpdater taskStatusUpdater;
     protected TaskStatusChecker taskStatusChecker;
     protected ProcessedRecordsDAO processedRecordsDAO;
@@ -68,6 +70,7 @@ public class ECloudSpout extends KafkaSpout {
                         this.keyspaceName,
                         this.userName,
                         this.password);
+        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
@@ -81,7 +84,7 @@ public class ECloudSpout extends KafkaSpout {
     }
 
     private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-        return taskStatusUpdater.searchById(taskId);
+        return taskInfoDAO.searchById(taskId);
     }
 
     public class ECloudOutputCollector extends SpoutOutputCollector {
