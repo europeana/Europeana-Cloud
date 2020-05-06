@@ -178,9 +178,9 @@
             <!--configuration of miredot - REST API documentation generator. -->
 <!--
             <plugin>
-                <groupId>com.qmino</groupId>
-                <artifactId>miredot-plugin</artifactId>
-                <version>${version.miredotPlugin}</version>
+                <groupid>com.qmino</groupid>
+                <artifactid>miredot-plugin</artifactid>
+                <version>${version.miredotplugin}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -189,195 +189,195 @@
                     </execution>
                 </executions>
                 <configuration>
-                    &lt;!&ndash; valid until January 1st, 2020 &ndash;&gt;
-                    <licence>cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==</licence>
-                    <restModel>
-                        <httpStatusCodes>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
+                    &lt;!&ndash; valid until january 1st, 2020 &ndash;&gt;
+                    <licence>chjvamvjdhxlds5ldxjvcgvhbmeuy2xvdwquknwymdiwltaxltaxfhrydwv8ltejtumwq0zrq1dlrvjcztd4ywmyvvixrtzyyu5icitctxzod0lvsk1tqxl5swhlrexpmdfloex5mwl0v0zqyzvnpq==</licence>
+                    <restmodel>
+                        <httpstatuscodes>
+                            <httpstatuscode>
+                                <httpcode>405</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException
+                                    eu.europeana.cloud.service.mcs.exception.cannotmodifypersistentrepresentationexception
                                 </document>
-                                <defaultMessage>Cannot modify persistent representation version.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
+                                <defaultmessage>cannot modify persistent representation version.</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>405</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException
+                                    eu.europeana.cloud.service.mcs.exception.cannotpersistemptyrepresentationexception
                                 </document>
-                                <defaultMessage>Cannot persist representation version which does
+                                <defaultmessage>cannot persist representation version which does
                                     not have any file.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>409</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException
+                                    eu.europeana.cloud.service.mcs.exception.datasetalreadyexistsexception
                                 </document>
-                                <defaultMessage>Cannot create data set because it already exists.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
+                                <defaultmessage>cannot create data set because it already exists.</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>404</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException
+                                    eu.europeana.cloud.service.mcs.exception.datasetnotexistsexception
                                 </document>
-                                <defaultMessage>Requested data set not exists</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
+                                <defaultmessage>requested data set not exists</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>409</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException
+                                    eu.europeana.cloud.service.mcs.exception.filealreadyexistsexception
                                 </document>
-                                <defaultMessage>Cannot add file to representation version because
+                                <defaultmessage>cannot add file to representation version because
                                     it already exists.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>422</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>422</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException
+                                    eu.europeana.cloud.service.mcs.exception.filecontenthashmismatchexception
                                 </document>
-                                <defaultMessage>Cannot process entity because content md5 and tag
+                                <defaultmessage>cannot process entity because content md5 and tag
                                     are not the same
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>404</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.FileNotExistsException
+                                    eu.europeana.cloud.service.mcs.exception.filenotexistsexception
                                 </document>
-                                <defaultMessage>Requested file does not exist</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
+                                <defaultmessage>requested file does not exist</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>405</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException
+                                    eu.europeana.cloud.service.mcs.exception.providerhasdatasetsexception
                                 </document>
-                                <defaultMessage>Cannot delete provider because it has data sets
+                                <defaultmessage>cannot delete provider because it has data sets
                                     assigned.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>405</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException
+                                    eu.europeana.cloud.service.mcs.exception.providerhasrecordsexception
                                 </document>
-                                <defaultMessage>Cannot delete provider because there are
+                                <defaultmessage>cannot delete provider because there are
                                     representation versions in system created by this data provider.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>404</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException
+                                    eu.europeana.cloud.service.mcs.exception.providernotexistsexception
                                 </document>
-                                <defaultMessage>Requested data provider does not exist.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
+                                <defaultmessage>requested data provider does not exist.</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>404</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.RecordNotExistsException
+                                    eu.europeana.cloud.service.mcs.exception.recordnotexistsexception
                                 </document>
-                                <defaultMessage>Used cloud id is not registered in Unique
-                                    Identifier Service
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
+                                <defaultmessage>used cloud id is not registered in unique
+                                    identifier service
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>409</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException
+                                    eu.europeana.cloud.service.mcs.exception.representationalreadyinsetexception
                                 </document>
-                                <defaultMessage>Representation is already assigned into this data
+                                <defaultmessage>representation is already assigned into this data
                                     set.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>401</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>401</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException
+                                    eu.europeana.cloud.service.mcs.exception.accessdeniedorobjectdoesnotexistexception
                                 </document>
-                                <defaultMessage>There is an attempt to access a resource without the proper permissions.
+                                <defaultmessage>there is an attempt to access a resource without the proper permissions.
                                     or the resource does not exist at all .
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>409</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException
+                                    eu.europeana.cloud.service.mcs.exception.provideralreadyexistsexception
                                 </document>
-                                <defaultMessage>Data provider with specified id already exists.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
+                                <defaultmessage>data provider with specified id already exists.</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>404</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
+                                    eu.europeana.cloud.service.mcs.exception.representationnotexistsexception
                                 </document>
-                                <defaultMessage>Requested representation (or representation
+                                <defaultmessage>requested representation (or representation
                                     version) does not exist.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>404</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.VersionNotExistsException
+                                    eu.europeana.cloud.service.mcs.exception.versionnotexistsexception
                                 </document>
-                                <defaultMessage>Requested representation version does not exist.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>416</httpCode>
+                                <defaultmessage>requested representation version does not exist.</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>416</httpcode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.WrongContentRangeException
+                                    eu.europeana.cloud.service.mcs.exception.wrongcontentrangeexception
                                 </document>
-                                <defaultMessage>Requested content range is beyond actual content.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>500</httpCode>
+                                <defaultmessage>requested content range is beyond actual content.</defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>500</httpcode>
                                 <document>always</document>
-                                <defaultMessage>The service call has not succeeded because of
+                                <defaultmessage>the service call has not succeeded because of
                                     server side error.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>200</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>200</httpcode>
                                 <document>get</document>
-                                <defaultMessage>Service call has completed successfully, the
+                                <defaultmessage>service call has completed successfully, the
                                     requested entity is returned in response
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>204</httpCode>
+                                </defaultmessage>
+                            </httpstatuscode>
+                            <httpstatuscode>
+                                <httpcode>204</httpcode>
                                 <document>delete</document>
-                                <defaultMessage>Object deleted.</defaultMessage>
-                            </httpStatusCode>
-                        </httpStatusCodes>
-                        <fieldVisibility>
-                            <GETTER>PUBLIC_ONLY</GETTER>
-                            <IS_GETTER>PUBLIC_ONLY</IS_GETTER>
-                            <SETTER>PUBLIC_ONLY</SETTER>
-                            <CREATOR>PUBLIC_ONLY</CREATOR>
-                            <FIELD>PUBLIC_ONLY</FIELD>
-                        </fieldVisibility>
-                        <titleNamingStrategies>
+                                <defaultmessage>object deleted.</defaultmessage>
+                            </httpstatuscode>
+                        </httpstatuscodes>
+                        <fieldvisibility>
+                            <getter>public_only</getter>
+                            <is_getter>public_only</is_getter>
+                            <setter>public_only</setter>
+                            <creator>public_only</creator>
+                            <field>public_only</field>
+                        </fieldvisibility>
+                        <titlenamingstrategies>
                             <strategy>tag: summary</strategy>
                             <strategy>tag: title</strategy>
                             <strategy>firstsentence</strategy>
-                        </titleNamingStrategies>
-                        <externalSources>
-                            <sourceDirs>
-                                <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
-                            </sourceDirs>
-                        </externalSources>
-                    </restModel>
+                        </titlenamingstrategies>
+                        <externalsources>
+                            <sourcedirs>
+                                <sourcedir>${project.parent.parent.basedir}/common/src/main/java</sourcedir>
+                            </sourcedirs>
+                        </externalsources>
+                    </restmodel>
                     <analysis>
                         <checks>
-                            <JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
-                            <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-                            <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
-                            <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
-                            <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
-                            <JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
-                            <JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
-                            <REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
+                            <javadoc_missing_summary>warn</javadoc_missing_summary>
+                            <javadoc_missing_interfacedocumentation>warn</javadoc_missing_interfacedocumentation>
+                            <javadoc_missing_parameter_documentation>warn</javadoc_missing_parameter_documentation>
+                            <javadoc_missing_exception_documentation>warn</javadoc_missing_exception_documentation>
+                            <javadoc_missing_authors>warn</javadoc_missing_authors>
+                            <jaxrs_missing_produces>warn</jaxrs_missing_produces>
+                            <jaxrs_missing_consumes>warn</jaxrs_missing_consumes>
+                            <rest_unmapped_exception>warn</rest_unmapped_exception>
                         </checks>
                     </analysis>
                 </configuration>
@@ -419,6 +419,7 @@
         </dependency>
 
         <!--For producing XML output by requests-->
+<!--
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-oxm</artifactId>
@@ -429,6 +430,7 @@
             <artifactId>xstream</artifactId>
             <version>1.4.11.1</version>
         </dependency>
+-->
 
         <!--For uploading files-->
         <dependency>
@@ -437,41 +439,33 @@
             <version>1.3.3</version>
         </dependency>
 
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>2.10.3</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>2.10.3</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>2.10.3</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-xml</artifactId>
-                <version>2.9.8</version>
-            </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.10.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.10.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.10.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.9.8</version>
+        </dependency>
+<!--
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
                 <version>1.9.13</version>
             </dependency>
-
-<!--
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-xml</artifactId>
-                <version>2.9.8</version>
-
-            </dependency>
 -->
-
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -665,6 +659,18 @@
             <groupId>com.qmino</groupId>
             <artifactId>miredot-annotations</artifactId>
             <version>1.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

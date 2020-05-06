@@ -1,5 +1,9 @@
 package eu.europeana.cloud.common.model;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +12,7 @@ import java.util.List;
  * Record with its representations.
  */
 @XmlRootElement
+@JsonRootName("record")
 public class Record {
 
     /**
@@ -18,6 +23,7 @@ public class Record {
     /**
      * List of representations of this record.
      */
+    @JacksonXmlElementWrapper(useWrapping = false)
     private List<Representation> representations;
 
 

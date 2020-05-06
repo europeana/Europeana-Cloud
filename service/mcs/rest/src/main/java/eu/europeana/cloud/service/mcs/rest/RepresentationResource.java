@@ -58,9 +58,10 @@ public class RepresentationResource {
 	@GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
     @PostAuthorize("hasPermission"
     	    + "( "
-    	    + " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
+    	    + " (#cloudId).concat('/').concat(#representationName).concat('/').concat(returnObject.version) ,"
     	    + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
-	public @ResponseBody Representation getRepresentation(
+	@ResponseBody
+	public Representation getRepresentation(
 			HttpServletRequest httpServletRequest,
 			@PathVariable(CLOUD_ID) String cloudId,
 			@PathVariable(REPRESENTATION_NAME) String representationName) throws RepresentationNotExistsException {

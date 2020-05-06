@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.*;
@@ -34,13 +35,14 @@ public class RepresentationsResource {
      * Identifier Service.
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public @ResponseBody List<Representation> getRepresentations(
+    @ResponseBody
+    public RepresentationsListWrapper getRepresentations(
             HttpServletRequest httpServletRequest,
             @PathVariable(CLOUD_ID) String cloudId) throws RecordNotExistsException {
 
         List<Representation> representationInfos = recordService.getRecord(cloudId).getRepresentations();
         prepare(httpServletRequest, representationInfos);
-        return representationInfos;
+        return new RepresentationsListWrapper(representationInfos);
     }
 
     private void prepare(HttpServletRequest httpServletRequest, List<Representation> representationInfos) {

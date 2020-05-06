@@ -55,7 +55,7 @@ public class RepresentationVersionResource {
      * @summary get representation by version
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public @ResponseBody  Representation getRepresentationVersion(
             HttpServletRequest httpServletRequest,
@@ -81,7 +81,7 @@ public class RepresentationVersionResource {
      *                                                       specified version is persistent and as such cannot be removed.
      */
     @DeleteMapping
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteRepresentation(
             @PathVariable(CLOUD_ID) String cloudId,
             @PathVariable(REPRESENTATION_NAME) String representationName,
@@ -113,7 +113,7 @@ public class RepresentationVersionResource {
      * @statuscode 201 representation is made persistent.
      */
     @PostMapping(value = "/persist")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> persistRepresentation(
             HttpServletRequest httpServletRequest,
@@ -142,7 +142,7 @@ public class RepresentationVersionResource {
      * @statuscode 201 representation has been copied to a new one.
      */
     @PostMapping(value = "/copy")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<?> copyRepresentation(
             HttpServletRequest httpServletRequest,

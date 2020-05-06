@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.rest.RecordsResource;
 import eu.europeana.cloud.service.mcs.rest.RepresentationResource;
 import eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource;
 import eu.europeana.cloud.service.mcs.rest.RepresentationsResource;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import eu.europeana.cloud.test.AbstractSecurityTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -205,18 +206,18 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 		
 		logoutEveryone();
-		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
 		
-		assertEquals(r.size(), 0);
+		assertEquals(r.getRepresentations().size(), 0);
 	}
 
 	public void shouldOnlyGetRepresentationsHeCanReadTest2() throws RecordNotExistsException, ProviderNotExistsException  {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
 		
-		assertEquals(r.size(), 1);
+		assertEquals(r.getRepresentations().size(), 1);
 	}
 
 	public void shouldOnlyGetRepresentationsHeCanReadTest3() throws RecordNotExistsException, ProviderNotExistsException  {
@@ -234,8 +235,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-		assertEquals(r.size(), 0);
+		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		assertEquals(r.getRepresentations().size(), 0);
 	}
 	
 	public void shouldOnlyGetRepresentationsHeCanReadTest4() throws RecordNotExistsException, ProviderNotExistsException  {
@@ -253,8 +254,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-		assertEquals(r.size(), 1);
+		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		assertEquals(r.getRepresentations().size(), 1);
 	}	
 	
 	// -- CREATE -- //

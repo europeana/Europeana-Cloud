@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +47,7 @@ public class RepresentationVersionsResource {
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
-    //public List<Representation> listVersions(
-    public RepresentationsWrapper listVersions(
+    public RepresentationsListWrapper listVersions(
             final HttpServletRequest request,
             @PathVariable(CLOUD_ID) String cloudId,
             @PathVariable(REPRESENTATION_NAME) String representationName)
@@ -58,19 +58,8 @@ public class RepresentationVersionsResource {
             EnrichUriUtil.enrich(request, representationVersion);
         }
 
-        //return representationVersions;
-        return new RepresentationsWrapper(representationVersions);
+        return new RepresentationsListWrapper(representationVersions);
     }
 
-    @JsonRootName("representations")
-    class RepresentationsWrapper {
-        @JacksonXmlProperty(localName = "representation")
-        @JacksonXmlElementWrapper(useWrapping = false)
-        public List<Representation> representation;
-
-        public RepresentationsWrapper(List<Representation> representation) {
-            this.representation = representation;
-        }
-    }
 
 }

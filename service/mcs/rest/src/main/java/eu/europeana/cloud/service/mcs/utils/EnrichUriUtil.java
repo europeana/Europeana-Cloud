@@ -222,4 +222,68 @@ public final class EnrichUriUtil {
 
     }
 
+    /*
+
+    public static class MappingPlaceholdersResolver {
+        private static final char OPEN = '{';
+        private static final char CLOSE = '}';
+        private static final char REG_EXP_SEPRATOR = ':';
+
+        public String replacePlaceholders(String path, Properties properties) {
+            StringBuilder result = new StringBuilder();
+
+            int currentIndex = 0;
+            int prevIndex = 0;
+
+            while(currentIndex != -1) {
+                currentIndex = path.indexOf(OPEN, prevIndex);
+                if(currentIndex != -1) {
+                    result.append(path.substring(prevIndex, currentIndex));
+
+                    int closeIndex = path.indexOf(CLOSE, currentIndex);
+                    if(closeIndex == -1) {
+                        result.append(path.substring(prevIndex));
+                    } else {
+                        prevIndex = processPlaceholder(path.substring(currentIndex, closeIndex+1), properties, closeIndex, result);
+                    }
+                } else {
+                    result.append(path.substring(prevIndex));
+                }
+            }
+            return result.toString();
+        }
+
+        private int processPlaceholder(String placeHolder, Properties properties, int closeIndex, StringBuilder result) {
+            int regExpSepLocalIndex = placeHolder.indexOf(REG_EXP_SEPRATOR);
+
+            String placeholderName = null;
+            String placeholderRegExp = null;
+
+            if(regExpSepLocalIndex == -1) {
+                placeholderName = placeHolder.substring(1, placeHolder.length()-1).trim();
+            } else {
+                placeholderName = placeHolder.substring(1, regExpSepLocalIndex).trim();
+                placeholderRegExp = placeHolder.substring(regExpSepLocalIndex+1, placeHolder.length()-1).trim();
+            }
+
+            if(!properties.containsKey(placeholderName)) {
+                result.append(placeHolder);
+            } else {
+                String value = properties.getProperty(placeholderName);
+
+                if(placeholderRegExp == null || value.matches(placeholderRegExp)) {
+                    result.append(value);
+                } else {
+                    result.append(placeHolder);
+                }
+            }
+
+            return closeIndex+1;
+        }
+
+
+    }
+*/
+
+
 }

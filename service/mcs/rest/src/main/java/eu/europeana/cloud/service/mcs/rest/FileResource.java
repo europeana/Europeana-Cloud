@@ -78,7 +78,7 @@ public class FileResource {
      * @statuscode 204 object has been updated.
      */
     @PutMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> sendFile(
             HttpServletRequest httpServletRequest,
@@ -139,7 +139,7 @@ public class FileResource {
      * with the specified name.
      */
     @GetMapping
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<StreamingResponseBody> getFile(
             @PathVariable(CLOUD_ID) String cloudId,
@@ -205,7 +205,7 @@ public class FileResource {
      * @throws FileNotExistsException
      */
     @RequestMapping(method = RequestMethod.HEAD)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<?> getFileHeaders(
             HttpServletRequest httpServletRequest,
@@ -255,7 +255,7 @@ public class FileResource {
      * allowed.
      */
     @DeleteMapping
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteFile(
             @PathVariable(CLOUD_ID) String cloudId,

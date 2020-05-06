@@ -61,7 +61,7 @@ public class RevisionResource {
      * @statuscode 201 object has been created.
      */
     @PostMapping(value = "/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER_ID+"}/tag/{"+TAG+"}")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<String> addRevision(
             HttpServletRequest httpServletRequest,
@@ -95,7 +95,7 @@ public class RevisionResource {
      * @statuscode 201 object has been created.
      */
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<?> addRevision(
             HttpServletRequest httpServletRequest,
@@ -130,7 +130,7 @@ public class RevisionResource {
      * @statuscode 201 object has been created.
      */
     @PostMapping(value = "/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER_ID+"}/tags")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<Revision> addRevision(
             HttpServletRequest httpServletRequest,

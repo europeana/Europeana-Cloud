@@ -1,5 +1,7 @@
 package eu.europeana.cloud.common.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -14,7 +16,8 @@ import java.util.Objects;
  * Representation of a record in specific version.
  */
 @XmlRootElement
-@JacksonXmlRootElement(localName = "representation")
+@JacksonXmlRootElement
+@JsonRootName("representation")
 public class Representation {
 
     /**
@@ -76,6 +79,7 @@ public class Representation {
     /**
      * A list of revisions which constitute this representation.
      */
+    @JacksonXmlElementWrapper(useWrapping = false)
     private List<Revision> revisions = new ArrayList<Revision>(0);
 
 

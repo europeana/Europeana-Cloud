@@ -82,7 +82,7 @@ public class FilesResource {
 	 *             specified file already exist.
 	 */
 	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
 	public ResponseEntity<?> sendFile(
 			HttpServletRequest httpServletRequest,

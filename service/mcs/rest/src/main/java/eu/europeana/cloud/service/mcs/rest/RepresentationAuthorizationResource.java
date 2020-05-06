@@ -66,7 +66,7 @@ public class RepresentationAuthorizationResource {
      */
 
     @DeleteMapping(value = "/permissions/{"+PERMISSION+"}/users/{"+USER_NAME+"}")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> removePermissions(
             @PathVariable(CLOUD_ID) String cloudId,
@@ -107,7 +107,7 @@ public class RepresentationAuthorizationResource {
      * @statuscode 204 object has not been updated.
      */
     @PostMapping(value = "/permissions/{permission}/users/{userName}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> updateAuthorization(
             @PathVariable(CLOUD_ID) String cloudId,
@@ -156,7 +156,7 @@ public class RepresentationAuthorizationResource {
      * @statuscode 204 object has been updated.
      */
     @PostMapping(value = "/permit", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> giveReadAccessToEveryone(
             @PathVariable(CLOUD_ID) String cloudId,

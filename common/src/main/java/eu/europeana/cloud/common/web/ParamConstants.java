@@ -137,6 +137,7 @@ public interface ParamConstants {
 
     String F_REVISION_PROVIDER_ID = "revisionProviderId";
 
+    @Deprecated
     String P_REVISION_NAME = "REVISION_NAME";
 
     String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
