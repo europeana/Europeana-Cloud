@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 
 /**
  * This service will be used during submission time to validate if given task submission is correct.<br/>
@@ -68,7 +67,7 @@ public class TaskSubmissionValidator {
         List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
         for (String dataSetURL : dataSets) {
             try {
-                DataSet dataSet = parseDataSetURl(dataSetURL);
+                DataSet dataSet = parseDataSetUrl(dataSetURL);
                 dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
                 validateProviderId(task, dataSet.getProviderId());
             } catch (MalformedURLException e) {
@@ -92,7 +91,7 @@ public class TaskSubmissionValidator {
                         + " should be the same provider of the output dataSet: " + providerId);
     }
 
-    private DataSet parseDataSetURl(String url) throws MalformedURLException {
+    private DataSet parseDataSetUrl(String url) throws MalformedURLException {
         UrlParser parser = new UrlParser(url);
         if (parser.isUrlToDataset()) {
             DataSet dataSet = new DataSet();

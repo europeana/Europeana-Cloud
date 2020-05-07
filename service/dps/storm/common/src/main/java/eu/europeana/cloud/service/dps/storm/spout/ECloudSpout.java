@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 
 public class ECloudSpout extends KafkaSpout {
@@ -160,8 +161,12 @@ public class ECloudSpout extends KafkaSpout {
             //
             stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
             stormTaskTuple.addParameter(PluginParameterKeys.SCHEMA_NAME, dpsRecord.getMetadataPrefix());
-            stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0));
-            //
+
+            List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
+            if(!isEmpty(repositoryUrlList)) {
+                stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
+            }
+
             return stormTaskTuple;
         }
     }
