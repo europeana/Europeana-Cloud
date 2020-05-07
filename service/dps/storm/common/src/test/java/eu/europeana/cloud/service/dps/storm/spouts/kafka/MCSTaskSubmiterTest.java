@@ -343,7 +343,7 @@ public class MCSTaskSubmiterTest {
         verify(recordSubmitService,times(fileUrls.length)).submitRecord(recordCaptor.capture(),anyString());
         for(int i=0;i<fileUrls.length;i++){
             DpsRecord record = recordCaptor.getAllValues().get(i);
-            assertEquals(fileUrls[i],record.getInputData());
+            assertEquals(fileUrls[i],record.getRecordId());
             assertEquals(TASK_ID,record.getTaskId());
             assertEquals(SCHEMA_NAME,record.getMetadataPrefix());
         }

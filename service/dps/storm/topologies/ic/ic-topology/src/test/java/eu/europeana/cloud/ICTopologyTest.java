@@ -108,7 +108,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
         taskParameters.put(PluginParameterKeys.MIME_TYPE, "image/tiff");
         taskParameters.put(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         taskParameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet");
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
+        taskParameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE_VERSION_URL);
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
         dpsTask.setOutputRevision(new Revision());

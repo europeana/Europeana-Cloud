@@ -77,7 +77,7 @@ public class ReadFileBoltTest {
     private StormTaskTuple prepareTuple() {
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER);
-        stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
+        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
         return stormTaskTuple;
     }
 

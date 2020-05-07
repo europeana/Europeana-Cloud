@@ -65,7 +65,7 @@ public class QueueFiller {
 
      private StormTaskTuple buildNextStormTuple(StormTaskTuple stormTaskTuple, String fileUrl) {
         StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
-        fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, fileUrl);
+        fileTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, fileUrl);
         return fileTuple;
     }
 

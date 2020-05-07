@@ -155,7 +155,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                             List<String> files = currentDpsTask.getDataEntry(InputDataType.valueOf(stream));
                             for (String file : files) {
                                 StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
-                                fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, file);
+                                fileTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, file);
                                 tuplesWithFileUrls.put(fileTuple);
                             }
                         } else { // For data Sets

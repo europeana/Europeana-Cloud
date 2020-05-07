@@ -61,7 +61,7 @@ public class ParseFileBoltTest {
     public static void init() {
 
         parseFileBolt.prepare();
-        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.DPS_TASK_INPUT_DATA, PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT);
+        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT);
 
     }
 
@@ -77,7 +77,7 @@ public class ParseFileBoltTest {
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setTaskId(TASK_ID);
         stormTaskTuple.setFileUrl(FILE_URL);
-        stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
+        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
         setStaticField(ParseFileBolt.class.getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
     }

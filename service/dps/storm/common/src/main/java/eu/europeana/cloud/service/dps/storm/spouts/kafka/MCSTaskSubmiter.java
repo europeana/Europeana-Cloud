@@ -240,7 +240,7 @@ public class MCSTaskSubmiter {
 
     private void submitRecord(String fileUrl,SubmitTaskParameters submitParameters) {
         DpsTask task = submitParameters.getTask();
-        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task)).inputData(fileUrl).build();
+        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task)).recordId(fileUrl).build();
         recordSubmitService.submitRecord(record, submitParameters.getTopicName());
     }
 

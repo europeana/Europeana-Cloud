@@ -43,7 +43,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-        final String file = t.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        final String file = t.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         try (InputStream is = getFileStreamByStormTuple(t)) {
             t.setFileData(is);
             outputCollector.emit(t.toStormTuple());
@@ -75,7 +75,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws MCSException, IOException, DriverException {
-        final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         stormTaskTuple.setFileUrl(file);
         LOGGER.info("HERE THE LINK: {}", file);
         return getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
