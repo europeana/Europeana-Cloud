@@ -17,7 +17,6 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.client.RestTemplate;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -45,6 +44,7 @@ public class RecordServiceClient extends MCSClient {
 
     private final Client client = ClientBuilder.newBuilder()
             .register(JacksonFeature.class)
+            .register(MultiPartFeature.class)
             .build();
 
     //RestTemplates
@@ -56,13 +56,13 @@ public class RecordServiceClient extends MCSClient {
     private static final String REPRESENTATIONS_PATH = RECORD_PATH + "/representations";
 
     /** records/{cloudId}/representations/{representationName} */
-    private static final String REPRESTATION_NAME_PATH = REPRESENTATIONS_PATH + "/{"+REPRESENTATION_NAME+"}";
+    private static final String REPRESENTATION_NAME_PATH = REPRESENTATIONS_PATH + "/{"+REPRESENTATION_NAME+"}";
 
     /** records/{cloudId}/representations/{representationName}/files */
-    private static final String REPRESTATION_NAME_FILES_PATH = REPRESTATION_NAME_PATH + "/files";
+    private static final String REPRESENTATION_NAME_FILES_PATH = REPRESENTATION_NAME_PATH + "/files";
 
     /** records/{cloudId}/representations/{representationName}/versions */
-    private static final String VERSIONS_PATH = REPRESTATION_NAME_PATH + "/versions";
+    private static final String VERSIONS_PATH = REPRESENTATION_NAME_PATH + "/versions";
 
     /** records/{cloudId}/representations/{representationName}/versions/{version} */
     private static final String VERSION_PATH = VERSIONS_PATH + "/{"+VERSION+"}";
@@ -80,7 +80,7 @@ public class RecordServiceClient extends MCSClient {
     private static final String GRANTING_PERMISSIONS_TO_VERSION_PATH = VERSION_PATH + "/permissions/{"+PERMISSION+"}/users/{"+USER_NAME+"}";
 
     /** records/{cloudId}/representations/{representationName}/revisions/{revisionName} */
-    private static final String REPRESENTATIONS_REVISIONS_PATH = REPRESTATION_NAME_PATH + "/revisions/{" + REVISION_NAME + "}";
+    private static final String REPRESENTATIONS_REVISIONS_PATH = REPRESENTATION_NAME_PATH + "/revisions/{" + REVISION_NAME + "}";
 
     /**
      * Creates instance of RecordServiceClient.
@@ -245,7 +245,7 @@ public class RecordServiceClient extends MCSClient {
             throws RepresentationNotExistsException, MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESTATION_NAME_PATH)
+                .path(REPRESENTATION_NAME_PATH)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -286,7 +286,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESTATION_NAME_PATH)
+                .path(REPRESENTATION_NAME_PATH)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -318,7 +318,7 @@ public class RecordServiceClient extends MCSClient {
                                     String mediaType) throws IOException, MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESTATION_NAME_FILES_PATH)
+                .path(REPRESENTATION_NAME_FILES_PATH)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -331,7 +331,10 @@ public class RecordServiceClient extends MCSClient {
             multipart = prepareRequestBody(providerId, data, fileName, mediaType);
             response = request.post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
             return handleResponse(response);
-        } finally {
+        }catch (Exception e) {
+            e.printStackTrace();
+            return null;
+       } finally {
             closeResponse(response);
             IOUtils.closeQuietly(data);
             if (multipart != null)
@@ -364,7 +367,7 @@ public class RecordServiceClient extends MCSClient {
                                     String key, String value) throws IOException, MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESTATION_NAME_FILES_PATH)
+                .path(REPRESENTATION_NAME_FILES_PATH)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -415,7 +418,7 @@ public class RecordServiceClient extends MCSClient {
                 .field(ParamConstants.F_FILE_MIME, mediaType);
 
 
-        if (fileName == null || !"".equals(fileName.trim())) {
+        if (fileName == null || !fileName.trim().isEmpty()) {
             fileName = UUID.randomUUID().toString();
         }
         requestBody.field(ParamConstants.F_FILE_NAME, fileName);
@@ -437,7 +440,7 @@ public class RecordServiceClient extends MCSClient {
             throws RepresentationNotExistsException, MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESENTATIONS_PATH)
+                .path(REPRESENTATION_NAME_PATH)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -581,6 +584,20 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
         Builder request = webtarget.request();
+
+        handleDeleteRequest(request);
+    }
+
+
+    public void deleteRepresentation(String cloudId, String representationName, String version, String key, String value)
+            throws MCSException {
+        WebTarget webtarget = client
+                .target(baseUrl)
+                .path(VERSION_PATH)
+                .resolveTemplate(CLOUD_ID, cloudId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName)
+                .resolveTemplate(VERSION, version);
+        Builder request = webtarget.request().header(key, value);
 
         handleDeleteRequest(request);
     }

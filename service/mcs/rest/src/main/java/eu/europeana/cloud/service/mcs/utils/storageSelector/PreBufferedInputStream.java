@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.utils.storageSelector;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -16,11 +17,6 @@ public class PreBufferedInputStream extends BufferedInputStream {
     private int bufferFill;
     private int position;
 
-    public static PreBufferedInputStream wrap(final InputStream inputStream,
-                                              final int preloadChunkSize){
-        return new PreBufferedInputStream(inputStream, preloadChunkSize);
-    }
-
     /**
      * Creates {@link PreBufferedInputStream} and load data in to internal buffer.
      * @param stream input stream
@@ -35,6 +31,17 @@ public class PreBufferedInputStream extends BufferedInputStream {
         } catch (IOException e) {
             throw new ExceptionInInitializerError(e);
         }
+    }
+
+    @Deprecated
+    public static PreBufferedInputStream wrap(final InputStream inputStream,
+                                              final int preloadChunkSize){
+        return new PreBufferedInputStream(inputStream, preloadChunkSize);
+    }
+
+    public static PreBufferedInputStream wrap(final byte[] data,
+                                              final int preloadChunkSize){
+        return new PreBufferedInputStream(new ByteArrayInputStream(data), preloadChunkSize);
     }
 
     /**

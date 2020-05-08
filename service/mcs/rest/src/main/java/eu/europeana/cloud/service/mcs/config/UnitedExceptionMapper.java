@@ -53,7 +53,8 @@ public class UnitedExceptionMapper {
      */
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     @ExceptionHandler(CannotPersistEmptyRepresentationException.class)
-    @ResponseBody public ErrorInfo handleCannotPersistEmptyRepresentationException(Exception exception) {
+    @ResponseBody
+    public ErrorInfo handleCannotPersistEmptyRepresentationException(Exception exception) {
         return buildResponse(McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION, exception);
     }
 
@@ -67,7 +68,8 @@ public class UnitedExceptionMapper {
      */
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(DataSetAlreadyExistsException.class)
-    @ResponseBody public ErrorInfo handleDataSetAlreadyExistsException(Exception exception) {
+    @ResponseBody
+    public ErrorInfo handleDataSetAlreadyExistsException(Exception exception) {
         return buildResponse(McsErrorCode.DATASET_ALREADY_EXISTS, exception);
     }
 
@@ -81,7 +83,8 @@ public class UnitedExceptionMapper {
      */
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(DataSetNotExistsException.class)
-    @ResponseBody public ErrorInfo handleDataSetNotExistsException(Exception exception) {
+    @ResponseBody
+    public ErrorInfo handleDataSetNotExistsException(Exception exception) {
         return buildResponse(McsErrorCode.DATASET_NOT_EXISTS, exception);
     }
 
@@ -95,7 +98,8 @@ public class UnitedExceptionMapper {
      */
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(FileAlreadyExistsException.class)
-    @ResponseBody public ErrorInfo handleFileAlreadyExistsException(Exception exception) {
+    @ResponseBody
+    public ErrorInfo handleFileAlreadyExistsException(Exception exception) {
         return buildResponse(McsErrorCode.FILE_ALREADY_EXISTS, exception);
     }
 
@@ -123,7 +127,8 @@ public class UnitedExceptionMapper {
      */
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(RecordNotExistsException.class)
-    @ResponseBody public ErrorInfo handleRecordNotExistsException(Exception exception) {
+    @ResponseBody
+    public ErrorInfo handleRecordNotExistsException(Exception exception) {
         return buildResponse(McsErrorCode.RECORD_NOT_EXISTS, exception);
     }
 

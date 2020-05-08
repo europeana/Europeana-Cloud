@@ -87,14 +87,14 @@ public class FileResource {
     		@PathVariable(VERSION) String version,
     		@PathVariable(FILE_NAME) String fileName,
     		@RequestParam String mimeType,
-            @RequestParam MultipartFile data) throws IOException, RepresentationNotExistsException,
+            @RequestParam byte[] data) throws IOException, RepresentationNotExistsException,
                 CannotModifyPersistentRepresentationException, FileNotExistsException {
 
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileName(fileName);
 
-        PreBufferedInputStream prebufferedInputStream = wrap(data.getInputStream(), objectStoreSizeThreshold);
+        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
         f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 
         // For throw  FileNotExistsException if specified file does not exist.

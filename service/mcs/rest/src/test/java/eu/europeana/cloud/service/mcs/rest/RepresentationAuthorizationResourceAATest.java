@@ -74,7 +74,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     private HttpServletRequest URI_INFO; /****/
 
-    private MultipartFile INPUT_STREAM;
+    private byte[] ANY_DATA = "ANY_DATA".getBytes();
 
     private Representation representation;
 
@@ -114,8 +114,6 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
        // Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
-
-        INPUT_STREAM = Mockito.mock(MultipartFile.class);
     }
 
 
@@ -139,7 +137,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         login(RONALDO, RONALD_PASSWORD);
 
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
         f.setFileName(FILE_NAME);
@@ -168,7 +166,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         login(RONALDO, RONALD_PASSWORD);
 
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
         f.setFileName(FILE_NAME);
@@ -181,7 +179,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
+        fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, ANY_DATA);
     }
 
     /**
@@ -195,7 +193,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         login(RONALDO, RONALD_PASSWORD);
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
         File f = new File();
         f.setFileName(FILE_NAME);
         f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
@@ -215,7 +213,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     private void assertUserDontHaveAccessToFile() throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileNotExistsException {
         try {
-            fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
+            fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, ANY_DATA);
             fail("Expected AccessDeniedException");
         } catch (AccessDeniedException e) {
 
@@ -235,7 +233,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         login(RONALDO, RONALD_PASSWORD);
 
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
         f.setFileName(FILE_NAME);
@@ -260,7 +258,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         login(RONALDO, RONALD_PASSWORD);
 
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
         f.setFileName(FILE_NAME);
@@ -302,7 +300,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 		/* Add file to eCloud */
         login(RONALDO, RONALD_PASSWORD);
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
         /* Grant access to this file for Van Persie */
         ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
 

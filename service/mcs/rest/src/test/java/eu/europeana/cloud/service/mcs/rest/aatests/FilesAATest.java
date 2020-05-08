@@ -59,7 +59,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	private HttpServletRequest URI_INFO; /****/
 	private Representation representation;
-	private MultipartFile INPUT_STREAM; /****/
+	private byte[] ANY_DATA = "ANY_DATA".getBytes();
 
 	/**
 	 * Pre-defined users
@@ -106,8 +106,6 @@ public class FilesAATest extends AbstractSecurityTest {
      //   Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
 
 		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        
-		INPUT_STREAM = Mockito.mock(MultipartFile.class);;
 	}
 	
 	// -- GET FILE -- //
@@ -135,8 +133,8 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME_2);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME_2);
 		
 		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME));
 		Mockito.doReturn(file2).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME_2));
@@ -155,7 +153,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		
 		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
@@ -180,7 +178,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
@@ -194,7 +192,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 
 		login(RONALDO, RONALD_PASSWORD);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 	}
 
 	// -- DELETE FILE -- //
@@ -223,7 +221,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
 	}
 	
@@ -236,9 +234,9 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
@@ -248,7 +246,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
 		login(RONALDO, RONALD_PASSWORD);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
 	}

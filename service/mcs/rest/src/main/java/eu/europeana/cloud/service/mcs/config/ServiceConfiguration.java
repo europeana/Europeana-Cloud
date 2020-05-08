@@ -159,8 +159,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public CassandraContentDAO objectStoreSizeThreshold() {
-        return new CassandraContentDAO();
+    public Integer objectStoreSizeThreshold() {
+        return new Integer(524288);
     }
 
     @Bean

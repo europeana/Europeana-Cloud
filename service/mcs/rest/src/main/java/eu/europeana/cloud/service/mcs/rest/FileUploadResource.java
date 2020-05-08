@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
@@ -82,12 +83,12 @@ public class FileUploadResource {
             @PathVariable(REPRESENTATION_NAME) String representationName,
             @RequestParam String fileName,
             @RequestParam String providerId,
-            @RequestParam String mimeType,
-            @RequestParam MultipartFile data) throws IOException, RepresentationNotExistsException,
+            @RequestParam String mimeType ,
+            @RequestParam byte[] data) throws IOException, RepresentationNotExistsException,
                                 CannotModifyPersistentRepresentationException, RecordNotExistsException,
                         ProviderNotExistsException, FileAlreadyExistsException, CannotPersistEmptyRepresentationException {
 
-        PreBufferedInputStream prebufferedInputStream = wrap(data.getInputStream(), objectStoreSizeThreshold);
+        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
 
         Representation representation = null;

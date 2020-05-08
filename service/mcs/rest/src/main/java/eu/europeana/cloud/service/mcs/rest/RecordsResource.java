@@ -36,7 +36,8 @@ public class RecordsResource {
      * Identifier Service.
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody Record getRecord(
+    @ResponseBody
+    public Record getRecord(
             HttpServletRequest httpServletRequest,
             @PathVariable(CLOUD_ID) String cloudId) throws RecordNotExistsException {
 
