@@ -193,8 +193,7 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			throws ProviderDoesNotExistException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, null);
+		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -234,8 +233,7 @@ public class DataProviderAATest extends AbstractSecurityTest {
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		dataProvidersResource.createProvider(Mockito.mock(HttpServletRequest.class), DATA_PROVIDER_PROPERTIES,
 				PROVIDER_ID);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, Mockito.mock(HttpServletRequest.class));
+		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
 	}
 	
 	/**
@@ -251,8 +249,7 @@ public class DataProviderAATest extends AbstractSecurityTest {
 		dataProvidersResource.createProvider(Mockito.mock(HttpServletRequest.class), DATA_PROVIDER_PROPERTIES,
 				PROVIDER_ID);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, Mockito.mock(HttpServletRequest.class));
+		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
 	}
 
 	@Test(expected = AccessDeniedException.class)

@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.uis.config;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.uis.exception.*;
 import org.slf4j.Logger;
@@ -34,18 +33,21 @@ public class UnifiedExceptionsMapper {
             CloudIdDoesNotExistException.class
     })
     public ResponseEntity<ErrorInfo> handleException(GenericException e) {
-        LOGGER.info("Exception handling fired");
+        LOGGER.error("Exception handling fired for", e);
         return buildResponse(e);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorInfo> handleAccessDeniedException(AccessDeniedException e) {
+        LOGGER.error("Exception handling fired for ", e);
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                .body(new ErrorInfo("OTHER", e.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorInfo> handle(RuntimeException e) {
-        LOGGER.info("Exception handling fired");
-        if (e instanceof AccessDeniedException) {
-            return ResponseEntity
-                    .status(HttpStatus.METHOD_NOT_ALLOWED.value())
-                    .body(new ErrorInfo("OTHER", e.getMessage()));
-        }
+    public ResponseEntity<ErrorInfo> handleRuntimeException(RuntimeException e) {
+        LOGGER.error("Exception handling fired for ", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(new ErrorInfo("OTHER", e.getMessage()));

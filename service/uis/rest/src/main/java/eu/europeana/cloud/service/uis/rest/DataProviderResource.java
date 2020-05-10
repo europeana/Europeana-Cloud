@@ -102,8 +102,7 @@ public class DataProviderResource {
     @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
     public ResponseEntity<Void> updateProvider(
             @RequestBody DataProviderProperties dataProviderProperties,
-            @PathVariable(P_PROVIDER) String providerId,
-            HttpServletRequest httpServletRequest)
+            @PathVariable(P_PROVIDER) String providerId)
             throws ProviderDoesNotExistException {
 
         providerService.updateProvider(providerId, dataProviderProperties);
@@ -176,7 +175,7 @@ public class DataProviderResource {
     public ResponseEntity<ResultSlice<CloudId>> getLocalIdsByProvider(
             @PathVariable(P_PROVIDER) String providerId,
             @RequestParam(value = UISParamConstants.Q_FROM, required = false) String from,
-            @RequestParam(value = UISParamConstants.Q_LIMIT, required = false, defaultValue = "10000") int to)
+            @RequestParam(value = UISParamConstants.Q_LIMIT, defaultValue = "10000") int to)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -218,7 +217,7 @@ public class DataProviderResource {
     public ResponseEntity<ResultSlice<CloudId>> getCloudIdsByProvider(
             @PathVariable(P_PROVIDER) String providerId,
             @RequestParam(value = UISParamConstants.Q_FROM, required = false) String from,
-            @Min(0) @Max(10000) @RequestParam(value = UISParamConstants.Q_LIMIT, required = false, defaultValue = "10000") int limit)
+            @Min(0) @Max(10000) @RequestParam(value = UISParamConstants.Q_LIMIT, defaultValue = "10000") int limit)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> slice = new ResultSlice<>();
         final int limitWithNextSlice = limit + 1;
@@ -286,7 +285,7 @@ public class DataProviderResource {
     public ResponseEntity<CloudId> createIdMapping(
             @PathVariable(P_PROVIDER) String providerId,
             @PathVariable(P_CLOUDID) String cloudId,
-            @RequestParam(UISParamConstants.Q_RECORD_ID) String localId)
+            @RequestParam(value = UISParamConstants.Q_RECORD_ID, required = false) String localId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
 

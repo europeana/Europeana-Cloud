@@ -5,15 +5,14 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.dao.CassandraCloudIdDAO;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.dao.CassandraLocalIdDAO;
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;

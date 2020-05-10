@@ -61,9 +61,6 @@ public class UniqueIdentifierResourceTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
     }
 
-    /**
-     * Test to create a cloud Id
-     */
     @Test
     public void testCreateCloudId()
             throws Exception {
@@ -87,9 +84,6 @@ public class UniqueIdentifierResourceTest {
         assertEquals(originalGid.getLocalId().getRecordId(), retrieveCreate.getLocalId().getRecordId());
     }
 
-    /**
-     * Test the database exception
-     */
     @Test
     public void testCreateCloudIdDbException()
             throws Exception {
@@ -123,10 +117,6 @@ public class UniqueIdentifierResourceTest {
                         uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
-
-    /**
-     * Test the a cloud id already exists for the record id
-     */
     @Test
     public void testCreateCloudIdRecordExistsException()
             throws Exception {
@@ -152,10 +142,6 @@ public class UniqueIdentifierResourceTest {
                 IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId).getDetails());
     }
 
-
-    /**
-     * Test the a cloud id already exists for the record id
-     */
     @Test
     public void testCreateCloudIdAlreadyExistException()
             throws Exception {
@@ -182,10 +168,6 @@ public class UniqueIdentifierResourceTest {
                 IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(providerId, recordId).getDetails());
     }
 
-
-    /**
-     * Test the retrieval of a cloud id
-     */
     @Test
     public void testGetCloudId()
             throws Exception {
@@ -208,10 +190,6 @@ public class UniqueIdentifierResourceTest {
         assertEquals(originalGid.getLocalId().getRecordId(), retrieveGet.getLocalId().getRecordId());
     }
 
-
-    /**
-     * Test the database exception
-     */
     @Test
     public void testGetCloudIdDBException()
             throws Exception {
@@ -242,10 +220,6 @@ public class UniqueIdentifierResourceTest {
                         uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
-
-    /**
-     * Test the exception that a gloabl id does not exist for this record id
-     */
     @Test
     public void testGetCloudIdRecordDoesNotExistException()
             throws Exception {
@@ -271,10 +245,6 @@ public class UniqueIdentifierResourceTest {
                 IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId).getDetails());
     }
 
-
-    /**
-     * Test the retrieval of local ids by a cloud id
-     */
     @Test
     public void testGetLocalIds()
             throws Exception {
@@ -302,10 +272,6 @@ public class UniqueIdentifierResourceTest {
                 .getLocalId().getRecordId());
     }
 
-
-    /**
-     * Test the database exception
-     */
     @Test
     public void testGetLocalIdsDBException()
             throws Exception {
@@ -334,10 +300,6 @@ public class UniqueIdentifierResourceTest {
                         uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
-
-    /**
-     * Test that a cloud id does not exist
-     */
     @Test
     public void testGetLocalIdsCloudIdDoesNotExistException()
             throws Exception {
@@ -361,10 +323,6 @@ public class UniqueIdentifierResourceTest {
                 IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getDetails());
     }
 
-
-    /**
-     * Test the deletion of a cloud id
-     */
     @Test
     public void testDeleteCloudId()
             throws Exception {
@@ -385,10 +343,6 @@ public class UniqueIdentifierResourceTest {
 
     }
 
-
-    /**
-     * Test the database exception
-     */
     @Test
     public void testDeleteCloudIdDBException()
             throws Exception {
@@ -417,11 +371,6 @@ public class UniqueIdentifierResourceTest {
                         uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
-
-    /**
-     * Test the exception of the removal of a cloud id when a cloud id does not
-     * exist
-     */
     @Test
     public void testDeleteCloudIdCloudIdDoesNotExistException()
             throws Exception {

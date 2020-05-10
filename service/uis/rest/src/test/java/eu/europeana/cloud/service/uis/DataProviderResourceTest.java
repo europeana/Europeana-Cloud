@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.uis;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -71,6 +73,16 @@ public class DataProviderResourceTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
     }
 
+    private String toJson(Object object) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writer().writeValueAsString(object);
+    }
+
+    private ErrorInfo readErrorInfoFromResponse(String response) throws IOException {
+        return new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                response, ErrorInfo.class);
+    }
+
     @Test
     public void shouldUpdateProvider() throws Exception {
 
@@ -86,11 +98,8 @@ public class DataProviderResourceTest {
         dp.setProperties(properties);
         Mockito.doReturn(dp).when(dataProviderService).updateProvider(providerName, properties);
 
-        ObjectMapper mapper = new ObjectMapper();
-        String requestJson = mapper.writer().writeValueAsString(properties);
-
         mockMvc.perform(put("/data-providers/{" + P_PROVIDER + "}", providerName)
-                .content(requestJson).contentType(MediaType.APPLICATION_JSON))
+                .content(toJson(properties)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
         dp.setProperties(properties);
@@ -133,9 +142,6 @@ public class DataProviderResourceTest {
         assertEquals(properties, receivedDataProvider.getProperties());
     }
 
-    /**
-     * Test Non Existing provider
-     */
     @Test
     public void shouldReturn404OnNotExistingProvider()
             throws Exception {
@@ -151,9 +157,7 @@ public class DataProviderResourceTest {
         MvcResult mvcResult = mockMvc.perform(get("/data-providers/{" + P_PROVIDER + "}", "provident").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo deleteErrorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo deleteErrorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
                         .getErrorInfo("provident").getErrorCode(),
@@ -166,9 +170,6 @@ public class DataProviderResourceTest {
                 .andExpect(status().isOk());
     }
 
-    /**
-     * Test the retrieval of local Ids by a provider
-     */
     @Test
     public void testGetLocalIdsByProvider()
             throws Exception {
@@ -194,9 +195,6 @@ public class DataProviderResourceTest {
                 .getLocalId().getRecordId());
     }
 
-    /**
-     * Test the database exception
-     */
     @Test
     public void testGetLocalIdsByProviderDBException() throws Exception {
         Throwable exception = new DatabaseConnectionException(
@@ -215,9 +213,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is5xxServerError()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -233,9 +229,6 @@ public class DataProviderResourceTest {
                                 "").getDetails());
     }
 
-    /**
-     * The the retrieval of cloud ids based on a provider with specified limit
-     */
     @Test
     public void testGetCloudIdsByProviderWithLimit()
             throws Exception {
@@ -270,9 +263,6 @@ public class DataProviderResourceTest {
         assertThat(result.getNextSlice(), is(nextSliceCloudId.getLocalId().getRecordId()));
     }
 
-    /**
-     * The the retrieval of cloud ids based on a provider with less than specified limit
-     */
     @Test
     public void testGetCloudIdsByProviderWithLessThanLimit()
             throws Exception {
@@ -307,9 +297,6 @@ public class DataProviderResourceTest {
         assertThat(result.getNextSlice(), nullValue());
     }
 
-    /**
-     * Test the exception that a provider does not exist
-     */
     @Test
     public void testGetLocalIdsByProviderProviderDoesNotExistException()
             throws Exception {
@@ -327,9 +314,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -341,9 +326,6 @@ public class DataProviderResourceTest {
                         "providerId").getDetails());
     }
 
-    /**
-     * The the retrieval of cloud ids based on a provider
-     */
     @Test
     public void testGetCloudIdsByProvider()
             throws Exception {
@@ -373,9 +355,6 @@ public class DataProviderResourceTest {
                 .getLocalId().getRecordId());
     }
 
-    /**
-     * Test the database exception
-     */
     @Test
     public void testGetCloudIdsByProviderDBException() throws Exception {
         Throwable exception = new DatabaseConnectionException(
@@ -394,10 +373,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is5xxServerError()).andReturn();
 
-
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -413,9 +389,6 @@ public class DataProviderResourceTest {
                                 "").getDetails());
     }
 
-    /**
-     * Test the exception of cloud ids when a provider does not exist
-     */
     @Test
     public void testGetCloudIdsByProviderProviderDoesNotExistException()
             throws Exception {
@@ -433,10 +406,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
-
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -448,9 +418,6 @@ public class DataProviderResourceTest {
                         "providerId").getDetails());
     }
 
-    /**
-     * Test the retrieval of an empty dataset based on provider search
-     */
     @Test
     public void testGetCloudIdsByProviderRecordDatasetEmptyException()
             throws Exception {
@@ -467,9 +434,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -481,9 +446,6 @@ public class DataProviderResourceTest {
                         "providerId").getDetails());
     }
 
-    /**
-     * Test the creation of a mapping between a cloud id and a record id
-     */
     @Test
     public void testCreateMapping() throws Exception {
         CloudId gid = createCloudId("providerId", "recordId");
@@ -504,9 +466,6 @@ public class DataProviderResourceTest {
 
     }
 
-    /**
-     * Test the database exception
-     */
     @Test
     public void testCreateMappingDBException() throws Exception {
         Throwable exception = new DatabaseConnectionException(
@@ -526,10 +485,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is5xxServerError()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
-
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -545,10 +501,6 @@ public class DataProviderResourceTest {
                                 "").getDetails());
     }
 
-    /**
-     * Test the exception of a a missing cloud id between the mapping of a cloud
-     * id and a record id
-     */
     @Test
     public void testCreateMappingCloudIdException() throws Exception {
         Throwable exception = new CloudIdDoesNotExistException(
@@ -566,9 +518,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -580,9 +530,6 @@ public class DataProviderResourceTest {
                         "cloudId").getDetails());
     }
 
-    /**
-     * Test the exception when a recordd id is mapped twice
-     */
     @Test
     public void testCreateMappingIdHasBeenMapped() throws Exception {
         Throwable exception = new IdHasBeenMappedException(
@@ -600,9 +547,7 @@ public class DataProviderResourceTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -614,9 +559,6 @@ public class DataProviderResourceTest {
                         "local1", "providerId", "cloudId").getDetails());
     }
 
-    /**
-     * Test the removal of a mapping between a cloud id and a record id
-     */
     @Test
     public void testRemoveMapping() throws Exception {
         CloudId gid = createCloudId("providerId", "recordId");
@@ -632,9 +574,6 @@ public class DataProviderResourceTest {
                 .andExpect(status().isOk());
     }
 
-    /**
-     * Test the database exception
-     */
     @Test
     public void testRemoveMappingDBException() throws Exception {
         Throwable exception = new DatabaseConnectionException(
@@ -652,9 +591,7 @@ public class DataProviderResourceTest {
         MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is5xxServerError()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),
@@ -670,10 +607,6 @@ public class DataProviderResourceTest {
                                 "").getDetails());
     }
 
-    /**
-     * Test the exception when the provider used for the removal of a mapping is
-     * non existent
-     */
     @Test
     public void testRemoveMappingProviderDoesNotExistException()
             throws Exception {
@@ -690,9 +623,7 @@ public class DataProviderResourceTest {
         MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(errorInfo.getErrorCode(),
                 IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
@@ -702,9 +633,6 @@ public class DataProviderResourceTest {
                         "providerId").getDetails());
     }
 
-    /**
-     * Test the exception when a record to be removed does not exist
-     */
     @Test
     public void testRemoveMappingRecordIdDoesNotExistException()
             throws Exception {
@@ -721,9 +649,7 @@ public class DataProviderResourceTest {
         MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
-        String content = mvcResult.getResponse().getContentAsString();
-        ErrorInfo errorInfo = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-                content, ErrorInfo.class);
+        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
 
         assertEquals(
                 errorInfo.getErrorCode(),

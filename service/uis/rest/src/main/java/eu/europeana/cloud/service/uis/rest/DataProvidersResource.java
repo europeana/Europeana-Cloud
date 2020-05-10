@@ -8,7 +8,6 @@ import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +22,6 @@ import java.net.URISyntaxException;
 /**
  * Resource for DataProviders.
  *
- * @author
- *
  */
 @RestController
 @RequestMapping("/data-providers")
@@ -33,8 +30,8 @@ public class DataProvidersResource {
     private DataProviderService providerService;
 	private ACLServiceWrapper aclWrapper;
 
-	private final int numberOfElementsOnPage = 100;
-    private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
+	private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
+	private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
 
 	public DataProvidersResource(
 			DataProviderService providerService,
@@ -56,7 +53,7 @@ public class DataProvidersResource {
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
 	public ResultSlice<DataProvider> getProviders(
             @RequestParam(value = UISParamConstants.Q_FROM,required = false) String startFrom) {
-		return providerService.getProviders(startFrom, numberOfElementsOnPage);
+		return providerService.getProviders(startFrom, NUMBER_OF_ELEMENTS_ON_PAGE);
 	}
 
     /**

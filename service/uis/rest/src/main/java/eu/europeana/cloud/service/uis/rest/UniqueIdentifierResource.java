@@ -32,13 +32,13 @@ import java.util.List;
 @RequestMapping("/cloudIds")
 public class UniqueIdentifierResource {
 
-    private UniqueIdentifierService uniqueIdentifierService;
-    private DataProviderResource dataProviderResource;
-    private ACLServiceWrapper aclWrapper;
+    private final UniqueIdentifierService uniqueIdentifierService;
+    private final DataProviderResource dataProviderResource;
+    private final ACLServiceWrapper aclWrapper;
 
     private static final String CLOUDID = "cloudId";
     private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierResource.class);
-    private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
+    private static final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
 
     public UniqueIdentifierResource(
             UniqueIdentifierService uniqueIdentifierService,
@@ -79,8 +79,9 @@ public class UniqueIdentifierResource {
     @PostMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CloudId> createCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
-                                        @RequestParam(value = UISParamConstants.Q_RECORD_ID,required = false) String localId)
+    public ResponseEntity<CloudId> createCloudId(
+            @RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
+            @RequestParam(value = UISParamConstants.Q_RECORD_ID, required = false) String localId)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
             RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
