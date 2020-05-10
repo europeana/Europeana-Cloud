@@ -3,22 +3,21 @@ package eu.europeana.cloud.client.uis.rest;
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -37,12 +36,16 @@ public class UISClient {
     private static final String DATA_PROVIDERS_PATH = "/data-providers";
     private static final String CLOUD_IDS_PATH_WITH_CLOUD_ID = "/cloudIds/{CLOUD_ID}";
 
-    private Client client = JerseyClientBuilder.newClient();
+    private final Client client = ClientBuilder.newBuilder()
+            .register(JacksonFeature.class)
+            .build();
+
     private UrlProvider urlProvider;
     private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
+    /**
     /**
      * Creates a new instance of this class. Same as {@link #UISClient(String)}
      * but includes username and password to perform authenticated requests.
@@ -132,6 +135,7 @@ public class UISClient {
             resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
                     .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                     .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
+                    .accept(MediaType.APPLICATION_JSON)
                     .post(null);
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {

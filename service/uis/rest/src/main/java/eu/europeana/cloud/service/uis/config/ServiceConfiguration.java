@@ -42,21 +42,24 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public UniqueIdentifierService uniqueIdentifierService() {
+    public UniqueIdentifierService uniqueIdentifierService(
+            CassandraCloudIdDAO cassandraCloudIdDAO,
+            CassandraLocalIdDAO cassandraLocalIdDAO,
+            CassandraDataProviderDAO cassandraDataProviderDAO) {
         return new CassandraUniqueIdentifierService(
-                cassandraCloudIdDAO(),
-                cassandraLocalIdDAO(),
-                cassandraDataProviderDAO());
+                cassandraCloudIdDAO,
+                cassandraLocalIdDAO,
+                cassandraDataProviderDAO);
     }
 
     @Bean
-    public CassandraCloudIdDAO cassandraCloudIdDAO() {
-        return new CassandraCloudIdDAO(dataProviderDao());
+    public CassandraCloudIdDAO cassandraCloudIdDAO(CassandraConnectionProvider dataProviderDao){
+        return new CassandraCloudIdDAO(dataProviderDao);
     }
 
     @Bean
-    public CassandraLocalIdDAO cassandraLocalIdDAO() {
-        return new CassandraLocalIdDAO(dataProviderDao());
+    public CassandraLocalIdDAO cassandraLocalIdDAO(CassandraConnectionProvider dataProviderDao) {
+        return new CassandraLocalIdDAO(dataProviderDao);
     }
 
     @Bean
@@ -65,8 +68,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraDataProviderDAO cassandraDataProviderDAO() {
-        return new CassandraDataProviderDAO(dataProviderDao());
+    public CassandraDataProviderDAO cassandraDataProviderDAO(CassandraConnectionProvider dataProviderDao) {
+        return new CassandraDataProviderDAO(dataProviderDao);
     }
 
     @Bean

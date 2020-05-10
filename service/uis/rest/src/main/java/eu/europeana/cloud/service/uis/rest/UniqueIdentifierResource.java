@@ -80,7 +80,7 @@ public class UniqueIdentifierResource {
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CloudId> createCloudId(@RequestParam(UISParamConstants.Q_PROVIDER) String providerId,
-                                        @RequestParam(UISParamConstants.Q_RECORD_ID) String localId)
+                                        @RequestParam(value = UISParamConstants.Q_RECORD_ID,required = false) String localId)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
             RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
