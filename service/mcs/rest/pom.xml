@@ -34,85 +34,6 @@
                 </dependency>
             </dependencies>
         </profile>
-
-
-<!--
-        <profile>
-            <id>persistent-authorization</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-                <property>
-                    <name>persistent-authorization</name>
-                </property>
-            </activation>
-            <dependencies>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>2.6</version>
-                        <executions>
-                            <execution>
-                                <id>copy-authorization-resources</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${basedir}/target/classes</outputDirectory>
-                                    <resources>
-                                        <resource>
-                                            <directory>src/main/resources/persistent-authorization</directory>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
--->
-
-<!--
-        <profile>
-            <id>persistent-authentication</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-                <property>
-                    <name>persistent-authentication</name>
-                </property>
-            </activation>
-            <dependencies>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>2.6</version>
-                        <executions>
-                            <execution>
-                                <id>copy-authentication-resources</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${basedir}/target/classes</outputDirectory>
-                                    <resources>
-                                        <resource>
-                                            <directory>src/main/resources/persistent-authentication</directory>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
--->
     </profiles>
 
     <build>
@@ -162,25 +83,13 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
-<!--
-                    <webResources>
-                        <resource>
-                            <filtering>true</filtering>
-                            <directory>src/main/webapp</directory>
-                            <includes>
-                                <include>**/web.xml</include>
-                            </includes>
-                        </resource>
-                    </webResources>
--->
                 </configuration>
             </plugin>
             <!--configuration of miredot - REST API documentation generator. -->
-<!--
             <plugin>
-                <groupid>com.qmino</groupid>
-                <artifactid>miredot-plugin</artifactid>
-                <version>${version.miredotplugin}</version>
+                <groupId>com.qmino</groupId>
+                <artifactId>miredot-plugin</artifactId>
+                <version>${version.miredotPlugin}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -189,7 +98,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    &lt;!&ndash; valid until january 1st, 2020 &ndash;&gt;
+                    <!-- valid until january 1st, 2020 -->
                     <licence>chjvamvjdhxlds5ldxjvcgvhbmeuy2xvdwquknwymdiwltaxltaxfhrydwv8ltejtumwq0zrq1dlrvjcztd4ywmyvvixrtzyyu5icitctxzod0lvsk1tqxl5swhlrexpmdfloex5mwl0v0zqyzvnpq==</licence>
                     <restmodel>
                         <httpstatuscodes>
@@ -382,11 +291,23 @@
                     </analysis>
                 </configuration>
             </plugin>
--->
         </plugins>
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${version.spring-framework}</version>
+        </dependency>
+        <!--This dependency is included here only because Miredot complaints. We can remove it when (if)
+        miredot will be removed. This dependency will still be included as a transitive dependency-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${version.spring-security}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
@@ -532,14 +453,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <dependency>
+ <!--       <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>${version.servlet}</version>
             <scope>provided</scope>
         </dependency>
-
+ -->       <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+        </dependency>
         <!--Jersey -->
 <!--
         <dependency>
@@ -641,12 +565,6 @@
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
             <version>${version.junitparams}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

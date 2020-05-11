@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -77,39 +78,37 @@ public class RevisionResourceTest extends JerseyTest {
         revision = new Revision(TEST_REVESION_NAME, PROVIDER_ID);
         revisionForDataProvider = new Revision(TEST_REVESION_NAME, dataProvider.getId());
         Map<String, Object> revisionPathParams = ImmutableMap
-                .<String, Object>of(P_CLOUDID,
-                        rep.getCloudId(), P_REPRESENTATIONNAME,
-                        rep.getRepresentationName(), P_VER,
-                        rep.getVersion());
+                .<String, Object>of(CLOUD_ID, rep.getCloudId(),
+                        REPRESENTATION_NAME, rep.getRepresentationName(),
+                        VERSION, rep.getVersion());
         revisionWebTarget = target(
                 RevisionResource.class.getAnnotation(Path.class).value())
                 .resolveTemplates(revisionPathParams);
 
         Map<String, Object> revisionPathParamsWithTag = ImmutableMap
-                .<String, Object>of(P_CLOUDID,
-                        rep.getCloudId(), P_REPRESENTATIONNAME,
-                        rep.getRepresentationName(), P_VER,
-                        rep.getVersion(), P_REVISION_NAME,
-                        TEST_REVESION_NAME, P_REVISION_PROVIDER_ID,
-                        P_REVISION_PROVIDER_ID);
+                .<String, Object>of(
+                        CLOUD_ID, rep.getCloudId(),
+                        REPRESENTATION_NAME, rep.getRepresentationName(),
+                        VERSION, rep.getVersion(),
+                        REVISION_NAME, TEST_REVESION_NAME,
+                        REVISION_PROVIDER_ID, REVISION_PROVIDER_ID);
 
-        String revisionWithTagPath = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}";
+        String revisionWithTagPath = "records/{" + CLOUD_ID + "}/representations/{"
+                + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
         revisionWebTargetWithTag = target(revisionWithTagPath).resolveTemplates(revisionPathParamsWithTag);
-        String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
+        String revisionPathWithMultipleTags = "records/{" + CLOUD_ID + "}/representations/{"
+                + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
         revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
 
 
         Map<String, Object> removeRevisionPathParams = ImmutableMap
-                .<String, Object>of(P_CLOUDID,
-                        rep.getCloudId(), P_REPRESENTATIONNAME,
-                        rep.getRepresentationName(), P_VER,
-                        rep.getVersion(), P_REVISION_NAME,
-                        TEST_REVESION_NAME, P_REVISION_PROVIDER_ID,
-                        P_REVISION_PROVIDER_ID);
-        String removeRevisionPath = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}";
+                .<String, Object>of(CLOUD_ID, rep.getCloudId(),
+                        REPRESENTATION_NAME, rep.getRepresentationName(),
+                        VERSION, rep.getVersion(),
+                        REVISION_NAME, TEST_REVESION_NAME,
+                        REVISION_PROVIDER_ID, REVISION_PROVIDER_ID);
+        String removeRevisionPath = "records/{" + CLOUD_ID + "}/representations/{"
+                + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}";
         removeRevisionWebTarget = target(removeRevisionPath).resolveTemplates(removeRevisionPathParams);
 
 
@@ -166,28 +165,28 @@ public class RevisionResourceTest extends JerseyTest {
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithPublishedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.PUBLISHED.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.PUBLISHED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithDeletedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.DELETED.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.DELETED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, "UNDEFINED").request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, "UNDEFINED").request().post(null);
         assertEquals(response.getStatus(), 400);
     }
 
@@ -285,9 +284,9 @@ public class RevisionResourceTest extends JerseyTest {
         Date date = new Date();
         String revisionTimeStamp = FORMATTER.format(date);
 
-        Revision revision = new Revision(TEST_REVESION_NAME, P_REVISION_PROVIDER_ID, date, true, false, false);
+        Revision revision = new Revision(TEST_REVESION_NAME, REVISION_PROVIDER_ID, date, true, false, false);
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider(providerId));
-        Mockito.when(uisHandler.existsProvider(P_REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
         dataSetService.createDataSet(providerId, datasetId, "");
         dataSetService.addAssignment(providerId, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());

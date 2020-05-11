@@ -55,7 +55,7 @@ public final class EnrichUriUtil {
                 .getBaseUriBuilder()
                 .path(RepresentationVersionsResource.class)
                 .buildFromMap(
-                    ImmutableMap.of(P_CLOUDID, representation.getCloudId(), P_REPRESENTATIONNAME,
+                    ImmutableMap.of(CLOUD_ID, representation.getCloudId(), REPRESENTATION_NAME,
                         representation.getRepresentationName()));
         representation.setAllVersionsUri(uriInfo.resolve(allVersionsUri));
 
@@ -64,8 +64,8 @@ public final class EnrichUriUtil {
                     .getBaseUriBuilder()
                     .path(RepresentationVersionResource.class)
                     .buildFromMap(
-                        ImmutableMap.of(P_CLOUDID, representation.getCloudId(), P_REPRESENTATIONNAME,
-                            representation.getRepresentationName(), P_VER, representation.getVersion()));
+                        ImmutableMap.of(CLOUD_ID, representation.getCloudId(), REPRESENTATION_NAME,
+                            representation.getRepresentationName(), VERSION, representation.getVersion()));
             representation.setUri(uriInfo.resolve(latestVersionUri));
         }
         if (representation.getFiles() != null) {
@@ -110,7 +110,7 @@ public final class EnrichUriUtil {
                 .getBaseUriBuilder()
                 .path(FileResource.class)
                 .buildFromMap(
-                    ImmutableMap.of(P_CLOUDID, cloudId, P_REPRESENTATIONNAME, representationName, P_VER, version, P_FILENAME,
+                    ImmutableMap.of(CLOUD_ID, cloudId, REPRESENTATION_NAME, representationName, VERSION, version, FILE_NAME,
                         file.getFileName()));
         file.setContentUri(uriInfo.resolve(fileUri));
     }
@@ -128,7 +128,7 @@ public final class EnrichUriUtil {
     @Deprecated
     public static void enrich(UriInfo uriInfo, DataSet dataSet) {
         URI datasetUri = uriInfo.getBaseUriBuilder().path(DataSetResource.class)
-                .buildFromMap(ImmutableMap.of(P_PROVIDER, dataSet.getProviderId(), P_DATASET, dataSet.getId()));
+                .buildFromMap(ImmutableMap.of(PROVIDER_ID, dataSet.getProviderId(), DATA_SET_ID, dataSet.getId()));
         dataSet.setUri(uriInfo.resolve(datasetUri));
     }
 

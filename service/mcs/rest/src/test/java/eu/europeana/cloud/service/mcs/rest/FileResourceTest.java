@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.Assert.*;
 
@@ -77,11 +78,12 @@ public class FileResourceTest extends JerseyTest {
 	file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
 	Map<String, Object> allPathParams = ImmutableMap
-		.<String, Object> of(ParamConstants.P_CLOUDID,
-			rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME,
-			rep.getRepresentationName(), ParamConstants.P_VER,
-			rep.getVersion(), ParamConstants.P_FILENAME,
-			file.getFileName());
+		.<String, Object> of(
+				CLOUD_ID, rep.getCloudId(),
+				REPRESENTATION_NAME, rep.getRepresentationName(),
+				VERSION, rep.getVersion(),
+				FILE_NAME, file.getFileName());
+
 	fileWebTarget = target(
 		FileResource.class.getAnnotation(Path.class).value())
 		.resolveTemplates(allPathParams);

@@ -5,8 +5,6 @@ package eu.europeana.cloud.common.web;
  */
 public interface ParamConstants {
 
-    String LATEST_VERSION_KEYWORD = "LATEST";
-
     // resources' paths
     String RECORDS = "records";
 
@@ -14,21 +12,8 @@ public interface ParamConstants {
 
     String VERSIONS = "versions";
 
-    String PROVIDERS = "data-providers";
-
-    String DATASETS = "data-sets";
-
     String ASSIGNMENTS = "assignments";
 
-    String REVISIONS = "revisions";
-
-    String COPY = "copy";
-
-    String PERSIST = "persist";
-
-    String PERMIT = "permit";
-
-    // path parameters' names
     @Deprecated
     String P_CLOUDID = "CLOUDID";
 
@@ -39,9 +24,6 @@ public interface ParamConstants {
 
 
     String REPRESENTATION_NAME = "representationName";
-
-
-    //String P_REVISIONID = "P_REVISIONID";
 
     @Deprecated
     String P_VER = "VERSION";
@@ -140,6 +122,7 @@ public interface ParamConstants {
     @Deprecated
     String P_REVISION_NAME = "REVISION_NAME";
 
+    @Deprecated
     String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
 
     String F_REVISION_NAME = "revisionName";

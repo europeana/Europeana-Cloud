@@ -87,11 +87,11 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
 
         // when
         dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
+                resolveTemplate(DATA_SET_ID, datasetId).
+                resolveTemplate(PROVIDER_ID, providerId).
+                resolveTemplate(REVISION_NAME, revisionName).
+                resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).
+                resolveTemplate(REPRESENTATION_NAME, representationName).
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_LIMIT, 10);
         Response response = dataSetWebTarget.request().get();
@@ -123,12 +123,12 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
 
         // when
         dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_CLOUDID, cloudId).
-                resolveTemplate(P_REVISION_NAME, revisionName2).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
+                resolveTemplate(DATA_SET_ID, datasetId).
+                resolveTemplate(PROVIDER_ID, providerId).
+                resolveTemplate(CLOUD_ID, cloudId).
+                resolveTemplate(REVISION_NAME, revisionName2).
+                resolveTemplate(PROVIDER_ID, revisionProviderId).
+                resolveTemplate(REPRESENTATION_NAME, representationName).
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision2.getCreationTimeStamp())).
                 queryParam(F_LIMIT, 1);
         Response response = dataSetWebTarget.request().get();
@@ -154,11 +154,11 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
 
         // when
         dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
+                resolveTemplate(DATA_SET_ID, datasetId).
+                resolveTemplate(PROVIDER_ID, providerId).
+                resolveTemplate(REVISION_NAME, revisionName).
+                resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).
+                resolveTemplate(REPRESENTATION_NAME, representationName).
                 queryParam(F_REVISION_TIMESTAMP, revisionTimestamp).
                 queryParam(F_LIMIT, 10);
         Response response = dataSetWebTarget.request().get();
@@ -191,11 +191,11 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
 
         // when
         dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
+                resolveTemplate(PROVIDER_ID, providerId).
+                resolveTemplate(DATA_SET_ID, datasetId).
+                resolveTemplate(REPRESENTATION_NAME, representationName).
+                resolveTemplate(REVISION_NAME, revisionName).
+                resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_LIMIT, 1);
         Response response = dataSetWebTarget.request().get();
@@ -230,11 +230,11 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
 
         // when get first page (set page size to 1)
         WebTarget target = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
+                resolveTemplate(PROVIDER_ID, providerId).
+                resolveTemplate(DATA_SET_ID, datasetId).
+                resolveTemplate(REPRESENTATION_NAME, representationName).
+                resolveTemplate(REVISION_NAME, revisionName).
+                resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_LIMIT, 1);
         Response response = target.request().get();
@@ -249,11 +249,11 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
 
         // when get second page
         target = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
+                resolveTemplate(PROVIDER_ID, providerId).
+                resolveTemplate(DATA_SET_ID, datasetId).
+                resolveTemplate(REPRESENTATION_NAME, representationName).
+                resolveTemplate(REVISION_NAME, revisionName).
+                resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_START_FROM, slice.getNextSlice()).
                 queryParam(F_LIMIT, 1);
@@ -269,11 +269,11 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
 
         // when get last page
         target = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
+                resolveTemplate(PROVIDER_ID, providerId).
+                resolveTemplate(DATA_SET_ID, datasetId).
+                resolveTemplate(REPRESENTATION_NAME, representationName).
+                resolveTemplate(REVISION_NAME, revisionName).
+                resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_START_FROM, slice.getNextSlice()).
                 queryParam(F_LIMIT, 1);

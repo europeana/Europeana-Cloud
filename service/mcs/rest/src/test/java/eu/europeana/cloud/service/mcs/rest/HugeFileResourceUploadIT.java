@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -87,9 +88,9 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
         WebTarget webTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(
             ImmutableMap.<String, Object> of( //
-                ParamConstants.P_CLOUDID, globalId, //
-                ParamConstants.P_REPRESENTATIONNAME, schema, //
-                ParamConstants.P_VER, version));
+                CLOUD_ID, globalId, //
+                REPRESENTATION_NAME, schema, //
+                VERSION, version));
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);

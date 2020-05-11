@@ -73,7 +73,7 @@ public class DataSetsResourceTest extends JerseyTest {
 	String datasetId = "dataset";
 	String description = "dataset description";
 	// when you add data set for a provider
-	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER,
+	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(PROVIDER_ID,
 		"provId");
 	Response createResponse = dataSetsWebTarget.request().post(
 		Entity.form(new Form(F_DATASET, datasetId).param(F_DESCRIPTION,
@@ -83,9 +83,9 @@ public class DataSetsResourceTest extends JerseyTest {
 	assertEquals(Response.Status.CREATED.getStatusCode(),
 		createResponse.getStatus());
 
-	URI expectedObjectUri = dataSetsWebTarget.path("{" + P_DATASET + "}")
-		.resolveTemplate(P_PROVIDER, "provId")
-		.resolveTemplate(P_DATASET, datasetId).getUri();
+	URI expectedObjectUri = dataSetsWebTarget.path("{" + DATA_SET_ID + "}")
+		.resolveTemplate(PROVIDER_ID, "provId")
+		.resolveTemplate(DATA_SET_ID, datasetId).getUri();
 	assertEquals(expectedObjectUri, createResponse.getLocation());
 
 	// and then this set should be visible in service
@@ -106,7 +106,7 @@ public class DataSetsResourceTest extends JerseyTest {
 	String description = "dataset description";
 
 	// when you try to add data set without id
-	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER,
+	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(PROVIDER_ID,
 		"provId");
 	Response createResponse = dataSetsWebTarget.request().post(
 		Entity.form(new Form(F_DESCRIPTION, description)));
@@ -127,7 +127,7 @@ public class DataSetsResourceTest extends JerseyTest {
 	dataSetService.createDataSet("provId", dataSetId, "");
 
 	// when you try to add a dataset for the same provider with this id
-	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER,
+	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(PROVIDER_ID,
 		"provId");
 	Response createResponse = dataSetsWebTarget.request().post(
 		Entity.form(new Form(F_DATASET, dataSetId)));
@@ -148,7 +148,7 @@ public class DataSetsResourceTest extends JerseyTest {
 		.getProvider("notexisting");
 
 	// when you try to add dataset to this not existing provider
-	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER,
+	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(PROVIDER_ID,
 		"notexisting");
 	Response createResponse = dataSetsWebTarget.request().post(
 		Entity.form(new Form(F_DATASET, "dataset")));

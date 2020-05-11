@@ -95,8 +95,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 		rep.getCloudId(), rep.getRepresentationName(),
 		rep.getDataProvider());
 	dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
-		.resolveTemplate(P_PROVIDER, dataProvider.getId())
-		.resolveTemplate(P_DATASET, dataSet.getId());
+		.resolveTemplate(PROVIDER_ID, dataProvider.getId())
+		.resolveTemplate(DATA_SET_ID, dataSet.getId());
 	Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep2
 		.getCloudId()).param(F_REPRESENTATIONNAME,
 		rep2.getRepresentationName()).param(F_VER, rep2.getVersion()));
@@ -123,8 +123,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 		// when representation is assigned to data set without specifying the
 		// version
 		dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
-				.resolveTemplate(P_PROVIDER, dataProvider.getId())
-				.resolveTemplate(P_DATASET, dataSet.getId());
+				.resolveTemplate(PROVIDER_ID, dataProvider.getId())
+				.resolveTemplate(DATA_SET_ID, dataSet.getId());
 		Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep
 				.getCloudId()).param(F_REPRESENTATIONNAME,
 				rep.getRepresentationName()));
@@ -164,8 +164,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
 	// when representation is assigned to data set in specific version
 	dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
-		.resolveTemplate(P_PROVIDER, dataProvider.getId())
-		.resolveTemplate(P_DATASET, dataSet.getId());
+		.resolveTemplate(PROVIDER_ID, dataProvider.getId())
+		.resolveTemplate(DATA_SET_ID, dataSet.getId());
 	Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep
 		.getCloudId()).param(F_REPRESENTATIONNAME,
 		rep.getRepresentationName()).param(F_VER, rep.getVersion()));
@@ -197,8 +197,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
 	// when assignment is deleted
 	dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
-		.resolveTemplate(P_PROVIDER, dataProvider.getId())
-		.resolveTemplate(P_DATASET, dataSet.getId());
+		.resolveTemplate(PROVIDER_ID, dataProvider.getId())
+		.resolveTemplate(DATA_SET_ID, dataSet.getId());
 	Response deleteAssignmentResponse = dataSetAssignmentWebTarget
 		.queryParam(F_CLOUDID, rep.getCloudId())
 		.queryParam(F_REPRESENTATIONNAME, rep.getRepresentationName())

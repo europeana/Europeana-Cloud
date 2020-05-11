@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -63,9 +64,11 @@ public class FileUploadResourceTest extends JerseyTest {
         file = new File();
         file.setFileName("fileName");
         file.setMimeType("application/octet-stream");
-        Map<String, Object> allPathParams = ImmutableMap.<String, Object>of(ParamConstants.P_CLOUDID,
-                rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
-                rep.getVersion());
+        Map<String, Object> allPathParams = ImmutableMap.<String, Object>of(
+                CLOUD_ID, rep.getCloudId(),
+                REPRESENTATION_NAME, rep.getRepresentationName(),
+                VERSION, rep.getVersion());
+
         fileWebTarget = target(FileUploadResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
     

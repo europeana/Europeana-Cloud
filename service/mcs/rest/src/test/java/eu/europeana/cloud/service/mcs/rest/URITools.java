@@ -9,6 +9,8 @@ import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.Map;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+
 class URITools {
 
     static URI getAllVersionsUri(URI baseUri, String globalId, String schema) {
@@ -30,75 +32,82 @@ class URITools {
     }
 
 
-    static URI getVersionPath(String globalId, String schema, String version) {
+    static URI getVersionPath(String cloudId, String representationName, String version) {
         return UriBuilder.fromResource(RepresentationVersionResource.class).buildFromMap(
-            getVersionMap(globalId, schema, version));
+            getVersionMap(cloudId, representationName, version));
     }
 
 
-    static URI getRepresentationPath(String globalId, String schema) {
+    static URI getRepresentationPath(String cloudId, String representationName) {
         return UriBuilder.fromResource(RepresentationResource.class).buildFromMap(
-            getRepresentationMap(globalId, schema));
+            getRepresentationMap(cloudId, representationName));
     }
 
 
-    static URI getRepresentationRevisionsPath(String globalId, String schema, String revisionId) {
+    static URI getRepresentationRevisionsPath(String cloudId, String representationName, String revisionId) {
         return UriBuilder.fromResource(RepresentationRevisionsResource.class).buildFromMap(
-                getRepresentationRevisionsMap(globalId, schema, revisionId));
+                getRepresentationRevisionsMap(cloudId, representationName, revisionId));
     }
 
-    static URI getContentUri(URI baseUri, String globalId, String schema, String version, String fileName) {
+    static URI getContentUri(URI baseUri, String cloudId, String representationName, String version, String fileName) {
         UriBuilder uriFromResource = UriBuilder.fromResource(FileResource.class);
         setBaseUri(uriFromResource, baseUri);
-        return uriFromResource.buildFromMap(getFileMap(globalId, schema, version, fileName));
+        return uriFromResource.buildFromMap(getFileMap(cloudId, representationName, version, fileName));
     }
 
 
-    static URI getRepresentationsPath(String globalId) {
-        return UriBuilder.fromResource(RepresentationsResource.class).buildFromMap(getGlobalIdMap(globalId));
+    static URI getRepresentationsPath(String cloudId) {
+        return UriBuilder.fromResource(RepresentationsResource.class).buildFromMap(getGlobalIdMap(cloudId));
     }
 
 
-    static Object getListVersionsPath(String globalId, String schema) {
+    static Object getListVersionsPath(String cloudId, String representationName) {
         return UriBuilder.fromResource(RepresentationVersionsResource.class).buildFromMap(
-            getRepresentationMap(globalId, schema));
+            getRepresentationMap(cloudId, representationName));
     }
 
 
-    static URI getPath(Class<RepresentationVersionResource> resourceClass, String method, String globalId,
-            String schema, String version) {
+    static URI getPath(Class<RepresentationVersionResource> resourceClass, String method, String cloudId,
+            String representationName, String version) {
         return UriBuilder.fromResource(resourceClass).path(resourceClass, method)
-                .buildFromMap(getVersionMap(globalId, schema, version));
+                .buildFromMap(getVersionMap(cloudId, representationName, version));
     }
 
 
-    private static Map<String, String> getGlobalIdMap(String globalId) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId);
+    private static Map<String, String> getGlobalIdMap(String cloudId) {
+        return ImmutableMap.<String, String> of(CLOUD_ID, cloudId);
     }
 
 
-    private static Map<String, String> getRepresentationMap(String globalId, String schema) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
-            ParamConstants.P_REPRESENTATIONNAME, schema);
+    private static Map<String, String> getRepresentationMap(String cloudId, String representationName) {
+        return ImmutableMap.<String, String> of(
+                CLOUD_ID, cloudId,
+                REPRESENTATION_NAME, representationName);
     }
 
 
-    private static Map<String, String> getRepresentationRevisionsMap(String globalId, String schema, String revisionId) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
-                ParamConstants.P_REPRESENTATIONNAME, schema, ParamConstants.P_REVISION_NAME, revisionId);
+    private static Map<String, String> getRepresentationRevisionsMap(String cloudId, String representationName, String revisionId) {
+        return ImmutableMap.<String, String> of(
+                CLOUD_ID, cloudId,
+                REPRESENTATION_NAME, representationName,
+                REVISION_NAME, revisionId);
     }
 
 
-    private static Map<String, String> getVersionMap(String globalId, String schema, String version) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
-            ParamConstants.P_REPRESENTATIONNAME, schema, ParamConstants.P_VER, version);
+    private static Map<String, String> getVersionMap(String cloudId, String representationName, String version) {
+        return ImmutableMap.<String, String> of(
+                CLOUD_ID, cloudId,
+                REPRESENTATION_NAME, representationName,
+                VERSION, version);
     }
 
 
-    private static Map<String, String> getFileMap(String globalId, String schema, String version, String fileName) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
-            ParamConstants.P_REPRESENTATIONNAME, schema, ParamConstants.P_VER, version, ParamConstants.P_FILENAME,
-            fileName);
+    private static Map<String, String> getFileMap(String cloudId, String representationName, String version, String fileName) {
+        return ImmutableMap.<String, String> of(
+                CLOUD_ID, cloudId,
+                REPRESENTATION_NAME, representationName,
+                VERSION, version,
+                FILE_NAME, fileName);
     }
 
 

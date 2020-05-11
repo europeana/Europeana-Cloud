@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doAnswer;
@@ -86,10 +87,10 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
         // when we download mocked content of resource
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()) //
                 .resolveTemplates(ImmutableMap.<String, Object> of( //
-                    ParamConstants.P_CLOUDID, globalId, //
-                    ParamConstants.P_REPRESENTATIONNAME, schema, //
-                    ParamConstants.P_VER, version, //
-                    ParamConstants.P_FILENAME, file.getFileName()));
+                    CLOUD_ID, globalId, //
+                    REPRESENTATION_NAME, schema, //
+                    VERSION, version, //
+                    FILE_NAME, file.getFileName()));
 
         Response response = webTarget.request().get();
         assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());

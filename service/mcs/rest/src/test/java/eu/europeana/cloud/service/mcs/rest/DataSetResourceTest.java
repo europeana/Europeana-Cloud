@@ -83,8 +83,9 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
 
         // when you add data set for a provider 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId);
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId);
         Response updateResponse = dataSetWebTarget.request().put(Entity.form(new Form(F_DESCRIPTION, description)));
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), updateResponse.getStatus());
 
@@ -109,8 +110,9 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
         // when you delete it for one provider
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId);
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId);
         Response deleteResponse = dataSetWebTarget.request().delete();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
 
@@ -137,8 +139,9 @@ public class DataSetResourceTest extends JerseyTest {
                 r2_1.getVersion());
 
         // when you list dataset contents
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId);
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId);
         Response listDataset = dataSetWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataset.getStatus());
         List<Representation> dataSetContents = listDataset.readEntity(ResultSlice.class).getResults();
@@ -161,23 +164,32 @@ public class DataSetResourceTest extends JerseyTest {
     public void shouldReturnErrorForMissingParameters() throws Exception {
         String dataSetId = "dataset";
 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyRevisionedVersion");
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId).path("/latelyRevisionedVersion");
         Response response = dataSetWebTarget.request().get();
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         //
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).queryParam(P_CLOUDID,"sampleCloudID");
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId)
+                .queryParam(CLOUD_ID,"sampleCloudID");
+
         response = dataSetWebTarget.request().get();
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         //
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).queryParam(P_REPRESENTATIONNAME,"sampleRepName");
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId)
+                .queryParam(REPRESENTATION_NAME,"sampleRepName");
+
         response = dataSetWebTarget.request().get();
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         //
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).queryParam(P_REVISION_NAME,"sampleRevisionName");
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId)
+                .queryParam(REVISION_NAME,"sampleRevisionName");
         response = dataSetWebTarget.request().get();
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
@@ -187,8 +199,15 @@ public class DataSetResourceTest extends JerseyTest {
         Mockito.doReturn("sample").when(dataSetService).getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         String dataSetId = "dataset";
 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyRevisionedVersion").queryParam(F_CLOUDID,"sampleCloudID").queryParam(F_REPRESENTATIONNAME,"sampleRepName").queryParam(F_REVISION_NAME,"sampleRevisionName").queryParam(F_REVISION_PROVIDER_ID,"samplerevProvider");
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId)
+                .path("/latelyRevisionedVersion")
+                .queryParam(CLOUD_ID,"sampleCloudID")
+                .queryParam(REPRESENTATION_NAME,"sampleRepName")
+                .queryParam(REVISION_NAME,"sampleRevisionName")
+                .queryParam(REVISION_PROVIDER_ID,"samplerevProvider");
+
         Response response = dataSetWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertEquals("sample",response.readEntity(String.class));
@@ -200,8 +219,15 @@ public class DataSetResourceTest extends JerseyTest {
                 .getLatestVersionForGivenRevision(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
         String dataSetId = "dataset";
 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyRevisionedVersion").queryParam(F_CLOUDID,"sampleCloudID").queryParam(F_REPRESENTATIONNAME,"sampleRepName").queryParam(F_REVISION_NAME,"sampleRevisionName").queryParam(F_REVISION_PROVIDER_ID,"samplerevProvider");
+        dataSetWebTarget = dataSetWebTarget
+                .resolveTemplate(PROVIDER_ID, dataProvider.getId())
+                .resolveTemplate(DATA_SET_ID, dataSetId)
+                .path("/latelyRevisionedVersion")
+                .queryParam(CLOUD_ID,"sampleCloudID")
+                .queryParam(REPRESENTATION_NAME,"sampleRepName")
+                .queryParam(REVISION_NAME,"sampleRevisionName")
+                .queryParam(REVISION_PROVIDER_ID,"samplerevProvider");
+
         Response response = dataSetWebTarget.request().get();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     }

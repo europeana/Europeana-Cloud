@@ -47,7 +47,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
     private final static String TEST_REVISION_NAME = "revisionNameTest";
     private final static String DATE_SET_NAME = "dataSetId";
-    private final static String REVISION_PROVIDER_ID = "revisionProviderId";
+    private final static String TEST_REVISION_PROVIDER_ID = "revisionProviderId";
     private UISClientHandler uisHandler;
     private DataSetService dataSetService;
     private DataProvider dataProvider;
@@ -77,15 +77,15 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
         String dataSetPath = DataSetResource.class.getAnnotation(Path.class).value();
 
-        revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + P_REVISION_NAME + "}/" + REVISION_PROVIDER + "/{" + P_REVISION_PROVIDER_ID + "}/" + REPRESENTATIONS + "/{" + P_REPRESENTATIONNAME + "}";
+        revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID+ "}/representations/{" + REPRESENTATION_NAME + "}";
 
         Map<String, Object> revisionAndRepresentation = ImmutableMap
-                .<String, Object>of(P_PROVIDER,
-                        dataProvider.getId(), P_DATASET,
-                        DATE_SET_NAME, P_REPRESENTATIONNAME,
-                        rep.getRepresentationName(), P_REVISION_NAME,
-                        TEST_REVISION_NAME, P_REVISION_PROVIDER_ID,
-                        REVISION_PROVIDER_ID);
+                .<String, Object>of(PROVIDER_ID,
+                        dataProvider.getId(), DATA_SET_ID,
+                        DATE_SET_NAME, REPRESENTATION_NAME,
+                        rep.getRepresentationName(), REVISION_NAME,
+                        TEST_REVISION_NAME, REVISION_PROVIDER_ID,
+                        TEST_REVISION_PROVIDER_ID);
 
 
         revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentation);
@@ -186,11 +186,11 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         //when
 
         Map<String, Object> revisionAndRepresentationNoneExistedProviderId = ImmutableMap
-                .<String, Object>of(P_PROVIDER,
-                        dataProvider.getId(), P_DATASET,
-                        DATE_SET_NAME, P_REPRESENTATIONNAME,
-                        rep.getRepresentationName(), P_REVISION_NAME,
-                        TEST_REVISION_NAME, P_REVISION_PROVIDER_ID,
+                .<String, Object>of(PROVIDER_ID,
+                        dataProvider.getId(), DATA_SET_ID,
+                        DATE_SET_NAME, REPRESENTATION_NAME,
+                        rep.getRepresentationName(), REVISION_NAME,
+                        TEST_REVISION_NAME, REVISION_PROVIDER_ID,
                         dataProvider.getId());
 
         revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentationNoneExistedProviderId);
