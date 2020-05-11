@@ -44,7 +44,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.
-                httpBasic().authenticationEntryPoint(new CloudAuthenticationEntryPoint()).and().
+                httpBasic().and().
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 csrf().disable();
     }

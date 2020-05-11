@@ -20,7 +20,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     public static final String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
     public static final String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
     public static final String JNDI_KEY_AAS_CASSANDRA_AUTHENTICATION_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-    public static final String JNDI_KEY_AAS_CASSANDRA_AUTHORIZATION_KEYSPACE = "/aas/cassandra/authentication-keyspace";
     public static final String JNDI_KEY_AAS_CASSANDRA_USERNAME = "/aas/cassandra/user";
     public static final String JNDI_KEY_AAS_CASSANDRA_PASSWORD = "/aas/cassandra/password";
 
@@ -28,16 +27,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     public ServiceConfiguration(Environment environment) {
         this.environment = environment;
-    }
-
-    @Bean
-    public CassandraConnectionProvider dataProviderDao() {
-        return new CassandraConnectionProvider(
-                environment.getProperty(JNDI_KEY_AAS_CASSANDRA_HOSTS),
-                environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PORT, Integer.class),
-                environment.getProperty(JNDI_KEY_AAS_CASSANDRA_AUTHORIZATION_KEYSPACE),
-                environment.getProperty(JNDI_KEY_AAS_CASSANDRA_USERNAME),
-                environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PASSWORD));
     }
 
     @Bean
