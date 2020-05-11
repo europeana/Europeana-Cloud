@@ -20,6 +20,8 @@ public class UnifiedExceptionsMapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
 
+    private static final String OTHER_ERROR_CODE_MESSAGE="OTHER";
+
     @ExceptionHandler({
             DatabaseConnectionException.class,
             IdHasBeenMappedException.class,
@@ -42,7 +44,7 @@ public class UnifiedExceptionsMapper {
         LOGGER.error("Exception handling fired for ", e);
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED.value())
-                .body(new ErrorInfo("OTHER", e.getMessage()));
+                .body(new ErrorInfo(OTHER_ERROR_CODE_MESSAGE, e.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -50,7 +52,7 @@ public class UnifiedExceptionsMapper {
         LOGGER.error("Exception handling fired for ", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .body(new ErrorInfo("OTHER", e.getMessage()));
+                .body(new ErrorInfo(OTHER_ERROR_CODE_MESSAGE, e.getMessage()));
     }
 
     private ResponseEntity<ErrorInfo> buildResponse(GenericException e) {
