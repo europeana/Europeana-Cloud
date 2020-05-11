@@ -32,14 +32,17 @@ public class UnifiedExceptionsMapper {
         return buildResponse(e);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorInfo> handleAccessDeniedException(AccessDeniedException e) {
+        LOGGER.error("Exception handling fired for ", e);
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                .body(new ErrorInfo("OTHER", e.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorInfo> handle(RuntimeException e) {
-        LOGGER.info("Exception handling fired");
-        if (e instanceof AccessDeniedException) {
-            return ResponseEntity
-                    .status(HttpStatus.METHOD_NOT_ALLOWED.value())
-                    .body(new ErrorInfo("OTHER", e.getMessage()));
-        }
+        LOGGER.error("Exception handling fired for ", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(new ErrorInfo("OTHER", e.getMessage()));

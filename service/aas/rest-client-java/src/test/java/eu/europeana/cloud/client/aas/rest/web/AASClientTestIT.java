@@ -15,8 +15,8 @@ import org.junit.Test;
 public class AASClientTestIT {
 
     private static final String AAS_LOCATION = "http://127.0.0.1:8080/aas";
-    private static final String USER = "admin";
-    private static final String PASSWORD = "glEumLWDSVUjQcRVswhN";
+    private static final String USER = "user";
+    private static final String PASSWORD = "password";
 
     @Test
     public void shouldCreateUser() throws CloudException {

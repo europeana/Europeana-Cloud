@@ -56,10 +56,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(new LoggingFilter());
     }
 
-    /////////////////////
-    //
-    /////////////////////
-
     @Bean
     public MethodValidationPostProcessor methodValidationPostProcessor() {
         return new MethodValidationPostProcessor();

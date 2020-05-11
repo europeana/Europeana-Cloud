@@ -23,7 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {TestConfiguration.class})
 public class AuthenticationResourceTest {
 
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
+
     @Autowired
     private AuthenticationService authenticationService;
     @Autowired
