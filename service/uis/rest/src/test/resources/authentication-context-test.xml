@@ -32,9 +32,10 @@
                 <user name="admin" password="admin" authorities="ROLE_ADMIN"/> 
                 <user name="Robin_Van_Persie" password="Feyenoord" authorities="ROLE_USER"/> 
                 <user name="Cristiano" password="Ronaldo" authorities="ROLE_USER"/> 
-            </user-service> 
-        </authentication-provider> 
-    </authentication-manager> 
+            </user-service>
+            <password-encoder ref="encoder"></password-encoder>
+        </authentication-provider>
+    </authentication-manager>
 	
     <!-- Automatically receives AuthenticationEvent messages -->
     <b:bean id="loggerListener"
@@ -47,6 +48,6 @@
     </global-method-security>
 
     <b:bean id="encoder"
-            class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+            class="org.springframework.security.crypto.password.NoOpPasswordEncoder" />
 
 </b:beans>
