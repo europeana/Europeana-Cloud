@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
+import eu.europeana.cloud.service.uis.LoggingFilter;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.service.CassandraUniqueIdentifierService;
@@ -16,12 +17,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 @Configuration
 @EnableWebMvc
 @ComponentScan("eu.europeana.cloud.service.uis")
-public class ServiceConfiguration {
+public class ServiceConfiguration implements WebMvcConfigurer {
 
     public static final String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
     public static final String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
@@ -110,5 +113,10 @@ public class ServiceConfiguration {
         result.setTargetMethod("setStrategyName");
         result.setArguments("MODE_INHERITABLETHREADLOCAL");
         return result;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoggingFilter());
     }
 }
