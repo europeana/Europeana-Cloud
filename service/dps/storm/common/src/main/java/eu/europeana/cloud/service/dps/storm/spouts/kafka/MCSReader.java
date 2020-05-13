@@ -19,7 +19,7 @@ import java.util.List;
 
 import static eu.europeana.cloud.service.dps.storm.utils.Retriever.*;
 
-public class MCSReader implements  AutoCloseable{
+public class MCSReader implements AutoCloseable {
     private final static Logger LOGGER = LoggerFactory.getLogger(MCSReader.class);
     private final String authorizationHeader;
     private String mcsClientURL;
@@ -51,13 +51,13 @@ public class MCSReader implements  AutoCloseable{
 
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName, String startFrom) throws MCSException, DriverException {
         return retryOnError3Times("Error while getting Revisions from data set.", () -> {
-                ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(datasetProvider, datasetName, representationName,
-                        revisionName, revisionProvider, revisionTimestamp, startFrom, null);
-                if (resultSlice == null || resultSlice.getResults() == null) {
-                    throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
-                }
+            ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(datasetProvider, datasetName, representationName,
+                    revisionName, revisionProvider, revisionTimestamp, startFrom, null);
+            if (resultSlice == null || resultSlice.getResults() == null) {
+                throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
+            }
 
-                return resultSlice;
+            return resultSlice;
 
         });
     }
@@ -76,7 +76,6 @@ public class MCSReader implements  AutoCloseable{
     public RepresentationIterator getRepresentationsOfEntireDataset(UrlParser urlParser) {
         return dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
     }
-
 
 
     public void close() {
