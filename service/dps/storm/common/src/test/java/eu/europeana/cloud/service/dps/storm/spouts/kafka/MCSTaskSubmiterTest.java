@@ -206,6 +206,19 @@ public class MCSTaskSubmiterTest {
     }
 
     @Test
+    public void executeMcsBasedTask_3000FileUrls() {
+        List<String> fileUrls=new ArrayList<>();
+        for(int i =0;i<3000;i++) {
+            fileUrls.add(FILE_URL_1);
+        }
+        task.addDataEntry(InputDataType.FILE_URLS, fileUrls);
+
+        submiter.execute(submitParameters);
+
+        verifyValidTaskSent(fileUrls.toArray(new String[0]));
+    }
+
+    @Test
     public void executeMcsBasedTask_oneDatasetWithOneFile() {
         task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
         when(dataSetServiceClient.getRepresentationIterator(eq(DATASET_PROVIDER_1),eq(DATASET_ID_1))).thenReturn(representationIterator);

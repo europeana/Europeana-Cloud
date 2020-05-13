@@ -62,7 +62,7 @@ public class MCSTaskSubmiter {
 
     public void execute(SubmitTaskParameters submitParameters) {
         DpsTask task = submitParameters.getTask();
-        try(MCSReader reader = createMcsReader(submitParameters)) {
+        try {
             LOGGER.info("Sending task id={} to topology {} by kafka topic {}", task.getTaskId(), submitParameters.getTopologyName(),submitParameters.getTopicName());
 
             checkIfTaskIsKilled(task);
@@ -71,7 +71,7 @@ public class MCSTaskSubmiter {
             if (taskContainsFileUrls(task)) {
                 expectedSize = executeForFilesList(submitParameters);
             } else {
-                expectedSize = executeForDatasetList(submitParameters, reader);
+                expectedSize = executeForDatasetList(submitParameters);
             }
 
             if (expectedSize != 0) {
@@ -103,16 +103,16 @@ public class MCSTaskSubmiter {
         return filesList.size();
     }
 
-    private int executeForDatasetList(SubmitTaskParameters submitParameters, MCSReader reader) throws Exception {
+    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws Exception {
         int expectedSize = 0;
         for (String dataSetUrl : submitParameters.getTask().getDataEntry(InputDataType.DATASET_URLS)) {
-            expectedSize += executeForOneDataSet(dataSetUrl, submitParameters, reader);
+            expectedSize += executeForOneDataSet(dataSetUrl, submitParameters);
         }
         return expectedSize;
     }
 
-    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException, InterruptedException, ExecutionException {
-        try {
+    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws MCSException, InterruptedException, ExecutionException {
+        try(MCSReader reader = createMcsReader(submitParameters)) {
             UrlParser urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
                 throw new RuntimeException("DataSet URL is not formulated correctly: " + dataSetUrl);
@@ -128,7 +128,7 @@ public class MCSTaskSubmiter {
             return expectedSize;
 
         } catch (MalformedURLException e) {
-            throw new RuntimeException("MCSReaderSpout error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
+            throw new RuntimeException("MCSTaskSubmiter error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
         }
     }
 
@@ -240,6 +240,13 @@ public class MCSTaskSubmiter {
         DpsTask task = submitParameters.getTask();
         DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task)).recordId(fileUrl).build();
         recordSubmitService.submitRecord(record, submitParameters.getTopicName());
+        logProgress(submitParameters, submitParameters.incrementAndGetSentRecordCounter());
+    }
+
+    private void logProgress(SubmitTaskParameters submitParameters, int submitedCount) {
+        if(submitedCount %1000==0){
+            LOGGER.info("Task records submiting is progressing. Already submited:{} records.\n{}", submitParameters);
+        }
     }
 
     private boolean taskContainsFileUrls(DpsTask task) {
