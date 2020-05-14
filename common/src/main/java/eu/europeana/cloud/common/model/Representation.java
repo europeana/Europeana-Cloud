@@ -1,18 +1,16 @@
 package eu.europeana.cloud.common.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import eu.europeana.cloud.common.utils.DateAdapter;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Representation of a record in specific version.
@@ -20,7 +18,6 @@ import java.util.*;
 @XmlRootElement
 @JacksonXmlRootElement
 @JsonRootName(Representation.XSI_TYPE)
-@JsonIgnoreProperties(value = { "files", "revisions", "creationDate" })
 public class Representation {
 
     final static String XSI_TYPE = "representation";
@@ -61,8 +58,7 @@ public class Representation {
     /**
      * A list of files which constitute this representation.
      */
-    //@JacksonXmlElementWrapper(useWrapping = false)
-    @XmlTransient
+    @JacksonXmlElementWrapper(useWrapping = false)
     private List<File> files = new ArrayList<>(0);
 
     /**
@@ -70,7 +66,6 @@ public class Representation {
      * version: date of making this object persistent.
      */
     //@XmlJavaTypeAdapter(DateAdapter.class)
-    @XmlTransient
     private Date creationDate;
 
     /**
@@ -90,8 +85,7 @@ public class Representation {
     /**
      * A list of revisions which constitute this representation.
      */
-    //@JacksonXmlElementWrapper(useWrapping = false)
-    @XmlTransient
+    @JacksonXmlElementWrapper(useWrapping = false)
     private List<Revision> revisions = new ArrayList<Revision>(0);
 
 

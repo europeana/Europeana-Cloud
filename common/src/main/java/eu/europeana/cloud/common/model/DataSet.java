@@ -5,7 +5,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -39,9 +38,6 @@ public class DataSet {
      * Resource URI.
      */
     private URI uri;
-
-
-    public Date creationDate;
 
 
     public String getId() {

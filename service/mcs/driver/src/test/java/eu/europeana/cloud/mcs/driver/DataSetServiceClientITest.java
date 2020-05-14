@@ -5,13 +5,10 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
-import java.util.List;
 
 import static org.junit.Assert.*;
 

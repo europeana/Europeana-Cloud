@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.GregorianCalendar;
-
 import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 
 /**
@@ -62,10 +60,6 @@ public class DataSetsResource {
     		@RequestParam(required = false) String startFrom) {
 
         ResultSlice<DataSet> r = dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
-
-        for(int index = 0; index < r.getResults().size(); index++) {
-            r.getResults().get(index).creationDate = GregorianCalendar.getInstance().getTime();
-        }
 
         return r;
     }

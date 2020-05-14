@@ -275,9 +275,7 @@ public class DataSetServiceClient extends MCSClient {
         try {
             response = target.request().get();
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                //Object o = response.getEntity();
-                return response.readEntity(new GenericType<ResultSlice<Representation>>(){});
-                //return response.readEntity(ResultSlice.class);
+                return response.readEntity(ResultSlice.class);
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
