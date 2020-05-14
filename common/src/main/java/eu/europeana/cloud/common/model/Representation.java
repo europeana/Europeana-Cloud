@@ -1,24 +1,32 @@
 package eu.europeana.cloud.common.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import eu.europeana.cloud.common.utils.DateAdapter;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Representation of a record in specific version.
  */
 @XmlRootElement
 @JacksonXmlRootElement
-@JsonRootName("representation")
+@JsonRootName(Representation.XSI_TYPE)
+@JsonIgnoreProperties(value = { "files", "revisions", "creationDate" })
 public class Representation {
+
+    final static String XSI_TYPE = "representation";
+
+    @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
+    private final String xsiType = XSI_TYPE;
 
     /**
      * Identifier (cloud id) of a record this object is representation of.
@@ -53,13 +61,16 @@ public class Representation {
     /**
      * A list of files which constitute this representation.
      */
-    @JacksonXmlElementWrapper(useWrapping = false)
+    //@JacksonXmlElementWrapper(useWrapping = false)
+    @XmlTransient
     private List<File> files = new ArrayList<>(0);
 
     /**
      * If this is temporary representation version: date of this object creation; If this is persistent representation
      * version: date of making this object persistent.
      */
+    //@XmlJavaTypeAdapter(DateAdapter.class)
+    @XmlTransient
     private Date creationDate;
 
     /**
@@ -79,7 +90,8 @@ public class Representation {
     /**
      * A list of revisions which constitute this representation.
      */
-    @JacksonXmlElementWrapper(useWrapping = false)
+    //@JacksonXmlElementWrapper(useWrapping = false)
+    @XmlTransient
     private List<Revision> revisions = new ArrayList<Revision>(0);
 
 
@@ -117,7 +129,7 @@ public class Representation {
         this.files = files;
         this.revisions = revisions;
         this.persistent = persistent;
-        this.creationDate = creationDate != null ? creationDate : null;
+        this.creationDate = creationDate;
     }
 
 
@@ -240,7 +252,7 @@ public class Representation {
 
 
     public void setCreationDate(Date creationDate) {
-        this.creationDate = creationDate != null ? creationDate : null;
+        this.creationDate = creationDate;
     }
 
     /**

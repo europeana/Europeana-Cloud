@@ -7,7 +7,6 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -35,18 +34,16 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  */
 public class FileServiceClient extends MCSClient {
 
-    //private static final Logger LOGGER = LoggerFactory.getLogger(FileServiceClient.class);
-
     private final Client client = ClientBuilder.newBuilder()
             .register(JacksonFeature.class)
             .register(MultiPartFeature.class)
             .build();
 
-    /* records/{cloudId}/representations/{representationName}/versions/{version}/files */
+    /** records/{cloudId}/representations/{representationName}/versions/{version}/files */
     private static final String FILES_PATH = "records/{" + CLOUD_ID + "}/representations/{"
             + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/files";
 
-    /* records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName} */
+    /** records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName} */
     private static final String FILE_PATH = FILES_PATH + "/{" + FILE_NAME + "}";
 
 
@@ -111,8 +108,8 @@ public class FileServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public InputStream getFile(String cloudId, String representationName, String version, String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException, DriverException, MCSException, IOException {
+    public InputStream getFile(String cloudId, String representationName,
+                               String version, String fileName) throws MCSException, IOException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -150,9 +147,8 @@ public class FileServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public InputStream getFile(String cloudId, String representationName, String version, String fileName, String range)
-                                throws RepresentationNotExistsException, FileNotExistsException,
-                                                WrongContentRangeException, DriverException, MCSException, IOException {
+    public InputStream getFile(String cloudId, String representationName, String version,
+                               String fileName, String range)  throws MCSException, IOException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -183,7 +179,7 @@ public class FileServiceClient extends MCSClient {
     /**
      * Function returns file content.
      */
-    public InputStream getFile(String fileUrl) throws DriverException, MCSException, IOException {
+    public InputStream getFile(String fileUrl) throws MCSException, IOException {
 
         Response response = null;
 
@@ -196,12 +192,16 @@ public class FileServiceClient extends MCSClient {
         }
     }
 
-    public InputStream getFile(String fileUrl,String key,String value) throws DriverException, MCSException, IOException {
+    public InputStream getFile(String fileUrl,String key,String value) throws MCSException, IOException {
 
         Response response = null;
 
         try {
-            response = client.target(fileUrl).request().header(key,value).get();
+            response = client
+                    .target(fileUrl)
+                    .request()
+                    .header(key,value)
+                    .get();
 
             return handleReadFileResponse(response);
         } finally {
@@ -226,8 +226,7 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI uploadFile(String cloudId, String representationName, String version,
-                          InputStream data, String mediaType, String expectedMd5) throws IOException,
-            RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException, MCSException {
+                          InputStream data, String mediaType, String expectedMd5) throws IOException, MCSException {
 
         Response response = null;
         FormDataMultiPart multipart = new FormDataMultiPart();
@@ -266,9 +265,8 @@ public class FileServiceClient extends MCSClient {
      * @throws DriverException                               call to service has not succeeded because of server side error.
      * @throws MCSException                                  on unexpected situations.
      */
-    public URI uploadFile(String cloudId, String representationName, String version, InputStream data, String mediaType)
-            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
-            MCSException {
+    public URI uploadFile(String cloudId, String representationName, String version,
+                          InputStream data, String mediaType) throws IOException, MCSException {
 
         Response response = null;
         FormDataMultiPart multipart = new FormDataMultiPart();
@@ -316,8 +314,7 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI uploadFile(String cloudId, String representationName, String version, String fileName,
-                          InputStream data, String mediaType) throws IOException, RepresentationNotExistsException,
-                                        CannotModifyPersistentRepresentationException, DriverException, MCSException {
+                                InputStream data, String mediaType) throws IOException, MCSException {
 
         Response response = null;
         FormDataMultiPart multipart = new FormDataMultiPart();
@@ -349,6 +346,7 @@ public class FileServiceClient extends MCSClient {
     }
 
     /**
+     * @deprecated
      * Uploads file content without checking checksum.
      *
      * @param versionUrl Path to the version where the file will be uploaded to.
@@ -356,9 +354,9 @@ public class FileServiceClient extends MCSClient {
      *                   "http://ecloud.eanadev.org:8080/ecloud-service-mcs/records/L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0-11e4-8fe1-00163eefc9c8"
      */
     @Deprecated
-    public URI uploadFile(String versionUrl, InputStream data, String mediaType) throws IOException, DriverException, MCSException {
+    public URI uploadFile(String versionUrl, InputStream data, String mediaType) throws IOException, MCSException {
 
-        String filesPath = "/files";
+        final String FILES_SEGMENT = "/files";
 
         Response response = null;
         FormDataMultiPart multipart = new FormDataMultiPart();
@@ -367,7 +365,7 @@ public class FileServiceClient extends MCSClient {
                     .field(ParamConstants.F_FILE_MIME, mediaType)
                     .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-            response = client.target(versionUrl + filesPath).request().post(Entity.entity(multipart, multipart.getMediaType()));
+            response = client.target(versionUrl + FILES_SEGMENT).request().post(Entity.entity(multipart, multipart.getMediaType()));
 
             if (response.getStatus() == Status.CREATED.getStatusCode()) {
                 return response.getLocation();
@@ -399,9 +397,7 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI modyfiyFile(String cloudId, String representationName, String version,
-                           InputStream data, String mediaType, String fileName, String expectedMd5)
-                                throws IOException, RepresentationNotExistsException,
-                                CannotModifyPersistentRepresentationException, DriverException, MCSException {
+                           InputStream data, String mediaType, String fileName, String expectedMd5) throws IOException, MCSException {
 
         Response response = null;
         FormDataMultiPart multipart = new FormDataMultiPart();
@@ -427,7 +423,7 @@ public class FileServiceClient extends MCSClient {
         }
     }
 
-    public URI modifyFile(String fileUrl, InputStream data, String mediaType) throws IOException, DriverException, MCSException {
+    public URI modifyFile(String fileUrl, InputStream data, String mediaType) throws IOException, MCSException {
 
         WebTarget target = client.target(fileUrl);
 
@@ -466,9 +462,7 @@ public class FileServiceClient extends MCSClient {
      * @throws DriverException                               call to service has not succeeded because of server side error.
      * @throws MCSException                                  on unexpected situations.
      */
-    public void deleteFile(String cloudId, String representationName, String version, String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException,
-            CannotModifyPersistentRepresentationException, DriverException, MCSException {
+    public void deleteFile(String cloudId, String representationName, String version, String fileName) throws MCSException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -608,11 +602,4 @@ public class FileServiceClient extends MCSClient {
         IOUtils.closeQuietly(originIS);
         return new ByteArrayInputStream(buffer.toByteArray());
     }
-
-    /* TODO  Check if this method should stay!!! */
-    @Override
-    protected void finalize() throws Throwable {
-        client.close();
-    }
-
 }

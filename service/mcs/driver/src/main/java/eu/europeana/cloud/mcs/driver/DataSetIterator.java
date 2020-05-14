@@ -100,7 +100,7 @@ public class DataSetIterator implements Iterator<DataSet> {
     //this method does not check if this is valid to obtain next chunk now
     private void obtainNextChunk() {
 
-        ResultSlice<DataSet> currentChunk;
+        ResultSlice currentChunk;
         try {
             currentChunk = client.getDataSetsForProviderChunk(providerId, nextSlice);
         } catch (MCSException ex) {

@@ -36,7 +36,7 @@ import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepresentationAuthorizationResourceAATest extends AbstractSecurityTest {
-
+/*
     @Autowired
     @NotNull
     private FileResource fileResource;
@@ -72,7 +72,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     private static final String WRITE_PERMISSION = "write";
     private static final String BROKEN_PERMISSION = "sdfas";
 
-    private HttpServletRequest URI_INFO; /****/
+    private HttpServletRequest URI_INFO; /**** /
 
     private byte[] ANY_DATA = "ANY_DATA".getBytes();
 
@@ -80,7 +80,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /**
      * Pre-defined users
-     */
+     * /
     private final static String RANDOM_PERSON = "admin";
     private final static String RANDOM_PASSWORD = "admin";
 
@@ -126,7 +126,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /**
      * Tests giving read access to specific user.
-     */
+     * /
     @Test
     public void vanPersieShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
@@ -155,7 +155,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /**
      * Tests giving write access to specific user.
-     */
+     * /
     @Test
     public void vanPersieShouldBeAbleToModifyRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
@@ -184,7 +184,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /**
      * Tests giving write access to specific user.
-     */
+     * /
     @Test
     public void updateAuthorization_throwsMCSException() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
@@ -274,7 +274,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /*
      * Removing permissions
-     */
+     * /
     @Test(expected = AuthenticationCredentialsNotFoundException.class)
     public void notLoggedInUserShouldNotBeAbleToRemovePrivilegesFromAnyResource() {
         fileAuthorizationResource.removePermissions("someID", "someSchema", "someVersion", "userName", READ_PERMISSION + "");
@@ -297,11 +297,11 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
             FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
 
-		/* Add file to eCloud */
+		/* Add file to eCloud * /
         login(RONALDO, RONALD_PASSWORD);
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
-        /* Grant access to this file for Van Persie */
+        /* Grant access to this file for Van Persie * /
         ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
@@ -314,19 +314,19 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        /* Check if Van Persie has access to file */
+        /* Check if Van Persie has access to file * /
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 
-		/* Delete permissions for Var Persie */
+		/* Delete permissions for Var Persie * /
         login(RONALDO, RONALD_PASSWORD);
 
         response = fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.NO_CONTENT.getStatusCode());
 
-		/* VAn Persie should not be able to access file */
+		/* VAn Persie should not be able to access file * /
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-    }
+    }*/
 }

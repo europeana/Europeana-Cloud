@@ -102,7 +102,7 @@ public class RevisionResource {
             @PathVariable(CLOUD_ID) final String cloudId,
             @PathVariable(REPRESENTATION_NAME) final String representationName,
             @PathVariable(VERSION) final String version,
-            Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
+            @RequestBody Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
 
         addRevision(cloudId, representationName, version, revision);
 
@@ -190,9 +190,9 @@ public class RevisionResource {
         dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
     }
 
-    private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
-                                                      String version, Revision revision)
-            throws ProviderNotExistsException, RepresentationNotExistsException {
+    private void createAssignmentToRevisionOnDataSets(
+            String globalId, String schema, String version, Revision revision) throws ProviderNotExistsException {
+
         Map<String, Set<String>> dataSets = dataSetService.getDataSets(globalId, schema, version);
         for (Map.Entry<String, Set<String>> entry : dataSets.entrySet()) {
             for (String dataset : entry.getValue()) {
@@ -222,7 +222,7 @@ public class RevisionResource {
         try {
             resultURI = new URI(httpServletRequest.getRequestURL().toString());
         } catch (URISyntaxException urise) {
-            LOGGER.warn("Invalid URI: '"+httpServletRequest.getRequestURL()+"'", urise);
+            LOGGER.warn("Invalid URI: '{}'", httpServletRequest.getRequestURL(), urise);
         }
 
         ResponseEntity.BodyBuilder bb = ResponseEntity.created(resultURI);

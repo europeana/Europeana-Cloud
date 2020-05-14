@@ -4,20 +4,15 @@ import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.utils.Tags;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.*;
-import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -31,7 +26,6 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  */
 public class RevisionServiceClient extends MCSClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RevisionServiceClient.class);
     private final Client client;
 
     /** records/{cloudId}/representations/{representationName}/versions/{version}/revisions/{revisionName}/revisionProvider/{revisionProviderId}/tag/{tag} */
@@ -115,7 +109,7 @@ public class RevisionServiceClient extends MCSClient {
      * @throws MCSException    on unexpected situations.
      */
     public URI addRevision(String cloudId, String representationName, String version, String revisionName,
-                           String revisionProviderId, String tag) throws DriverException, MCSException {
+                           String revisionProviderId, String tag) throws MCSException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -149,8 +143,8 @@ public class RevisionServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public URI addRevision(String cloudId, String representationName, String version, Revision revision)
-                                                                        throws DriverException, MCSException {
+    public URI addRevision(String cloudId, String representationName,
+                           String version, Revision revision) throws MCSException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -183,8 +177,8 @@ public class RevisionServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public URI addRevision(String cloudId, String representationName, String version, Revision revision,
-                           String key, String value) throws DriverException, MCSException {
+    public URI addRevision(String cloudId, String representationName,
+                           String version, Revision revision, String key, String value) throws MCSException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -216,8 +210,9 @@ public class RevisionServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public URI addRevision(String cloudId, String representationName, String version, String revisionName,
-                           String revisionProviderId, Set<Tags> tags) throws DriverException, MCSException {
+    public URI addRevision(
+            String cloudId, String representationName, String version,
+            String revisionName, String revisionProviderId, Set<Tags> tags) throws MCSException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -254,8 +249,10 @@ public class RevisionServiceClient extends MCSClient {
      * @throws RepresentationNotExistsException
      */
 
-    public void deleteRevision(String cloudId, String representationName, String version, String revisionName,
-                               String revisionProvider, String revisionTimestamp) throws DriverException, MCSException {
+    public void deleteRevision(
+            String cloudId, String representationName, String version,
+            String revisionName, String revisionProvider, String revisionTimestamp) throws MCSException {
+
         WebTarget target = client
                 .target(baseUrl)
                 .path(REMOVE_REVISION_PATH)
@@ -298,11 +295,4 @@ public class RevisionServiceClient extends MCSClient {
             throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
-
-    /** TODO  Check if this method should stay!!! */
-    @Override
-    protected void finalize() throws Throwable {
-        client.close();
-    }
-
 }

@@ -87,7 +87,7 @@ public class FileResource {
     		@PathVariable(VERSION) String version,
     		@PathVariable(FILE_NAME) String fileName,
     		@RequestParam String mimeType,
-            @RequestParam byte[] data) throws IOException, RepresentationNotExistsException,
+            @RequestParam byte[] data) throws RepresentationNotExistsException,
                 CannotModifyPersistentRepresentationException, FileNotExistsException {
 
         File f = new File();
@@ -274,10 +274,10 @@ public class FileResource {
      * 14.35 Range</a>.
      */
     static class ContentRange {
-
-        private long start, end;
-
         private static final Pattern BYTES_PATTERN = Pattern.compile("bytes=(?<start>\\d+)[-](?<end>\\d*)");
+
+        private long start;
+        private long end;
 
         ContentRange(long start, long end) {
             this.start = start;

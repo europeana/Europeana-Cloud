@@ -31,7 +31,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FilesAATest extends AbstractSecurityTest {
 	
-	@Autowired
+/*	@Autowired
 	@NotNull
 	private FileResource fileResource;
 	
@@ -57,13 +57,13 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	private static final String PROVIDER_ID = "provider";
 	
-	private HttpServletRequest URI_INFO; /****/
+	private HttpServletRequest URI_INFO; /**** /
 	private Representation representation;
 	private byte[] ANY_DATA = "ANY_DATA".getBytes();
 
 	/**
 	 * Pre-defined users
-	 */
+	 * /
 	private final static String RANDOM_PERSON = "Cristiano";
 	private final static String RANDOM_PASSWORD = "Ronaldo";
 
@@ -266,5 +266,5 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, null);
-	}
+	} */
 }

@@ -22,7 +22,8 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
+
+import java.util.GregorianCalendar;
 
 import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 
@@ -34,7 +35,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 @Scope("request")
 public class DataSetsResource {
 
-    private final String DATASET_CLASS_NAME = DataSet.class.getName();
+    private static final String DATASET_CLASS_NAME = DataSet.class.getName();
 
     @Autowired
     private DataSetService dataSetService;
@@ -55,11 +56,18 @@ public class DataSetsResource {
      * @return slice of data sets for a given provider.
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody ResultSlice<DataSet> getDataSets(
+    @ResponseBody
+    public ResultSlice<DataSet> getDataSets(
             @PathVariable(PROVIDER_ID) String providerId,
-    		@RequestParam String startFrom) {
+    		@RequestParam(required = false) String startFrom) {
 
-        return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
+        ResultSlice<DataSet> r = dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
+
+        for(int index = 0; index < r.getResults().size(); index++) {
+            r.getResults().get(index).creationDate = GregorianCalendar.getInstance().getTime();
+        }
+
+        return r;
     }
 
     /**
@@ -102,7 +110,7 @@ public class DataSetsResource {
 
             mutableAclService.updateAcl(datasetAcl);
         }
-        
+
         return response;
     }
 }

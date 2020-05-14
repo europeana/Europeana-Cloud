@@ -1,7 +1,11 @@
 package eu.europeana.cloud.common.model;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -9,7 +13,13 @@ import java.util.Objects;
  *
  */
 @XmlRootElement
+@JsonRootName(DataSet.XSI_TYPE)
 public class DataSet {
+
+    final static String XSI_TYPE = "dataSet";
+
+    @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
+    private final String xsiType = XSI_TYPE;
 
     /**
      * Data set identifier.
@@ -29,6 +39,9 @@ public class DataSet {
      * Resource URI.
      */
     private URI uri;
+
+
+    public Date creationDate;
 
 
     public String getId() {

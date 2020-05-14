@@ -1,5 +1,8 @@
 package eu.europeana.cloud.common.response;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import eu.europeana.cloud.common.model.*;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -16,6 +19,8 @@ import java.util.List;
  */
 @XmlRootElement
 @XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class, String.class, CloudVersionRevisionResponse.class, CloudIdAndTimestampResponse.class, CloudTagsResponse.class}) // references to all classes that might be used as generics parameters
+@JsonRootName("resultSlice")
+@JacksonXmlRootElement
 public class ResultSlice<T> {
 
 	/**
@@ -26,6 +31,7 @@ public class ResultSlice<T> {
 	/**
 	 * List of results in this slice.
 	 */
+	@JacksonXmlElementWrapper(useWrapping = false)
 	private List<T> results = new ArrayList<T>();
 
 

@@ -20,9 +20,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.ArrayList;
@@ -34,8 +32,6 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  * Client for managing datasets in MCS.
  */
 public class DataSetServiceClient extends MCSClient {
-
-    //private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClient.class);
 
     private final Client client = ClientBuilder.newBuilder()
             .register(JacksonFeature.class)
@@ -49,7 +45,7 @@ public class DataSetServiceClient extends MCSClient {
     private static final String DATA_SET_PATH = DATA_SETS_PATH + "/{"+DATA_SET_ID+"}";
     
     /** data-providers/{providerId}/data-sets/{dataSetId}/assignments */
-    private static final String ASSIGNMENTS_PATH = DATA_SET_PATH + "/{"+ASSIGNMENTS+"}";
+    private static final String ASSIGNMENTS_PATH = DATA_SET_PATH + "/assignments";
 
     /** data-providers/{providerId}/data-sets/{dataSetId}/representations/{representationName} */
     private static final String REPRESENTATIONS_PATH = DATA_SET_PATH + "/representations/{"+REPRESENTATION_NAME+"}";
@@ -204,8 +200,7 @@ public class DataSetServiceClient extends MCSClient {
      *                                       exist
      * @throws MCSException                  on unexpected situations
      */
-    public URI createDataSet(String providerId, String dataSetId, String description)
-            throws ProviderNotExistsException, DataSetAlreadyExistsException, MCSException {
+    public URI createDataSet(String providerId, String dataSetId, String description) throws MCSException {
 
         WebTarget target = client
                 .target(this.baseUrl)
@@ -219,7 +214,9 @@ public class DataSetServiceClient extends MCSClient {
         Response response = null;
 
         try {
-            response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            response = target
+                    .request()
+                    .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
             if (response.getStatus() == Status.CREATED.getStatusCode()) {
                 return response.getLocation();
@@ -261,8 +258,8 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, 
-                                               String startFrom) throws DataSetNotExistsException, MCSException {
+    public ResultSlice<Representation> getDataSetRepresentationsChunk(
+            String providerId, String dataSetId, String startFrom) throws MCSException {
         
         WebTarget target = client
                 .target(this.baseUrl)
@@ -278,7 +275,9 @@ public class DataSetServiceClient extends MCSClient {
         try {
             response = target.request().get();
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
+                //Object o = response.getEntity();
+                return response.readEntity(new GenericType<ResultSlice<Representation>>(){});
+                //return response.readEntity(ResultSlice.class);
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
@@ -302,11 +301,10 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public List<Representation> getDataSetRepresentations(String providerId, String dataSetId)
-                                                        throws DataSetNotExistsException, MCSException {
+    public List<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
 
         List<Representation> resultList = new ArrayList<>();
-        ResultSlice resultSlice;
+        ResultSlice<Representation> resultSlice;
         String startFrom = null;
         do {
             resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
@@ -347,8 +345,7 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description)
-                                                            throws DataSetNotExistsException, MCSException {
+    public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws MCSException {
         
         WebTarget target = client
                 .target(this.baseUrl)
@@ -384,8 +381,8 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public void deleteDataSet(String providerId, String dataSetId)
-            throws DataSetNotExistsException, MCSException {
+    public void deleteDataSet(String providerId, String dataSetId) throws MCSException {
+
         WebTarget target = client
                 .target(this.baseUrl)
                 .path(DATA_SET_PATH)
@@ -433,9 +430,8 @@ public class DataSetServiceClient extends MCSClient {
      * @throws RepresentationNotExistsException if no such representation exists
      * @throws MCSException                     on unexpected situations
      */
-    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId,
-                                              String representationName, String version)
-            throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
+    public void assignRepresentationToDataSet(
+            String providerId, String dataSetId, String cloudId, String representationName, String version) throws MCSException {
         
         WebTarget target = client
                 .target(this.baseUrl)
@@ -496,9 +492,9 @@ public class DataSetServiceClient extends MCSClient {
      * @throws RepresentationNotExistsException if no such representation exists
      * @throws MCSException                     on unexpected situations
      */
-    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId,
-                                              String representationName, String version, String key, String value)
-            throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
+    public void assignRepresentationToDataSet(
+            String providerId, String dataSetId, String cloudId, String representationName,
+            String version, String key, String value) throws MCSException {
         
         WebTarget target = client
                 .target(this.baseUrl)
@@ -511,7 +507,10 @@ public class DataSetServiceClient extends MCSClient {
         Response response = null;
 
         try {
-            response = target.request().header(key, value).post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            response = target
+                    .request()
+                    .header(key, value)
+                    .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
             if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
@@ -539,9 +538,8 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public void unassignRepresentationFromDataSet(String providerId, String dataSetId, String cloudId,
-                                                  String representationName, String version)
-            throws DataSetNotExistsException, MCSException {
+    public void unassignRepresentationFromDataSet(
+            String providerId, String dataSetId, String cloudId, String representationName, String version) throws MCSException {
 
         WebTarget target = client
                 .target(this.baseUrl)
@@ -580,10 +578,10 @@ public class DataSetServiceClient extends MCSClient {
      * @return chunk of representation cloud identifier list from data set together with tags of the revision
      * @throws MCSException on unexpected situations
      */
-    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String providerId, String dataSetId,
-                                                                   String representationName, String revisionName,
-                                                                   String revisionProviderId, String revisionTimestamp, String startFrom, Integer limit)
-            throws MCSException {
+    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
+            String providerId, String dataSetId, String representationName,
+            String revisionName, String revisionProviderId, String revisionTimestamp,
+            String startFrom, Integer limit) throws MCSException {
 
         WebTarget target = client.target(baseUrl)
                 .path(DATA_SET_REVISIONS_PATH)
@@ -595,9 +593,7 @@ public class DataSetServiceClient extends MCSClient {
                 .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
                 .queryParam(F_START_FROM, startFrom);
 
-        if (limit != null) {
-            target = target.queryParam(F_LIMIT, limit);
-        }
+        target = target.queryParam(F_LIMIT, limit != null ? limit : 0);
 
         Response response = null;
         try {
@@ -624,10 +620,9 @@ public class DataSetServiceClient extends MCSClient {
      * @return chunk of representation cloud identifier list from data set together with revision tags
      * @throws MCSException on unexpected situations
      */
-    public List<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId,
-                                                       String representationName,  String revisionName,
-                                                       String revisionProviderId, String revisionTimestamp)
-                                                                                            throws MCSException {
+    public List<CloudTagsResponse> getDataSetRevisions(
+            String providerId, String dataSetId, String representationName,
+            String revisionName, String revisionProviderId, String revisionTimestamp) throws MCSException {
 
         List<CloudTagsResponse> resultList = new ArrayList<>();
         ResultSlice<CloudTagsResponse> resultSlice;
@@ -674,7 +669,6 @@ public class DataSetServiceClient extends MCSClient {
      */
     public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationChunk(String dataSetId, String providerId, String representationName, String dateFrom, String tag, String startFrom)
             throws MCSException {
-
 
         WebTarget target = client
                 .target(this.baseUrl)
@@ -873,13 +867,4 @@ public class DataSetServiceClient extends MCSClient {
             response.close();
         }
     }
-
-    /* TODO  Check if this method should stay!!! */
-    @Override
-    protected void finalize() throws Throwable {
-        client.close();
-    }
-
-
-
 }

@@ -19,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
@@ -64,7 +67,7 @@ public class DataSetRevisionsResource {
             @PathVariable(REVISION_PROVIDER_ID) String revisionProviderId,
             @RequestParam String revisionTimestamp,
             @RequestParam(required = false) String startFrom,
-            @RequestParam(required = false) int limit) throws DataSetNotExistsException, ProviderNotExistsException {
+            @RequestParam int limit) throws DataSetNotExistsException, ProviderNotExistsException {
 
         // when limitParam is specified we can retrieve more results than configured number of elements per page
         final int limitWithNextSlice = (limit > 0 && limit <= 10000) ? limit : numberOfElementsOnPage;
@@ -73,6 +76,7 @@ public class DataSetRevisionsResource {
 
         ResultSlice<CloudTagsResponse> result = dataSetService.getDataSetsRevisions(providerId, dataSetId,
                 revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
+
         return ResponseEntity.ok(result);
     }
 }

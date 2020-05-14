@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +39,7 @@ public class DataSetAssignmentsResource {
      * @statuscode 204 object assigned.
      */
     @PostMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void addAssignment(
             @PathVariable(PROVIDER_ID) String providerId,
@@ -62,6 +64,7 @@ public class DataSetAssignmentsResource {
      * @throws DataSetNotExistsException no such data set exists
      */
     @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void removeAssignment(
             @PathVariable(PROVIDER_ID) String providerId,

@@ -19,11 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
+import java.net.URI;
 import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -84,14 +82,14 @@ public class FilesResource {
 	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
-	public ResponseEntity<?> sendFile(
+	public ResponseEntity<URI> sendFile(
 			HttpServletRequest httpServletRequest,
 			@PathVariable(CLOUD_ID) final String cloudId,
 			@PathVariable(REPRESENTATION_NAME) final String representationName,
 			@PathVariable(VERSION) final String version,
 			@RequestParam String mimeType,
 			@RequestParam byte[] data,
-			@RequestParam(required = false) String fileName) throws IOException, RepresentationNotExistsException,
+			@RequestParam(required = false) String fileName) throws RepresentationNotExistsException,
 											CannotModifyPersistentRepresentationException, FileAlreadyExistsException {
 
 		File f = new File();
@@ -117,8 +115,11 @@ public class FilesResource {
 		recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
 		IOUtils.closeQuietly(prebufferedInputStream);
 		EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
-		LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
-				cloudId, representationName, version, f.getContentUri()));
+
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
+					cloudId, representationName, version, f.getContentUri()));
+		}
 
 		return ResponseEntity
 				.created(f.getContentUri())

@@ -42,7 +42,7 @@ import static eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedIn
 @Scope("request")
 public class FileUploadResource {
 
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     @Autowired
     private RecordService recordService;
@@ -84,7 +84,7 @@ public class FileUploadResource {
             @RequestParam String fileName,
             @RequestParam String providerId,
             @RequestParam String mimeType ,
-            @RequestParam byte[] data) throws IOException, RepresentationNotExistsException,
+            @RequestParam byte[] data) throws RepresentationNotExistsException,
                                 CannotModifyPersistentRepresentationException, RecordNotExistsException,
                         ProviderNotExistsException, FileAlreadyExistsException, CannotPersistEmptyRepresentationException {
 
