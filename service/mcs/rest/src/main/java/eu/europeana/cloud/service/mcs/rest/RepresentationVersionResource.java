@@ -34,7 +34,7 @@ public class RepresentationVersionResource {
 
     public static final String CLASS_MAPPING = "/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}";
 
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     @Autowired
     private RecordService recordService;

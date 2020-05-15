@@ -22,7 +22,6 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
 
 import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
@@ -34,7 +33,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
 @RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}")
 @Scope("request")
 public class RepresentationResource {
-	private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+	private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
 	@Autowired
 	private RecordService recordService;

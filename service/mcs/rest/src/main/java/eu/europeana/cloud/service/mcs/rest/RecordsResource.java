@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -60,9 +61,9 @@ public class RecordsResource {
      * be found for requested record. Service cannot delete such record.
      */
     @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ROLE_ADMIN')") 
-    public void deleteRecord(
-            @PathVariable(CLOUD_ID) String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
+    public void deleteRecord(@PathVariable(CLOUD_ID) String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
 
         recordService.deleteRecord(cloudId);
     }

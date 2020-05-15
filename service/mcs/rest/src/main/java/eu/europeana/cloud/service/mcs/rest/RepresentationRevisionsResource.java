@@ -52,7 +52,8 @@ public class RepresentationRevisionsResource {
      * @summary get a representation response object
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody List<Representation> getRepresentationRevisions(
+    @ResponseBody
+    public List<Representation> getRepresentationRevisions(
             HttpServletRequest httpServletRequest,
             @PathVariable(CLOUD_ID) String cloudId,
             @PathVariable(REPRESENTATION_NAME) String representationName,
@@ -81,8 +82,9 @@ public class RepresentationRevisionsResource {
                     representations.add(representation);
                 }
             }
-        } else
+        } else {
             throw new RepresentationNotExistsException("No representation was found");
+        }
 
         return representations;
     }

@@ -21,10 +21,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,8 +35,6 @@ import java.util.Map;
 @EnableWebMvc
 @PropertySource("classpath:mcs.properties")
 @ComponentScan("eu.europeana.cloud.service.mcs.rest")
-//@EnableAsync
-//@AspectJAutoProxy  !! EXPLAIN ???
 public class ServiceConfiguration implements WebMvcConfigurer {
     private static final String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
     private static final String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
@@ -48,7 +49,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     private static final String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
 
     private static final String JNDI_KEY_UISURL = "/mcs/uis-url";
-    private static final long MAX_UPLOAD_SIZE = 128*1024*1024;
+    private static final long MAX_UPLOAD_SIZE = (long)(128*1024*1024); //128MB
 
     private Environment environment;
 
@@ -56,73 +57,13 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         this.environment = environment;
     }
 
-
-/*
+    //TODO Explain if it works
     @Override
-    public void configureMessageConverters(
-            List<HttpMessageConverter<?>> converters) {
-
-        converters.add(createXmlHttpMessageConverter());
-        converters.add(new MappingJackson2HttpMessageConverter());
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.defaultContentType(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN);
+        configurer.defaultContentTypeStrategy(nativeWebRequest ->
+                        Arrays.asList(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN));
     }
-*/
-
-
-/*
-    private HttpMessageConverter<Object> createXmlHttpMessageConverter() {
-        MarshallingHttpMessageConverter xmlConverter =
-                new MarshallingHttpMessageConverter();
-
-        XStreamMarshaller xstreamMarshaller = new XStreamMarshaller();
-
-
-/ *
-        Map<String, Class<?>> aliases = new HashMap<>();
-        aliases.put("representation", eu.europeana.cloud.common.model.Representation.class);
-        aliases.put("file", eu.europeana.cloud.common.model.File.class);
-        aliases.put("representations", new ArrayList<Representation>().getClass());
-        xstreamMarshaller.setAliases(aliases);
-* /
-
-        //Map<String, String> fAliases = new HashMap<>();
-        //fAliases.put("representations", "representationVersions");
-        //xstreamMarshaller.setFieldAliases(fAliases);
-        //xstreamMarshaller.setAutodetectAnnotations(true);
-
-        //xstreamMarshaller.getXStream().
-
-        xmlConverter.setMarshaller(xstreamMarshaller);
-        xmlConverter.setUnmarshaller(xstreamMarshaller);
-
-        return xmlConverter;
-    }
-*/
-/*
-    @Bean
-    public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
-        RequestMappingHandlerAdapter r = new RequestMappingHandlerAdapter();
-        r.getMessageConverters().add(new SourceHttpMessageConverter<>());
-        r.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        r.getMessageConverters().add(new ByteArrayHttpMessageConverter());
-        r.getMessageConverters().add(new FormHttpMessageConverter());
-        r.getMessageConverters().add(new StringHttpMessageConverter());
-        return r;
-    }
-*/
-
-/*
-        <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
-        <property name="messageConverters">
-            <list>
-                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
-                <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
-                <bean class="org.springframework.http.converter.xml.SourceHttpMessageConverter"/>
-                <bean class="org.springframework.http.converter.FormHttpMessageConverter"/>
-                <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
-            </list>
-        </property>
-*/
-
 
     @Bean
     public ServiceExceptionTranslator serviceExceptionTranslator() {
@@ -160,7 +101,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public Integer objectStoreSizeThreshold() {
-        return new Integer(524288);
+        return 524288;
     }
 
     @Bean
@@ -214,16 +155,4 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
         return multipartResolver;
     }
-
-/*
-    @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
-        return new Jackson2ObjectMapperBuilderCustomizer() {
-            @Override
-            public void customize(Jackson2ObjectMapperBuilder builder) {
-                builder.dateFormat(new ISO8601DateFormat());
-            }
-        };
-    }
-*/
 }

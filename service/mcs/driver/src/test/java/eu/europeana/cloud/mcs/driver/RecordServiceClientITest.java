@@ -3,6 +3,7 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -18,6 +19,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 @Ignore
 public class RecordServiceClientITest {
@@ -94,7 +96,7 @@ public class RecordServiceClientITest {
     //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations
     //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations
     @Test
-    public void getRepresentations() throws MCSException {
+    public void getRepresentations1() throws MCSException {
         String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
@@ -103,17 +105,49 @@ public class RecordServiceClientITest {
         assertThat(representations.get(0).getCloudId(), is(cloudId));
     }
 
+    @Test
+    public void getRepresentations2() throws MCSException {
+        String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
+        String representationName = "";
+
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+        List<Representation> representations = mcsClient.getRepresentations(cloudId, representationName);
+        assertThat(representations.size(), is(1));
+        assertThat(representations.get(0).getCloudId(), is(cloudId));
+    }
+
     //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
     //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
     @Test
     public void getRepresentation() throws MCSException {
-        String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
+        //String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
+        String cloudId = "222B5I4VPV3XN43PZMD2UHC6NPA6B2ZY7ZRPQV2UUVXRHFDALXEA";
+
+        String representationName = "metadataRecord";
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-        Representation representation = mcsClient.getRepresentation(cloudId, "metadataRecord");
+        Representation representation = mcsClient.getRepresentation(cloudId, representationName);
 
         assertThat(representation.getCloudId(), is(cloudId));
     }
+
+
+
+    //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
+    //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
+    @Test
+    public void getRepresentationKeyValue() throws MCSException {
+        String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
+        String representationName = "metadataRecord";
+        String version = "xxx";
+
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL);
+        Representation representation = mcsClient.getRepresentation(cloudId, representationName, version,
+                MCSClient.AUTHORIZATION_KEY, MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
+
+        assertThat(representation.getCloudId(), is(cloudId));
+    }
+
 
     @Test
     public void createRepresentation() throws CloudException, MCSException {
@@ -153,8 +187,6 @@ public class RecordServiceClientITest {
     @Test
     public void createRepresentationFileKeyValue() throws CloudException, MCSException, IOException {
         String representationName = "StrangeRepresentationName";
-        String key = "Authorisation";
-        String value = "basic-";
 
         UISClient uisClient = new UISClient(REMOTE_TEST_UIS_URL, USER_NAME, USER_PASSWORD);
         CloudId cloudId = uisClient.createCloudId(PROVIDER_ID);
@@ -165,7 +197,7 @@ public class RecordServiceClientITest {
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID,
-                is, filename, mediatype, key, value);
+                is, filename, mediatype, MCSClient.AUTHORIZATION_KEY, MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
 
         int index = representationURI.toString().indexOf("/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
         assertThat(index, not(-1));
@@ -286,7 +318,7 @@ public class RecordServiceClientITest {
     }
 
     @Test
-    public void persistRepresentationVrsion() throws CloudException, MCSException {
+    public void persistRepresentation() throws CloudException, MCSException {
         String representationName = "StrangeRepresentationName";
         String version = "";
 
@@ -294,7 +326,7 @@ public class RecordServiceClientITest {
         CloudId cloudId = uisClient.createCloudId(PROVIDER_ID);
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-        URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID);
+        URI representationURI = mcsClient.persistRepresentation(cloudId.getId(), representationName, PROVIDER_ID);
 
         mcsClient.persistRepresentation(cloudId.getId(), representationName, version);
         Representation representation = mcsClient.getRepresentation(cloudId.getId(), representationName);
@@ -304,25 +336,66 @@ public class RecordServiceClientITest {
         assertThat(index, not(-1));
     }
 
+    @Test
+    public void grantPermissionsToVersion() throws MCSException {
+        String cloudId = "<enter_cloud_id_here>";
+        String representationName = "<enter_representation_name_here>";
+        String version = "<enter_version_here>";
+        String userName = null;
+        Permission permission = null;
 
-/*
-    public void grantPermissionsToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
- */
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+        mcsClient.grantPermissionsToVersion(cloudId, representationName, version, userName, permission);
 
+    }
 
 /*
     public void revokePermissionsToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
  */
 
-/*
-    public void permitVersion(String cloudId, String representationName, String version) throws MCSException {
- */
+    @Test
+    public void permitVersion() throws MCSException {
+        String cloudId = "<enter_cloud_id_here>";
+        String representationName = "<enter_representation_name_here>";
+        String version = "<enter_version_here>";
 
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+        mcsClient.permitVersion(cloudId, representationName, version);
+    }
 
- /*
-     public List<Representation> getRepresentationsByRevision(String cloudId, String representationName,
-                                    String revisionName, String revisionProviderId, String revisionTimestamp)
-                                                            throws RepresentationNotExistsException, MCSException {
-  */
+    @Test
+    public void useAuthorizationHeader() throws MCSException {
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL);
+        mcsClient.useAuthorizationHeader(MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
+    }
+
+    @Test
+    public void getRepresentationsByRevision() throws MCSException {
+        String cloudId = "<enter_cloud_id_here>";
+        String representationName = "<enter_representation_name_here>";
+        String revisionName = "<enter_revision_name_here>";
+        String revisionProviderId = "<enter_revision_provider_id_here>";
+        String revisionTimestamp = "<enter_revision_timestamp_here[YYYY-MM-ddThh:mm:ss.sss]>";
+
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+        List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId, revisionTimestamp);
+
+        assertNotNull(representations);
+    }
+
+    @Test
+    public void getRepresentationsByRevisionRealData() throws MCSException {
+        String cloudId = "222B5I4VPV3XN43PZMD2UHC6NPA6B2ZY7ZRPQV2UUVXRHFDALXEA";
+        String representationName = "metadataRecord";
+        String revisionName = "VALIDATION_EXTERNAL";
+        String revisionProviderId = "metis_acceptance";
+        String revisionTimestamp = "2019-09-26T16:30:04.972";
+
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+        List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId, revisionTimestamp);
+
+        Object o = representations.get(0);
+        assertNotNull(representations);
+    }
 
 }

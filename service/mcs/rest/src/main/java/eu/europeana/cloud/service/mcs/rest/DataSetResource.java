@@ -189,10 +189,8 @@ public class DataSetResource {
             @RequestParam(required = false) String startFrom,
             @RequestParam(required = false) Boolean deleted) throws ProviderNotExistsException, DataSetNotExistsException {
 
-        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponses =
-                dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionName,
-                        revisionProvider, representationName, startFrom, deleted, numberOfElementsOnPage);
-        return cloudIdAndTimestampResponses;
+        return dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionName,
+                revisionProvider, representationName, startFrom, deleted, numberOfElementsOnPage);
     }
 
     /**

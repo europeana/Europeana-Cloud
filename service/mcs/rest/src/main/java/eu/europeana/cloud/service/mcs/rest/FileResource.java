@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
@@ -296,9 +295,10 @@ public class FileResource {
             return end;
         }
 
-        static ContentRange parse(String range)
-                throws WrongContentRangeException {
-            long start, end;
+        static ContentRange parse(String range) throws WrongContentRangeException {
+
+            long start;
+            long end;
             if (range == null) {
                 throw new IllegalArgumentException("Range should not be null");
             }

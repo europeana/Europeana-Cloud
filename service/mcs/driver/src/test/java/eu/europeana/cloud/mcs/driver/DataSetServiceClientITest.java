@@ -61,7 +61,7 @@ public class DataSetServiceClientITest {
         String representationName = "<enter_representation_name_here>";
         String revisionName = "<enter_revision_name_here>";
         String revisionProviderId = "<enter_revision_provider_id_here>";
-        String revisionTimestamp = "<enter_revision_timestamp_here{YYYY-MM-ddThh:mm:ss.sss}>";
+        String revisionTimestamp = "<enter_revision_timestamp_here[YYYY-MM-ddThh:mm:ss.sss]>";
         String startFrom = "<enter_start_from_here_can_be_null>";
         Integer limit = 0;
 

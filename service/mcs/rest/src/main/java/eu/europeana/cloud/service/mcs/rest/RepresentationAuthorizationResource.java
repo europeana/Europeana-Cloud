@@ -31,7 +31,7 @@ public class RepresentationAuthorizationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
 
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     private static final List<String> ACCEPTED_PERMISSION_VALUES = Arrays.asList(
             eu.europeana.cloud.common.model.Permission.ALL.getValue(),
@@ -40,6 +40,7 @@ public class RepresentationAuthorizationResource {
             eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
             eu.europeana.cloud.common.model.Permission.DELETE.getValue()
     );
+    public static final String NO_UPDATED_MESSAGE = "Authorization has NOT been updated!";
 
     @Autowired
     private MutableAclService mutableAclService;
@@ -77,14 +78,14 @@ public class RepresentationAuthorizationResource {
 
         ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
-        eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+        eu.europeana.cloud.common.model.Permission permissionUpperCase = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 cloudId + "/" + representationName + "/" + version);
 
         LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'", userName, versionIdentity.getType(), versionIdentity.getIdentifier());
 
-        List<Permission> permissionsToBeRemoved = Arrays.asList(_permission.getSpringPermissions());
+        List<Permission> permissionsToBeRemoved = Arrays.asList(permissionUpperCase.getSpringPermissions());
         permissionsGrantingManager.removePermissions(versionIdentity, userName, permissionsToBeRemoved);
 
         return ResponseEntity.noContent().build();
@@ -134,13 +135,13 @@ public class RepresentationAuthorizationResource {
                 LOGGER.error(e.getMessage());
                 return ResponseEntity
                         .status(HttpStatus.NOT_MODIFIED)
-                        .body("Authorization has NOT been updated!");
+                        .body(NO_UPDATED_MESSAGE);
             }
             return ResponseEntity.ok("Authorization has been updated!");
         } else {
             return ResponseEntity
                     .status(HttpStatus.NOT_MODIFIED)
-                    .body("Authorization has NOT been updated!");
+                    .body(NO_UPDATED_MESSAGE);
         }
     }
 

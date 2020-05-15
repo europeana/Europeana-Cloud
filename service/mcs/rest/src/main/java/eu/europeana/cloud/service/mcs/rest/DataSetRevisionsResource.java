@@ -19,9 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**

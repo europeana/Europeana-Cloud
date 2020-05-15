@@ -59,9 +59,7 @@ public class DataSetsResource {
             @PathVariable(PROVIDER_ID) String providerId,
     		@RequestParam(required = false) String startFrom) {
 
-        ResultSlice<DataSet> r = dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
-
-        return r;
+        return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
     }
 
     /**

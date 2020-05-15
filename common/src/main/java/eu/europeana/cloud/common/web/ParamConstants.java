@@ -12,8 +12,6 @@ public interface ParamConstants {
 
     String VERSIONS = "versions";
 
-    String ASSIGNMENTS = "assignments";
-
     @Deprecated
     String P_CLOUDID = "CLOUDID";
 
@@ -72,12 +70,8 @@ public interface ParamConstants {
     String TAG = "tag";
 
 
-    //String P_TAGS = "TAGS";
-
     // form parameters' names (also used as query parameters' names)
     String F_DATASET = "dataSetId";
-
-    String F_DATASET_PROVIDER_ID = "dataSetProviderId";
 
     String F_DESCRIPTION = "description";
 
@@ -97,17 +91,9 @@ public interface ParamConstants {
 
     String F_DATE_FROM = "creationDateFrom";
 
-    String F_PERSISTENT = "persistent";
-
-    String F_DATE_UNTIL = "creationDateUntil";
-
     String F_START_FROM = "startFrom";
 
     String F_LIMIT = "limit";
-
-    String F_REPRESENTATION = "representation";
-
-    String F_DATASETS = "dataSets";
 
     String F_TAG = "tag";
 

@@ -74,7 +74,7 @@ public class SimplifiedFileAccessResource {
             @PathVariable(LOCAL_ID) final String localId,
             @PathVariable(REPRESENTATION_NAME) final String representationName,
             @PathVariable(FILE_NAME) final String fileName) throws RepresentationNotExistsException,
-                FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
+                FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
         LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
                 providerId, localId, representationName, fileName);
@@ -140,7 +140,7 @@ public class SimplifiedFileAccessResource {
             @PathVariable(LOCAL_ID) final String localId,
             @PathVariable(REPRESENTATION_NAME) final String representationName,
             @PathVariable(FILE_NAME) final String fileName) throws RepresentationNotExistsException,
-                    FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
+                    FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
         LOGGER.info("Reading file headers in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
                 providerId, localId, representationName, fileName);
@@ -177,16 +177,15 @@ public class SimplifiedFileAccessResource {
         Authentication authentication = ctx.getAuthentication();
         //
         String targetId = cloudId + "/" + representationName + "/" + representationVersion;
-        boolean hasAccess = permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
-        return hasAccess;
+        return permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
     }
 
-    private String findCloudIdFor(String providerID, String localId) throws CloudException, ProviderNotExistsException, RecordNotExistsException {
+    private String findCloudIdFor(String providerID, String localId) throws ProviderNotExistsException, RecordNotExistsException {
         CloudId foundCloudId = uisClientHandler.getCloudIdFromProviderAndLocalId(providerID, localId);
         return foundCloudId.getId();
     }
 
-    private Representation selectRepresentationVersion(String cloudId, String representationName) throws RepresentationNotExistsException, RecordNotExistsException {
+    private Representation selectRepresentationVersion(String cloudId, String representationName) throws RepresentationNotExistsException {
         List<Representation> representations = recordService.listRepresentationVersions(cloudId, representationName);
         RepresentationSelector representationSelector = new LatestPersistentRepresentationVersionSelector();
         return representationSelector.select(representations);
