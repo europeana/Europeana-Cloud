@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -463,6 +464,8 @@ public class RecordServiceClient extends MCSClient {
             response = request.get();
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(new GenericType<List<Representation>>() {});
+                //RepresentationsListWrapper w = response.readEntity(RepresentationsListWrapper.class);
+                //return w.getRepresentations();
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
@@ -733,7 +736,6 @@ public class RecordServiceClient extends MCSClient {
     }
 
 
-
     /**
      * Returns representation in specified version.
      * <p/>
@@ -777,7 +779,7 @@ public class RecordServiceClient extends MCSClient {
         try {
             response = request.get();
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(new GenericType<List<Representation>>() {});
+                return response.readEntity(new GenericType<List<Representation>>(ArrayList.class) {});
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);

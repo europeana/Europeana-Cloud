@@ -18,6 +18,11 @@
     </properties>
     
     <dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -61,6 +66,22 @@
             <artifactId>jersey-client</artifactId>
             <version>${version.jersey}</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.10.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.9.8</version>
         </dependency>
     </dependencies>
 </project>

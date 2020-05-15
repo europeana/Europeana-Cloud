@@ -17,14 +17,7 @@ public interface ParamConstants {
 
     String CLOUD_ID = "cloudId";
 
-    @Deprecated
-    String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
-
-
     String REPRESENTATION_NAME = "representationName";
-
-    @Deprecated
-    String P_VER = "VERSION";
 
     String VERSION = "version";
 
@@ -32,9 +25,6 @@ public interface ParamConstants {
     String P_PROVIDER = "DATAPROVIDER";
 
     String PROVIDER_ID = "providerId";
-
-    @Deprecated
-    String P_DATASET = "DATASET";
 
     String DATA_SET_ID = "dataSetId";
 
@@ -44,9 +34,6 @@ public interface ParamConstants {
 
     String REVISION_PROVIDER_ID = "revisionProviderId";
 
-    @Deprecated
-    String P_FILENAME = "FILENAME";
-
     String FILE_NAME = "fileName";
 
     @Deprecated
@@ -54,21 +41,11 @@ public interface ParamConstants {
 
     String LOCAL_ID = "localId";
 
-    @Deprecated
-    String P_USERNAME = "USERNAME";
-
     String USER_NAME = "userName";
-
-    @Deprecated
-    String P_PERMISSION_TYPE = "PERMISSION_TYPE";
 
     String PERMISSION = "permission";
 
-    @Deprecated
-    String P_TAG = "TAG";
-
     String TAG = "tag";
-
 
     // form parameters' names (also used as query parameters' names)
     String F_DATASET = "dataSetId";
@@ -104,14 +81,6 @@ public interface ParamConstants {
     String F_REVISION_TIMESTAMP = "revisionTimestamp";
 
     String F_REVISION_PROVIDER_ID = "revisionProviderId";
-
-    @Deprecated
-    String P_REVISION_NAME = "REVISION_NAME";
-
-    @Deprecated
-    String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
-
-    String F_REVISION_NAME = "revisionName";
 
     //header paramiters' names
     String H_RANGE = "Range";

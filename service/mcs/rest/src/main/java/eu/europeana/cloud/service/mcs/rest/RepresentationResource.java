@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -81,6 +82,7 @@ public class RepresentationResource {
 	 *             Representation does not exist.
 	 */
 	@DeleteMapping
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public void deleteRepresentation(
 			@PathVariable(CLOUD_ID) String cloudId,

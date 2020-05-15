@@ -3,8 +3,9 @@ package eu.europeana.cloud.service.mcs.utils;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import eu.europeana.cloud.common.model.Representation;
 import lombok.Getter;
+import eu.europeana.cloud.common.model.Representation;
+
 
 import java.util.List;
 

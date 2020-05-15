@@ -7,10 +7,14 @@ import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
+import javax.validation.constraints.AssertTrue;
+import javax.xml.bind.JAXBElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -20,6 +24,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Ignore
 public class RecordServiceClientITest {
@@ -58,7 +63,7 @@ public class RecordServiceClientITest {
     }
 
 
-    @Test /* !!! */
+    @Test(expected = RecordNotExistsException.class)
     public void deleteRecord() throws CloudException, MCSException, IOException {
         String representationName = "StrangeRepresentationNameToDelete";
         String versionTemplate = "versions/";
@@ -73,24 +78,22 @@ public class RecordServiceClientITest {
         String mediatype = MediaType.TEXT_PLAIN_VALUE;
         InputStream is = RecordServiceClientITest.class.getResourceAsStream("/"+filename);
 
-
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID, is, filename, mediatype);
+
         String representationURIString = representationURI.toString();
 
         int versionIndex = representationURIString.indexOf(versionTemplate);
         String version = representationURIString.substring(versionIndex+versionTemplate.length());
 
 
-        //mcsClient.persistRepresentation(cloudId.getId(), representationName, version);
-
         Representation representation = mcsClient.getRepresentation(cloudId.getId(), representationName);
 
-
         Record record1 = mcsClient.getRecord(cloudId.getId());
+        assertNotNull(record1);
 
         mcsClient.deleteRecord(cloudId.getId());
 
-        Record record2 = mcsClient.getRecord(cloudId.getId());
+        mcsClient.getRecord(cloudId.getId());
     }
 
     //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations
@@ -108,11 +111,11 @@ public class RecordServiceClientITest {
     @Test
     public void getRepresentations2() throws MCSException {
         String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
-        String representationName = "";
+        String representationName = "metadataRecord";
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         List<Representation> representations = mcsClient.getRepresentations(cloudId, representationName);
-        assertThat(representations.size(), is(1));
+        assertThat(representations.size(), is(2));
         assertThat(representations.get(0).getCloudId(), is(cloudId));
     }
 
@@ -221,22 +224,26 @@ public class RecordServiceClientITest {
         assertThat(index, not(-1));
     }
 
-    @Test
-    public void deleteRepresentation() throws CloudException, MCSException {
+    @Test(expected = RepresentationNotExistsException.class)
+    public void deleteRepresentation() throws CloudException, MCSException, IOException {
         String representationName = "StrangeRepresentationName";
 
         UISClient uisClient = new UISClient(REMOTE_TEST_UIS_URL, USER_NAME, USER_PASSWORD);
         CloudId cloudId = uisClient.createCloudId(PROVIDER_ID);
 
-        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-        URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID);
+        String filename = "log4j.properties";
+        String mediatype = MediaType.TEXT_PLAIN_VALUE;
+        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/"+filename);
+
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, ADMIN_NAME, ADMIN_PASSWORD);
+        URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID,
+                is, filename, mediatype);
+
+        Representation representation1 = mcsClient.getRepresentation(cloudId.getId(), representationName);
+        assertNotNull(representation1);
 
         mcsClient.deleteRepresentation(cloudId.getId(), representationName);
-        Representation representation = mcsClient.getRepresentation(cloudId.getId(), representationName);
-
-
-        int index = representationURI.toString().indexOf("/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
-        assertThat(index, not(-1));
+        Representation representation2 = mcsClient.getRepresentation(cloudId.getId(), representationName);
     }
 
 //    public void deleteRepresentation(String cloudId, String representationName)
@@ -361,6 +368,8 @@ public class RecordServiceClientITest {
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         mcsClient.permitVersion(cloudId, representationName, version);
+
+        assertTrue(true);
     }
 
     @Test
@@ -395,6 +404,9 @@ public class RecordServiceClientITest {
         List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId, revisionTimestamp);
 
         Object o = representations.get(0);
+        JAXBElement jaxbElement = (JAXBElement)o;
+        Representation r = (Representation)jaxbElement.getValue();
+
         assertNotNull(representations);
     }
 

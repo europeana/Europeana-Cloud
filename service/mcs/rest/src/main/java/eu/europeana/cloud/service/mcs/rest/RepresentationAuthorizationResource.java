@@ -107,7 +107,7 @@ public class RepresentationAuthorizationResource {
      * @statuscode 200 object has been updated.
      * @statuscode 204 object has not been updated.
      */
-    @PostMapping(value = "/permissions/{permission}/users/{userName}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/permissions/{permission}/users/{userName}")
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> updateAuthorization(
@@ -156,7 +156,7 @@ public class RepresentationAuthorizationResource {
      * @return response tells you if authorization has been updated or not
      * @statuscode 204 object has been updated.
      */
-    @PostMapping(value = "/permit", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/permit")
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> giveReadAccessToEveryone(

@@ -23,5 +23,4 @@ public abstract class MCSClient {
         String userPasswordToken = user + ":" + password;
         return AUTHORIZATION_VALUE_PREFIX + Base64.encodeBytes(userPasswordToken.getBytes());
     }
-
 }

@@ -57,13 +57,15 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         this.environment = environment;
     }
 
-    //TODO Explain if it works
+/*
+    //TODO Explain if it works?
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer.defaultContentType(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN);
         configurer.defaultContentTypeStrategy(nativeWebRequest ->
                         Arrays.asList(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN));
     }
+*/
 
     @Bean
     public ServiceExceptionTranslator serviceExceptionTranslator() {

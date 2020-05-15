@@ -81,7 +81,8 @@ public class RepresentationVersionResource {
      *                                                       specified version is persistent and as such cannot be removed.
      */
     @DeleteMapping
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version)," +
+            " 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteRepresentation(
             @PathVariable(CLOUD_ID) String cloudId,
             @PathVariable(REPRESENTATION_NAME) String representationName,

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.cleaner;
+package eu.europeana.cloud.service.mcs.utils;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.solr.client.solrj.SolrClient;
