@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;

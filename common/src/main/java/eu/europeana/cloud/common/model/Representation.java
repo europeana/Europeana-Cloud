@@ -1,5 +1,6 @@
 package eu.europeana.cloud.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -252,6 +253,7 @@ public class Representation {
     /**
      * This method is required for @PostFilter (Spring ACL) at RepresentationsResource.getRepresentations()
      */
+    @JsonIgnore
     public String getId() {
         return getACLId();
     }

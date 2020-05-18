@@ -58,9 +58,9 @@ public class AuthorizationConfiguration {
     /* ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= */
 
     @Bean
-    public CassandraMutableAclService aclService() {
+    public CassandraMutableAclService aclService(CassandraAclRepository aclRepository) {
         return new CassandraMutableAclService(
-                aclRepository(),
+                aclRepository,
                 null,
                 permissionGrantingStrategy(),
                 authorizationStrategy(),
@@ -68,8 +68,8 @@ public class AuthorizationConfiguration {
     }
 
     @Bean
-    public CassandraAclRepository aclRepository() {
-        return new CassandraAclRepository(cassandraProvider(), false);
+    public CassandraAclRepository aclRepository(CassandraConnectionProvider aasCassandraProvider) {
+        return new CassandraAclRepository(aasCassandraProvider, false);
     }
 
     @Bean
@@ -89,7 +89,7 @@ public class AuthorizationConfiguration {
     }
 
     @Bean
-    public CassandraConnectionProvider cassandraProvider() {
+    public CassandraConnectionProvider aasCassandraProvider() {
         listEnvironment();
 
         String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
@@ -117,24 +117,24 @@ public class AuthorizationConfiguration {
     }
 
     @Bean
-    public DefaultMethodSecurityExpressionHandler expressionHandler() {
+    public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator, AclPermissionCacheOptimizer permissionCacheOptimizer) {
         DefaultMethodSecurityExpressionHandler result = new DefaultMethodSecurityExpressionHandler();
 
-        result.setPermissionEvaluator(permissionEvaluator());
-        result.setPermissionCacheOptimizer(permissionCacheOptimizer());
+        result.setPermissionEvaluator(permissionEvaluator);
+        result.setPermissionCacheOptimizer(permissionCacheOptimizer);
 
         return result;
     }
 
     @Bean
-    public AclPermissionCacheOptimizer permissionCacheOptimizer() {
-        return new AclPermissionCacheOptimizer(aclService());
+    public AclPermissionCacheOptimizer permissionCacheOptimizer(CassandraMutableAclService aclService) {
+        return new AclPermissionCacheOptimizer(aclService);
     }
 
 
     @Bean
-    public AclPermissionEvaluator permissionEvaluator() {
-        return new AclPermissionEvaluator(aclService());
+    public AclPermissionEvaluator permissionEvaluator(CassandraMutableAclService aclService) {
+        return new AclPermissionEvaluator(aclService);
     }
 
     private void listEnvironment() {

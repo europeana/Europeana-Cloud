@@ -28,6 +28,7 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Date;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
