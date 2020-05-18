@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.utils.FirstFlag;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 
+import javax.xml.crypto.Data;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -100,7 +101,7 @@ public class DataSetIterator implements Iterator<DataSet> {
     //this method does not check if this is valid to obtain next chunk now
     private void obtainNextChunk() {
 
-        ResultSlice currentChunk;
+        ResultSlice<DataSet> currentChunk;
         try {
             currentChunk = client.getDataSetsForProviderChunk(providerId, nextSlice);
         } catch (MCSException ex) {

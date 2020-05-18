@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.utils.storageSelector;
+package eu.europeana.cloud.service.mcs.utils.storage_selector;
 
 import com.google.common.io.Resources;
 import eu.europeana.cloud.service.mcs.rest.Helper;

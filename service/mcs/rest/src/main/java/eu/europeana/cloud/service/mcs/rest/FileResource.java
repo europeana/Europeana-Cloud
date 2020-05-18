@@ -4,8 +4,8 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.utils.storageSelector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Resource to manage representation version's files with their content.

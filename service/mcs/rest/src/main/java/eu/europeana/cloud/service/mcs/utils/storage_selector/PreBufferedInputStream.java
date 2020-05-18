@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.utils.storageSelector;
+package eu.europeana.cloud.service.mcs.utils.storage_selector;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -70,7 +70,7 @@ public class PreBufferedInputStream extends BufferedInputStream {
      * {@inheritDoc}
      */
     @Override
-    public int read() throws IOException {
+    public synchronized int read() throws IOException {
         ensureIsNotClosed();
         if (position < bufferFill) {
             return buffer[position++] & 0xff;
@@ -82,7 +82,7 @@ public class PreBufferedInputStream extends BufferedInputStream {
      * {@inheritDoc}
      */
     @Override
-    public int read(final byte[] b, final int offset, final int length) throws IOException {
+    public synchronized int read(final byte[] b, final int offset, final int length) throws IOException {
         ensureIsNotClosed();
         if (b == null) {
             throw new NullPointerException();
@@ -124,7 +124,7 @@ public class PreBufferedInputStream extends BufferedInputStream {
      * {@inheritDoc}
      */
     @Override
-    public int available() throws IOException {
+    public synchronized int available() throws IOException {
         ensureIsNotClosed();
         int inBufferAvailable = bufferFill - position;
         int avail = super.available();
@@ -185,7 +185,7 @@ public class PreBufferedInputStream extends BufferedInputStream {
      * {@inheritDoc}
      */
     @Override
-    public long skip(final long length) throws IOException {
+    public synchronized long skip(final long length) throws IOException {
         ensureIsNotClosed();
         long skip = length;
         if (skip <= 0) {

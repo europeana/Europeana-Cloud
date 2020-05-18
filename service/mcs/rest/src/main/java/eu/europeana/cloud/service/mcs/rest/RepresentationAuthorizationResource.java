@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
@@ -41,6 +40,7 @@ public class RepresentationAuthorizationResource {
             eu.europeana.cloud.common.model.Permission.DELETE.getValue()
     );
     public static final String NO_UPDATED_MESSAGE = "Authorization has NOT been updated!";
+    public static final String UPDATED_MESSAGE = "Authorization has been updated!";
 
     @Autowired
     private MutableAclService mutableAclService;
@@ -78,12 +78,14 @@ public class RepresentationAuthorizationResource {
 
         ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
-        eu.europeana.cloud.common.model.Permission permissionUpperCase = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+        eu.europeana.cloud.common.model.Permission permissionUpperCase =
+                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 cloudId + "/" + representationName + "/" + version);
 
-        LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'", userName, versionIdentity.getType(), versionIdentity.getIdentifier());
+        LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
+                userName, versionIdentity.getType(), versionIdentity.getIdentifier());
 
         List<Permission> permissionsToBeRemoved = Arrays.asList(permissionUpperCase.getSpringPermissions());
         permissionsGrantingManager.removePermissions(versionIdentity, userName, permissionsToBeRemoved);
@@ -121,7 +123,8 @@ public class RepresentationAuthorizationResource {
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 cloudId + "/" + representationName + "/" + version);
-        eu.europeana.cloud.common.model.Permission euPermission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+        eu.europeana.cloud.common.model.Permission euPermission =
+                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
         if (versionAcl != null) {
@@ -137,7 +140,7 @@ public class RepresentationAuthorizationResource {
                         .status(HttpStatus.NOT_MODIFIED)
                         .body(NO_UPDATED_MESSAGE);
             }
-            return ResponseEntity.ok("Authorization has been updated!");
+            return ResponseEntity.ok(UPDATED_MESSAGE);
         } else {
             return ResponseEntity
                     .status(HttpStatus.NOT_MODIFIED)
@@ -176,11 +179,11 @@ public class RepresentationAuthorizationResource {
             versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, anonRole, true);
             versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, userRole, true);
             mutableAclService.updateAcl(versionAcl);
-            return ResponseEntity.ok("Authorization has been updated!");
+            return ResponseEntity.ok(UPDATED_MESSAGE);
         } else {
             return ResponseEntity
                     .status(HttpStatus.NOT_MODIFIED)
-                    .body("Authorization has NOT been updated!");
+                    .body(NO_UPDATED_MESSAGE);
         }
     }
 }

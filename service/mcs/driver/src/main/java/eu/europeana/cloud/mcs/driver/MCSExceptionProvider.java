@@ -10,6 +10,8 @@ import eu.europeana.cloud.service.mcs.status.McsErrorCode;
  */
 public class MCSExceptionProvider {
 
+    private MCSExceptionProvider(){}
+
     /**
      * Generate {@link MCSException} from {@link ErrorInfo}.
      * 

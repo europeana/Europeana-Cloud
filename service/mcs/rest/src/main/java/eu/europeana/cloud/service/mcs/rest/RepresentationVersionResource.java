@@ -22,9 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**

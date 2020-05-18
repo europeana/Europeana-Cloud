@@ -77,7 +77,6 @@ public class RecordsResource {
     private void prepare(HttpServletRequest httpServletRequest, Record record) {
         EnrichUriUtil.enrich(httpServletRequest, record);
         for (Representation representation : record.getRepresentations()) {
-            //representation.setFiles(null);
             representation.setCloudId(null);
         }
     }

@@ -7,8 +7,8 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.utils.storageSelector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -29,7 +29,7 @@ import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.service.mcs.utils.storageSelector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Handles uploading the file when representation is not created yet.

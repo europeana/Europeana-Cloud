@@ -104,7 +104,7 @@
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
             <scope>test</scope>
-            <version>1.0.2</version>
+            <version>${version.junitparams}</version>
         </dependency>
 
         <dependency>

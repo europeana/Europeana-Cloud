@@ -90,8 +90,6 @@ public class AuthorizationConfiguration {
 
     @Bean
     public CassandraConnectionProvider aasCassandraProvider() {
-        listEnvironment();
-
         String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
         Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
         String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);
@@ -135,24 +133,5 @@ public class AuthorizationConfiguration {
     @Bean
     public AclPermissionEvaluator permissionEvaluator(CassandraMutableAclService aclService) {
         return new AclPermissionEvaluator(aclService);
-    }
-
-    private void listEnvironment() {
-        Map<String, Object> map = new TreeMap<>();
-        for(Iterator it = ((AbstractEnvironment)environment).getPropertySources().iterator(); it.hasNext(); ) {
-            PropertySource propertySource = (PropertySource) it.next();
-            if (propertySource instanceof MapPropertySource) {
-                map.putAll(((MapPropertySource) propertySource).getSource());
-            }
-        }
-
-        Iterator<String> keyIterator = map.keySet().iterator();
-
-        LOGGER.info("###MAP: ");
-        while(keyIterator.hasNext()) {
-            String key = keyIterator.next();
-            Object value = map.get(key);
-            LOGGER.info("\t{}: {}", key, value);
-        }
     }
 }

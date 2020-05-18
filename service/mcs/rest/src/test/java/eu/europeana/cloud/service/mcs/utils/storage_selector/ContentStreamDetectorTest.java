@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.utils.storageSelector;
+package eu.europeana.cloud.service.mcs.utils.storage_selector;
 
 import com.google.common.io.Resources;
 import junitparams.JUnitParamsRunner;
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import static eu.europeana.cloud.service.mcs.rest.Helper.readFully;
-import static eu.europeana.cloud.service.mcs.utils.storageSelector.ContentStreamDetector.detectMediaType;
+import static eu.europeana.cloud.service.mcs.utils.storage_selector.ContentStreamDetector.detectMediaType;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
