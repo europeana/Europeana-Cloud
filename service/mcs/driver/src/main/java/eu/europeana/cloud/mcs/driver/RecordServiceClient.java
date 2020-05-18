@@ -671,7 +671,9 @@ public class RecordServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.post(null);
-            if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            if(response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
+                throw new MCSException("Permissions not modified");
+            } else if (response.getStatus() != Response.Status.OK.getStatusCode()) {
                 throwException(response);
             }
         } finally {
@@ -779,7 +781,7 @@ public class RecordServiceClient extends MCSClient {
         try {
             response = request.get();
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(new GenericType<List<Representation>>(ArrayList.class) {});
+                return response.readEntity(new GenericType<List<Representation>>() {});
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);

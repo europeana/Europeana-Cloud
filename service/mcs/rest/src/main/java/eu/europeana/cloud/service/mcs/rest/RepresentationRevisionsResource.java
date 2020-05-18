@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ public class RepresentationRevisionsResource {
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
-    public List<Representation> getRepresentationRevisions(
+    public RepresentationsListWrapper /*List<Representation>*/ getRepresentationRevisions(
             HttpServletRequest httpServletRequest,
             @PathVariable(CLOUD_ID) String cloudId,
             @PathVariable(REPRESENTATION_NAME) String representationName,
@@ -86,7 +87,7 @@ public class RepresentationRevisionsResource {
             throw new RepresentationNotExistsException("No representation was found");
         }
 
-        return representations;
+        return new RepresentationsListWrapper(representations);
     }
 
     private boolean userHasAccessTo(Representation representation){

@@ -123,8 +123,8 @@ public class RecordServiceClientITest {
     //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
     @Test
     public void getRepresentation() throws MCSException {
-        //String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
-        String cloudId = "222B5I4VPV3XN43PZMD2UHC6NPA6B2ZY7ZRPQV2UUVXRHFDALXEA";
+        String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
+        //String cloudId = "222B5I4VPV3XN43PZMD2UHC6NPA6B2ZY7ZRPQV2UUVXRHFDALXEA";
 
         String representationName = "metadataRecord";
 
@@ -142,7 +142,7 @@ public class RecordServiceClientITest {
     public void getRepresentationKeyValue() throws MCSException {
         String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
         String representationName = "metadataRecord";
-        String version = "xxx";
+        String version = "5a259500-392f-11ea-9718-fa163e64bb83";
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL);
         Representation representation = mcsClient.getRepresentation(cloudId, representationName, version,
@@ -335,9 +335,7 @@ public class RecordServiceClientITest {
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         URI representationURI = mcsClient.persistRepresentation(cloudId.getId(), representationName, PROVIDER_ID);
 
-        mcsClient.persistRepresentation(cloudId.getId(), representationName, version);
         Representation representation = mcsClient.getRepresentation(cloudId.getId(), representationName);
-
 
         int index = representationURI.toString().indexOf("/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
         assertThat(index, not(-1));
@@ -348,17 +346,13 @@ public class RecordServiceClientITest {
         String cloudId = "<enter_cloud_id_here>";
         String representationName = "<enter_representation_name_here>";
         String version = "<enter_version_here>";
-        String userName = null;
-        Permission permission = null;
+        String userName = "<enter_username_here>";
+        Permission permission = Permission.ALL;
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         mcsClient.grantPermissionsToVersion(cloudId, representationName, version, userName, permission);
 
     }
-
-/*
-    public void revokePermissionsToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
- */
 
     @Test
     public void permitVersion() throws MCSException {
@@ -403,11 +397,9 @@ public class RecordServiceClientITest {
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId, revisionTimestamp);
 
-        Object o = representations.get(0);
-        JAXBElement jaxbElement = (JAXBElement)o;
-        Representation r = (Representation)jaxbElement.getValue();
-
         assertNotNull(representations);
+        assertTrue(representations.size() > 0);
+        assertThat(representations.get(0).getCloudId(), is(cloudId));
     }
 
 }
