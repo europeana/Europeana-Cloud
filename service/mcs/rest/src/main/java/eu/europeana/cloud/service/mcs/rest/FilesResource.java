@@ -24,14 +24,14 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.UUID;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
 import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * FilesResource
  */
 @RestController
-@RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}/files")
+@RequestMapping(FILES_RESOURCE)
 @Scope("request")
 public class FilesResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FilesResource.class.getName());
@@ -84,9 +84,9 @@ public class FilesResource {
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
 	public ResponseEntity<URI> sendFile(
 			HttpServletRequest httpServletRequest,
-			@PathVariable(CLOUD_ID) final String cloudId,
-			@PathVariable(REPRESENTATION_NAME) final String representationName,
-			@PathVariable(VERSION) final String version,
+			@PathVariable final String cloudId,
+			@PathVariable final String representationName,
+			@PathVariable final String version,
 			@RequestParam String mimeType,
 			@RequestParam byte[] data,
 			@RequestParam(required = false) String fileName) throws RepresentationNotExistsException,

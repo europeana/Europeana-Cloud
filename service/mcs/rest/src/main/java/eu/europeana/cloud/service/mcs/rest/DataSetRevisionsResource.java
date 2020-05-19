@@ -19,14 +19,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REVISIONS_RESOURCE;
 
 /**
  * Resource to manage data sets.
  */
 @RestController
-@RequestMapping("/data-providers/{"+PROVIDER_ID+"}/data-sets/{"+DATA_SET_ID+"}/representations/" +
-        "{"+REPRESENTATION_NAME+"}/revisions/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER_ID+"}")
+@RequestMapping(DATA_SET_REVISIONS_RESOURCE)
 @Scope("request")
 public class DataSetRevisionsResource {
 
@@ -57,11 +56,11 @@ public class DataSetRevisionsResource {
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<ResultSlice<CloudTagsResponse>> getDataSetContents(
-            @PathVariable(PROVIDER_ID) String providerId,
-            @PathVariable(DATA_SET_ID) String dataSetId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(REVISION_NAME) String revisionName,
-            @PathVariable(REVISION_PROVIDER_ID) String revisionProviderId,
+            @PathVariable String providerId,
+            @PathVariable String dataSetId,
+            @PathVariable String representationName,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
             @RequestParam String revisionTimestamp,
             @RequestParam(required = false) String startFrom,
             @RequestParam int limit) throws DataSetNotExistsException, ProviderNotExistsException {

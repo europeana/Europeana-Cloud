@@ -22,17 +22,14 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Resource to manage representation versions.
  */
 @RestController
-@RequestMapping(RepresentationVersionResource.CLASS_MAPPING)
 @Scope("request")
 public class RepresentationVersionResource {
-
-    public static final String CLASS_MAPPING = "/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}";
 
     private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
@@ -54,14 +51,14 @@ public class RepresentationVersionResource {
      *                                          specified version.
      * @summary get representation by version
      */
-    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = REPRESENTATION_VERSION, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public @ResponseBody  Representation getRepresentationVersion(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version) throws RepresentationNotExistsException {
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version) throws RepresentationNotExistsException {
 
         Representation representation = recordService.getRepresentation(cloudId, representationName, version);
         EnrichUriUtil.enrich(httpServletRequest, representation);
@@ -80,13 +77,13 @@ public class RepresentationVersionResource {
      * @throws CannotModifyPersistentRepresentationException representation in
      *                                                       specified version is persistent and as such cannot be removed.
      */
-    @DeleteMapping
+    @DeleteMapping(value = REPRESENTATION_VERSION)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version)," +
             " 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteRepresentation(
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
 
         recordService.deleteRepresentation(cloudId, representationName, version);
 
@@ -113,14 +110,14 @@ public class RepresentationVersionResource {
      *                                                       has no file attached and as such cannot be made persistent.
      * @statuscode 201 representation is made persistent.
      */
-    @PostMapping(value = "/persist")
+    @PostMapping(value = REPRESENTATION_VERSION_PERSIST)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> persistRepresentation(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version) throws RepresentationNotExistsException,
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version) throws RepresentationNotExistsException,
                         CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException {
 
         Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
@@ -142,14 +139,14 @@ public class RepresentationVersionResource {
      * @summary copy information including file contents from one representation version to another
      * @statuscode 201 representation has been copied to a new one.
      */
-    @PostMapping(value = "/copy")
+    @PostMapping(value = REPRESENTATION_VERSION_COPY)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<?> copyRepresentation(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version) throws RepresentationNotExistsException {
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version) throws RepresentationNotExistsException {
 
         Representation representationCopy = recordService.copyRepresentation(cloudId, representationName, version);
         EnrichUriUtil.enrich(httpServletRequest, representationCopy);

@@ -1,19 +1,13 @@
 package eu.europeana.cloud.service.mcs.utils;
 
-import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.rest.DataSetResource;
-import eu.europeana.cloud.service.mcs.rest.FileResource;
-import eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource;
-import eu.europeana.cloud.service.mcs.rest.RepresentationVersionsResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriInfo;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -21,6 +15,7 @@ import java.net.URL;
 import java.util.Properties;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Utility class that inserts absolute uris into classes that will be used as REST responses.
@@ -34,43 +29,9 @@ public final class EnrichUriUtil {
     private EnrichUriUtil() {
     }
 
-    @Deprecated
-    public static void enrich(UriInfo uriInfo, Record record) {
-        for (Representation rep : record.getRepresentations()) {
-            enrich(uriInfo, rep);
-        }
-    }
-
     public static void enrich(HttpServletRequest httpServletRequest, Record record) {
         for (Representation rep : record.getRepresentations()) {
             enrich(httpServletRequest, rep);
-        }
-    }
-
-
-    @Deprecated
-    public static void enrich(UriInfo uriInfo, Representation representation) {
-        URI allVersionsUri = uriInfo
-                .getBaseUriBuilder()
-                .path(RepresentationVersionsResource.class)
-                .buildFromMap(
-                    ImmutableMap.of(CLOUD_ID, representation.getCloudId(), REPRESENTATION_NAME,
-                        representation.getRepresentationName()));
-        representation.setAllVersionsUri(uriInfo.resolve(allVersionsUri));
-
-        if (representation.getVersion() != null) {
-            URI latestVersionUri = uriInfo
-                    .getBaseUriBuilder()
-                    .path(RepresentationVersionResource.class)
-                    .buildFromMap(
-                        ImmutableMap.of(CLOUD_ID, representation.getCloudId(), REPRESENTATION_NAME,
-                            representation.getRepresentationName(), VERSION, representation.getVersion()));
-            representation.setUri(uriInfo.resolve(latestVersionUri));
-        }
-        if (representation.getFiles() != null) {
-            for (File f : representation.getFiles()) {
-                enrich(uriInfo, representation, f);
-            }
         }
     }
 
@@ -79,11 +40,11 @@ public final class EnrichUriUtil {
         properties.setProperty(CLOUD_ID, representation.getCloudId());
         properties.setProperty(REPRESENTATION_NAME, representation.getRepresentationName());
 
-        representation.setAllVersionsUri(createURI(httpServletRequest, RepresentationVersionsResource.CLASS_MAPPING, properties));
+        representation.setAllVersionsUri(createURI(httpServletRequest, REPRESENTATION_VERSIONS_RESOURCE, properties));
 
         if(representation.getVersion() != null) {
             properties.setProperty(VERSION, representation.getVersion());
-            representation.setUri(createURI(httpServletRequest, RepresentationVersionResource.CLASS_MAPPING, properties));
+            representation.setUri(createURI(httpServletRequest, REPRESENTATION_VERSION, properties));
         }
 
         if (representation.getFiles() != null) {
@@ -94,24 +55,8 @@ public final class EnrichUriUtil {
 
     }
 
-    @Deprecated
-    public static void enrich(UriInfo uriInfo, Representation rep, File file) {
-        enrich(uriInfo, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file);
-    }
-
     public static void enrich(HttpServletRequest httpServletRequest, Representation rep, File file) {
         enrich(httpServletRequest, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file);
-    }
-
-    @Deprecated
-    public static void enrich(UriInfo uriInfo, String cloudId, String representationName, String version, File file) {
-        URI fileUri = uriInfo
-                .getBaseUriBuilder()
-                .path(FileResource.class)
-                .buildFromMap(
-                    ImmutableMap.of(CLOUD_ID, cloudId, REPRESENTATION_NAME, representationName, VERSION, version, FILE_NAME,
-                        file.getFileName()));
-        file.setContentUri(uriInfo.resolve(fileUri));
     }
 
     public static void enrich(HttpServletRequest httpServletRequest, String cloudId, String representationName, String version, File file) {
@@ -121,14 +66,7 @@ public final class EnrichUriUtil {
         properties.setProperty(VERSION, version);
         properties.setProperty(FILE_NAME, file.getFileName());
 
-        file.setContentUri(createURI(httpServletRequest, FileResource.CLASS_MAPPING, properties));
-    }
-
-    @Deprecated
-    public static void enrich(UriInfo uriInfo, DataSet dataSet) {
-        URI datasetUri = uriInfo.getBaseUriBuilder().path(DataSetResource.class)
-                .buildFromMap(ImmutableMap.of(PROVIDER_ID, dataSet.getProviderId(), DATA_SET_ID, dataSet.getId()));
-        dataSet.setUri(uriInfo.resolve(datasetUri));
+        file.setContentUri(createURI(httpServletRequest, FILE_RESOURCE, properties));
     }
 
     public static void enrich(HttpServletRequest httpServletRequest, DataSet dataSet) {
@@ -137,7 +75,7 @@ public final class EnrichUriUtil {
         properties.setProperty(PROVIDER_ID, dataSet.getProviderId());
         properties.setProperty(DATA_SET_ID, dataSet.getId());
 
-        dataSet.setUri(createURI(httpServletRequest, DataSetResource.CLASS_MAPPING, properties));
+        dataSet.setUri(createURI(httpServletRequest, DATA_SET_RESOURCE, properties));
     }
 
     private static URI createURI(HttpServletRequest httpServletRequest, String path, Properties properties) {

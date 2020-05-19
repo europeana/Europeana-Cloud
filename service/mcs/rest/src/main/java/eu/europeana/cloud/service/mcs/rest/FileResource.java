@@ -27,19 +27,16 @@ import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Resource to manage representation version's files with their content.
  */
 @RestController
-@RequestMapping(FileResource.CLASS_MAPPING)
+@RequestMapping(FILE_RESOURCE)
 @Scope("request")
 public class FileResource {
-    public static final String CLASS_MAPPING =
-            "/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}/files/{"+FILE_NAME+":(.+)?}";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(FileResource.class);
 
     private static final String HEADER_RANGE = "Range";
@@ -81,10 +78,10 @@ public class FileResource {
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> sendFile(
             HttpServletRequest httpServletRequest,
-    		@PathVariable(CLOUD_ID) String cloudId,
-    		@PathVariable(REPRESENTATION_NAME) String representationName,
-    		@PathVariable(VERSION) String version,
-    		@PathVariable(FILE_NAME) String fileName,
+    		@PathVariable String cloudId,
+    		@PathVariable String representationName,
+    		@PathVariable String version,
+    		@PathVariable String fileName,
     		@RequestParam String mimeType,
             @RequestParam byte[] data) throws RepresentationNotExistsException,
                 CannotModifyPersistentRepresentationException, FileNotExistsException {
@@ -141,10 +138,10 @@ public class FileResource {
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<StreamingResponseBody> getFile(
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-    		@PathVariable(VERSION) String version,
-    		@PathVariable(FILE_NAME) final String fileName,
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+    		@PathVariable String version,
+    		@PathVariable final String fileName,
             @RequestHeader(HEADER_RANGE) String range) throws RepresentationNotExistsException,
                                                     FileNotExistsException, WrongContentRangeException {
 
@@ -208,10 +205,10 @@ public class FileResource {
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<?> getFileHeaders(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) final String representationName,
-            @PathVariable(VERSION) final String version,
-            @PathVariable(FILE_NAME) final String fileName) throws RepresentationNotExistsException, FileNotExistsException {
+            @PathVariable String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
+            @PathVariable final String fileName) throws RepresentationNotExistsException, FileNotExistsException {
 
         final File requestedFile = recordService.getFile(cloudId, representationName, version, fileName);
         String fileMimeType = null;
@@ -257,10 +254,10 @@ public class FileResource {
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteFile(
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-    		@PathVariable(VERSION) String version,
-    		@PathVariable(FILE_NAME) String fileName) throws RepresentationNotExistsException, FileNotExistsException,
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+    		@PathVariable String version,
+    		@PathVariable String fileName) throws RepresentationNotExistsException, FileNotExistsException,
                                                                     CannotModifyPersistentRepresentationException {
     	
         recordService.deleteContent(cloudId, representationName, version, fileName);

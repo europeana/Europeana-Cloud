@@ -15,21 +15,18 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
 
 
 /**
  * Resource to manage representation versions.
  */
 @RestController
-@RequestMapping(RepresentationVersionsResource.CLASS_MAPPING)
+@RequestMapping(REPRESENTATION_VERSIONS_RESOURCE)
 @Scope("request")
 public class RepresentationVersionsResource {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionsResource.class.getName());
-
-    public static final String CLASS_MAPPING = "/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions";
 
     @Autowired
     private RecordService recordService;
@@ -46,8 +43,8 @@ public class RepresentationVersionsResource {
     @ResponseBody
     public RepresentationsListWrapper listVersions(
             final HttpServletRequest request,
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName)
+            @PathVariable String cloudId,
+            @PathVariable String representationName)
             throws RepresentationNotExistsException {
 
         List<Representation> representationVersions = recordService.listRepresentationVersions(cloudId, representationName);

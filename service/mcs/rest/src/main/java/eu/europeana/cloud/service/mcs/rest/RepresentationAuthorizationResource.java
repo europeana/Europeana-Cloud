@@ -14,18 +14,21 @@ import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_PERMISSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_PERMIT;
 
 /**
  * Resource to authorize other users to read specific versions.
  */
 @RestController
-@RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}")
 public class RepresentationAuthorizationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
@@ -66,15 +69,15 @@ public class RepresentationAuthorizationResource {
      * @summary Permissions removal
      */
 
-    @DeleteMapping(value = "/permissions/{"+PERMISSION+"}/users/{"+USER_NAME+"}")
+    @DeleteMapping(value = REPRESENTATION_PERMISSION)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> removePermissions(
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version,
-            @PathVariable(PERMISSION) String permission,
-            @PathVariable(USER_NAME) String userName) {
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version,
+            @PathVariable String permission,
+            @PathVariable String userName) {
 
         ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
@@ -109,15 +112,15 @@ public class RepresentationAuthorizationResource {
      * @statuscode 200 object has been updated.
      * @statuscode 204 object has not been updated.
      */
-    @PostMapping(value = "/permissions/{permission}/users/{userName}")
+    @PostMapping(value = REPRESENTATION_PERMISSION)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> updateAuthorization(
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version,
-            @PathVariable(PERMISSION) String permission,
-            @PathVariable(USER_NAME) String userName) {
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version,
+            @PathVariable String permission,
+            @PathVariable String userName) {
 
         ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
@@ -159,13 +162,13 @@ public class RepresentationAuthorizationResource {
      * @return response tells you if authorization has been updated or not
      * @statuscode 204 object has been updated.
      */
-    @PostMapping(value = "/permit")
+    @PostMapping(value = REPRESENTATION_PERMIT)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<String> giveReadAccessToEveryone(
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version) {
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version) {
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 cloudId + "/" + representationName + "/" + version);

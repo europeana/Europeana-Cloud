@@ -28,13 +28,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Created by Tarek on 8/2/2016.
  */
 @RestController
-@RequestMapping("/records/{"+CLOUD_ID+"}/representations/{"+REPRESENTATION_NAME+"}/versions/{"+VERSION+"}/revisions")
 @Scope("request")
 public class RevisionResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(RevisionResource.class.getName());
@@ -60,20 +59,20 @@ public class RevisionResource {
      * @throws RevisionIsNotValidException      if the added revision was not valid
      * @statuscode 201 object has been created.
      */
-    @PostMapping(value = "/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER_ID+"}/tag/{"+TAG+"}")
+    @PostMapping(value = REVISION_ADD_WITH_PROVIDER_TAG)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<String> addRevision(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) final String cloudId,
-            @PathVariable(REPRESENTATION_NAME) final String representationName,
-            @PathVariable(VERSION) final String version,
-            @PathVariable(REVISION_NAME) String revisionName,
-            @PathVariable(REVISION_PROVIDER_ID) String revisionProviderId,
-            @PathVariable(TAG) String tag) throws RepresentationNotExistsException,
+            @PathVariable final String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
+            @PathVariable String tag) throws RepresentationNotExistsException,
                                                 RevisionIsNotValidException, ProviderNotExistsException {
 
-        ParamUtil.validate(TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+        ParamUtil.validate("tag", tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         Revision revision = new Revision(revisionName, revisionProviderId);
         setRevisionTags(revision, new HashSet<>(Arrays.asList(tag)));
         addRevision(cloudId, representationName, version, revision);
@@ -94,14 +93,14 @@ public class RevisionResource {
      * @throws RepresentationNotExistsException representation does not exist in specified version
      * @statuscode 201 object has been created.
      */
-    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(value = REVISION_ADD, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<?> addRevision(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) final String cloudId,
-            @PathVariable(REPRESENTATION_NAME) final String representationName,
-            @PathVariable(VERSION) final String version,
+            @PathVariable final String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
             @RequestBody Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
 
         addRevision(cloudId, representationName, version, revision);
@@ -129,16 +128,16 @@ public class RevisionResource {
      * @throws RevisionIsNotValidException      if the added revision was not valid
      * @statuscode 201 object has been created.
      */
-    @PostMapping(value = "/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER_ID+"}/tags")
+    @PostMapping(value = REVISION_ADD_WITH_PROVIDER)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public ResponseEntity<Revision> addRevision(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) final String cloudId,
-            @PathVariable(REPRESENTATION_NAME) final String representationName,
-            @PathVariable(VERSION) final String version,
-            @PathVariable(REVISION_NAME) String revisionName,
-            @PathVariable(REVISION_PROVIDER_ID) String revisionProviderId,
+            @PathVariable final String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
             @RequestParam(required = false) Set<String> tags ) throws RepresentationNotExistsException,
                                                         RevisionIsNotValidException, ProviderNotExistsException {
 
@@ -166,15 +165,15 @@ public class RevisionResource {
      * @throws ProviderNotExistsException
      * @throws RepresentationNotExistsException
      */
-    @DeleteMapping(value = "/{revisionName}/revisionProvider/{revisionProviderId}")
+    @DeleteMapping(value = REVISION_DELETE)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public void deleteRevision(
-            @PathVariable(CLOUD_ID) String cloudId,
-            @PathVariable(REPRESENTATION_NAME) String representationName,
-            @PathVariable(VERSION) String version,
-            @PathVariable(REVISION_NAME) String revisionName,
-            @PathVariable(REVISION_PROVIDER_ID) String revisionProviderId,
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
             @RequestParam String revisionTimestamp ) throws RepresentationNotExistsException {
 
         DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);

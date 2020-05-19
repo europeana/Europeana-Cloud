@@ -12,6 +12,7 @@
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
     </properties>
     <dependencies>
         <dependency>
@@ -19,36 +20,27 @@
             <artifactId>commons-io</artifactId>
             <version>1.3.2</version>
         </dependency>
+
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-
-
-
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
         </dependency>
-        <!--
-                <dependency>
-                    <groupId>org.glassfish.jersey.media</groupId>
-                    <artifactId>jersey-media-moxy</artifactId>
-                </dependency>
-        -->
-
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-jaxb</artifactId>
             <version>${version.jersey}</version>
         </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-common</artifactId>
@@ -67,6 +59,12 @@
             <groupId>net.iharder</groupId>
             <artifactId>base64</artifactId>
             <version>2.3.8</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud.service.mcs</groupId>
+            <artifactId>ecloud-service-mcs-utils</artifactId>
+            <version>1.9.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
 
         <!--test dependencies-->
@@ -103,8 +101,8 @@
         <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
-            <scope>test</scope>
             <version>${version.junitparams}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -115,8 +113,8 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>4.0.9.RELEASE</version>
-            <scope>compile</scope>
+            <version>${version.spring-framework}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -129,12 +127,6 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud.service.mcs</groupId>
-            <artifactId>ecloud-service-mcs-utils</artifactId>
-            <version>1.9.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>

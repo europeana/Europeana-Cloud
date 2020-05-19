@@ -330,7 +330,7 @@
             <version>${project.version}</version>
         </dependency>
 
-<!--  ## It seams to be unnecessary but it is difficult to be shure
+<!--  ## It seams to be unnecessary but it is difficult to check it
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-mcs-persistent</artifactId>
@@ -399,7 +399,7 @@
             <version>${version.spring-framework}</version>
         </dependency>
 
-        <!--    ## It seams to be unnecessary but it is difficult to be shure
+        <!--    ## It seams to be unnecessary but it is difficult to check it
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>

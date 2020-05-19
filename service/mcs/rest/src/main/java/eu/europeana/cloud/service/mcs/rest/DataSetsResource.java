@@ -23,13 +23,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SETS_RESOURCE;
 
 /**
  * Resource to get and create data set.
  */
 @RestController
-@RequestMapping("/data-providers/{"+PROVIDER_ID+"}/data-sets")
+@RequestMapping(DATA_SETS_RESOURCE)
 @Scope("request")
 public class DataSetsResource {
 
@@ -56,7 +56,7 @@ public class DataSetsResource {
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
     public ResultSlice<DataSet> getDataSets(
-            @PathVariable(PROVIDER_ID) String providerId,
+            @PathVariable String providerId,
     		@RequestParam(required = false) String startFrom) {
 
         return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
@@ -81,7 +81,7 @@ public class DataSetsResource {
     @PostMapping
     public ResponseEntity<?> createDataSet(
             HttpServletRequest httpServletRequest,
-            @PathVariable(PROVIDER_ID) String providerId,
+            @PathVariable String providerId,
             @RequestParam String dataSetId,
             @RequestParam(required = false) String description) throws ProviderNotExistsException, DataSetAlreadyExistsException {
 

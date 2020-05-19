@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doAnswer;
@@ -63,7 +64,7 @@ public class HugeFileResourceDownloadIT extends CassandraBasedAbstractResourceTe
 
         // when we download mocked content of resource
         ResultActions response = mockMvc.perform(
-                get(FileResource.CLASS_MAPPING, globalId, schema, version, file.getFileName()))
+                get(FILE_RESOURCE, globalId, schema, version, file.getFileName()))
                 .andExpect(status().is2xxSuccessful());
 
 

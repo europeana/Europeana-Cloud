@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_REPRESENTATION_RESOURCE;
 
 /**
  * Gives access to latest persistent representation using 'friendly' URL
  */
 @RestController
-@RequestMapping("/data-providers/{"+PROVIDER_ID+"}/records/{"+LOCAL_ID+":.+}/representations/{"+REPRESENTATION_NAME+"}")
+@RequestMapping(SIMPLIFIED_REPRESENTATION_RESOURCE)
 @Scope("request")
 public class SimplifiedRepresentationResource {
 
@@ -55,9 +55,9 @@ public class SimplifiedRepresentationResource {
             + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
     public @ResponseBody  Representation getRepresentation(
             HttpServletRequest httpServletRequest,
-            @PathVariable(PROVIDER_ID) String providerId,
-            @PathVariable(LOCAL_ID) String localId,
-            @PathVariable(REPRESENTATION_NAME) String representationName) throws RepresentationNotExistsException,
+            @PathVariable String providerId,
+            @PathVariable String localId,
+            @PathVariable String representationName) throws RepresentationNotExistsException,
                                                                ProviderNotExistsException, RecordNotExistsException {
 
         LOGGER.info("Reading representation '{}' using 'friendly' approach for providerId: {} and localId: {}", representationName, providerId, localId);

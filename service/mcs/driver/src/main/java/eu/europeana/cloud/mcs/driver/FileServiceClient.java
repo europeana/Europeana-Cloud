@@ -28,6 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE_NO_EX;
 
 /**
  * Exposes API related to files.
@@ -38,14 +40,6 @@ public class FileServiceClient extends MCSClient {
             .register(JacksonFeature.class)
             .register(MultiPartFeature.class)
             .build();
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/files */
-    private static final String FILES_PATH = "records/{" + CLOUD_ID + "}/representations/{"
-            + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/files";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName} */
-    private static final String FILE_PATH = FILES_PATH + "/{" + FILE_NAME + "}";
-
 
     /**
      * Constructs a FileServiceClient
@@ -113,7 +107,7 @@ public class FileServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_PATH)
+                .path(FILE_RESOURCE_NO_EX)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -152,7 +146,7 @@ public class FileServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_PATH)
+                .path(FILE_RESOURCE_NO_EX)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -233,7 +227,7 @@ public class FileServiceClient extends MCSClient {
         try {
             WebTarget target = client
                     .target(baseUrl)
-                    .path(FILES_PATH)
+                    .path(FILES_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
                     .resolveTemplate(VERSION, version);
@@ -273,7 +267,7 @@ public class FileServiceClient extends MCSClient {
         try {
             WebTarget target = client
                     .target(baseUrl)
-                    .path(FILES_PATH)
+                    .path(FILES_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
                     .resolveTemplate(VERSION, version);
@@ -321,7 +315,7 @@ public class FileServiceClient extends MCSClient {
         try {
             WebTarget target = client
                     .target(baseUrl)
-                    .path(FILES_PATH)
+                    .path(FILES_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
                     .resolveTemplate(VERSION, version);
@@ -405,7 +399,7 @@ public class FileServiceClient extends MCSClient {
         try {
             WebTarget target = client
                     .target(baseUrl)
-                    .path(FILE_PATH)
+                    .path(FILE_RESOURCE_NO_EX)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
                     .resolveTemplate(VERSION, version)
@@ -466,7 +460,7 @@ public class FileServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_PATH)
+                .path(FILE_RESOURCE_NO_EX)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -496,7 +490,7 @@ public class FileServiceClient extends MCSClient {
     public URI getFileUri(String cloudId, String representationName, String version, String fileName) {
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_PATH)
+                .path(FILE_RESOURCE_NO_EX)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)

@@ -33,12 +33,6 @@ public class PreBufferedInputStream extends BufferedInputStream {
         }
     }
 
-    @Deprecated
-    public static PreBufferedInputStream wrap(final InputStream inputStream,
-                                              final int preloadChunkSize){
-        return new PreBufferedInputStream(inputStream, preloadChunkSize);
-    }
-
     public static PreBufferedInputStream wrap(final byte[] data,
                                               final int preloadChunkSize){
         return new PreBufferedInputStream(new ByteArrayInputStream(data), preloadChunkSize);

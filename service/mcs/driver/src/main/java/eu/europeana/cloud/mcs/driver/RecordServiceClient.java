@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Exposes API related to records.
@@ -42,41 +43,6 @@ public class RecordServiceClient extends MCSClient {
             .register(JacksonFeature.class)
             .register(MultiPartFeature.class)
             .build();
-
-    //RestTemplates
-
-    /** records/{cloudId} */
-    private static final String RECORD_PATH = "records/{"+CLOUD_ID+"}";
-
-    /** records/{cloudId}/representations */
-    private static final String REPRESENTATIONS_PATH = RECORD_PATH + "/representations";
-
-    /** records/{cloudId}/representations/{representationName} */
-    private static final String REPRESENTATION_NAME_PATH = REPRESENTATIONS_PATH + "/{"+REPRESENTATION_NAME+"}";
-
-    /** records/{cloudId}/representations/{representationName}/files */
-    private static final String REPRESENTATION_NAME_FILES_PATH = REPRESENTATION_NAME_PATH + "/files";
-
-    /** records/{cloudId}/representations/{representationName}/versions */
-    private static final String VERSIONS_PATH = REPRESENTATION_NAME_PATH + "/versions";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version} */
-    private static final String VERSION_PATH = VERSIONS_PATH + "/{"+VERSION+"}";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/copy */
-    private static final String COPY_PATH = VERSION_PATH + "/copy";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/persist */
-    private static final String PERSIST_PATH = VERSION_PATH + "/persist";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/permit */
-    private static final String PERMIT_PATH = VERSION_PATH + "/permit";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/permissions/{permission}/users/{userName} */
-    private static final String GRANTING_PERMISSIONS_TO_VERSION_PATH = VERSION_PATH + "/permissions/{"+PERMISSION+"}/users/{"+USER_NAME+"}";
-
-    /** records/{cloudId}/representations/{representationName}/revisions/{revisionName} */
-    private static final String REPRESENTATIONS_REVISIONS_PATH = REPRESENTATION_NAME_PATH + "/revisions/{" + REVISION_NAME + "}";
 
     /**
      * Creates instance of RecordServiceClient.
@@ -155,7 +121,7 @@ public class RecordServiceClient extends MCSClient {
     public Record getRecord(String cloudId) throws MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(RECORD_PATH)
+                .path(RECORDS_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId);
         Builder request = target.request();
 
@@ -188,7 +154,7 @@ public class RecordServiceClient extends MCSClient {
     public void deleteRecord(String cloudId) throws MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(RECORD_PATH)
+                .path(RECORDS_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId);
         Builder request = target.request();
 
@@ -207,7 +173,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESENTATIONS_PATH)
+                .path(REPRESENTATIONS_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId);
 
         Response response = null;
@@ -240,7 +206,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESENTATION_NAME_PATH)
+                .path(REPRESENTATION_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -280,7 +246,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESENTATION_NAME_PATH)
+                .path(REPRESENTATION_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -312,7 +278,7 @@ public class RecordServiceClient extends MCSClient {
                                     String mediaType) throws IOException, MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESENTATION_NAME_FILES_PATH)
+                .path(FILE_UPLOAD_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -358,7 +324,7 @@ public class RecordServiceClient extends MCSClient {
                                     String key, String value) throws IOException, MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESENTATION_NAME_FILES_PATH)
+                .path(FILE_UPLOAD_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -430,7 +396,7 @@ public class RecordServiceClient extends MCSClient {
     public void deleteRepresentation(String cloudId, String representationName) throws MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(REPRESENTATION_NAME_PATH)
+                .path(REPRESENTATION_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -452,7 +418,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(VERSIONS_PATH)
+                .path(REPRESENTATION_VERSIONS_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
@@ -491,7 +457,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget webtarget = client
                 .target(baseUrl)
-                .path(VERSION_PATH)
+                .path(REPRESENTATION_VERSION)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -522,7 +488,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget webtarget = client
                 .target(baseUrl)
-                .path(VERSION_PATH)
+                .path(REPRESENTATION_VERSION)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -547,7 +513,7 @@ public class RecordServiceClient extends MCSClient {
     public void deleteRepresentation(String cloudId, String representationName, String version) throws MCSException {
         WebTarget webtarget = client
                 .target(baseUrl)
-                .path(VERSION_PATH)
+                .path(REPRESENTATION_VERSION)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -562,7 +528,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget webtarget = client
                 .target(baseUrl)
-                .path(VERSION_PATH)
+                .path(REPRESENTATION_VERSION)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -589,7 +555,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(COPY_PATH)
+                .path(REPRESENTATION_VERSION_COPY)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -629,7 +595,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(PERSIST_PATH)
+                .path(REPRESENTATION_VERSION_PERSIST)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -655,7 +621,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(GRANTING_PERMISSIONS_TO_VERSION_PATH)
+                .path(REPRESENTATION_PERMISSION)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -692,7 +658,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(GRANTING_PERMISSIONS_TO_VERSION_PATH)
+                .path(REPRESENTATION_PERMISSION)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -715,7 +681,7 @@ public class RecordServiceClient extends MCSClient {
     public void permitVersion(String cloudId, String representationName, String version) throws MCSException {
         WebTarget target = client
                 .target(baseUrl)
-                .path(PERMIT_PATH)
+                .path(REPRESENTATION_PERMIT)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -756,7 +722,7 @@ public class RecordServiceClient extends MCSClient {
 
         WebTarget webtarget = client
                 .target(baseUrl)
-                .path(REPRESENTATIONS_REVISIONS_PATH)
+                .path(REPRESENTATION_REVISIONS_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(REVISION_NAME, revisionName);

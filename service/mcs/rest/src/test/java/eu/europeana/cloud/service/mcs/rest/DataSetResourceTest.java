@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.junit.Before;
@@ -21,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_LATELY_REVISIONED_VERSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -40,12 +43,9 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
     private RecordService recordService;
 
-    private String dataSetWebTarget;
-
     private DataProvider dataProvider = new DataProvider();
 
     private UISClientHandler uisHandler;
-    private String latelyRevisionedVersionWebTarget;
 
     @Before
     public void mockUp()
@@ -61,8 +61,8 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
                 .existsProvider(Mockito.anyString());
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
-        dataSetWebTarget = DataSetResource.CLASS_MAPPING;
-        latelyRevisionedVersionWebTarget = dataSetWebTarget + "/latelyRevisionedVersion";
+        //dataSetWebTarget = RestInterfaceConstants.DATA_SET_RESOURCE;
+        //latelyRevisionedVersionWebTarget = dataSetWebTarget + "/latelyRevisionedVersion";
     }
 
     @Test
@@ -74,7 +74,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
 
         // when you add data set for a provider 
-        mockMvc.perform(put(dataSetWebTarget,dataProvider.getId(),dataSetId)
+        mockMvc.perform(put(DATA_SET_RESOURCE,dataProvider.getId(),dataSetId)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED).param(F_DESCRIPTION, description))
                 .andExpect(status().isNoContent());
 
@@ -99,7 +99,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
         // when you delete it for one provider
-        mockMvc.perform( delete(dataSetWebTarget, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
+        mockMvc.perform( delete(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
 
         // than deleted dataset should not be in service and non-deleted should remain
         assertTrue("Expecting no dataset for provier service",
@@ -125,7 +125,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
         // when you list dataset contents
         ResultActions response = mockMvc.perform(
-                get(dataSetWebTarget, dataProvider.getId(), dataSetId)
+                get(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
         List<Representation> dataSetContents = responseContentAsRepresentationResultSlice(response).getResults();
@@ -148,16 +148,16 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     public void shouldReturnErrorForMissingParameters() throws Exception {
         String dataSetId = "dataset";
 
-        mockMvc.perform(get(latelyRevisionedVersionWebTarget,dataProvider.getId(), dataSetId))
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION,dataProvider.getId(), dataSetId))
                 .andExpect(status().isBadRequest());
         //
-        mockMvc.perform(get(latelyRevisionedVersionWebTarget, dataProvider.getId(), dataSetId).queryParam(CLOUD_ID,"sampleCloudID"))
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId).queryParam(CLOUD_ID,"sampleCloudID"))
                 .andExpect(status().isBadRequest());
         //
-        mockMvc.perform(get(latelyRevisionedVersionWebTarget, dataProvider.getId(), dataSetId).queryParam(REPRESENTATION_NAME,"sampleRepName"))
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId).queryParam(REPRESENTATION_NAME,"sampleRepName"))
                 .andExpect(status().isBadRequest());
         //
-        mockMvc.perform(get(latelyRevisionedVersionWebTarget , dataProvider.getId(), dataSetId).queryParam(REVISION_NAME,"sampleRevisionName"))
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION , dataProvider.getId(), dataSetId).queryParam(REVISION_NAME,"sampleRevisionName"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -166,7 +166,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.doReturn("sample").when(dataSetService).getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         String dataSetId = "dataset";
 
-        ResultActions response = mockMvc.perform(get(latelyRevisionedVersionWebTarget, dataProvider.getId(), dataSetId)
+        ResultActions response = mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId)
                 .queryParam(CLOUD_ID, "sampleCloudID")
                 .queryParam(REPRESENTATION_NAME, "sampleRepName")
                 .queryParam(REVISION_NAME, "sampleRevisionName")
@@ -181,7 +181,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
                 .getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         String dataSetId = "dataset";
 
-        mockMvc.perform(get(latelyRevisionedVersionWebTarget, dataProvider.getId(), dataSetId)
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId)
                 .queryParam(CLOUD_ID, "sampleCloudID")
                 .queryParam(REPRESENTATION_NAME, "sampleRepName")
                 .queryParam(REVISION_NAME, "sampleRevisionName")

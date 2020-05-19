@@ -34,6 +34,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_BY_REPRESENTATION_REVISION;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -60,7 +61,6 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
     private DataSetService dataSetService;
     private DataProvider dataProvider;
     private Revision revisionForDataProvider;
-    private String revisionAndRepresentationPath;
 
     @Before
     public void mockUp() throws Exception {
@@ -79,9 +79,6 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
 
         rep = recordService.createRepresentation("1", "1", "1");
         revisionForDataProvider = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, new Date(), true, true, true);
-
-        revisionAndRepresentationPath = DataSetResource.CLASS_MAPPING + "/revision" + "/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/representations/{" + REPRESENTATION_NAME + "}";
-
     }
 
     @After
@@ -124,7 +121,7 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
         makeExistsProviderPass();
 
         //when
-        ResultActions response = mockMvc.perform(get(revisionAndRepresentationPath, dataProvider.getId(),
+        ResultActions response = mockMvc.perform(get(DATA_SET_BY_REPRESENTATION_REVISION, dataProvider.getId(),
                 DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, TEST_REVISION_PROVIDER_ID)
                 .queryParam(IS_DELETED, isDeleted.toString()))
                 .andExpect(status().isOk());
@@ -151,7 +148,7 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
         PrepareTest(dataProvider.getId(), "None_Existed_Dataset");
         makeExistsProviderPass();
 
-        ResultActions response = mockMvc.perform(get(revisionAndRepresentationPath, dataProvider.getId(),
+        ResultActions response = mockMvc.perform(get(DATA_SET_BY_REPRESENTATION_REVISION, dataProvider.getId(),
                 DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, TEST_REVISION_PROVIDER_ID))
                 .andExpect(status().isNotFound());
 
@@ -175,7 +172,7 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
                         TEST_REVISION_NAME, REVISION_PROVIDER_ID,
                         dataProvider.getId());
 
-        ResultActions response = mockMvc.perform(get(revisionAndRepresentationPath, dataProvider.getId(),
+        ResultActions response = mockMvc.perform(get(DATA_SET_BY_REPRESENTATION_REVISION, dataProvider.getId(),
                 DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, dataProvider.getId()))
                 .andExpect(status().isNotFound());
         //then

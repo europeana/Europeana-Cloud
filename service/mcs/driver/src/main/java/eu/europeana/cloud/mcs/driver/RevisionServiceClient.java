@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Created by Tarek on 8/2/2016.
@@ -27,23 +28,6 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 public class RevisionServiceClient extends MCSClient {
 
     private final Client client;
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/revisions/{revisionName}/revisionProvider/{revisionProviderId}/tag/{tag} */
-    private static final String REVISION_PATH_WITH_TAG = "records/{" + CLOUD_ID + "}/representations/{"
-            + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/revisions */
-    private static final String REVISION_PATH = "records/{" + CLOUD_ID + "}/representations/{"
-            + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/revisions/{revisionName}/revisionProvider/{revisionProviderId}/tags */
-    private static final String REVISION_PATH_WITH_MULTIPLE_TAGS = "records/{" + CLOUD_ID + "}/representations/{"
-            + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
-
-    /** records/{cloudId}/representations/{representationName}/versions/{version}/revisions/{revisionName}/revisionProvider/{revisionProviderId} */
-    private static final String REMOVE_REVISION_PATH = "records/{" + CLOUD_ID + "}/representations/{"
-            + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}";
-
 
     /**
      * Constructs a RevisionServiceClient
@@ -113,7 +97,7 @@ public class RevisionServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REVISION_PATH_WITH_TAG)
+                .path(REVISION_ADD_WITH_PROVIDER_TAG)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -148,7 +132,7 @@ public class RevisionServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REVISION_PATH)
+                .path(REVISION_ADD)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -182,7 +166,7 @@ public class RevisionServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REVISION_PATH)
+                .path(REVISION_ADD)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version);
@@ -216,7 +200,7 @@ public class RevisionServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REVISION_PATH_WITH_MULTIPLE_TAGS)
+                .path(REVISION_ADD_WITH_PROVIDER)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -255,7 +239,7 @@ public class RevisionServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(REMOVE_REVISION_PATH)
+                .path(REVISION_DELETE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)

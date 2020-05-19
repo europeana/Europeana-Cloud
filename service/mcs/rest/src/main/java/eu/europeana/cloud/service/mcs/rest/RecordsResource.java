@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
 
 /**
  * Resource representing records.
  */
 @RestController
-@RequestMapping("/records/{"+CLOUD_ID+"}")
+@RequestMapping(RECORDS_RESOURCE)
 @Scope("request")
 public class RecordsResource {
 
@@ -40,7 +40,7 @@ public class RecordsResource {
     @ResponseBody
     public Record getRecord(
             HttpServletRequest httpServletRequest,
-            @PathVariable(CLOUD_ID) String cloudId) throws RecordNotExistsException {
+            @PathVariable String cloudId) throws RecordNotExistsException {
 
         Record record = recordService.getRecord(cloudId);
         prepare(httpServletRequest, record);
@@ -63,7 +63,8 @@ public class RecordsResource {
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ROLE_ADMIN')") 
-    public void deleteRecord(@PathVariable(CLOUD_ID) String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
+    public void deleteRecord(
+            @PathVariable String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
 
         recordService.deleteRecord(cloudId);
     }

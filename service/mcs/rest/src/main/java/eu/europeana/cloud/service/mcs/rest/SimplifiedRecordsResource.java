@@ -16,14 +16,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.LOCAL_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_RECORDS_RESOURCE;
 
 /**
  * Gives (read) access to record stored in ecloud in simplified (friendly) way.
  */
 @RestController
-@RequestMapping("/data-providers/{"+PROVIDER_ID+"}/records/{"+LOCAL_ID+":.+}")
+@RequestMapping(SIMPLIFIED_RECORDS_RESOURCE)
 @Scope("request")
 public class SimplifiedRecordsResource {
 
@@ -47,8 +46,8 @@ public class SimplifiedRecordsResource {
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public @ResponseBody Record getRecord(
             HttpServletRequest httpServletRequest,
-            @PathVariable(PROVIDER_ID) String providerId,
-            @PathVariable(LOCAL_ID) String localId) throws RecordNotExistsException, ProviderNotExistsException {
+            @PathVariable String providerId,
+            @PathVariable String localId) throws RecordNotExistsException, ProviderNotExistsException {
 
             final String cloudId = findCloudIdFor(providerId, localId);
 

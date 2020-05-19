@@ -4,7 +4,6 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;

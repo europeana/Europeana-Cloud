@@ -7,13 +7,9 @@ import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticatio
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.PropertySource;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.acls.AclPermissionCacheOptimizer;
 import org.springframework.security.acls.AclPermissionEvaluator;
@@ -24,20 +20,13 @@ import org.springframework.security.acls.domain.DefaultPermissionGrantingStrateg
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 
-import java.util.*;
-
 @Configuration
 public class AuthorizationConfiguration {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationConfiguration.class);
-
     private static final String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
     private static final String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
     private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
     private static final String JNDI_KEY_CASSANDRA_USERNAME = "/aas/cassandra/user";
     private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/aas/cassandra/password";
-
-    @Autowired
-    private Environment environment;
 
     /* Ecloud persistent authorization application context. Permissions are stored in cassandra. */
 
@@ -89,7 +78,7 @@ public class AuthorizationConfiguration {
     }
 
     @Bean
-    public CassandraConnectionProvider aasCassandraProvider() {
+    public CassandraConnectionProvider aasCassandraProvider(Environment environment) {
         String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
         Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
         String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);

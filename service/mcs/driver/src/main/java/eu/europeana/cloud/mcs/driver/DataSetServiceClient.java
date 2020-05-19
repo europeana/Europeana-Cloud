@@ -20,13 +20,16 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Client for managing datasets in MCS.
@@ -38,30 +41,6 @@ public class DataSetServiceClient extends MCSClient {
             .register(MultiPartFeature.class)
             .build();
 
-    /** data-providers/{providerId}/data-sets */
-    private static final String DATA_SETS_PATH = "data-providers/{"+PROVIDER_ID+"}/data-sets"; 
-    
-    /** data-providers/{providerId}/data-sets/{dataSetId} */
-    private static final String DATA_SET_PATH = DATA_SETS_PATH + "/{"+DATA_SET_ID+"}";
-    
-    /** data-providers/{providerId}/data-sets/{dataSetId}/assignments */
-    private static final String ASSIGNMENTS_PATH = DATA_SET_PATH + "/assignments";
-
-    /** data-providers/{providerId}/data-sets/{dataSetId}/representations/{representationName} */
-    private static final String REPRESENTATIONS_PATH = DATA_SET_PATH + "/representations/{"+REPRESENTATION_NAME+"}";
-
-    /** data-providers/{providerId}/data-sets/{dataSetId}/representations/{representationName}/revisions/{revisionName}/revisionProvider/{revisionProviderId} */
-    private static final String DATA_SET_REVISIONS_PATH = REPRESENTATIONS_PATH 
-            + "/revisions/{"+REVISION_NAME+"}/revisionProvider/{"+REVISION_PROVIDER_ID+"}";
-    
-    /** data-providers/{providerId}/data-sets/{dataSetId}/latelyRevisionedVersion */
-    private static final String LATELY_TAGGED_RECORDS_PATH = DATA_SET_PATH + "/latelyRevisionedVersion";
-
-    /** data-providers/{providerId}/data-sets/{dataSetId}/revision/{revisionName}/revisionProvider/{revisionProviderId}/representations/{representationName} */
-    private static final String REVISION_AND_REPRESENTATION_PATH = DATA_SET_PATH 
-            + "/revision" + "/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}" +
-            "/representations/{" + REPRESENTATION_NAME + "}";
-    
     /**
      * Creates instance of DataSetServiceClient.
      *
@@ -133,7 +112,7 @@ public class DataSetServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(DATA_SETS_PATH)
+                .path(DATA_SETS_RESOURCE)
                 .resolveTemplate(PROVIDER_ID, providerId);
 
         if (startFrom != null) {
@@ -204,7 +183,7 @@ public class DataSetServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(DATA_SETS_PATH)
+                .path(DATA_SETS_RESOURCE)
                 .resolveTemplate(PROVIDER_ID, providerId);
 
         Form form = new Form();
@@ -263,7 +242,7 @@ public class DataSetServiceClient extends MCSClient {
         
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(DATA_SET_PATH)
+                .path(DATA_SET_RESOURCE)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId);
 
@@ -347,7 +326,7 @@ public class DataSetServiceClient extends MCSClient {
         
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(DATA_SET_PATH)
+                .path(DATA_SET_RESOURCE)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId);
 
@@ -383,7 +362,7 @@ public class DataSetServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(DATA_SET_PATH)
+                .path(DATA_SET_RESOURCE)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId);
 
@@ -433,7 +412,7 @@ public class DataSetServiceClient extends MCSClient {
         
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(ASSIGNMENTS_PATH)
+                .path(DATA_SET_ASSIGNMENTS)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId);
 
@@ -496,7 +475,7 @@ public class DataSetServiceClient extends MCSClient {
         
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(ASSIGNMENTS_PATH)
+                .path(DATA_SET_ASSIGNMENTS)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId);
 
@@ -541,7 +520,7 @@ public class DataSetServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(ASSIGNMENTS_PATH)
+                .path(DATA_SET_ASSIGNMENTS)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId)
                 .queryParam(CLOUD_ID, cloudId)
@@ -582,7 +561,7 @@ public class DataSetServiceClient extends MCSClient {
             String startFrom, Integer limit) throws MCSException {
 
         WebTarget target = client.target(baseUrl)
-                .path(DATA_SET_REVISIONS_PATH)
+                .path(DATA_SET_REVISIONS_RESOURCE)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
@@ -670,7 +649,7 @@ public class DataSetServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(REPRESENTATIONS_PATH)
+                .path(DATA_SET_BY_REPRESENTATION)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
@@ -738,7 +717,7 @@ public class DataSetServiceClient extends MCSClient {
         
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(REVISION_AND_REPRESENTATION_PATH)
+                .path(DATA_SET_BY_REPRESENTATION_REVISION)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(REVISION_NAME, revisionName)
                 .resolveTemplate(REVISION_PROVIDER_ID, revisionProvider)
@@ -809,7 +788,7 @@ public class DataSetServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(this.baseUrl)
-                .path(LATELY_TAGGED_RECORDS_PATH)
+                .path(DATA_SET_LATELY_REVISIONED_VERSION)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId)
                 .queryParam(CLOUD_ID, cloudId)
