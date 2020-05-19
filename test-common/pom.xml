@@ -32,6 +32,12 @@
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
             <version>${cassandra-all.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.addthis.metrics</groupId>
+                    <artifactId>reporter-config</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

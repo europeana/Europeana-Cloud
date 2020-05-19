@@ -5,24 +5,20 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.security.acls.AclPermissionEvaluator;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.ResultActions;
 
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URI;
@@ -36,9 +32,12 @@ import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @RunWith(JUnitParamsRunner.class)
-public class RepresentationRevisionsResourceTest extends JerseyTest {
+public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
 
     private RecordService recordService;
 
@@ -51,16 +50,8 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     static final private RepresentationRevisionResponse representationResponse = new RepresentationRevisionResponse(globalId, schema, version, Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
             null)), revisionProviderId, revisionName, revisionTimestamp);
 
-    @Override
-    public Application configure() {
-        return new ResourceConfig().registerClasses(RepresentationRevisionsResource.class)
-//                .registerClasses(RevisionNotExistsExceptionMapper.class)
-                .property("contextConfigLocation", "classpath:testContext.xml");
-    }
-
     @Before
     public void mockUp() {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
         //
@@ -76,7 +67,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
 
     @SuppressWarnings("unused")
     private Object[] mimeTypes() {
-        return $($(MediaType.APPLICATION_XML_TYPE), $(MediaType.APPLICATION_JSON_TYPE));
+        return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -102,12 +93,12 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
 
         when(recordService.getRepresentation(globalId, representationResponse.getRepresentationName(), representationResponse.getVersion())).thenReturn(representation);
 
-        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId).request(mediaType)
-                .get();
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getMediaType(), is(mediaType));
-        List<Representation> entity = response.readEntity(new GenericType<List<Representation>>() {
-        });
+        ResultActions response = mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))
+                .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId).accept(mediaType))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(mediaType));
+
+        List<Representation> entity = responseContentAsRepresentationList(response, mediaType);
         assertThat(entity.size(), is(1));
         assertThat(entity.get(0), is(representation));
         verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
@@ -116,11 +107,10 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     }
 
     @Test
-    public void getRepresentationReturns406ForUnsupportedFormat() {
-        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
-                .request(MediaType.APPLICATION_SVG_XML_TYPE).get();
-
-        assertThat(response.getStatus(), is(406));
+    public void getRepresentationReturns406ForUnsupportedFormat() throws Exception {
+        mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))
+                .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
+                .accept(MEDIA_TYPE_APPLICATION_SVG_XML)).andExpect(status().isNotAcceptable());
     }
 
 
@@ -135,10 +125,11 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
 
         doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(anyString(), anyString(), anyString());
 
-        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
-                .request(MediaType.APPLICATION_XML).get();
+        mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))
+                .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
+                .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isInternalServerError());
 
-        assertThat(response.getStatus(), is(500));
         verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
         verify(recordService, times(1)).getRepresentation(anyString(), anyString(), anyString());
     }
@@ -147,12 +138,12 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     public void getRepresentationByRevisionsThrowExceptionWhenReturnsRepresentationRevisionResponseIsNull()
             throws Exception {
         when(recordService.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null)).thenReturn(null);
-        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
-                .request(MediaType.APPLICATION_XML).get();
+        mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))
+                .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
+                .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isInternalServerError());
 
-        assertThat(response.getStatus(), is(500));
         verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
-
     }
 }
 

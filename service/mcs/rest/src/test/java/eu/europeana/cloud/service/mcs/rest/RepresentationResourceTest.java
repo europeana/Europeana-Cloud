@@ -126,7 +126,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
                 .accept(MediaType.APPLICATION_XML))
                 .andExpect(status().isNotFound());
 
-        ErrorInfo errorInfo = xmlResponseContent(response,ErrorInfo.class);
+        ErrorInfo errorInfo = responseContent(response,ErrorInfo.class,MediaType.APPLICATION_XML);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
         verify(recordService, times(1)).getRepresentation(globalId, schema);
         verifyNoMoreInteractions(recordService);

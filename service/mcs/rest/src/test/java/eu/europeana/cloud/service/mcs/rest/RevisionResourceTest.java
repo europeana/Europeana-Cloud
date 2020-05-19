@@ -6,56 +6,57 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
+import static eu.europeana.cloud.common.web.ParamConstants.F_TAGS;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.TAG;
+import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**
  * RevisionResourceTest
  */
 @RunWith(CassandraTestRunner.class)
-public class RevisionResourceTest extends JerseyTest {
+public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
     private RecordService recordService;
     private Representation rep;
     private Revision revision;
-    private WebTarget revisionWebTarget;
-    private WebTarget revisionWebTargetWithTag;
-    private WebTarget removeRevisionWebTarget;
-    private WebTarget revisionWebTargetWithMultipleTags;
+    private URI revisionWebTarget;
+    private URI revisionWebTargetWithTag;
+    private URI removeRevisionWebTarget;
+    private URI revisionWebTargetWithMultipleTags;
     private static final String PROVIDER_ID = "providerId";
-    private static final String TEST_REVESION_NAME = "revisionName";
+    private static final String TEST_REVISION_NAME = "revisionName";
     private UISClientHandler uisHandler;
     private DataSetService dataSetService;
     private DataProvider dataProvider;
@@ -64,8 +65,6 @@ public class RevisionResourceTest extends JerseyTest {
 
     @Before
     public void mockUp() throws Exception {
-        ApplicationContext applicationContext = ApplicationContextUtils
-                .getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
@@ -76,41 +75,40 @@ public class RevisionResourceTest extends JerseyTest {
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
         rep = recordService.createRepresentation("1", "1", "1");
-        revision = new Revision(TEST_REVESION_NAME, PROVIDER_ID);
-        revisionForDataProvider = new Revision(TEST_REVESION_NAME, dataProvider.getId());
+        revision = new Revision(TEST_REVISION_NAME, PROVIDER_ID);
+        revisionForDataProvider = new Revision(TEST_REVISION_NAME, dataProvider.getId());
         Map<String, Object> revisionPathParams = ImmutableMap
-                .<String, Object>of(CLOUD_ID, rep.getCloudId(),
+                .of(CLOUD_ID, rep.getCloudId(),
                         REPRESENTATION_NAME, rep.getRepresentationName(),
                         VERSION, rep.getVersion());
-        revisionWebTarget = target(
-                RevisionResource.class.getAnnotation(Path.class).value())
-                .resolveTemplates(revisionPathParams);
+        revisionWebTarget = UriComponentsBuilder.fromUriString(
+                RestInterfaceConstants.REVISION_ADD).build(revisionPathParams);
 
         Map<String, Object> revisionPathParamsWithTag = ImmutableMap
-                .<String, Object>of(
+                .of(
                         CLOUD_ID, rep.getCloudId(),
                         REPRESENTATION_NAME, rep.getRepresentationName(),
                         VERSION, rep.getVersion(),
-                        REVISION_NAME, TEST_REVESION_NAME,
+                        REVISION_NAME, TEST_REVISION_NAME,
                         REVISION_PROVIDER_ID, REVISION_PROVIDER_ID);
 
         String revisionWithTagPath = "records/{" + CLOUD_ID + "}/representations/{"
                 + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
-        revisionWebTargetWithTag = target(revisionWithTagPath).resolveTemplates(revisionPathParamsWithTag);
+        revisionWebTargetWithTag = UriComponentsBuilder.fromUriString(revisionWithTagPath).build(revisionPathParamsWithTag);
         String revisionPathWithMultipleTags = "records/{" + CLOUD_ID + "}/representations/{"
                 + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
-        revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
+        revisionWebTargetWithMultipleTags = UriComponentsBuilder.fromUriString(revisionPathWithMultipleTags).build(revisionPathParamsWithTag);
 
 
         Map<String, Object> removeRevisionPathParams = ImmutableMap
-                .<String, Object>of(CLOUD_ID, rep.getCloudId(),
+                .of(CLOUD_ID, rep.getCloudId(),
                         REPRESENTATION_NAME, rep.getRepresentationName(),
                         VERSION, rep.getVersion(),
-                        REVISION_NAME, TEST_REVESION_NAME,
+                        REVISION_NAME, TEST_REVISION_NAME,
                         REVISION_PROVIDER_ID, REVISION_PROVIDER_ID);
         String removeRevisionPath = "records/{" + CLOUD_ID + "}/representations/{"
                 + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}";
-        removeRevisionWebTarget = target(removeRevisionPath).resolveTemplates(removeRevisionPathParams);
+        removeRevisionWebTarget = UriComponentsBuilder.fromUriString(removeRevisionPath).build(removeRevisionPathParams);
 
 
     }
@@ -123,114 +121,91 @@ public class RevisionResourceTest extends JerseyTest {
         reset(dataSetService);
     }
 
-    @Override
-    public Application configure() {
-        return null; //new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml").registerClasses(RevisionIsNotValidExceptionMapper.class);
-    }
-
-    @Override
-    protected void configureClient(ClientConfig config) {
-        config.register(MultiPartFeature.class);
-    }
-
-
     @Test
     public void shouldAddRevision() throws Exception {
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
+        mockMvc.perform(post(revisionWebTarget)
+                .accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+                .andExpect(status().isCreated());
     }
 
 
     @Test
     public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullProviderId() throws Exception {
         revision.setRevisionProviderId(null);
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-        assertEquals(response.getStatus(), 405);
+        mockMvc.perform(post(revisionWebTarget).accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+                .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
     public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullRevisionName() throws Exception {
         revision.setRevisionName(null);
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-        assertEquals(response.getStatus(), 405);
-
+        mockMvc.perform(post(revisionWebTarget).accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+                .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
     public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullCreationDate() throws Exception {
         revision.setCreationTimeStamp(null);
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-        assertEquals(response.getStatus(), 405);
+        mockMvc.perform(post(revisionWebTarget).accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+                .andExpect(status().isMethodNotAllowed());
+
     }
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
+        mockMvc.perform(post(revisionWebTargetWithTag.toString(), Tags.ACCEPTANCE.getTag()))
+                .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithPublishedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.PUBLISHED.getTag()).request().post(null);
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
+        mockMvc.perform(post(revisionWebTargetWithTag.toString(), Tags.PUBLISHED.getTag()))
+                .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithDeletedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.DELETED.getTag()).request().post(null);
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
+        mockMvc.perform(post(revisionWebTargetWithTag.toString(), Tags.DELETED.getTag()))
+                .andExpect(status().isCreated());
     }
 
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, "UNDEFINED").request().post(null);
-        assertEquals(response.getStatus(), 400);
+        mockMvc.perform(post(revisionWebTargetWithTag.toString(), "UNDEFINED"))
+                .andExpect(status().isBadRequest());
     }
 
 
     @Test
     public void shouldAddRevisionWithMultipleTags() throws Exception {
-        Form tagsForm = new Form();
-        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
-        Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
+        mockMvc.perform(post(revisionWebTargetWithMultipleTags)
+                .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
+                .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.DELETED.getTag()))
+                .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithMultipleTags2() throws Exception {
-        Form tagsForm = new Form();
-        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(F_TAGS, Tags.PUBLISHED.getTag());
-        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
-        Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
+        mockMvc.perform(post(revisionWebTargetWithMultipleTags)
+                .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
+                .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()))
+                .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithEmptyTags() throws Exception {
-        Form tagsForm = new Form();
-        Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
+        mockMvc.perform(post(revisionWebTargetWithMultipleTags)
+                .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isCreated());
     }
 
 
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
-        Form tagsForm = new Form();
-        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
-        tagsForm.param(F_TAGS, "undefined");
-        Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 400);
+        mockMvc.perform(post(revisionWebTargetWithMultipleTags)
+                .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
+                .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.DELETED.getTag(), "undefined"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -241,11 +216,10 @@ public class RevisionResourceTest extends JerseyTest {
                 (), rep.getVersion());
 
         //when
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revisionForDataProvider));
-
+        mockMvc.perform(post(revisionWebTarget)
+                .accept(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
+                .andExpect(status().isCreated());
         //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
         verify(dataSetService, times(1)).addDataSetsRevisions(
                 dataProvider.getId(),
                 dataSet.getId(),
@@ -262,11 +236,11 @@ public class RevisionResourceTest extends JerseyTest {
                 (), rep.getVersion());
 
         //when
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revisionForDataProvider));
+        mockMvc.perform(post(revisionWebTarget)
+                .accept(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
+                .andExpect(status().isCreated());
 
         //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
         verify(dataSetService, times(1)).updateAllRevisionDatasetsEntries(
                 rep.getCloudId(),
                 rep.getRepresentationName(),
@@ -285,7 +259,7 @@ public class RevisionResourceTest extends JerseyTest {
         Date date = new Date();
         String revisionTimeStamp = FORMATTER.format(date);
 
-        Revision revision = new Revision(TEST_REVESION_NAME, REVISION_PROVIDER_ID, date, true, false, false);
+        Revision revision = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, true, false, false);
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider(providerId));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
@@ -293,9 +267,8 @@ public class RevisionResourceTest extends JerseyTest {
         dataSetService.addAssignment(providerId, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, rep.getRepresentationName(), rep.getCloudId());
 
-        Response response = removeRevisionWebTarget.queryParam(F_REVISION_TIMESTAMP, revisionTimeStamp).request().delete();
-
-        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+        mockMvc.perform(delete(removeRevisionWebTarget)
+                .queryParam(F_REVISION_TIMESTAMP, revisionTimeStamp)).andExpect(status().isNoContent());
     }
 
 }

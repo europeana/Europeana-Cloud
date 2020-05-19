@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
@@ -56,30 +57,45 @@ public class MockMvcUtils {
         return responseContent(response, ErrorInfo.class);
     }
 
+    public static ErrorInfo responseContentAsErrorInfo(ResultActions response, MediaType mediaType) throws IOException {
+        return responseContent(response, ErrorInfo.class, mediaType);
+    }
+
     public static <T> T responseContent(ResultActions response, Class<T> aClass) throws IOException {
-        return new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(), aClass);
+        return responseContent(response,aClass,MediaType.APPLICATION_JSON);
     }
 
 
     public static <T> T responseContent(ResultActions response, Class<T> aClass, MediaType mediaType) throws IOException {
-        if(mediaType.equals( MediaType.APPLICATION_XML)) {
-            return xmlResponseContent(response, aClass);
-        } else if(mediaType.equals( MediaType.APPLICATION_JSON)) {
-            return responseContent(response, aClass);
-        }else {
-            throw new IllegalArgumentException("mediaType="+mediaType.getType());
-        }
+        return mapper(mediaType).readValue(response.andReturn().getResponse().getContentAsString(), aClass);
     }
 
-    public static <T> T xmlResponseContent(ResultActions response, Class<T> aClass) throws IOException {
-        return new XmlMapper().readValue(response.andReturn().getResponse().getContentAsString(), aClass);
+    public static List<Representation> responseContentAsRepresentationList(ResultActions response, MediaType mediaType)
+            throws UnsupportedEncodingException, JsonProcessingException {
+        return responseContent(response, new TypeReference<List<Representation>>() {
+        }, mediaType);
     }
 
+    private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef)
+            throws JsonProcessingException, UnsupportedEncodingException {
+        return responseContent(response, valueTypeRef, MediaType.APPLICATION_JSON);
+    }
 
-    private static  <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef) throws JsonProcessingException, UnsupportedEncodingException {
-        return new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    private static  <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef, MediaType mediaType)
+            throws JsonProcessingException, UnsupportedEncodingException {
+        return mapper(mediaType).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .readValue(response.andReturn().getResponse().getContentAsString(),
                         valueTypeRef);
+    }
+
+    private static ObjectMapper mapper(MediaType mediaType) {
+        if (mediaType.equals(MediaType.APPLICATION_XML)) {
+            return new XmlMapper();
+        } else if (mediaType.equals(MediaType.APPLICATION_JSON)) {
+            return new ObjectMapper();
+        } else {
+            throw new IllegalArgumentException("mediaType=" + mediaType.getType());
+        }
     }
 
     public static MockMultipartHttpServletRequestBuilder putMultipart(String fileWebTarget) {

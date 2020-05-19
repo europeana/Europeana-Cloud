@@ -1,39 +1,31 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.test.web.servlet.ResultActions;
 
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsErrorInfo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_XML;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class UncauchtExceptionMapperTest extends JerseyTest {
+public class UncauchtExceptionMapperTest extends AbstractResourceTest {
 
     private RecordService recordService;
 
 
-    @Override
-    public Application configure() {
-        return null; //new JerseyConfig().property("contextConfigLocation", "classpath:testContext.xml");
-    }
-
-
     @Before
     public void mockUp() {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
@@ -45,11 +37,11 @@ public class UncauchtExceptionMapperTest extends JerseyTest {
         Throwable exception = new RuntimeException("error details");
         when(recordService.getRecord(Matchers.anyString())).thenThrow(exception);
 
-        Response response = target().path(URITools.getRepresentationsPath("id").toString())
-                .request(MediaType.APPLICATION_XML).get();
+        ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath("id"))
+                .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isInternalServerError());
 
-        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response, APPLICATION_XML);
         assertThat(errorInfo.getErrorCode(), is(McsErrorCode.OTHER.toString()));
         assertThat(errorInfo.getDetails(), is(exception.getMessage()));
     }
