@@ -254,11 +254,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                         try {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
                         } catch (IOException | EuropeanaIdException e) {
-                            LOGGER.error(e.getMessage());
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
+                            LOGGER.error(e.getMessage(), e);
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage());
                         } catch (InterruptedException e) {
-                            LOGGER.error(e.getMessage());
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
+                            LOGGER.error(e.getMessage(), e);
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage());
                             Thread.currentThread().interrupt();
                         }
                         finally {
