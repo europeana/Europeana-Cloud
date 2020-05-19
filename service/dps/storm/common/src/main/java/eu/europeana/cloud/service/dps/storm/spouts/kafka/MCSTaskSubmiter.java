@@ -18,7 +18,6 @@ import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,10 +62,12 @@ public class MCSTaskSubmiter {
     public void execute(SubmitTaskParameters submitParameters) {
         DpsTask task = submitParameters.getTask();
         try {
-            LOGGER.info("Sending task id={} to topology {} by kafka topic {}", task.getTaskId(), submitParameters.getTopologyName(),submitParameters.getTopicName());
+            LOGGER.info("Sending task id={} to topology {} by kafka topic {}. Parameters:\n{}",
+                    task.getTaskId(), submitParameters.getTopologyName(), submitParameters.getTopicName(), submitParameters);
 
             checkIfTaskIsKilled(task);
 
+            logProgress(submitParameters, 0);
             int expectedSize;
             if (taskContainsFileUrls(task)) {
                 expectedSize = executeForFilesList(submitParameters);
@@ -77,7 +78,7 @@ public class MCSTaskSubmiter {
             if (expectedSize != 0) {
                 taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.QUEUED.toString(), expectedSize);
                 LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", expectedSize, task.getTaskId());
-            }else{
+            } else {
                 taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because it is empty");
                 LOGGER.warn("The task id={} was dropped because it is empty.", task.getTaskId());
             }
@@ -92,7 +93,7 @@ public class MCSTaskSubmiter {
 
     private MCSReader createMcsReader(SubmitTaskParameters submitParameters) {
         String authorizationHeader = submitParameters.getTask().getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        return new MCSReader(mcsClientURL,authorizationHeader);
+        return new MCSReader(mcsClientURL, authorizationHeader);
     }
 
     private int executeForFilesList(SubmitTaskParameters submitParameters) {
@@ -111,8 +112,8 @@ public class MCSTaskSubmiter {
         return expectedSize;
     }
 
-    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws MCSException, InterruptedException, ExecutionException {
-        try(MCSReader reader = createMcsReader(submitParameters)) {
+    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, ExecutionException {
+        try (MCSReader reader = createMcsReader(submitParameters)) {
             UrlParser urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
                 throw new RuntimeException("DataSet URL is not formulated correctly: " + dataSetUrl);
@@ -132,17 +133,17 @@ public class MCSTaskSubmiter {
         }
     }
 
-    private int executeForEntireDataset(UrlParser urlParser,SubmitTaskParameters submitParameters, MCSReader reader) {
+    private int executeForEntireDataset(UrlParser urlParser, SubmitTaskParameters submitParameters, MCSReader reader) {
         int expectedSize = 0;
         RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
         while (iterator.hasNext()) {
             checkIfTaskIsKilled(submitParameters.getTask());
-            expectedSize += submitRecordsForAllFilesOfRepresentation(iterator.next(),submitParameters, reader);
+            expectedSize += submitRecordsForAllFilesOfRepresentation(iterator.next(), submitParameters);
         }
         return expectedSize;
     }
 
-    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException, DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
+    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
         ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         try {
             DpsTask task = submitParameters.getTask();
@@ -163,7 +164,7 @@ public class MCSTaskSubmiter {
                 total += cloudIdAndTimestampResponseList.size();
 
                 final List<CloudIdAndTimestampResponse> finalCloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList;
-                futures.add(executor.submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudIdAndTimestampResponseList,submitParameters,reader)));
+                futures.add(executor.submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudIdAndTimestampResponseList, submitParameters, reader)));
 
                 if (futures.size() >= INTERNAL_THREADS_NUMBER * MAX_BATCH_SIZE) {
                     count += getCountAndWait(futures);
@@ -181,7 +182,7 @@ public class MCSTaskSubmiter {
         }
     }
 
-    private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, DpsTask task, MCSReader reader) throws MCSException {
+    private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, DpsTask task, MCSReader reader) {
         if (getRevisionTimestamp(task) != null) {
             ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), getRevisionTimestamp(task), datasetProvider, datasetName, startFrom);
             return toCloudAndTimestampResponse(chunk, getRevisionTimestamp(task));
@@ -190,7 +191,7 @@ public class MCSTaskSubmiter {
         }
     }
 
-    private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
+    private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) {
         int count = 0;
         for (CloudIdAndTimestampResponse response : responseList) {
             count += executeGettingFileUrlsForOneCloudId(response, submitParameters, reader);
@@ -199,18 +200,18 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private int executeGettingFileUrlsForOneCloudId(CloudIdAndTimestampResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
+    private int executeGettingFileUrlsForOneCloudId(CloudIdAndTimestampResponse response, SubmitTaskParameters submitParameters, MCSReader reader) {
         DpsTask task = submitParameters.getTask();
         String revisionTimestamp = DateHelper.getUTCDateString(response.getRevisionTimestamp());
         int count = 0;
         List<Representation> representations = reader.getRepresentationsByRevision(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), revisionTimestamp, response.getCloudId());
         for (Representation representation : representations) {
-            count += submitRecordsForAllFilesOfRepresentation(representation, submitParameters, reader);
+            count += submitRecordsForAllFilesOfRepresentation(representation, submitParameters);
         }
         return count;
     }
 
-    private int submitRecordsForAllFilesOfRepresentation(Representation representation, SubmitTaskParameters submitParameters, MCSReader reader) {
+    private int submitRecordsForAllFilesOfRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
         int count = 0;
         if (representation == null) {
             throw new RuntimeException("Problem while reading representation - representation is null.");
@@ -244,8 +245,9 @@ public class MCSTaskSubmiter {
     }
 
     private void logProgress(SubmitTaskParameters submitParameters, int submitedCount) {
-        if(submitedCount %1000==0){
-            LOGGER.info("Task records submiting is progressing. Already submited:{} records.\n{}", submitParameters);
+        if (submitedCount % 1000 == 0) {
+            LOGGER.info("Task id={} records submiting is progressing. Already submited: {} records",
+                    submitParameters.getTask().getTaskId(), submitedCount);
         }
     }
 
