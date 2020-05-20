@@ -18,10 +18,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
 
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,13 +30,16 @@ import java.util.Date;
 import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(JUnitParamsRunner.class)
-public class RepresentationsResourceTest extends JerseyTest {
+public class RepresentationsResourceTest extends AbstractResourceTest {
 
     private RecordService recordService;
 
@@ -44,20 +48,11 @@ public class RepresentationsResourceTest extends JerseyTest {
     static final private String version = "1.0";
     static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
             version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-                    "2013-01-01", 12345, null)),null, true, new Date())));
-
-
-    @Override
-    public Application configure() {
-        return new ResourceConfig().registerClasses(RepresentationsResource.class)
-//                .registerClasses(RecordNotExistsExceptionMapper.class)
-                .property("contextConfigLocation", "classpath:testContext.xml");
-    }
+            "2013-01-01", 12345, null)), null, true, new Date())));
 
 
     @Before
     public void mockUp() {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
@@ -65,14 +60,13 @@ public class RepresentationsResourceTest extends JerseyTest {
 
     @SuppressWarnings("unused")
     private Object[] mimeTypes() {
-        return $($(MediaType.APPLICATION_XML_TYPE), $(MediaType.APPLICATION_JSON_TYPE));
+        return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
     }
 
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void getRepresentations(MediaType mediaType)
-            throws Exception {
+    public void getRepresentations(MediaType mediaType) throws Exception {
         Record expected = new Record(record);
         Representation expectedRepresentation = expected.getRepresentations().get(0);
         expectedRepresentation.setUri(URITools.getVersionUri(getBaseUri(), globalId, schema, version));
@@ -80,12 +74,11 @@ public class RepresentationsResourceTest extends JerseyTest {
         expectedRepresentation.setFiles(new ArrayList<File>());
         when(recordService.getRecord(globalId)).thenReturn(new Record(record));
 
-        Response response = target(URITools.getRepresentationsPath(globalId).toString()).request(mediaType).get();
+        ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId).toString()).accept(mediaType))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(mediaType));
 
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getMediaType(), is(mediaType));
-        List<Representation> entity = response.readEntity(new GenericType<List<Representation>>() {
-        });
+        List<Representation> entity = responseContentAsRepresentationList(response, mediaType);
         assertThat(entity, is(expected.getRepresentations()));
         verify(recordService, times(1)).getRecord(globalId);
         verifyNoMoreInteractions(recordService);
@@ -98,11 +91,12 @@ public class RepresentationsResourceTest extends JerseyTest {
         Throwable exception = new RecordNotExistsException();
         when(recordService.getRecord(globalId)).thenThrow(exception);
 
-        Response response = target().path(URITools.getRepresentationsPath(globalId).toString())
-                .request(MediaType.APPLICATION_XML).get();
+        ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
+                .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isNotFound());
 
-        assertThat(response.getStatus(), is(404));
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
         assertThat(errorInfo.getErrorCode(), is(McsErrorCode.RECORD_NOT_EXISTS.toString()));
         verify(recordService, times(1)).getRecord(globalId);
         verifyNoMoreInteractions(recordService);
@@ -110,11 +104,10 @@ public class RepresentationsResourceTest extends JerseyTest {
 
 
     @Test
-    public void getRepresentationsReturns406ForUnsupportedFormat() {
-        Response response = target().path(URITools.getRepresentationsPath(globalId).toString())
-                .request(MediaType.APPLICATION_SVG_XML_TYPE).get();
-
-        assertThat(response.getStatus(), is(406));
+    public void getRepresentationsReturns406ForUnsupportedFormat() throws Exception {
+        mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
+                .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
+                .andExpect(status().isNotAcceptable());
     }
 
 }
