@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +28,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpServletRequest;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
@@ -185,7 +183,7 @@ public class SimplifiedFileAccessResourceTest {
     }
     
     private void setupUriInfo() throws URISyntaxException {
-        URI_INFO = Mockito.mock(HttpServletRequest.class);
+        URI_INFO = mockHttpServletRequest();
        // Mockito.when(URI_INFO.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
        // Mockito.when(URI_INFO.resolve(Mockito.any(URI.class))).thenReturn(new URI("sdfsdfd"));
     }

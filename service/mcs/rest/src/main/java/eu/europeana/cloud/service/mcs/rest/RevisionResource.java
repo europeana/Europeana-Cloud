@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -138,7 +139,7 @@ public class RevisionResource {
             @PathVariable final String version,
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
-            @RequestParam(required = false) Set<String> tags ) throws RepresentationNotExistsException,
+            @RequestParam(defaultValue = "") Set<String> tags ) throws RepresentationNotExistsException,
                                                         RevisionIsNotValidException, ProviderNotExistsException {
 
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
@@ -168,6 +169,7 @@ public class RevisionResource {
     @DeleteMapping(value = REVISION_DELETE)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRevision(
             @PathVariable String cloudId,
             @PathVariable String representationName,

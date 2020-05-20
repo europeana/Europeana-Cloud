@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -28,14 +28,14 @@ class URITools {
 
 
     static URI getVersionUri(URI baseUri, String globalId, String schema, String version) {
-        UriComponentsBuilder uriFromResource = fromResource(RepresentationVersionResource.class);
+        UriComponentsBuilder uriFromResource = UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION);
         setBaseUri(uriFromResource, baseUri);
         return uriFromResource.build(getVersionMap(globalId, schema, version));
     }
 
 
     static URI getVersionPath(String cloudId, String representationName, String version) {
-        return UriBuilder.fromResource(RepresentationVersionResource.class).buildFromMap(
+        return fromResource(RepresentationVersionResource.class).build(
             getVersionMap(cloudId, representationName, version));
     }
 
@@ -45,32 +45,25 @@ class URITools {
     }
 
     static URI getRepresentationRevisionsPath(String cloudId, String representationName, String revisionId) {
-        return UriBuilder.fromResource(RepresentationRevisionsResource.class).buildFromMap(
+        return fromResource(RepresentationRevisionsResource.class).build(
                 getRepresentationRevisionsMap(cloudId, representationName, revisionId));
     }
 
     static URI getContentUri(URI baseUri, String cloudId, String representationName, String version, String fileName) {
-        UriComponentsBuilder uriFromResource = fromResource(FileResource.class);
+        UriComponentsBuilder uriFromResource = UriComponentsBuilder.fromUriString(RestInterfaceConstants.FILE_RESOURCE_NO_EX);
         setBaseUri(uriFromResource, baseUri);
         return uriFromResource.build(getFileMap(cloudId, representationName, version, fileName));
     }
 
 
     static URI getRepresentationsPath(String cloudId) {
-        return UriBuilder.fromResource(RepresentationsResource.class).buildFromMap(getGlobalIdMap(cloudId));
+        return fromResource(RepresentationsResource.class).build(getGlobalIdMap(cloudId));
     }
 
 
     static Object getListVersionsPath(String cloudId, String representationName) {
-        return UriBuilder.fromResource(RepresentationVersionsResource.class).buildFromMap(
+        return fromResource(RepresentationVersionsResource.class).build(
             getRepresentationMap(cloudId, representationName));
-    }
-
-
-    static URI getPath(Class<RepresentationVersionResource> resourceClass, String method, String cloudId,
-            String representationName, String version) {
-        return UriBuilder.fromResource(resourceClass).path(resourceClass, method)
-                .buildFromMap(getVersionMap(cloudId, representationName, version));
     }
 
 

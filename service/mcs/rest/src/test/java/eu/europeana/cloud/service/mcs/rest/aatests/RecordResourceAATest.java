@@ -21,7 +21,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 public class RecordResourceAATest extends AbstractSecurityTest {
 	
 	@Autowired
@@ -33,9 +32,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	private RecordService recordService;
 
 	private static final String GLOBAL_ID = "GLOBAL_ID";
-	
-	private HttpServletRequest URI_INFO;  /****/
-	
+
 	private Record record;
 	
 	/**
@@ -58,16 +55,6 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 
 		record = new Record();
 		record.setCloudId(GLOBAL_ID);
-		
-		URI_INFO = Mockito.mock(HttpServletRequest.class);
-		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
-
-        //Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
-        Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        //Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
-        
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 	}
 

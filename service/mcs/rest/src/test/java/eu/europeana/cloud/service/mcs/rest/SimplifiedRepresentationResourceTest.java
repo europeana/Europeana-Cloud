@@ -11,7 +11,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +21,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriInfo;
 
+import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpServletRequest;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -80,7 +79,7 @@ public class SimplifiedRepresentationResourceTest {
 
     @Test
     public void properRepresentationShouldBeReturned() throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
-        HttpServletRequest info = Mockito.mock(HttpServletRequest.class);
+        HttpServletRequest info = mockHttpServletRequest();
         // Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
         Representation rep = representationResource.getRepresentation(info, PROVIDER_ID, LOCAL_ID, EXISTING_REPRESENTATION_NAME);

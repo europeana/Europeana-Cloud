@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -21,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
@@ -30,6 +32,7 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Date;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,10 +54,14 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
     static final private String schema = "DC";
     static final private String version = "1.0";
     static final private String fileName = "1.xml";
-    static final private String persistPath = URITools.getPath(RepresentationVersionResource.class,
-            "persistRepresentation", globalId, schema, version).toString();
-    static final private String copyPath = URITools.getPath(RepresentationVersionResource.class, "copyRepresentation",
-            globalId, schema, version).toString();
+    static final private String persistPath =
+            UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST)
+            .build(globalId, schema, version).toString();
+
+    static final private String copyPath =
+            UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_COPY)
+                    .build(globalId, schema, version).toString();
+
 
     static final private Representation representation = new Representation(globalId, schema, version, null, null,
             "DLF", Arrays.asList(new File(fileName, "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01",

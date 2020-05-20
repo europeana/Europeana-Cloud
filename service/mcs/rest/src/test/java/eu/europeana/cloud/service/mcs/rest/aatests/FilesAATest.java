@@ -28,10 +28,9 @@ import java.net.URI;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 public class FilesAATest extends AbstractSecurityTest {
 	
-/*	@Autowired
+	@Autowired
 	@NotNull
 	private FileResource fileResource;
 	
@@ -57,13 +56,12 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	private static final String PROVIDER_ID = "provider";
 	
-	private HttpServletRequest URI_INFO; /**** /
 	private Representation representation;
 	private byte[] ANY_DATA = "ANY_DATA".getBytes();
 
 	/**
 	 * Pre-defined users
-	 * /
+	 */
 	private final static String RANDOM_PERSON = "Cristiano";
 	private final static String RANDOM_PASSWORD = "Ronaldo";
 
@@ -96,14 +94,6 @@ public class FilesAATest extends AbstractSecurityTest {
 		file2 = new File();
 		file2.setFileName(FILE_NAME_2);
 		file2.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
-		URI_INFO = Mockito.mock(HttpServletRequest.class);
-		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
-		
-    //    Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
-        Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-     //   Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
 
 		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 	}
@@ -266,5 +256,5 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, null);
-	} */
+	}
 }

@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,8 +23,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
+
+import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpServletRequest;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
@@ -80,7 +80,7 @@ public class SimplifiedRecordsResourceTest {
 
     @Test
     public void properRecordShouldBeReturned() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
-        HttpServletRequest info = Mockito.mock(HttpServletRequest.class);
+        HttpServletRequest info = mockHttpServletRequest();
         //Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
         Record record = recordsResource.getRecord(info, PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD);

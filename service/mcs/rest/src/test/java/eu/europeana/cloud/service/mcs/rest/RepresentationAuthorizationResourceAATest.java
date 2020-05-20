@@ -34,10 +34,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-
-@RunWith(SpringJUnit4ClassRunner.class)
 public class RepresentationAuthorizationResourceAATest extends AbstractSecurityTest {
-/*
+
     @Autowired
     @NotNull
     private FileResource fileResource;
@@ -73,15 +71,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     private static final String WRITE_PERMISSION = "write";
     private static final String BROKEN_PERMISSION = "sdfas";
 
-    private HttpServletRequest URI_INFO; /**** /
-
-    private byte[] ANY_DATA = "ANY_DATA".getBytes();
+    private byte[] ANY_DATA;
 
     private Representation representation;
 
     /**
      * Pre-defined users
-     * /
+     */
     private final static String RANDOM_PERSON = "admin";
     private final static String RANDOM_PASSWORD = "admin";
 
@@ -99,22 +95,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     @Before
     public void mockUp() throws Exception {
-
-        URI_INFO = Mockito.mock(HttpServletRequest.class);
-        UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
-
+        ANY_DATA=new byte[524288];
         representation = new Representation();
         representation.setCloudId(GLOBAL_ID);
         representation.setRepresentationName(SCHEMA);
         representation.setVersion(VERSION);
 
-        Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-
-      //  Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
-        Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-       // Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
+       Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
 
@@ -127,7 +114,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /**
      * Tests giving read access to specific user.
-     * /
+     */
     @Test
     public void vanPersieShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
@@ -146,7 +133,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-        ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+        ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, READ_PERMISSION + "", VAN_PERSIE);
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
 
@@ -156,7 +143,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /**
      * Tests giving write access to specific user.
-     * /
+     */
     @Test
     public void vanPersieShouldBeAbleToModifyRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
@@ -175,7 +162,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-        ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, WRITE_PERMISSION + "");
+        ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, WRITE_PERMISSION + "", VAN_PERSIE);
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
 
@@ -185,7 +172,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /**
      * Tests giving write access to specific user.
-     * /
+     */
     @Test
     public void updateAuthorization_throwsMCSException() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
@@ -202,7 +189,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
         try {
             //when
-            fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, BROKEN_PERMISSION + "");
+            fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, BROKEN_PERMISSION + "", VAN_PERSIE);
             fail("Expected WebApplicationException");
         } catch (WebApplicationException e) {
             //then
@@ -275,22 +262,22 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     /*
      * Removing permissions
-     * /
+     */
     @Test(expected = AuthenticationCredentialsNotFoundException.class)
     public void notLoggedInUserShouldNotBeAbleToRemovePrivilegesFromAnyResource() {
-        fileAuthorizationResource.removePermissions("someID", "someSchema", "someVersion", "userName", READ_PERMISSION + "");
+        fileAuthorizationResource.removePermissions("someID", "someSchema", "someVersion", READ_PERMISSION + "", "userName");
     }
 
     @Test(expected = AccessDeniedException.class)
     public void anonymousUserShouldNotBeAbleToRemovePrivilegesFromAnyResource() {
         login(ANONYMOUS, ANONYMOUS_PASSWORD);
-        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, "userName", READ_PERMISSION + "");
+        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, READ_PERMISSION + "", "userName");
     }
 
     @Test(expected = AccessDeniedException.class)
     public void userWithoutSufficientRightsShouldNotBeAbleToRemovePrivilegesFromAnyResource() {
         login(RONALDO, RONALD_PASSWORD);
-        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, "userName", READ_PERMISSION + "");
+        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, READ_PERMISSION + "", "userName");
     }
 
     @Test(expected = AccessDeniedException.class)
@@ -298,12 +285,12 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
             FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
 
-		/* Add file to eCloud * /
+		/* Add file to eCloud */
         login(RONALDO, RONALD_PASSWORD);
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
-        /* Grant access to this file for Van Persie * /
-        ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+        /* Grant access to this file for Van Persie */
+        ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, READ_PERMISSION + "", VAN_PERSIE);
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
 
@@ -315,19 +302,19 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        /* Check if Van Persie has access to file * /
+        /* Check if Van Persie has access to file */
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 
-		/* Delete permissions for Var Persie * /
+		/* Delete permissions for Var Persie */
         login(RONALDO, RONALD_PASSWORD);
 
-        response = fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+        response = fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, READ_PERMISSION + "", VAN_PERSIE);
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.NO_CONTENT.getStatusCode());
 
-		/* VAn Persie should not be able to access file * /
+		/* VAn Persie should not be able to access file */
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-    }*/
+    }
 }

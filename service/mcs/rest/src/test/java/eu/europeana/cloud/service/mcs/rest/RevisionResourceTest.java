@@ -52,7 +52,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     private Representation rep;
     private Revision revision;
     private URI revisionWebTarget;
-    private URI revisionWebTargetWithTag;
+    private String revisionWebTargetWithTag;
     private URI removeRevisionWebTarget;
     private URI revisionWebTargetWithMultipleTags;
     private static final String PROVIDER_ID = "providerId";
@@ -92,10 +92,10 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                         REVISION_NAME, TEST_REVISION_NAME,
                         REVISION_PROVIDER_ID, REVISION_PROVIDER_ID);
 
-        String revisionWithTagPath = "records/{" + CLOUD_ID + "}/representations/{"
-                + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
-        revisionWebTargetWithTag = UriComponentsBuilder.fromUriString(revisionWithTagPath).build(revisionPathParamsWithTag);
-        String revisionPathWithMultipleTags = "records/{" + CLOUD_ID + "}/representations/{"
+        String revisionWithTagPath = "/records/{" + CLOUD_ID + "}/representations/{"
+                + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/";
+        revisionWebTargetWithTag = UriComponentsBuilder.fromUriString(revisionWithTagPath).build(revisionPathParamsWithTag).toString()+"{" + TAG + "}";
+        String revisionPathWithMultipleTags = "/records/{" + CLOUD_ID + "}/representations/{"
                 + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
         revisionWebTargetWithMultipleTags = UriComponentsBuilder.fromUriString(revisionPathWithMultipleTags).build(revisionPathParamsWithTag);
 
@@ -106,7 +106,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                         VERSION, rep.getVersion(),
                         REVISION_NAME, TEST_REVISION_NAME,
                         REVISION_PROVIDER_ID, REVISION_PROVIDER_ID);
-        String removeRevisionPath = "records/{" + CLOUD_ID + "}/representations/{"
+        String removeRevisionPath = "/records/{" + CLOUD_ID + "}/representations/{"
                 + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}";
         removeRevisionWebTarget = UriComponentsBuilder.fromUriString(removeRevisionPath).build(removeRevisionPathParams);
 
@@ -124,7 +124,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     @Test
     public void shouldAddRevision() throws Exception {
         mockMvc.perform(post(revisionWebTarget)
-                .accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+                .contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
                 .andExpect(status().isCreated());
     }
 
@@ -132,46 +132,46 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     @Test
     public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullProviderId() throws Exception {
         revision.setRevisionProviderId(null);
-        mockMvc.perform(post(revisionWebTarget).accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+        mockMvc.perform(post(revisionWebTarget).contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
                 .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
     public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullRevisionName() throws Exception {
         revision.setRevisionName(null);
-        mockMvc.perform(post(revisionWebTarget).accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+        mockMvc.perform(post(revisionWebTarget).contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
                 .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
     public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullCreationDate() throws Exception {
         revision.setCreationTimeStamp(null);
-        mockMvc.perform(post(revisionWebTarget).accept(MediaType.APPLICATION_JSON).content(toJson(revision)))
+        mockMvc.perform(post(revisionWebTarget).contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
                 .andExpect(status().isMethodNotAllowed());
 
     }
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
-        mockMvc.perform(post(revisionWebTargetWithTag.toString(), Tags.ACCEPTANCE.getTag()))
+        mockMvc.perform(post(revisionWebTargetWithTag, Tags.ACCEPTANCE.getTag()))
                 .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithPublishedTag() throws Exception {
-        mockMvc.perform(post(revisionWebTargetWithTag.toString(), Tags.PUBLISHED.getTag()))
+        mockMvc.perform(post(revisionWebTargetWithTag, Tags.PUBLISHED.getTag()))
                 .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithDeletedTag() throws Exception {
-        mockMvc.perform(post(revisionWebTargetWithTag.toString(), Tags.DELETED.getTag()))
+        mockMvc.perform(post(revisionWebTargetWithTag, Tags.DELETED.getTag()))
                 .andExpect(status().isCreated());
     }
 
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
-        mockMvc.perform(post(revisionWebTargetWithTag.toString(), "UNDEFINED"))
+        mockMvc.perform(post(revisionWebTargetWithTag, "UNDEFINED"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -199,7 +199,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                 .andExpect(status().isCreated());
     }
 
-
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
         mockMvc.perform(post(revisionWebTargetWithMultipleTags)
@@ -217,7 +216,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
         //when
         mockMvc.perform(post(revisionWebTarget)
-                .accept(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
+                .contentType(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
                 .andExpect(status().isCreated());
         //then
         verify(dataSetService, times(1)).addDataSetsRevisions(
@@ -237,7 +236,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
         //when
         mockMvc.perform(post(revisionWebTarget)
-                .accept(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
+                .contentType(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
                 .andExpect(status().isCreated());
 
         //then

@@ -28,7 +28,6 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 public class DataSetsAATest extends AbstractSecurityTest {
 
     @Autowired
@@ -50,8 +49,6 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	private static final String PROVIDER_ID = "provider";
 	private static final String DESCRIPTION = "description";
 	
-	private HttpServletRequest uriInfo; /****/
-
 	/**
 	 * Pre-defined users
 	 */
@@ -76,16 +73,6 @@ public class DataSetsAATest extends AbstractSecurityTest {
 		dataset.setProviderId(PROVIDER_ID);
 		dataset.setDescription(DESCRIPTION);
 		
-		uriInfo = Mockito.mock(HttpServletRequest.class);
-		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
-
-       // Mockito.doReturn(uriBuilder).when(uriInfo).getBaseUriBuilder();
-        Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-       // Mockito.doReturn(new URI("")).when(uriInfo).resolve((URI) Mockito.anyObject());
-
-		ApplicationContext applicationContext = ApplicationContextUtils
-				.getApplicationContext();
 		// dataProvider.setId("testprov");
 		Mockito.doReturn(new DataProvider()).when(uisHandler)
 				.getProvider(Mockito.anyString());
@@ -102,7 +89,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCreateDataset()
 			throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
-		datasetsResource.createDataSet(uriInfo, PROVIDER_ID, DATASET_ID, DESCRIPTION);
+		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
 	}
 
 	@Test
@@ -117,7 +104,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 //        Mockito.when(dataProviderService.updateProvider(Mockito.anyString(), (DataProviderProperties) Mockito.any())).thenReturn(dp);
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		datasetsResource.createDataSet(uriInfo, PROVIDER_ID, DATASET_ID, DESCRIPTION);
+		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
 	}
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
@@ -160,7 +147,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 			DataSetNotExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		datasetsResource.createDataSet(uriInfo, PROVIDER_ID, DATASET_ID, DESCRIPTION);
+		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
 		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
 	}
 
@@ -174,7 +161,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 			DataSetNotExistsException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		datasetsResource.createDataSet(uriInfo, PROVIDER_ID, DATASET_ID, DESCRIPTION);
+		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
 	}

@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
@@ -102,7 +103,7 @@ public class FileResource {
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .location(f.getContentUri())
-                .eTag(f.getMd5())
+                .eTag(nullToEmpty(f.getMd5()))
                 .build();
     }
 
@@ -181,7 +182,7 @@ public class FileResource {
         return ResponseEntity
                 .status(status)
                 .contentType(MediaType.parseMediaType(fileMimeType))
-                .eTag(md5)
+                .eTag(nullToEmpty(md5))
                 .body(output);
     }
 
@@ -228,7 +229,7 @@ public class FileResource {
                 .status(HttpStatus.OK)
                 .contentType(MediaType.parseMediaType(fileMimeType))
                 .location(requestUri)
-                .eTag(md5)
+                .eTag(nullToEmpty(md5))
                 .build();
     }
     
