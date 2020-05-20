@@ -107,5 +107,5 @@ public class RestInterfaceConstants {
 
     //SimplifiedRepresentationResource
     public static final String SIMPLIFIED_REPRESENTATION_RESOURCE
-            = "/data-providers/{"+PROVIDER_ID+"}/records/{"+LOCAL_ID+":.+}/representations/{"+REPRESENTATION_NAME+"}";
+            = "/data-providers/{providerId}/records/{localId:.+}/representations/{representationName}";
 }
