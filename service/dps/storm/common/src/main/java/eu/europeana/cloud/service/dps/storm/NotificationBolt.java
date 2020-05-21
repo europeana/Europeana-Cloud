@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.util.LRUCache;
@@ -53,6 +54,7 @@ public class NotificationBolt extends BaseRichBolt {
 
     protected String topologyName;
     private CassandraConnectionProvider cassandraConnectionProvider;
+    private CassandraTaskInfoDAO taskInfoDAO;
     protected TaskStatusUpdater taskStatusUpdater;
     private CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected ProcessedRecordsDAO processedRecordsDAO;
@@ -101,7 +103,7 @@ public class NotificationBolt extends BaseRichBolt {
             return;
         } catch (Exception ex) {
             LOGGER.error("Problem with store notification because: {}",
-                    ex.getMessage());
+                    ex.getMessage(), ex);
             return;
         }
     }
@@ -223,6 +225,7 @@ public class NotificationBolt extends BaseRichBolt {
     public void prepare(Map stormConf, TopologyContext tc, OutputCollector oc) {
         cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
+        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
@@ -274,7 +277,7 @@ public class NotificationBolt extends BaseRichBolt {
 
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
         long taskId = notificationTuple.getTaskId();
-        TaskInfo task = taskStatusUpdater.searchById(taskId);
+        TaskInfo task = taskInfoDAO.searchById(taskId);
         if (task != null) {
             NotificationCache nCache = cache.get(taskId);
             int count = nCache.getProcessed();

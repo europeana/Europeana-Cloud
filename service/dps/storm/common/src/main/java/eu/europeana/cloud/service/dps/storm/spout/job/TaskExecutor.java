@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka.job;
+package eu.europeana.cloud.service.dps.storm.spout.job;
 
 import com.google.common.base.Throwables;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
@@ -18,10 +18,10 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.QueueFiller;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.QueueFillerForLatestRevisionJob;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.QueueFillerForSpecificRevisionJob;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.spout.QueueFiller;
+import eu.europeana.cloud.service.dps.storm.spout.QueueFillerForLatestRevisionJob;
+import eu.europeana.cloud.service.dps.storm.spout.QueueFillerForSpecificRevisionJob;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -43,7 +43,6 @@ public class TaskExecutor implements Callable<Void> {
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
     private static final int MAX_BATCH_SIZE = 100;
-
 
     private TaskStatusChecker taskStatusChecker;
 

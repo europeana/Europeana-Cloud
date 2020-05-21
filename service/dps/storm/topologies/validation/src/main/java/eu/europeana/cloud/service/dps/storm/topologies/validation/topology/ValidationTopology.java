@@ -3,15 +3,14 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.ValidationRevisionWriter;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
-import com.google.common.base.Throwables;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -23,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 import static java.lang.Integer.parseInt;
 
@@ -38,21 +38,22 @@ public class ValidationTopology {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidationTopology.class);
     public static final String SUCCESS_MESSAGE = "The record is validated correctly";
 
-    public ValidationTopology(String defaultPropertyFile, String providedPropertyFile, String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
+    public ValidationTopology(String defaultPropertyFile, String providedPropertyFile,
+                              String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         PropertyFileLoader.loadPropertyFile(defaultValidationPropertiesFile, providedValidationPropertiesFile, validationProperties);
     }
 
 
-    public final StormTopology buildTopology(String validationTopic, String ecloudMcsAddress) {
+    public final StormTopology buildTopology(String ecloudMcsAddress) {
+        TopologyBuilder builder = new TopologyBuilder();
 
-        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, validationTopic, ecloudMcsAddress);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);
-        TopologyBuilder builder = new TopologyBuilder();
 
-        builder.setSpout(SPOUT, mcsReaderSpout,
+        builder.setSpout(SPOUT, eCloudSpout,
                 (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
@@ -111,27 +112,26 @@ public class ValidationTopology {
 
     public static void main(String[] args) {
         try {
+            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
             if (args.length <= 2) {
 
-                String providedValidationPropertiesFile = "";
-                String providedPropertyFile = "";
-                if (args.length == 1)
-                    providedPropertyFile = args[0];
-                else if (args.length == 2) {
-                    providedPropertyFile = args[0];
-                    providedValidationPropertiesFile = args[1];
-                }
-                ValidationTopology validationTopology = new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-                // kafka topic == topology name
-                String kafkaTopic = topologyName;
+                String providedPropertyFile = (args.length > 0 ? args[0] : "");
+                String providedValidationPropertiesFile = (args.length == 2 ? args[1] : "");;
+
+                ValidationTopology validationTopology =
+                        new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,
+                                VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
+
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = validationTopology.buildTopology(kafkaTopic, ecloudMcsAddress);
+                StormTopology stormTopology = validationTopology.buildTopology(ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
+            LOGGER.error("General error while setting up topology", e);
         }
     }
 }

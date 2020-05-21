@@ -128,14 +128,16 @@
                     <groupId>org.slf4j</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>kafka_2.12</artifactId>
-                    <groupId>org.apache.kafka</groupId>
-                </exclusion>
-                <exclusion>
                     <artifactId>log4j</artifactId>
                     <groupId>log4j</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-kafka-client</artifactId>
+            <version>${version.storm}</version>
         </dependency>
 
         <dependency>
@@ -260,27 +262,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--logging -->
-        <dependency>
-            <groupId>com.github.danielwegener</groupId>
-            <artifactId>logback-kafka-appender</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-kafka</artifactId>
-            <version>${version.storm_kafka}</version>
-        </dependency>
 
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
             <version>3.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
         </dependency>
 
         <!-- Testing -->

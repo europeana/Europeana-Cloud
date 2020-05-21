@@ -1,10 +1,12 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import org.apache.storm.kafka.*;
+//import org.apache.storm.kafka.*;
+import org.apache.storm.kafka.spout.KafkaSpout;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import java.util.Map;
 /**
  * Created by Tarek on 11/27/2017.
  */
+@Deprecated
 public class CustomKafkaSpout extends KafkaSpout {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomKafkaSpout.class);
@@ -29,11 +32,11 @@ public class CustomKafkaSpout extends KafkaSpout {
     private String password;
     protected TaskStatusUpdater taskStatusUpdater;
 
-    protected CustomKafkaSpout(SpoutConfig spoutConf) {
+    protected CustomKafkaSpout(KafkaSpoutConfig spoutConf) {
         super(spoutConf);
     }
 
-    public CustomKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public CustomKafkaSpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                             String userName, String password) {
         super(spoutConf);
         this.hosts = hosts;
@@ -41,7 +44,6 @@ public class CustomKafkaSpout extends KafkaSpout {
         this.keyspaceName = keyspaceName;
         this.userName = userName;
         this.password = password;
-
     }
 
     @Override
@@ -63,16 +65,13 @@ public class CustomKafkaSpout extends KafkaSpout {
         }
     }
 
-
     @Override
     public void ack(Object msgId) {
         super.ack(msgId);
-
     }
 
     @Override
     public void fail(Object msgId) {
         super.ack(msgId);
-
     }
 }

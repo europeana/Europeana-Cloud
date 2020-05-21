@@ -20,12 +20,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-api</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

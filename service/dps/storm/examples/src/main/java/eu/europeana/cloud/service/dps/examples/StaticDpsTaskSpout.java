@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -50,7 +51,8 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
     private void initTaskInfo(String topologyName) {
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(TopologyConstants.CASSANDRA_HOSTS, Integer.parseInt(TopologyConstants.CASSANDRA_PORT), TopologyConstants.CASSANDRA_KEYSPACE_NAME, TopologyConstants.CASSANDRA_USERNAME, TopologyConstants.CASSANDRA_SECRET_TOKEN);
         TaskStatusUpdater taskInfoDAO = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
-        taskInfoDAO.insert(task.getTaskId(), topologyName, 0, String.valueOf(TaskState.CURRENTLY_PROCESSING), "", new Date(), null);
+        SubmitTaskParameters parameters = SubmitTaskParameters.builder().task(task).topologyName(topologyName).status(TaskState.CURRENTLY_PROCESSING).info("").sentTime(new Date()).build();
+        taskInfoDAO.insertTask(parameters);
     }
 
     @Override

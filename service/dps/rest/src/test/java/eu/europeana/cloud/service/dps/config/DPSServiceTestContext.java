@@ -7,11 +7,14 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.services.SubmitTaskService;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
-import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -27,7 +30,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({UnitedExceptionMapper.class, SubmitTaskService.class,TaskStatusUpdater.class})
+@Import({UnitedExceptionMapper.class})
 public class DPSServiceTestContext {
 
     /* REAL Beans */
@@ -74,11 +77,6 @@ public class DPSServiceTestContext {
     }
 
     @Bean
-    public CassandraKillService killService() {
-        return Mockito.mock(CassandraKillService.class);
-    }
-
-    @Bean
     public TopologyManager topologyManager() {
         return Mockito.mock(TopologyManager.class);
     }
@@ -106,6 +104,11 @@ public class DPSServiceTestContext {
     @Bean
     public CassandraTaskInfoDAO taskDAO() {
         return Mockito.mock(CassandraTaskInfoDAO.class);
+    }
+
+    @Bean
+    public CassandraTaskErrorsDAO cassandraTaskErrorsDAO(){
+        return Mockito.mock(CassandraTaskErrorsDAO.class);
     }
 
     @Bean

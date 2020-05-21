@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 
 public class ECloudSpout extends KafkaSpout {
@@ -42,6 +44,7 @@ public class ECloudSpout extends KafkaSpout {
     private String userName;
     private String password;
 
+    protected CassandraTaskInfoDAO taskInfoDAO;
     protected TaskStatusUpdater taskStatusUpdater;
     protected TaskStatusChecker taskStatusChecker;
     protected ProcessedRecordsDAO processedRecordsDAO;
@@ -68,6 +71,7 @@ public class ECloudSpout extends KafkaSpout {
                         this.keyspaceName,
                         this.userName,
                         this.password);
+        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
@@ -81,7 +85,7 @@ public class ECloudSpout extends KafkaSpout {
     }
 
     private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-        return taskStatusUpdater.searchById(taskId);
+        return taskInfoDAO.searchById(taskId);
     }
 
     public class ECloudOutputCollector extends SpoutOutputCollector {
@@ -157,9 +161,12 @@ public class ECloudSpout extends KafkaSpout {
             //
             stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
             stormTaskTuple.addParameter(PluginParameterKeys.SCHEMA_NAME, dpsRecord.getMetadataPrefix());
-            stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, stormTaskTuple.getFileUrl());
-            stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0));
-            //
+
+            List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
+            if(!isEmpty(repositoryUrlList)) {
+                stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
+            }
+
             return stormTaskTuple;
         }
     }

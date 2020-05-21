@@ -578,7 +578,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             try {
-                DpsTask task = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
+                DpsTask task = new ObjectMapper().readValue((String) tuple.get(4), DpsTask.class);
                 TaskInfo taskInfo = new TaskInfo();
                 taskInfo.task = task;
                 taskInfo.baseMsgId = messageId;
@@ -594,7 +594,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
                 datasetDownloader.queue(taskInfo);
                 logger.info("Task {} parsed", task.getTaskName());
             } catch (IOException e) {
-                logger.error("Task rejected ({}: {})\n{}", e.getClass().getSimpleName(), e.getMessage(), tuple.get(0));
+                logger.error("Task rejected ({}: {})\n{}", e.getClass().getSimpleName(), e.getMessage(), tuple.get(4));
                 logger.debug("Exception details", e);
             }
 

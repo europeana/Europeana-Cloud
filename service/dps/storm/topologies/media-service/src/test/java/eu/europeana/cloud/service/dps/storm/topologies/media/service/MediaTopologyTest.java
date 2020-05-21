@@ -139,7 +139,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
         Map<String, String> taskParameters = new HashMap<>();
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
+        taskParameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE_VERSION_URL);
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
         dpsTask.setOutputRevision(new Revision());

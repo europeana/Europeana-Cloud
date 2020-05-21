@@ -7,36 +7,43 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.model.dps.TaskStateInfo;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Optional;
-
-@Service
+/**
+ * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
+ * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
+ * NOTE: Operation is not in transaction! So on table can be modified but second one not
+ *
+ */
 public class TaskStatusUpdater {
+
+
+    public TaskStatusUpdater(CassandraTaskInfoDAO taskInfoDAO, TasksByStateDAO tasksByStateDAO, String applicationIdentifier) {
+        this.taskInfoDAO = taskInfoDAO;
+        this.tasksByStateDAO = tasksByStateDAO;
+        this.applicationIdentifier = applicationIdentifier;
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusUpdater.class);
 
     private static TaskStatusUpdater instance;
 
-    @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;
 
-    @Autowired
     private TasksByStateDAO tasksByStateDAO;
 
-    @Autowired
     private String applicationIdentifier;
 
     public static synchronized TaskStatusUpdater getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new TaskStatusUpdater();
-            instance.taskInfoDAO=CassandraTaskInfoDAO.getInstance(cassandra);
-            instance.tasksByStateDAO=new TasksByStateDAO(cassandra);
-            instance.applicationIdentifier="";
+            instance = new TaskStatusUpdater(
+                    CassandraTaskInfoDAO.getInstance(cassandra),
+                    new TasksByStateDAO(cassandra),
+                    "");
         }
         return instance;
     }
@@ -46,40 +53,13 @@ public class TaskStatusUpdater {
        return taskInfoDAO.searchById(taskId);
     }
 
-    /**
-     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
-     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
-     * NOTE: Operation is not in transaction! So on table can be modified but second one not
-     * Parameters corresponding to names of column in table(s)
-     *
-     * @param expectedSize
-     * @param state
-     * @param info
-     */
-
-    public void insert(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskInformations)
-            throws NoHostAvailableException, QueryExecutionException {
-        insert(taskId, topologyName, expectedSize, state, info, sentTime, taskInformations, "");
+    public void insertTask(SubmitTaskParameters parameters) {
+        long taskId = parameters.getTask().getTaskId();
+        String topologyName = parameters.getTopologyName();
+        String state = parameters.getStatus().toString();
+        tasksByStateDAO.insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, parameters.getTopicName());
+        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state, parameters.getInfo(), parameters.getSentTime(), null, null, 0, parameters.getTaskJSON());
     }
-
-    public void insert(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskInformations, String topicName)
-            throws NoHostAvailableException, QueryExecutionException {
-        tasksByStateDAO.insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, topicName);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, state, info, sentTime, null, null, 0, taskInformations);
-
-    }
-
-    public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, String state, String info, Date sentTime, Date startTime, Date finishTime, int errors, String taskInformations)
-            throws NoHostAvailableException, QueryExecutionException {
-        tasksByStateDAO.insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, "");
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, processedFilesCount, state, info, sentTime, startTime, finishTime, errors, taskInformations);
-    }
-
-    public void insert(long taskId, String topologyName, int expectedSize, String state, String info, String topicName) throws NoHostAvailableException, QueryExecutionException {
-        tasksByStateDAO.insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, topicName);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, applicationIdentifier, topicName);
-    }
-
 
     public void updateTask(long taskId, String info, String state, Date startDate)
             throws NoHostAvailableException, QueryExecutionException {

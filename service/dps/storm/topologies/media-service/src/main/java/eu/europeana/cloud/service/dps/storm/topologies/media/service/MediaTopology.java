@@ -1,13 +1,17 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import com.google.common.base.Throwables;
-import eu.europeana.cloud.service.dps.storm.*;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -21,7 +25,6 @@ import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 import static java.lang.Integer.parseInt;
 
@@ -38,16 +41,15 @@ public class MediaTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String mediaTopic, String ecloudMcsAddress) {
+    public final StormTopology buildTopology(String ecloudMcsAddress) {
+        TopologyBuilder builder = new TopologyBuilder();
+
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
+
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
 
-
-        TopologyBuilder builder = new TopologyBuilder();
-        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, mediaTopic, ecloudMcsAddress);
-
-
-        builder.setSpout(SPOUT, mcsReaderSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
+        builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
         builder.setBolt(PARSE_FILE_BOLT, new ParseFileBolt(ecloudMcsAddress),
@@ -55,7 +57,8 @@ public class MediaTopology {
                 .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(SPOUT, new ShuffleGrouping());
 
-        builder.setBolt(RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
+        builder.setBolt(RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt(
+                topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
                         topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET)),
                 (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
@@ -106,7 +109,6 @@ public class MediaTopology {
                 .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
-
         return builder.createTopology();
     }
 
@@ -116,28 +118,23 @@ public class MediaTopology {
 
     public static void main(String[] args) {
         try {
-            if (args.length <= 1) {
+            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
 
-                String providedPropertyFile = "";
-                if (args.length == 1) {
-                    providedPropertyFile = args[0];
-                }
+            if (args.length <= 1) {
+                String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
                 MediaTopology mediaTopology = new MediaTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
 
-                // assuming kafka topic == topology name
-                String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = mediaTopology.buildTopology(
-                        kafkaTopic,
-                        ecloudMcsAddress);
+                StormTopology stormTopology = mediaTopology.buildTopology(ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
-
+            LOGGER.error("General error while setting up topology", e);
         }
     }
 }

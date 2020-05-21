@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.Representation;
@@ -65,7 +65,7 @@ public class QueueFiller {
 
      private StormTaskTuple buildNextStormTuple(StormTaskTuple stormTaskTuple, String fileUrl) {
         StormTaskTuple fileTuple = new Cloner().deepClone(stormTaskTuple);
-        fileTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, fileUrl);
+        fileTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, fileUrl);
         return fileTuple;
     }
 

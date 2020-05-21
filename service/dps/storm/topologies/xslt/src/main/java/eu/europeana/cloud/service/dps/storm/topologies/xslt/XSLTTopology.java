@@ -4,7 +4,8 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
+import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
@@ -12,6 +13,8 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
 import com.google.common.base.Throwables;
 
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -47,19 +50,17 @@ public class XSLTTopology {
 
     }
 
-    public StormTopology buildTopology(String xsltTopic, String ecloudMcsAddress) {
-
-        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, xsltTopic, ecloudMcsAddress);
-
+    public StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.XSLT_TOPOLOGY, topologyProperties);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
 
         // TOPOLOGY STRUCTURE!
-        builder.setSpout(SPOUT, mcsReaderSpout,
+        builder.setSpout(SPOUT, eCloudSpout,
                 (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
@@ -130,32 +131,22 @@ public class XSLTTopology {
 
     public static void main(String[] args) {
         try {
-
+            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
             if (args.length <= 1) {
-
-
-                String providedPropertyFile = "";
-                if (args.length == 1) {
-                    providedPropertyFile = args[0];
-                }
+                String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
                 XSLTTopology xsltTopology = new XSLTTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-
-                // assuming kafka topic == topology name
-                String kafkaTopic = topologyName;
 
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = xsltTopology.buildTopology(
-                        kafkaTopic,
-                        ecloudMcsAddress);
+                StormTopology stormTopology = xsltTopology.buildTopology(ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
-
-
+            LOGGER.error("General error while setting up topology", e);
         }
     }
 }

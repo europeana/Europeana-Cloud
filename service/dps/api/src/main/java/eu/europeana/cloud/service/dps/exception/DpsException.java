@@ -39,5 +39,8 @@ public class DpsException extends Exception {
     public DpsException(Throwable cause) {
         super(cause);
     }
-    
+
+    public DpsException(String message, Throwable t) {
+        super(message,t);
+    }
 }

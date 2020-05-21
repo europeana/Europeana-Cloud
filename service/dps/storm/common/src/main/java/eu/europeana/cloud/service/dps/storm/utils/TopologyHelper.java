@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
+import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.storm.Config;
-import org.apache.storm.kafka.BrokerHosts;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
-import org.apache.storm.spout.SchemeAsMultiScheme;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -37,11 +35,9 @@ public final class TopologyHelper {
     public static final String EDM_ENRICHMENT_BOLT = "EDMEnrichmentBolt";
     public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
     public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
-
     public static final String EDMEnrichmentBolt = "EDMEnrichmentBolt";
-    public static final String ParseFileBolt = "ParseFileBolt";
-    public static final String ResourceProcessingBolt = "ResourceProcessingBolt";
 
+    public static final Integer MAX_POLL_RECORDS = 100;
 
     public static Config configureTopology(Properties topologyProperties) {
         Config config = new Config();
@@ -66,16 +62,39 @@ public final class TopologyHelper {
         return config;
     }
 
+    @Deprecated
     public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
-        BrokerHosts brokerHosts = new ZkHosts(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS));
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, topic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.ignoreZkOffsets = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        return new MCSReaderSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
+        KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
+                .builder(
+                        topologyProperties.getProperty(BOOTSTRAP_SERVERS),
+                        new String[]{topic})
+                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE)
+                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
+                .build();
+
+
+        return new MCSReaderSpout(kafkaConfig,
+                topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
     }
+
+    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties) {
+        return new ECloudSpout(
+                KafkaSpoutConfig
+                        .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
+                        .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                        .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
+                        .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
+                        .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
+                        .build(),
+                topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+    }
+
 }

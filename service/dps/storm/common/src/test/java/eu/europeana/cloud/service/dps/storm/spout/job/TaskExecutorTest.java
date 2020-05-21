@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka.job;
+package eu.europeana.cloud.service.dps.storm.spout.job;
 
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
@@ -15,8 +15,8 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.test.TestHelper;

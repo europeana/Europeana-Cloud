@@ -1,133 +1,42 @@
 package eu.europeana.cloud.service.dps.services;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.*;
-import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
-import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
-import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class SubmitTaskService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskService.class);
 
-    private static final int UNKNOWN_EXPECTED_SIZE = -1;
+    private final TaskSubmitterFactory taskSubmitterFactory;
+    private final TaskStatusUpdater taskStatusUpdater;
 
-    @Autowired
-    private HarvestsExecutor harvestsExecutor;
-
-    @Autowired
-    private TaskStatusUpdater taskStatusUpdater;
-
-    @Autowired
-    private FilesCounterFactory filesCounterFactory;
-
-    @Autowired
-    private KafkaTopicSelector kafkaTopicSelector;
-
-    @Autowired
-    private TaskExecutionSubmitService submitService;
+    public SubmitTaskService(TaskSubmitterFactory taskSubmitterFactory, TaskStatusUpdater taskStatusUpdater){
+        this.taskStatusUpdater = taskStatusUpdater;
+        this.taskSubmitterFactory = taskSubmitterFactory;
+    }
 
     @Async
     public void submitTask(SubmitTaskParameters parameters) {
         try {
-            int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTopologyName());
-            LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
-            if (expectedCount == 0) {
-                insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
-                        expectedCount, TaskState.DROPPED.toString(), "The task doesn't include any records", "");
-            } else {
-                if (parameters.getTopologyName().equals(TopologiesNames.OAI_TOPOLOGY)) {
-                    String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
-                    insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
-                            expectedCount, TaskState.PROCESSING_BY_REST_APPLICATION.toString(), "Task submitted successfully and processed by REST app", preferredTopicName);
-                    List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(parameters.getTask());
-
-                    HarvestResult harvesterResult;
-                    if (!parameters.isRestart()) {
-                        harvesterResult = harvestsExecutor.execute(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
-                    } else {
-                        harvesterResult = harvestsExecutor.executeForRestart(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
-                    }
-                    updateTaskStatus(parameters.getTask().getTaskId(),harvesterResult);
-                    LOGGER.info("Task {} submitted successfully to Kafka on topic {}", parameters.getTask().getTaskId(), preferredTopicName);
-                } else {
-                    submitService.submitTask(parameters.getTask(), parameters.getTopologyName());
-                    insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(),
-                            expectedCount, TaskState.SENT.toString(), "", "");
-                    LOGGER.info("Task {} submitted successfully to Kafka for topology {}", parameters.getTask().getTaskId(), parameters.getTopologyName());
-                }
-
-            }
+            TaskSubmitter taskSubmitter = taskSubmitterFactory.provideTaskSubmitter(parameters);
+            taskSubmitter.submitTask(parameters);
         } catch (TaskSubmissionException e) {
             LOGGER.error("Task submission failed: {}", e.getMessage(), e);
-            insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(), 0,
-                    TaskState.DROPPED.toString(), e.getMessage(), "");
+            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(),e.getMessage());
         } catch (Exception e) {
             String fullStacktrace = ExceptionUtils.getStackTrace(e);
             LOGGER.error("Task submission failed: {}", fullStacktrace);
-            insertTask(parameters.getTask().getTaskId(), parameters.getTopologyName(), 0,
-                    TaskState.DROPPED.toString(), fullStacktrace, "");
+            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(),fullStacktrace);
         }
-    }
-
-    /**
-     * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
-     * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
-     * NOTE: Operation is not in transaction! So on table can be modified but second one not
-     * Parameters corresponding to names of column in table(s)
-     *
-     * @param expectedSize
-     * @param state
-     * @param info
-     */
-    private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, String topicName) {
-        taskStatusUpdater.insert(taskId, topologyName, expectedSize, state, info,topicName);
-    }
-
-
-    private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
-        if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
-            LOGGER.info("Task dropped. No data harvested");
-            taskStatusUpdater.setTaskDropped(taskId, "The task with the submitted parameters is empty");
-        } else {
-            LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
-            taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(),
-                    harvesterResult.getResultCounter());
-        }
-    }
-
-    /**
-     * @return The number of files inside the task.
-     */
-    private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {
-        if (TopologiesNames.HTTP_TOPOLOGY.equals(topologyName)) {
-            return UNKNOWN_EXPECTED_SIZE;
-        }
-        String taskType = getTaskType(task);
-        FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
-        return filesCounter.getFilesCount(task);
-    }
-
-    //get TaskType
-    private String getTaskType(DpsTask task) {
-        //TODO sholud be done in more error prone way
-        final InputDataType first = task.getInputData().keySet().iterator().next();
-        return first.name();
     }
 }
 

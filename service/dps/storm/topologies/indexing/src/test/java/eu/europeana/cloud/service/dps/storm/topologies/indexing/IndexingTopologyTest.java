@@ -132,7 +132,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
         taskParameters.put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
+        taskParameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE_VERSION_URL);
         taskParameters.put(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "TRUE");
         taskParameters.put(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS, "FALSE");
         taskParameters.put(PluginParameterKeys.PERFORM_REDIRECTS, "TRUE");

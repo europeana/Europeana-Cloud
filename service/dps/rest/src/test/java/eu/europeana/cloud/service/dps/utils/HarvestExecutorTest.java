@@ -17,6 +17,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.eq;
@@ -77,6 +78,7 @@ public class HarvestExecutorTest {
     public void shouldCallAllNecessaryRoutines() throws HarvesterException {
         DpsTask dpsTask = new DpsTask();
         dpsTask.setTaskId(TASK_ID);
+        dpsTask.addDataEntry(InputDataType.REPOSITORY_URLS, Arrays.asList(""));
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
 

@@ -20,6 +20,12 @@ import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
+import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
+import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
@@ -64,7 +70,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, SubmitTaskService.class, DatasetCleanerService.class , TaskStatusUpdater.class})
+@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
+        TaskSubmissionValidator.class, SubmitTaskService.class, OaiTopologyTaskSubmitter.class,
+        HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, DatasetCleanerService.class,
+        TaskStatusUpdater.class, MCSTaskSubmiter.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -97,7 +106,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private MutableAclService mutableAclService;
     private RecordKafkaSubmitService recordKafkaSubmitService;
     private RecordServiceClient recordServiceClient;
-    private TaskExecutionKillService killService;
     private TaskExecutionReportService reportService;
     private TaskKafkaSubmitService taskKafkaSubmitService;
 
@@ -117,7 +125,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         filesCounter = applicationContext.getBean(FilesCounter.class);
         filesCounterFactory = applicationContext.getBean(FilesCounterFactory.class);
         harvestsExecutor = applicationContext.getBean(HarvestsExecutor.class);
-        killService = applicationContext.getBean(TaskExecutionKillService.class);
         mutableAclService = applicationContext.getBean(MutableAclService.class);
         recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
@@ -502,7 +509,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         prepareMocks(HTTP_TOPOLOGY);
         ResultActions response = sendTask(task, HTTP_TOPOLOGY);
 
-        assertSuccessfulRequest(response, HTTP_TOPOLOGY);
+        assertSuccessfulHttpTopologyRequest(response, HTTP_TOPOLOGY);
     }
 
 
@@ -734,7 +741,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         String info = "Dropped by the user";
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
 
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -751,7 +757,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         //String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("info", info)
         );
@@ -763,7 +768,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws Exception {
         String info = "Dropped by the user";
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
 
@@ -777,7 +781,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
         String info = "Dropped by the user";
-        doNothing().when(killService).killTask(eq(TASK_ID), eq(info));
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
 
@@ -905,7 +908,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         setCorrectlyFormulatedOutputRevision(task);
     }
 
-    private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
+    private void assertSuccessfulHttpTopologyRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep(5000);
@@ -913,6 +916,13 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         verifyNoMoreInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
         //verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
+    }
+
+    private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
+        assertNotNull(response);
+        response.andExpect(status().isCreated());
+        Thread.sleep(5000);
+        verifyZeroInteractions(taskKafkaSubmitService);
     }
 
     private DataSetCleanerParameters prepareDataSetCleanerParameters() {
@@ -1000,7 +1010,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private void mockECloudClients() throws TaskSubmissionException, MCSException {
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
-        when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
+        when(filesCounterFactory.createFilesCounter(any(DpsTask.class),anyString())).thenReturn(filesCounter);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(1);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());

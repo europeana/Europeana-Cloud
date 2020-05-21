@@ -13,9 +13,9 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CollectorWrapper;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.TaskQueueFiller;
+import eu.europeana.cloud.service.dps.storm.spout.CollectorWrapper;
+import eu.europeana.cloud.service.dps.storm.spout.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spout.TaskQueueFiller;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -23,7 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
+
 /**
  * Created by Tarek on 4/27/2018.
  */
@@ -59,12 +60,12 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
     TaskDownloader taskDownloader;
 
-    HttpKafkaSpout(SpoutConfig spoutConf) {
+    HttpKafkaSpout(KafkaSpoutConfig spoutConf) {
         super(spoutConf);
         taskDownloader = new TaskDownloader();
     }
 
-    public HttpKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public HttpKafkaSpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
 

@@ -25,12 +25,7 @@
             <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
             <version>0.6-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>19.0</version>
-            <type>jar</type>
-        </dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

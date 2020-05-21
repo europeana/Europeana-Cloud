@@ -6,10 +6,11 @@ import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraKillService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -23,7 +24,6 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
-@Import(TaskStatusUpdater.class)
 public class ServiceConfiguration {
 
     private final Environment environment;
@@ -40,17 +40,13 @@ public class ServiceConfiguration {
     @Bean
     public TaskKafkaSubmitService taskKafkaSubmitService() {
         return new TaskKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
-                environment.getProperty(JNDI_KEY_KAFKA_GROUP_ID),
-                environment.getProperty(JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS));
+                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
     }
 
     @Bean
     public RecordExecutionSubmitService recordKafkaSubmitService() {
         return new RecordKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
-                environment.getProperty(JNDI_KEY_KAFKA_GROUP_ID),
-                environment.getProperty(JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS));
+                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
     }
 
     @Bean
@@ -114,13 +110,13 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public TasksByStateDAO tasksByStateDAO() {
-        return new TasksByStateDAO(dpsCassandraProvider());
+    public CassandraTaskErrorsDAO taskErrorDAO() {
+        return CassandraTaskErrorsDAO.getInstance(dpsCassandraProvider());
     }
 
     @Bean
-    public CassandraKillService killService() {
-        return new CassandraKillService(dpsCassandraProvider());
+    public TasksByStateDAO tasksByStateDAO() {
+        return new TasksByStateDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -152,4 +148,16 @@ public class ServiceConfiguration {
     public ProcessedRecordsDAO processedRecordsDAO() {
         return new ProcessedRecordsDAO(dpsCassandraProvider());
     }
+
+    @Bean
+    public TaskStatusUpdater taskStatusUpdater() {
+        return new TaskStatusUpdater(taskInfoDAO(),tasksByStateDAO(),applicationIdentifier());
+    }
+
+    @Bean
+    public MCSTaskSubmiter mcsTaskSubmiter() {
+        String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
+        return new MCSTaskSubmiter(taskStatusChecker(),taskStatusUpdater(),recordKafkaSubmitService(),mcsLocation);
+    }
+
 }

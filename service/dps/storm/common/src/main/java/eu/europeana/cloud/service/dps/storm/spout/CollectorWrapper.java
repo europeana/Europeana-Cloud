@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -26,7 +26,7 @@ public class CollectorWrapper extends SpoutOutputCollector {
     @Override
     public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
         try {
-            DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
+            DpsTask dpsTask = new ObjectMapper().readValue((String) tuple.get(4), DpsTask.class);
             if (dpsTask != null) {
                 taskQueueFiller.addNewTask(dpsTask);
             }

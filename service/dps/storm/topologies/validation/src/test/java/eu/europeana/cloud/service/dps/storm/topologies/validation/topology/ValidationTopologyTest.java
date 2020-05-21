@@ -112,7 +112,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
         taskParameters.put(PluginParameterKeys.SCHEMA_NAME, "edm-internal");
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
+        taskParameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE_VERSION_URL);
 
 
         dpsTask.setParameters(taskParameters);
@@ -140,7 +140,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         taskParameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         taskParameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.AUTHORIZATION_HEADER);
         taskParameters.put(PluginParameterKeys.SCHEMA_NAME, "edm-external");
-        taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, SOURCE_VERSION_URL);
+        taskParameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE_VERSION_URL);
 
 
         dpsTask.setParameters(taskParameters);

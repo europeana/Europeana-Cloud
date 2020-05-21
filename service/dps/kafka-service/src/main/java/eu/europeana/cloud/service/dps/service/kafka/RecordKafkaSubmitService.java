@@ -1,11 +1,13 @@
 package eu.europeana.cloud.service.dps.service.kafka;
 
-
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
+import eu.europeana.cloud.service.dps.service.kafka.util.DpsRecordSerializer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,25 +21,21 @@ public class RecordKafkaSubmitService implements RecordExecutionSubmitService {
 
 	private Producer<String, DpsRecord> producer;
 
-	private String kafkaGroupId;
-	private String zookeeperAddress;
+	public RecordKafkaSubmitService(String kafkaBroker) {
+		Properties properties = new Properties();
+		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBroker);
+		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, DpsRecordSerializer.class.getName());
+		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+		properties.put(ProducerConfig.ACKS_CONFIG, "1");
 
-	public RecordKafkaSubmitService(String kafkaBroker, String kafkaGroupId, String zookeeperAddress) {
-		this.kafkaGroupId = kafkaGroupId;
-		this.zookeeperAddress = zookeeperAddress;
-
-		Properties props = new Properties();
-		props.put("metadata.broker.list", kafkaBroker);
-		props.put("serializer.class", "eu.europeana.cloud.service.dps.service.kafka.util.JsonEncoder");
-		props.put("request.required.acks", "1");
-
-		ProducerConfig config = new ProducerConfig(props);
-		producer = new Producer<>(config);
+		producer = new KafkaProducer<>(properties);
 	}
 
 	@Override
 	public void submitRecord(DpsRecord record, String topology) {
-		KeyedMessage<String, DpsRecord> data = new KeyedMessage<>(topology, "", record);
+		ProducerRecord<String, DpsRecord> data =
+				new ProducerRecord<>(topology, record.getTaskId()+"_"+record.getRecordId(), record);
 		producer.send(data);
 	}
+
 }

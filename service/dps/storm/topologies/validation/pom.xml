@@ -198,6 +198,7 @@
             </exclusions>
         </dependency>
 
+<!--
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka</artifactId>
@@ -221,6 +222,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+-->
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-validation-service</artifactId>
@@ -280,19 +282,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>18.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>topologies-common-helper-test</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

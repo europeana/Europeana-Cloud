@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 
