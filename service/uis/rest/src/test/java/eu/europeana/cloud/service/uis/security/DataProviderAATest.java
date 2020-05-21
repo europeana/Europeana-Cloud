@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -192,8 +193,7 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			throws ProviderDoesNotExistException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, null);
+		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -231,10 +231,9 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			ProviderAlreadyExistsException, URISyntaxException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		dataProvidersResource.createProvider(uriInfo, DATA_PROVIDER_PROPERTIES,
+		dataProvidersResource.createProvider(Mockito.mock(HttpServletRequest.class), DATA_PROVIDER_PROPERTIES,
 				PROVIDER_ID);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, uriInfo);
+		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
 	}
 	
 	/**
@@ -247,11 +246,10 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			ProviderAlreadyExistsException, URISyntaxException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		dataProvidersResource.createProvider(uriInfo, DATA_PROVIDER_PROPERTIES,
+		dataProvidersResource.createProvider(Mockito.mock(HttpServletRequest.class), DATA_PROVIDER_PROPERTIES,
 				PROVIDER_ID);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES,
-				PROVIDER_ID, uriInfo);
+		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
 	}
 
 	@Test(expected = AccessDeniedException.class)

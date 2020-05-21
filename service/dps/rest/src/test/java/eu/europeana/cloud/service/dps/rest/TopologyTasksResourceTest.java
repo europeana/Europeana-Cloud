@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -63,7 +64,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, SubmitTaskService.class, DatasetCleanerService.class /*, UnitedExceptionMapper.class*/})
+@ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, SubmitTaskService.class, DatasetCleanerService.class , TaskStatusUpdater.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -130,6 +131,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 reportService,
                 taskKafkaSubmitService
         );
+        when(taskDAO.findTaskStateInfo(anyLong())).thenReturn(Optional.empty());
     }
 
 
@@ -858,7 +860,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isOk());
         Thread.sleep(1000);
         verify(taskDAO, times(1))
-                .setTaskStatus(eq(TASK_ID), eq("Completely process"), eq(TaskState.PROCESSED.toString()));
+                .setTaskCompletelyProcessed(eq(TASK_ID), eq("Completely process"));
+        verify(taskDAO).findTaskStateInfo(anyLong());
         verifyNoMoreInteractions(taskDAO);
     }
 
@@ -888,12 +891,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isOk());
         Thread.sleep(1000);
         verify(taskDAO, times(1))
-                .dropTask(eq(TASK_ID),
-                        eq("cleaner parameters can not be null"),
-                        eq(TaskState.DROPPED.toString())
+                .setTaskDropped(eq(TASK_ID),
+                        eq("cleaner parameters can not be null")
                 );
+        verify(taskDAO).findTaskStateInfo(anyLong());
         verifyNoMoreInteractions(taskDAO);
-
     }
 
     /* Utilities */
@@ -990,7 +992,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class), anyString());
+        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyInt(), anyString(), anyString(), isA(Date.class), isA(Date.class), isA(Date.class), anyInt(), anyString());
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
     }

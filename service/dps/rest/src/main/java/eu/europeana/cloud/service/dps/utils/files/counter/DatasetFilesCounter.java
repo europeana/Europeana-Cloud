@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +15,11 @@ import org.slf4j.LoggerFactory;
  */
 public class DatasetFilesCounter extends FilesCounter {
     public static final int UNKNOWN_EXPECTED_SIZE = -1;
-    private final CassandraTaskInfoDAO taskDAO;
+    private final TaskStatusUpdater taskStatusUpdater;
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
 
-    DatasetFilesCounter(CassandraTaskInfoDAO taskDAO) {
-        this.taskDAO = taskDAO;
+    DatasetFilesCounter(TaskStatusUpdater taskStatusUpdater) {
+        this.taskStatusUpdater = taskStatusUpdater;
     }
 
     public int getFilesCount(DpsTask task) throws TaskSubmissionException {
@@ -28,7 +28,7 @@ public class DatasetFilesCounter extends FilesCounter {
             return UNKNOWN_EXPECTED_SIZE;
         try {
             long taskId = Long.parseLong(providedTaskId);
-            TaskInfo taskInfo = taskDAO.searchById(taskId);
+            TaskInfo taskInfo = taskStatusUpdater.searchById(taskId);
             return taskInfo.getProcessedElementCount();
         } catch (NumberFormatException e) {
             LOGGER.error("The provided previous task id {} is not long  ", providedTaskId);

@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.test.TestHelper;
@@ -60,7 +60,7 @@ public class TaskExecutorTest {
     private SpoutOutputCollector collector;
 
     @Mock(name = "cassandraTaskInfoDAO")
-    private CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    private TaskStatusUpdater cassandraTaskInfoDAO;
 
     @Mock
     private TaskStatusChecker taskStatusChecker;
@@ -79,7 +79,7 @@ public class TaskExecutorTest {
         MockitoAnnotations.initMocks(this);
         representationIterator = mock(RepresentationIterator.class);
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
-        doNothing().when(cassandraTaskInfoDAO).dropTask(anyLong(), anyString(), anyString());
+        doNothing().when(cassandraTaskInfoDAO).setTaskDropped(anyLong(), anyString());
         setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
         mockMCSClient();
@@ -552,7 +552,7 @@ public class TaskExecutorTest {
         taskExecutor.call();
 
         //called twice, once per finally inside TaskExecutor.execute() and the other inside call() catch block
-        verify(cassandraTaskInfoDAO, times(2)).dropTask(anyLong(), anyString(), anyString());
+        verify(cassandraTaskInfoDAO, times(2)).setTaskDropped(anyLong(), anyString());
     }
 
 

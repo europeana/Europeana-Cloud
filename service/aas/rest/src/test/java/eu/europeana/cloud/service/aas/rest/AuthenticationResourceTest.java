@@ -3,60 +3,49 @@ package eu.europeana.cloud.service.aas.rest;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.common.web.AASParamConstants;
 import eu.europeana.cloud.service.aas.authentication.AuthenticationService;
-import eu.europeana.cloud.service.aas.rest.exception.*;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
+@RunWith(SpringRunner.class)
+@WebAppConfiguration
+@ContextConfiguration(classes = {TestConfiguration.class})
+public class AuthenticationResourceTest {
 
-public class AuthenticationResourceTest extends JerseyTest {
+    private MockMvc mockMvc;
 
+    @Autowired
     private AuthenticationService authenticationService;
+    @Autowired
+    private WebApplicationContext wac;
+
     private String username = "test";
     private String password = "test2";
 
-    /**
-     * Configuration of the Spring context
-     */
-    @Override
-    public Application configure() {
-        return new ResourceConfig()
-                .registerClasses(DatabaseConnectionExceptionMapper.class)
-                .registerClasses(InvalidPasswordExceptionMapper.class)
-                .registerClasses(InvalidUsernameExceptionMapper.class)
-                .registerClasses(UserExistsExceptionMapper.class)
-                .registerClasses(UserDoesNotExistExceptionMapper.class)
-                .registerClasses(AuthenticationResource.class)
-                .property("contextConfigLocation", "classpath:ecloud-aasservice-context-test.xml");
-    }
-
     @Before
     public void mockUp() {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
-        authenticationService = applicationContext.getBean(AuthenticationService.class);
-        Mockito.reset(authenticationService);
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
     }
 
     @Test
     public void testCreateCloudUser() throws Exception {
-    	
-        User user = new User(username, password);
-        when(authenticationService.getUser(username)).thenReturn(new User(username, password));
 
-        Response response = target("/create-user").queryParam(AASParamConstants.P_USER_NAME, username)
-        		.queryParam(AASParamConstants.P_USER_NAME, password)
-                .request().post(Entity.json(""));
+        Mockito.doReturn(new User(username, password)).when(authenticationService).getUser(username);
 
-        assertThat(response.getStatus(), is(200));
+        mockMvc.perform(post("/create-user")
+                .param(AASParamConstants.P_USER_NAME, username)
+                .param(AASParamConstants.P_PASS_TOKEN, password))
+                .andExpect(status().isOk());
     }
 }

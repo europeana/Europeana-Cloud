@@ -21,9 +21,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.structs.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -82,19 +80,13 @@ public class TopologyTasksResource {
     private DataSetServiceClient dataSetServiceClient;
 
     @Autowired
-    private CassandraTaskInfoDAO taskInfoDAO;
-
-    @Autowired
-    private TasksByStateDAO tasksByStateDAO;
+    private TaskStatusUpdater taskStatusUpdater;
 
     @Autowired
     private DatasetCleanerService datasetCleanerService;
 
     @Autowired
     private SubmitTaskService submitTaskService;
-
-    @Autowired
-    private String applicationIdentifier;
 
     /**
      * Retrieves the current progress for the requested task.
@@ -174,7 +166,7 @@ public class TopologyTasksResource {
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
+        TaskInfo taskInfo = taskStatusUpdater.searchById(taskId);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
@@ -291,7 +283,6 @@ public class TopologyTasksResource {
                 assertContainTopology(topologyName);
                 validateTask(task, topologyName);
                 validateOutputDataSetsIfExist(task);
-                TaskStatusChecker.init(taskInfoDAO);
 
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();
@@ -337,9 +328,7 @@ public class TopologyTasksResource {
      * @param taskJSON Taske represented in json format for future use
      */
     private void insertTask(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, String taskJSON, String topicName) {
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON);
-        tasksByStateDAO.delete(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), topologyName, taskId);
-        tasksByStateDAO.insert(state, topologyName, taskId, applicationIdentifier, topicName);
+        taskStatusUpdater.insert(taskId, topologyName, expectedSize, state, info, sentTime, taskJSON, topicName );
     }
 
 
@@ -347,8 +336,8 @@ public class TopologyTasksResource {
                                                   DpsTask task, String topologyName, Date sentTime, String taskJSON) {
         LOGGER.error(loggedMessage);
         ResponseEntity<Void> response = ResponseEntity.status(httpStatus).build();
-        taskInfoDAO.insert(task.getTaskId(), topologyName, 0,
-                TaskState.DROPPED.toString(), exception.getMessage(), sentTime, taskJSON);
+        insertTask(task.getTaskId(), topologyName, 0,
+                TaskState.DROPPED.toString(), exception.getMessage(), sentTime, taskJSON,"");
         return response;
     }
 

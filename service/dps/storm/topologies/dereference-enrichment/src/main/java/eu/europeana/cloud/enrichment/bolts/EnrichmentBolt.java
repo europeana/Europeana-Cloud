@@ -3,6 +3,7 @@ package eu.europeana.cloud.enrichment.bolts;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
+import eu.europeana.enrichment.rest.client.EnrichmentWorkerBuilder;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,9 @@ public class EnrichmentBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        enrichmentWorker = new EnrichmentWorker(dereferenceURL, enrichmentURL);
+        enrichmentWorker = new EnrichmentWorkerBuilder()
+                .setDereferenceUrl(dereferenceURL)
+                .setEnrichmentUrl(enrichmentURL)
+                .build();
     }
 }

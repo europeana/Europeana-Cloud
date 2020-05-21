@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.uis.rest;
 
-import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.DataProvider;
 
-import javax.ws.rs.core.UriInfo;
+import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import java.net.URISyntaxException;
 
 /**
  * Utility class that inserts absolute uris into classes that will be used as
@@ -14,12 +12,10 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
  */
 final class EnrichUriUtil {
 
-    static void enrich(UriInfo uriInfo, DataProvider provider) {
-        URI providerUri = uriInfo.getBaseUriBuilder().path(DataProviderResource.class)
-                .buildFromMap(ImmutableMap.of(P_PROVIDER, provider.getId()));
-        provider.setUri(uriInfo.resolve(providerUri));
+    private EnrichUriUtil() {
     }
 
-    private EnrichUriUtil() {
+    static void enrich(HttpServletRequest httpServletRequest, DataProvider provider) throws URISyntaxException {
+        provider.setUri(new URI(httpServletRequest.getRequestURL() + "/" + provider.getId()));
     }
 }

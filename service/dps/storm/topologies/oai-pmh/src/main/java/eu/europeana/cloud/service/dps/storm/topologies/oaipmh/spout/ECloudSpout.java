@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -11,10 +10,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
@@ -44,7 +42,7 @@ public class ECloudSpout extends KafkaSpout {
     private String userName;
     private String password;
 
-    protected CassandraTaskInfoDAO cassandraTaskInfoDAO;
+    protected TaskStatusUpdater taskStatusUpdater;
     protected TaskStatusChecker taskStatusChecker;
     protected ProcessedRecordsDAO processedRecordsDAO;
 
@@ -70,7 +68,7 @@ public class ECloudSpout extends KafkaSpout {
                         this.keyspaceName,
                         this.userName,
                         this.password);
-        cassandraTaskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
@@ -83,7 +81,7 @@ public class ECloudSpout extends KafkaSpout {
     }
 
     private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-        return cassandraTaskInfoDAO.searchById(taskId);
+        return taskStatusUpdater.searchById(taskId);
     }
 
     public class ECloudOutputCollector extends SpoutOutputCollector {

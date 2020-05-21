@@ -60,13 +60,6 @@ public class TaskStatusChecker {
         }
     }
 
-    public static synchronized void init(CassandraTaskInfoDAO taskDAO) {
-        if (instance == null) {
-            instance = new TaskStatusChecker(taskDAO);
-        }
-    }
-
-
     public boolean hasKillFlag(long taskId) {
         try {
             return cache.get(taskId);
