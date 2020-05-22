@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_FILE_ACCESS_RESOURCE;
 
 /**
@@ -88,9 +89,11 @@ public class SimplifiedFileAccessResource {
             final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
             String md5 = requestedFile.getMd5();
-            String fileMimeType = null;
+            MediaType fileMimeType = null;
             if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
-                fileMimeType = requestedFile.getMimeType();
+                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
+            }else{
+                fileMimeType=MediaType.APPLICATION_OCTET_STREAM;
             }
             EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
             StreamingResponseBody output = outputStream -> {
@@ -105,9 +108,9 @@ public class SimplifiedFileAccessResource {
 
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .contentType(MediaType.parseMediaType(fileMimeType))
+                    .contentType(fileMimeType)
                     .location(requestedFile.getContentUri())
-                    .eTag(md5)
+                    .eTag(nullToEmpty(md5))
                     .body(output);
         } else {
             throw new AccessDeniedException("Access is denied");
@@ -155,16 +158,18 @@ public class SimplifiedFileAccessResource {
             final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
             String md5 = requestedFile.getMd5();
-            String fileMimeType = null;
+            MediaType fileMimeType;
             if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
-                fileMimeType = requestedFile.getMimeType();
+                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
+            }else{
+                fileMimeType = MediaType.APPLICATION_OCTET_STREAM;
             }
             EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .contentType(MediaType.parseMediaType(fileMimeType))
+                    .contentType(fileMimeType)
                     .location(requestedFile.getContentUri())
-                    .eTag(md5)
+                    .eTag(nullToEmpty(md5))
                     .build();
         } else {
             throw new AccessDeniedException("Access is denied");

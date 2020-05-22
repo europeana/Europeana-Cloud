@@ -1,4 +1,4 @@
-USE ecloud_aas;
+USE junit_aas;
 
 CREATE TABLE users(username varchar, password varchar, roles set<text>, PRIMARY KEY (username));
  

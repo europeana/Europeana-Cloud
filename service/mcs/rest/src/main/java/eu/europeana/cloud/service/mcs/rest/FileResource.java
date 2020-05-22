@@ -143,8 +143,8 @@ public class FileResource {
             @PathVariable String representationName,
     		@PathVariable String version,
     		@PathVariable final String fileName,
-            @RequestHeader(HEADER_RANGE) String range) throws RepresentationNotExistsException,
-                                                    FileNotExistsException, WrongContentRangeException {
+            @RequestHeader(value = HEADER_RANGE,required = false) String range)
+            throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
         // extract range
         final ContentRange contentRange;
@@ -156,7 +156,7 @@ public class FileResource {
 
         // get file md5 if complete file is requested
         String md5 = null;
-        String fileMimeType = null;
+        MediaType fileMimeType = MediaType.APPLICATION_OCTET_STREAM;
         HttpStatus status;
         if (contentRange.isSpecified()) {
             status = HttpStatus.PARTIAL_CONTENT;
@@ -165,7 +165,7 @@ public class FileResource {
             final File requestedFile = recordService.getFile(cloudId, representationName, version, fileName);
             md5 = requestedFile.getMd5();
             if(StringUtils.isNotBlank(requestedFile.getMimeType())){
-                fileMimeType = requestedFile.getMimeType();
+                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
             }
         }
 
@@ -181,21 +181,21 @@ public class FileResource {
 
         return ResponseEntity
                 .status(status)
-                .contentType(MediaType.parseMediaType(fileMimeType))
+                .contentType(fileMimeType)
                 .eTag(nullToEmpty(md5))
                 .body(output);
     }
 
     /**
-     * 
-     * Returns only HTTP headers for file request. 
-     * 
+     *
+     * Returns only HTTP headers for file request.
+     *
      * @param httpServletRequest
      * @param cloudId cloud id of the record (required).
      * @param representationName schema of representation (required).
      * @param version a specific version of the representation(required).
      * @param fileName the name of the file(required).
-     *              
+     *
      * @return empty response with proper http headers
      * @summary get HTTP headers for file request
      * @throws RepresentationNotExistsException
@@ -232,8 +232,8 @@ public class FileResource {
                 .eTag(nullToEmpty(md5))
                 .build();
     }
-    
-    
+
+
     /**
      * Deletes file from representation version.
      *<strong>Delete permissions required.</strong>
@@ -254,13 +254,14 @@ public class FileResource {
     @DeleteMapping
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFile(
             @PathVariable String cloudId,
             @PathVariable String representationName,
     		@PathVariable String version,
     		@PathVariable String fileName) throws RepresentationNotExistsException, FileNotExistsException,
                                                                     CannotModifyPersistentRepresentationException {
-    	
+
         recordService.deleteContent(cloudId, representationName, version, fileName);
     }
 

@@ -23,11 +23,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postMultipartData;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,7 +68,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         file.setFileName("fileName");
         file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
-        filesWebTarget = "/records/"+rep.getCloudId()+"/representations/"+rep.getRepresentationName()+"/versions/"+rep.getVersion()+"/files";
+        filesWebTarget = "/records/" + rep.getCloudId() + "/representations/" + rep.getRepresentationName() + "/versions/" + rep.getVersion() + "/files";
     }
 
 
@@ -76,7 +77,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
             throws Exception {
         try {
             recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
-        }catch (Exception e){
+        } catch (Exception e) {
             // do nothing it's cleaning step
         }
     }
@@ -90,12 +91,10 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
-        MockMultipartFile multipart = new MockMultipartFile("x", null, file.getMimeType(), content);
 
-        mockMvc.perform(multipart(filesWebTarget).file(multipart)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM))
+        mockMvc.perform(postMultipartData(filesWebTarget,file.getMimeType(), content))
                 .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.ETAG, contentMd5));
+                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -120,12 +119,9 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
-        MockMultipartFile multipart = new MockMultipartFile(file.getFileName(), null, file.getMimeType(), content);
-
-        mockMvc.perform(multipart(filesWebTarget).file(multipart)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM))
+        mockMvc.perform(postMultipartData(filesWebTarget,file.getMimeType(), content))
                 .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.ETAG, contentMd5));
+                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -145,22 +141,20 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     public void shouldBeReturn409WhenFileAlreadyExist()
             throws Exception {
         // given particular (random in this case) content in service
-        byte[] content = { 1, 2, 3, 4 };
+        byte[] content = {1, 2, 3, 4};
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
         recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file,
                 new ByteArrayInputStream(content));
 
-        byte[] modifiedContent = { 5, 6, 7 };
+        byte[] modifiedContent = {5, 6, 7};
         ThreadLocalRandom.current().nextBytes(modifiedContent);
         String modifiedContentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
         ByteArrayInputStream modifiedInputStream = new ByteArrayInputStream(modifiedContent);
         MediaType detect = getMediaType(modifiedInputStream);
-        MockMultipartFile multipart = new MockMultipartFile(file.getFileName(), null, detect.toString(), modifiedContent);
 
-        mockMvc.perform(multipart(filesWebTarget).file(multipart)
-                .contentType(detect))
+        mockMvc.perform(postMultipartData(filesWebTarget,detect.toString(), modifiedContent))
                 .andExpect(status().isConflict());
 
         // then data should be in record service
@@ -183,67 +177,64 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     @Test
     public void shouldUploadXMLFileWithApplicationXMLMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XML_CONTENT,"application/xml");
+        uploadFileWithGivenMimeType(XML_CONTENT, "application/xml");
     }
 
     @Test
     public void shouldUploadXMLFileWithTextXMLMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XML_CONTENT,"text/xml");
+        uploadFileWithGivenMimeType(XML_CONTENT, "text/xml");
     }
 
     @Test
     public void shouldUploadXMLFileWithTextPlainMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XML_CONTENT,"text/plain");
+        uploadFileWithGivenMimeType(XML_CONTENT, "text/plain");
     }
 
     @Test
     public void shouldUploadRdfFileWithTextXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(RDF_CONTENT,"text/xml");
+        uploadFileWithGivenMimeType(RDF_CONTENT, "text/xml");
     }
 
     @Test
     public void shouldUploadRdfFileWithTextPlainMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(RDF_CONTENT,"text/plain");
+        uploadFileWithGivenMimeType(RDF_CONTENT, "text/plain");
     }
 
     @Test
     public void shouldUploadRdfFileWithApplicationXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(RDF_CONTENT,"application/xml");
+        uploadFileWithGivenMimeType(RDF_CONTENT, "application/xml");
     }
 
     @Test
     public void shouldUploadXsltFileWithTextPlainMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XSLT_CONTENT,"text/plain");
+        uploadFileWithGivenMimeType(XSLT_CONTENT, "text/plain");
     }
 
     @Test
     public void shouldUploadXsltFileWithTextXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XSLT_CONTENT,"text/xml");
+        uploadFileWithGivenMimeType(XSLT_CONTENT, "text/xml");
     }
 
     @Test
     public void shouldUploadXsltFileWithApplicationXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XSLT_CONTENT,"application/xml");
+        uploadFileWithGivenMimeType(XSLT_CONTENT, "application/xml");
     }
 
     private void uploadFileWithGivenMimeType(byte[] fileContent, String mimeType) throws Exception {
         String contentMd5 = Hashing.md5().hashBytes(fileContent).toString();
 
         // when content is added to record representation
-        MockMultipartFile multipart = new MockMultipartFile("x", null, mimeType, fileContent);
-
-        mockMvc.perform(multipart(filesWebTarget).file(multipart)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM))
+        mockMvc.perform(postMultipartData(filesWebTarget,mimeType, fileContent))
                 .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.ETAG, contentMd5));
+                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());

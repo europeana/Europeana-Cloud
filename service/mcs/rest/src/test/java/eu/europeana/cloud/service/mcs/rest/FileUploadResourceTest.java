@@ -61,13 +61,11 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        MockMultipartFile multipart= new MockMultipartFile(file.getFileName(),null, file.getMimeType(),content);
         //when
-        mockMvc.perform(putMultipart(fileWebTarget).file(multipart)
-                .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM))
-        //then
+        mockMvc.perform(putMultipart(fileWebTarget, file.getMimeType(), content))
+                //then
                 .andExpect(status().isUnauthorized())
-                .andExpect(header().string(HttpHeaders.ETAG,contentMd5));
+                .andExpect(header().string(HttpHeaders.ETAG, contentMd5));
     }
 
 

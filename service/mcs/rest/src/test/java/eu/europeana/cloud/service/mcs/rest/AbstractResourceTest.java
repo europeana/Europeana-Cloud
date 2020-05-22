@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 
+import eu.europeana.cloud.service.mcs.MCSAppInitializer;
 import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.AbstractResourceTestContext;
 import org.junit.Before;
@@ -22,7 +23,9 @@ import java.net.URISyntaxException;
 import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
-@ContextConfiguration(classes = {TestServiceConfiguration.class, UnitedExceptionMapper.class,
+@ContextConfiguration(classes = {
+        MCSAppInitializer.class,
+        TestServiceConfiguration.class, UnitedExceptionMapper.class,
         AbstractResourceTestContext.class, RecordsResource.class})
 public class AbstractResourceTest {
 

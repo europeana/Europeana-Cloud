@@ -48,6 +48,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
 
     private SimpleDateFormat dateFormat;
 
+    @Before
     public void mockUp()
             throws Exception {
         uisHandler = applicationContext.getBean(UISClientHandler.class);

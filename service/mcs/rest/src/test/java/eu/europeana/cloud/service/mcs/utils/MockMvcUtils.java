@@ -5,13 +5,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
+import org.hamcrest.Matcher;
+import org.hamcrest.core.Is;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
 import java.io.IOException;
@@ -62,7 +66,7 @@ public class MockMvcUtils {
     }
 
     public static <T> T responseContent(ResultActions response, Class<T> aClass) throws IOException {
-        return responseContent(response,aClass,MediaType.APPLICATION_JSON);
+        return responseContent(response, aClass, MediaType.APPLICATION_JSON);
     }
 
 
@@ -81,7 +85,7 @@ public class MockMvcUtils {
         return responseContent(response, valueTypeRef, MediaType.APPLICATION_JSON);
     }
 
-    private static  <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef, MediaType mediaType)
+    private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef, MediaType mediaType)
             throws JsonProcessingException, UnsupportedEncodingException {
         return mapper(mediaType).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .readValue(response.andReturn().getResponse().getContentAsString(),
@@ -98,13 +102,28 @@ public class MockMvcUtils {
         }
     }
 
-    public static MockMultipartHttpServletRequestBuilder putMultipart(String fileWebTarget) {
-        MockMultipartHttpServletRequestBuilder builder = multipart(fileWebTarget);
-        builder.with(request -> {
+    public static MockHttpServletRequestBuilder putMultipart(String url, String mimeType, byte[] content) {
+        return postMultipartData(url, mimeType, content).with(request -> {
             request.setMethod("PUT");
             return request;
         });
-        return builder;
     }
 
+    public static MockHttpServletRequestBuilder postMultipartData(String url, String mimeType, byte[] content) {
+        return multipart(url)
+                .param("mimeType", mimeType)
+                .param("data", new String(content, Charsets.ISO_8859_1));
+
+    }
+
+    public static Matcher<String> isEtag(String value) {
+        if(!value.startsWith("\"")){
+            value="\""+value;
+        }
+
+        if(!value.endsWith("\"")){
+            value=value+"\"";
+        }
+        return Is.is(value);
+    }
 }

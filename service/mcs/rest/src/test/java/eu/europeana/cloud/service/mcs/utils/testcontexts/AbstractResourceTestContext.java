@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProv
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.acls.AclPermissionEvaluator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -79,6 +80,11 @@ public class AbstractResourceTestContext {
     @Bean
     public PermissionsGrantingManager permissionsGrantingManager() {
         return new PermissionsGrantingManager();
+    }
+
+    @Bean
+    public AclPermissionEvaluator aclPermissionEvaluator() {
+        return mock(AclPermissionEvaluator.class);
     }
 
     @Bean

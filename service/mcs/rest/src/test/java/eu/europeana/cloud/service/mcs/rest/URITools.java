@@ -7,11 +7,12 @@ import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.Map;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
+import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 class URITools {
 
@@ -28,14 +29,14 @@ class URITools {
 
 
     static URI getVersionUri(URI baseUri, String globalId, String schema, String version) {
-        UriComponentsBuilder uriFromResource = UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION);
+        UriComponentsBuilder uriFromResource = fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION);
         setBaseUri(uriFromResource, baseUri);
         return uriFromResource.build(getVersionMap(globalId, schema, version));
     }
 
 
     static URI getVersionPath(String cloudId, String representationName, String version) {
-        return fromResource(RepresentationVersionResource.class).build(
+        return fromUriString(REPRESENTATION_VERSION).build(
             getVersionMap(cloudId, representationName, version));
     }
 
@@ -50,7 +51,7 @@ class URITools {
     }
 
     static URI getContentUri(URI baseUri, String cloudId, String representationName, String version, String fileName) {
-        UriComponentsBuilder uriFromResource = UriComponentsBuilder.fromUriString(RestInterfaceConstants.FILE_RESOURCE_NO_EX);
+        UriComponentsBuilder uriFromResource = fromUriString(RestInterfaceConstants.FILE_RESOURCE);
         setBaseUri(uriFromResource, baseUri);
         return uriFromResource.build(getFileMap(cloudId, representationName, version, fileName));
     }
@@ -117,7 +118,7 @@ class URITools {
 
     private static UriComponentsBuilder fromResource(Class<?> aClass) {
         String uriFromResourceAnnotation = aClass.getAnnotation(RequestMapping.class).value()[0];
-        return UriComponentsBuilder.fromUriString(uriFromResourceAnnotation);
+        return fromUriString(uriFromResourceAnnotation);
     }
 
 }

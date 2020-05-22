@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.acls.model.MutableAclService;
 
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestRunner.EMBEEDED_CASSANDRA_PORT;
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
 import static org.mockito.Mockito.mock;
 
 @Configuration
@@ -21,13 +24,13 @@ public class CassandraBasedTestContext {
     @Bean()
     @Order(100)
     public CassandraConnectionProvider aasCassandraProvider() {
-        return new CassandraConnectionProvider("localhost", 19142, "ecloud_aas", "", "");
+        return new CassandraConnectionProvider("localhost", EMBEEDED_CASSANDRA_PORT, JUNIT_AAS_KEYSPACE, "", "");
     }
 
     @Bean()
     @Order(100)
     public CassandraConnectionProvider dbService() {
-        return new CassandraConnectionProvider("localhost", 19142, "ecloud_test", "", "");
+        return new CassandraConnectionProvider("localhost", EMBEEDED_CASSANDRA_PORT, JUNIT_MCS_KEYSPACE, "", "");
     }
 
     @Bean()

@@ -324,7 +324,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 			throws RepresentationNotExistsException,
 				CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException  {
 
-		representationVersionResource.persistRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -333,7 +333,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 			CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		representationVersionResource.persistRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}
 
 	@Test
@@ -343,7 +343,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
-		representationVersionResource.persistRepresentation(URI_INFO, VERSION, REPRESENTATION_NAME, GLOBAL_ID);
+		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, VERSION);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -354,7 +354,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		login(RONALDO, RONALD_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationVersionResource.persistRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}
 
 	// -- COPY -- //

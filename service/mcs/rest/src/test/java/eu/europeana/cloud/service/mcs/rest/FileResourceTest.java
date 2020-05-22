@@ -29,11 +29,10 @@ import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -96,6 +95,8 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
                 get(fileWebTarget)
                         .header("Range", "bytes=1-")).andExpect(status().isPartialContent());
 
+        response.andReturn().getAsyncResult();
+
         // then retrieved content should consist of second and third byte of
         // inserted byte array
         byte[] responseContent = responseContentAsByteArray(response);
@@ -137,6 +138,8 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
                 .header("Range", String.format("bytes=%d-%d", rangeStart, rangeEnd)))
                 .andExpect(status().isPartialContent());
 
+        response.andReturn().getAsyncResult();
+
         // then retrieved content should consist of second and third byte of
         // inserted byte array
 
@@ -171,8 +174,11 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
         // when unsatisfiable content range is requested
         // then should response that requested range is not satisfiable
-        mockMvc.perform(get(fileWebTarget)
+        ResultActions result = mockMvc.perform(get(fileWebTarget)
                 .header("Range", "bytes=4-5"))
+                .andDo(print());
+        result.andReturn().getAsyncResult();
+        result
                 .andExpect(status().isRequestedRangeNotSatisfiable());
     }
 
@@ -209,9 +215,8 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
         MockMultipartFile multipart = new MockMultipartFile("x", null, file.getMimeType(), contentModified);
 
-        mockMvc.perform(putMultipart(fileWebTarget).file(multipart)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        ).andExpect(status().isNoContent());
+        mockMvc.perform(putMultipart(fileWebTarget, file.getMimeType(), contentModified))
+                .andExpect(status().isNoContent());
 
 
         // then the content in service should be also modivied
@@ -257,11 +262,8 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         ThreadLocalRandom.current().nextBytes(content);
 
         // when content is added to record representation
-        MockMultipartFile multipart = new MockMultipartFile("x", null, file.getMimeType(), content);
-        mockMvc.perform(putMultipart(fileWebTarget)
-                .file(multipart)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        ).andExpect(status().isNotFound());
+        mockMvc.perform(putMultipart(fileWebTarget, file.getMimeType(), content))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -274,13 +276,15 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
                 rep.getVersion(), file, new ByteArrayInputStream(content));
 
         // when this file is requested
-        ResultActions response = mockMvc.perform(get(fileWebTarget)).andExpect(status().isOk());
+        ResultActions response = mockMvc.perform(get(fileWebTarget))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ETAG,isEtag(contentMd5)));
+
+        response.andReturn().getAsyncResult();
 
         // then concent should be equal to the previously put
         byte[] responseContent = responseContentAsByteArray(response);
-        String responseEntityTag = response.andReturn().getResponse().getHeader(HttpHeaders.ETAG);
         assertArrayEquals("Read data is different from written", content, responseContent);
-        assertEquals("File content tag mismatch", contentMd5, responseEntityTag);
     }
 
     @Test

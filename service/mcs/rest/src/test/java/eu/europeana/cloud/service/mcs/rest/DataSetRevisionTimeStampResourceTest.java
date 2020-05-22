@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
@@ -26,19 +25,16 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.IS_DELETED;
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_BY_REPRESENTATION_REVISION;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -122,7 +118,7 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
 
         //when
         ResultActions response = mockMvc.perform(get(DATA_SET_BY_REPRESENTATION_REVISION, dataProvider.getId(),
-                DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, TEST_REVISION_PROVIDER_ID)
+                DATE_SET_NAME, TEST_REVISION_NAME, TEST_REVISION_PROVIDER_ID,rep.getRepresentationName())
                 .queryParam(IS_DELETED, isDeleted.toString()))
                 .andExpect(status().isOk());
         //then
@@ -161,19 +157,11 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
     public void shouldReturnProviderNotExistError() throws Exception {
         //given
         PrepareTest("1", DATE_SET_NAME);
+        when(uisHandler.existsProvider(anyString())).thenReturn(false);
 
         //when
-
-        Map<String, Object> revisionAndRepresentationNoneExistedProviderId = ImmutableMap
-                .<String, Object>of(PROVIDER_ID,
-                        dataProvider.getId(), DATA_SET_ID,
-                        DATE_SET_NAME, REPRESENTATION_NAME,
-                        rep.getRepresentationName(), REVISION_NAME,
-                        TEST_REVISION_NAME, REVISION_PROVIDER_ID,
-                        dataProvider.getId());
-
-        ResultActions response = mockMvc.perform(get(DATA_SET_BY_REPRESENTATION_REVISION, dataProvider.getId(),
-                DATE_SET_NAME, rep.getRepresentationName(), TEST_REVISION_NAME, dataProvider.getId()))
+        ResultActions response = mockMvc.perform(get(DATA_SET_BY_REPRESENTATION_REVISION, "nonExistingProviderId",
+                DATE_SET_NAME, TEST_REVISION_NAME, dataProvider.getId(), rep.getRepresentationName()))
                 .andExpect(status().isNotFound());
         //then
         ErrorInfo errorInfo = responseContentAsErrorInfo(response);

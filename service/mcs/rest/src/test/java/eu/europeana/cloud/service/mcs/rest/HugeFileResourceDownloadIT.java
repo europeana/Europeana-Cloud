@@ -30,12 +30,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * This tests checks if content is streamed (not put entirely into memory) when downloading file.
  */
-@RunWith(CassandraTestRunner.class)
-public class HugeFileResourceDownloadIT extends CassandraBasedAbstractResourceTest {
+public class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
     private static RecordService recordService;
 
-    private static final int HUGE_FILE_SIZE = 500_000_000;
+    private static final int HUGE_FILE_SIZE = 200_000_000;
 
 
     @Before
@@ -65,8 +64,10 @@ public class HugeFileResourceDownloadIT extends CassandraBasedAbstractResourceTe
         // when we download mocked content of resource
         ResultActions response = mockMvc.perform(
                 get(FILE_RESOURCE, globalId, schema, version, file.getFileName()))
+                .andDo(print())
                 .andExpect(status().is2xxSuccessful());
 
+        response.andReturn().getAsyncResult();
 
         // then - we should be able to get full content and the content should have expected size
         int totalBytesInResponse = responseContentAsByteArray(response).length;

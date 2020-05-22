@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -80,6 +81,7 @@ public class RepresentationVersionResource {
     @DeleteMapping(value = REPRESENTATION_VERSION)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version)," +
             " 'eu.europeana.cloud.common.model.Representation', delete)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRepresentation(
             @PathVariable String cloudId,
             @PathVariable String representationName,

@@ -14,13 +14,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postMultipartData;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -39,8 +43,7 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
 
     private static RecordService recordService;
 
-    private static final int HUGE_FILE_SIZE = 500_000_000;
-    private static final String FILES_RESOURCE_PATH = FilesResource.class.getAnnotation(RequestMapping.class).value()[0];
+    private static final int HUGE_FILE_SIZE = 200_000_000;
 
 
     @Before
@@ -79,16 +82,14 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
         MessageDigest md = MessageDigest.getInstance("MD5");
         DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
 
-
-
-        MockMultipartFile multipart = new MockMultipartFile("x", null, MediaType.APPLICATION_OCTET_STREAM_VALUE, inputStream);
-
-        ResultActions response = mockMvc.perform(multipart(FILES_RESOURCE_PATH, globalId,schema, version).file(multipart).contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM))
+        String target = UriComponentsBuilder.fromUriString(FILES_RESOURCE).build(globalId, schema, version).toString();
+        byte[] content = FileCopyUtils.copyToByteArray(inputStream);
+        ResultActions response = mockMvc.perform(postMultipartData(target, MediaType.APPLICATION_OCTET_STREAM_VALUE, content))
                 .andExpect(status().is2xxSuccessful());
 
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
         String contentMd5Hex = BaseEncoding.base16().lowerCase().encode(md.digest());
-        response.andExpect(header().string(HttpHeaders.ETAG,contentMd5Hex));
+        response.andExpect(header().string(HttpHeaders.ETAG,isEtag(contentMd5Hex)));
     }
 
 

@@ -14,8 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-
 @WebAppConfiguration
 @ContextConfiguration(classes = {TestServiceConfiguration.class, UnitedExceptionMapper.class, CassandraBasedTestContext.class})
 public class CassandraBasedAbstractResourceTest {

@@ -51,7 +51,7 @@ public class RestInterfaceConstants {
 
     //RepresentationVersionResource
     public static final String REPRESENTATION_VERSION =
-            "/records/{cloudId}/representations/{representationName}/versions/{version}";
+            "/records/{cloudId}/representations/{representationName}/versions/{version:.+}";
 
     public static final String REPRESENTATION_VERSION_PERSIST =
             "/records/{cloudId}/representations/{representationName}/versions/{version}/persist";
@@ -72,9 +72,7 @@ public class RestInterfaceConstants {
 
     //FileResource
     public static final String FILE_RESOURCE =
-            "/records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName:(.+)?}";
-    public static final String FILE_RESOURCE_NO_EX =
-            "/records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName}";
+            "/records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName:.+}";
 
     //FileUploadResource
     public static final String FILE_UPLOAD_RESOURCE =
