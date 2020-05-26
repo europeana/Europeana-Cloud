@@ -129,7 +129,7 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
     public void shouldReturnContentWithinRange(Integer rangeStart,
                                                Integer rangeEnd) throws Exception {
         // given particular content in service
-        byte[] content = {1, 2, 3, 4};
+        byte[] content = {1, 2, 3, 4, 5};
         recordService.putContent(rep.getCloudId(), rep.getRepresentationName(),
                 rep.getVersion(), file, new ByteArrayInputStream(content));
 
@@ -177,7 +177,6 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         ResultActions result = mockMvc.perform(get(fileWebTarget)
                 .header("Range", "bytes=4-5"))
                 .andDo(print());
-        result.andReturn().getAsyncResult();
         result
                 .andExpect(status().isRequestedRangeNotSatisfiable());
     }

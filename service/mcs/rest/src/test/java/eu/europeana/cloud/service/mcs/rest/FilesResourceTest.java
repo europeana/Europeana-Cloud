@@ -4,6 +4,7 @@ import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
@@ -29,6 +30,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -154,7 +156,8 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         ByteArrayInputStream modifiedInputStream = new ByteArrayInputStream(modifiedContent);
         MediaType detect = getMediaType(modifiedInputStream);
 
-        mockMvc.perform(postMultipartData(filesWebTarget,detect.toString(), modifiedContent))
+        mockMvc.perform(postMultipartData(filesWebTarget, detect.toString(), modifiedContent).
+                param(ParamConstants.F_FILE_NAME, file.getFileName()))
                 .andExpect(status().isConflict());
 
         // then data should be in record service

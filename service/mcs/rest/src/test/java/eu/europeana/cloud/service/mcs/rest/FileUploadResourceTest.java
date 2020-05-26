@@ -5,6 +5,7 @@ import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.cloud.test.CassandraTestRunner;
@@ -22,6 +23,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,10 +64,13 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
         ThreadLocalRandom.current().nextBytes(content);
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
         //when
-        mockMvc.perform(putMultipart(fileWebTarget, file.getMimeType(), content))
+        mockMvc.perform(postMultipartData(fileWebTarget, file.getMimeType(), content)
+                .param(ParamConstants.F_FILE_NAME, file.getFileName())
+                .param(ParamConstants.F_PROVIDER, providerId))
                 //then
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().string(HttpHeaders.ETAG, contentMd5));
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
+
     }
 
 

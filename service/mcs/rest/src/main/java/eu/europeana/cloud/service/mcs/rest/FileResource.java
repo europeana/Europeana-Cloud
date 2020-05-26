@@ -22,8 +22,10 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -169,21 +171,14 @@ public class FileResource {
             }
         }
 
-        // stream output
-        StreamingResponseBody output = outputStream -> {
-            try {
-                recordService.getContent(cloudId, representationName, version, fileName,
-                                        contentRange.start, contentRange.end, outputStream);
-            } catch (MCSException mcse) {
-                throw new IOException("Error while writing file to stream", mcse);
-            }
-        };
+        Consumer<OutputStream> downloadMethod = recordService.getContent(cloudId, representationName, version, fileName,
+                contentRange.start, contentRange.end);
 
         return ResponseEntity
                 .status(status)
                 .contentType(fileMimeType)
                 .eTag(nullToEmpty(md5))
-                .body(output);
+                .body(outputStream -> downloadMethod.accept(outputStream));
     }
 
     /**

@@ -28,7 +28,9 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_FILE_ACCESS_RESOURCE;
@@ -75,7 +77,7 @@ public class SimplifiedFileAccessResource {
             @PathVariable final String localId,
             @PathVariable final String representationName,
             @PathVariable final String fileName) throws RepresentationNotExistsException,
-                FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+            FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, WrongContentRangeException {
 
         LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
                 providerId, localId, representationName, fileName);
@@ -96,22 +98,16 @@ public class SimplifiedFileAccessResource {
                 fileMimeType=MediaType.APPLICATION_OCTET_STREAM;
             }
             EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
-            StreamingResponseBody output = outputStream -> {
-                final FileResource.ContentRange contentRange = new FileResource.ContentRange(-1L, -1L);
-                try {
-                    recordService.getContent(cloudId, representationName, representation.getVersion(),
-                            fileName, contentRange.getStart(), contentRange.getEnd(), outputStream);
-                } catch(MCSException mcse) {
-                    throw new IOException("Error while writing file to stream", mcse);
-                }
-            };
+            final FileResource.ContentRange contentRange = new FileResource.ContentRange(-1L, -1L);
+            Consumer<OutputStream> downloadingMethod = recordService.getContent(cloudId, representationName, representation.getVersion(),
+                    fileName, contentRange.getStart(), contentRange.getEnd());
 
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .contentType(fileMimeType)
                     .location(requestedFile.getContentUri())
                     .eTag(nullToEmpty(md5))
-                    .body(output);
+                    .body(output->downloadingMethod.accept(output));
         } else {
             throw new AccessDeniedException("Access is denied");
         }

@@ -76,8 +76,8 @@ public class MockMvcUtils {
 
     public static List<Representation> responseContentAsRepresentationList(ResultActions response, MediaType mediaType)
             throws UnsupportedEncodingException, JsonProcessingException {
-        return responseContent(response, new TypeReference<List<Representation>>() {
-        }, mediaType);
+        return responseContent(response, new TypeReference<RepresentationsListWrapper>() {
+        }, mediaType).getRepresentations();
     }
 
     private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef)

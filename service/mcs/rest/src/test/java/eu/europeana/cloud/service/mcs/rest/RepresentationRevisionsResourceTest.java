@@ -128,7 +128,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
         mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))
                 .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
                 .accept(MediaType.APPLICATION_XML))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isNotFound());
 
         verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
         verify(recordService, times(1)).getRepresentation(anyString(), anyString(), anyString());
@@ -141,7 +141,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
         mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))
                 .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
                 .accept(MediaType.APPLICATION_XML))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isNotFound());
 
         verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
     }

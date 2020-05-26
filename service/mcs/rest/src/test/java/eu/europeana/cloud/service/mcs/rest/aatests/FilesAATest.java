@@ -57,7 +57,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	private static final String PROVIDER_ID = "provider";
 	
 	private Representation representation;
-	private byte[] ANY_DATA = "ANY_DATA".getBytes();
+	private byte[] ANY_DATA = new byte[1000];
 
 	/**
 	 * Pre-defined users

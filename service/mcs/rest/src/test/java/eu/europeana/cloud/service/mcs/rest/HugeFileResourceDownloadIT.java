@@ -2,11 +2,10 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -16,11 +15,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.function.Consumer;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -57,8 +58,8 @@ public class HugeFileResourceDownloadIT extends AbstractResourceTest {
         File file = new File("fileName", "text/plain", "md5", new Date().toString(), HUGE_FILE_SIZE, null);
 
         // mock answers:
-        doAnswer(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
-            anyLong(), anyLong(), any(OutputStream.class));
+        doReturn(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
+            anyLong(), anyLong());
         Mockito.doReturn(file).when(recordService).getFile(globalId, schema, version, file.getFileName());
 
         // when we download mocked content of resource
@@ -90,10 +91,10 @@ public class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
     /**
      * Mock answer for
-     * {@link ContentService#getContent(eu.europeana.cloud.common.model.Representation, eu.europeana.cloud.common.model.File, long, long, java.io.OutputStream)
+     * {@link ContentService#getContent(eu.europeana.cloud.common.model.Representation, eu.europeana.cloud.common.model.File, long, long)
      * getContent} method.
      */
-    static class MockGetContentMethod implements Answer<Object> {
+    static class MockGetContentMethod implements Consumer<OutputStream> {
 
         final int totalBytes;
 
@@ -102,21 +103,13 @@ public class HugeFileResourceDownloadIT extends AbstractResourceTest {
             this.totalBytes = totalBytes;
         }
 
-
-        @Override
-        public Object answer(InvocationOnMock invocation)
-                throws Throwable {
-            Object[] args = invocation.getArguments();
-            OutputStream os = (OutputStream) args[6];
-            writeBytes(os);
-            return null;
-        }
-
-
-        private void writeBytes(OutputStream os)
-                throws IOException {
-            for (int i = 0; i < totalBytes; i++) {
-                os.write(1);
+        public void accept(OutputStream os) {
+            try {
+                for (int i = 0; i < totalBytes; i++) {
+                    os.write(1);
+                }
+            } catch (IOException e) {
+                throw new SystemException(e);
             }
         }
     }
