@@ -11,6 +11,7 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.client.Invocation.Builder;
@@ -233,7 +234,7 @@ public class FileServiceClient extends MCSClient {
 
             multipart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
-                    .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
             Builder request = target.request();
             response = request.post(Entity.entity(multipart, multipart.getMediaType()));
@@ -273,7 +274,7 @@ public class FileServiceClient extends MCSClient {
 
             multipart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
-                    .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
             Builder request = target.request();
             response = request.post(Entity.entity(multipart, multipart.getMediaType()));
@@ -321,8 +322,8 @@ public class FileServiceClient extends MCSClient {
 
             multipart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
-                    .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                    .field(ParamConstants.F_FILE_NAME, fileName);
+                    .field(ParamConstants.F_FILE_NAME, fileName)
+                    .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
             Invocation.Builder request = target.request();
             response = request.post(Entity.entity(multipart, multipart.getMediaType()));
@@ -356,7 +357,7 @@ public class FileServiceClient extends MCSClient {
         try {
             multipart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
-                    .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
             response = client.target(versionUrl + FILES_SEGMENT).request().post(Entity.entity(multipart, multipart.getMediaType()));
 
@@ -404,10 +405,7 @@ public class FileServiceClient extends MCSClient {
                     .resolveTemplate(VERSION, version)
                     .resolveTemplate(FILE_NAME, fileName);
 
-            multipart.field(ParamConstants.F_FILE_MIME, mediaType).field(
-                    ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-            response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
+            response = target.request().put(Entity.entity(data, mediaType));
 
             return handleResponse(expectedMd5, response, Status.NO_CONTENT.getStatusCode());
 
@@ -423,11 +421,9 @@ public class FileServiceClient extends MCSClient {
         FormDataMultiPart multipart = new FormDataMultiPart();
         Response response = null;
         try {
-            multipart
-                    .field(ParamConstants.F_FILE_MIME, mediaType)
-                    .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-            response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
+
+            response = target.request().put(Entity.entity(data, mediaType));
 
             if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
                 return response.getLocation();

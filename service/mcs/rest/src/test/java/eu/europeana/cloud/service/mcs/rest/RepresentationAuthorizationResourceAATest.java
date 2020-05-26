@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -24,6 +25,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -71,7 +73,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     private static final String WRITE_PERMISSION = "write";
     private static final String BROKEN_PERMISSION = "sdfas";
 
-    private byte[] ANY_DATA;
+    private MultipartFile ANY_DATA;
 
     private Representation representation;
 
@@ -95,7 +97,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     @Before
     public void mockUp() throws Exception {
-        ANY_DATA=new byte[524288];
+        ANY_DATA=new MockMultipartFile("data",new byte[524288]);
         representation = new Representation();
         representation.setCloudId(GLOBAL_ID);
         representation.setRepresentationName(SCHEMA);
@@ -167,7 +169,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, ANY_DATA);
+        fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, new ByteArrayInputStream(ANY_DATA.getBytes()));
     }
 
     /**
@@ -201,7 +203,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     private void assertUserDontHaveAccessToFile() throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileNotExistsException {
         try {
-            fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, ANY_DATA);
+            fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, new ByteArrayInputStream(ANY_DATA.getBytes()));
             fail("Expected AccessDeniedException");
         } catch (AccessDeniedException e) {
 

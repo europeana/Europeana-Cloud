@@ -12,16 +12,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.HeaderParam;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -76,7 +81,7 @@ public class FileResource {
      * @throws FileNotExistsException specified file does not exist.
      * @statuscode 204 object has been updated.
      */
-    @PutMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<?> sendFile(
@@ -85,15 +90,15 @@ public class FileResource {
     		@PathVariable String representationName,
     		@PathVariable String version,
     		@PathVariable String fileName,
-    		@RequestParam String mimeType,
-            @RequestParam byte[] data) throws RepresentationNotExistsException,
-                CannotModifyPersistentRepresentationException, FileNotExistsException {
+    		@RequestHeader(HttpHeaders.CONTENT_TYPE) String mimeType,
+            InputStream data) throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, FileNotExistsException, IOException {
 
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileName(fileName);
 
-        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
+        PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data, objectStoreSizeThreshold);
         f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 
         // For throw  FileNotExistsException if specified file does not exist.

@@ -13,10 +13,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
@@ -57,7 +59,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	private static final String PROVIDER_ID = "provider";
 	
 	private Representation representation;
-	private byte[] ANY_DATA = new byte[1000];
+	private MultipartFile ANY_DATA = new MockMultipartFile("data",new byte[1000]);
 
 	/**
 	 * Pre-defined users

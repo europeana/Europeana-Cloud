@@ -121,7 +121,8 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
-        mockMvc.perform(postMultipartData(filesWebTarget,file.getMimeType(), content))
+        mockMvc.perform(postMultipartData(filesWebTarget,file.getMimeType(), content)
+                .param(ParamConstants.F_FILE_NAME, file.getFileName()))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 

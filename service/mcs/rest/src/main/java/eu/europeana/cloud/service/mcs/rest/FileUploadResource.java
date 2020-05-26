@@ -22,8 +22,10 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
@@ -80,11 +82,11 @@ public class FileUploadResource {
             @RequestParam String fileName,
             @RequestParam String providerId,
             @RequestParam String mimeType ,
-            @RequestParam byte[] data) throws RepresentationNotExistsException,
-                                CannotModifyPersistentRepresentationException, RecordNotExistsException,
-                        ProviderNotExistsException, FileAlreadyExistsException, CannotPersistEmptyRepresentationException {
+            @RequestParam MultipartFile data) throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, RecordNotExistsException,
+            ProviderNotExistsException, FileAlreadyExistsException, CannotPersistEmptyRepresentationException, IOException {
 
-        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
+        PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
 
         Representation representation = null;

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -19,6 +20,7 @@ import java.util.Objects;
 @XmlRootElement
 @JacksonXmlRootElement
 @JsonRootName(Representation.XSI_TYPE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Representation {
 
     final static String XSI_TYPE = "representation";

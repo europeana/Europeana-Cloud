@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 public class MockMvcUtils {
 
@@ -103,17 +104,13 @@ public class MockMvcUtils {
     }
 
     public static MockHttpServletRequestBuilder putMultipart(String url, String mimeType, byte[] content) {
-        return postMultipartData(url, mimeType, content).with(request -> {
-            request.setMethod("PUT");
-            return request;
-        });
+        return put(url).contentType(mimeType).content(content);
+
     }
 
     public static MockHttpServletRequestBuilder postMultipartData(String url, String mimeType, byte[] content) {
-        return multipart(url)
-                .param("mimeType", mimeType)
-                .param("data", new String(content, Charsets.ISO_8859_1));
-
+        return multipart(url).file("data",content)
+                .param("mimeType", mimeType);
     }
 
     public static Matcher<String> isEtag(String value) {

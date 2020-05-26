@@ -1,16 +1,21 @@
 package eu.europeana.cloud.mcs.driver;
 
 
+import com.google.common.hash.Hashing;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.concurrent.ThreadLocalRandom;
 
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 
 
@@ -63,4 +68,55 @@ public class FileServiceClientITest {
 
         assertNotNull(resultUri);
     }
+
+
+    @Test
+    public void uploadFile_verifyValidBinaryDataStored() throws Exception {
+
+        String cloudId = "7XGEDN7JTPRL6SALCRQDG4WX5CYRZTFJ6GDXJKLAAZHHJNSUCMSA";
+        String representationName = "tekstowy";
+        String version = "41caee00-3db3-11ea-8db6-04922659f621";
+        String mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        String fileName = "file_service_client_it_random_binary_file.txt";
+
+        byte[] content = new byte[1000000];
+        ThreadLocalRandom.current().nextBytes(content);
+        String contentMd5 = Hashing.md5().hashBytes(content).toString();
+
+        FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        try {
+            mcsClient.deleteFile(cloudId,representationName,version,fileName);
+        }catch(Exception e){
+            //Ignore not found
+        }
+
+
+        URI resultUri=null;
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
+        //Uncoment one of them to test and comment modification section
+        resultUri = mcsClient.uploadFile(cloudId, representationName, version, fileName, inputStream, mediaType);
+  //     resultUri = mcsClient.uploadFile(cloudId, representationName, version, inputStream, mediaType, contentMd5);
+   //    resultUri = mcsClient.uploadFile(cloudId, representationName, version, inputStream, mediaType);
+   //     resultUri = mcsClient.uploadFile("http://localhost:8080/mcs/records/7XGEDN7JTPRL6SALCRQDG4WX5CYRZTFJ6GDXJKLAAZHHJNSUCMSA/representations/tekstowy/versions/41caee00-3db3-11ea-8db6-04922659f621",inputStream,mediaType);
+
+
+        //Modifications
+        content[120631]=77;
+        content[140631]=81;
+        contentMd5 = Hashing.md5().hashBytes(content).toString();
+        inputStream = new ByteArrayInputStream(content);
+
+        //Uncoment one of them to test
+       //  mcsClient.modyfiyFile(cloudId, representationName, version, inputStream,  mediaType, fileName, contentMd5);
+        resultUri=mcsClient.modifyFile(resultUri.toString(),inputStream,mediaType);
+        System.out.println("fileUri5: "+resultUri);
+
+        InputStream resultStream = mcsClient.getFile(resultUri.toString());
+
+        byte[] result = IOUtils.toByteArray(resultStream);
+        assertArrayEquals(content,result);
+    }
+
 }

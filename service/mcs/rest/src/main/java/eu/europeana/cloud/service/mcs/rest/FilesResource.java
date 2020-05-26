@@ -19,8 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
@@ -89,13 +91,13 @@ public class FilesResource {
 			@PathVariable final String representationName,
 			@PathVariable final String version,
 			@RequestParam String mimeType,
-			@RequestParam byte[] data,
+			@RequestParam MultipartFile data,
 			@RequestParam(required = false) String fileName) throws RepresentationNotExistsException,
-											CannotModifyPersistentRepresentationException, FileAlreadyExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException {
 
 		File f = new File();
 		f.setMimeType(mimeType);
-		PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
+		PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
 		f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 		if (fileName != null) {
 			try {
