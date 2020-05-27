@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -12,27 +11,18 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Date;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

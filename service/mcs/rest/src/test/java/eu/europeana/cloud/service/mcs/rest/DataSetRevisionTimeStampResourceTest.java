@@ -47,9 +47,6 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
 
     private RecordService recordService;
     private Representation rep;
-
-    //private String revisionAndRepresenttaionWebTargetInsideDataSet;
-
     private final static String TEST_REVISION_NAME = "revisionNameTest";
     private final static String DATE_SET_NAME = "dataSetId";
     private final static String TEST_REVISION_PROVIDER_ID = "revisionProviderId";
@@ -84,13 +81,6 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
         reset(recordService);
         reset(dataSetService);
     }
-
-    //new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml").registerClasses(RevisionIsNotValidExceptionMapper.class);
-//    @Override
-//    protected void configureClient(ClientConfig config) {
-//        config.register(MultiPartFeature.class);
-//    }
-
 
     @Test
     public void shouldProperlyReturnCloudIdAndTimestamp() throws Exception {
@@ -166,7 +156,5 @@ public class DataSetRevisionTimeStampResourceTest extends CassandraBasedAbstract
         //then
         ErrorInfo errorInfo = responseContentAsErrorInfo(response);
         assertEquals(McsErrorCode.PROVIDER_NOT_EXISTS.toString(), errorInfo.getErrorCode());
-
-
     }
 }

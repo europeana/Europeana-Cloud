@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -16,10 +15,11 @@ import org.hamcrest.core.Is;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -29,11 +29,40 @@ public class MockMvcUtils {
 
     public static final MediaType MEDIA_TYPE_APPLICATION_SVG_XML = MediaType.parseMediaType("application/svg+xml");
 
+    public static URI getBaseUri() {
+        try {
+            return new URI("http://localhost:80/");
+        } catch (URISyntaxException e) {
+            //this should never happen.
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static MockHttpServletRequestBuilder putFile(String url, String mimeType, byte[] content) {
+        return put(url).contentType(mimeType).content(content);
+
+    }
+
+    public static MockHttpServletRequestBuilder postFile(String url, String mimeType, byte[] content) {
+        return multipart(url).file("data",content)
+                .param("mimeType", mimeType);
+    }
+
+    public static Matcher<String> isEtag(String value) {
+        if(!value.startsWith("\"")){
+            value="\""+value;
+        }
+
+        if(!value.endsWith("\"")){
+            value=value+"\"";
+        }
+        return Is.is(value);
+    }
+
     public static String toJson(Object object) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writer().writeValueAsString(object);
     }
-
 
     public static String responseContentAsString(ResultActions response) throws UnsupportedEncodingException {
         return response.andReturn().getResponse().getContentAsString();
@@ -103,24 +132,4 @@ public class MockMvcUtils {
         }
     }
 
-    public static MockHttpServletRequestBuilder putMultipart(String url, String mimeType, byte[] content) {
-        return put(url).contentType(mimeType).content(content);
-
-    }
-
-    public static MockHttpServletRequestBuilder postMultipartData(String url, String mimeType, byte[] content) {
-        return multipart(url).file("data",content)
-                .param("mimeType", mimeType);
-    }
-
-    public static Matcher<String> isEtag(String value) {
-        if(!value.startsWith("\"")){
-            value="\""+value;
-        }
-
-        if(!value.endsWith("\"")){
-            value=value+"\"";
-        }
-        return Is.is(value);
-    }
 }

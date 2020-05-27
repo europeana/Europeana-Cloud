@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.mcs.rest.aatests;
 
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -13,20 +12,12 @@ import eu.europeana.cloud.service.mcs.rest.DataSetsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class DataSetsAATest extends AbstractSecurityTest {
 
@@ -94,7 +85,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
 	@Test
 	public void shouldBeAbleToCreateDatasetWhenAuthenticated() 
-			throws ProviderNotExistsException, DataSetAlreadyExistsException, URISyntaxException {
+			throws ProviderNotExistsException, DataSetAlreadyExistsException {
 		
         DataSet dS = new DataSet();
         dS.setId("");
@@ -109,15 +100,15 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateDataset()
-			throws ProviderNotExistsException, DataSetAlreadyExistsException,
-			DataSetNotExistsException, eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException {
+			throws
+			DataSetNotExistsException {
 
 		datasetResource.updateDataSet(DATASET_ID, PROVIDER_ID, DESCRIPTION);
 	}
 	
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteDataset()
-			throws ProviderNotExistsException, DataSetAlreadyExistsException,
+			throws
 			DataSetNotExistsException {
 
 		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
@@ -125,8 +116,8 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToUpdateDataset()
-			throws ProviderNotExistsException, DataSetAlreadyExistsException,
-			DataSetNotExistsException, eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException {
+			throws
+			DataSetNotExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		datasetResource.updateDataSet(DATASET_ID, PROVIDER_ID, DESCRIPTION);
@@ -134,7 +125,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteDataset()
-			throws ProviderNotExistsException, DataSetAlreadyExistsException,
+			throws
 			DataSetNotExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);

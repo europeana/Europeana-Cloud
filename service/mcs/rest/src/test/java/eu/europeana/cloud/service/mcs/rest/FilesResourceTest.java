@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 
 import javax.ws.rs.core.HttpHeaders;
 import java.io.ByteArrayInputStream;
@@ -25,12 +24,11 @@ import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postMultipartData;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -75,8 +73,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
 
     @After
-    public void cleanUp()
-            throws Exception {
+    public void cleanUp() {
         try {
             recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
         } catch (Exception e) {
@@ -94,7 +91,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
         // when content is added to record representation
 
-        mockMvc.perform(postMultipartData(filesWebTarget,file.getMimeType(), content))
+        mockMvc.perform(postFile(filesWebTarget,file.getMimeType(), content))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
@@ -121,7 +118,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
-        mockMvc.perform(postMultipartData(filesWebTarget,file.getMimeType(), content)
+        mockMvc.perform(postFile(filesWebTarget,file.getMimeType(), content)
                 .param(ParamConstants.F_FILE_NAME, file.getFileName()))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
@@ -145,7 +142,6 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
             throws Exception {
         // given particular (random in this case) content in service
         byte[] content = {1, 2, 3, 4};
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
         recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file,
                 new ByteArrayInputStream(content));
 
@@ -157,7 +153,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         ByteArrayInputStream modifiedInputStream = new ByteArrayInputStream(modifiedContent);
         MediaType detect = getMediaType(modifiedInputStream);
 
-        mockMvc.perform(postMultipartData(filesWebTarget, detect.toString(), modifiedContent).
+        mockMvc.perform(postFile(filesWebTarget, detect.toString(), modifiedContent).
                 param(ParamConstants.F_FILE_NAME, file.getFileName()))
                 .andExpect(status().isConflict());
 
@@ -236,7 +232,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         String contentMd5 = Hashing.md5().hashBytes(fileContent).toString();
 
         // when content is added to record representation
-        mockMvc.perform(postMultipartData(filesWebTarget,mimeType, fileContent))
+        mockMvc.perform(postFile(filesWebTarget,mimeType, fileContent))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 

@@ -163,7 +163,7 @@ public class FileResource {
 
         // get file md5 if complete file is requested
         String md5 = null;
-        MediaType fileMimeType = MediaType.APPLICATION_OCTET_STREAM;
+        MediaType fileMimeType = null;
         HttpStatus status;
         if (contentRange.isSpecified()) {
             status = HttpStatus.PARTIAL_CONTENT;
@@ -179,11 +179,11 @@ public class FileResource {
         Consumer<OutputStream> downloadMethod = recordService.getContent(cloudId, representationName, version, fileName,
                 contentRange.start, contentRange.end);
 
-        return ResponseEntity
-                .status(status)
-                .contentType(fileMimeType)
-                .eTag(nullToEmpty(md5))
-                .body(outputStream -> downloadMethod.accept(outputStream));
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status).eTag(nullToEmpty(md5));
+        if (fileMimeType != null) {
+            response.contentType(fileMimeType);
+        }
+        return response.body(outputStream -> downloadMethod.accept(outputStream));
     }
 
     /**

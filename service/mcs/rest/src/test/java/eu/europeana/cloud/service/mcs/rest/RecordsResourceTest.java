@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -14,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -36,17 +34,6 @@ public class RecordsResourceTest extends AbstractResourceTest {
 
     private RecordService recordService;
 
-//    @Override
-//    public Application configure() {
-//        return new ResourceConfig().registerClasses(RecordsResource.class)
-///*
-//                .registerClasses(RecordNotExistsExceptionMapper.class)
-//                .registerClasses(RepresentationNotExistsExceptionMapper.class)
-//*/
-//                .property("contextConfigLocation", "classpath:testContext.xml");
-//    }
-
-
     @Before
     public void mockUp() {
         //        uisClient = applicationContext.getBean(null)
@@ -54,7 +41,6 @@ public class RecordsResourceTest extends AbstractResourceTest {
         Mockito.reset(recordService);
     }
 
-//TODO Test wydaje się nie przechodzić
     @Test
     @Parameters(method = "mimeTypes")
     public void getRecord(MediaType mediaType)

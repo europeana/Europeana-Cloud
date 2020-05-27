@@ -11,26 +11,19 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpServletRequest;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-        "classpath:recordsAccessContext.xml"})
-public class SimplifiedRecordsResourceTest {
+public class SimplifiedRecordsResourceTest extends AbstractResourceTest{
 
     @Autowired
     private SimplifiedRecordsResource recordsResource;
@@ -64,22 +57,22 @@ public class SimplifiedRecordsResourceTest {
     }
 
     @Test(expected = ProviderNotExistsException.class)
-    public void exceptionShouldBeThrowForNotExistingProviderId() throws CloudException, RecordNotExistsException, ProviderNotExistsException {
+    public void exceptionShouldBeThrowForNotExistingProviderId() throws RecordNotExistsException, ProviderNotExistsException {
         recordsResource.getRecord(null, NOT_EXISTING_PROVIDER_ID, "anyLocalId");
     }
 
     @Test(expected = RecordNotExistsException.class)
-    public void exceptionShouldBeThrowForNotExistingCloudId() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
+    public void exceptionShouldBeThrowForNotExistingCloudId() throws RecordNotExistsException, ProviderNotExistsException {
         recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD);
     }
 
     @Test(expected = RecordNotExistsException.class)
-    public void exceptionShouldBeThrowForRecordWithoutRepresentations() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
+    public void exceptionShouldBeThrowForRecordWithoutRepresentations() throws RecordNotExistsException, ProviderNotExistsException {
         recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS);
     }
 
     @Test
-    public void properRecordShouldBeReturned() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
+    public void properRecordShouldBeReturned() throws RecordNotExistsException, ProviderNotExistsException {
         HttpServletRequest info = mockHttpServletRequest();
         //Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //

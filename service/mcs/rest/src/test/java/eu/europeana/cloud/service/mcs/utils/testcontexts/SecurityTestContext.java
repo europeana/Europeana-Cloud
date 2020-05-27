@@ -42,16 +42,6 @@ public class SecurityTestContext {
     public UISClientHandler uisHandler() {
         return mock(UISClientHandlerImpl.class);
     }
-//
-//    @Bean
-//    public MutableAclService mutableAclService() {
-//        return mock(MutableAclService.class);
-//    }
-
-//    @Bean
-//    public PermissionsGrantingManager permissionsGrantingManager() {
-//        return mock(PermissionsGrantingManager.class);
-//    }
 
     @Bean
     public CassandraDataSetService cassandraDataSetService() {

@@ -19,8 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -121,10 +119,6 @@ public class DataSetAssignmentResourceTest extends CassandraBasedAbstractResourc
 
         // when representation is assigned to data set without specifying the
         // version
-        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep
-                .getCloudId()).param(F_REPRESENTATIONNAME,
-                rep.getRepresentationName()));
-
         ResultActions response = mockMvc.perform(post(dataSetAssignmentWebTarget, dataProvider.getId(), dataSet.getId())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .content(EntityUtils.toString(
@@ -162,9 +156,7 @@ public class DataSetAssignmentResourceTest extends CassandraBasedAbstractResourc
     @Test
     public void shouldAddAssignmentForSpecificVersion() throws Exception {
         // given representation and data set in data service
-        Representation latestRepresentation = recordService
-                .createRepresentation("globalId", dataSet.getId(),
-                        dataProvider.getId());
+        recordService.createRepresentation("globalId", dataSet.getId(), dataProvider.getId());
 
 
         // when representation is assigned to data set in specific version

@@ -7,12 +7,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.function.Consumer;
@@ -20,7 +17,6 @@ import java.util.function.Consumer;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
@@ -37,12 +33,10 @@ public class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
     private static final int HUGE_FILE_SIZE = 200_000_000;
 
-
     @Before
     public void mockUp() {
         recordService = applicationContext.getBean(RecordService.class);
     }
-
 
     @After
     public void cleanUp() {
@@ -65,7 +59,6 @@ public class HugeFileResourceDownloadIT extends AbstractResourceTest {
         // when we download mocked content of resource
         ResultActions response = mockMvc.perform(
                 get(FILE_RESOURCE, globalId, schema, version, file.getFileName()))
-                .andDo(print())
                 .andExpect(status().is2xxSuccessful());
 
         response.andReturn().getAsyncResult();
@@ -75,29 +68,14 @@ public class HugeFileResourceDownloadIT extends AbstractResourceTest {
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, totalBytesInResponse);
     }
 
-
-    private int getBytesCount(InputStream is)
-            throws IOException {
-        int totalBytes = 0;
-        int nRead;
-        byte[] data = new byte[16384];
-
-        while ((nRead = is.read(data, 0, data.length)) != -1) {
-            totalBytes += nRead;
-        }
-        return totalBytes;
-    }
-
-
     /**
      * Mock answer for
-     * {@link ContentService#getContent(eu.europeana.cloud.common.model.Representation, eu.europeana.cloud.common.model.File, long, long)
+     * {@link RecordService#getContent(String, String, String, String, long, long)
      * getContent} method.
      */
     static class MockGetContentMethod implements Consumer<OutputStream> {
 
         final int totalBytes;
-
 
         public MockGetContentMethod(int totalBytes) {
             this.totalBytes = totalBytes;

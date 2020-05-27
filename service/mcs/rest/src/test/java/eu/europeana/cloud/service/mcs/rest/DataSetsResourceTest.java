@@ -39,11 +39,8 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
 
     private DataProvider dataProvider = new DataProvider();
 
-    //new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-
-
     @Before
-    public void mockUp() throws Exception {
+    public void mockUp() {
         dataProvider.setId("provId");
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
@@ -51,7 +48,7 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
     }
 
     @After
-    public void cleanUp() throws Exception {
+    public void cleanUp() {
         Mockito.reset(uisHandler);
     }
 

@@ -18,8 +18,6 @@ import org.springframework.security.acls.AclPermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.ResultActions;
 
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
