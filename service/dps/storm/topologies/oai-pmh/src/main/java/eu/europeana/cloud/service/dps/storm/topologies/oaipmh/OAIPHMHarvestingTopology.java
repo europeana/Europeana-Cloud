@@ -32,7 +32,8 @@ import static java.lang.Integer.parseInt;
 /**
  *
  */
-public class OAIPHMHarvestingTopology {
+public class
+OAIPHMHarvestingTopology {
     private static Properties topologyProperties=new Properties();;
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
@@ -108,7 +109,7 @@ public class OAIPHMHarvestingTopology {
 
     public static void main(String[] args) {
         try {
-            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
+            LOGGER.info("Assembling '{}'", TopologiesNames.OAI_TOPOLOGY);
             if (args.length <= 1) {
                 String providedPropertyFile = (args.length == 1 ? args[0] : "");
 

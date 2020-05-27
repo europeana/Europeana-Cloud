@@ -122,7 +122,7 @@ public class EnrichmentTopology {
 
     public static void main(String[] args) {
         try {
-            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
+            LOGGER.info("Assembling '{}'", TopologiesNames.ENRICHMENT_TOPOLOGY);
 
             if (args.length <= 1) {
                 String providedPropertyFile = (args.length == 1 ? args[0] : "");

@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -107,7 +108,7 @@ public class HTTPHarvestingTopology {
 
     public static void main(String[] args) {
         try {
-            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
+            LOGGER.info("Assembling '{}'", TopologiesNames.HTTP_TOPOLOGY);
             if (args.length <= 1) {
                 String providedPropertyFile = (args.length == 1 ? args[0] : "");
 

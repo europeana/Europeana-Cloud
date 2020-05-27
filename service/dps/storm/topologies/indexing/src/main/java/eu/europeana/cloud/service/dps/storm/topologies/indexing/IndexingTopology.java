@@ -93,7 +93,7 @@ public class IndexingTopology {
 
     public static void main(String[] args) {
         try {
-            LOGGER.info("Assembling '{}'", topologyProperties.getProperty(TOPOLOGY_NAME));
+            LOGGER.info("Assembling '{}'", TopologiesNames.INDEXING_TOPOLOGY);
 
             if (args.length <= 2) {
                 String providedPropertyFile = (args.length > 0 ? args[0] : "");
