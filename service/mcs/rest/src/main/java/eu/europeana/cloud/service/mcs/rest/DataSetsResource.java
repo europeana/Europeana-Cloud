@@ -7,9 +7,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,19 +28,20 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SETS_RE
  */
 @RestController
 @RequestMapping(DATA_SETS_RESOURCE)
-@Scope("request")
 public class DataSetsResource {
 
     private static final String DATASET_CLASS_NAME = DataSet.class.getName();
 
-    @Autowired
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
+    private final MutableAclService mutableAclService;
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
-    @Autowired
-    private MutableAclService mutableAclService;
+    public DataSetsResource(DataSetService dataSetService, MutableAclService mutableAclService) {
+        this.dataSetService = dataSetService;
+        this.mutableAclService = mutableAclService;
+    }
 
     /**
      * Returns all data sets for a provider. Result is returned in slices.
@@ -79,7 +78,7 @@ public class DataSetsResource {
      */
     @PreAuthorize("isAuthenticated()")
     @PostMapping
-    public ResponseEntity<?> createDataSet(
+    public ResponseEntity<Void> createDataSet(
             HttpServletRequest httpServletRequest,
             @PathVariable String providerId,
             @RequestParam String dataSetId,
@@ -87,8 +86,7 @@ public class DataSetsResource {
 
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
         EnrichUriUtil.enrich(httpServletRequest, dataSet);
-        final ResponseEntity<?> response = ResponseEntity.created(dataSet.getUri()).build();
-        
+
         String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {
             ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME, dataSetId + "/" + providerId);
@@ -102,7 +100,6 @@ public class DataSetsResource {
 
             mutableAclService.updateAcl(datasetAcl);
         }
-
-        return response;
+        return ResponseEntity.created(dataSet.getUri()).build();
     }
 }
