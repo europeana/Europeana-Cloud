@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +14,13 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_ASS
  */
 @RestController
 @RequestMapping(DATA_SET_ASSIGNMENTS)
-@Scope("request")
 public class DataSetAssignmentsResource {
 
-    @Autowired
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
+
+    public DataSetAssignmentsResource(DataSetService dataSetService) {
+        this.dataSetService = dataSetService;
+    }
 
     /**
      * Assigns representation into a data set.
@@ -68,7 +68,7 @@ public class DataSetAssignmentsResource {
     public void removeAssignment(
             @PathVariable String providerId,
             @PathVariable String dataSetId,
-    		@RequestParam String cloudId, //@RequestParam
+    		@RequestParam String cloudId,
             @RequestParam String representationName,
             @RequestParam String version)
             throws DataSetNotExistsException {
