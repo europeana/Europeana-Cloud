@@ -12,12 +12,9 @@ import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,23 +25,24 @@ import java.util.UUID;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * FilesResource
  */
 @RestController
 @RequestMapping(FILES_RESOURCE)
-@Scope("request")
 public class FilesResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FilesResource.class.getName());
 
-	@Autowired
-	private RecordService recordService;
-	@Autowired
-	private MutableAclService mutableAclService;
-	@Autowired
-	private Integer objectStoreSizeThreshold;
+	private static final Logger LOGGER = LoggerFactory.getLogger(FilesResource.class.getName());
+	private final RecordService recordService;
+	private final Integer objectStoreSizeThreshold;
+
+	public FilesResource(
+			RecordService recordService,
+			Integer objectStoreSizeThreshold) {
+		this.recordService = recordService;
+		this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+	}
 
 	/**
 	 * Adds a new file to representation version. URI to created resource will
