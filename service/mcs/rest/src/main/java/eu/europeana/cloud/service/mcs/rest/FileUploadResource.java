@@ -10,8 +10,6 @@ import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,26 +28,27 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Handles uploading the file when representation is not created yet.
  */
 @RestController
 @RequestMapping(FILE_UPLOAD_RESOURCE)
-@Scope("request")
 public class FileUploadResource {
 
     private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    private final RecordService recordService;
+    private final MutableAclService mutableAclService;
+    private final Integer objectStoreSizeThreshold;
 
-    @Autowired
-    private RecordService recordService;
-
-    @Autowired
-    private MutableAclService mutableAclService;
-
-    @Autowired
-    private Integer objectStoreSizeThreshold;
+    public FileUploadResource(
+            RecordService recordService,
+            MutableAclService mutableAclService,
+            Integer objectStoreSizeThreshold) {
+        this.recordService = recordService;
+        this.mutableAclService = mutableAclService;
+        this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+    }
 
     /**
      * 
@@ -89,8 +88,7 @@ public class FileUploadResource {
         PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
 
-        Representation representation = null;
-        representation = recordService.createRepresentation(cloudId, representationName, providerId);
+        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId);
         addPrivilegesToRepresentation(representation);
 
         File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
