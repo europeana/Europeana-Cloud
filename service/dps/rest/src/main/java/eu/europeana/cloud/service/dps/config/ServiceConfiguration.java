@@ -151,13 +151,13 @@ public class ServiceConfiguration {
 
     @Bean
     public TaskStatusUpdater taskStatusUpdater() {
-        return new TaskStatusUpdater(taskInfoDAO(),tasksByStateDAO(),applicationIdentifier());
+        return new TaskStatusUpdater(taskInfoDAO(), tasksByStateDAO(), applicationIdentifier());
     }
 
     @Bean
     public MCSTaskSubmiter mcsTaskSubmiter() {
         String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
-        return new MCSTaskSubmiter(taskStatusChecker(),taskStatusUpdater(),recordKafkaSubmitService(),mcsLocation);
+        return new MCSTaskSubmiter(taskStatusChecker(), taskStatusUpdater(), recordKafkaSubmitService(), mcsLocation);
     }
 
 }
