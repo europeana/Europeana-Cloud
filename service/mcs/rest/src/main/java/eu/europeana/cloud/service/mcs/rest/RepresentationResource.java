@@ -7,8 +7,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,15 +29,17 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
  */
 @RestController
 @RequestMapping(REPRESENTATION_RESOURCE)
-@Scope("request")
 public class RepresentationResource {
 	private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
-	@Autowired
-	private RecordService recordService;
+	private final RecordService recordService;
+	private final MutableAclService mutableAclService;
 
-	@Autowired
-	private MutableAclService mutableAclService;
+	public RepresentationResource(RecordService recordService,
+								  MutableAclService mutableAclService) {
+		this.recordService = recordService;
+		this.mutableAclService = mutableAclService;
+	}
 
 	/**
 	 * Returns the latest persistent version of a given representation .
@@ -111,7 +111,7 @@ public class RepresentationResource {
 	 */
 	@PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> createRepresentation(
+	public ResponseEntity<Void> createRepresentation(
 			HttpServletRequest httpServletRequest,
 			@PathVariable String cloudId,
 			@PathVariable String representationName,
