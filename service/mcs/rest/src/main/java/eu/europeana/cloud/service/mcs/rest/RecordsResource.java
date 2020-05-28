@@ -6,8 +6,6 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,11 +20,13 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESO
  */
 @RestController
 @RequestMapping(RECORDS_RESOURCE)
-@Scope("request")
 public class RecordsResource {
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+
+    public RecordsResource(RecordService recordService) {
+        this.recordService = recordService;
+    }
 
     /**
      * Returns record with all its latest persistent representations.
