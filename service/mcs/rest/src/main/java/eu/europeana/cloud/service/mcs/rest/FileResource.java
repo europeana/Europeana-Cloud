@@ -2,7 +2,10 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
@@ -10,22 +13,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.HeaderParam;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
@@ -36,25 +32,24 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Resource to manage representation version's files with their content.
  */
 @RestController
 @RequestMapping(FILE_RESOURCE)
-@Scope("request")
 public class FileResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileResource.class);
 
     private static final String HEADER_RANGE = "Range";
+    private final RecordService recordService;
+    private final Integer objectStoreSizeThreshold;
 
-    @Autowired
-    private RecordService recordService;
-	@Autowired
-	private MutableAclService mutableAclService;
-    @Autowired
-    private Integer objectStoreSizeThreshold;
+    public FileResource(RecordService recordService,
+                        Integer objectStoreSizeThreshold) {
+        this.recordService = recordService;
+        this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+    }
 
     /**
      *  Updates a file in a representation version. MD5 of
@@ -84,7 +79,7 @@ public class FileResource {
     @PutMapping
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
-    public ResponseEntity<?> sendFile(
+    public ResponseEntity<Void> sendFile(
             HttpServletRequest httpServletRequest,
     		@PathVariable String cloudId,
     		@PathVariable String representationName,
@@ -92,7 +87,7 @@ public class FileResource {
     		@PathVariable String fileName,
     		@RequestHeader(HttpHeaders.CONTENT_TYPE) String mimeType,
             InputStream data) throws RepresentationNotExistsException,
-            CannotModifyPersistentRepresentationException, FileNotExistsException, IOException {
+            CannotModifyPersistentRepresentationException, FileNotExistsException {
 
         File f = new File();
         f.setMimeType(mimeType);
@@ -148,9 +143,9 @@ public class FileResource {
     public ResponseEntity<StreamingResponseBody> getFile(
             @PathVariable String cloudId,
             @PathVariable String representationName,
-    		@PathVariable String version,
-    		@PathVariable final String fileName,
-            @RequestHeader(value = HEADER_RANGE,required = false) String range)
+            @PathVariable String version,
+            @PathVariable final String fileName,
+            @RequestHeader(value = HEADER_RANGE, required = false) String range)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
         // extract range
@@ -183,7 +178,7 @@ public class FileResource {
                 .status(status)
                 .contentType(fileMimeType)
                 .eTag(nullToEmpty(md5))
-                .body(outputStream -> downloadMethod.accept(outputStream));
+                .body(downloadMethod::accept);
     }
 
     /**
@@ -204,7 +199,7 @@ public class FileResource {
     @RequestMapping(method = RequestMethod.HEAD)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public ResponseEntity<?> getFileHeaders(
+    public ResponseEntity<Void> getFileHeaders(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable final String representationName,
@@ -274,8 +269,8 @@ public class FileResource {
     static class ContentRange {
         private static final Pattern BYTES_PATTERN = Pattern.compile("bytes=(?<start>\\d+)[-](?<end>\\d*)");
 
-        private long start;
-        private long end;
+        private final long start;
+        private final long end;
 
         ContentRange(long start, long end) {
             this.start = start;
