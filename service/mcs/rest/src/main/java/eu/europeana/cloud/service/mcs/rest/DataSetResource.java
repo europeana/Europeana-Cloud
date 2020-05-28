@@ -15,9 +15,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,18 +33,22 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  * Resource to manage data sets.
  */
 @RestController
-@Scope("request")
 public class DataSetResource {
     private static final String DATASET_CLASS_NAME = DataSet.class.getName();
 
-    @Autowired
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
-    @Autowired
-    private MutableAclService mutableAclService;
+    private final MutableAclService mutableAclService;
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
+
+    public DataSetResource(
+            DataSetService dataSetService,
+            MutableAclService mutableAclService) {
+        this.dataSetService = dataSetService;
+        this.mutableAclService = mutableAclService;
+    }
 
     /**
      * Deletes data set.
@@ -222,5 +224,3 @@ public class DataSetResource {
         }
     }
 }
-
-
