@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,10 +30,10 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 @RestController
 public class RepresentationAuthorizationResource {
 
+    public static final String NO_UPDATED_MESSAGE = "Authorization has NOT been updated!";
+    public static final String UPDATED_MESSAGE = "Authorization has been updated!";
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
-
     private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
-
     private static final List<String> ACCEPTED_PERMISSION_VALUES = Arrays.asList(
             eu.europeana.cloud.common.model.Permission.ALL.getValue(),
             eu.europeana.cloud.common.model.Permission.READ.getValue(),
@@ -42,14 +41,15 @@ public class RepresentationAuthorizationResource {
             eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
             eu.europeana.cloud.common.model.Permission.DELETE.getValue()
     );
-    public static final String NO_UPDATED_MESSAGE = "Authorization has NOT been updated!";
-    public static final String UPDATED_MESSAGE = "Authorization has been updated!";
+    private final MutableAclService mutableAclService;
+    private final PermissionsGrantingManager permissionsGrantingManager;
 
-    @Autowired
-    private MutableAclService mutableAclService;
-
-    @Autowired
-    private PermissionsGrantingManager permissionsGrantingManager;
+    public RepresentationAuthorizationResource(
+            MutableAclService mutableAclService,
+            PermissionsGrantingManager permissionsGrantingManager) {
+        this.mutableAclService = mutableAclService;
+        this.permissionsGrantingManager = permissionsGrantingManager;
+    }
 
     /**
      * Removes permissions for selected user to selected representation version.<br/><br/>
@@ -72,7 +72,7 @@ public class RepresentationAuthorizationResource {
     @DeleteMapping(value = REPRESENTATION_PERMISSION)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
-    public ResponseEntity<?> removePermissions(
+    public ResponseEntity<Void> removePermissions(
             @PathVariable String cloudId,
             @PathVariable String representationName,
             @PathVariable String version,
