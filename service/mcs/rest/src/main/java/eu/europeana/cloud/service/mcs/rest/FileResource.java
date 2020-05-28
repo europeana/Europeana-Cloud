@@ -34,9 +34,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * Resource to manage representation version's files with their content.
@@ -107,11 +105,13 @@ public class FileResource {
         IOUtils.closeQuietly(prebufferedInputStream);
         EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
 
-        return ResponseEntity
+        ResponseEntity.BodyBuilder response = ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
-                .location(f.getContentUri())
-                .eTag(nullToEmpty(f.getMd5()))
-                .build();
+                .location(f.getContentUri());
+        if (f.getMd5() != null) {
+            response.eTag(f.getMd5());
+        }
+        return response.build();
     }
 
     /**
@@ -179,7 +179,10 @@ public class FileResource {
         Consumer<OutputStream> downloadMethod = recordService.getContent(cloudId, representationName, version, fileName,
                 contentRange.start, contentRange.end);
 
-        ResponseEntity.BodyBuilder response = ResponseEntity.status(status).eTag(nullToEmpty(md5));
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+        if (md5 != null) {
+            response.eTag(md5);
+        }
         if (fileMimeType != null) {
             response.contentType(fileMimeType);
         }
@@ -225,12 +228,16 @@ public class FileResource {
             LOGGER.warn("Invalid URI/URL", e);
         }
 
-        return ResponseEntity
+        ResponseEntity.BodyBuilder response = ResponseEntity
                 .status(HttpStatus.OK)
-                .contentType(MediaType.parseMediaType(fileMimeType))
-                .location(requestUri)
-                .eTag(nullToEmpty(md5))
-                .build();
+                .location(requestUri);
+        if (md5 != null) {
+            response.eTag(md5);
+        }
+        if(fileMimeType!=null) {
+            response.contentType(MediaType.parseMediaType(fileMimeType));
+        }
+        return response.build();
     }
 
 

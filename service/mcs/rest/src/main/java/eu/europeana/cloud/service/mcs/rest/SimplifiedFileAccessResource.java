@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_FILE_ACCESS_RESOURCE;
 
 /**
@@ -102,8 +101,10 @@ public class SimplifiedFileAccessResource {
 
             ResponseEntity.BodyBuilder response = ResponseEntity
                     .status(HttpStatus.OK)
-                    .location(requestedFile.getContentUri())
-                    .eTag(nullToEmpty(md5));
+                    .location(requestedFile.getContentUri());
+            if (md5 != null) {
+                response.eTag(md5);
+            }
             if (fileMimeType != null) {
                 response.contentType(fileMimeType);
             }
@@ -162,8 +163,10 @@ public class SimplifiedFileAccessResource {
 
             ResponseEntity.BodyBuilder response = ResponseEntity
                     .status(HttpStatus.OK)
-                    .location(requestedFile.getContentUri())
-                    .eTag(nullToEmpty(md5));
+                    .location(requestedFile.getContentUri());
+            if (md5 != null) {
+                response.eTag(md5);
+            }
             if (fileMimeType != null) {
                 response.contentType(fileMimeType);
             }

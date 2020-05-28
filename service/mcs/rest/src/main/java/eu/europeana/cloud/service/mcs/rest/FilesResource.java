@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
-import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream.wrap;
 
 /**
  * FilesResource
@@ -124,10 +122,11 @@ public class FilesResource {
 					cloudId, representationName, version, f.getContentUri()));
 		}
 
-		return ResponseEntity
-				.created(f.getContentUri())
-				.eTag(nullToEmpty(f.getMd5()))
-				.build();
+		ResponseEntity.BodyBuilder response = ResponseEntity.created(f.getContentUri());
+		if (f.getMd5() != null) {
+			response.eTag(f.getMd5());
+		}
+		return response.build();
 	}
 
 }
