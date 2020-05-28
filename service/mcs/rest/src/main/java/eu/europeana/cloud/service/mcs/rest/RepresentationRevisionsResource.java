@@ -8,8 +8,6 @@ import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -29,14 +27,17 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
  */
 @RestController
 @RequestMapping(REPRESENTATION_REVISIONS_RESOURCE)
-@Scope("request")
 public class RepresentationRevisionsResource {
 
-    @Autowired
-    private RecordService recordService;
 
-    @Autowired
-    private PermissionEvaluator permissionEvaluator;
+    private final RecordService recordService;
+    private final PermissionEvaluator permissionEvaluator;
+
+    public RepresentationRevisionsResource(RecordService recordService,
+                                           PermissionEvaluator permissionEvaluator) {
+        this.recordService = recordService;
+        this.permissionEvaluator = permissionEvaluator;
+    }
 
     /**
      * Returns the representation version which associates cloud identifier, representation name with revision identifier, provider and timestamp.
@@ -54,7 +55,7 @@ public class RepresentationRevisionsResource {
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
-    public RepresentationsListWrapper /*List<Representation>*/ getRepresentationRevisions(
+    public RepresentationsListWrapper getRepresentationRevisions(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable String representationName,
