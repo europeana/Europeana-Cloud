@@ -3,8 +3,8 @@ package eu.europeana.cloud.test;
 import eu.europeana.cloud.service.mcs.MCSAppInitializer;
 import eu.europeana.cloud.service.mcs.SecurityInitializer;
 import eu.europeana.cloud.service.mcs.config.AuthorizationConfiguration;
+import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.TestServiceConfiguration;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.SecurityTestContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.TestAuthentificationConfiguration;
 import org.junit.Before;
@@ -41,7 +41,7 @@ import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpS
     @TestPropertySource(properties = {"numberOfElementsOnPage=100"})
     @WebAppConfiguration
     @ContextConfiguration(classes = {MCSAppInitializer.class,AuthorizationConfiguration.class, TestAuthentificationConfiguration.class,
-            SecurityInitializer.class, TestServiceConfiguration.class,
+            SecurityInitializer.class, ServiceConfiguration.class,
             UnitedExceptionMapper.class, SecurityTestContext.class})
     public abstract class AbstractSecurityTest {
 

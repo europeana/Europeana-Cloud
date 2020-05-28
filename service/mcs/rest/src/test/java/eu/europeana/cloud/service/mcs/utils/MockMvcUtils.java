@@ -96,7 +96,7 @@ public class MockMvcUtils {
     }
 
     public static <T> T responseContent(ResultActions response, Class<T> aClass) throws IOException {
-        return responseContent(response, aClass, MediaType.APPLICATION_JSON);
+        return responseContent(response, aClass, MediaType.APPLICATION_XML);
     }
 
 
@@ -112,7 +112,7 @@ public class MockMvcUtils {
 
     private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef)
             throws JsonProcessingException, UnsupportedEncodingException {
-        return responseContent(response, valueTypeRef, MediaType.APPLICATION_JSON);
+        return responseContent(response, valueTypeRef, MediaType.APPLICATION_XML);
     }
 
     private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef, MediaType mediaType)

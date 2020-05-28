@@ -121,8 +121,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
         // when you list dataset contents
         ResultActions response = mockMvc.perform(
-                get(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)
-                        .accept(MediaType.APPLICATION_JSON))
+                get(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId))
                 .andExpect(status().isOk());
         List<Representation> dataSetContents = responseContentAsRepresentationResultSlice(response).getResults();
 

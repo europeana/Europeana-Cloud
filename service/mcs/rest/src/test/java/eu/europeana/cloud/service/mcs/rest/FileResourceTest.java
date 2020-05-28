@@ -15,6 +15,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -240,6 +241,24 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         ErrorInfo deleteErrorInfo = responseContentAsErrorInfo(response);
         assertEquals(McsErrorCode.FILE_NOT_EXISTS.toString(),
                 deleteErrorInfo.getErrorCode());
+    }
+
+    @Test
+    public void shouldReturn404WhenDeletingNonExistingFileWithExtensionAcceptJson() throws Exception {
+        ResultActions response = mockMvc.perform(delete(fileWebTarget + ".txt").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        ErrorInfo deleteErrorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_JSON);
+        assertEquals(McsErrorCode.FILE_NOT_EXISTS.toString(), deleteErrorInfo.getErrorCode());
+    }
+
+    @Test
+    public void shouldReturn404WhenDeletingNonExistingFileWithExtensionAcceptXml() throws Exception {
+        ResultActions response = mockMvc.perform(delete(fileWebTarget + ".txt").accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isNotFound());
+
+        ErrorInfo deleteErrorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
+        assertEquals(McsErrorCode.FILE_NOT_EXISTS.toString(), deleteErrorInfo.getErrorCode());
     }
 
     @Test

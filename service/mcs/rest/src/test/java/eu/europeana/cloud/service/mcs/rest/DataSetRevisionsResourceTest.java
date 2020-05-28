@@ -139,8 +139,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
         ResultActions response = mockMvc.perform(
                 get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId)
                         .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
-                        .queryParam(F_LIMIT, "10")
-                        .accept(MediaType.APPLICATION_JSON))
+                        .queryParam(F_LIMIT, "10"))
                 .andExpect(status().isOk());
 
 
