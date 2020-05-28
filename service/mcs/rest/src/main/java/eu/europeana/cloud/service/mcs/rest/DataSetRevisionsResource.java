@@ -11,12 +11,9 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.web.bind.annotation.*;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REVISIONS_RESOURCE;
@@ -26,18 +23,16 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REV
  */
 @RestController
 @RequestMapping(DATA_SET_REVISIONS_RESOURCE)
-@Scope("request")
 public class DataSetRevisionsResource {
 
-    @Autowired
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
-    @Autowired
-    private MutableAclService mutableAclService;
-
+    public DataSetRevisionsResource(DataSetService dataSetService){
+        this.dataSetService = dataSetService;
+    }
     /**
      * Lists cloudIds from data set. Result is returned in
      * slices.
