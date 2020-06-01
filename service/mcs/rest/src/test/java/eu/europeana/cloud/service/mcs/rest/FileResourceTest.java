@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -74,14 +73,6 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         recordService.deleteRepresentation(rep.getCloudId(),
                 rep.getRepresentationName());
     }
-
-
-// new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-
-//    @Override
-//    protected void configureClient(ClientConfig config) {
-//	config.register(MultiPartFeature.class);
-//    }
 
     @Test
     public void shouldReturnContentWithinRangeOffset() throws Exception {
@@ -212,9 +203,7 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         String contentModifiedMd5 = Hashing.md5().hashBytes(contentModified)
                 .toString();
 
-        MockMultipartFile multipart = new MockMultipartFile("x", null, file.getMimeType(), contentModified);
-
-        mockMvc.perform(putMultipart(fileWebTarget, file.getMimeType(), contentModified))
+        mockMvc.perform(putFile(fileWebTarget, file.getMimeType(), contentModified))
                 .andExpect(status().isNoContent());
 
 
@@ -255,13 +244,31 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
     }
 
     @Test
+    public void shouldReturn404WhenDeletingNonExistingFileWithExtensionAcceptJson() throws Exception {
+        ResultActions response = mockMvc.perform(delete(fileWebTarget + ".txt").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        ErrorInfo deleteErrorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_JSON);
+        assertEquals(McsErrorCode.FILE_NOT_EXISTS.toString(), deleteErrorInfo.getErrorCode());
+    }
+
+    @Test
+    public void shouldReturn404WhenDeletingNonExistingFileWithExtensionAcceptXml() throws Exception {
+        ResultActions response = mockMvc.perform(delete(fileWebTarget + ".txt").accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isNotFound());
+
+        ErrorInfo deleteErrorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
+        assertEquals(McsErrorCode.FILE_NOT_EXISTS.toString(), deleteErrorInfo.getErrorCode());
+    }
+
+    @Test
     public void shouldReturn404WhenUpdatingNotExistingFile() throws Exception {
         // given particular (random in this case) content
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
 
         // when content is added to record representation
-        mockMvc.perform(putMultipart(fileWebTarget, file.getMimeType(), content))
+        mockMvc.perform(putFile(fileWebTarget, file.getMimeType(), content))
                 .andExpect(status().isNotFound());
     }
 

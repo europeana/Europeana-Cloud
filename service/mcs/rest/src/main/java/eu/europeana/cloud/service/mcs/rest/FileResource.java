@@ -30,7 +30,6 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Strings.nullToEmpty;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 
 /**
@@ -102,11 +101,13 @@ public class FileResource {
         IOUtils.closeQuietly(prebufferedInputStream);
         EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
 
-        return ResponseEntity
+        ResponseEntity.BodyBuilder response = ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
-                .location(f.getContentUri())
-                .eTag(nullToEmpty(f.getMd5()))
-                .build();
+                .location(f.getContentUri());
+        if (f.getMd5() != null) {
+            response.eTag(f.getMd5());
+        }
+        return response.build();
     }
 
     /**
@@ -158,7 +159,7 @@ public class FileResource {
 
         // get file md5 if complete file is requested
         String md5 = null;
-        MediaType fileMimeType = MediaType.APPLICATION_OCTET_STREAM;
+        MediaType fileMimeType = null;
         HttpStatus status;
         if (contentRange.isSpecified()) {
             status = HttpStatus.PARTIAL_CONTENT;
@@ -174,11 +175,14 @@ public class FileResource {
         Consumer<OutputStream> downloadMethod = recordService.getContent(cloudId, representationName, version, fileName,
                 contentRange.start, contentRange.end);
 
-        return ResponseEntity
-                .status(status)
-                .contentType(fileMimeType)
-                .eTag(nullToEmpty(md5))
-                .body(downloadMethod::accept);
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+        if (md5 != null) {
+            response.eTag(md5);
+        }
+        if (fileMimeType != null) {
+            response.contentType(fileMimeType);
+        }
+        return response.body(outputStream -> downloadMethod.accept(outputStream));
     }
 
     /**
@@ -220,12 +224,16 @@ public class FileResource {
             LOGGER.warn("Invalid URI/URL", e);
         }
 
-        return ResponseEntity
+        ResponseEntity.BodyBuilder response = ResponseEntity
                 .status(HttpStatus.OK)
-                .contentType(MediaType.parseMediaType(fileMimeType))
-                .location(requestUri)
-                .eTag(nullToEmpty(md5))
-                .build();
+                .location(requestUri);
+        if (md5 != null) {
+            response.eTag(md5);
+        }
+        if(fileMimeType!=null) {
+            response.contentType(MediaType.parseMediaType(fileMimeType));
+        }
+        return response.build();
     }
 
 

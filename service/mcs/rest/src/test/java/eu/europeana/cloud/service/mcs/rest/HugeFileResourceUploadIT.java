@@ -12,7 +12,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -24,14 +23,12 @@ import java.security.MessageDigest;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postMultipartData;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,28 +42,15 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
 
     private static final int HUGE_FILE_SIZE = 200_000_000;
 
-
     @Before
     public void mockUp() {
         recordService = applicationContext.getBean(RecordService.class);
     }
 
-
     @After
     public void cleanUp() {
         reset(recordService);
     }
-
-    //new JerseyConfig().property("contextConfigLocation", "classpath:hugeFileResourceTestContext.xml");
-
-
-//    @Override
-//    protected void configureClient(ClientConfig config) {
-//        config.register(MultiPartFeature.class);
-//        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
-//                RequestEntityProcessing.CHUNKED);
-//    }
-
 
     @Test
     public void testUploadingHugeFile()
@@ -84,7 +68,7 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
 
         String target = UriComponentsBuilder.fromUriString(FILES_RESOURCE).build(globalId, schema, version).toString();
         byte[] content = FileCopyUtils.copyToByteArray(inputStream);
-        ResultActions response = mockMvc.perform(postMultipartData(target, MediaType.APPLICATION_OCTET_STREAM_VALUE, content))
+        ResultActions response = mockMvc.perform(postFile(target, MediaType.APPLICATION_OCTET_STREAM_VALUE, content))
                 .andExpect(status().is2xxSuccessful());
 
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
@@ -92,16 +76,14 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
         response.andExpect(header().string(HttpHeaders.ETAG,isEtag(contentMd5Hex)));
     }
 
-
     /**
      * Mock answer for
-     * {@link ContentService#putContent(eu.europeana.cloud.common.model.Representation, eu.europeana.cloud.common.model.File, java.io.InputStream)
+     * {@link RecordService#putContent(String,String,String, eu.europeana.cloud.common.model.File, java.io.InputStream)
      * putContent} method. Only counts bytes in input stream.
      */
     static class MockPutContentMethod implements Answer<Object> {
 
         int totalBytes;
-
 
         @Override
         public Object answer(InvocationOnMock invocation)
@@ -152,8 +134,7 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
 
 
         @Override
-        public int read()
-                throws IOException {
+        public int read() {
             if (readLength >= totalLength) {
                 return -1;
             } else {

@@ -6,7 +6,6 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.junit.Before;
@@ -48,8 +47,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     private UISClientHandler uisHandler;
 
     @Before
-    public void mockUp()
-            throws Exception {
+    public void mockUp() {
         dataProvider.setId("testprov");
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         Mockito.reset(uisHandler);
@@ -61,8 +59,6 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
                 .existsProvider(Mockito.anyString());
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
-        //dataSetWebTarget = RestInterfaceConstants.DATA_SET_RESOURCE;
-        //latelyRevisionedVersionWebTarget = dataSetWebTarget + "/latelyRevisionedVersion";
     }
 
     @Test
@@ -125,8 +121,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
         // when you list dataset contents
         ResultActions response = mockMvc.perform(
-                get(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)
-                        .accept(MediaType.APPLICATION_JSON))
+                get(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId))
                 .andExpect(status().isOk());
         List<Representation> dataSetContents = responseContentAsRepresentationResultSlice(response).getResults();
 
