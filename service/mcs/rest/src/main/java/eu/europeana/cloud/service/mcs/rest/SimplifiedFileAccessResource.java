@@ -13,8 +13,6 @@ import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.function.Consumer;
@@ -41,19 +38,19 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_F
  */
 @RestController
 @RequestMapping(SIMPLIFIED_FILE_ACCESS_RESOURCE)
-@Scope("request")
 public class SimplifiedFileAccessResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimplifiedFileAccessResource.class);
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+    private final UISClientHandler uisClientHandler;
+    private final PermissionEvaluator permissionEvaluator;
 
-    @Autowired
-    private UISClientHandler uisClientHandler;
-
-    @Autowired
-    private PermissionEvaluator permissionEvaluator;
+    public SimplifiedFileAccessResource(RecordService recordService, UISClientHandler uisClientHandler, PermissionEvaluator permissionEvaluator) {
+        this.recordService = recordService;
+        this.uisClientHandler = uisClientHandler;
+        this.permissionEvaluator = permissionEvaluator;
+    }
 
     /**
      * Returns file content from <b>latest persistent version</b> of specified representation.

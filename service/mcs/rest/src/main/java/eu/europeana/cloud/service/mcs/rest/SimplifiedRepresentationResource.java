@@ -11,8 +11,6 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,16 +23,17 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_R
  */
 @RestController
 @RequestMapping(SIMPLIFIED_REPRESENTATION_RESOURCE)
-@Scope("request")
 public class SimplifiedRepresentationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimplifiedRepresentationResource.class);
 
-    @Autowired
-    private UISClientHandler uisClientHandler;
+    private final UISClientHandler uisClientHandler;
+    private final RecordService recordService;
 
-    @Autowired
-    private RecordService recordService;
+    public SimplifiedRepresentationResource(UISClientHandler uisClientHandler, RecordService recordService) {
+        this.uisClientHandler = uisClientHandler;
+        this.recordService = recordService;
+    }
 
     /**
      * Returns the latest persistent version of a given representation.

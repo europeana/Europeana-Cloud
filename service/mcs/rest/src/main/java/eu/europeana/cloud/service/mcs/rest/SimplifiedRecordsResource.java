@@ -9,8 +9,6 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,14 +21,15 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_R
  */
 @RestController
 @RequestMapping(SIMPLIFIED_RECORDS_RESOURCE)
-@Scope("request")
 public class SimplifiedRecordsResource {
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+    private final UISClientHandler uisHandler;
 
-    @Autowired
-    private UISClientHandler uisHandler;
+    public SimplifiedRecordsResource(RecordService recordService, UISClientHandler uisHandler) {
+        this.recordService = recordService;
+        this.uisHandler = uisHandler;
+    }
 
     /**
      * Returns record with all representations

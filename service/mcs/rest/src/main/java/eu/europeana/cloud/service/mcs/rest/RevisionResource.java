@@ -13,8 +13,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,15 +33,16 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  * Created by Tarek on 8/2/2016.
  */
 @RestController
-@Scope("request")
 public class RevisionResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(RevisionResource.class.getName());
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+    private final DataSetService dataSetService;
 
-    @Autowired
-    private DataSetService dataSetService;
+    public RevisionResource(RecordService recordService, DataSetService dataSetService) {
+        this.recordService = recordService;
+        this.dataSetService = dataSetService;
+    }
 
     /**
      * Adds a new revision to representation version.
@@ -55,7 +54,7 @@ public class RevisionResource {
      * @param revisionName       the name of revision (required).
      * @param revisionProviderId revision provider id (required).
      * @param tag                tag flag (acceptance,published,deleted)
-     * @return URI to specific revision with specific tag inside a version.TODO
+     * @return URI to specific revision with specific tag inside a version.
      * @throws RepresentationNotExistsException representation does not exist in specified version
      * @throws RevisionIsNotValidException      if the added revision was not valid
      * @statuscode 201 object has been created.
@@ -90,7 +89,7 @@ public class RevisionResource {
      * <strong>Read permissions required.</strong>
      *
      * @param revision Revision (required).
-     * @return URI to revisions inside a version. TODO
+     * @return URI to revisions inside a version.
      * @throws RepresentationNotExistsException representation does not exist in specified version
      * @statuscode 201 object has been created.
      */
@@ -124,7 +123,7 @@ public class RevisionResource {
      * @param revisionName       the name of revision (required).
      * @param revisionProviderId revision provider id (required).
      * @param tags               set of tags (acceptance,published,deleted)
-     * @return URI to a revision tags inside a version.TODO
+     * @return URI to a revision tags inside a version.
      * @throws RepresentationNotExistsException representation does not exist in specified version
      * @throws RevisionIsNotValidException      if the added revision was not valid
      * @statuscode 201 object has been created.

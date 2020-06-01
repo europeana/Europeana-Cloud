@@ -7,8 +7,6 @@ import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,19 +15,20 @@ import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
 
-
 /**
  * Resource to manage representation versions.
  */
 @RestController
 @RequestMapping(REPRESENTATION_VERSIONS_RESOURCE)
-@Scope("request")
 public class RepresentationVersionsResource {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionsResource.class.getName());
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+
+    public RepresentationVersionsResource(RecordService recordService) {
+        this.recordService = recordService;
+    }
 
     /**
      * Lists all versions of record representation. Temporary versions will be
@@ -54,6 +53,4 @@ public class RepresentationVersionsResource {
 
         return new RepresentationsListWrapper(representationVersions);
     }
-
-
 }
