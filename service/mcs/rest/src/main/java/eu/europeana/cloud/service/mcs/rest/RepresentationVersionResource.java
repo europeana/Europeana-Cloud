@@ -7,8 +7,6 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,16 +27,16 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  * Resource to manage representation versions.
  */
 @RestController
-@Scope("request")
 public class RepresentationVersionResource {
 
     private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    private final RecordService recordService;
+    private final MutableAclService mutableAclService;
 
-    @Autowired
-    private RecordService recordService;
-
-    @Autowired
-    private MutableAclService mutableAclService;
+    public RepresentationVersionResource(RecordService recordService, MutableAclService mutableAclService) {
+        this.recordService = recordService;
+        this.mutableAclService = mutableAclService;
+    }
 
     /**
      * Returns representation in a specified version.
@@ -55,7 +53,7 @@ public class RepresentationVersionResource {
     @GetMapping(value = REPRESENTATION_VERSION, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public @ResponseBody  Representation getRepresentationVersion(
+    public @ResponseBody Representation getRepresentationVersion(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable String representationName,
@@ -115,7 +113,7 @@ public class RepresentationVersionResource {
     @PostMapping(value = REPRESENTATION_VERSION_PERSIST)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
-    public ResponseEntity<?> persistRepresentation(
+    public ResponseEntity<Void> persistRepresentation(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable String representationName,
@@ -144,7 +142,7 @@ public class RepresentationVersionResource {
     @PostMapping(value = REPRESENTATION_VERSION_COPY)
     @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public ResponseEntity<?> copyRepresentation(
+    public ResponseEntity<Void> copyRepresentation(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable String representationName,

@@ -106,7 +106,7 @@
                 <configuration>
                     <!-- valid until january 1st, 2020 -->
                     <licence>chjvamvjdhxlds5ldxjvcgvhbmeuy2xvdwquknwymdiwltaxltaxfhrydwv8ltejtumwq0zrq1dlrvjcztd4ywmyvvixrtzyyu5icitctxzod0lvsk1tqxl5swhlrexpmdfloex5mwl0v0zqyzvnpq==</licence>
-                    <restmodel>
+                    <restModel>
                         <httpstatuscodes>
                             <httpstatuscode>
                                 <httpcode>405</httpcode>
@@ -282,7 +282,7 @@
                                 <sourcedir>${project.parent.parent.basedir}/common/src/main/java</sourcedir>
                             </sourcedirs>
                         </externalsources>
-                    </restmodel>
+                    </restModel>
                     <analysis>
                         <checks>
                             <javadoc_missing_summary>warn</javadoc_missing_summary>
