@@ -1,5 +1,6 @@
 package eu.europeana.cloud.common.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -21,6 +22,7 @@ import java.util.List;
 @XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class, String.class, CloudVersionRevisionResponse.class, CloudIdAndTimestampResponse.class, CloudTagsResponse.class}) // references to all classes that might be used as generics parameters
 @JsonRootName("resultSlice")
 @JacksonXmlRootElement
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResultSlice<T> {
 
 	/**

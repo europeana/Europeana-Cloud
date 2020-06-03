@@ -720,7 +720,7 @@ public class DataSetServiceClient extends MCSClient {
                 .path(DATA_SET_BY_REPRESENTATION_REVISION)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(REVISION_NAME, revisionName)
-                .resolveTemplate(REVISION_PROVIDER_ID, revisionProvider)
+                .resolveTemplate(REVISION_PROVIDER, revisionProvider)
                 .resolveTemplate(DATA_SET_ID, dataSetId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
 

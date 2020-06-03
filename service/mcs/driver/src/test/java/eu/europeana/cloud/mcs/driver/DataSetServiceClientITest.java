@@ -1,14 +1,17 @@
 package eu.europeana.cloud.mcs.driver;
 
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -151,4 +154,87 @@ public class DataSetServiceClientITest {
         assertNotNull(response);
         assertNotNull(response.getResults());
     }
+
+
+    @Test
+    public void testGetDataSetsForProvider() throws MCSException {
+        String providerId = "metis_acceptance";
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        List<DataSet> response = mcsClient.getDataSetsForProvider(providerId);
+
+        assertNotNull(response);
+
+    }
+
+    @Test
+    public void testGetDataSetIteratorForProvider() {
+        String providerId = "metis_acceptance";
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        DataSetIterator it = mcsClient.getDataSetIteratorForProvider(providerId);
+
+        while (it.hasNext()) {
+            assertNotNull(it.next());
+        }
+    }
+
+    @Test
+    public void testGetDataSetRepresentations() throws MCSException {
+        String providerId = "metis_acceptance";
+        String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        List<Representation> result = mcsClient.getDataSetRepresentations(providerId, dataSetId);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetDataSetRevisions() throws MCSException {
+        String providerId = "metis_acceptance";
+        String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
+        String representationName = "metadataRecord";
+        String revisionName = "TRANSFORMATION";
+        String revisionProviderId = "metis_acceptance";
+        String revisionTimestamp = "2019-11-22T13:50:34.413Z";
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        List<CloudTagsResponse> result = mcsClient.getDataSetRevisions(providerId, dataSetId, representationName,
+                revisionName, revisionProviderId, revisionTimestamp);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void getLatestDataSetCloudIdByRepresentationAndRevision() throws MCSException {
+        String providerId = "metis_acceptance";
+        String dataSetId = "218068ec-aad2-4bd3-9421-9bfcefe92e2a";
+        String representationName = "metadataRecord";
+        String revisionName = "TRANSFORMATION";
+        String revisionProviderId = "metis_acceptance";
+
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        List<CloudIdAndTimestampResponse> result = mcsClient.getLatestDataSetCloudIdByRepresentationAndRevision(
+                dataSetId, providerId, revisionProviderId, revisionName, representationName, null);
+
+        assertNotNull(result);
+    }
+
+
+    @Test
+    public void getDataSetCloudIdsByRepresentation() throws MCSException {
+        String providerId = "metis_acceptance";
+        String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
+        String representationName = "metadataRecord";
+        String dateFrom = "2000-01-01T00:00:00.000Z";
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        List<CloudVersionRevisionResponse> result = mcsClient.getDataSetCloudIdsByRepresentation(dataSetId, providerId,
+                representationName, dateFrom, "published");
+
+        assertNotNull(result);
+    }
+
 }
