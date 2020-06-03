@@ -21,12 +21,8 @@ public class HarvesterImpl implements Harvester {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterImpl.class);
 
-    private static final ConnectionFactory DEFAULT_CONNECTION_FACTORY = new HarvesterImpl.ConnectionFactory() {
-        @Override
-        public OaiPmhConnection createConnection(String oaiPmhEndpoint, Parameters parameters) {
-            return new OaiPmhConnection(oaiPmhEndpoint, parameters);
-        }
-    };
+    private static final ConnectionFactory DEFAULT_CONNECTION_FACTORY = (oaiPmhEndpoint, parameters)
+            -> new OaiPmhConnection(oaiPmhEndpoint, parameters);
 
     private final int numberOfRetries;
     private final int timeBetweenRetries;
@@ -143,6 +139,8 @@ public class HarvesterImpl implements Harvester {
         private final int numberOfRetries;
         private HarvesterHttpOAIClient oaiClient;
 
+        private int counter = -1;
+
         public OAIHeaderIterator(Iterator<Header> headerIterator, int numberOfRetries, HarvesterHttpOAIClient oaiClient) {
             this.headerIterator = headerIterator;
             this.numberOfRetries = numberOfRetries;
@@ -154,6 +152,7 @@ public class HarvesterImpl implements Harvester {
             int retries = numberOfRetries;
             while (true) {
                 try {
+                    counter++;
                     return headerIterator.hasNext();
                 } catch (Exception e) {
                     if (retries-- > 0) {
@@ -161,14 +160,14 @@ public class HarvesterImpl implements Harvester {
                             oaiClient.closeResponse();
                         }
 
-                        LOGGER.warn("Error while getting the next batch: {}. Retries left {}. The cause of the error is {}", e.getMessage(), retries, e.getMessage() + " " + e.getCause());
+                        LOGGER.warn("Error while getting the next batch: {}. Retries left {}. The cause of the error is {}. [ hasNext counter = {}]", e.getMessage(), retries, e.getMessage() + " " + e.getCause(), counter);
                         HarvesterImpl.this.waitForSpecificTime();
                     } else {
                         LOGGER.error("Error while getting the next batch {}", e.getMessage());
                         throw new IllegalStateException(
                                 String.format("Error while getting the next batch of identifiers from the oai end-point." +
-                                        " Number of attempts: %d. Time between attempts: %.0g seconds",
-                                        numberOfRetries, (double)timeBetweenRetries/1000.0 ), e);
+                                        " Number of attempts: %d. Time between attempts: %.0g seconds; [hasNext counter = %d]",
+                                        numberOfRetries, (double)timeBetweenRetries/1000.0, counter), e);
                     }
                 }
             }
