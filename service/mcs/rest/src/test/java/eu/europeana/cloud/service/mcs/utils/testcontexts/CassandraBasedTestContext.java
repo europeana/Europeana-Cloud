@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
 
 import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
@@ -53,6 +54,11 @@ public class CassandraBasedTestContext {
     @Bean
     public PermissionsGrantingManager permissionsGrantingManager() {
         return mock(PermissionsGrantingManager.class);
+    }
+
+    @Bean
+    public PermissionEvaluator permissionEvaluator() {
+        return mock(PermissionEvaluator.class);
     }
 
     @Bean
