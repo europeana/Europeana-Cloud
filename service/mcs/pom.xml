@@ -19,7 +19,6 @@
         <module>api</module>
         <module>persistent</module>
         <module>rest</module>
-        <module>utils</module>
-        <module>driver</module> 
+        <module>driver</module>
     </modules>
 </project>
