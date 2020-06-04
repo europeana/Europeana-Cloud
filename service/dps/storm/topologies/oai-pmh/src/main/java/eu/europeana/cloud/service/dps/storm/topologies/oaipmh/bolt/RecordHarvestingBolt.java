@@ -119,7 +119,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
 
         try {
-            XPath xpath = XPathFactory.newInstance().newXPath();
+            XPath xpath = new net.sf.saxon.xpath.XPathFactoryImpl().newXPath();
             expr = xpath.compile(METADATA_XPATH);
             isDeletedExpression = xpath.compile(IS_DELETED_XPATH);
         } catch (Exception e) {
