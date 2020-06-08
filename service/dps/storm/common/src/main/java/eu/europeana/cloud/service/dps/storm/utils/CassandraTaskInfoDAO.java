@@ -102,6 +102,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
             throw new TaskInfoDoesNotExistException();
         }
         Row row = rs.one();
+        TaskInfo task = createTaskInfo(row);
+        return task;
+    }
+
+    public static TaskInfo createTaskInfo(Row row) {
         TaskInfo task = new TaskInfo(
                 row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID),
                 row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),

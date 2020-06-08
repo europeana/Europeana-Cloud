@@ -106,17 +106,6 @@ public interface DataSetService {
      */
     ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit);
 
-
-    /**
-     * Returns all data sets for particular version.
-     *
-     * @param cloudId            cloud Id
-     * @param representationName representation name
-     * @param version            version
-     * @return Set of data sets.
-     */
-    Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version);
-
     /**
      * Deletes data set.
      *

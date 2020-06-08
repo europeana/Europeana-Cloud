@@ -444,26 +444,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
                 "description of another");
     }
 
-    @Test
-    public void shouldProperlyGetListOfDataSetsForGivenVersion() throws Exception {
-        //given
-        makeUISProviderSuccess();
-        String dsName = "ds";
-        DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-                "description of this set");
-        Representation r1 = insertDummyPersistentRepresentation("cloud-id",
-                "schema", PROVIDER_ID);
-        insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID);
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
-                r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
-
-        //when
-        Map<String, Set<String>> dataSets = cassandraDataSetService.getDataSets(r1.getCloudId(), r1.getRepresentationName
-                (), r1.getVersion());
-        //then
-        assertThat(dataSets.size(), is(1));
-        assertThat(dataSets.get(r1.getDataProvider()), hasItem(dsName));
-    }
 
 
     private Representation insertDummyPersistentRepresentation(String cloudId,
