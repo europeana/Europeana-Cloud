@@ -119,12 +119,22 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
 
         try {
-            XPath xpath = new net.sf.saxon.xpath.XPathFactoryImpl().newXPath();
+            XPath xpath = prepareXPathInstance();
             expr = xpath.compile(METADATA_XPATH);
             isDeletedExpression = xpath.compile(IS_DELETED_XPATH);
         } catch (Exception e) {
             LOGGER.error("Exception while compiling the meta data xpath");
         }
+    }
+
+    private XPath prepareXPathInstance() {
+        /*
+        We are using non-standard XPatch implementation by purpose.
+        The standard one contains some static content that sometimes causes the threading issues.
+        Exception that we encountered was:
+            javax.xml.xpath.XPathExpressionException: org.xml.sax.SAXException: FWK005 parse may not be called while parsing.
+         */
+        return new net.sf.saxon.xpath.XPathFactoryImpl().newXPath();
     }
 
     private boolean parametersAreValid(String endpointLocation, String recordId, String metadataPrefix) {
