@@ -4,7 +4,6 @@ package eu.europeana.cloud.service.mcs.persistent.cassandra;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
-import com.google.common.base.Objects;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.utils.Bucket;
@@ -19,6 +18,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.*;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -41,6 +42,7 @@ public class CassandraDataSetDAO {
     private static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
 
     private static final String LATEST_DATASET_REPRESENTATION_REVISION_BUCKETS = "latest_dataset_representation_revision_buckets";
+    private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
 
     @Autowired
     @Qualifier("dbService")
@@ -522,7 +524,7 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<CompoundDataSetId> ids = new ArrayList<>();
         for (Row r : rs) {
-            String providerDataSetId = r.getString("provider_dataset_id");
+            String providerDataSetId = r.getString(PROVIDER_DATASET_ID);
             ids.add(createCompoundDataSetId(providerDataSetId));
         }
         return ids;
@@ -765,20 +767,6 @@ public class CassandraDataSetDAO {
             bucket = bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDatasetId, bucket);
         }
         return false;
-    }
-
-    public String createProviderDataSetId(String providerId, String dataSetId) {
-        return providerId + CDSID_SEPARATOR + dataSetId;
-    }
-
-    public CompoundDataSetId createCompoundDataSetId(String providerDataSetId) {
-        String[] values = providerDataSetId.split(CDSID_SEPARATOR);
-        if (values.length != 2) {
-            throw new IllegalArgumentException(
-                    "Cannot construct proper compound data set id from value: "
-                            + providerDataSetId);
-        }
-        return new CompoundDataSetId(values[0], values[1]);
     }
 
     public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId) {
@@ -1418,7 +1406,7 @@ public class CassandraDataSetDAO {
             }
             return rs.one().getDate("revision_timestamp");
         }
-        return null;
+            return null;
     }
 
 

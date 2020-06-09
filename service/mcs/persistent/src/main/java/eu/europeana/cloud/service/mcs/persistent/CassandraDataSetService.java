@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +109,8 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private boolean isAssignmentExists(String providerId, String dataSetId, String recordId, String schema, String version) {
-        CompoundDataSetId seekedId = dataSetDAO.createCompoundDataSetId(dataSetDAO.createProviderDataSetId(providerId, dataSetId));
+        String seekedIdString = PersistenceUtils.createProviderDataSetId(providerId, dataSetId);
+        CompoundDataSetId seekedId = PersistenceUtils.createCompoundDataSetId(seekedIdString);
         return dataSetDAO.getDataSetAssignments(recordId, schema, version).contains(seekedId);
     }
 
