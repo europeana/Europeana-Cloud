@@ -19,45 +19,4 @@ see implementation details http://jersey.java.net/nonav/documentation/latest/jax
 
      <display-name>Identifier Service Api</display-name>
 
-    <listener>
-        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-    </listener>
-    
-    <context-param>
-        <param-name>contextConfigLocation</param-name>
-        <param-value>classpath:*-context.xml</param-value>
-    </context-param>
-
-    <servlet>
-        <servlet-name>Unique Identifier Service Rest API</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>javax.ws.rs.Application</param-name>
-            <param-value>eu.europeana.cloud.service.uis.rest.JerseyConfig</param-value>
-        </init-param>
-        <init-param>
-            <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>eu.europeana.cloud.service.uis.rest,org.codehaus.jackson.jaxrs</param-value>
-        </init-param>
-        <init-param>
-            <param-name>org.glassfish.jersey.moxy.json.MoxyJsonFeature</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>Unique Identifier Service Rest API</servlet-name>
-        <url-pattern>/*</url-pattern>
-    </servlet-mapping>
-
-    <filter>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
 </web-app>

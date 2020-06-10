@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
-import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.IndexingNotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -36,20 +37,22 @@ public class IndexingTopology {
     private static final String INDEXING_PROPERTIES_FILE = "indexing.properties";
     public static final String SUCCESS_MESSAGE = "Record is indexed correctly";
 
-    private IndexingTopology(String defaultPropertyFile, String providedPropertyFile, String defaultIndexingPropertiesFile, String providedIndexingPropertiesFile) {
+    private IndexingTopology(String defaultPropertyFile, String providedPropertyFile,
+                             String defaultIndexingPropertiesFile, String providedIndexingPropertiesFile) {
+
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         PropertyFileLoader.loadPropertyFile(defaultIndexingPropertiesFile, providedIndexingPropertiesFile, indexingProperties);
     }
 
-    private StormTopology buildTopology(String indexingTopic, String ecloudMcsAddress) {
+    private StormTopology buildTopology(String ecloudMcsAddress) {
+
+        TopologyBuilder builder = new TopologyBuilder();
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
 
-        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, indexingTopic, ecloudMcsAddress);
-        TopologyBuilder builder = new TopologyBuilder();
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties);
 
-
-        builder.setSpout(SPOUT, mcsReaderSpout,
+        builder.setSpout(SPOUT, eCloudSpout,
                 getAnInt(KAFKA_SPOUT_PARALLEL))
                 .setNumTasks(getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS));
 
@@ -84,35 +87,33 @@ public class IndexingTopology {
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
+
         return builder.createTopology();
     }
 
     public static void main(String[] args) {
         try {
-            LOGGER.info("Assembling indexing topology");
+            LOGGER.info("Assembling '{}'", TopologiesNames.INDEXING_TOPOLOGY);
 
             if (args.length <= 2) {
+                String providedPropertyFile = (args.length > 0 ? args[0] : "");
+                String providedIndexingPropertiesFile = (args.length == 2 ? args[1] : "");
 
-                String providedIndexingPropertiesFile = "";
-                String providedPropertyFile = "";
-                if (args.length == 1)
-                    providedPropertyFile = args[0];
-                else if (args.length == 2) {
-                    providedPropertyFile = args[0];
-                    providedIndexingPropertiesFile = args[1];
-                }
-                IndexingTopology indexingTopology = new IndexingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, INDEXING_PROPERTIES_FILE, providedIndexingPropertiesFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-                // kafka topic == topology name
+                IndexingTopology indexingTopology =
+                        new IndexingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,
+                                INDEXING_PROPERTIES_FILE, providedIndexingPropertiesFile);
+
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = indexingTopology.buildTopology(topologyName, ecloudMcsAddress);
+                StormTopology stormTopology = indexingTopology.buildTopology(ecloudMcsAddress);
 
                 Config config = configureTopology(topologyProperties);
-                LOGGER.info("Submitting indexing topology");
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
+            LOGGER.error("General error while setting up topology", e);
         }
 
     }

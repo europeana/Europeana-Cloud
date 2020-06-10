@@ -141,7 +141,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     public void testSuccessfulProgressUpdateAfterBoltRecreate() throws Exception {
         long taskId = 1;
         int expectedSize =4;
-        String topologyName = null;
+        String topologyName = "";
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
@@ -237,7 +237,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         int expectedSize = 330;
         int errors = 5;
         int middle = (int) (Math.random() * expectedSize);
-        String topologyName = null;
+        String topologyName = "";
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);

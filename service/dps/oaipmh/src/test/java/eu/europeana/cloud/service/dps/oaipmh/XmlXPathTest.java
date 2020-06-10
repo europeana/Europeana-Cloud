@@ -7,7 +7,6 @@ import org.junit.Test;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -36,7 +35,7 @@ public class XmlXPathTest {
 
     @Before
     public void init() throws Exception {
-        XPath xpath = XPathFactory.newInstance().newXPath();
+        XPath xpath = new net.sf.saxon.xpath.XPathFactoryImpl().newXPath();
         expr = xpath.compile(EXPRESSION);
         isDeletedExpression = xpath.compile(IS_DELETED_XPATH);
     }
@@ -84,7 +83,7 @@ public class XmlXPathTest {
 
         try {
             //when
-            XPath xpath = XPathFactory.newInstance().newXPath();
+            XPath xpath = new net.sf.saxon.xpath.XPathFactoryImpl().newXPath();
             expr = xpath.compile("/some/bad/xpath");
             new XmlXPath(content).xpathToStream(expr);
             fail();

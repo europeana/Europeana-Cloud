@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.oaipmh;
 
-import org.w3c.dom.NodeList;
+import net.sf.saxon.om.NodeInfo;
 import org.xml.sax.InputSource;
 
-import javax.xml.XMLConstants;
 import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.*;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Class xpath on XML passed as {@code InputStream}.
@@ -34,7 +35,7 @@ class XmlXPath {
     InputStream xpathToStream(XPathExpression expr) throws HarvesterException {
         try {
             final InputSource inputSource = getInputSource();
-            final NodeList result = (NodeList) expr.evaluate(inputSource, XPathConstants.NODESET);
+            final ArrayList<NodeInfo> result = (ArrayList<NodeInfo>) expr.evaluate(inputSource, XPathConstants.NODESET);
             return convertToStream(result);
         } catch (XPathExpressionException | TransformerException e) {
             throw new HarvesterException("Cannot xpath XML!", e);
@@ -65,8 +66,8 @@ class XmlXPath {
         return expr.evaluate(inputSource);
     }
 
-    private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException {
-        final int length = nodes.getLength();
+    private InputStream convertToStream(ArrayList<NodeInfo> nodes) throws TransformerException, HarvesterException {
+        final int length = nodes.size();
         if (length < 1) {
             throw new HarvesterException("Empty XML!");
         } else if (length > 1) {
@@ -74,15 +75,13 @@ class XmlXPath {
             throw new HarvesterException("More than one XML!");
         }
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            Source xmlSource = new DOMSource(nodes.item(0));
             Result outputTarget = new StreamResult(outputStream);
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            TransformerFactory transformerFactory = new net.sf.saxon.TransformerFactoryImpl();
 
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.transform(nodes.get(0), outputTarget);
 
-            transformer.transform(xmlSource, outputTarget);
             return new ByteArrayInputStream(outputStream.toByteArray());
         } catch (IOException e) {
             // Cannot really happen.

@@ -13,9 +13,9 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CollectorWrapper;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.TaskQueueFiller;
+import eu.europeana.cloud.service.dps.storm.spout.CollectorWrapper;
+import eu.europeana.cloud.service.dps.storm.spout.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spout.TaskQueueFiller;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -23,7 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
+
 /**
  * Created by Tarek on 4/27/2018.
  */
@@ -59,12 +60,12 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
 
     TaskDownloader taskDownloader;
 
-    HttpKafkaSpout(SpoutConfig spoutConf) {
+    HttpKafkaSpout(KafkaSpoutConfig spoutConf) {
         super(spoutConf);
         taskDownloader = new TaskDownloader();
     }
 
-    public HttpKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public HttpKafkaSpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                           String userName, String password) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
 
@@ -92,7 +93,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         } catch (Exception e) {
             LOGGER.error("Spout error: {}", e.getMessage());
             if (stormTaskTuple != null)
-                cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
+                taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
         }
     }
 
@@ -113,13 +114,13 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
     private void deactivateWaitingTasks() {
         DpsTask dpsTask;
         while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
-            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+            taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of redeployment");
     }
 
     private void deactivateCurrentTask() {
         DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
         if (currentDpsTask != null) {
-            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+            taskStatusUpdater.setTaskDropped(currentDpsTask.getTaskId(), "The task was dropped because of redeployment");
         }
     }
 
@@ -167,14 +168,14 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
                     if (stormTaskTuple != null)
-                        cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
+                        taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
                 }
             }
         }
 
         private void startProgress(long taskId) {
             LOGGER.info("Start progressing for Task with id {}", currentDpsTask.getTaskId());
-            cassandraTaskInfoDAO.updateTask(taskId, "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
+            taskStatusUpdater.updateTask(taskId, "", String.valueOf(TaskState.CURRENTLY_PROCESSING), new Date());
 
         }
 
@@ -198,7 +199,7 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 if (!useDefaultIdentifiers) {
                     metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
                     if (StringUtils.isEmpty(metisDatasetId)) {
-                        cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because METIS_DATASET_ID not provided", TaskState.DROPPED.toString());
+                        taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because METIS_DATASET_ID not provided");
                         return;
                     }
                 }
@@ -209,11 +210,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                 fileUnpackingService.unpackFile(file.getAbsolutePath(), file.getParent() + File.separator);
                 Path start = Paths.get(new File(file.getParent()).toURI());
                 expectedSize = iterateOverFiles(start, stormTaskTuple, useDefaultIdentifiers, metisDatasetId);
-                cassandraTaskInfoDAO.setUpdateExpectedSize(stormTaskTuple.getTaskId(), expectedSize);
+                taskStatusUpdater.setUpdateExpectedSize(stormTaskTuple.getTaskId(), expectedSize);
             } finally {
                 removeTempFolder(file);
                 if (expectedSize == 0)
-                    cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because it is empty", TaskState.DROPPED.toString());
+                    taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because it is empty");
 
             }
         }
@@ -254,11 +255,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                         try {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
                         } catch (IOException | EuropeanaIdException e) {
-                            LOGGER.error(e.getMessage());
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
+                            LOGGER.error(e.getMessage(), e);
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage());
                         } catch (InterruptedException e) {
-                            LOGGER.error(e.getMessage());
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getCause());
+                            LOGGER.error(e.getMessage(), e);
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage());
                             Thread.currentThread().interrupt();
                         }
                         finally {

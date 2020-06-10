@@ -3,9 +3,14 @@ package eu.europeana.cloud.enrichment;
 import eu.europeana.cloud.enrichment.bolts.EnrichmentBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
+import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -14,7 +19,6 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Throwables;
 
 import java.util.Properties;
 
@@ -34,23 +38,22 @@ public class EnrichmentTopology {
     public EnrichmentTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-
     }
 
-    public StormTopology buildTopology(String enrichmentTopic, String ecloudMcsAddress) {
-
-
-        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, enrichmentTopic, ecloudMcsAddress);
-
+    public StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
+
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties);
+
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
-        EnrichmentBolt enrichmentBolt = new EnrichmentBolt(topologyProperties.getProperty(DEREFERENCE_SERVICE_URL), topologyProperties.getProperty(ENRICHMENT_SERVICE_URL));
-
+        EnrichmentBolt enrichmentBolt = new EnrichmentBolt(
+                topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),
+                topologyProperties.getProperty(ENRICHMENT_SERVICE_URL));
 
         // TOPOLOGY STRUCTURE!
-        builder.setSpout(SPOUT, mcsReaderSpout,
+        builder.setSpout(SPOUT, eCloudSpout,
                 (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
@@ -119,28 +122,24 @@ public class EnrichmentTopology {
 
     public static void main(String[] args) {
         try {
+            LOGGER.info("Assembling '{}'", TopologiesNames.ENRICHMENT_TOPOLOGY);
+
             if (args.length <= 1) {
+                String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
-                String providedPropertyFile = "";
-                if (args.length == 1) {
-                    providedPropertyFile = args[0];
-                }
+                EnrichmentTopology enrichmentTopology =
+                        new EnrichmentTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                EnrichmentTopology enrichmentTopology = new EnrichmentTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
-
-                // assuming kafka topic == topology name
-                String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = enrichmentTopology.buildTopology(
-                        kafkaTopic,
-                        ecloudMcsAddress);
+                StormTopology stormTopology = enrichmentTopology.buildTopology(ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
-
+            LOGGER.error("General error while setting up topology", e);
         }
     }
 

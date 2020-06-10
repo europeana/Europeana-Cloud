@@ -33,7 +33,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     /**
      * @param dbService The service exposing the connection and session
      */
-    private CassandraAttributeStatisticsDAO(CassandraConnectionProvider dbService) {
+    public CassandraAttributeStatisticsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
 

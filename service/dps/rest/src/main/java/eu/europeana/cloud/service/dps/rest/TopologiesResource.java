@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -13,35 +13,28 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Resource to manage topologies in the DPS service
  */
-@Path("/{topologyName}")
-@Component
+@RestController
+@RequestMapping("/{topologyName}")
 public class TopologiesResource {
 
-    @Autowired
-    private TaskExecutionReportService dps;
-
-    @Autowired
-    private MutableAclService mutableAclService;
-
-    @Autowired
-    private TopologyManager topologyManager;
-
-    private final static String TOPOLOGY_PREFIX = "Topology";
-
+    private static final String TOPOLOGY_PREFIX = "Topology";
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
+    private final MutableAclService mutableAclService;
+    private final TopologyManager topologyManager;
+
+    public TopologiesResource(MutableAclService mutableAclService, TopologyManager topologyManager) {
+        this.mutableAclService = mutableAclService;
+        this.topologyManager = topologyManager;
+    }
 
     /**
      * Grants user with given username read/ write permissions for the requested topology.
-     *
+     * <p>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
      * 		<strong>Required permissions:</strong>
@@ -50,23 +43,35 @@ public class TopologiesResource {
      * 			</ul>
      * </div>
      *
-     * @summary Grant topology permissions
      * @param topology <strong>REQUIRED</strong> Name of the topology.
      * @param userName <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
-     *
      * @return Empty response with status code indicating whether the operation was successful or not.
+     * @summary Grant topology permissions
      */
-    @Path("/permit")
-    @POST
+    @PostMapping(path = "/permit", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-    public Response grantPermissionsToTopology(@FormParam("username") String userName, @PathParam("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException{
+    public ResponseEntity<Void> grantPermissionsToTopology(
+            @RequestParam("username") String userName,
+            @PathVariable("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+
+        LOGGER.info("Adding permissions for user '{}' to topology: '{}'", userName, topology);
         assertContainTopology(topology);
+        addPermissionsToTopology(topology, userName);
+        return ResponseEntity.ok().build();
+    }
+
+    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+        if (!topologyManager.containsTopology(topology)) {
+            throw new AccessDeniedOrTopologyDoesNotExistException();
+        }
+    }
+
+    private void addPermissionsToTopology(String topology, String userName) {
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
-        MutableAcl topologyAcl = null;
+        MutableAcl topologyAcl;
 
         try {
-            topologyAcl = (MutableAcl)mutableAclService.readAclById(topologyIdentity);
+            topologyAcl = (MutableAcl) mutableAclService.readAclById(topologyIdentity);
 
         } catch (Exception e) {
             // not really an exception
@@ -77,13 +82,5 @@ public class TopologiesResource {
 
         topologyAcl.insertAce(topologyAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(userName), true);
         mutableAclService.updateAcl(topologyAcl);
-
-        return Response.ok().build();
-    }
-
-    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
-        if(!topologyManager.containsTopology(topology)){
-            throw new AccessDeniedOrTopologyDoesNotExistException();
-        }
     }
 }

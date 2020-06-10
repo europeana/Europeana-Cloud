@@ -53,7 +53,7 @@ public class EDMEnrichmentBoltTest {
         edmEnrichmentBolt.cache.clear();
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
-        stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, FILE_URL);
+        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
     }
 

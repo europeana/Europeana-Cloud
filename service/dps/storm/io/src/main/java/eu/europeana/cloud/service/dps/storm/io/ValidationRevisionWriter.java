@@ -27,7 +27,7 @@ public class ValidationRevisionWriter extends RevisionWriterBolt {
             addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
             emitSuccessNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), successNotificationMessage, "", "");
         } catch (MalformedURLException e) {
-            LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA));
+            LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());

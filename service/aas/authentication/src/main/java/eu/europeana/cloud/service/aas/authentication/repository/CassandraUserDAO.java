@@ -159,7 +159,7 @@ public class CassandraUserDAO {
 
 	try {
 	    BoundStatement boundStatement = updateUserStatement.bind(
-		    user.getUsername(), user.getPassword());
+		    user.getPassword(), user.getUsername());
 	    provider.getSession().execute(boundStatement);
 	} catch (NoHostAvailableException e) {
 	    throw new DatabaseConnectionException(

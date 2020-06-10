@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>1.10.0-SNAPSHOT</version>
+        <version>1.10.0</version>
     </parent>
 
     <artifactId>ecloud-service-mcs-rest</artifactId>
@@ -591,6 +591,12 @@
             <groupId>com.qmino</groupId>
             <artifactId>miredot-annotations</artifactId>
             <version>1.3</version>
+        </dependency>
+        <dependency>
+            <artifactId>guava</artifactId>
+            <groupId>com.google.guava</groupId>
+            <type>jar</type>
+            <version>${version.guava}</version>
         </dependency>
     </dependencies>
 </project>

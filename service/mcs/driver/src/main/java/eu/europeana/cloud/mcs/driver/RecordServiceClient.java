@@ -578,6 +578,17 @@ public class RecordServiceClient extends MCSClient {
         handleDeleteRequest(request);
     }
 
+    public void deleteRepresentation(String cloudId, String representationName, String version, String key, String value)
+            throws MCSException {
+        WebTarget webtarget = client.target(baseUrl).path(versionPath)
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+        Builder request = webtarget.request().header(key, value);
+
+        handleDeleteRequest(request);
+    }
+
     private void handleDeleteRequest(Builder request) throws MCSException {
         Response response = null;
         try {
@@ -816,6 +827,49 @@ public class RecordServiceClient extends MCSClient {
         }
 
         Builder request = webtarget.request();
+
+        Response response = null;
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                return response.readEntity(new GenericType<List<Representation>>() {
+                });
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } catch (MessageBodyProviderNotFoundException e) {
+            String out = webtarget.getUri().toString();
+            throw new MCSException(out, e);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    public List<Representation> getRepresentationsByRevision(
+            String cloudId,
+            String representationName,
+            String revisionName,
+            String revisionProviderId,
+            String revisionTimestamp,
+            String key,
+            String value)
+            throws MCSException {
+        WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
+                .resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(P_REVISION_NAME, revisionName);
+
+        if (revisionProviderId != null) {
+            webtarget = webtarget.queryParam(F_REVISION_PROVIDER_ID, revisionProviderId);
+        } else
+            throw new MCSException("RevisionProviderId is required");
+        // revision timestamp is optional
+        if (revisionTimestamp != null) {
+            webtarget = webtarget.queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
+        }
+
+        Builder request = webtarget.request().header(key, value);
 
         Response response = null;
         try {

@@ -1,16 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CollectorWrapper;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.TaskQueueFiller;
+import eu.europeana.cloud.service.dps.storm.spout.CollectorWrapper;
+import eu.europeana.cloud.service.dps.storm.spout.CustomKafkaSpout;
+import eu.europeana.cloud.service.dps.storm.spout.TaskQueueFiller;
 //import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.spout.job.IdentifierHarvester;
-import org.apache.storm.kafka.SpoutConfig;
+//import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -35,10 +35,9 @@ public class OAISpout extends CustomKafkaSpout {
     private SpoutOutputCollector collector;
     private TaskDownloader taskDownloader;
 
-    public OAISpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
+    public OAISpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                     String userName, String password) {
         super(spoutConf, hosts, port, keyspaceName, userName, password);
-
     }
 
 
@@ -68,7 +67,7 @@ public class OAISpout extends CustomKafkaSpout {
         } catch (Exception e) {
             LOGGER.error("Spout error: {}", e.getMessage());
             if (stormTaskTuple != null)
-                cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
+                taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
         }
     }
 
@@ -89,13 +88,13 @@ public class OAISpout extends CustomKafkaSpout {
     private void deactivateWaitingTasks() {
         DpsTask dpsTask;
         while ((dpsTask = taskDownloader.taskQueue.poll()) != null)
-            cassandraTaskInfoDAO.dropTask(dpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+            taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task was dropped because of redeployment");
     }
 
     private void deactivateCurrentTask() {
         DpsTask currentDpsTask = taskDownloader.getCurrentDpsTask();
         if (currentDpsTask != null) {
-            cassandraTaskInfoDAO.dropTask(currentDpsTask.getTaskId(), "The task was dropped because of redeployment", TaskState.DROPPED.toString());
+            taskStatusUpdater.setTaskDropped(currentDpsTask.getTaskId(), "The task was dropped because of redeployment");
         }
     }
 
@@ -149,7 +148,7 @@ public class OAISpout extends CustomKafkaSpout {
                 } catch (Exception e) {
                     LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage());
                     if (stormTaskTuple != null)
-                        cassandraTaskInfoDAO.dropTask(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage(), TaskState.DROPPED.toString());
+                        taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
                 }
             }
         }

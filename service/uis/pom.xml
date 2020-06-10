@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
 		<artifactId>ecloud-parent</artifactId>
-		<version>1.10.0-SNAPSHOT</version>
+		<version>1.10.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>ecloud-service-uis</artifactId>
@@ -19,9 +19,7 @@
 	
 	<modules>
 		<module>api</module>
-		<module>persistent</module>
 		<module>rest</module>
 		<module>rest-client-java</module>
-		<module>utils</module>
 	</modules>
 </project>

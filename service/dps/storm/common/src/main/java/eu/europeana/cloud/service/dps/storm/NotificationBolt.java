@@ -14,6 +14,7 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
@@ -53,7 +54,8 @@ public class NotificationBolt extends BaseRichBolt {
 
     protected String topologyName;
     private CassandraConnectionProvider cassandraConnectionProvider;
-    protected CassandraTaskInfoDAO taskInfoDAO;
+    private CassandraTaskInfoDAO taskInfoDAO;
+    protected TaskStatusUpdater taskStatusUpdater;
     private CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected ProcessedRecordsDAO processedRecordsDAO;
     private CassandraTaskErrorsDAO taskErrorDAO;
@@ -101,7 +103,7 @@ public class NotificationBolt extends BaseRichBolt {
             return;
         } catch (Exception ex) {
             LOGGER.error("Problem with store notification because: {}",
-                    ex.getMessage());
+                    ex.getMessage(), ex);
             return;
         }
     }
@@ -135,7 +137,7 @@ public class NotificationBolt extends BaseRichBolt {
         }
         if(isCounterUpdateRequired(nCache)){
             LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
-            taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
+            taskStatusUpdater.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
             nCache.setLastCounterUpdate(new Date());
         }
     }
@@ -224,6 +226,7 @@ public class NotificationBolt extends BaseRichBolt {
         cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
@@ -251,7 +254,7 @@ public class NotificationBolt extends BaseRichBolt {
 
         while (true) {
             try {
-                taskInfoDAO.updateTask(taskId, info, state, startDate);
+                taskStatusUpdater.updateTask(taskId, info, state, startDate);
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
@@ -286,7 +289,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskInfoDAO.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {

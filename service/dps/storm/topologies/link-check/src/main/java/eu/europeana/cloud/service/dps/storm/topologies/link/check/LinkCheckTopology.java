@@ -1,13 +1,14 @@
 package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
-import com.google.common.base.Throwables;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileBolt;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -37,13 +38,12 @@ public class LinkCheckTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String mediaTopic, String ecloudMcsAddress) {
-
+    public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
-        MCSReaderSpout mcsReaderSpout = getMcsReaderSpout(topologyProperties, mediaTopic, ecloudMcsAddress);
 
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties);
 
-        builder.setSpout(SPOUT, mcsReaderSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
+        builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
         builder.setBolt(PARSE_FILE_BOLT, new ParseFileBolt(ecloudMcsAddress),
@@ -55,7 +55,6 @@ public class LinkCheckTopology {
                 (getAnInt(LINK_CHECK_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(LINK_CHECK_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
-
 
         builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
@@ -72,7 +71,6 @@ public class LinkCheckTopology {
                 .fieldsGrouping(LINK_CHECK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
-
         return builder.createTopology();
     }
 
@@ -82,28 +80,22 @@ public class LinkCheckTopology {
 
     public static void main(String[] args) {
         try {
+            LOGGER.info("Assembling '{}'", TopologiesNames.INDEXING_TOPOLOGY);
             if (args.length <= 1) {
-
-                String providedPropertyFile = "";
-                if (args.length == 1) {
-                    providedPropertyFile = args[0];
-                }
+                String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
                 LinkCheckTopology linkCheckTopology = new LinkCheckTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
-                String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
 
-                // assuming kafka topic == topology name
-                String kafkaTopic = topologyName;
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = linkCheckTopology.buildTopology(
-                        kafkaTopic,
-                        ecloudMcsAddress);
+                StormTopology stormTopology = linkCheckTopology.buildTopology(ecloudMcsAddress);
                 Config config = configureTopology(topologyProperties);
-                StormSubmitter.submitTopology(topologyName, config, stormTopology);
+                LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+            } else {
+                LOGGER.error("Invalid number of parameters");
             }
         } catch (Exception e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
-
+            LOGGER.error("General error while setting up topology", e);
         }
     }
 }

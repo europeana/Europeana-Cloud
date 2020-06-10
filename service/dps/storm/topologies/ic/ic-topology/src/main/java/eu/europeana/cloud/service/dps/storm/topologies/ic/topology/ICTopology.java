@@ -4,7 +4,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSReaderSpout;
+import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 
@@ -31,7 +31,7 @@ import static java.lang.Integer.parseInt;
  * apply Kakadu conversion to each record which was read and save it back to the
  * cloud.
  */
-
+@Deprecated
 public class ICTopology {
 
     private static Properties topologyProperties;

@@ -131,7 +131,7 @@ public class IndexingRevisionWriterTest {
         DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters();
         dataSetCleanerParameters.setCleaningDate(new Date());
         dataSetCleanerParameters.setDataSetId("DATASET_ID");
-        dataSetCleanerParameters.setIsUsingALtEnv(true);
+        dataSetCleanerParameters.setUsingAltEnv(true);
         dataSetCleanerParameters.setTargetIndexingEnv("PREVIEW");
         return dataSetCleanerParameters;
     }
