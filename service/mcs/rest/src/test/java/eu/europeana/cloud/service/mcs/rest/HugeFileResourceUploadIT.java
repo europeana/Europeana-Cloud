@@ -1,79 +1,56 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.RequestEntityProcessing;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
+import eu.europeana.cloud.test.CassandraTestRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * This tests checks if content is streamed (not put entirely into memory) when uploading file.
  */
-public class HugeFileResourceUploadIT extends JerseyTest {
+@RunWith(CassandraTestRunner.class)
+public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest {
 
     private static RecordService recordService;
 
-    private static final int HUGE_FILE_SIZE = 1 << 30;
-
+    private static final int HUGE_FILE_SIZE = 200_000_000;
 
     @Before
-    public void mockUp()
-            throws Exception {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+    public void mockUp() {
         recordService = applicationContext.getBean(RecordService.class);
     }
 
-
     @After
-    public void cleanUp()
-            throws Exception {
+    public void cleanUp() {
         reset(recordService);
     }
-
-
-    @Override
-    public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:hugeFileResourceTestContext.xml");
-    }
-
-
-    @Override
-    protected void configureClient(ClientConfig config) {
-        config.register(MultiPartFeature.class);
-        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
-                RequestEntityProcessing.CHUNKED);
-    }
-
 
     @Test
     public void testUploadingHugeFile()
@@ -83,40 +60,30 @@ public class HugeFileResourceUploadIT extends JerseyTest {
         // mock answers
         MockPutContentMethod mockPutContent = new MockPutContentMethod();
         doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
-            any(InputStream.class));
+                any(InputStream.class));
 
-        WebTarget webTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(
-            ImmutableMap.<String, Object> of( //
-                ParamConstants.P_CLOUDID, globalId, //
-                ParamConstants.P_REPRESENTATIONNAME, schema, //
-                ParamConstants.P_VER, version));
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
 
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME,
-            MediaType.APPLICATION_OCTET_STREAM).field(ParamConstants.F_FILE_DATA, inputStream,
-            MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        String target = UriComponentsBuilder.fromUriString(FILES_RESOURCE).build(globalId, schema, version).toString();
+        byte[] content = FileCopyUtils.copyToByteArray(inputStream);
+        ResultActions response = mockMvc.perform(postFile(target, MediaType.APPLICATION_OCTET_STREAM_VALUE, content))
+                .andExpect(status().is2xxSuccessful());
 
-        Response response = webTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-
-        assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
-
         String contentMd5Hex = BaseEncoding.base16().lowerCase().encode(md.digest());
-        assertEquals("Content hash mismatch", contentMd5Hex, response.getEntityTag().getValue());
+        response.andExpect(header().string(HttpHeaders.ETAG,isEtag(contentMd5Hex)));
     }
-
 
     /**
      * Mock answer for
-     * {@link ContentService#putContent(eu.europeana.cloud.common.model.Representation, eu.europeana.cloud.common.model.File, java.io.InputStream)
+     * {@link RecordService#putContent(String,String,String, eu.europeana.cloud.common.model.File, java.io.InputStream)
      * putContent} method. Only counts bytes in input stream.
      */
     static class MockPutContentMethod implements Answer<Object> {
 
         int totalBytes;
-
 
         @Override
         public Object answer(InvocationOnMock invocation)
@@ -167,8 +134,7 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
 
         @Override
-        public int read()
-                throws IOException {
+        public int read() {
             if (readLength >= totalLength) {
                 return -1;
             } else {

@@ -1,11 +1,14 @@
 package eu.europeana.cloud.common.response;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Rest response that is returned if some error occurred.
  */
 @XmlRootElement
+@JsonRootName("errorInfo")
 public class ErrorInfo {
 
 	/**

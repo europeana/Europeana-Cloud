@@ -30,7 +30,8 @@ public class SimpleSwiftConnectionProvider implements SwiftConnectionProvider {
     /**
      * Class constructor. Establish connection to Openstack Swift endpoint using
      * provided configuration.
-     * 
+     *
+     *            Swift endpoint URL
      * @param provider
      *            provider name. Pass "transient" if you want to use in-memory
      *            implementation for tests, and "swift" for accessing live
@@ -38,7 +39,6 @@ public class SimpleSwiftConnectionProvider implements SwiftConnectionProvider {
      * @param container
      *            name of the Swift container (namespace)
      * @param endpoint
-     *            Swift endpoint URL
      * @param user
      *            user identity
      * @param password

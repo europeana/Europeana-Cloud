@@ -1,5 +1,12 @@
 package eu.europeana.cloud.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.ArrayList;
@@ -11,7 +18,15 @@ import java.util.Objects;
  * Representation of a record in specific version.
  */
 @XmlRootElement
+@JacksonXmlRootElement
+@JsonRootName(Representation.XSI_TYPE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Representation {
+
+    final static String XSI_TYPE = "representation";
+
+    @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
+    private final String xsiType = XSI_TYPE;
 
     /**
      * Identifier (cloud id) of a record this object is representation of.
@@ -46,12 +61,14 @@ public class Representation {
     /**
      * A list of files which constitute this representation.
      */
-    private List<File> files = new ArrayList<File>(0);
+    @JacksonXmlElementWrapper(useWrapping = false)
+    private List<File> files = new ArrayList<>(0);
 
     /**
      * If this is temporary representation version: date of this object creation; If this is persistent representation
      * version: date of making this object persistent.
      */
+    //@XmlJavaTypeAdapter(DateAdapter.class)
     private Date creationDate;
 
     /**
@@ -71,6 +88,7 @@ public class Representation {
     /**
      * A list of revisions which constitute this representation.
      */
+    @JacksonXmlElementWrapper(useWrapping = false)
     private List<Revision> revisions = new ArrayList<Revision>(0);
 
 
@@ -108,7 +126,7 @@ public class Representation {
         this.files = files;
         this.revisions = revisions;
         this.persistent = persistent;
-        this.creationDate = creationDate != null ? creationDate : null;
+        this.creationDate = creationDate;
     }
 
 
@@ -231,12 +249,13 @@ public class Representation {
 
 
     public void setCreationDate(Date creationDate) {
-        this.creationDate = creationDate != null ? creationDate : null;
+        this.creationDate = creationDate;
     }
 
     /**
      * This method is required for @PostFilter (Spring ACL) at RepresentationsResource.getRepresentations()
      */
+    @JsonIgnore
     public String getId() {
         return getACLId();
     }

@@ -277,7 +277,7 @@ public class CassandraDataSetService implements DataSetService {
         // check if dataset exists
         DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
         if (ds != null) {
-            throw new DataSetAlreadyExistsException();
+            throw new DataSetAlreadyExistsException("Data set with provided name already exists");
         }
 
         return dataSetDAO

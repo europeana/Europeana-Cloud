@@ -6,12 +6,12 @@ import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -19,49 +19,43 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_RESOURCE;
 
 /**
  * Handles uploading the file when representation is not created yet.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/files")
-@Component
-@Scope("request")
+@RestController
+@RequestMapping(FILE_UPLOAD_RESOURCE)
 public class FileUploadResource {
 
-    @Autowired
-    private RecordService recordService;
+    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    private final RecordService recordService;
+    private final MutableAclService mutableAclService;
+    private final Integer objectStoreSizeThreshold;
 
-    @Autowired
-    private MutableAclService mutableAclService;
-
-    @Autowired
-    private Integer objectStoreSizeThreshold;
-
-
-    private final String REPRESENTATION_CLASS_NAME = Representation.class
-            .getName();
+    public FileUploadResource(
+            RecordService recordService,
+            MutableAclService mutableAclService,
+            Integer objectStoreSizeThreshold) {
+        this.recordService = recordService;
+        this.mutableAclService = mutableAclService;
+        this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+    }
 
     /**
      * 
      * Creates representation, uploads file and persists this representation in one request
-     * @param uriInfo
-     * @param globalId      cloudId
-     * @param schema        representation name
+     * @param httpServletRequest
+     * @param cloudId      cloudId
+     * @param representationName        representation name
      * @param fileName      file name
      * @param providerId    providerId
      * @param mimeType      mimeType of uploaded file
@@ -78,73 +72,61 @@ public class FileUploadResource {
      * 
      * @summary Upload file for non existing representation
      */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @PreAuthorize("isAuthenticated()")
-    public Response sendFile(@Context UriInfo uriInfo,
-                             @PathParam(P_CLOUDID) String globalId,
-                             @PathParam(P_REPRESENTATIONNAME) String schema,
-                             @FormDataParam(F_FILE_NAME) String fileName,
-                             @FormDataParam(F_PROVIDER) String providerId,
-                             @FormDataParam(F_FILE_MIME) String mimeType,
-                             @FormDataParam(F_FILE_DATA) InputStream data)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-            FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, FileAlreadyExistsException,
-            AccessDeniedOrObjectDoesNotExistException, CannotPersistEmptyRepresentationException {
-        ParamUtil.require(F_FILE_NAME,fileName);
-        ParamUtil.require(F_PROVIDER,providerId);
-        ParamUtil.require(F_FILE_DATA, data);
-        ParamUtil.require(F_FILE_MIME, mimeType);
+    public ResponseEntity<?> sendFile(
+            HttpServletRequest httpServletRequest,
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @RequestParam String fileName,
+            @RequestParam String providerId,
+            @RequestParam String mimeType ,
+            @RequestParam MultipartFile data) throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, RecordNotExistsException,
+            ProviderNotExistsException, FileAlreadyExistsException, CannotPersistEmptyRepresentationException, IOException {
 
-        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
+        PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
 
-        Representation representation = null;
-        representation = recordService.createRepresentation(globalId, schema, providerId);
+        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId);
         addPrivilegesToRepresentation(representation);
 
         File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
         persistRepresentation(representation);
 
-        EnrichUriUtil.enrich(uriInfo, globalId, schema, representation.getVersion(), file);
-        return Response.created(file.getContentUri()).tag(file.getMd5()).build();
+        EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, representation.getVersion(), file);
+
+        return ResponseEntity
+                .created(file.getContentUri())
+                .eTag(file.getMd5())
+                .build();
     }
     
     private void addPrivilegesToRepresentation(Representation representation) {
         String creatorName = SpringUserUtils.getUsername();
 
         if (creatorName != null) {
-
             ObjectIdentity versionIdentity = new ObjectIdentityImpl(
-                    REPRESENTATION_CLASS_NAME, representation.getCloudId() + "/" + representation.getRepresentationName() + "/"
-                    + representation.getVersion());
+                    REPRESENTATION_CLASS_NAME,
+                    representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion());
 
-            MutableAcl versionAcl = mutableAclService
-                    .createAcl(versionIdentity);
+            MutableAcl versionAcl = mutableAclService.createAcl(versionIdentity);
 
-            versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(
-                    creatorName), true);
-            versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(
-                    creatorName), true);
-            versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(
-                    creatorName), true);
-            versionAcl.insertAce(3, BasePermission.ADMINISTRATION,
-                    new PrincipalSid(creatorName), true);
+            versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+            versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+            versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+            versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
 
             mutableAclService.updateAcl(versionAcl);
         }
     }
 
-    private File addFileToRepresentation(Representation representation, InputStream data,
-                                         String mimeType, String fileName, Storage storage)
-            throws
-            RepresentationNotExistsException,
-            FileAlreadyExistsException,
-            CannotModifyPersistentRepresentationException {
+    private File addFileToRepresentation(
+            Representation representation, InputStream data,  String mimeType, String fileName, Storage storage)
+                throws RepresentationNotExistsException, FileAlreadyExistsException, CannotModifyPersistentRepresentationException {
+
         File f = new File();
         f.setMimeType(mimeType);
-
-
         f.setFileStorage(storage);
 
         if (fileName != null) {
@@ -170,7 +152,10 @@ public class FileUploadResource {
         return f;
     }
 
-    private void persistRepresentation(Representation representation) throws CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, RepresentationNotExistsException {
+    private void persistRepresentation(Representation representation) throws
+            CannotModifyPersistentRepresentationException,
+            CannotPersistEmptyRepresentationException,
+            RepresentationNotExistsException {
         recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
     }
 }

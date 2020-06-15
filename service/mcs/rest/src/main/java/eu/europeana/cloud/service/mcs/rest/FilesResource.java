@@ -6,48 +6,42 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.io.InputStream;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.URI;
 import java.util.UUID;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
 
 /**
  * FilesResource
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
-		+ "}/versions/{" + P_VER + "}/files")
-@Component
-@Scope("request")
+@RestController
+@RequestMapping(FILES_RESOURCE)
 public class FilesResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
 
-	@Autowired
-	private RecordService recordService;
-	@Autowired
-	private MutableAclService mutableAclService;
-	@Autowired
-	private Integer objectStoreSizeThreshold;
+	private static final Logger LOGGER = LoggerFactory.getLogger(FilesResource.class.getName());
+	private final RecordService recordService;
+	private final Integer objectStoreSizeThreshold;
+
+	public FilesResource(
+			RecordService recordService,
+			Integer objectStoreSizeThreshold) {
+		this.recordService = recordService;
+		this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+	}
 
 	/**
 	 * Adds a new file to representation version. URI to created resource will
@@ -63,9 +57,9 @@ public class FilesResource {
 	 * </ul>
 	 *
 	 * <strong>Write permissions required.</strong>
-	 *@summary Add a new file to a representation version
-	 * @param globalId cloud id of the record (required).
-	 * @param schema schema of representation (required).
+	 * @summary Add a new file to a representation version
+	 * @param cloudId cloud id of the record (required).
+	 * @param representationName schema of representation (required).
 	 * @param version a specific version of the representation(required).
 	 * @param mimeType
 	 *            mime type of file
@@ -85,31 +79,26 @@ public class FilesResource {
 	 * @throws FileAlreadyExistsException
 	 *             specified file already exist.
 	 */
-	@POST
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
-	public Response sendFile(@Context UriInfo uriInfo,
-			@PathParam(P_CLOUDID) final String globalId,
-			@PathParam(P_REPRESENTATIONNAME) final String schema,
-			@PathParam(P_VER) final String version,
-			@FormDataParam(F_FILE_MIME) String mimeType,
-			@FormDataParam(F_FILE_DATA) InputStream data,
-			@FormDataParam(F_FILE_NAME) String fileName)
-			throws RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException,
-			FileAlreadyExistsException {
-		ParamUtil.require(F_FILE_DATA, data);
-        ParamUtil.require(F_FILE_MIME, mimeType);
+	public ResponseEntity<URI> sendFile(
+			HttpServletRequest httpServletRequest,
+			@PathVariable final String cloudId,
+			@PathVariable final String representationName,
+			@PathVariable final String version,
+			@RequestParam String mimeType,
+			@RequestParam MultipartFile data,
+			@RequestParam(required = false) String fileName) throws RepresentationNotExistsException,
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException {
 
 		File f = new File();
 		f.setMimeType(mimeType);
-		PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
+		PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
 		f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 		if (fileName != null) {
 			try {
-				File temp = recordService.getFile(globalId, schema, version,
-						fileName);
+				File temp = recordService.getFile(cloudId, representationName, version, fileName);
 				if (temp != null) {
 					throw new FileAlreadyExistsException(fileName);
 				}
@@ -123,13 +112,20 @@ public class FilesResource {
 		}
 		f.setFileName(fileName);
 
-		recordService.putContent(globalId, schema, version, f, prebufferedInputStream);
+		recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
 		IOUtils.closeQuietly(prebufferedInputStream);
-		EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
-		LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
-				globalId, schema, version, f.getContentUri()));
+		EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
 
-		return Response.created(f.getContentUri()).tag(f.getMd5()).build();
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
+					cloudId, representationName, version, f.getContentUri()));
+		}
+
+		ResponseEntity.BodyBuilder response = ResponseEntity.created(f.getContentUri());
+		if (f.getMd5() != null) {
+			response.eTag(f.getMd5());
+		}
+		return response.build();
 	}
 
 }

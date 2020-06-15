@@ -1,5 +1,8 @@
 package eu.europeana.cloud.common.response;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Objects;
 
@@ -7,7 +10,13 @@ import java.util.Objects;
  * Association between cloud identifier, version identifier and revision identifier.
  */
 @XmlRootElement
+@JsonRootName(CloudVersionRevisionResponse.XSI_TYPE)
 public class CloudVersionRevisionResponse implements Comparable {
+
+    final static String XSI_TYPE = "cloudVersionRevisionResponse";
+
+    @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
+    private final String xsiType = XSI_TYPE;
 
     /**
      * Identifier (cloud id) of a record.

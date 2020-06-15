@@ -8,39 +8,33 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_LOCALID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_RECORDS_RESOURCE;
 
 /**
  * Gives (read) access to record stored in ecloud in simplified (friendly) way.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}")
-@Component
-@Scope("request")
+@RestController
+@RequestMapping(SIMPLIFIED_RECORDS_RESOURCE)
 public class SimplifiedRecordsResource {
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+    private final UISClientHandler uisHandler;
 
-    @Autowired
-    private UISClientHandler uisHandler;
+    public SimplifiedRecordsResource(RecordService recordService, UISClientHandler uisHandler) {
+        this.recordService = recordService;
+        this.uisHandler = uisHandler;
+    }
 
     /**
      * Returns record with all representations
      *
-     * @param uriInfo
+     * @param httpServletRequest
      * @param providerId providerId
      * @param localId    localId
      * @return record with all representations
@@ -48,16 +42,16 @@ public class SimplifiedRecordsResource {
      * @throws RecordNotExistsException
      * @summary Get record using simplified url
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Record getRecord(@Context UriInfo uriInfo,
-                            @PathParam(P_PROVIDER) String providerId,
-                            @PathParam(P_LOCALID) String localId) throws CloudException, RecordNotExistsException, ProviderNotExistsException {
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody Record getRecord(
+            HttpServletRequest httpServletRequest,
+            @PathVariable String providerId,
+            @PathVariable String localId) throws RecordNotExistsException, ProviderNotExistsException {
 
             final String cloudId = findCloudIdFor(providerId, localId);
 
             Record record = recordService.getRecord(cloudId);
-            prepare(uriInfo, record);
+            prepare(httpServletRequest, record);
             return record;
     }
 
@@ -66,8 +60,8 @@ public class SimplifiedRecordsResource {
         return foundCloudId.getId();
     }
     
-    private void prepare(@Context UriInfo uriInfo, Record record) {
-        EnrichUriUtil.enrich(uriInfo, record);
+    private void prepare(HttpServletRequest httpServletRequest, Record record) {
+        EnrichUriUtil.enrich(httpServletRequest, record);
         for (Representation representation : record.getRepresentations()) {
             representation.setCloudId(null);
         }

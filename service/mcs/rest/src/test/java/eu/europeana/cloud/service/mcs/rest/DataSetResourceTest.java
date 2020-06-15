@@ -4,65 +4,53 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_LATELY_REVISIONED_VERSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * DataSetResourceTest
  */
 @RunWith(CassandraTestRunner.class)
-public class DataSetResourceTest extends JerseyTest {
+public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
     // private DataProviderService dataProviderService;
     private DataSetService dataSetService;
 
     private RecordService recordService;
 
-    private WebTarget dataSetWebTarget;
-
-    private WebTarget dataSetAssignmentWebTarget;
-
     private DataProvider dataProvider = new DataProvider();
 
     private UISClientHandler uisHandler;
 
-    @Override
-    public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-    }
-
     @Before
-    public void mockUp()
-            throws Exception {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+    public void mockUp() {
         dataProvider.setId("testprov");
         uisHandler = applicationContext.getBean(UISClientHandler.class);
+        Mockito.reset(uisHandler);
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler)
@@ -71,7 +59,6 @@ public class DataSetResourceTest extends JerseyTest {
                 .existsProvider(Mockito.anyString());
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
-        dataSetWebTarget = target(DataSetResource.class.getAnnotation(Path.class).value());
     }
 
     @Test
@@ -83,10 +70,9 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
 
         // when you add data set for a provider 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId);
-        Response updateResponse = dataSetWebTarget.request().put(Entity.form(new Form(F_DESCRIPTION, description)));
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), updateResponse.getStatus());
+        mockMvc.perform(put(DATA_SET_RESOURCE,dataProvider.getId(),dataSetId)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED).param(F_DESCRIPTION, description))
+                .andExpect(status().isNoContent());
 
         // ten this set should be visible in service
         List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults();
@@ -109,10 +95,7 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
         // when you delete it for one provider
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId);
-        Response deleteResponse = dataSetWebTarget.request().delete();
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
+        mockMvc.perform( delete(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
 
         // than deleted dataset should not be in service and non-deleted should remain
         assertTrue("Expecting no dataset for provier service",
@@ -137,11 +120,10 @@ public class DataSetResourceTest extends JerseyTest {
                 r2_1.getVersion());
 
         // when you list dataset contents
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId);
-        Response listDataset = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.OK.getStatusCode(), listDataset.getStatus());
-        List<Representation> dataSetContents = listDataset.readEntity(ResultSlice.class).getResults();
+        ResultActions response = mockMvc.perform(
+                get(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId))
+                .andExpect(status().isOk());
+        List<Representation> dataSetContents = responseContentAsRepresentationResultSlice(response).getResults();
 
         // then you should get assigned records in specified versions or latest (depending on assigmnents)
         assertEquals(2, dataSetContents.size());
@@ -161,49 +143,45 @@ public class DataSetResourceTest extends JerseyTest {
     public void shouldReturnErrorForMissingParameters() throws Exception {
         String dataSetId = "dataset";
 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyRevisionedVersion");
-        Response response = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION,dataProvider.getId(), dataSetId))
+                .andExpect(status().isBadRequest());
         //
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).queryParam(P_CLOUDID,"sampleCloudID");
-        response = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId).queryParam(CLOUD_ID,"sampleCloudID"))
+                .andExpect(status().isBadRequest());
         //
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).queryParam(P_REPRESENTATIONNAME,"sampleRepName");
-        response = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId).queryParam(REPRESENTATION_NAME,"sampleRepName"))
+                .andExpect(status().isBadRequest());
         //
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).queryParam(P_REVISION_NAME,"sampleRevisionName");
-        response = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION , dataProvider.getId(), dataSetId).queryParam(REVISION_NAME,"sampleRevisionName"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldReturnPropperVersionValue() throws DataSetNotExistsException {
+    public void shouldReturnPropperVersionValue() throws Exception {
         Mockito.doReturn("sample").when(dataSetService).getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         String dataSetId = "dataset";
 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyRevisionedVersion").queryParam(F_CLOUDID,"sampleCloudID").queryParam(F_REPRESENTATIONNAME,"sampleRepName").queryParam(F_REVISION_NAME,"sampleRevisionName").queryParam(F_REVISION_PROVIDER_ID,"samplerevProvider");
-        Response response = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        assertEquals("sample",response.readEntity(String.class));
+        ResultActions response = mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId)
+                .queryParam(CLOUD_ID, "sampleCloudID")
+                .queryParam(REPRESENTATION_NAME, "sampleRepName")
+                .queryParam(REVISION_NAME, "sampleRevisionName")
+                .queryParam(REVISION_PROVIDER_ID, "samplerevProvider"))
+                .andExpect(status().isOk());
+        assertEquals("sample",responseContentAsString(response));
     }
 
     @Test
-    public void shouldReturnNoContent() throws DataSetNotExistsException {
+    public void shouldReturnNoContent() throws Exception {
         Mockito.doReturn(null).when(dataSetService)
-                .getLatestVersionForGivenRevision(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+                .getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         String dataSetId = "dataset";
 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyRevisionedVersion").queryParam(F_CLOUDID,"sampleCloudID").queryParam(F_REPRESENTATIONNAME,"sampleRepName").queryParam(F_REVISION_NAME,"sampleRevisionName").queryParam(F_REVISION_PROVIDER_ID,"samplerevProvider");
-        Response response = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId)
+                .queryParam(CLOUD_ID, "sampleCloudID")
+                .queryParam(REPRESENTATION_NAME, "sampleRepName")
+                .queryParam(REVISION_NAME, "sampleRevisionName")
+                .queryParam(REVISION_PROVIDER_ID, "samplerevProvider"))
+                .andExpect(status().isNoContent());
     }
 
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
@@ -214,7 +192,7 @@ public class DataSetResourceTest extends JerseyTest {
         recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 
         Representation rep = recordService.persistRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
-        f.setContentUri(new URI("http://localhost:9998/records/" + cloudId + "/representations/" + schema + "/versions/" + r.getVersion() + "/files/content.xml"));
+        f.setContentUri(new URI("http://localhost:80/records/" + cloudId + "/representations/" + schema + "/versions/" + r.getVersion() + "/files/content.xml"));
         rep.setFiles(Arrays.asList(f));
 
         return rep;

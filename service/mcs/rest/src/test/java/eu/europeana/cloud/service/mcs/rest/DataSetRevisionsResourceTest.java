@@ -5,32 +5,34 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static junit.framework.TestCase.assertNotNull;
+import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
+import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 /**
  * DataSetResourceTest
@@ -38,35 +40,26 @@ import static org.junit.Assert.assertThat;
  * @author akrystian
  */
 @RunWith(CassandraTestRunner.class)
-public class DataSetRevisionsResourceTest extends JerseyTest {
+public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResourceTest {
 
     private DataSetService dataSetService;
-    private CassandraRecordDAO cassandraRecordDAO;
 
-    private WebTarget dataSetWebTarget;
+    private String dataSetWebTarget;
 
     private UISClientHandler uisHandler;
 
     private SimpleDateFormat dateFormat;
 
-    @Override
-    public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-    }
-
     @Before
-    public void mockUp()
-            throws Exception {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+    public void mockUp() {
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
-        cassandraRecordDAO = applicationContext.getBean(CassandraRecordDAO.class);
-        dataSetWebTarget = target(DataSetRevisionsResource.class.getAnnotation(Path.class).value());
+        dataSetWebTarget = DataSetRevisionsResource.class.getAnnotation(RequestMapping.class).value()[0];
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     }
 
     @After
-    public void cleanUp() throws Exception {
+    public void cleanUp() {
         Mockito.reset(uisHandler);
     }
 
@@ -86,20 +79,16 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
 
         // when
-        dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
-                queryParam(F_LIMIT, 10);
-        Response response = dataSetWebTarget.request().get();
-        System.out.println(response);
+        ResultActions response = mockMvc.perform(
+                get(dataSetWebTarget, providerId,datasetId, representationName, revisionName, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp()))
+                        .queryParam(F_LIMIT, "10"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
 
         //then
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
+        List<CloudTagsResponse> cloudIds = responseContentAsCloudTagResultSlice(response).getResults();
         assertThat(cloudIds.size(), is(1));
         assertThat(cloudIds.get(0).getCloudId(), is(cloudId));
     }
@@ -122,21 +111,15 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
 
         // when
-        dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_CLOUDID, cloudId).
-                resolveTemplate(P_REVISION_NAME, revisionName2).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision2.getCreationTimeStamp())).
-                queryParam(F_LIMIT, 1);
-        Response response = dataSetWebTarget.request().get();
+        ResultActions response = mockMvc.perform(
+                get(dataSetWebTarget,providerId, datasetId, representationName,revisionName2, revisionProviderId).
+                        queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision2.getCreationTimeStamp())).
+                        queryParam(F_LIMIT, "1"))
+                .andExpect(status().isOk());
+
 
         //then
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
-        assertThat(cloudIds.size(), is(0));
+        assertThat(responseContentAsCloudTagResultSlice(response).getResults().size(), is(0));
     }
 
     @Test
@@ -153,20 +136,16 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
         dataSetService.createDataSet(providerId, datasetId, "");
 
         // when
-        dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                queryParam(F_REVISION_TIMESTAMP, revisionTimestamp).
-                queryParam(F_LIMIT, 10);
-        Response response = dataSetWebTarget.request().get();
+        ResultActions response = mockMvc.perform(
+                get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .queryParam(F_LIMIT, "10"))
+                .andExpect(status().isOk());
+
 
         //then
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
-        assertThat(cloudIds.size(), is(0));
+        assertThat(responseContentAsCloudTagResultSlice(response).getResults().size(), is(0));
+
     }
 
 
@@ -190,19 +169,15 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId3);
 
         // when
-        dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
+        ResultActions response = mockMvc.perform(
+                get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId).
                 queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
-                queryParam(F_LIMIT, 1);
-        Response response = dataSetWebTarget.request().get();
+                queryParam(F_LIMIT, "1"))
+                .andExpect(status().isOk());
+
 
         //then
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
+        List<CloudTagsResponse> cloudIds = responseContentAsCloudTagResultSlice(response).getResults();
         assertThat(cloudIds.size(), is(1));
         assertThat(cloudIds.get(0).getCloudId(), is(cloudId));
     }
@@ -229,59 +204,46 @@ public class DataSetRevisionsResourceTest extends JerseyTest {
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId3);
 
         // when get first page (set page size to 1)
-        WebTarget target = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
-                queryParam(F_LIMIT, 1);
-        Response response = target.request().get();
+        ResultActions response = mockMvc.perform(
+                get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId).
+                        queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
+                        queryParam(F_LIMIT, "1"))
+                .andExpect(status().isOk());
+
 
         // then
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        ResultSlice<CloudTagsResponse> slice = response.readEntity(ResultSlice.class);
+        ResultSlice<CloudTagsResponse> slice = responseContentAsCloudTagResultSlice(response);
         List<CloudTagsResponse> cloudIds = slice.getResults();
         assertThat(cloudIds.size(), is(1));
         assertThat(cloudIds.get(0).getCloudId(), is(cloudId));
         assertNotNull(slice.getNextSlice());
 
         // when get second page
-        target = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
-                queryParam(F_START_FROM, slice.getNextSlice()).
-                queryParam(F_LIMIT, 1);
-        response = target.request().get();
+        response = mockMvc.perform(
+                get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp()))
+                        .queryParam(F_START_FROM, slice.getNextSlice())
+                        .queryParam(F_LIMIT, "1"))
+                .andExpect(status().isOk());
+
 
         // then
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        slice = response.readEntity(ResultSlice.class);
+        slice = responseContentAsCloudTagResultSlice(response);
         cloudIds = slice.getResults();
         assertThat(cloudIds.size(), is(1));
         assertThat(cloudIds.get(0).getCloudId(), is(cloudId2));
         assertNotNull(slice.getNextSlice());
 
         // when get last page
-        target = dataSetWebTarget.
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
-                queryParam(F_START_FROM, slice.getNextSlice()).
-                queryParam(F_LIMIT, 1);
-        response = target.request().get();
+        response = mockMvc.perform(
+                get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp()))
+                        .queryParam(F_START_FROM, slice.getNextSlice())
+                        .queryParam(F_LIMIT, "1"))
+                .andExpect(status().isOk());
 
         // then
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        slice = response.readEntity(ResultSlice.class);
+        slice = responseContentAsCloudTagResultSlice(response);
         cloudIds = slice.getResults();
         assertThat(cloudIds.size(), is(1));
         assertThat(cloudIds.get(0).getCloudId(), is(cloudId3));

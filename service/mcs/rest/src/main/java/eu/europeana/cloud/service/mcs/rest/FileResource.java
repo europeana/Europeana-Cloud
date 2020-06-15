@@ -1,54 +1,54 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
-import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 
 /**
  * Resource to manage representation version's files with their content.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files/{"
-        + P_FILENAME + ":(.+)?}")
-@Component
-@Scope("request")
+@RestController
+@RequestMapping(FILE_RESOURCE)
 public class FileResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileResource.class);
+
     private static final String HEADER_RANGE = "Range";
+    private final RecordService recordService;
+    private final Integer objectStoreSizeThreshold;
 
-    @Autowired
-    private RecordService recordService;
-	@Autowired
-	private MutableAclService mutableAclService;
-    @Autowired
-    private Integer objectStoreSizeThreshold;
-
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    public FileResource(RecordService recordService,
+                        Integer objectStoreSizeThreshold) {
+        this.recordService = recordService;
+        this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+    }
 
     /**
      *  Updates a file in a representation version. MD5 of
@@ -62,49 +62,52 @@ public class FileResource {
      *
      *<strong>Write permissions required.</strong>
      *@summary Updates a file in a representation version
-     * @param globalId cloud id of the record in which the file will be updated (required)
-     * @param schema schema of representation (required)
+     * @param cloudId cloud id of the record in which the file will be updated (required)
+     * @param representationName schema of representation (required)
      * @param version a specific version of the representation(required)
      * @param fileName the name of the file(required)
      * @param mimeType mime type of file
      * @param data binary stream of file content (required)
      * @return URI of the uploaded content file in content-location
-     * @throws RepresentationNotExistsException representation does not exist in
-     * specified version.
-     * @throws CannotModifyPersistentRepresentationException specified
-     * representation version is persistent and modifying its files is not
-     * allowed.
+     * @throws RepresentationNotExistsException representation does not exist in specified version.
+     * @throws CannotModifyPersistentRepresentationException specified representation version is persistent and modifying
+     *                                                       its files is not allowed.
      * @throws FileNotExistsException specified file does not exist.
      * @statuscode 204 object has been updated.
      */
-    @PUT
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PutMapping
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
-    public Response sendFile(@Context UriInfo uriInfo,
-    		@PathParam(P_CLOUDID) String globalId,
-    		@PathParam(P_REPRESENTATIONNAME) String schema,
-    		@PathParam(P_VER) String version,
-    		@PathParam(P_FILENAME) String fileName,
-    		@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-            FileNotExistsException {
-        ParamUtil.require(F_FILE_DATA, data);
-        ParamUtil.require(F_FILE_MIME, mimeType);
+    public ResponseEntity<Void> sendFile(
+            HttpServletRequest httpServletRequest,
+    		@PathVariable String cloudId,
+    		@PathVariable String representationName,
+    		@PathVariable String version,
+    		@PathVariable String fileName,
+    		@RequestHeader(HttpHeaders.CONTENT_TYPE) String mimeType,
+            InputStream data) throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, FileNotExistsException {
+
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileName(fileName);
 
-        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
+        PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data, objectStoreSizeThreshold);
         f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 
         // For throw  FileNotExistsException if specified file does not exist.
-        recordService.getFile(globalId, schema, version, fileName);
-        recordService.putContent(globalId, schema, version, f, prebufferedInputStream);
+        recordService.getFile(cloudId, representationName, version, fileName);
+        recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
         IOUtils.closeQuietly(prebufferedInputStream);
-        EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
+        EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
 
-        return Response.status(Response.Status.NO_CONTENT).location(f.getContentUri()).tag(f.getMd5()).build();
+        ResponseEntity.BodyBuilder response = ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .location(f.getContentUri());
+        if (f.getMd5() != null) {
+            response.eTag(f.getMd5());
+        }
+        return response.build();
     }
 
     /**
@@ -121,8 +124,8 @@ public class FileResource {
      *
      * <strong>Read permissions required.</strong>
      * @summary get file contents from a representation version
-     * @param globalId cloud id of the record (required).
-     * @param schema schema of representation (required).
+     * @param cloudId cloud id of the record (required).
+     * @param representationName schema of representation (required).
      * @param version a specific version of the representation(required).
      * @param fileName the name of the file(required).
      * @param range range of bytes to return (optional)
@@ -135,14 +138,15 @@ public class FileResource {
      * @throws FileNotExistsException representation version does not have file
      * with the specified name.
      */
-    @GET
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @GetMapping
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', read)")
-    public Response getFile(@PathParam(P_CLOUDID) final String globalId, 
-    		@PathParam(P_REPRESENTATIONNAME) final String schema,
-    		@PathParam(P_VER) final String version,
-    		@PathParam(P_FILENAME) final String fileName,
-    		@HeaderParam(HEADER_RANGE) String range)
+    public ResponseEntity<StreamingResponseBody> getFile(
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version,
+            @PathVariable final String fileName,
+            @RequestHeader(value = HEADER_RANGE, required = false) String range)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
         // extract range
@@ -155,83 +159,90 @@ public class FileResource {
 
         // get file md5 if complete file is requested
         String md5 = null;
-        String fileMimeType = null;
-        Response.Status status;
+        MediaType fileMimeType = null;
+        HttpStatus status;
         if (contentRange.isSpecified()) {
-            status = Response.Status.PARTIAL_CONTENT;
+            status = HttpStatus.PARTIAL_CONTENT;
         } else {
-            status = Response.Status.OK;
-            final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
+            status = HttpStatus.OK;
+            final File requestedFile = recordService.getFile(cloudId, representationName, version, fileName);
             md5 = requestedFile.getMd5();
             if(StringUtils.isNotBlank(requestedFile.getMimeType())){
-                fileMimeType = requestedFile.getMimeType();
+                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
             }
         }
 
-        // stream output
-        StreamingOutput output = new StreamingOutput() {
-            @Override
-            public void write(OutputStream output)
-                    throws IOException, WebApplicationException {
-                try {
-                    recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end,
-                            output);
-                } catch (RepresentationNotExistsException ex) {
-                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
-                } catch (FileNotExistsException ex) {
-                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
-                } catch (WrongContentRangeException ex) {
-                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
-                }
-            }
-        };
+        Consumer<OutputStream> downloadMethod = recordService.getContent(cloudId, representationName, version, fileName,
+                contentRange.start, contentRange.end);
 
-        return Response.status(status).entity(output).type(fileMimeType).tag(md5).build();
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+        if (md5 != null) {
+            response.eTag(md5);
+        }
+        if (fileMimeType != null) {
+            response.contentType(fileMimeType);
+        }
+        return response.body(outputStream -> downloadMethod.accept(outputStream));
     }
 
     /**
-     * 
-     * Returns only HTTP headers for file request. 
-     * 
-     * @param uriInfo
-     * @param globalId cloud id of the record (required).
-     * @param schema schema of representation (required).
+     *
+     * Returns only HTTP headers for file request.
+     *
+     * @param httpServletRequest
+     * @param cloudId cloud id of the record (required).
+     * @param representationName schema of representation (required).
      * @param version a specific version of the representation(required).
      * @param fileName the name of the file(required).
-     *              
+     *
      * @return empty response with proper http headers
      * @summary get HTTP headers for file request
      * @throws RepresentationNotExistsException
      * @throws FileNotExistsException
      */
-    @HEAD
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @RequestMapping(method = RequestMethod.HEAD)
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public Response getFileHeaders(@Context UriInfo uriInfo,
-                                   @PathParam(P_CLOUDID) final String globalId,
-                                   @PathParam(P_REPRESENTATIONNAME) final String schema,
-                                   @PathParam(P_VER) final String version,
-                                   @PathParam(P_FILENAME) final String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException {
+    public ResponseEntity<Void> getFileHeaders(
+            HttpServletRequest httpServletRequest,
+            @PathVariable String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
+            @PathVariable final String fileName) throws RepresentationNotExistsException, FileNotExistsException {
 
-        URI requestUri = uriInfo.getRequestUri();
-        final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
+        final File requestedFile = recordService.getFile(cloudId, representationName, version, fileName);
         String fileMimeType = null;
         String md5 = requestedFile.getMd5();
         if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
             fileMimeType = requestedFile.getMimeType();
         }
 
-        return Response.status(Response.Status.OK).type(fileMimeType).location(requestUri).tag(md5).build();
+        URI requestUri = null;
+        try {
+            requestUri = new URI(httpServletRequest.getRequestURI());
+        } catch (URISyntaxException e) {
+            LOGGER.warn("Invalid URI/URL", e);
+        }
+
+        ResponseEntity.BodyBuilder response = ResponseEntity
+                .status(HttpStatus.OK)
+                .location(requestUri);
+        if (md5 != null) {
+            response.eTag(md5);
+        }
+        if(fileMimeType!=null) {
+            response.contentType(MediaType.parseMediaType(fileMimeType));
+        }
+        return response.build();
     }
-    
-    
+
+
     /**
      * Deletes file from representation version.
      *<strong>Delete permissions required.</strong>
      *
-     * @param globalId cloud id of the record (required).
-     * @param schema schema of representation (required).
+     * @param cloudId cloud id of the record (required).
+     * @param representationName schema of representation (required).
      * @param version a specific version of the representation(required).
      * @param fileName the name of the file(required).
      *
@@ -243,16 +254,18 @@ public class FileResource {
      * representation version is persistent and deleting its files is not
      * allowed.
      */
-    @DELETE
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @DeleteMapping
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
-    public void deleteFile(@PathParam(P_CLOUDID) final String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, 
-    		@PathParam(P_VER) String version,
-    		@PathParam(P_FILENAME) String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException,
-            CannotModifyPersistentRepresentationException {
-    	
-        recordService.deleteContent(globalId, schema, version, fileName);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFile(
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+    		@PathVariable String version,
+    		@PathVariable String fileName) throws RepresentationNotExistsException, FileNotExistsException,
+                                                                    CannotModifyPersistentRepresentationException {
+
+        recordService.deleteContent(cloudId, representationName, version, fileName);
     }
 
     /**
@@ -262,10 +275,10 @@ public class FileResource {
      * 14.35 Range</a>.
      */
     static class ContentRange {
-
-        private long start, end;
-
         private static final Pattern BYTES_PATTERN = Pattern.compile("bytes=(?<start>\\d+)[-](?<end>\\d*)");
+
+        private final long start;
+        private final long end;
 
         ContentRange(long start, long end) {
             this.start = start;
@@ -284,9 +297,10 @@ public class FileResource {
             return end;
         }
 
-        static ContentRange parse(String range)
-                throws WrongContentRangeException {
-            long start, end;
+        static ContentRange parse(String range) throws WrongContentRangeException {
+
+            long start;
+            long end;
             if (range == null) {
                 throw new IllegalArgumentException("Range should not be null");
             }

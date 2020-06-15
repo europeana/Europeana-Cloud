@@ -1,44 +1,34 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
 
 /**
  * Resource to manage representation versions.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions")
-@Component
-@Scope("request")
+@RestController
+@RequestMapping(REPRESENTATION_VERSIONS_RESOURCE)
 public class RepresentationVersionsResource {
 
-    @Autowired
-    private RecordService recordService;
+    public static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionsResource.class.getName());
 
-    @Context
-    private UriInfo uriInfo;
+    private final RecordService recordService;
 
-    @PathParam(P_CLOUDID)
-    private String globalId;
-
-    @PathParam(P_REPRESENTATIONNAME)
-    private String representation;
+    public RepresentationVersionsResource(RecordService recordService) {
+        this.recordService = recordService;
+    }
 
     /**
      * Lists all versions of record representation. Temporary versions will be
@@ -48,20 +38,19 @@ public class RepresentationVersionsResource {
      * @return list of all the representation versions.
      * @throws RepresentationNotExistsException representation does not exist.
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ReturnType("java.util.List<eu.europeana.cloud.common.model.Representation>")
-    public List<Representation> listVersions()
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    @ResponseBody
+    public RepresentationsListWrapper listVersions(
+            final HttpServletRequest request,
+            @PathVariable String cloudId,
+            @PathVariable String representationName)
             throws RepresentationNotExistsException {
-        List<Representation> representationVersions = recordService
-                .listRepresentationVersions(globalId, representation);
-        for (Representation representationVersion : representationVersions) {
-            prepare(representationVersion);
-        }
-        return representationVersions;
-    }
 
-    private void prepare(Representation representationVersion) {
-        EnrichUriUtil.enrich(uriInfo, representationVersion);
+        List<Representation> representationVersions = recordService.listRepresentationVersions(cloudId, representationName);
+        for (Representation representationVersion : representationVersions) {
+            EnrichUriUtil.enrich(request, representationVersion);
+        }
+
+        return new RepresentationsListWrapper(representationVersions);
     }
 }

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Implementation of record service using Cassandra as storage.
@@ -306,21 +307,29 @@ public class CassandraRecordService implements RecordService {
 
     /**
      * @inheritDoc
+     * @return
      */
     @Override
-    public void getContent(String globalId, String schema, String version, String fileName, long rangeStart,
-                           long rangeEnd, OutputStream os)
+    public Consumer<OutputStream> getContent(String globalId, String schema, String version, String fileName, long rangeStart,
+                                             long rangeEnd)
             throws FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException {
         File file = getFile(globalId, schema, version, fileName);
         if (rangeStart > file.getContentLength() - 1) {
             throw new WrongContentRangeException("Start range must be less than file length");
         }
-        try {
-            contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), rangeStart,
-                    rangeEnd, os, file.getFileStorage());
-        } catch (IOException ex) {
-            throw new SystemException(ex);
+
+        if (rangeEnd > file.getContentLength() - 1) {
+            throw new WrongContentRangeException("End range must be less than file length");
         }
+        return os-> {
+            try {
+                contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), rangeStart,
+                        rangeEnd, os, file.getFileStorage());
+            } catch (FileNotExistsException | IOException ex) {
+                throw new SystemException(ex);
+            }
+        };
+
     }
 
 

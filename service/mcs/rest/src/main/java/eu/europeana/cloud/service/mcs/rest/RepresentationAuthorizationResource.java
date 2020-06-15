@@ -2,51 +2,54 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.*;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.AASParamConstants.P_PERMISSION;
-import static eu.europeana.cloud.common.web.AASParamConstants.P_USER_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_PERMISSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_PERMIT;
 
 /**
  * Resource to authorize other users to read specific versions.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
-@Component
+@RestController
 public class RepresentationAuthorizationResource {
 
-    private static final List<String> acceptedPermissionValues
-            = Arrays.asList(
+    public static final String NO_UPDATED_MESSAGE = "Authorization has NOT been updated!";
+    public static final String UPDATED_MESSAGE = "Authorization has been updated!";
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
+    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    private static final List<String> ACCEPTED_PERMISSION_VALUES = Arrays.asList(
             eu.europeana.cloud.common.model.Permission.ALL.getValue(),
             eu.europeana.cloud.common.model.Permission.READ.getValue(),
             eu.europeana.cloud.common.model.Permission.WRITE.getValue(),
             eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
-            eu.europeana.cloud.common.model.Permission.DELETE.getValue());
+            eu.europeana.cloud.common.model.Permission.DELETE.getValue()
+    );
+    private final MutableAclService mutableAclService;
+    private final PermissionsGrantingManager permissionsGrantingManager;
 
-    @Autowired
-    private MutableAclService mutableAclService;
-
-    @Autowired
-    private PermissionsGrantingManager permissionsGrantingManager;
-
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
+    public RepresentationAuthorizationResource(
+            MutableAclService mutableAclService,
+            PermissionsGrantingManager permissionsGrantingManager) {
+        this.mutableAclService = mutableAclService;
+        this.permissionsGrantingManager = permissionsGrantingManager;
+    }
 
     /**
      * Removes permissions for selected user to selected representation version.<br/><br/>
@@ -57,43 +60,40 @@ public class RepresentationAuthorizationResource {
      * <li>delete</li>
      * <li>administration</li>
      *
-     * @param globalId   cloud id of the record (required).
-     * @param schema     schema of representation (required).
+     * @param cloudId   cloud id of the record (required).
+     * @param representationName  schema of representation (required).
      * @param version    a specific version of the representation(required).
      * @param userName   username as part of credential (required).
      * @param permission permission as part of credential (required).
      * @return response tells you if authorization has been updated or not
      * @summary Permissions removal
      */
-    @DELETE
-    @Path("/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+
+    @DeleteMapping(value = REPRESENTATION_PERMISSION)
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
-    public Response removePermissions(@PathParam(P_CLOUDID) String globalId,
-                                      @PathParam(P_REPRESENTATIONNAME) String schema,
-                                      @PathParam(P_VER) String version,
-                                      @PathParam(P_USER_NAME) String userName,
-                                      @PathParam(P_PERMISSION) String permission) {
+    public ResponseEntity<Void> removePermissions(
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version,
+            @PathVariable String permission,
+            @PathVariable String userName) {
 
+        ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
-        ParamUtil.require(P_CLOUDID, globalId);
-        ParamUtil.require(P_REPRESENTATIONNAME, schema);
-        ParamUtil.require(P_VER, version);
-        ParamUtil.require(P_USER_NAME, userName);
-        ParamUtil.require(P_PERMISSION, permission);
-        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
-
-        eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+        eu.europeana.cloud.common.model.Permission permissionUpperCase =
+                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-                globalId + "/" + schema + "/" + version);
+                cloudId + "/" + representationName + "/" + version);
 
-        LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'", userName, versionIdentity.getType(), versionIdentity.getIdentifier());
+        LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
+                userName, versionIdentity.getType(), versionIdentity.getIdentifier());
 
-        List<Permission> permissionsToBeRemoved = Arrays.asList(_permission.getSpringPermissions());
+        List<Permission> permissionsToBeRemoved = Arrays.asList(permissionUpperCase.getSpringPermissions());
         permissionsGrantingManager.removePermissions(versionIdentity, userName, permissionsToBeRemoved);
 
-        return Response.noContent().build();
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -102,55 +102,52 @@ public class RepresentationAuthorizationResource {
      * <p/>
      * <strong>Write permissions required.</strong>
      *
-     * @param globalId   cloud id of the record (required).
-     * @param schema     schema of representation (required).
+     * @param cloudId   cloud id of the record (required).
+     * @param representationName schema of representation (required).
      * @param version    a specific version of the representation(required).
-     * @param username   username as part of credential (required).
+     * @param userName   username as part of credential (required).
      * @param permission permission as part of credential (required).
      * @return response tells you if authorization has been updated or not
      * @summary update authorization for a representation version
      * @statuscode 200 object has been updated.
      * @statuscode 204 object has not been updated.
      */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Path("/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PostMapping(value = REPRESENTATION_PERMISSION)
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
-    public Response updateAuthorization(
-            @PathParam(P_CLOUDID) String globalId,
-            @PathParam(P_REPRESENTATIONNAME) String schema,
-            @PathParam(P_VER) String version,
-            @PathParam(P_USER_NAME) String username,
-            @PathParam(P_PERMISSION) String permission
-    ) {
+    public ResponseEntity<String> updateAuthorization(
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version,
+            @PathVariable String permission,
+            @PathVariable String userName) {
 
-        ParamUtil.require(P_CLOUDID, globalId);
-        ParamUtil.require(P_REPRESENTATIONNAME, schema);
-        ParamUtil.require(P_VER, version);
-        ParamUtil.require(P_USER_NAME, username);
-        ParamUtil.require(P_PERMISSION, permission);
-        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
+        ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-                globalId + "/" + schema + "/" + version);
-        eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+                cloudId + "/" + representationName + "/" + version);
+        eu.europeana.cloud.common.model.Permission euPermission =
+                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
         if (versionAcl != null) {
             try {
-                final Permission[] permissions = _permission.getSpringPermissions();
+                final Permission[] permissions = euPermission.getSpringPermissions();
                 for (Permission singlePermission : permissions) {
-                    versionAcl.insertAce(versionAcl.getEntries().size(), singlePermission, new PrincipalSid(username), true);
+                    versionAcl.insertAce(versionAcl.getEntries().size(), singlePermission, new PrincipalSid(userName), true);
                 }
                 mutableAclService.updateAcl(versionAcl);
             } catch (Exception e) {
                 LOGGER.error(e.getMessage());
-                return Response.notModified("Authorization has NOT been updated!").build();
+                return ResponseEntity
+                        .status(HttpStatus.NOT_MODIFIED)
+                        .body(NO_UPDATED_MESSAGE);
             }
-            return Response.ok("Authorization has been updated!").build();
+            return ResponseEntity.ok(UPDATED_MESSAGE);
         } else {
-            return Response.notModified("Authorization has NOT been updated!").build();
+            return ResponseEntity
+                    .status(HttpStatus.NOT_MODIFIED)
+                    .body(NO_UPDATED_MESSAGE);
         }
     }
 
@@ -159,24 +156,22 @@ public class RepresentationAuthorizationResource {
      * <p/>
      * <strong>Write permissions required.</strong>
      *
-     * @param globalId cloud id of the record (required).
-     * @param schema   schema of representation (required).
+     * @param cloudId cloud id of the record (required).
+     * @param representationName   schema of representation (required).
      * @param version  a specific version of the representation(required).
      * @return response tells you if authorization has been updated or not
      * @statuscode 204 object has been updated.
      */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PostMapping(value = REPRESENTATION_PERMIT)
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
-    @Path("/permit")
-    public Response giveReadAccessToEveryone(
-            @PathParam(P_CLOUDID) String globalId,
-            @PathParam(P_REPRESENTATIONNAME) String schema,
-            @PathParam(P_VER) String version) {
+    public ResponseEntity<String> giveReadAccessToEveryone(
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version) {
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-                globalId + "/" + schema + "/" + version);
+                cloudId + "/" + representationName + "/" + version);
 
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
@@ -187,9 +182,11 @@ public class RepresentationAuthorizationResource {
             versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, anonRole, true);
             versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, userRole, true);
             mutableAclService.updateAcl(versionAcl);
-            return Response.ok("Authorization has been updated!").build();
+            return ResponseEntity.ok(UPDATED_MESSAGE);
         } else {
-            return Response.notModified("Authorization has NOT been updated!").build();
+            return ResponseEntity
+                    .status(HttpStatus.NOT_MODIFIED)
+                    .body(NO_UPDATED_MESSAGE);
         }
     }
 }

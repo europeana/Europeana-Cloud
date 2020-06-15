@@ -7,82 +7,178 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import jersey.repackaged.com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Created by Tarek on 8/2/2016.
  */
-
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
-        + "}/versions/{" + P_VER + "}/revisions")
-@Component
-@Scope("request")
+@RestController
 public class RevisionResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
+    private static final Logger LOGGER = LoggerFactory.getLogger(RevisionResource.class.getName());
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+    private final DataSetService dataSetService;
 
-    @Autowired
-    private DataSetService dataSetService;
+    public RevisionResource(RecordService recordService, DataSetService dataSetService) {
+        this.recordService = recordService;
+        this.dataSetService = dataSetService;
+    }
 
     /**
      * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
-     * @param globalId           cloud id of the record (required).
-     * @param schema             schema of representation (required).
+     * @param cloudId           cloud id of the record (required).
+     * @param representationName             schema of representation (required).
      * @param version            a specific version of the representation(required).
      * @param revisionName       the name of revision (required).
      * @param revisionProviderId revision provider id (required).
      * @param tag                tag flag (acceptance,published,deleted)
-     * @return URI to specific revision with specific tag inside a version.TODO
+     * @return URI to specific revision with specific tag inside a version.
      * @throws RepresentationNotExistsException representation does not exist in specified version
      * @throws RevisionIsNotValidException      if the added revision was not valid
      * @statuscode 201 object has been created.
      */
-    @POST
-    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    @PostMapping(value = REVISION_ADD_WITH_PROVIDER_TAG)
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public Response addRevision(@Context UriInfo uriInfo,
-                                @PathParam(P_CLOUDID) final String globalId,
-                                @PathParam(P_REPRESENTATIONNAME) final String schema,
-                                @PathParam(P_VER) final String version,
-                                @PathParam(P_REVISION_NAME) String revisionName,
-                                @PathParam(P_TAG) String tag,
-                                @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId
-    )
-            throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
-        ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+    public ResponseEntity<String> addRevision(
+            HttpServletRequest httpServletRequest,
+            @PathVariable final String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
+            @PathVariable String tag) throws RepresentationNotExistsException,
+                                                RevisionIsNotValidException, ProviderNotExistsException {
+
+        ParamUtil.validate("tag", tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         Revision revision = new Revision(revisionName, revisionProviderId);
         setRevisionTags(revision, new HashSet<>(Arrays.asList(tag)));
-        addRevision(globalId, schema, version, revision);
+        addRevision(cloudId, representationName, version, revision);
 
         // insert information in extra table
-        recordService.insertRepresentationRevision(globalId, schema, revisionProviderId, revisionName, version, revision.getCreationTimeStamp());
+        recordService.insertRepresentationRevision(cloudId, representationName, revisionProviderId,
+                revisionName, version, revision.getCreationTimeStamp());
 
-        return Response.created(uriInfo.getAbsolutePath()).build();
+        return createResponseEntity(httpServletRequest, null);
+    }
+
+    /**
+     * Adds a new revision to representation version.
+     * <strong>Read permissions required.</strong>
+     *
+     * @param revision Revision (required).
+     * @return URI to revisions inside a version.
+     * @throws RepresentationNotExistsException representation does not exist in specified version
+     * @statuscode 201 object has been created.
+     */
+    @PostMapping(value = REVISION_ADD, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
+            + " 'eu.europeana.cloud.common.model.Representation', read)")
+    public ResponseEntity<?> addRevision(
+            HttpServletRequest httpServletRequest,
+            @PathVariable final String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
+            @RequestBody Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
+
+        addRevision(cloudId, representationName, version, revision);
+
+        // insert information in extra table
+        recordService.insertRepresentationRevision(cloudId, representationName, revision.getRevisionProviderId(),
+                revision.getRevisionName(), version, revision.getCreationTimeStamp());
+
+        return createResponseEntity(httpServletRequest, null);
+    }
+
+
+    /**
+     * Adds a new revision to representation version.
+     * <strong>Read permissions required.</strong>
+     *
+     * @param cloudId           cloud id of the record (required).
+     * @param representationName             schema of representation (required).
+     * @param version            a specific version of the representation(required).
+     * @param revisionName       the name of revision (required).
+     * @param revisionProviderId revision provider id (required).
+     * @param tags               set of tags (acceptance,published,deleted)
+     * @return URI to a revision tags inside a version.
+     * @throws RepresentationNotExistsException representation does not exist in specified version
+     * @throws RevisionIsNotValidException      if the added revision was not valid
+     * @statuscode 201 object has been created.
+     */
+    @PostMapping(value = REVISION_ADD_WITH_PROVIDER)
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
+            + " 'eu.europeana.cloud.common.model.Representation', read)")
+    public ResponseEntity<Revision> addRevision(
+            HttpServletRequest httpServletRequest,
+            @PathVariable final String cloudId,
+            @PathVariable final String representationName,
+            @PathVariable final String version,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
+            @RequestParam(defaultValue = "") Set<String> tags ) throws RepresentationNotExistsException,
+                                                        RevisionIsNotValidException, ProviderNotExistsException {
+
+        ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
+        Revision revision = new Revision(revisionName, revisionProviderId);
+        setRevisionTags(revision, tags);
+        addRevision(cloudId, representationName, version, revision);
+
+        // insert information in extra table
+        recordService.insertRepresentationRevision(cloudId, representationName, revisionProviderId, revisionName,
+                version, revision.getCreationTimeStamp());
+
+        return createResponseEntity(httpServletRequest, revision);
+    }
+
+    /**
+     * Remove a revision
+     *
+     * @param cloudId            cloud Id
+     * @param representationName representation name
+     * @param version            representation version
+     * @param revisionName       revision name
+     * @param revisionProviderId revision provider
+     * @param revisionTimestamp  revision timestamp
+     * @throws ProviderNotExistsException
+     * @throws RepresentationNotExistsException
+     */
+    @DeleteMapping(value = REVISION_DELETE)
+    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
+            + " 'eu.europeana.cloud.common.model.Representation', read)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteRevision(
+            @PathVariable String cloudId,
+            @PathVariable String representationName,
+            @PathVariable String version,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
+            @RequestParam String revisionTimestamp ) throws RepresentationNotExistsException {
+
+        DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
+        dataSetService.deleteRevision(cloudId, representationName, version, revisionName, revisionProviderId, timestamp.toDate());
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
@@ -94,85 +190,15 @@ public class RevisionResource {
         dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
     }
 
-    private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
-                                                      String version, Revision revision)
-            throws ProviderNotExistsException, RepresentationNotExistsException {
+    private void createAssignmentToRevisionOnDataSets(
+            String globalId, String schema, String version, Revision revision) throws ProviderNotExistsException {
+
         Map<String, Set<String>> dataSets = dataSetService.getDataSets(globalId, schema, version);
         for (Map.Entry<String, Set<String>> entry : dataSets.entrySet()) {
             for (String dataset : entry.getValue()) {
                 dataSetService.addDataSetsRevisions(entry.getKey(), dataset, revision, schema, globalId);
             }
         }
-    }
-
-    /**
-     * Adds a new revision to representation version.
-     * <strong>Read permissions required.</strong>
-     *
-     * @param revision Revision (required).
-     * @return URI to revisions inside a version. TODO
-     * @throws RepresentationNotExistsException representation does not exist in specified version
-     * @statuscode 201 object has been created.
-     */
-    @POST
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
-            + " 'eu.europeana.cloud.common.model.Representation', read)")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response addRevision(@Context UriInfo uriInfo,
-                                @PathParam(P_CLOUDID) final String globalId,
-                                @PathParam(P_REPRESENTATIONNAME) final String schema,
-                                @PathParam(P_VER) final String version,
-                                Revision revision
-    )
-            throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
-
-        addRevision(globalId, schema, version, revision);
-
-        // insert information in extra table
-        recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(), revision.getRevisionName(), version, revision.getCreationTimeStamp());
-
-        return Response.created(uriInfo.getAbsolutePath()).build();
-    }
-
-
-    /**
-     * Adds a new revision to representation version.
-     * <strong>Read permissions required.</strong>
-     *
-     * @param globalId           cloud id of the record (required).
-     * @param schema             schema of representation (required).
-     * @param version            a specific version of the representation(required).
-     * @param revisionName       the name of revision (required).
-     * @param revisionProviderId revision provider id (required).
-     * @param tags               set of tags (acceptance,published,deleted)
-     * @return URI to a revision tags inside a version.TODO
-     * @throws RepresentationNotExistsException representation does not exist in specified version
-     * @throws RevisionIsNotValidException      if the added revision was not valid
-     * @statuscode 201 object has been created.
-     */
-
-    @POST
-    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
-            + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public Response addRevision(@Context UriInfo uriInfo,
-                                @PathParam(P_CLOUDID) final String globalId,
-                                @PathParam(P_REPRESENTATIONNAME) final String schema,
-                                @PathParam(P_VER) final String version,
-                                @PathParam(P_REVISION_NAME) String revisionName,
-                                @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
-                                @FormParam(F_TAGS) Set<String> tags
-    )
-            throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
-
-        ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
-        Revision revision = new Revision(revisionName, revisionProviderId);
-        setRevisionTags(revision, tags);
-        addRevision(globalId, schema, version, revision);
-
-        // insert information in extra table
-        recordService.insertRepresentationRevision(globalId, schema, revisionProviderId, revisionName, version, revision.getCreationTimeStamp());
-        return Response.created(uriInfo.getAbsolutePath()).entity(revision).build();
     }
 
     private Revision setRevisionTags(Revision revision, Set<String> tags) {
@@ -191,42 +217,19 @@ public class RevisionResource {
         return revision;
     }
 
-
-    /**
-     * Remove a revision
-     *
-     * @param cloudId            cloud Id
-     * @param representationName representation name
-     * @param version            representation version
-     * @param revisionName       revision name
-     * @param revisionProviderId revision provider
-     * @param revisionTimestamp  revision timestamp
-     * @throws ProviderNotExistsException
-     * @throws RepresentationNotExistsException
-     */
-
-
-    @DELETE
-    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}")
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
-            + " 'eu.europeana.cloud.common.model.Representation', read)")
-    public void deleteRevision(
-            @PathParam(P_CLOUDID) String cloudId,
-            @PathParam(P_REPRESENTATIONNAME) String representationName,
-            @PathParam(P_VER) String version,
-            @PathParam(P_REVISION_NAME) String revisionName,
-            @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
-            @QueryParam(F_REVISION_TIMESTAMP) String revisionTimestamp
-
-    )
-            throws RepresentationNotExistsException
-
-    {
-        if (revisionTimestamp == null) {
-            throw new WebApplicationException("Revision timestamp parameter cannot be null");
+    private <T> ResponseEntity<T> createResponseEntity(HttpServletRequest httpServletRequest, T entity) {
+        URI resultURI = null;
+        try {
+            resultURI = new URI(httpServletRequest.getRequestURL().toString());
+        } catch (URISyntaxException urise) {
+            LOGGER.warn("Invalid URI: '{}'", httpServletRequest.getRequestURL(), urise);
         }
-        DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
-        dataSetService.deleteRevision(cloudId, representationName, version, revisionName, revisionProviderId, timestamp.toDate());
-    }
 
+        ResponseEntity.BodyBuilder bb = ResponseEntity.created(resultURI);
+        if(entity != null) {
+            return bb.body(entity);
+        } else {
+            return bb.build();
+        }
+    }
 }

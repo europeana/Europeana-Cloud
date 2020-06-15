@@ -3,99 +3,86 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
-import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
 import java.util.Arrays;
 import java.util.Date;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(JUnitParamsRunner.class)
-public class RepresentationVersionResourceTest extends JerseyTest {
+public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
     private RecordService recordService;
-
-    private MutableAclService mutableAclService;
 
     static final private String globalId = "1";
     static final private String schema = "DC";
     static final private String version = "1.0";
     static final private String fileName = "1.xml";
-    static final private String persistPath = URITools.getPath(RepresentationVersionResource.class,
-            "persistRepresentation", globalId, schema, version).toString();
-    static final private String copyPath = URITools.getPath(RepresentationVersionResource.class, "copyRepresentation",
-            globalId, schema, version).toString();
+    static final private String persistPath =
+            UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST)
+            .build(globalId, schema, version).toString();
+
+    static final private String copyPath =
+            UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_COPY)
+                    .build(globalId, schema, version).toString();
+
 
     static final private Representation representation = new Representation(globalId, schema, version, null, null,
             "DLF", Arrays.asList(new File(fileName, "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01",
             12345, null)), null, true, new Date());
 
 
-    @Override
-    public Application configure() {
-        return new ResourceConfig().registerClasses(RepresentationVersionResource.class)
-                .registerClasses(RecordNotExistsExceptionMapper.class)
-                .registerClasses(RepresentationNotExistsExceptionMapper.class)
-                .registerClasses(VersionNotExistsExceptionMapper.class)
-                .registerClasses(CannotModifyPersistentRepresentationExceptionMapper.class)
-                .registerClasses(CannotPersistEmptyRepresentationExceptionMapper.class)
-                .property("contextConfigLocation", "classpath:testContext.xml");
-    }
-
-
     @Before
     public void mockUp() {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
-        mutableAclService = applicationContext.getBean(MutableAclService.class);
         Mockito.reset(recordService);
     }
 
 
     @SuppressWarnings("unused")
     private Object[] mimeTypes() {
-        return $($(MediaType.APPLICATION_XML_TYPE), $(MediaType.APPLICATION_JSON_TYPE));
+        return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
     }
 
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void testGetRepresentationVersion(MediaType mediaType)
-            throws Exception {
+    public void testGetRepresentationVersion(MediaType mediaType) throws Exception {
         Representation expected = new Representation(representation);
         URITools.enrich(expected, getBaseUri());
         when(recordService.getRepresentation(globalId, schema, version)).thenReturn(new Representation(representation));
 
-        Response response = target(URITools.getVersionPath(globalId, schema, version).toString()).request(mediaType)
-                .get();
+        ResultActions response = mockMvc.perform(get(URITools.getVersionPath(globalId, schema, version)).accept(mediaType))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(mediaType));
 
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getMediaType(), is(mediaType));
-        Representation entity = response.readEntity(Representation.class);
+        Representation entity = responseContent(response, Representation.class, mediaType);
         assertThat(entity, is(expected));
         verify(recordService, times(1)).getRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
@@ -113,11 +100,11 @@ public class RepresentationVersionResourceTest extends JerseyTest {
             throws Exception {
         when(recordService.getRepresentation(globalId, schema, version)).thenThrow(exception);
 
-        Response response = target().path(URITools.getVersionPath(globalId, schema, version).toString())
-                .request(MediaType.APPLICATION_XML).get();
+        ResultActions response = mockMvc.perform(get(URITools.getVersionPath(globalId, schema, version))
+                .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().is(statusCode));
 
-        assertThat(response.getStatus(), is(statusCode));
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
         verify(recordService, times(1)).getRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
@@ -125,21 +112,18 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
 
     @Test
-    public void testGetRepresentationVersionReturns406ForUnsupportedFormat() {
-        Response response = target().path(URITools.getVersionPath(globalId, schema, version).toString())
-                .request(MediaType.APPLICATION_SVG_XML_TYPE).get();
-
-        assertThat(response.getStatus(), is(406));
+    public void testGetRepresentationVersionReturns406ForUnsupportedFormat() throws Exception {
+        mockMvc.perform(get(URITools.getVersionPath(globalId, schema, version))
+                .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
+                .andExpect(status().isNotAcceptable());
     }
 
 
     @Test
     public void testDeleteRepresentation()
             throws Exception {
-        Response response = target().path(URITools.getVersionPath(globalId, schema, version).toString()).request()
-                .delete();
-
-        assertThat(response.getStatus(), is(204));
+        mockMvc.perform(delete(URITools.getVersionPath(globalId, schema, version)))
+                .andExpect(status().isNoContent());
         verify(recordService, times(1)).deleteRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
     }
@@ -152,11 +136,10 @@ public class RepresentationVersionResourceTest extends JerseyTest {
             throws Exception {
         Mockito.doThrow(exception).when(recordService).deleteRepresentation(globalId, schema, version);
 
-        Response response = target().path(URITools.getVersionPath(globalId, schema, version).toString()).request()
-                .delete();
+        ResultActions response = mockMvc.perform(delete(URITools.getVersionPath(globalId, schema, version)))
+                .andExpect(status().is(statusCode));
 
-        assertThat(response.getStatus(), is(statusCode));
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
         verify(recordService, times(1)).deleteRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
@@ -169,11 +152,10 @@ public class RepresentationVersionResourceTest extends JerseyTest {
         when(recordService.persistRepresentation(globalId, schema, version)).thenReturn(
                 new Representation(representation));
 
-        Response response = target(persistPath).request().post(
-                Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+        mockMvc.perform(post(persistPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.LOCATION, URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        assertThat(response.getStatus(), is(201));
-        assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));
         verify(recordService, times(1)).persistRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
     }
@@ -186,11 +168,10 @@ public class RepresentationVersionResourceTest extends JerseyTest {
             throws Exception {
         when(recordService.persistRepresentation(globalId, schema, version)).thenThrow(exception);
 
-        Response response = target().path(persistPath).request()
-                .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+        ResultActions response = mockMvc.perform(post(persistPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is(statusCode));
 
-        assertThat(response.getStatus(), is(statusCode));
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
         verify(recordService, times(1)).persistRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
@@ -214,11 +195,10 @@ public class RepresentationVersionResourceTest extends JerseyTest {
         when(recordService.copyRepresentation(globalId, schema, version))
                 .thenReturn(new Representation(representation));
 
-        Response response = target(copyPath).request().post(
-                Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+        mockMvc.perform(post(copyPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.LOCATION, URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        assertThat(response.getStatus(), is(201));
-        assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));
         verify(recordService, times(1)).copyRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
     }
@@ -231,11 +211,10 @@ public class RepresentationVersionResourceTest extends JerseyTest {
             throws Exception {
         when(recordService.copyRepresentation(globalId, schema, version)).thenThrow(exception);
 
-        Response response = target().path(copyPath).request()
-                .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+        ResultActions response = mockMvc.perform(post(copyPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is(statusCode));
 
-        assertThat(response.getStatus(), is(statusCode));
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
         verify(recordService, times(1)).copyRepresentation(globalId, schema, version);
         verifyNoMoreInteractions(recordService);
