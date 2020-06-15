@@ -15,8 +15,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -41,67 +39,10 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  */
 public class RecordServiceClient extends MCSClient {
 
-    private final Client client = ClientBuilder.newClient().register(MultiPartFeature.class);
-    private static final Logger logger = LoggerFactory.getLogger(RecordServiceClient.class);
-
-    //records/{CLOUDID}
-    private static final String recordPath;
-    //records/{CLOUDID}/representations
-    private static final String representationsPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}
-    private static final String represtationNamePath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions
-    private static final String versionsPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}
-    private static final String versionPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/copy
-    private static final String copyPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/persist
-    private static final String persistPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/permissions/{TYPE}/users/{USER_NAME}
-    private static final String grantingPermissionsToVesionPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/permit
-    private static final String permitPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}
-    private static final String representationsRevisionsPath;
-
-    static {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append(ParamConstants.RECORDS);
-        builder.append('/');
-        builder.append('{');
-        builder.append(P_CLOUDID);
-        builder.append('}');
-        recordPath = builder.toString();
-
-        builder.append('/');
-        builder.append(ParamConstants.REPRESENTATIONS);
-        representationsPath = builder.toString();
-
-        builder.append('/');
-        builder.append('{');
-        builder.append(P_REPRESENTATIONNAME);
-        builder.append('}');
-        represtationNamePath = builder.toString();
-
-        builder.append('/');
-        builder.append(ParamConstants.VERSIONS);
-        versionsPath = builder.toString();
-
-        builder.append('/');
-        builder.append('{');
-        builder.append(ParamConstants.P_VER);
-        builder.append('}');
-        versionPath = builder.toString();
-
-        copyPath = versionPath + "/" + ParamConstants.COPY;
-        persistPath = versionPath + "/" + ParamConstants.PERSIST;
-        permitPath = versionPath + "/" + ParamConstants.PERMIT;
-
-        grantingPermissionsToVesionPath = versionPath + "/permissions/{" + ParamConstants.P_PERMISSION_TYPE + "}/users/{" + ParamConstants.P_USERNAME + "}";
-        representationsRevisionsPath = represtationNamePath + "/revisions/{" + P_REVISION_NAME + "}";
-    }
+    private final Client client = ClientBuilder.newBuilder()
+            .register(JacksonFeature.class)
+            .register(MultiPartFeature.class)
+            .build();
 
     /**
      * Creates instance of RecordServiceClient.
@@ -676,13 +617,17 @@ public class RecordServiceClient extends MCSClient {
      * @param permission         permission that will be granted
      * @throws MCSException
      */
-    public void grantPermissionsToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
-        WebTarget target = client.target(baseUrl).path(grantingPermissionsToVesionPath)
-                .resolveTemplate(P_CLOUDID, cloudId)
-                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.P_VER, version)
-                .resolveTemplate(ParamConstants.P_PERMISSION_TYPE, permission.getValue())
-                .resolveTemplate(ParamConstants.P_USERNAME, userName);
+    public void grantPermissionsToVersion(String cloudId, String representationName, String version,
+                                          String userName, Permission permission) throws MCSException {
+
+        WebTarget target = client
+                .target(baseUrl)
+                .path(REPRESENTATION_PERMISSION)
+                .resolveTemplate(CLOUD_ID, cloudId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName)
+                .resolveTemplate(VERSION, version)
+                .resolveTemplate(PERMISSION, permission.getValue())
+                .resolveTemplate(USER_NAME, userName);
 
         Builder request = target.request();
 
@@ -822,10 +767,11 @@ public class RecordServiceClient extends MCSClient {
             String key,
             String value)
             throws MCSException {
-        WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
-                .resolveTemplate(P_CLOUDID, cloudId)
-                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(P_REVISION_NAME, revisionName);
+        WebTarget webtarget = client.target(baseUrl)
+                .path(REPRESENTATION_REVISIONS_RESOURCE)
+                .resolveTemplate(CLOUD_ID, cloudId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName)
+                .resolveTemplate(REVISION_NAME, revisionName);
 
         if (revisionProviderId != null) {
             webtarget = webtarget.queryParam(F_REVISION_PROVIDER_ID, revisionProviderId);
