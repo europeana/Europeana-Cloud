@@ -209,7 +209,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
+            <version>${version.lombok}</version>
             <scope>compile</scope>
         </dependency>
 
