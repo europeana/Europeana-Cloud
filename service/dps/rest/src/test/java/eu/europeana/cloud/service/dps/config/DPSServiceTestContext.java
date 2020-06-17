@@ -4,9 +4,13 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
+import eu.europeana.cloud.service.dps.depublish.DepublicationService;
+import eu.europeana.cloud.service.dps.depublish.MetisIndexerFactory;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.submitters.DepublicationTopologySubmitter;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
@@ -150,4 +154,25 @@ public class DPSServiceTestContext {
     public HarvestsExecutor harvesterExecutor() {
         return Mockito.mock(HarvestsExecutor.class);
     }
+
+    @Bean
+    public MetisIndexerFactory metisIndexerFactory() {
+        return Mockito.mock(MetisIndexerFactory.class);
+    }
+
+    @Bean
+    public DepublicationTopologySubmitter depublicationTopologySubmitter(){
+        return new DepublicationTopologySubmitter();
+    }
+
+    @Bean
+    public DepublicationService depublicationService(){
+        return Mockito.mock( DepublicationService.class);
+    }
+
+    @Bean
+    public DatasetDepublisher datasetDepublisher(){
+        return Mockito.mock(DatasetDepublisher.class);
+    }
+
 }

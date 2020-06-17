@@ -35,6 +35,9 @@ public class DpsTaskValidatorFactory {
 
     private static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
     private static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
+    private static final String DEPUBLICATION_TOPOLOGY_DATASETS = "depublication_topology_dataset_urls";
+    private static final String DEPUBLICATION_TOPOLOGY_FILE_URLS = "depublication_topology_file_urls";
+    private static final String DEPUBLICATION_TOPOLOGY_REPOSITORY_URL = "depublication_topology_repository_urls";
 
     private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
@@ -137,6 +140,12 @@ public class DpsTaskValidatorFactory {
                 .withOptionalOutputRevision()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
 
+        DpsTaskValidator depublicationTaskValidator = new DpsTaskValidator("DataSet validator for Depublication Topology")
+                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+                .withParameter(PluginParameterKeys.METIS_DATASET_ID);
+        taskValidatorMap.put(DEPUBLICATION_TOPOLOGY_DATASETS, depublicationTaskValidator);
+        taskValidatorMap.put(DEPUBLICATION_TOPOLOGY_FILE_URLS, depublicationTaskValidator);
+        taskValidatorMap.put(DEPUBLICATION_TOPOLOGY_REPOSITORY_URL, depublicationTaskValidator);
 
         return taskValidatorMap;
     }

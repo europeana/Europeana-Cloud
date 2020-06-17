@@ -4,7 +4,12 @@ import eu.europeana.cloud.service.dps.DpsTask;
 
 public class SubmitingTaskWasKilled extends RuntimeException {
 
-    public SubmitingTaskWasKilled(DpsTask task) {
-        super("Task was killed while it was submiting to topology! TaskId=" + task.getTaskId());
+    public SubmitingTaskWasKilled(long taskId) {
+        super("Task was killed while it was submiting to topology! TaskId=" + taskId);
     }
+
+    public SubmitingTaskWasKilled(DpsTask task) {
+        this(task.getTaskId());
+    }
+
 }
