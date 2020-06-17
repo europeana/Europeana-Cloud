@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
@@ -16,12 +13,12 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -112,14 +109,9 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private boolean isAssignmentExists(String providerId, String dataSetId, String recordId, String schema, String version) {
-        Map<String, Set<String>> providerDataSets = dataSetDAO.getDataSets(recordId, schema, version);
-        if (!providerDataSets.isEmpty()) {
-            Set<String> dataSets = providerDataSets.get(providerId);
-            if (dataSets.contains(dataSetId)) {
-                return true;
-            }
-        }
-        return false;
+        String seekedIdString = PersistenceUtils.createProviderDataSetId(providerId, dataSetId);
+        CompoundDataSetId seekedId = PersistenceUtils.createCompoundDataSetId(seekedIdString);
+        return dataSetDAO.getDataSetAssignments(recordId, schema, version).contains(seekedId);
     }
 
     private void updateLatestProviderDatasetRevisions(String providerId, String dataSetId, String recordId, String schema, String version, Map<String, Revision> latestRevisions) {
@@ -318,11 +310,6 @@ public class CassandraDataSetService implements DataSetService {
             dataSets.remove(limit);
         }
         return new ResultSlice<DataSet>(nextDataSet, dataSets);
-    }
-
-    @Override
-    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
-        return dataSetDAO.getDataSets(cloudId, representationName, version);
     }
 
     @Override

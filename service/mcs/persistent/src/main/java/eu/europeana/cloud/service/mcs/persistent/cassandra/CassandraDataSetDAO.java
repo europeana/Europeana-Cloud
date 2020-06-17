@@ -4,7 +4,6 @@ package eu.europeana.cloud.service.mcs.persistent.cassandra;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
-import com.google.common.base.Objects;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.utils.Bucket;
@@ -19,6 +18,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.*;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -41,6 +42,7 @@ public class CassandraDataSetDAO {
     private static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
 
     private static final String LATEST_DATASET_REPRESENTATION_REVISION_BUCKETS = "latest_dataset_representation_revision_buckets";
+    private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
 
     @Autowired
     @Qualifier("dbService")
@@ -67,8 +69,6 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement getDataSetStatement;
 
-    private PreparedStatement getDataSetsForRepresentationStatement;
-
     private PreparedStatement getDataSetsForRepresentationVersionStatement;
 
     private PreparedStatement getDataSetsRepresentationsNamesList;
@@ -84,8 +84,6 @@ public class CassandraDataSetDAO {
     private PreparedStatement addDataSetsRevision;
 
     private PreparedStatement getDataSetsRevision;
-
-    private PreparedStatement getDataSetsForVersionStatement;
 
     private PreparedStatement removeDataSetsRevision;
 
@@ -211,16 +209,6 @@ public class CassandraDataSetDAO {
         getDataSetStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
-        getDataSetsForRepresentationStatement = connectionProvider.getSession()
-                .prepare(//
-                        "SELECT "//
-                                + "provider_dataset_id, version_id "//
-                                + "FROM data_set_assignments_by_representations "//
-                                + "WHERE cloud_id = ? AND schema_id = ?;");
-        getDataSetsForRepresentationStatement
-                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
-
         getDataSetsForRepresentationVersionStatement = connectionProvider.getSession()
                 .prepare(//
                         "SELECT "//
@@ -288,14 +276,6 @@ public class CassandraDataSetDAO {
                         + "FROM data_set_assignments_by_revision_id_v1 "//
                         + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? LIMIT ?;");
         getDataSetsRevision
-                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
-        getDataSetsForVersionStatement = connectionProvider.getSession().prepare(//
-                "SELECT "//
-                        + "provider_dataset_id "//
-                        + "FROM data_set_assignments_by_representations "//
-                        + "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
-        getDataSetsForVersionStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetCloudIdsByRepresentationNoPaging = connectionProvider.getSession()
@@ -528,7 +508,6 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-
     /**
      * Returns data sets to which representation (in specified or latest
      * version) is assigned to.
@@ -540,17 +519,13 @@ public class CassandraDataSetDAO {
      */
     public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version)
             throws NoHostAvailableException, QueryExecutionException {
-        BoundStatement boundStatement = getDataSetsForRepresentationStatement.bind(cloudId, schemaId);
+        BoundStatement boundStatement = getDataSetsForRepresentationVersionStatement.bind(cloudId, schemaId, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<CompoundDataSetId> ids = new ArrayList<>();
         for (Row r : rs) {
-            UUID versionId = r.getUUID("version_id");
-            String versionIdString = versionId == null ? null : versionId.toString();
-            if (Objects.equal(version, versionIdString)) {
-                String providerDataSetId = r.getString("provider_dataset_id");
-                ids.add(createCompoundDataSetId(providerDataSetId));
-            }
+            String providerDataSetId = r.getString(PROVIDER_DATASET_ID);
+            ids.add(createCompoundDataSetId(providerDataSetId));
         }
         return ids;
     }
@@ -570,15 +545,7 @@ public class CassandraDataSetDAO {
         if (version == null) {
             throw new RepresentationNotExistsException();
         }
-        BoundStatement boundStatement = getDataSetsForRepresentationVersionStatement.bind(cloudId, schemaId, UUID.fromString(version));
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        List<CompoundDataSetId> ids = new ArrayList<>();
-        for (Row r : rs) {
-            String providerDataSetId = r.getString("provider_dataset_id");
-            ids.add(createCompoundDataSetId(providerDataSetId));
-        }
-        return ids;
+        return getDataSetAssignments(cloudId,schemaId,version);
     }
 
 
@@ -697,33 +664,6 @@ public class CassandraDataSetDAO {
         return result;
     }
 
-    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
-        BoundStatement boundStatement = getDataSetsForVersionStatement.bind(
-                cloudId,
-                representationName,
-                UUID.fromString(version));
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        Set<String> providerDataSets = new LinkedHashSet<>();
-        Map<String, Set<String>> result = new HashMap<>();
-        for (Row row : rs) {
-            String provider_dataset_id = row.getString("provider_dataset_id");
-            String[] parts = provider_dataset_id.split("\n");
-            if (parts.length != 2) {
-                continue;
-            }
-
-            // parts[0] should contain provider id, parts[1] should contain dataset id
-            providerDataSets = result.get(parts[0]);
-            if (providerDataSets == null) {
-                providerDataSets = new LinkedHashSet<>();
-                result.put(parts[0], providerDataSets);
-            }
-            providerDataSets.add(parts[1]);
-        }
-        return result;
-    }
-
     /**
      * Deletes data set with all its assignments.
      *
@@ -827,20 +767,6 @@ public class CassandraDataSetDAO {
             bucket = bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDatasetId, bucket);
         }
         return false;
-    }
-
-    private String createProviderDataSetId(String providerId, String dataSetId) {
-        return providerId + CDSID_SEPARATOR + dataSetId;
-    }
-
-    private CompoundDataSetId createCompoundDataSetId(String providerDataSetId) {
-        String[] values = providerDataSetId.split(CDSID_SEPARATOR);
-        if (values.length != 2) {
-            throw new IllegalArgumentException(
-                    "Cannot construct proper compound data set id from value: "
-                            + providerDataSetId);
-        }
-        return new CompoundDataSetId(values[0], values[1]);
     }
 
     public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId) {
@@ -1480,7 +1406,7 @@ public class CassandraDataSetDAO {
             }
             return rs.one().getDate("revision_timestamp");
         }
-        return null;
+            return null;
     }
 
 
@@ -1539,4 +1465,5 @@ public class CassandraDataSetDAO {
         } else
             return null;
     }
+
 }

@@ -101,7 +101,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         if (!rs.iterator().hasNext()) {
             throw new TaskInfoDoesNotExistException();
         }
-        Row row = rs.one();
+        return createTaskInfo(rs.one());
+    }
+
+    private TaskInfo createTaskInfo(Row row) {
         TaskInfo task = new TaskInfo(
                 row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID),
                 row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
@@ -113,10 +116,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         );
         task.setExpectedSize(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE));
         task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
-        task.setTaskDefinition(row.getString("task_informations"));
+        task.setTaskDefinition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS));
         return task;
     }
-
 
     public void insert(long taskId, String topologyName, int expectedSize, String state, String info,String applicationIdentifier, String topicName) throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(taskInsertUpdateStateStatement.bind(taskId, topologyName, expectedSize, state, info));
