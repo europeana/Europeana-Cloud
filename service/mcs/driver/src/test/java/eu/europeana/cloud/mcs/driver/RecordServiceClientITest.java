@@ -13,8 +13,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
-import javax.validation.constraints.AssertTrue;
-import javax.xml.bind.JAXBElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
