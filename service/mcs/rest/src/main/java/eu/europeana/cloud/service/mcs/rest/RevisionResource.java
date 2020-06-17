@@ -182,23 +182,11 @@ public class RevisionResource {
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
-        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision);
         recordService.addRevision(globalId, schema, version, revision);
         dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
         // insert information in extra table
         recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(), revision.getRevisionName(), version, revision.getCreationTimeStamp());
         dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
-    }
-
-    private void createAssignmentToRevisionOnDataSets(
-            String globalId, String schema, String version, Revision revision) throws ProviderNotExistsException {
-
-        Map<String, Set<String>> dataSets = dataSetService.getDataSets(globalId, schema, version);
-        for (Map.Entry<String, Set<String>> entry : dataSets.entrySet()) {
-            for (String dataset : entry.getValue()) {
-                dataSetService.addDataSetsRevisions(entry.getKey(), dataset, revision, schema, globalId);
-            }
-        }
     }
 
     private Revision setRevisionTags(Revision revision, Set<String> tags) {
