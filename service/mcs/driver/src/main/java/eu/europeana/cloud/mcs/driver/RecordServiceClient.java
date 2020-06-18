@@ -14,6 +14,7 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 
 import javax.ws.rs.client.Client;
@@ -371,9 +372,8 @@ public class RecordServiceClient extends MCSClient {
         FormDataMultiPart requestBody = new FormDataMultiPart();
         requestBody
                 .field(ParamConstants.F_PROVIDER, providerId)
-                .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .field(ParamConstants.F_FILE_MIME, mediaType);
-
+                .field(ParamConstants.F_FILE_MIME, mediaType)
+                .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
         if (fileName == null || !fileName.trim().isEmpty()) {
             fileName = UUID.randomUUID().toString();
