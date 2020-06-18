@@ -10,16 +10,16 @@ public class TaskSubmitterFactory {
     private final OaiTopologyTaskSubmitter oaiTopologyTaskSubmitter;
     private final HttpTopologyTaskSubmitter httpTopologyTaskSubmitter;
     private final OtherTopologiesTaskSubmitter otherTopologiesTaskSubmitter;
-    private final TaskSubmitter depublicationTopologySubmitter;
+    private final TaskSubmitter depublicationTaskSubmitter;
 
     public TaskSubmitterFactory(OaiTopologyTaskSubmitter oaiTopologyTaskSubmitter,
                                 HttpTopologyTaskSubmitter httpTopologyTaskSubmitter,
                                 OtherTopologiesTaskSubmitter otherTopologiesTaskSubmitter,
-                                TaskSubmitter depublicationTopologySubmitter) {
+                                TaskSubmitter depublicationTaskSubmitter) {
         this.oaiTopologyTaskSubmitter = oaiTopologyTaskSubmitter;
         this.httpTopologyTaskSubmitter = httpTopologyTaskSubmitter;
         this.otherTopologiesTaskSubmitter = otherTopologiesTaskSubmitter;
-        this.depublicationTopologySubmitter = depublicationTopologySubmitter;
+        this.depublicationTaskSubmitter = depublicationTaskSubmitter;
     }
 
     public TaskSubmitter provideTaskSubmitter(SubmitTaskParameters parameters) {
@@ -37,7 +37,7 @@ public class TaskSubmitterFactory {
             case TopologiesNames.XSLT_TOPOLOGY:
                 return otherTopologiesTaskSubmitter;
             case TopologiesNames.DEPUBLICATION_TOPOLOGY:
-                return depublicationTopologySubmitter;
+                return depublicationTaskSubmitter;
             default:
                 throw new IllegalArgumentException("Unable to find the TaskSubmitter for the given topology name: " + parameters.getTopologyName());
         }

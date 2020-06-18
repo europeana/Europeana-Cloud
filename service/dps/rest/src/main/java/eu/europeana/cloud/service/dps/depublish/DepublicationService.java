@@ -67,7 +67,7 @@ public class DepublicationService {
             throw new RuntimeException("Not found any records of dataset with metis id = " + datasetMetisId);
         }
 
-        statusUpdater.updateStatusExpectedSize(taskId, TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), (int) expectedSize);
+        statusUpdater.updateStatusExpectedSize(taskId, TaskState.DEPUBLISHING.toString(), (int) expectedSize);
         LOGGER.info("Evaluated size {} for task id {}", expectedSize, taskId);
         return expectedSize;
     }

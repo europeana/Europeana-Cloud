@@ -112,7 +112,7 @@ public class DepublicationServiceTest {
 
         service.depublish(parameters);
 
-        verify(updater).updateStatusExpectedSize(eq(TASK_ID), eq(TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString()), eq(EXPECTED_SIZE));
+        verify(updater).updateStatusExpectedSize(eq(TASK_ID), eq(TaskState.DEPUBLISHING.toString()), eq(EXPECTED_SIZE));
     }
 
     @Test

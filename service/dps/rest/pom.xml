@@ -556,11 +556,6 @@
             <version>2.4.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-depublish</artifactId>
-            <version>1.10.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
+
     </dependencies>
 </project>

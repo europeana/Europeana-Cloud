@@ -40,6 +40,5 @@
         <module>storm/topologies/normalization</module>
         <module>storm/topologies/media-service</module>
         <module>storm/topologies/link-check</module>
-        <module>depublish</module>
     </modules>
 </project>

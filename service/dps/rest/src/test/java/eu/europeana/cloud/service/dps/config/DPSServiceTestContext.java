@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.depublish.MetisIndexerFactory;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.services.submitters.DepublicationTopologySubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.DepublicationTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
@@ -161,8 +161,8 @@ public class DPSServiceTestContext {
     }
 
     @Bean
-    public DepublicationTopologySubmitter depublicationTopologySubmitter(){
-        return new DepublicationTopologySubmitter();
+    public DepublicationTaskSubmitter depublicationTopologySubmitter(){
+        return new DepublicationTaskSubmitter();
     }
 
     @Bean
