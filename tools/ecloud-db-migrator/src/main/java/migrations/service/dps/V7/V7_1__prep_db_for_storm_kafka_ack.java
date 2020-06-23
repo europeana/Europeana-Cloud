@@ -12,8 +12,8 @@ public class V6_1__prep_db_for_topology_by_record implements JavaMigration {
                         "        record_id varchar," +
                         "        topology_name varchar," +
                         "        attempt_number int," +
-                        "        start_time timestamp" +
-                        "        PRIMARY KEY(task_id,record_id)" +
+                        "        start_time timestamp," +
+                        "        PRIMARY KEY(task_id,record_id,topology_name)" +
                         ");"
         );
     }

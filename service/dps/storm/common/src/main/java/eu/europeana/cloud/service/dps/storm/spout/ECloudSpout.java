@@ -9,10 +9,7 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
@@ -44,10 +41,13 @@ public class ECloudSpout extends KafkaSpout {
     private String userName;
     private String password;
 
+    private final String topologyName;
+
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected TaskStatusUpdater taskStatusUpdater;
     protected TaskStatusChecker taskStatusChecker;
     protected ProcessedRecordsDAO processedRecordsDAO;
+    protected RecordProcessingStateDAO recordProcessingStateDAO;
 
     public ECloudSpout(KafkaSpoutConfig kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -58,6 +58,8 @@ public class ECloudSpout extends KafkaSpout {
         this.keyspaceName = keyspaceName;
         this.userName = userName;
         this.password = password;
+
+        topologyName = "aaaa";
     }
 
     @Override
@@ -76,6 +78,7 @@ public class ECloudSpout extends KafkaSpout {
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
+        recordProcessingStateDAO = RecordProcessingStateDAO.getInstance(cassandraConnectionProvider);
     }
 
     @Override
@@ -167,7 +170,20 @@ public class ECloudSpout extends KafkaSpout {
                 stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
             }
 
-            stormTaskTuple.addParameter(ATTEMPT_NUMBER, "0");
+            int attempt = recordProcessingStateDAO.selectProcessingRecordAttempt(
+                    dpsTask.getTaskId(),
+                    dpsRecord.getRecordId(),
+                    topologyName
+            );
+
+            recordProcessingStateDAO.insertProcessingRecord(
+                    dpsTask.getTaskId(),
+                    dpsRecord.getRecordId(),
+                    topologyName,
+                    attempt++
+            );
+
+            stormTaskTuple.addParameter(ATTEMPT_NUMBER, String.valueOf(attempt));
 
             return stormTaskTuple;
         }
