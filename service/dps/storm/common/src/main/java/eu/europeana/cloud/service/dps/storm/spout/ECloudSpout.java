@@ -6,14 +6,13 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
@@ -30,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
@@ -159,13 +159,15 @@ public class ECloudSpout extends KafkaSpout {
                     dpsTask.getOutputRevision(),
                     dpsTask.getHarvestingDetails());
             //
-            stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
-            stormTaskTuple.addParameter(PluginParameterKeys.SCHEMA_NAME, dpsRecord.getMetadataPrefix());
+            stormTaskTuple.addParameter(CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
+            stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
 
             List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
             if(!isEmpty(repositoryUrlList)) {
-                stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
+                stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
             }
+
+            stormTaskTuple.addParameter(ATTEMPT_NUMBER, "0");
 
             return stormTaskTuple;
         }

@@ -178,4 +178,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             LOGGER.error(e1.getMessage());
         }
     }
+
+    protected abstract void cleanInvalidData(long taskId, String recordId);
 }
