@@ -179,5 +179,5 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         }
     }
 
-    protected abstract void cleanInvalidData(long taskId, String recordId);
+    protected void cleanInvalidData(long taskId, String recordId) {}
 }
