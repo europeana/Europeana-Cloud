@@ -72,7 +72,7 @@ public class DepublicationServiceTest {
         task = new DpsTask();
         task.setTaskId(TASK_ID);
         task.addParameter(PluginParameterKeys.METIS_DATASET_ID, DATASET_METIS_ID);
-        parameters = SubmitTaskParameters.builder().task(task).build();
+        parameters = SubmitTaskParameters.builder().expectedSize(EXPECTED_SIZE).task(task).build();
         when(metisIndexerFactory.openIndexer(anyBoolean())).thenReturn(indexer);
         when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SIZE, 0L);
         when(indexer.removeAll(anyString(), any(Date.class))).thenReturn(EXPECTED_SIZE);
@@ -97,23 +97,7 @@ public class DepublicationServiceTest {
         verify(metisIndexerFactory, never()).openIndexer(eq(false));
     }
 
-    @Test
-    public void verifyTaskStatePendingSavedAfterTaskStarted() throws IndexingException {
-        when(indexer.countRecords(anyString())).thenThrow(new RuntimeException());
 
-        service.depublish(parameters);
-
-        verify(updater).updateTask(eq(TASK_ID), anyString(), eq(TaskState.PENDING.toString()), any(Date.class));
-    }
-
-    @Test
-    public void verifyValidTaskSizeStoredBeforeRemovingStarted() throws IndexingException {
-        doThrow(new RuntimeException()).when(indexer).removeAll(anyString(), any(Date.class));
-
-        service.depublish(parameters);
-
-        verify(updater).updateStatusExpectedSize(eq(TASK_ID), eq(TaskState.DEPUBLISHING.toString()), eq(EXPECTED_SIZE));
-    }
 
     @Test
     public void verifyTaskRemoveInvokedOnIndexer() throws IndexingException {
@@ -122,22 +106,6 @@ public class DepublicationServiceTest {
         verify(indexer).removeAll(eq(DATASET_METIS_ID), isNull(Date.class));
         assertTaskSucceed();
     }
-
-    @Test
-    public void verifyWaitForRemovingMethodFinish() throws IndexingException {
-        AtomicBoolean removedFinished = new AtomicBoolean(false);
-        doAnswer(r -> {
-            Thread.sleep(WAITING_FOR_COMPLETE_TIME);
-            removedFinished.set(true);
-            return EXPECTED_SIZE;
-        }).when(indexer).removeAll(anyString(), any(Date.class));
-
-        service.depublish(parameters);
-
-        assertTaskSucceed();
-        assertTrue(removedFinished.get());
-    }
-
 
     @Test
     public void verifyWaitForAllRowsRemoved() throws IndexingException {
@@ -169,14 +137,7 @@ public class DepublicationServiceTest {
         verify(updater, never()).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     }
 
-    @Test
-    public void verifyTaskFailedWhenThereIsNoRowsToRemove() throws IndexingException {
-        when(indexer.countRecords(anyString())).thenReturn(0L);
 
-        service.depublish(parameters);
-
-        assertTaskFailed();
-    }
 
     @Test
     public void verifyTaskFailedWhenRemoveMethodThrowsException() throws IndexingException {

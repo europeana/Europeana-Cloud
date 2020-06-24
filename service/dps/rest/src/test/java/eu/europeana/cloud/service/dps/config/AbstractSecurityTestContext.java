@@ -112,7 +112,7 @@ public class AbstractSecurityTestContext {
     }
 
     @Bean
-    public TaskSubmitter depublicationTopologySubmitter(){
+    public TaskSubmitter depublicationTaskSubmitter(){
         return Mockito.mock(TaskSubmitter.class);
     }
 

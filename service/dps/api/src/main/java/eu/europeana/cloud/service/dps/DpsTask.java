@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps;
 
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.Revision;
+import lombok.ToString;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;

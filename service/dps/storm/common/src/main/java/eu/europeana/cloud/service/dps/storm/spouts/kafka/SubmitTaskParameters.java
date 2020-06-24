@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -64,5 +65,13 @@ public class SubmitTaskParameters {
 
     public int incrementAndGetSentRecordCounter() {
         return sentRecordsCounter.incrementAndGet();
+    }
+
+    public String getDatasetMetisId() {
+        return task.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+    }
+
+    public boolean getUseAlternativeEnvironment() {
+        return Boolean.parseBoolean(task.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV));
     }
 }

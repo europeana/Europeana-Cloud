@@ -13,7 +13,9 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
+import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
+import eu.europeana.cloud.service.dps.depublish.MetisIndexerFactory;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -36,10 +38,14 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.exception.IndexingException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
@@ -50,6 +56,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.net.URISyntaxException;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
@@ -119,6 +126,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Autowired
     private DepublicationService depublicationService;
 
+    @Autowired
+    private DatasetDepublisher datasetDepublisher;
 
     public TopologyTasksResourceTest() {
         super();
@@ -915,16 +924,26 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     /* Depublication */
     @Test
     public void shouldSupportDepublication() throws Exception {
-        mockSecurity(DEPUBLICATION_TOPOLOGY);
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = new DpsTask(TASK_NAME);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
     }
 
     @Test
+    public void shouldDepublicationThrowsValidationExceptionWhenTryingWithDatasetUrls() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = getDpsTaskWithDataSetEntry();
+
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void shouldDepublicationThrowsValidationExceptionWhenTryingWithFileUrls() throws Exception {
-        mockSecurity(DEPUBLICATION_TOPOLOGY);
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = getDpsTaskWithFileDataEntry();
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
@@ -933,7 +952,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldDepublicationThrowsValidationExceptionWhenTryingWithRepositoryUrls() throws Exception {
-        mockSecurity(DEPUBLICATION_TOPOLOGY);
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = getDpsTaskWithRepositoryURL("http://xxx.yy");
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
@@ -942,8 +961,9 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldPassValidParameterToDepublicationService() throws Exception {
-        mockSecurity(DEPUBLICATION_TOPOLOGY);
-        DpsTask task=getDpsTaskWithDataSetEntry();
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = new DpsTask(TASK_NAME);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
         task.addParameter(METIS_USE_ALT_INDEXING_ENV,"true");
 
         sendTask(task,DEPUBLICATION_TOPOLOGY)

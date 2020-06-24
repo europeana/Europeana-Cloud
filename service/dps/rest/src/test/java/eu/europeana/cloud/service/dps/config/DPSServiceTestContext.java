@@ -18,6 +18,7 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
@@ -161,8 +162,8 @@ public class DPSServiceTestContext {
     }
 
     @Bean
-    public DepublicationTaskSubmitter depublicationTopologySubmitter(){
-        return new DepublicationTaskSubmitter();
+    public DepublicationTaskSubmitter depublicationTaskSubmitter(FilesCounterFactory filesCounterFactory, DepublicationService depublicationService, TaskStatusUpdater taskStatusUpdater){
+        return new DepublicationTaskSubmitter(filesCounterFactory,depublicationService,taskStatusUpdater);
     }
 
     @Bean
