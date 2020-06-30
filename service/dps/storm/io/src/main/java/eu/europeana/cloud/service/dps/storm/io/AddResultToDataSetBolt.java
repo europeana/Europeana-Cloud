@@ -25,7 +25,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
 
     private String ecloudMcsAddress;
-    private DataSetServiceClient dataSetServiceClient;
+    private transient DataSetServiceClient dataSetServiceClient;
 
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -33,6 +33,9 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        if(ecloudMcsAddress == null) {
+            throw new NullPointerException("MCS Server must be set!");
+        }
         dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
     }
 
@@ -63,7 +66,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         }
     }
 
-    private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException, DriverException {
+    private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
@@ -90,8 +93,9 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
 
     private List<String> readDataSetsList(String listParameter) {
-        if (listParameter == null)
+        if (listParameter == null) {
             return null;
+        }
         return Arrays.asList(listParameter.split(","));
     }
 

@@ -19,16 +19,15 @@ public class PropertyFileLoader {
         try {
             PropertyFileLoader reader = new PropertyFileLoader();
             reader.loadDefaultPropertyFile(defaultPropertyFile, topologyProperties);
-            if (!providedPropertyFile.equals(""))
+            if (!"".equals(providedPropertyFile)) {
                 reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
-        } catch (FileNotFoundException e) {
-            LOGGER.error(Throwables.getStackTraceAsString(e));
+            }
         } catch (IOException e) {
             LOGGER.error(Throwables.getStackTraceAsString(e));
         }
     }
 
-    public void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) throws FileNotFoundException, IOException {
+    public void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) throws IOException {
         InputStream propertiesInputStream = Thread.currentThread()
                 .getContextClassLoader().getResourceAsStream(defaultPropertyFile);
         if (propertiesInputStream == null)
@@ -37,12 +36,10 @@ public class PropertyFileLoader {
 
     }
 
-    public void loadProvidedPropertyFile(String fileName, Properties topologyProperties) throws FileNotFoundException, IOException {
-
+    public void loadProvidedPropertyFile(String fileName, Properties topologyProperties) throws IOException {
         File file = new File(fileName);
         FileInputStream fileInput = new FileInputStream(file);
         topologyProperties.load(fileInput);
         fileInput.close();
-
     }
 }

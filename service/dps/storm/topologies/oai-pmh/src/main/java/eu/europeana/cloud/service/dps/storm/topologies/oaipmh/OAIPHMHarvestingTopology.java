@@ -32,25 +32,30 @@ import static java.lang.Integer.parseInt;
 /**
  *
  */
-public class
-OAIPHMHarvestingTopology {
-    private static Properties topologyProperties=new Properties();;
+public class OAIPHMHarvestingTopology {
+    private static Properties topologyProperties=new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
 
     public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology(String mcsServer, String uisServer) {
         TopologyBuilder builder = new TopologyBuilder();
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.OAI_TOPOLOGY, topologyProperties);
 
-        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
-        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
+        if(mcsServer == null) {
+            mcsServer = topologyProperties.getProperty(MCS_URL);
+        }
+        if(uisServer == null) {
+            uisServer = topologyProperties.getProperty(UIS_URL);
+        }
+
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(mcsServer, uisServer);
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
+        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(mcsServer);
 
         builder.setSpout(SPOUT, eCloudSpout, 1);
 
@@ -69,7 +74,7 @@ OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(ecloudMcsAddress),
+        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(mcsServer),
                 (getAnInt(DUPLICATES_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.taskIdFieldName));
@@ -101,6 +106,10 @@ OAIPHMHarvestingTopology {
                         new Fields(NotificationTuple.taskIdFieldName));
 
         return builder.createTopology();
+    }
+
+    public static Properties getProperties() {
+        return topologyProperties;
     }
 
     private static int getAnInt(String parseTasksBoltParallel) {

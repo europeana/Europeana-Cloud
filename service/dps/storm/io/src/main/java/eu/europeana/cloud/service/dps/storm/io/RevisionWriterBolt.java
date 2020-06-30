@@ -22,7 +22,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     public static final Logger LOGGER = LoggerFactory.getLogger(RevisionWriterBolt.class);
 
-    protected RevisionServiceClient revisionsClient;
+    protected transient RevisionServiceClient revisionsClient;
 
     private String ecloudMcsAddress;
 
@@ -64,7 +64,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         }
     }
 
-    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied,String authenticationHeader) throws MCSException, DriverException {
+    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied,String authenticationHeader) throws MCSException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
@@ -89,6 +89,9 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        if(ecloudMcsAddress == null) {
+            throw new NullPointerException("MCS Server must be set!");
+        }
         revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
     }
 }
