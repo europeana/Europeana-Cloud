@@ -58,4 +58,4 @@ service/ips/target/
 /ecloud-parent.iws
 
 create_changelog.sh
-/logs/workers-artifacts/
+/logs
