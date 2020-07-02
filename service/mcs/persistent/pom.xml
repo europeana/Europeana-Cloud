@@ -197,9 +197,9 @@
             <name>synat-a09-libs-releases-public</name>
             <url>http://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
         </repository>
-        <repository>
+        <!--repository>
             <id>eaio.com</id>
-            <url>http://eaio.com/maven2</url>
-        </repository>
+            <url>https://eaio.com/maven2</url>
+        </repository-->
     </repositories>
 </project>
