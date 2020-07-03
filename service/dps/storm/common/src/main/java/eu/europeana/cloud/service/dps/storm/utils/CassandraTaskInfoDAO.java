@@ -110,9 +110,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
                 TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.STATE)),
                 row.getString(CassandraTablesAndColumnsNames.INFO),
-                row.getDate(CassandraTablesAndColumnsNames.SENT_TIME),
-                row.getDate(CassandraTablesAndColumnsNames.START_TIME),
-                row.getDate(CassandraTablesAndColumnsNames.FINISH_TIME)
+                row.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME),
+                row.getTimestamp(CassandraTablesAndColumnsNames.START_TIME),
+                row.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME)
         );
         task.setExpectedSize(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE));
         task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));

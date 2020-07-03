@@ -89,7 +89,7 @@ public class TasksByStateDAO extends CassandraDAO {
         if (oldTask != null) {
             applicationId = oldTask.getString(TASKS_BY_STATE_APP_ID_COL_NAME);
             topicName = oldTask.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME);
-            startTime = oldTask.getDate(TASKS_BY_STATE_START_TIME);
+            startTime = oldTask.getTimestamp(TASKS_BY_STATE_START_TIME);
         }
 
         insert(Optional.of(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
