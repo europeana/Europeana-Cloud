@@ -96,10 +96,10 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-        <!--repository>
+        <repository>
             <id>eaio.com</id>
             <url>https://eaio.com/maven2</url>
-        </repository-->
+        </repository>
         <repository>
             <id>synat-a09-libs-releases-public</id>
             <name>synat-a09-libs-releases-public</name>
