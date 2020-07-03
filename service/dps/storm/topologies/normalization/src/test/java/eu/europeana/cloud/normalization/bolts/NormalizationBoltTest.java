@@ -2,6 +2,8 @@ package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Mockito.mock;
 
 public class NormalizationBoltTest {
 
@@ -34,12 +37,13 @@ public class NormalizationBoltTest {
     @Test
     public void shouldNormalizeRecord() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] inputData = Files.readAllBytes(Paths.get("src/test/resources/edm.xml"));
         byte[] expected = Files.readAllBytes(Paths.get("src/test/resources/normalized.xml"));
         normalizationBolt.prepare();
 
         //when
-        normalizationBolt.execute(getCorrectStormTuple(inputData));
+        normalizationBolt.execute(anchorTuple, getCorrectStormTuple(inputData));
 
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
@@ -51,11 +55,12 @@ public class NormalizationBoltTest {
     @Test
     public void shouldEmitErrorWhenNormalizationResultContainsErrorMessage() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] inputData = Files.readAllBytes(Paths.get("src/test/resources/edm-not-valid.xml"));
         normalizationBolt.prepare();
 
         //when
-        normalizationBolt.execute(getCorrectStormTuple(inputData));
+        normalizationBolt.execute(anchorTuple, getCorrectStormTuple(inputData));
 
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), captor.capture());
@@ -69,11 +74,12 @@ public class NormalizationBoltTest {
     @Test
     public void shouldEmitErrorWhenCantPrepareTupleForEmission() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] inputData = Files.readAllBytes(Paths.get("src/test/resources/edm.xml"));
         normalizationBolt.prepare();
 
         //when
-        normalizationBolt.execute(getMalformedStormTuple(inputData));
+        normalizationBolt.execute(anchorTuple, getMalformedStormTuple(inputData));
 
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), captor.capture());

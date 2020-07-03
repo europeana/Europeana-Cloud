@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.tuple.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -26,8 +27,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
     protected static final String AUTHORIZATION = "Authorization";
     private static final Logger logger = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
-    private RecordServiceClient recordServiceClient;
-    private RevisionServiceClient revisionServiceClient;
+    private transient RecordServiceClient recordServiceClient;
+    private transient RevisionServiceClient revisionServiceClient;
     private final String ecloudMcsAddress;
 
     public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress) {
@@ -41,7 +42,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple tuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
         logger.info("Checking duplicates for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
         try {
             Representation representation = extractRepresentationInfoFromTuple(tuple);

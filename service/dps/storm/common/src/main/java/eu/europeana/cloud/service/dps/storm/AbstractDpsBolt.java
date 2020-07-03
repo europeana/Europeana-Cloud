@@ -4,7 +4,6 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.RecordState;
-
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -22,11 +21,10 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
 import static java.lang.Integer.parseInt;
 
 /**
@@ -47,31 +45,35 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     public static final int SLEEP_TIME = 5000;
 
-    protected Map stormConfig;
-    protected TopologyContext topologyContext;
-    protected OutputCollector outputCollector;
+    protected transient Map stormConfig;
+    protected transient TopologyContext topologyContext;
+    protected transient OutputCollector outputCollector;
     protected String topologyName;
 
-    public abstract void execute(StormTaskTuple t);
+    public abstract void execute(Tuple anchorTuple, StormTaskTuple t);
 
     public abstract void prepare();
 
     @Override
     public void execute(Tuple tuple) {
-
-        StormTaskTuple t = null;
+        StormTaskTuple stormTaskTuple = null;
         try {
-            t = StormTaskTuple.fromStormTuple(tuple);
-            if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
-                LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", t.getTaskId(), t.getParameters());
-                execute(t);
+            stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
+
+            if(stormTaskTuple.getRecordAttemptNumber() > 1) {
+                cleanInvalidData(stormTaskTuple);
+            }
+
+            if (!taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
+                LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+                execute(tuple, stormTaskTuple);
             }
         } catch (Exception e) {
             LOGGER.info("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
-            if (t != null) {
+            if (stormTaskTuple != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
-                emitErrorNotification(t.getTaskId(), t.getFileUrl(), e.getMessage(), stack.toString());
+                emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString());
             }
         }
     }
@@ -92,8 +94,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         String keyspaceName = (String) stormConfig.get(CASSANDRA_KEYSPACE_NAME);
         String userName = (String) stormConfig.get(CASSANDRA_USERNAME);
         String password = (String) stormConfig.get(CASSANDRA_SECRET_TOKEN);
-        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
-                userName, password);
+        CassandraConnectionProvider cassandraConnectionProvider =
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+                        hosts, port, keyspaceName, userName, password);
+
         synchronized (AbstractDpsBolt.class) {
             if (taskStatusChecker == null) {
                 try {
@@ -163,7 +167,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
 
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {
-        stormTaskTuple.setFileData(resultString.getBytes(Charset.forName("UTF-8")));
+        stormTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
         final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
         stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
@@ -179,5 +183,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         }
     }
 
-    protected void cleanInvalidData(long taskId, String recordId) {}
+    protected void cleanInvalidData(StormTaskTuple tuple) {
+        //If there is some data to clean for given bolt and tuple -
+        //overwrite this method in bold and process data for given tuple
+    }
 }

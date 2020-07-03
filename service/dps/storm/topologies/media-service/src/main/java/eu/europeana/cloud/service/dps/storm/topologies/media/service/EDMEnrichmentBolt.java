@@ -14,6 +14,7 @@ import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,18 +33,18 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
 
     private static final int CACHE_SIZE = 1024;
 
-    private Gson gson;
-    private RdfDeserializer deserializer;
-    private RdfSerializer rdfSerializer;
+    private transient Gson gson;
+    private transient RdfDeserializer deserializer;
+    private transient RdfSerializer rdfSerializer;
 
-    Map<String, TempEnrichedFile> cache = new HashMap<>(CACHE_SIZE);
+    transient Map<String, TempEnrichedFile> cache = new HashMap<>(CACHE_SIZE);
 
     public EDMEnrichmentBolt(String mcsURL) {
         super(mcsURL);
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {

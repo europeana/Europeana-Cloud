@@ -52,7 +52,6 @@ public final class PluginParameterKeys {
 
     // ---------  IC  -----------
     public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
-    public static final String KAKADU_ARGUEMENTS = "KAKADU_ARGUEMENTS";
     //----------  DPS task  ----
 
 
@@ -81,7 +80,6 @@ public final class PluginParameterKeys {
     public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
     public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
     public static final String USE_DEFAULT_IDENTIFIERS = "USE_DEFAULT_IDENTIFIERS";
-    public static final String ATTEMPT_NUMBER = "ATTEMPT_NUMBER";
 
     // -----------MIGRATION----------
     public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";
@@ -99,16 +97,12 @@ public final class PluginParameterKeys {
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 
     static {
-
         //the default value for output mimeType
         PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/plain");
         PLUGIN_PARAMETERS.put(REPRESENTATION_NAME, "REPRESENTATION_NAME");
         PLUGIN_PARAMETERS.put(NEW_REPRESENTATION_NAME, "NEW_REPRESENTATION_NAME");
 
         PLUGIN_PARAMETERS.put(MIME_TYPE, "text/xml");
-        PLUGIN_PARAMETERS.put(KAKADU_ARGUEMENTS, "-rate 1.0,0.84,0.7,0.6,0.5,0.4,0.35,0.3,0.25,0.21,0.18,0.15,0.125,0.1,0.088,0.075,0.0625,0.05,0.04419,0.03716,0.03125,0.025,0.0221,0.01858,0.015625 Clevels=6 Cmodes={BYPASS} Corder=RLCP -no_palette");
-
-
     }
 
     private PluginParameterKeys() {

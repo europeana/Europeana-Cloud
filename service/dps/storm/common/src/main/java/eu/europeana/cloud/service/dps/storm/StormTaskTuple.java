@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
@@ -11,6 +13,8 @@ import org.apache.storm.tuple.Values;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.*;
 
 
 /**
@@ -21,45 +25,48 @@ import java.util.Map;
  *
  * @author manos
  */
+@Setter
+@Getter
 public class StormTaskTuple implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final int BATCH_MAX_SIZE = 1024 * 4;
 
     private String fileUrl;
     private byte[] fileData;
     private long taskId;
     private String taskName;
     private Map<String, String> parameters;
-    private static final int BATCH_MAX_SIZE = 1024 * 4;
     private Revision revisionToBeApplied;
     private OAIPMHHarvestingDetails sourceDetails;
+    private int recordAttemptNumber;
 
     public StormTaskTuple() {
-
-        this.taskName = "";
-        this.parameters = new HashMap<>();
+        this(0L, "", null, null, new HashMap<>(), null);
     }
 
     public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                          byte[] fileData, Map<String, String> parameters, Revision revision) {
+                          byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied) {
+        this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, null);
+    }
 
+    public StormTaskTuple(long taskId, String taskName, String fileUrl,
+                          byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied,
+                          OAIPMHHarvestingDetails sourceDetails) {
+        this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, 0);
+    }
+
+    public StormTaskTuple(long taskId, String taskName, String fileUrl,
+                          byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied,
+                          OAIPMHHarvestingDetails sourceDetails, int recordAttemptNumber) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.fileUrl = fileUrl;
         this.fileData = fileData;
         this.parameters = parameters;
-        revisionToBeApplied = revision;
-    }
-
-    public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                          byte[] fileData, Map<String, String> parameters, Revision revision, OAIPMHHarvestingDetails sourceDetails) {
-        this(taskId, taskName, fileUrl, fileData, parameters, revision);
+        this.revisionToBeApplied = revisionToBeApplied;
         this.sourceDetails = sourceDetails;
+        this.recordAttemptNumber = recordAttemptNumber;
     }
-
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
 
     public ByteArrayInputStream getFileByteDataAsStream() {
         if (fileData != null) {
@@ -67,18 +74,6 @@ public class StormTaskTuple implements Serializable {
         } else {
             return null;
         }
-    }
-
-    public long getTaskId() {
-        return taskId;
-    }
-
-    public String getTaskName() {
-        return taskName;
-    }
-
-    public void setTaskId(long taskId) {
-        this.taskId = taskId;
     }
 
     public void setFileData(byte[] fileData) {
@@ -102,41 +97,19 @@ public class StormTaskTuple implements Serializable {
         }
     }
 
-    public byte[] getFileData() {
-        return fileData;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
-    }
-
     public void addParameter(String parameterKey, String parameterValue) {
         parameters.put(parameterKey, parameterValue);
-    }
-
-    public OAIPMHHarvestingDetails getSourceDetails() {
-        return sourceDetails;
-    }
-
-    public void setSourceDetails(OAIPMHHarvestingDetails sourceDetails) {
-        this.sourceDetails = sourceDetails;
     }
 
     public String getParameter(String parameterKey) {
         return parameters.get(parameterKey);
     }
 
+/*
     public Map<String, String> getParameters() {
         return parameters;
     }
-
-    public Revision getRevisionToBeApplied() {
-        return revisionToBeApplied;
-    }
-
-    public void setRevisionToBeApplied(Revision revision) {
-        revisionToBeApplied = revision;
-    }
+*/
 
     public boolean hasRevisionToBeApplied() {
         return revisionToBeApplied != null;
@@ -145,32 +118,30 @@ public class StormTaskTuple implements Serializable {
     public static StormTaskTuple fromStormTuple(Tuple tuple) {
 
         return new StormTaskTuple(
-                tuple.getLongByField(StormTupleKeys.TASK_ID_TUPLE_KEY),
-                tuple.getStringByField(StormTupleKeys.TASK_NAME_TUPLE_KEY),
-                tuple.getStringByField(StormTupleKeys.INPUT_FILES_TUPLE_KEY),
-                tuple.getBinaryByField(StormTupleKeys.FILE_CONTENT_TUPLE_KEY),
-                (HashMap<String, String>) tuple
-                        .getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY),
-                (Revision) tuple
-                        .getValueByField(StormTupleKeys.REVISIONS),
-                (OAIPMHHarvestingDetails) tuple.getValueByField(StormTupleKeys.SOURCE_TO_HARVEST));
+                tuple.getLongByField(TASK_ID_TUPLE_KEY),
+                tuple.getStringByField(TASK_NAME_TUPLE_KEY),
+                tuple.getStringByField(INPUT_FILES_TUPLE_KEY),
+                tuple.getBinaryByField(FILE_CONTENT_TUPLE_KEY),
+                (HashMap<String, String>)tuple.getValueByField(PARAMETERS_TUPLE_KEY),
+                (Revision) tuple.getValueByField(REVISIONS),
+                (OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST),
+                tuple.getIntegerByField(RECORD_ATTEMPT_NUMBER));
 
     }
 
     public Values toStormTuple() {
-        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails);
+        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, recordAttemptNumber);
     }
 
     public static Fields getFields() {
         return new Fields(
-                StormTupleKeys.TASK_ID_TUPLE_KEY,
-                StormTupleKeys.TASK_NAME_TUPLE_KEY,
-                StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-                StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-                StormTupleKeys.PARAMETERS_TUPLE_KEY,
-                StormTupleKeys.REVISIONS,
-                StormTupleKeys.SOURCE_TO_HARVEST);
+                TASK_ID_TUPLE_KEY,
+                TASK_NAME_TUPLE_KEY,
+                INPUT_FILES_TUPLE_KEY,
+                FILE_CONTENT_TUPLE_KEY,
+                PARAMETERS_TUPLE_KEY,
+                REVISIONS,
+                SOURCE_TO_HARVEST,
+                RECORD_ATTEMPT_NUMBER);
     }
-
-
 }

@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.util.LRUCache;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -43,11 +44,11 @@ public class ECloudSpout extends KafkaSpout {
 
     private final String topologyName;
 
-    protected CassandraTaskInfoDAO taskInfoDAO;
-    protected TaskStatusUpdater taskStatusUpdater;
-    protected TaskStatusChecker taskStatusChecker;
-    protected ProcessedRecordsDAO processedRecordsDAO;
-    protected RecordProcessingStateDAO recordProcessingStateDAO;
+    protected transient CassandraTaskInfoDAO taskInfoDAO;
+    protected transient TaskStatusUpdater taskStatusUpdater;
+    protected transient TaskStatusChecker taskStatusChecker;
+    protected transient ProcessedRecordsDAO processedRecordsDAO;
+    protected transient RecordProcessingStateDAO recordProcessingStateDAO;
 
     public ECloudSpout(KafkaSpoutConfig kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -59,7 +60,7 @@ public class ECloudSpout extends KafkaSpout {
         this.userName = userName;
         this.password = password;
 
-        topologyName = "aaaa";
+        this.topologyName = (String)kafkaSpoutConfig.getKafkaProps().get(ConsumerConfig.GROUP_ID_CONFIG);
     }
 
     @Override
@@ -87,13 +88,9 @@ public class ECloudSpout extends KafkaSpout {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
-    private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-        return taskInfoDAO.searchById(taskId);
-    }
-
     public class ECloudOutputCollector extends SpoutOutputCollector {
 
-        private LRUCache<Long, TaskInfo> cache = new LRUCache<Long, TaskInfo>(50);
+        private LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);
@@ -110,15 +107,19 @@ public class ECloudSpout extends KafkaSpout {
                 }
                 TaskInfo taskInfo = prepareTaskInfo(message);
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
-                LOGGER.info("Emitting record to the subsequent bolt: {}", message.toString());
+                LOGGER.info("Emitting record to the subsequent bolt: {}", message);
                 return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
             } catch (IOException e) {
                 LOGGER.error("Unable to read message", e);
                 return Collections.emptyList();
             } catch (TaskInfoDoesNotExistException e) {
-                LOGGER.error("Task definition not found in DB for: {}", message.toString());
+                LOGGER.error("Task definition not found in DB for: {}", message);
                 return Collections.emptyList();
             }
+        }
+
+        private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
+            return taskInfoDAO.searchById(taskId);
         }
 
         private DpsRecord parseMessage(String rawMessage) throws IOException {
@@ -170,22 +171,41 @@ public class ECloudSpout extends KafkaSpout {
                 stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
             }
 
+            //Implementation of re-try mechanism after topology broken down
+            if(TopologiesNames.OAI_TOPOLOGY.equals(topologyName)) {
+                cleanForRetry(stormTaskTuple);
+            }
+
+            return stormTaskTuple;
+        }
+
+        private void cleanForRetry(StormTaskTuple stormTaskTuple) {
             int attempt = recordProcessingStateDAO.selectProcessingRecordAttempt(
-                    dpsTask.getTaskId(),
-                    dpsRecord.getRecordId(),
+                    stormTaskTuple.getTaskId(),
+                    stormTaskTuple.getFileUrl(),
                     topologyName
             );
 
             recordProcessingStateDAO.insertProcessingRecord(
-                    dpsTask.getTaskId(),
-                    dpsRecord.getRecordId(),
+                    stormTaskTuple.getTaskId(),
+                    stormTaskTuple.getFileUrl(),
                     topologyName,
                     attempt++
             );
+            stormTaskTuple.setRecordAttemptNumber(attempt);
 
-            stormTaskTuple.addParameter(ATTEMPT_NUMBER, String.valueOf(attempt));
-
-            return stormTaskTuple;
+/*
+            if(attempt > 1 && TopologiesNames.OAI_TOPOLOGY.equals(topologyName) ) {
+                cleanInvalidData(stormTaskTuple);
+            }
+*/
         }
+
+/*
+        private void cleanInvalidData(StormTaskTuple tuple) {
+            //If there is some data to clean for given bolt and tuple -
+            //overwrite this method in bold and process data for given tuple
+        }
+*/
     }
 }

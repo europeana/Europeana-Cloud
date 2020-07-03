@@ -15,11 +15,13 @@ import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -37,8 +39,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     private String awsEndPoint;
     private String awsBucket;
 
-    private Gson gson;
-    private MediaExtractor mediaExtractor;
+    private transient Gson gson;
+    private transient MediaExtractor mediaExtractor;
 
     public ResourceProcessingBolt(String awsAccessKey, String awsSecretKey, String awsEndPoint, String awsBucket) {
         this.awsAccessKey = awsAccessKey;
@@ -49,7 +51,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting resource processing");
         long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
@@ -93,7 +95,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
             }
         }
-        LOGGER.info("Resource processing finished in: " + (new Date().getTime() - processingStartTime) + "ms");
+        LOGGER.info("Resource processing finished in: {}ms", String.valueOf(Calendar.getInstance().getTimeInMillis() - processingStartTime));
     }
 
     @Override

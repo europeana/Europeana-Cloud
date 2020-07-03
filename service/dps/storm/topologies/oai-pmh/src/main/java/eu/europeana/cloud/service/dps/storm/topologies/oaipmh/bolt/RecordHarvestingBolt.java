@@ -2,25 +2,26 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester;
-import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
+import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.Date;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.
@@ -41,10 +42,10 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
             "/*[local-name()='header']" +
             "/@status)";
 
-    private Harvester harvester;
+    private transient Harvester harvester;
 
-    private XPathExpression expr;
-    private XPathExpression isDeletedExpression;
+    private transient XPathExpression expr;
+    private transient XPathExpression isDeletedExpression;
 
     /**
      * For given: <br/>
@@ -59,7 +60,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
      * @param stormTaskTuple
      */
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         long harvestingStartTime = new Date().getTime();
         LOGGER.info("Starting harvesting for: {}", stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         String endpointLocation = readEndpointLocation(stormTaskTuple);
@@ -76,7 +77,9 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 else
                     useEuropeanaId(stormTaskTuple);
 
-                outputCollector.emit(stormTaskTuple.toStormTuple());
+                outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+                outputCollector.ack(anchorTuple);
+
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
             } catch (HarvesterException | IOException | EuropeanaIdException e) {
                 LOGGER.error("Exception on harvesting", e);
@@ -90,7 +93,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     "Invalid parameters",
                     null);
         }
-        LOGGER.info("Harvesting finished in: " + (new Date().getTime() - harvestingStartTime) + "ms for " + stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
+        LOGGER.info("Harvesting finished in: {}ms for {}", Calendar.getInstance().getTimeInMillis() - harvestingStartTime, stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
     }
 
     private void trimLocalId(StormTaskTuple stormTaskTuple) {

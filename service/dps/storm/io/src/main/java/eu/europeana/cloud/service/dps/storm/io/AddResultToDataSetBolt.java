@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple t) {
+    public void execute(Tuple anchorTuple, StormTaskTuple t) {
         LOGGER.info("Adding result to dataset");
         final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);

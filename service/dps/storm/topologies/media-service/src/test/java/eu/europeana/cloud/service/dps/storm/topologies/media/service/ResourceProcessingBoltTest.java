@@ -12,6 +12,8 @@ import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.model.*;
 import org.apache.storm.shade.org.apache.commons.lang.StringUtils;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,6 +93,7 @@ public class ResourceProcessingBoltTest {
 
     @Test
     public void shouldSuccessfullyProcessTheResource() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
@@ -104,7 +107,7 @@ public class ResourceProcessingBoltTest {
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
         when(amazonClient.putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(new PutObjectResult());
         when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
-        resourceProcessingBolt.execute(stormTaskTuple);
+        resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
         verify(amazonClient, Mockito.times(thumbnailCount)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
         verify(outputCollector, Mockito.times(1)).emit(captor.capture());
@@ -118,6 +121,7 @@ public class ResourceProcessingBoltTest {
 
     @Test
     public void shouldDropTheTaskAndStopProcessing() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
@@ -133,13 +137,14 @@ public class ResourceProcessingBoltTest {
 
         when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(true);
 
-        resourceProcessingBolt.execute(stormTaskTuple);
+        resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
         verify(amazonClient, Mockito.times(1)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
     }
 
 
     @Test
     public void shouldFormulateTheAggregateExceptionsWhenSavingToAmazonFails() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
@@ -153,7 +158,7 @@ public class ResourceProcessingBoltTest {
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
         doThrow(new AmazonServiceException(errorMessage)).when(amazonClient).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
-        resourceProcessingBolt.execute(stormTaskTuple);
+        resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
         verify(amazonClient, Mockito.times(3)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), any(ObjectMetadata.class));
         verify(outputCollector, Mockito.times(1)).emit(captor.capture());
@@ -172,11 +177,12 @@ public class ResourceProcessingBoltTest {
 
     @Test
     public void shouldSendExceptionsWhenProcessingFails() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
         doThrow(MediaExtractionException.class).when(mediaExtractor).performMediaExtraction(any(RdfResourceEntry.class));
 
-        resourceProcessingBolt.execute(stormTaskTuple);
+        resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
         verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         verify(amazonClient, Mockito.times(0)).putObject(eq(AWS_BUCKET), anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
@@ -196,7 +202,8 @@ public class ResourceProcessingBoltTest {
 
     @Test
     public void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
-        resourceProcessingBolt.execute(stormTaskTuple);
+        Tuple anchorTuple = mock(TupleImpl.class);
+        resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
         int expectedParametersSize = 2;
         assertEquals(expectedParametersSize, stormTaskTuple.getParameters().size());
         verify(outputCollector, Mockito.times(1)).emit(captor.capture());

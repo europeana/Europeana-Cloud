@@ -16,6 +16,8 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,13 +90,14 @@ public class HarvestingWriteRecordBoltTest {
 
     @Test
     public void successfulExecuteStormTupleWithExistedCloudId() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString())).thenReturn(uri);
 
-        oaiWriteRecordBoltT.execute(getStormTaskTuple());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
 
         assertExecutionResults();
 
@@ -102,21 +105,23 @@ public class HarvestingWriteRecordBoltTest {
 
     @Test
     public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
-        oaiWriteRecordBoltT.execute(getStormTaskTuple());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
         assertFailingExpectationWhenCreatingRepresentation();
     }
 
     @Test
     public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
-        oaiWriteRecordBoltT.execute(getStormTaskTuple());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
         assertFailingExpectationWhenCreatingRepresentation();
     }
 
@@ -129,6 +134,7 @@ public class HarvestingWriteRecordBoltTest {
 
     @Test
     public void successfulExecuteStormTupleWithCreatingNewCloudId() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
@@ -137,7 +143,7 @@ public class HarvestingWriteRecordBoltTest {
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString())).thenReturn(uri);
 
-        oaiWriteRecordBoltT.execute(getStormTaskTuple());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
 
         assertExecutionResults();
 
@@ -146,6 +152,7 @@ public class HarvestingWriteRecordBoltTest {
 
     @Test
     public void shouldSuccessfullyExecuteStormTupleWithCreatingNewCloudIdAndAdditionalLocalIdMapping() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
@@ -155,7 +162,7 @@ public class HarvestingWriteRecordBoltTest {
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString())).thenReturn(uri);
 
-        oaiWriteRecordBoltT.execute(getStormTaskTupleWithAdditionalLocalIdParam());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
         assertExecutionResults();
 
@@ -164,6 +171,7 @@ public class HarvestingWriteRecordBoltTest {
     @Test
     public void shouldSuccessfullyExecuteStormTupleWhenAdditionalMappingAlreadyExist() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
@@ -175,7 +183,7 @@ public class HarvestingWriteRecordBoltTest {
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString())).thenReturn(uri);
 
         //when
-        oaiWriteRecordBoltT.execute(getStormTaskTupleWithAdditionalLocalIdParam());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
         //then
         assertExecutionResults();
@@ -184,6 +192,7 @@ public class HarvestingWriteRecordBoltTest {
     @Test
     public void shouldRetry3BeforeFailingWhenMappingAdditionalLocalId() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
@@ -191,7 +200,7 @@ public class HarvestingWriteRecordBoltTest {
 
         when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier",AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(CloudException.class);
         //when
-        oaiWriteRecordBoltT.execute(getStormTaskTupleWithAdditionalLocalIdParam());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
         //then
         verify(outputCollector, times(0)).emit(anyList());
@@ -203,6 +212,7 @@ public class HarvestingWriteRecordBoltTest {
     @Test
     public void shouldFailWithNoRetriesIfProviderDoestExistWhenMappingAdditionalLocalId() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         CloudException exception = new CloudException("", new ProviderDoesNotExistException(new ErrorInfo()));
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
@@ -210,7 +220,7 @@ public class HarvestingWriteRecordBoltTest {
 
         when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier",AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(CloudException.class);
         //when
-        oaiWriteRecordBoltT.execute(getStormTaskTupleWithAdditionalLocalIdParam());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
         //then
         verify(outputCollector, times(0)).emit(anyList());
@@ -222,10 +232,11 @@ public class HarvestingWriteRecordBoltTest {
 
     @Test
     public void shouldRetry3TimesBeforeFailingWhenCreatingNewCloudId() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
         doThrow(CloudException.class).when(uisClient).createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER);
-        oaiWriteRecordBoltT.execute(getStormTaskTuple());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
         verify(outputCollector, times(0)).emit(anyList());
         verify(uisClient, times(4)).createCloudId(anyString(), anyString(),anyString(),anyString());
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
@@ -235,11 +246,12 @@ public class HarvestingWriteRecordBoltTest {
     @Test
     public void shouldFailWithNoRetriesIfProviderDoestExistWhenCreatingNewCloudId() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         CloudException exception = new CloudException("", new ProviderDoesNotExistException(new ErrorInfo()));
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
         doThrow(CloudException.class).when(uisClient).createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER);
         //when
-        oaiWriteRecordBoltT.execute(getStormTaskTuple());
+        oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
         //then
         verify(outputCollector, times(0)).emit(anyList());
         verify(uisClient, times(1)).getCloudId(anyString(), anyString(),anyString(),anyString());
@@ -263,11 +275,11 @@ public class HarvestingWriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(value.size(), 7);
+        assertEquals(7, value.size());
         assertTrue(value.get(4) instanceof Map);
         Map<String, String> parameters = (Map<String, String>) value.get(4);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(parameters.get(PluginParameterKeys.OUTPUT_URL), SOURCE_VERSION_URL);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
     }
 }
 

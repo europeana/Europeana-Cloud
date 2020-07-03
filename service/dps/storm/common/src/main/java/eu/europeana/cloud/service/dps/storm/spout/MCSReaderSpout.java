@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spout.job.TaskExecutor;
-//import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -28,7 +27,10 @@ import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
+//import org.apache.storm.kafka.SpoutConfig;
+
 /**
+ * @deprecated
  * Created by Tarek on 5/18/2018.
  */
 @Deprecated
@@ -36,9 +38,9 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(MCSReaderSpout.class);
 
-    private SpoutOutputCollector collector;
+    private transient SpoutOutputCollector spoutOutputCollector;
 
-    TaskDownloader taskDownloader;
+    transient TaskDownloader taskDownloader;
     private String mcsClientURL;
 
     public MCSReaderSpout(KafkaSpoutConfig spoutConf, String hosts, int port, String keyspaceName,
@@ -55,7 +57,7 @@ public class MCSReaderSpout extends CustomKafkaSpout {
     @Override
     public void open(Map conf, TopologyContext context,
                      SpoutOutputCollector collector) {
-        this.collector = collector;
+        this.spoutOutputCollector = collector;
         taskDownloader = new TaskDownloader();
         super.open(conf, context, new CollectorWrapper(collector, taskDownloader));
     }
@@ -67,10 +69,10 @@ public class MCSReaderSpout extends CustomKafkaSpout {
             super.nextTuple();
             stormTaskTuple = taskDownloader.getTupleWithFileURL();
             if (stormTaskTuple != null) {
-                collector.emit(stormTaskTuple.toStormTuple());
+                spoutOutputCollector.emit(stormTaskTuple.toStormTuple());
             }
         } catch (Exception e) {
-            LOGGER.error("StaticDpsTaskSpout error: " + e.getMessage(), e);
+            LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage(), e);
             if (stormTaskTuple != null)
                 taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
         }
@@ -160,14 +162,14 @@ public class MCSReaderSpout extends CustomKafkaSpout {
                             }
                         } else { // For data Sets
                             executorService.submit(
-                                    new TaskExecutor(collector, taskStatusChecker, taskStatusUpdater,
+                                    new TaskExecutor(spoutOutputCollector, taskStatusChecker, taskStatusUpdater,
                                             tuplesWithFileUrls, mcsClientURL, stream, currentDpsTask));
                         }
                     } else {
                         LOGGER.info("Skipping DROPPED task {}", currentDpsTask.getTaskId());
                     }
                 } catch (Exception e) {
-                    LOGGER.error("StaticDpsTaskSpout error: " + e.getMessage(), e);
+                    LOGGER.error("StaticDpsTaskSpout error: {}", e.getMessage(), e);
                     if (stormTaskTuple != null)
                         taskStatusUpdater.setTaskDropped(stormTaskTuple.getTaskId(), "The task was dropped because " + e.getMessage());
                 }

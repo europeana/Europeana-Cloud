@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
      * Properties to connect to eCloud
      */
     private final String ecloudMcsAddress;
-    protected FileServiceClient fileClient;
+    protected transient FileServiceClient fileClient;
 
     public ReadFileBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -42,7 +43,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple t) {
+    public void execute(Tuple anchorTuple, StormTaskTuple t) {
         final String file = t.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         try (InputStream is = getFileStreamByStormTuple(t)) {
             t.setFileData(is);
@@ -57,7 +58,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         }
     }
 
-    private InputStream getFile(FileServiceClient fileClient, String file, String authorization) throws MCSException, IOException, DriverException {
+    private InputStream getFile(FileServiceClient fileClient, String file, String authorization) throws MCSException, IOException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
@@ -74,7 +75,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         }
     }
 
-    protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws MCSException, IOException, DriverException {
+    protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws MCSException, IOException {
         final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         stormTaskTuple.setFileUrl(file);
         LOGGER.info("HERE THE LINK: {}", file);

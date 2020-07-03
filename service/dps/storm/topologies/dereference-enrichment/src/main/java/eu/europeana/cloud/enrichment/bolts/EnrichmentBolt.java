@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerBuilder;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
 
     private String dereferenceURL;
     private String enrichmentURL;
-    private EnrichmentWorker enrichmentWorker;
+    private transient EnrichmentWorker enrichmentWorker;
 
     public EnrichmentBolt(String dereferenceURL, String enrichmentURL) {
         this.dereferenceURL = dereferenceURL;
@@ -28,7 +29,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             String fileContent = new String(stormTaskTuple.getFileData());
             LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());

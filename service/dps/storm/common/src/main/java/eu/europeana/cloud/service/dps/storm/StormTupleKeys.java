@@ -28,4 +28,6 @@ public final class StormTupleKeys {
 	public static final String REVISIONS = "REVISIONS";
 
 	public static final String SOURCE_TO_HARVEST = "SOURCE";
+
+	public static final String RECORD_ATTEMPT_NUMBER = "RECORD_ATTEMPT_NUMBER";
 }

@@ -5,6 +5,8 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,49 +40,53 @@ public class LinkCheckBoltTest {
 
     @Test
     public void shouldEmitSameTupleWhenNoResourcesHasToBeChecked() {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareTupleWithLinksCountEqualsToZero();
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(1)).emit(eq("NotificationStream"), captor.capture());
         validateCapturedValues(captor);
     }
 
     @Test
     public void shouldCheckOneLinkWithoutEmittingTuple() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareRandomTuple();
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
     }
 
     @Test
     public void shouldEmitTupleAfterCheckingAllResourcesFromFile() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareRandomTuple();
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(2)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(3)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(4)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
         verify(linkChecker, times(5)).performLinkChecking(Mockito.anyString());
     }
 
     @Test
     public void shouldEmitTupleWithErrorIncluded() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         doThrow(new LinkCheckingException(new Throwable())).when(linkChecker).performLinkChecking(Mockito.anyString());
         StormTaskTuple tuple = prepareRandomTuple();
-        linkCheckBolt.execute(tuple);
-        linkCheckBolt.execute(tuple);
-        linkCheckBolt.execute(tuple);
-        linkCheckBolt.execute(tuple);
-        linkCheckBolt.execute(tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
+        linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(1)).emit(eq("NotificationStream"), captor.capture());
         validateCapturedValuesForError(captor);
     }

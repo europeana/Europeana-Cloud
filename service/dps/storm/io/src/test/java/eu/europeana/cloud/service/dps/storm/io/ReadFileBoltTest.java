@@ -7,6 +7,8 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -45,8 +47,9 @@ public class ReadFileBoltTest {
     }
 
     private final void verifyMethodExecutionNumber(int expectedCalls, int expectedEmitCallTimes, String file) throws MCSException, IOException {
+        Tuple anchorTuple = mock(TupleImpl.class);
         when(outputCollector.emit(anyList())).thenReturn(null);
-        readFileBolt.execute(stormTaskTuple);
+        readFileBolt.execute(anchorTuple, stormTaskTuple);
         verify(fileServiceClient, times(expectedCalls)).getFile(eq(file), eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
         verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 

@@ -13,7 +13,7 @@ public class StaticOAIPMHTopology {
 
     public static void main(String[] args) {
         OAIPHMHarvestingTopology oaiphmHarvestingTopology
-                = new  OAIPHMHarvestingTopology("oai-topology-config.properties", null);
+                = new  OAIPHMHarvestingTopology("oai-topology-config.properties", "/home/arek/prj/europeana-ws/europeana-cloud/service/dps/storm/examples/src/main/resources/oai-topology-config.local.properties");
 
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology(OAI_TOPOLOGY, TopologyConfigBuilder.buildConfig(OAIPHMHarvestingTopology.getProperties()), oaiphmHarvestingTopology.buildTopology(null, null));

@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,19 +22,19 @@ import eu.europeana.metis.mediaprocessing.*;
  */
 public class ParseFileBolt extends ReadFileBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
-    private Gson gson;
-    private RdfDeserializer rdfDeserializer;
+    private transient Gson gson;
+    private transient RdfDeserializer rdfDeserializer;
 
     public ParseFileBolt(String ecloudMcsAddress) {
         super(ecloudMcsAddress);
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
             List<RdfResourceEntry> rdfResourceEntries = rdfDeserializer.getResourceEntriesForMediaExtraction(fileContent);
-            if (rdfResourceEntries.size() == 0) {
+            if (rdfResourceEntries.isEmpty()) {
                 StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                 LOGGER.info("The EDM file has no resource Links ");
                 outputCollector.emit(tuple.toStormTuple());

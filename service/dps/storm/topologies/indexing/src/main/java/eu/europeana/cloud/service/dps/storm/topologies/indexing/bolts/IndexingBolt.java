@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +69,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         // Get variables.
         final String useAltEnv = stormTaskTuple
                 .getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);

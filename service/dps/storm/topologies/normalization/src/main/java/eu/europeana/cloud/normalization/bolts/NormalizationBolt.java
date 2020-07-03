@@ -8,6 +8,7 @@ import eu.europeana.normalization.model.NormalizationResult;
 import eu.europeana.normalization.util.NormalizationConfigurationException;
 import eu.europeana.normalization.util.NormalizationException;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ public class NormalizationBolt extends AbstractDpsBolt {
      * @param stormTaskTuple tuple containing input data
      */
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             final Normalizer normalizer = normalizerFactory.getNormalizer();
             String document = new String(stormTaskTuple.getFileData());

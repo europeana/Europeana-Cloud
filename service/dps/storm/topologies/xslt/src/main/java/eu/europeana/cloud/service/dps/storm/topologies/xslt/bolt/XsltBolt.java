@@ -5,19 +5,16 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
-import eu.europeana.metis.transformation.service.EuropeanaIdException;
-import eu.europeana.metis.transformation.service.TransformationException;
-import eu.europeana.metis.transformation.service.XsltTransformer;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-
+import eu.europeana.metis.transformation.service.*;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
 public class XsltBolt extends AbstractDpsBolt {
   private static final long serialVersionUID = 1L;
@@ -25,7 +22,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
 
   @Override
-  public void execute(StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
 
     StringWriter writer = null;
     try {
@@ -36,7 +33,7 @@ public class XsltBolt extends AbstractDpsBolt {
       writer = xsltTransformer
           .transform(stormTaskTuple.getFileData(), prepareEuropeanaGeneratedIdsMap(stormTaskTuple));
       LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
-      stormTaskTuple.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
+      stormTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
 
       final UrlParser urlParser = new UrlParser(fileUrl);
       if (urlParser.isUrlToRepresentationVersionFile()) {

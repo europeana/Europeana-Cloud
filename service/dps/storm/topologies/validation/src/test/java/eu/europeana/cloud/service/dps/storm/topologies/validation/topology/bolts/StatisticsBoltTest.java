@@ -11,6 +11,8 @@ import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.stati
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Mockito.mock;
 
 public class StatisticsBoltTest extends CassandraTestBase {
     private static final long TASK_ID = 1;
@@ -54,12 +57,13 @@ public class StatisticsBoltTest extends CassandraTestBase {
     @Test
     public void testCountStatisticsSuccessfully() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
         //when
-        statisticsBolt.execute(tuple);
+        statisticsBolt.execute(anchorTuple, tuple);
 
         //then
         assertSuccess(1);
@@ -69,6 +73,8 @@ public class StatisticsBoltTest extends CassandraTestBase {
     @Test
     public void testAggregatedCountStatisticsSuccessfully() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        Tuple anchorTuple2 = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
@@ -78,8 +84,8 @@ public class StatisticsBoltTest extends CassandraTestBase {
         List<NodeStatistics> generated2 = new RecordStatisticsGenerator(new String(fileData2)).getStatistics();
 
         //when
-        statisticsBolt.execute(tuple);
-        statisticsBolt.execute(tuple2);
+        statisticsBolt.execute(anchorTuple, tuple);
+        statisticsBolt.execute(anchorTuple2, tuple2);
 
         //then
         assertSuccess(2);
@@ -136,11 +142,12 @@ public class StatisticsBoltTest extends CassandraTestBase {
     @Test
     public void testCountStatisticsFailed() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         fileData[0] = 'X'; // will cause SAXException
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
         //when
-        statisticsBolt.execute(tuple);
+        statisticsBolt.execute(anchorTuple, tuple);
         //then
         assertFailure();
     }
