@@ -31,7 +31,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
             final MediaProcessorFactory processorFactory = new MediaProcessorFactory();
             linkChecker = processorFactory.createLinkChecker();
         } catch (Exception e) {
-            LOGGER.error("error while initializing Link checker {}", e.getCause());
+            LOGGER.error("error while initializing Link checker {}", e.getCause(), e);
             throw new RuntimeException("error while initializing Link checker", e);
         }
 
