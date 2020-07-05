@@ -48,14 +48,16 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             Representation representation = extractRepresentationInfoFromTuple(tuple);
             List<Representation> representations = findRepresentationsWithSameRevision(tuple, representation);
             if (representationsWithSameRevisionExists(representations)) {
-                handleDuplicatedRepresentation(tuple, representation);
+                handleDuplicatedRepresentation(anchorTuple, tuple, representation);
                 return;
             }
             logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
-            outputCollector.emit(tuple.toStormTuple());
+            outputCollector.emit(anchorTuple, tuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
         } catch (MalformedURLException | MCSException e) {
             logger.error("Error while detecting duplicates");
             emitErrorNotification(
+                    anchorTuple,
                     tuple.getTaskId(),
                     tuple.getFileUrl(),
                     "Error while detecting duplicates",
@@ -63,11 +65,12 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
         }
     }
 
-    private void handleDuplicatedRepresentation(StormTaskTuple tuple, Representation representation) throws MCSException {
+    private void handleDuplicatedRepresentation(Tuple anchorTuple, StormTaskTuple tuple, Representation representation) throws MCSException {
         logger.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
         removeRevision(tuple, representation);
         removeRepresentation(tuple, representation);
         emitErrorNotification(
+                anchorTuple,
                 tuple.getTaskId(),
                 tuple.getFileUrl(),
                 "Duplicate detected",

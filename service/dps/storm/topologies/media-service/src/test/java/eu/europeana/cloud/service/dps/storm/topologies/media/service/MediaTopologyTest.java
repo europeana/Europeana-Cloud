@@ -68,7 +68,10 @@ public class MediaTopologyTest extends TopologyTestHelper {
     private static final String AUTHORIZATION = "Authorization";
     private static AmazonS3 amazonClient;
 
-    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_FILE_BOLT, TopologyHelper.RESOURCE_PROCESSING_BOLT, TopologyHelper.EDMEnrichmentBolt, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT,
+            TopologyHelper.PARSE_FILE_BOLT, TopologyHelper.RESOURCE_PROCESSING_BOLT, TopologyHelper.EDM_ENRICHMENT_BOLT,
+            TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT,
+            TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
     @BeforeClass
     public static void init() {

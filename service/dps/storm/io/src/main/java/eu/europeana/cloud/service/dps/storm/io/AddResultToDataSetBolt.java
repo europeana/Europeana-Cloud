@@ -56,14 +56,14 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                 }
             }
             if (t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
-                emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
+                emitSuccessNotification(anchorTuple, t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
             else
-                emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl, t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), t.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+                emitSuccessNotification(anchorTuple, t.getTaskId(), t.getFileUrl(), "", "", resultUrl, t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), t.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } catch (MalformedURLException e) {
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         }
     }
 

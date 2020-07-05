@@ -49,7 +49,7 @@ public class XsltBolt extends AbstractDpsBolt {
       outputCollector.emit(stormTaskTuple.toStormTuple());
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}",  e.getMessage());
-      emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(),  ExceptionUtils.getStackTrace(e));
+      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), "", e.getMessage(),  ExceptionUtils.getStackTrace(e));
     } finally {
       if (writer != null) {
         try {

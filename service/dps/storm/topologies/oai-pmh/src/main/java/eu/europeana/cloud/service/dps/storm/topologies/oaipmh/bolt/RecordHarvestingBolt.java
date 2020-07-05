@@ -83,11 +83,17 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
             } catch (HarvesterException | IOException | EuropeanaIdException e) {
                 LOGGER.error("Exception on harvesting", e);
-                emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "Error while harvesting a record", "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause());
+                emitErrorNotification(
+                        anchorTuple,
+                        stormTaskTuple.getTaskId(),
+                        stormTaskTuple.getFileUrl(),
+                        "Error while harvesting a record",
+                        "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause());
                 LOGGER.error(e.getMessage());
             }
         } else {
             emitErrorNotification(
+                    anchorTuple,
                     stormTaskTuple.getTaskId(),
                     stormTaskTuple.getParameter(DPS_TASK_INPUT_DATA),
                     "Invalid parameters",

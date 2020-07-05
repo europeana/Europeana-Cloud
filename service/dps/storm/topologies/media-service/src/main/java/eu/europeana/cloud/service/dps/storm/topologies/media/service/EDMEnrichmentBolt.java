@@ -83,7 +83,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                         outputCollector.emit(stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
                         LOGGER.error("Error while serializing the enriched file: ", ex);
-                        emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex));
+                        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex));
                     }
                 } else {
                     tempEnrichedFile.increaseCount();
@@ -182,9 +182,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
 
         public boolean isTheLastResource(int linkCount) {
-            if (count + 1 == linkCount)
-                return true;
-            return false;
+            return (count + 1 == linkCount);
         }
     }
 }

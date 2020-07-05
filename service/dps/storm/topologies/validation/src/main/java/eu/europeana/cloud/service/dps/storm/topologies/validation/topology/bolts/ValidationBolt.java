@@ -37,10 +37,10 @@ public class ValidationBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             reorderFileContent(stormTaskTuple);
-            validateFile(stormTaskTuple);
+            validateFile(anchorTuple, stormTaskTuple);
         } catch (Exception e) {
             LOGGER.error("Validation Bolt error: {}", e.getMessage());
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -50,13 +50,13 @@ public class ValidationBolt extends AbstractDpsBolt {
         stormTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    private void validateFile(StormTaskTuple stormTaskTuple) {
+    private void validateFile(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         String document = new String(stormTaskTuple.getFileData());
         ValidationResult result = validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematronLocation(stormTaskTuple), document);
         if (result.isSuccess()) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
         }
     }
 

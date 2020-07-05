@@ -73,7 +73,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             if (stormTaskTuple != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
-                emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString());
+                emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString());
             }
         }
     }
@@ -131,39 +131,46 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param additionalInformations the rest of informations (e.g. stack trace)
      */
 
-    protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+    protected void emitErrorNotification(Tuple anchorTuple, long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, RecordState.ERROR, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+        outputCollector.ack(anchorTuple);
     }
 
-    protected void emitSuccessNotification(long taskId, String resource,
+    protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
                                            String message, String additionalInformation, String resultResource, String unifiedErrorMessage, String detailedErrorMessage) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
         nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+        outputCollector.ack(anchorTuple);
     }
 
-
-    protected void logAndEmitError(StormTaskTuple t, String message) {
+    /**
+     * @deprecated
+     */
+    @Deprecated
+    protected void logAndEmitError(Tuple anchorTuple, StormTaskTuple t, String message) {
         LOGGER.error(message);
-        emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
+        emitErrorNotification(anchorTuple, t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
     }
 
-    protected void emitSuccessNotification(long taskId, String resource,
+    protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
                                            String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+        outputCollector.ack(anchorTuple);
     }
 
-    protected void emitSuccessNotificationForIndexing(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
+    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
                                                       String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+        outputCollector.ack(anchorTuple);
     }
 
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {
@@ -177,9 +184,9 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void waitForSpecificTime() {
         try {
             Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
+        } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
+            LOGGER.error(ie.getMessage());
         }
     }
 

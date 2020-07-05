@@ -31,7 +31,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
             final MediaProcessorFactory processorFactory = new MediaProcessorFactory();
             linkChecker = processorFactory.createLinkChecker();
         } catch (Exception e) {
-            LOGGER.error("error while initializing Link checker {}" + e.getCause());
+            LOGGER.error("error while initializing Link checker {}", e.getCause());
             throw new RuntimeException("error while initializing Link checker", e);
         }
 
@@ -46,15 +46,15 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
-            emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
         } else {
             FileInfo edmFile = checkProvidedLink(resourceInfo);
             if (isFileFullyProcessed(edmFile)) {
                 removeFileFromCache(edmFile);
                 if (edmFile.errors == null || edmFile.errors.isEmpty())
-                    emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
+                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
                 else
-                    emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors);
+                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors);
             }
         }
     }

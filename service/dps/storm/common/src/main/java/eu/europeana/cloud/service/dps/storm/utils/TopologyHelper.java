@@ -35,9 +35,11 @@ public final class TopologyHelper {
     public static final String EDM_ENRICHMENT_BOLT = "EDMEnrichmentBolt";
     public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
     public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
-    public static final String EDMEnrichmentBolt = "EDMEnrichmentBolt";
 
     public static final Integer MAX_POLL_RECORDS = 100;
+
+    private TopologyHelper() {
+    }
 
     public static Config configureTopology(Properties topologyProperties) {
         Config config = new Config();
@@ -62,12 +64,17 @@ public final class TopologyHelper {
         return config;
     }
 
+    /**
+     * @deprecated ECloudSpout whould be used instead MCSReaderSpout
+     * @param topologyProperties
+     * @param topic
+     * @param ecloudMcsAddress
+     * @return
+     */
     @Deprecated
     public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
         KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
-                .builder(
-                        topologyProperties.getProperty(BOOTSTRAP_SERVERS),
-                        new String[]{topic})
+                .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topic)
                 .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE)
                 .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                 .build();
@@ -82,10 +89,14 @@ public final class TopologyHelper {
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties) {
+        return  createECloudSpout(topologyName, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE);
+    }
+
+    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
         return new ECloudSpout(
                 KafkaSpoutConfig
                         .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
-                        .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                        .setProcessingGuarantee(processingGuarantee)
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
                         .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
@@ -97,4 +108,4 @@ public final class TopologyHelper {
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
     }
 
-}
+  }

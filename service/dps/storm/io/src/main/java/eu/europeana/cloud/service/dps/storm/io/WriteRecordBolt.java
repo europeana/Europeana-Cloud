@@ -47,20 +47,21 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             final URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(t, uri.toString());
-            outputCollector.emit(t.toStormTuple());
+
+            outputCollector.emit(anchorTuple, t.toStormTuple());
+            outputCollector.ack(anchorTuple);
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
-            emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot process data because: " + e.getMessage(),
-                    stack.toString());
+            emitErrorNotification(anchorTuple, t.getTaskId(), t.getFileUrl(),
+                    "Cannot process data because: " + e.getMessage(), stack.toString());
         }
     }
 
     protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException {
         return createRepresentationAndUploadFile(stormTaskTuple);
     }
-
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException {
         int retries = DEFAULT_RETRIES;
