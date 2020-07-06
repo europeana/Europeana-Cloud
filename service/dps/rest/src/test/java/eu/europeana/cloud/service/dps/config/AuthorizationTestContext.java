@@ -41,7 +41,7 @@ public class AuthorizationTestContext {
 
     @Bean
     public CassandraConnectionProvider provider() {
-        return new CassandraConnectionProvider("localhost", 19142, "ecloud_aas_tests", "", "");
+        return new CassandraConnectionProvider("localhost", 9142, "ecloud_aas_tests", "", "");
     }
 
 

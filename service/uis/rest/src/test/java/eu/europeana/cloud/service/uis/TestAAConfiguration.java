@@ -15,7 +15,7 @@ public class TestAAConfiguration {
     public CassandraConnectionProvider dataProviderDao() {
         return new CassandraConnectionProvider(
                 "localhost",
-                19142,
+                9142,
                 "uis_test4",
                 "",
                 "");
