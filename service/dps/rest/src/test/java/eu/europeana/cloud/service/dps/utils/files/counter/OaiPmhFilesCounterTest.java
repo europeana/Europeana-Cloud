@@ -231,7 +231,7 @@ public class OaiPmhFilesCounterTest {
 
     private String getFileContent(String name) throws IOException {
         return IOUtils.toString(
-                Object.class.getResourceAsStream(name),
+                OaiPmhFilesCounterTest.class.getResourceAsStream(name),
                 "UTF-8");
     }
 }

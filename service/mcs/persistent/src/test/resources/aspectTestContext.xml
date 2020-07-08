@@ -11,7 +11,7 @@
 
     <context:annotation-config/>
     <aop:aspectj-autoproxy/>
-        
+
     <bean id="serviceExceptionTranslator" class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
 	
 

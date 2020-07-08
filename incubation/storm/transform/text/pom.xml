@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
-            <version>${version.jackson}</version>
+            <version>${version.codehaus.jackson}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>

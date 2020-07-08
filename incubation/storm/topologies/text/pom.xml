@@ -88,7 +88,7 @@
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
-            <version>${version.jackson}</version>
+            <version>${version.codehaus.jackson}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

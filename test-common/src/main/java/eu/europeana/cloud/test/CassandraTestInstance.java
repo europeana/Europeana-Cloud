@@ -17,7 +17,7 @@ import java.util.Map;
 import static java.lang.Thread.sleep;
 
 public final class CassandraTestInstance {
-    private static final int PORT = 9142;
+    private static final int PORT = 19142;
     private static final String CASSANDRA_CONFIG_FILE = "eu-cassandra.yaml";
     private static final long CASSANDRA_STARTUP_TIMEOUT = 3 * 60 * 1000L; //3 minutes
     private static final int CONNECT_TIMEOUT_MILLIS = 100000;
@@ -35,7 +35,8 @@ public final class CassandraTestInstance {
         }
         try {
             LOGGER.info("Starting embedded Cassandra");
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_STARTUP_TIMEOUT);
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra( CassandraTestInstance.CASSANDRA_CONFIG_FILE,
+                    CASSANDRA_STARTUP_TIMEOUT);
             cluster = buildClusterWithConsistencyLevel(ConsistencyLevel.ALL);
             LOGGER.info("embedded Cassandra initialized.");
         } catch (Exception e) {

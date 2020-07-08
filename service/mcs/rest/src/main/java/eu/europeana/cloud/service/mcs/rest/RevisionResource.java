@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import com.google.common.collect.Sets;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.DataSetService;
@@ -8,7 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
-import jersey.repackaged.com.google.common.collect.Sets;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;

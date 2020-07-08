@@ -59,7 +59,7 @@
         <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
-        <version.jackson>1.9.13</version.jackson>
+        <version.codehaus.jackson>1.9.13</version.codehaus.jackson>
     </properties>
     <modules>
         <module>similarity</module>

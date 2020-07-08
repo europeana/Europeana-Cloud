@@ -46,6 +46,8 @@ hinted_handoff_throttle_in_kb: 1024
 # cross-dc handoff tends to be slower
 max_hints_delivery_threads: 2
 
+hints_directory: target/embeddedCassandra/hints
+
 # The following setting populates the page cache on memtable flush and compaction
 # WARNING: Enable this setting only when the whole node's data fits in memory.
 # Defaults to: false
@@ -107,6 +109,8 @@ data_file_directories:
 
 # commit log
 commitlog_directory: target/embeddedCassandra/commitlog
+
+cdc_raw_directory: target/embeddedCassandra/cdc
 
 # policy for data disk failures:
 # stop: shut down gossip and Thrift, leaving the node effectively dead, but

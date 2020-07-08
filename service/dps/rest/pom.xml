@@ -315,7 +315,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.4</version>
+            <version>${version.fasterxml.jackson}</version>
         </dependency>
 
         <!--logging -->

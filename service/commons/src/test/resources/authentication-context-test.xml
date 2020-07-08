@@ -28,6 +28,7 @@
     <!-- In Memory authentication, with predefined users -->
     <authentication-manager alias="authenticationManager">
         <authentication-provider>
+            <password-encoder ref="noOpEncoder"/>
             <user-service>
                 <user name="admin" password="admin" authorities="ROLE_ADMIN, ROLE_USER"/>
                 <user name="Robin_Van_Persie" password="Feyenoord" authorities="ROLE_USER"/>
@@ -40,6 +41,9 @@
     <!-- Automatically receives AuthenticationEvent messages -->
     <b:bean id="loggerListener"
             class="org.springframework.security.authentication.event.LoggerListener" />
+    <b:bean id="noOpEncoder"
+            class="org.springframework.security.crypto.password.NoOpPasswordEncoder" />
+
 
     <!-- To delegate authorization to method calls rather than to urls -->
     <!-- (Thus, we don't need to set any url-interceptor in this conf) -->

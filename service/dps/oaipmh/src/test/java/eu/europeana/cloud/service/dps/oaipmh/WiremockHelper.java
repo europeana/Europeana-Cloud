@@ -38,7 +38,7 @@ public abstract class WiremockHelper {
 
     public static String getFileContent(String name) throws IOException {
         return IOUtils.toString(
-                Object.class.getResourceAsStream(name),
+                WiremockHelper.class.getResourceAsStream(name),
                 "UTF-8");
     }
 

@@ -8,9 +8,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>test-common</artifactId>
     <packaging>jar</packaging>
-    <properties>
-        <cassandra-all.version>2.1.8</cassandra-all.version>
-    </properties>
     <dependencies>
         <dependency>
             <artifactId>guava</artifactId>
@@ -21,30 +18,13 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <version>3.7.1</version>
+            <version>${version.cassandra-driver}</version>
         </dependency>
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit</artifactId>
-            <version>3.7.1.0</version>
-            <!--exclusions>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-all</artifactId>
-                </exclusion>
-            </exclusions-->
+            <version>${version.cassandra-unit}</version>
         </dependency>
-        <!--dependency>
-            <groupId>org.apache.cassandra</groupId>
-            <artifactId>cassandra-all</artifactId>
-            <version>${cassandra-all.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.addthis.metrics</groupId>
-                    <artifactId>reporter-config</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

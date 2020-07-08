@@ -27,7 +27,7 @@ public class EmbeddedCassandra extends ExternalResource {
     /**
      * CassandraTestBase PORT
      */
-    public static final int PORT = 9142;
+    public static final int PORT = 19142;
 
     /**
      * CassandraTestBase KEYSPACE

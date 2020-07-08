@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
@@ -10,6 +11,7 @@ import java.util.GregorianCalendar;
 
 import static org.junit.Assert.*;
 
+@Ignore
 public class RevisionServiceClientITest {
     private  static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
     private  static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
