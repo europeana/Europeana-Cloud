@@ -52,7 +52,7 @@ public class ParseFileBoltTest {
 
 
     @InjectMocks
-    static ParseFileBolt parseFileBolt = new ParseFileBolt("localhost/mcs");
+    static ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt("localhost/mcs");
 
     private StormTaskTuple stormTaskTuple;
     private static List<String> expectedParametersKeysList;
@@ -79,7 +79,7 @@ public class ParseFileBoltTest {
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
-        setStaticField(ParseFileBolt.class.getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
+        setStaticField(ParseFileForMediaBolt.class.getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
     }
 
     @Test

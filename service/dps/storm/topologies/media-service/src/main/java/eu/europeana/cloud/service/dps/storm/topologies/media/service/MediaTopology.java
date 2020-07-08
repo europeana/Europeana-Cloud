@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
-import eu.europeana.cloud.service.dps.storm.io.ParseFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
@@ -48,18 +48,23 @@ public class MediaTopology {
 
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+        AmazonClient amazonClient = new AmazonClient(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
+                topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET));
 
         builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(PARSE_FILE_BOLT, new ParseFileBolt(ecloudMcsAddress),
+        builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(ecloudMcsAddress, amazonClient),
+                (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(PARSE_FILE_BOLT, new ShuffleGrouping());
+
+        builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(ecloudMcsAddress),
                 (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(SPOUT, new ShuffleGrouping());
 
-        builder.setBolt(RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt(
-                topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
-                        topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET)),
+        builder.setBolt(RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt(amazonClient),
                 (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(PARSE_FILE_BOLT, new ShuffleGrouping());

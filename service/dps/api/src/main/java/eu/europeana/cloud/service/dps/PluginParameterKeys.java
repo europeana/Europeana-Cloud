@@ -94,6 +94,8 @@ public final class PluginParameterKeys {
     public static final String RESOURCE_LINK_KEY = "RESOURCE_LINK";
     public static final String RESOURCE_METADATA = "RESOURCE_METADATA";
 
+    public static final String MAIN_THUMBNAIL_AVAILABLE = "MAIN_THUMBNAIL_AVAILABLE";
+
 
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 

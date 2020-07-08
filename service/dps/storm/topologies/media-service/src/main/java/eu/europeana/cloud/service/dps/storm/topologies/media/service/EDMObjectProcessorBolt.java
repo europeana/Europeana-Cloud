@@ -1,19 +1,18 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
-import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
+import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
+import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,54 +22,58 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Created by Tarek on 12/11/2018.
- */
-public class ResourceProcessingBolt extends AbstractDpsBolt {
+public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EDMObjectProcessorBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
-    private AmazonClient amazonClient;
+    private final AmazonClient amazonClient;
 
     private Gson gson;
     private MediaExtractor mediaExtractor;
+    private RdfDeserializer rdfDeserializer;
 
-    public ResourceProcessingBolt(AmazonClient amazonClient) {
+    public EDMObjectProcessorBolt(String ecloudMcsAddress, AmazonClient amazonClient) {
+        super(ecloudMcsAddress);
         this.amazonClient = amazonClient;
     }
 
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-        LOGGER.info("Starting resource processing");
+        LOGGER.info("Starting edm:object processing");
         long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
-        if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
-            outputCollector.emit(stormTaskTuple.toStormTuple());
-        } else {
-            try {
-                RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
-                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
+
+        try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
+            byte[] fileContent = IOUtils.toByteArray(stream);
+
+            RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
+            boolean mainThumbnailAvailable = false;
+
+            if (edmObjectResourceEntry != null) {
+                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
                 if (resourceExtractionResult != null) {
-                    if (resourceExtractionResult.getMetadata() != null)
+                    if (resourceExtractionResult.getMetadata() != null) {
                         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                        mainThumbnailAvailable = !resourceExtractionResult.getMetadata().getThumbnailTargetNames().isEmpty();
+                    }
+
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                 }
-            } catch (Exception e) {
-                LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
-                buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
-            } finally {
-                stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
-                if (exception.length() > 0) {
-                    stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
-                    stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
-                }
-                outputCollector.emit(stormTaskTuple.toStormTuple());
-
             }
+            stormTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));
+        } catch (Exception e) {
+            LOGGER.error("Exception while reading and parsing file for processing the edm:object resource. The full error is:{} ", ExceptionUtils.getStackTrace(e));
+            buildErrorMessage(exception, "Exception while processing the edm:object resource. The full error is: " + e.getMessage() + " because of: " + e.getCause());
+        } finally {
+            if (exception.length() > 0) {
+                stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
+                stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+            }
+            outputCollector.emit(stormTaskTuple.toStormTuple());
         }
-        LOGGER.info("Resource processing finished in: " + (new Date().getTime() - processingStartTime) + "ms");
+        LOGGER.info("Processing edm:object finished in: " + (new Date().getTime() - processingStartTime) + "ms");
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
@@ -79,13 +82,12 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             for (Thumbnail thumbnail : thumbnails) {
                 if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
                     break;
-                try (InputStream stream = thumbnail.getContentStream()) {
-                    amazonClient.putObject(thumbnail.getTargetName(), stream, prepareObjectMetadata(thumbnail));
+                try (InputStream thumbnailContentStream = thumbnail.getContentStream()) {
+                    amazonClient.putObject(thumbnail.getTargetName(), thumbnailContentStream, prepareObjectMetadata(thumbnail));
                 } catch (Exception e) {
                     String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage() + " because of: " + e.getCause();
                     LOGGER.error(errorMessage);
                     buildErrorMessage(exception, errorMessage);
-
                 } finally {
                     thumbnail.close();
                 }
@@ -96,20 +98,13 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         try {
-            createMediaExtractor();
-            initGson();
+            rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
+            mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
+            gson = new Gson();
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
             throw new RuntimeException(e);
         }
-    }
-
-    void initGson() {
-        gson = new Gson();
-    }
-
-    private void createMediaExtractor() throws MediaProcessorException {
-        mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
     }
 
     private ObjectMetadata prepareObjectMetadata(Thumbnail thumbnail) throws IOException {

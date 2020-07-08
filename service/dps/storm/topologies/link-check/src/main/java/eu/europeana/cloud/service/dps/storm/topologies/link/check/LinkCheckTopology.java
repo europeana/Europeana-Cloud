@@ -4,7 +4,8 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
-import eu.europeana.cloud.service.dps.storm.io.ParseFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
+import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -46,7 +47,7 @@ public class LinkCheckTopology {
         builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(PARSE_FILE_BOLT, new ParseFileBolt(ecloudMcsAddress),
+        builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(ecloudMcsAddress),
                 (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(SPOUT, new ShuffleGrouping());

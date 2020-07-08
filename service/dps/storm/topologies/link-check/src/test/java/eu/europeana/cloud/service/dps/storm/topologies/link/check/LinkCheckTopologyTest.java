@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class})
+@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileForMediaBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
 
 public class LinkCheckTopologyTest extends TopologyTestHelper {
@@ -177,7 +177,7 @@ public class LinkCheckTopologyTest extends TopologyTestHelper {
 
     private static void buildTopology() {
         // build the test topology
-        ParseFileBolt parseFileBolt = new ParseFileBolt(MCS_URL);
+        ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt(MCS_URL);
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
         TestInspectionBolt endTest = new TestInspectionBolt();
         TopologyBuilder builder = new TopologyBuilder();

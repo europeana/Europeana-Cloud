@@ -33,9 +33,9 @@ public final class TopologyHelper {
     public static final String RECORD_HARVESTING_BOLT = "recordHarvestingBolt";
     public static final String PARSE_FILE_BOLT = "ParseFileBolt";
     public static final String EDM_ENRICHMENT_BOLT = "EDMEnrichmentBolt";
+    public static final String EDM_OBJECT_PROCESSOR_BOLT = "EDMObjectProcessorBolt";
     public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
     public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
-    public static final String EDMEnrichmentBolt = "EDMEnrichmentBolt";
 
     public static final Integer MAX_POLL_RECORDS = 100;
 

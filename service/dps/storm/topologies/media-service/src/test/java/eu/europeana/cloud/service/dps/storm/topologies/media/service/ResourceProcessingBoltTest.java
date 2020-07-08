@@ -52,8 +52,10 @@ public class ResourceProcessingBoltTest {
     private OutputCollector outputCollector;
 
     @Mock(name = "amazonClient")
-    private AmazonS3 amazonClient;
+    private AmazonS3 amazonS3;
 
+    @InjectMocks
+    private final AmazonClient amazonClient = new AmazonClient(AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_END_POINT, AWS_BUCKET);
 
     @Mock(name = "mediaExtractor")
     private MediaExtractor mediaExtractor;
@@ -66,13 +68,12 @@ public class ResourceProcessingBoltTest {
 
 
     @InjectMocks
-    static ResourceProcessingBolt resourceProcessingBolt = new ResourceProcessingBolt(AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_END_POINT, AWS_BUCKET);
+    ResourceProcessingBolt resourceProcessingBolt = new ResourceProcessingBolt(amazonClient);
 
 
     @Before
     public void prepareTuple() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ResourceProcessingBolt.amazonClient = amazonClient;
         resourceProcessingBolt.initGson();
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
