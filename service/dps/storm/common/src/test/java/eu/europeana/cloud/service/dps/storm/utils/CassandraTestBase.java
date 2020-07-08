@@ -7,7 +7,7 @@ import org.junit.Before;
 public abstract class CassandraTestBase {
     protected static final String KEYSPACE = "ecloud_test";
     private static final String KEYSPACE_SCHEMA_CQL = "create_dps_test_schema.cql";
-    public static final int PORT = 19142;
+    public static final int PORT = 9142;
     public static final String HOST = "localhost";
 
 

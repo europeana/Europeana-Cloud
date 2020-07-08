@@ -96,10 +96,10 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-        <repository>
+        <!--repository>
             <id>eaio.com</id>
-            <url>http://eaio.com/maven2</url>
-        </repository>
+            <url>https://eaio.com/maven2</url>
+        </repository-->
         <repository>
             <id>synat-a09-libs-releases-public</id>
             <name>synat-a09-libs-releases-public</name>
@@ -141,7 +141,7 @@
     <properties>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
-        <version.jdk>1.8</version.jdk>
+        <version.jdk>11</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
         <version.powermock-mockito>1.5.6</version.powermock-mockito>
@@ -153,8 +153,8 @@
         <version.junitparams>1.0.6</version.junitparams>
         <version.commonscodec>1.10</version.commonscodec>
         <version.commonio>2.4</version.commonio>
-        <version.uuid>3.4</version.uuid>
-        <version.swift>1.9.2</version.swift>
+        <version.uuid>3.5</version.uuid>
+        <version.swift>2.2.1</version.swift>
         <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
@@ -168,12 +168,12 @@
         <version.log4j>1.2.17</version.log4j>
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
-        <version.miredotPlugin>1.6.1</version.miredotPlugin>
+        <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
 
         <spring-security.version>3.1.4.RELEASE</spring-security.version>
 
         <commons-logging.version>1.2</commons-logging.version>
-        <version.cassandra-driver>2.1.10.3</version.cassandra-driver>
+        <version.cassandra-driver>3.9.0</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
@@ -188,7 +188,7 @@
         <version.jacoco>0.8.1</version.jacoco>
         <version.metis>1.10.0-SNAPSHOT</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
-        <version.guava>16.0</version.guava>
+        <version.guava>23.2-jre</version.guava>
         <version.lombok>1.18.10</version.lombok>
     </properties>
 
