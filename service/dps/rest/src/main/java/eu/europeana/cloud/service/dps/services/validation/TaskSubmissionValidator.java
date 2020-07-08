@@ -58,8 +58,11 @@ public class TaskSubmissionValidator {
     }
 
     private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
-        String taskType = specifyTaskType(task, topologyName);
-        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidator(taskType);
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTopology(topologyName);
+        if (validator == null) {
+            String taskType = specifyTaskType(task, topologyName);
+            validator = DpsTaskValidatorFactory.createValidatorForTaskType(taskType);
+        }
         validator.validate(task);
     }
 

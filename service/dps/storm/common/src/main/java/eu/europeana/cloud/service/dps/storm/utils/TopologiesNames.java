@@ -10,4 +10,5 @@ public interface TopologiesNames {
     String OAI_TOPOLOGY = "oai_topology";
     String VALIDATION_TOPOLOGY = "validation_topology";
     String XSLT_TOPOLOGY = "xslt_topology";
+    String DEPUBLICATION_TOPOLOGY = "depublication_topology";
 }

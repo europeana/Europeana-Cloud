@@ -284,6 +284,10 @@ public class DpsTaskValidator {
     }
 
     private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+        if( NO_DATA.equals(constraint.getExpectedValueType())){
+            validateNoInputData(task);
+            return;
+        }
         final InputDataType dataType;
         try {
             dataType = InputDataType.valueOf(constraint.getExpectedName());
@@ -308,6 +312,12 @@ public class DpsTaskValidator {
             return;
         }
         throw new DpsTaskValidationException("Input data is not valid.");
+    }
+
+    private void validateNoInputData(DpsTask task) throws DpsTaskValidationException {
+        if(!task.getInputData().isEmpty()) {
+            throw new DpsTaskValidationException("Input data should be empty.");
+        }
     }
 
     private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint) throws DpsTaskValidationException {
