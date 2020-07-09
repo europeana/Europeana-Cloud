@@ -85,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
+            <artifactId>powermock-api-mockito2</artifactId>
             <version>${version.powermock-mockito}</version>
             <scope>test</scope>
         </dependency>
@@ -190,7 +190,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.9.5</version>
+            <version>3.3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

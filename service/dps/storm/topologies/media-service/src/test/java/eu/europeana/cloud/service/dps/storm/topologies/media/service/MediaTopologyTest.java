@@ -63,8 +63,8 @@ import static org.mockito.Mockito.when;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, MediaTopology.class, EDMObjectProcessorBolt.class, ParseFileForMediaBolt.class, EDMEnrichmentBolt.class, RevisionWriterBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, TaskStatusChecker.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*", "javax.activation.*"})
+@PrepareForTest({ReadFileBolt.class, MediaTopology.class, EDMObjectProcessorBolt.class, ParseFileForMediaBolt.class, EDMEnrichmentBolt.class, RevisionWriterBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, TaskStatusChecker.class, ProcessedRecordsDAO.class, TasksByStateDAO.class, TaskStatusUpdater.class})
+@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*", "javax.activation.*", "com.sun.org.apache.xerces.*", "javax.xml.parsers.*"})
 
 public class MediaTopologyTest extends TopologyTestHelper {
     private static StormTopology topology;

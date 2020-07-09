@@ -97,6 +97,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
     @Override
     public void prepare() {
+        super.prepare();
         try {
             rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
             mediaExtractor = new MediaProcessorFactory().createMediaExtractor();

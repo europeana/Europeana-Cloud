@@ -16,6 +16,7 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
         return rdfDeserializer.getRemainingResourcesForMediaExtraction(bytes);
     }
 
+    @Override
     protected StormTaskTuple createStormTuple(StormTaskTuple stormTaskTuple, RdfResourceEntry rdfResourceEntry, int linksCount) {
         StormTaskTuple tuple = super.createStormTuple(stormTaskTuple, rdfResourceEntry, linksCount);
         tuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE));
