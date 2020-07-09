@@ -320,11 +320,11 @@ public class MCSTaskSubmiterTest {
         task.addParameter(PluginParameterKeys.REVISION_PROVIDER,REVISION_PROVIDER_1);
         task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(eq(DATASET_ID_1)
-                , eq(DATASET_PROVIDER_1), eq(REVISION_PROVIDER_1), eq(REVISION_NAME), eq(REPRESENTATION_NAME), eq(false), anyString())).thenReturn(latestDataChunk);
+                , eq(DATASET_PROVIDER_1), eq(REVISION_PROVIDER_1), eq(REVISION_NAME), eq(REPRESENTATION_NAME), eq(false), any())).thenReturn(latestDataChunk);
         when(latestDataChunk.getResults()).thenReturn(latestDataList);
         when(latestDataChunk.getNextSlice()).thenReturn(EXAMPLE_DATE,EXAMPLE_DATE, null);
         latestDataList.add(new CloudIdAndTimestampResponse(CLOUD_ID1, FILE_CREATION_DATE_1));
-        when(recordServiceClient.getRepresentationsByRevision(eq(CLOUD_ID1),eq(REPRESENTATION_NAME),eq(REVISION_NAME),eq(REVISION_PROVIDER_1),anyString())).thenReturn(Collections.singletonList(REPRESENTATION_1));
+        when(recordServiceClient.getRepresentationsByRevision(eq(CLOUD_ID1),eq(REPRESENTATION_NAME),eq(REVISION_NAME),eq(REVISION_PROVIDER_1),any())).thenReturn(Collections.singletonList(REPRESENTATION_1));
     }
 
     @Test

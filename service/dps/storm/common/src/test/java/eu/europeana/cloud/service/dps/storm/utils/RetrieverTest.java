@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 public class RetrieverTest {
 
     String RESULT = "result";
-    String ERROR_MESSAGE = "Błąd testowej operacji!";
+    String ERROR_MESSAGE = "Test operation error message!";
 
 
     @Mock

@@ -63,7 +63,7 @@ public class WriteRecordBoltTest {
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
 
         writeRecordBolt.execute(tuple);
 
@@ -87,7 +87,7 @@ public class WriteRecordBoltTest {
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString());
         writeRecordBolt.execute(tuple);
         verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
@@ -101,7 +101,7 @@ public class WriteRecordBoltTest {
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString());
         writeRecordBolt.execute(tuple);
         verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }

@@ -18,6 +18,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.anyString;
 
 /**
@@ -45,9 +46,9 @@ public class ValidationRevisionWriterTest {
     public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException, URISyntaxException, MalformedURLException {
         RevisionWriterBolt testMock = Mockito.spy(validationRevisionWriter);
         testMock.execute(new StormTaskTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), any(Revision.class),anyString(),anyString());
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(List.class));
 
     }
 
@@ -55,9 +56,9 @@ public class ValidationRevisionWriterTest {
     public void methodForAddingRevisionsShouldBeExecuted() throws MalformedURLException, MCSException {
         RevisionWriterBolt testMock = Mockito.spy(validationRevisionWriter);
         testMock.execute(prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), any(Revision.class),anyString(),any());
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(List.class));
 
     }
 
@@ -65,19 +66,19 @@ public class ValidationRevisionWriterTest {
     public void malformedUrlExceptionShouldBeHandled() throws MalformedURLException, MCSException {
         RevisionWriterBolt testMock = Mockito.spy(validationRevisionWriter);
         testMock.execute(prepareTupleWithMalformedURL());
-        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), any(Revision.class),anyString(),anyString());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(List.class));
 
 
     }
 
     @Test
     public void mcsExceptionShouldBeHandledWithRetries() throws MalformedURLException, MCSException {
-        Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString())).thenThrow(MCSException.class);
+        Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), any(Revision.class),anyString(),any())).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(validationRevisionWriter);
         testMock.execute(prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(any(), any(), any(), any(Revision.class),anyString(),any());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(List.class));
 
     }
 

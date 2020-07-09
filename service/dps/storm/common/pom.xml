@@ -208,6 +208,13 @@
             <artifactId>springockito</artifactId>
             <version>1.0.8</version>
             <scope>test</scope>
+            <exclusions>
+                <!--without jcl - because we use log4j through slf4j -->
+                <exclusion>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>

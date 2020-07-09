@@ -250,7 +250,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
-        doThrow(DataSetNotExistsException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
+        doThrow(DataSetNotExistsException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), any());
         prepareMocks(TOPOLOGY_NAME);
 
         ResultActions response = sendTask(task, TOPOLOGY_NAME);
@@ -265,7 +265,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
-        doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
+        doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), any());
         prepareMocks(TOPOLOGY_NAME);
 
         ResultActions response = sendTask(task, TOPOLOGY_NAME);
@@ -482,7 +482,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep( 1000);
-        verify(harvestsExecutor).execute(eq(OAI_TOPOLOGY),anyListOf(Harvest.class),any(DpsTask.class),anyString());
+        verify(harvestsExecutor).execute(eq(OAI_TOPOLOGY),anyListOf(Harvest.class),any(DpsTask.class),any());
         verifyZeroInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
     }

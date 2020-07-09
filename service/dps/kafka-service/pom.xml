@@ -89,12 +89,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.kubek2k</groupId>
-            <artifactId>springockito</artifactId>
-            <version>1.0.8</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>net.jpountz.lz4</groupId>
             <artifactId>lz4</artifactId>
             <version>1.2.0</version>

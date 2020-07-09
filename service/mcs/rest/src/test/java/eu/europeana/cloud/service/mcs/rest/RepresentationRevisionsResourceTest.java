@@ -56,10 +56,10 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
         AclPermissionEvaluator permissionEvaluator = applicationContext.getBean(AclPermissionEvaluator.class);
         Mockito.when(
                 permissionEvaluator.hasPermission(
-                        Mockito.any(Authentication.class),
-                        Mockito.any(Serializable.class),
-                        Mockito.any(String.class),
-                        Mockito.anyObject()))
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any()))
                 .thenReturn(true);
     }
 
@@ -121,7 +121,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
         doReturn(expectedResponse).when(recordService).getRepresentationRevisions(globalId,
                 schema, revisionProviderId, revisionName, null);
 
-        doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(anyString(), anyString(), anyString());
+        doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(any(), any(), any());
 
         mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))
                 .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId)
@@ -129,7 +129,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
                 .andExpect(status().isNotFound());
 
         verify(recordService, times(1)).getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, null);
-        verify(recordService, times(1)).getRepresentation(anyString(), anyString(), anyString());
+        verify(recordService, times(1)).getRepresentation(any(), any(), any());
     }
 
     @Test
