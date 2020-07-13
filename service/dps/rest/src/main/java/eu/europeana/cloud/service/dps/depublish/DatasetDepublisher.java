@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.depublish;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
@@ -23,14 +24,19 @@ public class DatasetDepublisher {
     @Async
     public Future<Integer> executeDatasetDepublicationAsync(SubmitTaskParameters parameters) throws IndexingException, URISyntaxException, IOException {
         try (Indexer indexer = indexerFactory.openIndexer(parameters.getUseAlternativeEnvironment())) {
-            int removedCount = indexer.removeAll(parameters.getDatasetMetisId(), null);
+            int removedCount = indexer.removeAll(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), null);
             return CompletableFuture.completedFuture(removedCount);
         }
     }
 
+    public void removeRecord(SubmitTaskParameters parameters, String recordId) throws IndexingException, URISyntaxException, IOException {
+        try (Indexer indexer = indexerFactory.openIndexer(parameters.getUseAlternativeEnvironment())) {
+            indexer.remove(recordId);
+        }
+    }
     public long getRecordsCount(SubmitTaskParameters parameters) throws IndexingException, URISyntaxException, IOException {
         try (Indexer indexer = indexerFactory.openIndexer(parameters.getUseAlternativeEnvironment())) {
-            return indexer.countRecords(parameters.getDatasetMetisId());
+            return indexer.countRecords(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID));
         }
     }
 

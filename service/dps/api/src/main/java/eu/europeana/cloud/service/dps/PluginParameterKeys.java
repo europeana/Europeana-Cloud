@@ -32,6 +32,7 @@ public final class PluginParameterKeys {
     public static final String DATASET_IDS_TO_REDIRECT_FROM = "DATASET_IDS_TO_REDIRECT_FROM";
     public static final String PERFORM_REDIRECTS = "PERFORM_REDIRECTS";
     public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
+    public static final String RECORD_IDS_TO_DEPUBLISH = "RECORD_IDS_TO_DEPUBLISH";
 
 
     // ---------  eCloud  -----------

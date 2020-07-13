@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 
 /**
  * This service will be used during submission time to validate if given task submission is correct.<br/>
@@ -58,11 +59,8 @@ public class TaskSubmissionValidator {
     }
 
     private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
-        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTopology(topologyName);
-        if (validator == null) {
-            String taskType = specifyTaskType(task, topologyName);
-            validator = DpsTaskValidatorFactory.createValidatorForTaskType(taskType);
-        }
+        String taskType = specifyTaskType(task, topologyName);
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(taskType);
         validator.validate(task);
     }
 
@@ -121,6 +119,12 @@ public class TaskSubmissionValidator {
         }
         if (task.getDataEntry(REPOSITORY_URLS) != null) {
             return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
+        }
+        if (task.getParameter(METIS_DATASET_ID) != null) {
+            return topologyName + "_" + METIS_DATASET_ID.toLowerCase();
+        }
+        if (task.getParameter(RECORD_IDS_TO_DEPUBLISH) != null) {
+            return topologyName + "_" + RECORD_IDS_TO_DEPUBLISH.toLowerCase();
         }
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }

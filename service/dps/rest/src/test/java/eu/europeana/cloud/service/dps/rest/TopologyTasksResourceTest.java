@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
@@ -15,7 +14,6 @@ import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
-import eu.europeana.cloud.service.dps.depublish.MetisIndexerFactory;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -38,14 +36,10 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.indexing.Indexer;
-import eu.europeana.indexing.exception.IndexingException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
@@ -56,7 +50,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.net.URISyntaxException;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
@@ -68,7 +61,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
@@ -971,7 +963,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         Thread.sleep(200L);
 
         ArgumentCaptor<SubmitTaskParameters> captor= ArgumentCaptor.forClass(SubmitTaskParameters.class);
-        verify(depublicationService).depublish(captor.capture());
+        verify(depublicationService).depublishDataset(captor.capture());
         assertTrue(Boolean.valueOf(captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV)));
         assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
     }

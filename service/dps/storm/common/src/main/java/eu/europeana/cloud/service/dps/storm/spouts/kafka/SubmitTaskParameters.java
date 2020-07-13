@@ -67,8 +67,8 @@ public class SubmitTaskParameters {
         return sentRecordsCounter.incrementAndGet();
     }
 
-    public String getDatasetMetisId() {
-        return task.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+    public String getTaskParameter(String parameterKey){
+        return task.getParameter(parameterKey);
     }
 
     public boolean getUseAlternativeEnvironment() {

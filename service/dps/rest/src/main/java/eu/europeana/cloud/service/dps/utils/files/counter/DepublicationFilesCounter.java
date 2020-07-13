@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
@@ -9,16 +10,27 @@ import eu.europeana.indexing.exception.IndexingException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-public class DepublicationFilesCounter extends FilesCounter{
+public class DepublicationFilesCounter extends FilesCounter {
 
     private final DatasetDepublisher depublisher;
 
-    public DepublicationFilesCounter(DatasetDepublisher depublisher){
-        this.depublisher=depublisher;
+    public DepublicationFilesCounter(DatasetDepublisher depublisher) {
+        this.depublisher = depublisher;
     }
 
     @Override
     public int getFilesCount(DpsTask task) throws TaskSubmissionException {
+        if (task.getParameter(PluginParameterKeys.METIS_DATASET_ID) != null) {
+            return calculateDatasetSize(task);
+        }
+        if (task.getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH) != null) {
+            return calculateRecordsNumber(task);
+        }
+        throw new TaskSubmissionException("Can't evaluate task expected size! Needed parameters not found in the task");
+
+    }
+
+    private int calculateDatasetSize(DpsTask task) throws TaskSubmissionException {
         try {
             long expectedSize = depublisher.getRecordsCount(SubmitTaskParameters.builder().task(task).build());
 
@@ -28,9 +40,13 @@ public class DepublicationFilesCounter extends FilesCounter{
             if (expectedSize <= 0) {
                 throw new TaskSubmissionException("Not found any publicised records of dataset for task " + task.getTaskId());
             }
-            return (int)expectedSize;
+            return (int) expectedSize;
         } catch (IOException | URISyntaxException | IndexingException e) {
-            throw new TaskSubmissionException("Can't evaluate task expected size!",e);
+            throw new TaskSubmissionException("Can't evaluate task expected size!", e);
         }
+    }
+
+    private int calculateRecordsNumber(DpsTask task) {
+        return task.getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH).split(",").length;
     }
 }
