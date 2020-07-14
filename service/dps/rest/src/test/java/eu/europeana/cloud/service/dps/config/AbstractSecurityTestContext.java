@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
@@ -108,6 +109,11 @@ public class AbstractSecurityTestContext {
     @Bean
     public TasksByStateDAO tasksDAO(){
         return Mockito.mock(TasksByStateDAO.class);
+    }
+
+    @Bean
+    public TaskSubmitter depublicationTaskSubmitter(){
+        return Mockito.mock(TaskSubmitter.class);
     }
 
     @Bean

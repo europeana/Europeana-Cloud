@@ -11,7 +11,7 @@ public class CassandraTestRunner extends BlockJUnit4ClassRunner {
 
     public static final boolean USE_EMBEEDED_CASSANDRA=!Boolean.getBoolean(USE_STANDALONE_CASSANDRA_SYSTEM_PROPERTY_NAME);
 
-    public static final int EMBEEDED_CASSANDRA_PORT = USE_EMBEEDED_CASSANDRA?19142:9042;
+    public static final int EMBEEDED_CASSANDRA_PORT = USE_EMBEEDED_CASSANDRA?9142:9042;
 
     private static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
 
