@@ -2,7 +2,9 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
+import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -14,6 +16,7 @@ import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMObjectProcessorBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
+    public static final String EDM_OBJECT_ENRICHMENT_STREAM_NAME = "EdmObjectEnrichmentStream";
 
     private final AmazonClient amazonClient;
 
@@ -38,6 +42,13 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
         this.amazonClient = amazonClient;
     }
 
+    @Override
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        super.declareOutputFields(declarer);
+
+        //notifications
+        declarer.declareStream(EDM_OBJECT_ENRICHMENT_STREAM_NAME, StormTaskTuple.getFields());
+    }
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
@@ -54,12 +65,18 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             if (edmObjectResourceEntry != null) {
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
                 if (resourceExtractionResult != null) {
+                    StormTaskTuple tuple = null;
                     if (resourceExtractionResult.getMetadata() != null) {
-                        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                        tuple = new Cloner().deepClone(stormTaskTuple);
+                        tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
                         mainThumbnailAvailable = !resourceExtractionResult.getMetadata().getThumbnailTargetNames().isEmpty();
                     }
 
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+                    if (tuple != null) {
+                        outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, tuple.toStormTuple());
+                    }
                 }
             }
             stormTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));

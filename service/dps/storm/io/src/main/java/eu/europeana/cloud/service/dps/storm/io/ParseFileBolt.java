@@ -37,7 +37,6 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 		tuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
 		tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(linksCount));
 		tuple.addParameter(PluginParameterKeys.RESOURCE_URL, rdfResourceEntry.getResourceUrl());
-		tuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE));
 		return tuple;
 	}
 

@@ -72,7 +72,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
     @Mock
     private AmazonClient amazonClient;
 
-    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_FILE_BOLT, TopologyHelper.RESOURCE_PROCESSING_BOLT, TopologyHelper.EDM_ENRICHMENT_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT, TopologyHelper.PARSE_FILE_BOLT, TopologyHelper.RESOURCE_PROCESSING_BOLT, TopologyHelper.EDM_ENRICHMENT_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
     private void mockMediaExtractor() throws Exception {
         MediaExtractor mediaExtractor = mock(MediaExtractor.class);
@@ -92,8 +92,8 @@ public class MediaTopologyTest extends TopologyTestHelper {
         AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10, thumbnailList);
         ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
-        when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class))).thenReturn(resourceExtractionResult);
-        when(amazonClient.putObject(anyString(), anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(new PutObjectResult());
+        when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
+        when(amazonClient.putObject(anyString(), anyString(), any(InputStream.class), nullable(ObjectMetadata.class))).thenReturn(new PutObjectResult());
     }
 
     @Before
@@ -207,7 +207,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
         builder.setBolt(TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT, edmObjectProcessorBolt).shuffleGrouping(TopologyHelper.SPOUT);
         builder.setBolt(TopologyHelper.PARSE_FILE_BOLT, parseFileBolt).shuffleGrouping(TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT);
         builder.setBolt(TopologyHelper.RESOURCE_PROCESSING_BOLT, resourceProcessingBolt).shuffleGrouping(TopologyHelper.PARSE_FILE_BOLT);
-        builder.setBolt(TopologyHelper.EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(MCS_URL)).fieldsGrouping(TopologyHelper.PARSE_FILE_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
+        builder.setBolt(TopologyHelper.EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(MCS_URL)).fieldsGrouping(TopologyHelper.RESOURCE_PROCESSING_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY)).fieldsGrouping(TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
         builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(TopologyHelper.EDM_ENRICHMENT_BOLT);
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt).shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
         builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT);
