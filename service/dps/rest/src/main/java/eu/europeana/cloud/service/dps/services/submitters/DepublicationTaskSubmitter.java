@@ -48,7 +48,7 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
         int expectedSize = filesCounterFactory.createFilesCounter(task, DEPUBLICATION_TOPOLOGY).getFilesCount(task);
         parameters.setExpectedSize(expectedSize);
         LOGGER.info("Evaluated size {} for task id {}", expectedSize, task.getTaskId());
-        taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.DEPUBLISHING.toString(), (int) expectedSize);
+        taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.DEPUBLISHING.toString(), expectedSize);
     }
 
 

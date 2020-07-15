@@ -86,10 +86,9 @@ public class TaskSubmissionValidator {
 
     private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
         String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
-        if (providedProviderId != null)
-            if (!providedProviderId.equals(providerId))
-                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
-                        + " should be the same provider of the output dataSet: " + providerId);
+        if (providedProviderId != null && !providedProviderId.equals(providerId))
+            throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
+                    + " should be the same provider of the output dataSet: " + providerId);
     }
 
     private DataSet parseDataSetUrl(String url) throws MalformedURLException {

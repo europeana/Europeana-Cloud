@@ -62,7 +62,7 @@ public class DepublicationService {
                 recordStatusUpdater.addSuccessfullyProcessedRecord(i, parameters.getTask().getTaskId(),
                         TopologiesNames.DEPUBLICATION_TOPOLOGY,
                         records[i]);
-                saveProgress(parameters.getTask().getTaskId(),i + 1);
+                saveProgress(parameters.getTask().getTaskId(),(long)i + 1);
             } catch (SubmitingTaskWasKilled e) {
                 LOGGER.warn(e.getMessage(), e);
                 return;
