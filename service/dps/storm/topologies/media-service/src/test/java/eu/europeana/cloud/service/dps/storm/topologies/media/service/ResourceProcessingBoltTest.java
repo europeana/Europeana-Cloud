@@ -213,6 +213,7 @@ public class ResourceProcessingBoltTest {
             String thumbnailName = "TargetName" + i;
             when(thumbnail.getContentSize()).thenReturn(1l);
             when(thumbnail.getTargetName()).thenReturn(thumbnailName);
+            when(thumbnail.getContentStream()).thenReturn(Mockito.mock(InputStream.class));
             list.add(thumbnail);
         }
         return list;

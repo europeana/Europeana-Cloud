@@ -207,7 +207,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
         builder.setBolt(TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT, edmObjectProcessorBolt).shuffleGrouping(TopologyHelper.SPOUT);
         builder.setBolt(TopologyHelper.PARSE_FILE_BOLT, parseFileBolt).shuffleGrouping(TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT);
         builder.setBolt(TopologyHelper.RESOURCE_PROCESSING_BOLT, resourceProcessingBolt).shuffleGrouping(TopologyHelper.PARSE_FILE_BOLT);
-        builder.setBolt(TopologyHelper.EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(MCS_URL)).fieldsGrouping(TopologyHelper.RESOURCE_PROCESSING_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY)).fieldsGrouping(TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
+        builder.setBolt(TopologyHelper.EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(MCS_URL)).fieldsGrouping(TopologyHelper.RESOURCE_PROCESSING_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY)).fieldsGrouping(TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME, new Fields(StormTupleKeys.PARAMETERS_TUPLE_KEY));
         builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(TopologyHelper.EDM_ENRICHMENT_BOLT);
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt).shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
         builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT);
