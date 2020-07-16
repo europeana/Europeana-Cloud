@@ -305,15 +305,16 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void shouldProperlySendTaskWhithOutputDataSet() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
+        task.addParameter(PluginParameterKeys.REPRESENTATION_NAME,"exampleParamName");
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<>());
-        prepareMocks(TOPOLOGY_NAME);
+        prepareMocks(ENRICHMENT_TOPOLOGY);
 
-        ResultActions response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
 
-        assertSuccessfulRequest(response, TOPOLOGY_NAME);
+        assertSuccessfulRequest(response, OAI_TOPOLOGY);
     }
 
 

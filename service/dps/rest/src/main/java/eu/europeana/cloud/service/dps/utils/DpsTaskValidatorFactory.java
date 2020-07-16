@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +14,11 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataV
 
 public class DpsTaskValidatorFactory {
 
-    private static final DpsTaskValidator EMPTY_VALIDATOR = new DpsTaskValidator();
+    private static final DpsTaskValidator ALWAYS_FAIL_VALIDATOR =
+            new DpsTaskValidator()
+                    .withParameter(
+                            "parameterNameThatWillNeverHappen",
+                            Arrays.asList("parameterValueThatWillNeverHappen"));
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
     private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
@@ -46,7 +51,7 @@ public class DpsTaskValidatorFactory {
 
     public static DpsTaskValidator createValidatorForTaskType(String taskType) {
         DpsTaskValidator taskValidator = taskValidatorMap.get(taskType);
-        return (taskValidator != null ? taskValidator : EMPTY_VALIDATOR);
+        return (taskValidator != null ? taskValidator : ALWAYS_FAIL_VALIDATOR);
     }
 
     private static Map<String, DpsTaskValidator> buildTaskValidatorMap() {
