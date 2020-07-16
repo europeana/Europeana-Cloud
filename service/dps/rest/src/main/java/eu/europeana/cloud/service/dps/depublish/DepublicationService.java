@@ -101,7 +101,7 @@ public class DepublicationService {
         if (future.isDone()) {
             int removedCount = future.get();
             if (removedCount != expectedSize) {
-                throw new RuntimeException("Removed " + removedCount + "  rows! But expected to remove " + expectedSize);
+                throw new DepublicationException("Removed " + removedCount + "  rows! But expected to remove " + expectedSize);
             }
         }
     }
