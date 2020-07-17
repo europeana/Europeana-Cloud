@@ -43,11 +43,11 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
     }
 
     private void evaluateTaskSize(SubmitTaskParameters parameters) throws TaskSubmissionException {
-        LOGGER.info("Evaluating size of depublication task for tas_id {} ", parameters.getTask().getTaskId());
+        LOGGER.info("Evaluating size of depublication task for task_id {} ", parameters.getTask().getTaskId());
         DpsTask task = parameters.getTask();
         int expectedSize = filesCounterFactory.createFilesCounter(task, DEPUBLICATION_TOPOLOGY).getFilesCount(task);
         parameters.setExpectedSize(expectedSize);
-        LOGGER.info("Evaluated size {} for task id {}", expectedSize, task.getTaskId());
+        LOGGER.info("Evaluated size: {} for task id {}", expectedSize, task.getTaskId());
         taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.DEPUBLISHING.toString(), expectedSize);
     }
 

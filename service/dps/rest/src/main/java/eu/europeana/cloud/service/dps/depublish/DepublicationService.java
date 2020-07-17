@@ -56,7 +56,7 @@ public class DepublicationService {
         String[] records = parameters.getTaskParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH).split(",");
         for (int i = 0; i < records.length; i++) {
             try {
-                LOGGER.info("Removing {} record from index", records[i]);
+                LOGGER.info("Removing record with id '{}' from index", records[i]);
                 checkTaskKilled(parameters.getTask().getTaskId());
                 depublisher.removeRecord(parameters, records[i]);
                 recordStatusUpdater.addSuccessfullyProcessedRecord(i, parameters.getTask().getTaskId(),
@@ -75,6 +75,7 @@ public class DepublicationService {
                 saveErrorResult(parameters, e);
             }
             taskStatusUpdater.setTaskCompletelyProcessed(parameters.getTask().getTaskId(), "Dataset was depublished.");
+            LOGGER.info("Records removal procedure finished for task_id {}", parameters.getTask().getTaskId());
         }
     }
 
