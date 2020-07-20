@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
@@ -74,7 +75,7 @@ public class MediaTopology {
                 .setNumTasks((getAnInt(EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(RESOURCE_PROCESSING_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY))
                 .fieldsGrouping(EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME,
-                        new Fields(StormTupleKeys.PARAMETERS_TUPLE_KEY));
+                        new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
