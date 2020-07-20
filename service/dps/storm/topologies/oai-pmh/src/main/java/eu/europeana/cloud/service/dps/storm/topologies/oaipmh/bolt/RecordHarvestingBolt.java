@@ -102,6 +102,12 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         LOGGER.info("Harvesting finished in: {}ms for {}", Calendar.getInstance().getTimeInMillis() - harvestingStartTime, stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
     }
 
+    @Override
+    protected void cleanInvalidData(StormTaskTuple tuple) {
+        int tries = tuple.getRecordAttemptNumber();
+        LOGGER.error("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
+    }
+
     private void trimLocalId(StormTaskTuple stormTaskTuple) {
         String europeanaIdPrefix = stormTaskTuple.getParameter(PluginParameterKeys.MIGRATION_IDENTIFIER_PREFIX);
         String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
