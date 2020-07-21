@@ -1,6 +1,7 @@
 package eu.europeana.cloud.test;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.datastax.driver.core.policies.RetryPolicy;
 import org.cassandraunit.CQLDataLoader;
@@ -16,7 +17,7 @@ import java.util.Map;
 import static java.lang.Thread.sleep;
 
 public final class CassandraTestInstance {
-    private static final int PORT = 19142;
+    private static final int PORT = 9142;
     private static final String CASSANDRA_CONFIG_FILE = "eu-cassandra.yaml";
     private static final long CASSANDRA_STARTUP_TIMEOUT = 3 * 60 * 1000L; //3 minutes
     private static final int CONNECT_TIMEOUT_MILLIS = 100000;
@@ -34,8 +35,7 @@ public final class CassandraTestInstance {
         }
         try {
             LOGGER.info("Starting embedded Cassandra");
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(CassandraTestInstance.CASSANDRA_CONFIG_FILE,
-                    CASSANDRA_STARTUP_TIMEOUT);
+            EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_STARTUP_TIMEOUT);
             cluster = buildClusterWithConsistencyLevel(ConsistencyLevel.ALL);
             LOGGER.info("embedded Cassandra initialized.");
         } catch (Exception e) {
@@ -103,7 +103,7 @@ public final class CassandraTestInstance {
     private static void truncateAllKeyspaceTables(String keyspaceName) {
         Session session = keyspaceSessions.get(keyspaceName);
         final ResultSet rs = session
-                .execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
+                .execute("SELECT table_name from system.tables where keyspace_name='" +
                         keyspaceName
                         + "';");
         for (Row r : rs.all()) {
@@ -116,10 +116,10 @@ public final class CassandraTestInstance {
     private static void truncateAllNotEmptyKeyspaceTables(String keyspaceName) {
         Session session = keyspaceSessions.get(keyspaceName);
         final ResultSet rs = session
-                .execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
+                .execute("SELECT table_name from system_schema.tables where keyspace_name='" +
                         keyspaceName + "';");
         for (Row r : rs.all()) {
-            String tableName = r.getString("columnfamily_name");
+            String tableName = r.getString("table_name");
             ResultSet rows = session
                     .execute("SELECT * FROM " + tableName + " LIMIT 1;");
             if (rows.one() == null) {
@@ -197,7 +197,6 @@ public final class CassandraTestInstance {
             this.waitRetryTime = waitRetryTime;
         }
 
-        @Override
         public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses,
                                            int receivedResponses, boolean dataRetrieved, int nbRetry) {
             waitForNextRetry();
@@ -219,18 +218,28 @@ public final class CassandraTestInstance {
             }
         }
 
-        @Override
         public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType,
                                             int requiredAcks, int receivedAcks, int nbRetry) {
             waitForNextRetry();
             return getRetryDecision(cl, requiredAcks, receivedAcks, nbRetry, maxWriteNbRetry);
         }
 
-        @Override
         public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica,
                                            int aliveReplica, int nbRetry) {
             waitForNextRetry();
             return getRetryDecision(cl, requiredReplica, aliveReplica, nbRetry, maxUnavailableNbRetry);
+        }
+
+        public RetryDecision onRequestError(Statement statement, ConsistencyLevel consistencyLevel, DriverException e, int i) {
+            return RetryDecision.rethrow();
+        }
+
+        public void init(Cluster cluster) {
+
+        }
+
+        public void close() {
+
         }
 
         private RetryDecision getRetryDecision(ConsistencyLevel cl, int required, int actual, int nbRetry, double maxNbRetry) {

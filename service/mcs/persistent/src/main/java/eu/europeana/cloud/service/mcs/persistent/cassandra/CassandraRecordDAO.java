@@ -510,7 +510,7 @@ public class CassandraRecordDAO {
         representation.setRepresentationName(row.getString("schema_id"));
         representation.setVersion(row.getUUID("version_id").toString());
         representation.setPersistent(row.getBool("persistent"));
-        representation.setCreationDate(row.getDate("creation_date"));
+        representation.setCreationDate(row.getTimestamp("creation_date"));
         return representation;
     }
 
@@ -604,7 +604,7 @@ public class CassandraRecordDAO {
         for (Row singleRow : rs.all()) {
             // prepare representation revision object from the fields in a row
             RepresentationRevisionResponse representationRevision = new RepresentationRevisionResponse(cloudId, schema,
-                    singleRow.getUUID("version_id").toString(), revisionProviderId, revisionName, singleRow.getDate("revision_timestamp"));
+                    singleRow.getUUID("version_id").toString(), revisionProviderId, revisionName, singleRow.getTimestamp("revision_timestamp"));
             // retrieve files information from the map
             representationRevision.setFiles(deserializeFiles(singleRow.getMap("files", String.class,
                     String.class)));

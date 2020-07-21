@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
@@ -13,6 +12,8 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
+import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
+import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -26,6 +27,7 @@ import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSub
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
@@ -37,6 +39,8 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.acls.model.*;
@@ -53,9 +57,10 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
@@ -94,6 +99,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private final static String WRONG_DATA_SET_URL = "http://wrongDataSet.com";
 
     private final static String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
+    public static final String SAMPLE_DATASE_METIS_ID = "sampleDS";
 
     /* Beans (or mocked beans) */
     private ApplicationContext context;
@@ -108,7 +114,12 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private RecordServiceClient recordServiceClient;
     private TaskExecutionReportService reportService;
     private TaskKafkaSubmitService taskKafkaSubmitService;
+    
+    @Autowired
+    private DepublicationService depublicationService;
 
+    @Autowired
+    private DatasetDepublisher datasetDepublisher;
 
     public TopologyTasksResourceTest() {
         super();
@@ -136,7 +147,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 dataSetServiceClient,
                 recordKafkaSubmitService,
                 reportService,
-                taskKafkaSubmitService
+                taskKafkaSubmitService,
+                depublicationService
         );
         when(taskDAO.findTaskStateInfo(anyLong())).thenReturn(Optional.empty());
     }
@@ -293,15 +305,16 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void shouldProperlySendTaskWhithOutputDataSet() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
+        task.addParameter(PluginParameterKeys.REPRESENTATION_NAME,"exampleParamName");
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(new ResultSlice<>());
-        prepareMocks(TOPOLOGY_NAME);
+        prepareMocks(ENRICHMENT_TOPOLOGY);
 
-        ResultActions response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
 
-        assertSuccessfulRequest(response, TOPOLOGY_NAME);
+        assertSuccessfulRequest(response, OAI_TOPOLOGY);
     }
 
 
@@ -901,6 +914,61 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         verifyNoMoreInteractions(taskDAO);
     }
 
+    /* Depublication */
+    @Test
+    public void shouldSupportDepublication() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = new DpsTask(TASK_NAME);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void shouldDepublicationThrowsValidationExceptionWhenTryingWithDatasetUrls() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = getDpsTaskWithDataSetEntry();
+
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldDepublicationThrowsValidationExceptionWhenTryingWithFileUrls() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = getDpsTaskWithFileDataEntry();
+
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldDepublicationThrowsValidationExceptionWhenTryingWithRepositoryUrls() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = getDpsTaskWithRepositoryURL("http://xxx.yy");
+
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldPassValidParameterToDepublicationService() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = new DpsTask(TASK_NAME);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+        task.addParameter(METIS_USE_ALT_INDEXING_ENV,"true");
+
+        sendTask(task,DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isCreated());
+        Thread.sleep(200L);
+
+        ArgumentCaptor<SubmitTaskParameters> captor= ArgumentCaptor.forClass(SubmitTaskParameters.class);
+        verify(depublicationService).depublishDataset(captor.capture());
+        assertTrue(Boolean.valueOf(captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV)));
+        assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
+    }
+
     /* Utilities */
 
     private void prepareTaskWithRepresentationAndRevision(DpsTask task) {
@@ -937,7 +1005,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Collections.singletonList(DATA_SET_URL));
-        task.addParameter(METIS_DATASET_ID, "sampleDS");
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
         return task;
     }
 

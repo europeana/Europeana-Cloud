@@ -711,7 +711,7 @@ public class CassandraDataSetDAO {
         for (Row row : rs) {
             String cloudId = row.getString("cloud_id");
             String schemaId = row.getString("representation_id");
-            Date revisionTimestamp = row.getDate("revision_timestamp");
+            Date revisionTimestamp = row.getTimestamp("revision_timestamp");
             connectionProvider.getSession().execute(
                     deleteProviderDatasetRepresentationInfo.bind(providerId, dataSetId, UUID.fromString(bucket_id), schemaId, revisionTimestamp, cloudId));
             decreaseProviderDatasetBuckets(providerId, dataSetId, bucket_id);
@@ -1017,7 +1017,7 @@ public class CassandraDataSetDAO {
 
             while (iterator.hasNext()) {
                 Row row = iterator.next();
-                CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(row.getString("cloud_id"), row.getDate("revision_timestamp"));
+                CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(row.getString("cloud_id"), row.getTimestamp("revision_timestamp"));
                 cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
             }
         }
@@ -1404,7 +1404,7 @@ public class CassandraDataSetDAO {
             if (rs.getAvailableWithoutFetching() == 0) {
                 continue;
             }
-            return rs.one().getDate("revision_timestamp");
+            return rs.one().getTimestamp("revision_timestamp");
         }
             return null;
     }
@@ -1455,7 +1455,7 @@ public class CassandraDataSetDAO {
             DataSetRepresentationForLatestRevision result = new DataSetRepresentationForLatestRevision();
             //
             Revision rev = new Revision(revision);
-            rev.setCreationTimeStamp(row.getDate("revision_timestamp"));
+            rev.setCreationTimeStamp(row.getTimestamp("revision_timestamp"));
             result.setRevision(rev);
             //
             Representation rep = new Representation(representation);

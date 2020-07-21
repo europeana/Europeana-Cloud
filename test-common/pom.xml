@@ -13,22 +13,28 @@
     </properties>
     <dependencies>
         <dependency>
+            <artifactId>guava</artifactId>
+            <groupId>com.google.guava</groupId>
+            <type>jar</type>
+            <version>23.2-jre</version>
+        </dependency>
+        <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <version>${version.cassandra-driver}</version>
+            <version>3.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit</artifactId>
-            <version>${version.cassandra-unit}</version>
-            <exclusions>
+            <version>3.7.1.0</version>
+            <!--exclusions>
                 <exclusion>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-all</artifactId>
                 </exclusion>
-            </exclusions>
+            </exclusions-->
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
             <version>${cassandra-all.version}</version>
@@ -38,7 +44,7 @@
                     <artifactId>reporter-config</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -48,6 +54,12 @@
             <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
             <artifactId>concurrentlinkedhashmap-lru</artifactId>
             <version>1.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
