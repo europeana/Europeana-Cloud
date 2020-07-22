@@ -56,11 +56,10 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
     @Override
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException {
-        if (!isMessageResent(stormTaskTuple)) {
-            return processNewMessage(stormTaskTuple);
-        } else {
+        if (isMessageResent(stormTaskTuple)) {
             return processResentMessage(stormTaskTuple);
         }
+        return processNewMessage(stormTaskTuple);
     }
 
     private boolean isMessageResent(StormTaskTuple stormTaskTuple) {
@@ -86,14 +85,12 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         CloudId cloudId = extractCloudIdFromTuple(tuple);
         if (cloudId == null) {
             return processNewMessage(tuple);
-        } else {
-            List<Representation> representations = findRepresentationsWithSameRevision(tuple, cloudId);
-            if (representations.isEmpty()) {
-                return processNewMessage(tuple);
-            } else {
-                return representations.get(0).getUri();
-            }
         }
+        List<Representation> representations = findRepresentationsWithSameRevision(tuple, cloudId);
+        if (representations.isEmpty()) {
+            return processNewMessage(tuple);
+        }
+        return representations.get(0).getUri();
     }
 
     private CloudId extractCloudIdFromTuple(StormTaskTuple stormTaskTuple) throws CloudException {

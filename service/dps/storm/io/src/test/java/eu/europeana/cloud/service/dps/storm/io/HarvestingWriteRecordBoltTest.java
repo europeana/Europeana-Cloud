@@ -270,7 +270,7 @@ public class HarvestingWriteRecordBoltTest {
 
 
     private void assertExecutionResults() {
-        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(8, value.size());
