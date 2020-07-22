@@ -124,5 +124,11 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     }
 
+    @Override
+    protected void cleanInvalidData(StormTaskTuple tuple) {
+        int attemptNumber = tuple.getRecordAttemptNumber();
+        LOGGER.error("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
+        // nothing to clean here when the message is reprocessed
+    }
 
 }
