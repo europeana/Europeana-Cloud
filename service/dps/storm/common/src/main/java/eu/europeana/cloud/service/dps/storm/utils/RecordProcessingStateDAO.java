@@ -8,7 +8,6 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 import java.util.Calendar;
-import java.util.Date;
 
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
@@ -37,10 +36,9 @@ public class RecordProcessingStateDAO extends CassandraDAO {
                 "("
                 + RECORD_PROCESSING_STATE_TASK_ID + ","
                 + RECORD_PROCESSING_STATE_RECORD_ID + ","
-                + RECORD_PROCESSING_STATE_TOPOLOGY_NAME + ","
                 + RECORD_PROCESSING_STATE_ATTEMPT_NUMBER + ","
                 + RECORD_PROCESSING_STATE_START_TIME +
-                ") VALUES (?,?,?,?,?) USING TTL " + Long.toString(TIME_TO_LIVE)
+                ") VALUES (?,?,?,?) USING TTL " + Long.toString(TIME_TO_LIVE)
         );
 
         selectRecordStatement = dbService.getSession().prepare("SELECT " +
@@ -48,25 +46,24 @@ public class RecordProcessingStateDAO extends CassandraDAO {
                 " FROM " + RECORD_PROCESSING_STATE +
                 " WHERE " +
                 RECORD_PROCESSING_STATE_TASK_ID + " = ? AND " +
-                RECORD_PROCESSING_STATE_RECORD_ID + " = ? AND " +
-                RECORD_PROCESSING_STATE_TOPOLOGY_NAME + " = ?"
+                RECORD_PROCESSING_STATE_RECORD_ID + " = ? "
         );
     }
 
 
-    public void insertProcessingRecord(long taskId, String recordId, String topologyName, int attemptNumber)
+    public void insertProcessingRecord(long taskId, String recordId, int attemptNumber)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(
-                insertRecordStatement.bind(taskId, recordId, topologyName, attemptNumber, Calendar.getInstance().getTime())
+                insertRecordStatement.bind(taskId, recordId, attemptNumber, Calendar.getInstance().getTime())
         );
     }
 
-    public int selectProcessingRecordAttempt(long taskId, String srcIdentifier, String topologyName)
+    public int selectProcessingRecordAttempt(long taskId, String srcIdentifier)
             throws NoHostAvailableException, QueryExecutionException {
 
         int result = 0;
 
-        ResultSet rs = dbService.getSession().execute(selectRecordStatement.bind(taskId, srcIdentifier, topologyName));
+        ResultSet rs = dbService.getSession().execute(selectRecordStatement.bind(taskId, srcIdentifier));
         Row row = rs.one();
         if (row != null) {
             result = row.getInt(RECORD_PROCESSING_STATE_ATTEMPT_NUMBER);

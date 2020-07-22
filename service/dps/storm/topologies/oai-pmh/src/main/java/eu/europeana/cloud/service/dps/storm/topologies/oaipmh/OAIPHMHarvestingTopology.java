@@ -42,18 +42,14 @@ public class OAIPHMHarvestingTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String mcsServer, String uisServer) {
+    public final StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
                 TopologiesNames.OAI_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
 
-        if(mcsServer == null) {
-            mcsServer = topologyProperties.getProperty(MCS_URL);
-        }
-        if(uisServer == null) {
-            uisServer = topologyProperties.getProperty(UIS_URL);
-        }
+        String mcsServer = topologyProperties.getProperty(MCS_URL);
+        String uisServer = topologyProperties.getProperty(UIS_URL);
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(mcsServer, uisServer);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
@@ -127,9 +123,7 @@ public class OAIPHMHarvestingTopology {
                 OAIPHMHarvestingTopology oaiphmHarvestingTopology =
                         new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
-                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(ecloudMcsAddress, ecloudUisAddress);
+                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology();
                 Config config = configureTopology(topologyProperties);
 
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));

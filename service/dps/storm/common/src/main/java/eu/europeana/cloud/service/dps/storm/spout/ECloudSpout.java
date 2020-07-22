@@ -101,6 +101,7 @@ public class ECloudSpout extends KafkaSpout {
             DpsRecord message = null;
             try {
                 message = parseMessage(tuple.get(4).toString());
+
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
                     return Collections.emptyList();
@@ -182,15 +183,13 @@ public class ECloudSpout extends KafkaSpout {
         private void cleanForRetry(StormTaskTuple stormTaskTuple) {
             int attempt = recordProcessingStateDAO.selectProcessingRecordAttempt(
                     stormTaskTuple.getTaskId(),
-                    stormTaskTuple.getFileUrl(),
-                    topologyName
+                    stormTaskTuple.getFileUrl()
             );
 
             recordProcessingStateDAO.insertProcessingRecord(
                     stormTaskTuple.getTaskId(),
                     stormTaskTuple.getFileUrl(),
-                    topologyName,
-                    attempt++
+                    ++attempt
             );
             stormTaskTuple.setRecordAttemptNumber(attempt);
 

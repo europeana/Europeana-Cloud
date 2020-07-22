@@ -17,7 +17,7 @@ public class StaticOAIPMHTopology {
 
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology(OAI_TOPOLOGY, TopologyConfigBuilder.buildConfig(OAIPHMHarvestingTopology.getProperties()),
-                oaiphmHarvestingTopology.buildTopology(null, null));
+                oaiphmHarvestingTopology.buildTopology());
 
         Utils.sleep((long)(1000*60*1000)); //1000 minutes
         cluster.killTopology(OAI_TOPOLOGY);

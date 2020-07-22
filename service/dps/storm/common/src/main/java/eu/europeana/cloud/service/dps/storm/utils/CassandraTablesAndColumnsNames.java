@@ -101,7 +101,6 @@ public class CassandraTablesAndColumnsNames {
     //------- RECORD_PROCESSING_STATE -------
     public static final String RECORD_PROCESSING_STATE_TASK_ID = "task_id";
     public static final String RECORD_PROCESSING_STATE_RECORD_ID = "record_id";
-    public static final String RECORD_PROCESSING_STATE_TOPOLOGY_NAME = "topology_name";
     public static final String RECORD_PROCESSING_STATE_ATTEMPT_NUMBER = "attempt_number";
     public static final String RECORD_PROCESSING_STATE_START_TIME = "start_time";
 }
