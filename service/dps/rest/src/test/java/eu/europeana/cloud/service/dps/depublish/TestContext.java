@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.depublish;
 
+import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.mockito.Mockito;
@@ -26,4 +27,8 @@ public class TestContext {
         return Mockito.mock(MetisIndexerFactory.class);
     }
 
+    @Bean
+    public RecordStatusUpdater recordStatusUpdater() {
+        return Mockito.mock(RecordStatusUpdater.class);
+    }
 }

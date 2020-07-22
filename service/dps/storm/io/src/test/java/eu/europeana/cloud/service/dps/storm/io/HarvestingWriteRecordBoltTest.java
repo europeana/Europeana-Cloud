@@ -21,9 +21,7 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,9 +36,9 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.anyListOf;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -128,7 +126,7 @@ public class HarvestingWriteRecordBoltTest {
     private void assertFailingExpectationWhenCreatingRepresentation() throws MCSException, IOException {
         verify(outputCollector, times(0)).emit(anyList());
         verify(recordServiceClient, times(4)).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -198,14 +196,14 @@ public class HarvestingWriteRecordBoltTest {
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
         when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
 
-        when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier",AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(CloudException.class);
+        when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier", AUTHORIZATION, AUTHORIZATION_HEADER)).thenThrow(CloudException.class);
         //when
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
         //then
         verify(outputCollector, times(0)).emit(anyList());
         verify(uisClient, times(4)).createMapping(anyString(), anyString(), anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -218,7 +216,7 @@ public class HarvestingWriteRecordBoltTest {
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
         when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
 
-        when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier",AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(CloudException.class);
+        when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier", AUTHORIZATION, AUTHORIZATION_HEADER)).thenThrow(CloudException.class);
         //when
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
@@ -226,7 +224,7 @@ public class HarvestingWriteRecordBoltTest {
         verify(outputCollector, times(0)).emit(anyList());
         verify(uisClient, times(1)).getCloudId(anyString(), anyString(),anyString(),anyString());
         verify(uisClient, times(0)).createMapping(anyString(), anyString(), anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -239,7 +237,7 @@ public class HarvestingWriteRecordBoltTest {
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
         verify(outputCollector, times(0)).emit(anyList());
         verify(uisClient, times(4)).createCloudId(anyString(), anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -256,7 +254,7 @@ public class HarvestingWriteRecordBoltTest {
         verify(outputCollector, times(0)).emit(anyList());
         verify(uisClient, times(1)).getCloudId(anyString(), anyString(),anyString(),anyString());
         verify(uisClient, times(0)).createCloudId(anyString(), anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
     }
 
     @Captor
@@ -272,10 +270,10 @@ public class HarvestingWriteRecordBoltTest {
 
 
     private void assertExecutionResults() {
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(7, value.size());
+        assertEquals(8, value.size());
         assertTrue(value.get(4) instanceof Map);
         Map<String, String> parameters = (Map<String, String>) value.get(4);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));

@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
@@ -32,13 +33,22 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
 
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
-        LOGGER.info("Evaluating size of depublication task id {} ", parameters);
+        evaluateTaskSize(parameters);
+        if (parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID) != null) {
+            depublicationService.depublishDataset(parameters);
+        }
+        if (parameters.getTaskParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH) != null) {
+            depublicationService.depublishIndividualRecords(parameters);
+        }
+    }
+
+    private void evaluateTaskSize(SubmitTaskParameters parameters) throws TaskSubmissionException {
+        LOGGER.info("Evaluating size of depublication task for task_id {} ", parameters.getTask().getTaskId());
         DpsTask task = parameters.getTask();
         int expectedSize = filesCounterFactory.createFilesCounter(task, DEPUBLICATION_TOPOLOGY).getFilesCount(task);
         parameters.setExpectedSize(expectedSize);
-        LOGGER.info("Evaluated size {} for task id {}", expectedSize, task.getTaskId());
-        taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.DEPUBLISHING.toString(), (int) expectedSize);
-        depublicationService.depublish(parameters);
+        LOGGER.info("Evaluated size: {} for task id {}", expectedSize, task.getTaskId());
+        taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.DEPUBLISHING.toString(), expectedSize);
     }
 
 

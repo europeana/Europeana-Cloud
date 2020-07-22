@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.depublish;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
@@ -32,8 +31,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,7 +78,7 @@ public class DepublicationServiceTest {
     @Test
     public void verifyUseValidEnvironmentIfNoAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
 
-        service.depublish(parameters);
+        service.depublishDataset(parameters);
 
         verify(metisIndexerFactory, atLeast(1)).openIndexer(eq(false));
         verify(metisIndexerFactory, never()).openIndexer(eq(true));
@@ -91,7 +88,7 @@ public class DepublicationServiceTest {
     public void verifyUseAlternativeEnvironmentIfAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
         task.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "true");
 
-        service.depublish(parameters);
+        service.depublishDataset(parameters);
 
         verify(metisIndexerFactory, atLeast(1)).openIndexer(eq(true));
         verify(metisIndexerFactory, never()).openIndexer(eq(false));
@@ -101,7 +98,7 @@ public class DepublicationServiceTest {
 
     @Test
     public void verifyTaskRemoveInvokedOnIndexer() throws IndexingException {
-        service.depublish(parameters);
+        service.depublishDataset(parameters);
 
         verify(indexer).removeAll(eq(DATASET_METIS_ID), isNull(Date.class));
         assertTaskSucceed();
@@ -121,7 +118,7 @@ public class DepublicationServiceTest {
             }
         });
 
-        service.depublish(parameters);
+        service.depublishDataset(parameters);
 
         assertTaskSucceed();
         assertTrue(allRowsRemoved.get());
@@ -131,7 +128,7 @@ public class DepublicationServiceTest {
     public void verifyTaskRemoveNotInvokedIfTaskWereKilledBefore() throws IndexingException {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(true);
 
-        service.depublish(parameters);
+        service.depublishDataset(parameters);
 
         verify(indexer, never()).removeAll(eq(DATASET_METIS_ID), isNull(Date.class));
         verify(updater, never()).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
@@ -143,7 +140,7 @@ public class DepublicationServiceTest {
     public void verifyTaskFailedWhenRemoveMethodThrowsException() throws IndexingException {
         when(indexer.removeAll(anyString(), any(Date.class))).thenThrow(new IndexerRelatedIndexingException("Indexer exception!"));
 
-        service.depublish(parameters);
+        service.depublishDataset(parameters);
 
         assertTaskFailed();
     }
@@ -152,7 +149,7 @@ public class DepublicationServiceTest {
     public void verifyTaskFailedWhenRemovedRowCountNotMatchExpected() throws IndexingException {
         when(indexer.removeAll(anyString(), any(Date.class))).thenReturn(EXPECTED_SIZE + 2);
 
-        service.depublish(parameters);
+        service.depublishDataset(parameters);
 
         assertTaskFailed();
     }

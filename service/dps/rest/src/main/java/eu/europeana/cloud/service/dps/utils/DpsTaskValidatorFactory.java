@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +14,11 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataV
 
 public class DpsTaskValidatorFactory {
 
-    private static final DpsTaskValidator EMPTY_VALIDATOR = new DpsTaskValidator();
+    private static final DpsTaskValidator ALWAYS_FAIL_VALIDATOR =
+            new DpsTaskValidator()
+                    .withParameter(
+                            "parameterNameThatWillNeverHappen",
+                            Arrays.asList("parameterValueThatWillNeverHappen"));
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
     private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
@@ -35,29 +38,20 @@ public class DpsTaskValidatorFactory {
     private static final String INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS = "indexing_topology_file_urls";
     private static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
 
-
     private static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
     private static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
+
+    private static final String DEPUBLICATION_TASK_FOR_DATASET = "depublication_topology_metis_dataset_id";
+    private static final String DEPUBLICATION_TASK_FOR_RECORDS = "depublication_topology_record_ids_to_depublish";
 
     private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
     private DpsTaskValidatorFactory() {
     }
 
-    public static DpsTaskValidator createValidatorForTopology(String topologyName) {
-        if(TopologiesNames.DEPUBLICATION_TOPOLOGY.equals(topologyName)) {
-            DpsTaskValidator depublicationTaskValidator = new DpsTaskValidator("DataSet validator for Depublication Topology")
-                    .withDataEntry(null, NO_DATA)
-                    .withParameter(PluginParameterKeys.METIS_DATASET_ID);
-            return depublicationTaskValidator;
-        }
-
-        return null;
-    }
-
     public static DpsTaskValidator createValidatorForTaskType(String taskType) {
         DpsTaskValidator taskValidator = taskValidatorMap.get(taskType);
-        return (taskValidator != null ? taskValidator : EMPTY_VALIDATOR);
+        return (taskValidator != null ? taskValidator : ALWAYS_FAIL_VALIDATOR);
     }
 
     private static Map<String, DpsTaskValidator> buildTaskValidatorMap() {
@@ -141,7 +135,6 @@ public class DpsTaskValidatorFactory {
                 .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
                 .withParameter(PluginParameterKeys.METIS_DATASET_ID));
 
-
         taskValidatorMap.put(LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Link checking Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
                 .withOptionalOutputRevision());
@@ -150,6 +143,14 @@ public class DpsTaskValidatorFactory {
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withOptionalOutputRevision()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
+
+        taskValidatorMap.put(DEPUBLICATION_TASK_FOR_DATASET, new DpsTaskValidator("Task validator for Depublication Topology with dataset id")
+                .withDataEntry(null, NO_DATA)
+                .withParameter(PluginParameterKeys.METIS_DATASET_ID));
+
+        taskValidatorMap.put(DEPUBLICATION_TASK_FOR_RECORDS, new DpsTaskValidator("Task validator for Depublication Topology with records list")
+                .withDataEntry(null, NO_DATA)
+                .withParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH));
 
         return taskValidatorMap;
     }

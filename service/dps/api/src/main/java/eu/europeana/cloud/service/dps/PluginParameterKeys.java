@@ -32,6 +32,7 @@ public final class PluginParameterKeys {
     public static final String DATASET_IDS_TO_REDIRECT_FROM = "DATASET_IDS_TO_REDIRECT_FROM";
     public static final String PERFORM_REDIRECTS = "PERFORM_REDIRECTS";
     public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
+    public static final String RECORD_IDS_TO_DEPUBLISH = "RECORD_IDS_TO_DEPUBLISH";
 
 
     // ---------  eCloud  -----------
@@ -99,8 +100,8 @@ public final class PluginParameterKeys {
     static {
         //the default value for output mimeType
         PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/plain");
-        PLUGIN_PARAMETERS.put(REPRESENTATION_NAME, "REPRESENTATION_NAME");
-        PLUGIN_PARAMETERS.put(NEW_REPRESENTATION_NAME, "NEW_REPRESENTATION_NAME");
+        PLUGIN_PARAMETERS.put(REPRESENTATION_NAME, REPRESENTATION_NAME);
+        PLUGIN_PARAMETERS.put(NEW_REPRESENTATION_NAME, NEW_REPRESENTATION_NAME);
 
         PLUGIN_PARAMETERS.put(MIME_TYPE, "text/xml");
     }
