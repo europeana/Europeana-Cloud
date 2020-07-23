@@ -22,8 +22,8 @@ import java.util.List;
  */
 public abstract class ParseFileBolt extends ReadFileBolt {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
-	protected Gson gson;
-	protected RdfDeserializer rdfDeserializer;
+	protected transient Gson gson;
+	protected transient RdfDeserializer rdfDeserializer;
 
 	public ParseFileBolt(String ecloudMcsAddress) {
 		super(ecloudMcsAddress);

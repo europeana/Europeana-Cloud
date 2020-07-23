@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -20,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -33,8 +31,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
     private AmazonClient amazonClient;
 
-    private Gson gson;
-    private MediaExtractor mediaExtractor;
+    private transient Gson gson;
+    private transient MediaExtractor mediaExtractor;
 
     public ResourceProcessingBolt(AmazonClient amazonClient) {
         this.amazonClient = amazonClient;
@@ -70,7 +68,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
             }
         }
-        LOGGER.info("Resource processing finished in: " + (new Date().getTime() - processingStartTime) + "ms");
+        LOGGER.info("Resource processing finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
