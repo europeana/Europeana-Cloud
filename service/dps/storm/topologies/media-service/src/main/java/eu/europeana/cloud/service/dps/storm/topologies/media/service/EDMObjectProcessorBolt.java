@@ -4,7 +4,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -33,9 +33,9 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
     private final AmazonClient amazonClient;
 
-    private Gson gson;
-    private MediaExtractor mediaExtractor;
-    private RdfDeserializer rdfDeserializer;
+    private transient Gson gson;
+    private transient MediaExtractor mediaExtractor;
+    private transient RdfDeserializer rdfDeserializer;
 
     public EDMObjectProcessorBolt(String ecloudMcsAddress, AmazonClient amazonClient) {
         super(ecloudMcsAddress);
@@ -90,7 +90,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             }
             outputCollector.emit(stormTaskTuple.toStormTuple());
         }
-        LOGGER.info("Processing edm:object finished in: " + (new Date().getTime() - processingStartTime) + "ms");
+        LOGGER.info("Processing edm:object finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {

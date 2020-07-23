@@ -39,6 +39,8 @@ public final class TopologyHelper {
 
     public static final Integer MAX_POLL_RECORDS = 100;
 
+    private TopologyHelper() {}
+
     public static Config configureTopology(Properties topologyProperties) {
         Config config = new Config();
         config.setNumWorkers(parseInt(topologyProperties.getProperty(WORKER_COUNT)));
@@ -63,11 +65,12 @@ public final class TopologyHelper {
     }
 
     @Deprecated
+    /**
+     * @deprecated
+     */
     public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
         KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
-                .builder(
-                        topologyProperties.getProperty(BOOTSTRAP_SERVERS),
-                        new String[]{topic})
+                .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topic)
                 .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE)
                 .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                 .build();

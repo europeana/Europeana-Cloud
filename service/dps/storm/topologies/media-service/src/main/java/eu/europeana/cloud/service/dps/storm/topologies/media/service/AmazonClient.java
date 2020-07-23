@@ -15,7 +15,7 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 public class AmazonClient implements Serializable {
-	static AmazonS3 amazonClient;
+	static AmazonS3 amazonS3;
 	private final String awsAccessKey;
 	private final String awsSecretKey;
 	private final String awsEndPoint;
@@ -23,11 +23,11 @@ public class AmazonClient implements Serializable {
 
 	@PostConstruct
 	synchronized void init() {
-		if (amazonClient == null) {
-			amazonClient = new AmazonS3Client(new BasicAWSCredentials(
+		if (amazonS3 == null) {
+			amazonS3 = new AmazonS3Client(new BasicAWSCredentials(
 					awsAccessKey,
 					awsSecretKey));
-			amazonClient.setEndpoint(awsEndPoint);
+			amazonS3.setEndpoint(awsEndPoint);
 		}
 	}
 
@@ -40,7 +40,7 @@ public class AmazonClient implements Serializable {
 	 * @return result from AmazonS3
 	 */
 	PutObjectResult putObject(String bucket, String name, InputStream inputStream, ObjectMetadata objectMetadata) {
-		return amazonClient.putObject(bucket, name, inputStream, objectMetadata);
+		return amazonS3.putObject(bucket, name, inputStream, objectMetadata);
 	}
 
 	/**
@@ -51,6 +51,6 @@ public class AmazonClient implements Serializable {
 	 * @return result from AmazonS3
 	 */
 	PutObjectResult putObject(String name, InputStream inputStream, ObjectMetadata objectMetadata) {
-		return amazonClient.putObject(awsBucket, name, inputStream, objectMetadata);
+		return amazonS3.putObject(awsBucket, name, inputStream, objectMetadata);
 	}
 }
