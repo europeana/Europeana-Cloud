@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.utils.*;
@@ -180,7 +181,7 @@ public class LinkCheckTopologyTest extends TopologyTestHelper {
 
     private static void buildTopology() {
         // build the test topology
-        ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt(MCS_URL);
+        ParseFileForLinkCheckBolt parseFileBolt = new ParseFileForLinkCheckBolt(MCS_URL);
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
         TestInspectionBolt endTest = new TestInspectionBolt();
         TopologyBuilder builder = new TopologyBuilder();

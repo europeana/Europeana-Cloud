@@ -12,6 +12,6 @@ public class ParseFileForLinkCheckBolt extends ParseFileBolt {
 
     protected List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException {
         // TODO Here we use deprecated method which should be changed to rdfDeserializer.getResourceEntriesForLinkChecking(bytes)
-        return rdfDeserializer.getRemainingResourcesForMediaExtraction(bytes);
+        return rdfDeserializer.getResourceEntriesForMediaExtraction(bytes);
     }
 }
