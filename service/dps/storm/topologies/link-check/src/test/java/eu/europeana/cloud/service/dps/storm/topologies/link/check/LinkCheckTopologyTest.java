@@ -8,8 +8,12 @@ import eu.europeana.cloud.helper.TopologyTestHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.*;
-import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
@@ -44,12 +48,11 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Tarek on 2/19/2019.
@@ -57,8 +60,8 @@ import static org.mockito.Mockito.when;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileForMediaBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*"})
+@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileForMediaBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class, ProcessedRecordsDAO.class})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xerces.*", "javax.xml.parsers.*"})
 
 public class LinkCheckTopologyTest extends TopologyTestHelper {
 
