@@ -123,6 +123,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
         });
     }
 
+    // TODO fix the test, it's ignored because the beahaviour was non-deterministic
     @Ignore
     @Test
     public final void shouldTestSuccessfulExecution() throws MCSException, IOException, URISyntaxException {
