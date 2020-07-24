@@ -51,7 +51,7 @@ public class ReadFileBoltTest {
         when(outputCollector.emit(anyList())).thenReturn(null);
         readFileBolt.execute(anchorTuple, stormTaskTuple);
         verify(fileServiceClient, times(expectedCalls)).getFile(eq(file), eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
-        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), anyListOf(Object.class));
 
     }
 

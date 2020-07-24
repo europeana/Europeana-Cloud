@@ -56,6 +56,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, t.getTaskId(), t.getFileUrl(),
                     "Cannot process data because: " + e.getMessage(), stack.toString());
+        } finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 

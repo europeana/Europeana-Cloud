@@ -105,6 +105,8 @@ public class NotificationBolt extends BaseRichBolt {
             LOGGER.error("Problem with store notification because: {}",
                     ex.getMessage(), ex);
             return;
+        } finally {
+            outputCollector.ack(tuple);
         }
     }
 

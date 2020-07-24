@@ -47,7 +47,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         final String file = t.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         try (InputStream is = getFileStreamByStormTuple(t)) {
             t.setFileData(is);
-            outputCollector.emit(t.toStormTuple());
+            outputCollector.emit(anchorTuple, t.toStormTuple());
         } catch (RepresentationNotExistsException | FileNotExistsException |
                 WrongContentRangeException ex) {
             LOGGER.warn("Can not retrieve file at {}", file);
@@ -55,6 +55,8 @@ public class ReadFileBolt extends AbstractDpsBolt {
         } catch (DriverException | MCSException | IOException ex) {
             LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
             emitErrorNotification(anchorTuple, t.getTaskId(), file, ex.getMessage(), "The cause of the error is:"+ex.getCause());
+        }finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 

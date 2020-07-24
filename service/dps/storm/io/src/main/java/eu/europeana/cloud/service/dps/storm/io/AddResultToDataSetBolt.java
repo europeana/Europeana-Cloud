@@ -64,6 +64,8 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } catch (MalformedURLException e) {
             emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+        }finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 
