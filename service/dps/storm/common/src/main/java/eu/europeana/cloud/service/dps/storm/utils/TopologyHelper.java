@@ -60,7 +60,7 @@ public final class TopologyHelper {
         config.put(CASSANDRA_USERNAME, topologyProperties.getProperty(CASSANDRA_USERNAME));
         config.put(CASSANDRA_SECRET_TOKEN, topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
         config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
-        config.setNumAckers(0);
+        //config.setNumAckers(0);
         return config;
     }
 

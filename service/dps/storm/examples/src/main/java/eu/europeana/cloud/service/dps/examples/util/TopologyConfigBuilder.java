@@ -24,7 +24,8 @@ public class TopologyConfigBuilder {
         Config conf = new Config();
         conf.setDebug(true);
         conf.put(Config.TOPOLOGY_DEBUG, true);
-        conf.setNumAckers(0);
+        //conf.setMessageTimeoutSecs(120);
+        //conf.setNumAckers(0);
 
         conf.put(CASSANDRA_HOSTS,
                 getValue(topologyProperties, CASSANDRA_HOSTS, TopologyConstants.CASSANDRA_HOSTS) );

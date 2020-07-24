@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
@@ -53,7 +54,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             }
             logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
             outputCollector.emit(anchorTuple, tuple.toStormTuple());
-            outputCollector.ack(anchorTuple);
         } catch (MalformedURLException | MCSException e) {
             logger.error("Error while detecting duplicates");
             emitErrorNotification(
@@ -62,6 +62,9 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                     tuple.getFileUrl(),
                     "Error while detecting duplicates",
                     e.getMessage());
+        } finally {
+            System.err.println("^^^^^^^^^^^^^^^^^^ DUPLICATE: "+tuple.getTaskId()+" | "+tuple.getFileUrl()+" | "+anchorTuple.getMessageId());
+            outputCollector.ack(anchorTuple);
         }
     }
 

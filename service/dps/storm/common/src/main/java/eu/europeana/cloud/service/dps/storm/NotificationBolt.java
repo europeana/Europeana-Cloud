@@ -98,13 +98,15 @@ public class NotificationBolt extends BaseRichBolt {
             storeTaskDetails(notificationTuple, nCache);
 
         } catch (NoHostAvailableException | QueryExecutionException ex) {
-            LOGGER.error("Cannot store notification to Cassandra because: {}",
-                    ex.getMessage());
+            LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
             return;
         } catch (Exception ex) {
-            LOGGER.error("Problem with store notification because: {}",
-                    ex.getMessage(), ex);
+            LOGGER.error("Problem with store notification because: {}", ex.getMessage(), ex);
             return;
+        } finally {
+            NotificationTuple notificationTuple = NotificationTuple.fromStormTuple(tuple);
+            System.err.println("^^^^^^^^^^^^^^^^^^ NOTIFICATION: "+notificationTuple.getTaskId()+":"+tuple.getMessageId());
+            outputCollector.ack(tuple);
         }
     }
 

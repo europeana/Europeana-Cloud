@@ -49,13 +49,15 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             prepareEmittedTuple(t, uri.toString());
 
             outputCollector.emit(anchorTuple, t.toStormTuple());
-            outputCollector.ack(anchorTuple);
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, t.getTaskId(), t.getFileUrl(),
                     "Cannot process data because: " + e.getMessage(), stack.toString());
+        } finally {
+            System.err.println("^^^^^^^^^^^^^^^^^^ WRITE_RECORD: "+t.getTaskId()+" | "+t.getFileUrl()+" | "+anchorTuple.getMessageId());
+            outputCollector.ack(anchorTuple);
         }
     }
 

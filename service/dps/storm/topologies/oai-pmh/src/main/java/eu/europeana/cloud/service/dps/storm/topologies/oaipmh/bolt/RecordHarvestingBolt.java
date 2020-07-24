@@ -78,7 +78,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     useEuropeanaId(stormTaskTuple);
 
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-                outputCollector.ack(anchorTuple);
+                //outputCollector.fail(anchorTuple);
+
 
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
             } catch (HarvesterException | IOException | EuropeanaIdException e) {
@@ -100,6 +101,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     null);
         }
         LOGGER.info("Harvesting finished in: {}ms for {}", Calendar.getInstance().getTimeInMillis() - harvestingStartTime, stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
+        System.err.println("^^^^^^^^^^^^^^^^^^ RECORD_HARVESTING: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
+        outputCollector.ack(anchorTuple);
     }
 
     @Override

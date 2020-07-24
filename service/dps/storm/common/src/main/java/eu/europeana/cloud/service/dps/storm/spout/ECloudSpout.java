@@ -22,7 +22,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -88,19 +90,57 @@ public class ECloudSpout extends KafkaSpout {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    @Override
+    public void fail(Object messageId) {
+        //System.err.println("***************************  fail messageId = "+messageId);
+        //super.fail(messageId);
+        System.err.println("%%%%%%%%%%%% - *************  fail messageId = "+messageId);
+        super.ack(messageId);
+    }
+
+    @Override
+    public void ack(Object messageId) {
+        System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%  ack messageId = " + messageId);
+        super.ack(messageId);
+    }
+
+
     public class ECloudOutputCollector extends SpoutOutputCollector {
 
         private LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);
+            ___initWriter();
         }
+
+        private Writer ___writer;
+        private long ___curTaskId = 0l;
+        private int ___counter = 0;
+
+        private void ___initWriter() {
+            try {
+                ___writer = new FileWriter("/home/arek/prj/europeana-ws/tmp/MET-2228_oai_ack/processed_items.txt");
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+        private void ___writeMessage(DpsRecord message) throws IOException {
+            if(___curTaskId != message.getTaskId()) {
+                ___curTaskId = message.getTaskId();
+                ___writer.write(___curTaskId + "\n\n\n=====================================\n\n");
+            }
+            ___writer.write(message.getRecordId()+"\n");
+            ___writer.flush();
+        }
+
 
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             DpsRecord message = null;
             try {
                 message = parseMessage(tuple.get(4).toString());
+                ___writeMessage(message);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
@@ -109,6 +149,9 @@ public class ECloudSpout extends KafkaSpout {
                 TaskInfo taskInfo = prepareTaskInfo(message);
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
                 LOGGER.info("Emitting record to the subsequent bolt: {}", message);
+
+
+                System.err.println("Emmiting: "+messageId+" | "+message.getRecordId()+"|");
                 return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
             } catch (IOException e) {
                 LOGGER.error("Unable to read message", e);
