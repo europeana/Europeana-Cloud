@@ -34,7 +34,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 
-public class ECloudSpout extends KafkaSpout {
+public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
 
@@ -67,7 +67,7 @@ public class ECloudSpout extends KafkaSpout {
     }
 
 
-    public ECloudSpout(KafkaSpoutConfig kafkaSpoutConfig, String hosts, int port, String keyspaceName,
+    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
@@ -132,7 +132,7 @@ public class ECloudSpout extends KafkaSpout {
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             DpsRecord message = null;
             try {
-                message = parseMessage(tuple.get(4).toString());
+                message = (DpsRecord)tuple.get(4);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
@@ -156,10 +156,6 @@ public class ECloudSpout extends KafkaSpout {
 
         private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
             return taskInfoDAO.searchById(taskId);
-        }
-
-        private DpsRecord parseMessage(String rawMessage) throws IOException {
-            return new ObjectMapper().readValue(rawMessage, DpsRecord.class);
         }
 
         private TaskInfo prepareTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
