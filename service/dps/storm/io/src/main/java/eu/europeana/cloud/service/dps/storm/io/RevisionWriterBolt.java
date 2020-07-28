@@ -41,6 +41,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         try {
             addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
@@ -48,7 +49,6 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
         } finally {
-            System.err.println("^^^^^^^^^^^^^^^^^^ REVISION_WRITER: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
             outputCollector.ack(anchorTuple);
         }
     }

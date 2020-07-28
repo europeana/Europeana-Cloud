@@ -32,11 +32,7 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 /**
  * Created by Tarek on 7/18/2017.
@@ -71,7 +67,7 @@ public class XsltBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
         xsltBolt.execute(anchorTuple, tuple);
         when(outputCollector.emit(anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 4);
@@ -135,7 +131,7 @@ public class XsltBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), parameters, new Revision());
         xsltBolt.execute(anchorTuple, tuple);
         when(outputCollector.emit(anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 4);

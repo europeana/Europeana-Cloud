@@ -162,7 +162,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-        outputCollector.ack(anchorTuple);
     }
 
     protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
@@ -170,7 +169,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-        outputCollector.ack(anchorTuple);
     }
 
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {

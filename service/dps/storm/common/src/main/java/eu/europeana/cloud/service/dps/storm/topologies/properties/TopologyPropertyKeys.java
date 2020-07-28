@@ -50,6 +50,7 @@ public final class TopologyPropertyKeys {
     public static final String PARSE_FILE_BOLT_PARALLEL = "PARSE_FILE_BOLT_PARALLEL";
     public static final String RESOURCE_PROCESSING_BOLT_PARALLEL = "RESOURCE_PROCESSING_BOLT_PARALLEL";
     public static final String EDM_ENRICHMENT_BOLT_PARALLEL = "EDM_ENRICHMENT_BOLT_PARALLEL";
+    public static final String MESSAGE_TIMEOUT_IN_SECONDS = "MESSAGE_TIMEOUT_IN_SECONDS";
 
     public static final String LINK_CHECK_BOLT_PARALLEL = "LINK_CHECK_BOLT_PARALLEL";
     public static final String LINK_CHECK_BOLT_NUMBER_OF_TASKS = "LINK_CHECK_BOLT_NUMBER_OF_TASKS";

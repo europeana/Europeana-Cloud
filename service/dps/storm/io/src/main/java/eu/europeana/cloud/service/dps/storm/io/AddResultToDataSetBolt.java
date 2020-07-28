@@ -32,8 +32,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         this.ecloudMcsAddress = ecloudMcsAddress;
     }
 
-
-
     @Override
     public void prepare() {
         if(ecloudMcsAddress == null) {
@@ -42,17 +40,8 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
     }
 
-    private int ___counter = 0;
-
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple t) {
-        ___counter++;
-        if(___counter == 1000) {
-            outputCollector.fail(anchorTuple);
-            System.exit(44);
-        }
-
-
         LOGGER.info("Adding result to dataset");
         final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
@@ -75,8 +64,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } catch (MalformedURLException e) {
             emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
-        } finally {
-            System.err.println("^^^^^^^^^^^^^^^^^^ WRITE_TO_DATA_SET: "+t.getTaskId()+" | "+t.getFileUrl()+" | "+anchorTuple.getMessageId());
+        }finally {
             outputCollector.ack(anchorTuple);
         }
     }

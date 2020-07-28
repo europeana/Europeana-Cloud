@@ -60,7 +60,8 @@ public final class TopologyHelper {
         config.put(CASSANDRA_USERNAME, topologyProperties.getProperty(CASSANDRA_USERNAME));
         config.put(CASSANDRA_SECRET_TOKEN, topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
         config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
-        //config.setNumAckers(0);
+        config.setNumAckers(1);
+        config.setMessageTimeoutSecs(Integer.parseInt(topologyProperties.getProperty(MESSAGE_TIMEOUT_IN_SECONDS)));
         return config;
     }
 
@@ -94,8 +95,7 @@ public final class TopologyHelper {
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
         return new ECloudSpout(
-                KafkaSpoutConfig
-                        .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
+                KafkaSpoutConfig.builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                         .setProcessingGuarantee(processingGuarantee)
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)

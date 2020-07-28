@@ -70,10 +70,10 @@ public class WriteRecordBoltTest {
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(7, value.size());
+        assertEquals(8, value.size());
         assertTrue(value.get(4) instanceof Map);
         Map<String, String> parameters = (Map<String, String>) value.get(4);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));

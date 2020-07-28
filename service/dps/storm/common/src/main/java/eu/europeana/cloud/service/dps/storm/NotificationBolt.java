@@ -104,8 +104,6 @@ public class NotificationBolt extends BaseRichBolt {
             LOGGER.error("Problem with store notification because: {}", ex.getMessage(), ex);
             return;
         } finally {
-            NotificationTuple notificationTuple = NotificationTuple.fromStormTuple(tuple);
-            System.err.println("^^^^^^^^^^^^^^^^^^ NOTIFICATION: "+notificationTuple.getTaskId()+":"+tuple.getMessageId());
             outputCollector.ack(tuple);
         }
     }
