@@ -10,8 +10,10 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
 
 /**
+ * @deprecated
  * Created by Tarek on 2/23/2018.
  */
+@Deprecated
 public class TopologyConfigBuilder {
     private TopologyConfigBuilder() {
     }
@@ -24,7 +26,7 @@ public class TopologyConfigBuilder {
         Config conf = new Config();
         conf.setDebug(true);
         conf.put(Config.TOPOLOGY_DEBUG, true);
-        //conf.setMessageTimeoutSecs(120);
+        conf.setMessageTimeoutSecs(60*60); //60 min
         //conf.setNumAckers(0);
 
         conf.put(CASSANDRA_HOSTS,

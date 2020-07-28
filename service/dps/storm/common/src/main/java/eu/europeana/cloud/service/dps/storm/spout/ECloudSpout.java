@@ -22,9 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +31,7 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
-
-public class ECloudSpout extends KafkaSpout {
-
+public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
 
     private String hosts;
@@ -52,7 +48,7 @@ public class ECloudSpout extends KafkaSpout {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient RecordProcessingStateDAO recordProcessingStateDAO;
 
-    public ECloudSpout(KafkaSpoutConfig kafkaSpoutConfig, String hosts, int port, String keyspaceName,
+    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
@@ -68,7 +64,7 @@ public class ECloudSpout extends KafkaSpout {
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         super.open(conf, context, new ECloudOutputCollector(collector));
-        //
+
         CassandraConnectionProvider cassandraConnectionProvider =
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
                         this.hosts,
@@ -92,15 +88,13 @@ public class ECloudSpout extends KafkaSpout {
 
     @Override
     public void fail(Object messageId) {
-        //System.err.println("***************************  fail messageId = "+messageId);
-        //super.fail(messageId);
-        System.err.println("%%%%%%%%%%%% - *************  fail messageId = "+messageId);
-        super.ack(messageId);
+        LOGGER.debug("FAIL messageId = {}", messageId);
+        super.fail(messageId);
     }
 
     @Override
     public void ack(Object messageId) {
-        System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%  ack messageId = " + messageId);
+        LOGGER.debug("ACK messageId = {}", messageId);
         super.ack(messageId);
     }
 
@@ -111,36 +105,13 @@ public class ECloudSpout extends KafkaSpout {
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);
-            ___initWriter();
-        }
-
-        private Writer ___writer;
-        private long ___curTaskId = 0l;
-        private int ___counter = 0;
-
-        private void ___initWriter() {
-            try {
-                ___writer = new FileWriter("/home/arek/prj/europeana-ws/tmp/MET-2228_oai_ack/processed_items.txt");
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-        private void ___writeMessage(DpsRecord message) throws IOException {
-            if(___curTaskId != message.getTaskId()) {
-                ___curTaskId = message.getTaskId();
-                ___writer.write(___curTaskId + "\n\n\n=====================================\n\n");
-            }
-            ___writer.write(message.getRecordId()+"\n");
-            ___writer.flush();
-        }
-
+         }
 
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             DpsRecord message = null;
             try {
-                message = parseMessage(tuple.get(4).toString());
-                ___writeMessage(message);
+                message = (DpsRecord)tuple.get(4);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
@@ -150,8 +121,6 @@ public class ECloudSpout extends KafkaSpout {
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
                 LOGGER.info("Emitting record to the subsequent bolt: {}", message);
 
-
-                System.err.println("Emmiting: "+messageId+" | "+message.getRecordId()+"|");
                 return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
             } catch (IOException e) {
                 LOGGER.error("Unable to read message", e);
@@ -164,10 +133,6 @@ public class ECloudSpout extends KafkaSpout {
 
         private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
             return taskInfoDAO.searchById(taskId);
-        }
-
-        private DpsRecord parseMessage(String rawMessage) throws IOException {
-            return new ObjectMapper().readValue(rawMessage, DpsRecord.class);
         }
 
         private TaskInfo prepareTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
@@ -235,19 +200,6 @@ public class ECloudSpout extends KafkaSpout {
                     ++attempt
             );
             stormTaskTuple.setRecordAttemptNumber(attempt);
-
-/*
-            if(attempt > 1 && TopologiesNames.OAI_TOPOLOGY.equals(topologyName) ) {
-                cleanInvalidData(stormTaskTuple);
-            }
-*/
         }
-
-/*
-        private void cleanInvalidData(StormTaskTuple tuple) {
-            //If there is some data to clean for given bolt and tuple -
-            //overwrite this method in bold and process data for given tuple
-        }
-*/
     }
 }

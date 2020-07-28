@@ -2,9 +2,8 @@ package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-//import org.apache.storm.kafka.*;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -14,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-
 /**
+ * @deprecated Use rather {@link ECloudSpout}
  * Created by Tarek on 11/27/2017.
  */
 @Deprecated
@@ -30,7 +29,7 @@ public class CustomKafkaSpout extends KafkaSpout {
     private String keyspaceName;
     private String userName;
     private String password;
-    protected TaskStatusUpdater taskStatusUpdater;
+    protected transient TaskStatusUpdater taskStatusUpdater;
 
     protected CustomKafkaSpout(KafkaSpoutConfig spoutConf) {
         super(spoutConf);
@@ -43,7 +42,6 @@ public class CustomKafkaSpout extends KafkaSpout {
         this.port = port;
         this.keyspaceName = keyspaceName;
         this.userName = userName;
-        this.password = password;
     }
 
     @Override
@@ -63,15 +61,5 @@ public class CustomKafkaSpout extends KafkaSpout {
                 taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
             }
         }
-    }
-
-    @Override
-    public void ack(Object msgId) {
-        super.ack(msgId);
-    }
-
-    @Override
-    public void fail(Object msgId) {
-        super.ack(msgId);
     }
 }

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm;
 
-
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -9,13 +8,8 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
 import org.apache.storm.Config;
@@ -27,44 +21,40 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
- *
- * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationBolt extends BaseRichBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBolt.class);
 
-    protected Map stormConfig;
-    protected TopologyContext topologyContext;
-    protected OutputCollector outputCollector;
-
-    private final String hosts;
-    private final int port;
-    private final String keyspaceName;
-    private final String userName;
-    private final String password;
-    protected LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
-            50);
-
-    protected String topologyName;
-    private CassandraConnectionProvider cassandraConnectionProvider;
-    private CassandraTaskInfoDAO taskInfoDAO;
-    protected TaskStatusUpdater taskStatusUpdater;
-    private CassandraSubTaskInfoDAO subTaskInfoDAO;
-    protected ProcessedRecordsDAO processedRecordsDAO;
-    private CassandraTaskErrorsDAO taskErrorDAO;
     private static final int COUNTER_UPDATE_INTERVAL_IN_MS = 5 * 1000;
 
     protected static final int DEFAULT_RETRIES = 3;
 
     protected static final int SLEEP_TIME = 5000;
 
+    protected transient OutputCollector outputCollector;
+
+    private final String hosts;
+    private final int port;
+    private final String keyspaceName;
+    private final String userName;
+    private final String password;
+    protected LRUCache<Long, NotificationCache> cache = new LRUCache<>(50);
+
+    protected String topologyName;
+
+    private transient CassandraTaskInfoDAO taskInfoDAO;
+    protected transient TaskStatusUpdater taskStatusUpdater;
+    private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
+    protected transient ProcessedRecordsDAO processedRecordsDAO;
+    private transient CassandraTaskErrorsDAO taskErrorDAO;
     /**
      * Constructor of notification bolt.
      *
@@ -99,30 +89,30 @@ public class NotificationBolt extends BaseRichBolt {
 
         } catch (NoHostAvailableException | QueryExecutionException ex) {
             LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
-            return;
         } catch (Exception ex) {
             LOGGER.error("Problem with store notification because: {}", ex.getMessage(), ex);
-            return;
         } finally {
             outputCollector.ack(tuple);
         }
     }
 
-    private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+    private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
         switch (notificationTuple.getInformationType()) {
             case UPDATE_TASK:
-                updateTask(taskId,
-                        notificationTuple.getParameters());
+                updateTask(taskId, notificationTuple.getParameters());
                 break;
             case NOTIFICATION:
                 notifyTask(notificationTuple, nCache, taskId);
                 storeFinishState(notificationTuple);
                 break;
+            default:
+                //nothing to do
+                break;
         }
     }
 
-    private void notifyTask(NotificationTuple notificationTuple, NotificationCache nCache, long taskId) throws DatabaseConnectionException, TaskInfoDoesNotExistException {
+    private void notifyTask(NotificationTuple notificationTuple, NotificationCache nCache, long taskId) {
         boolean error = isError(notificationTuple, nCache);
 
         int processesFilesCount = nCache.getProcessed();
@@ -143,7 +133,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private boolean isCounterUpdateRequired(NotificationCache nCache) {
-        return new Date().getTime() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS;
+        return Calendar.getInstance().getTimeInMillis() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS;
     }
 
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
@@ -222,26 +212,27 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     @Override
-    public void prepare(Map stormConf, TopologyContext tc, OutputCollector oc) {
-        cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
-                userName, password);
+    public void prepare(Map stormConf, TopologyContext tc, OutputCollector outputCollector) {
+        this.outputCollector = outputCollector;
+
+        CassandraConnectionProvider cassandraConnectionProvider =
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+                        hosts, port, keyspaceName, userName, password);
+
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
-        this.stormConfig = stormConf;
-        this.topologyContext = tc;
-        this.outputCollector = oc;
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer ofd) {
-
+        //last bolt in all topologies, nothing to declare
     }
 
-    private void updateTask(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
+    private void updateTask(long taskId, Map<String, Object> parameters) {
         Validate.notNull(parameters);
         String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
         String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
@@ -275,7 +266,7 @@ public class NotificationBolt extends BaseRichBolt {
         return date;
     }
 
-    private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+    private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
         TaskInfo task = taskInfoDAO.searchById(taskId);
         if (task != null) {
@@ -292,7 +283,7 @@ public class NotificationBolt extends BaseRichBolt {
         taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
-    private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
+    private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) {
         Validate.notNull(parameters);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         String state = String.valueOf(parameters.get(NotificationParameterKeys.STATE));
@@ -358,12 +349,8 @@ public class NotificationBolt extends BaseRichBolt {
         }
 
         public String getErrorType(String infoText) {
-            String errorType = errorTypes.get(infoText);
-            if (errorType == null) {
-                errorType = new com.eaio.uuid.UUID().toString();
-                errorTypes.put(infoText, errorType);
-            }
-            return errorType;
+            return errorTypes.computeIfAbsent(infoText,
+                    key -> new com.eaio.uuid.UUID().toString());
         }
 
         Date getLastCounterUpdate(){
