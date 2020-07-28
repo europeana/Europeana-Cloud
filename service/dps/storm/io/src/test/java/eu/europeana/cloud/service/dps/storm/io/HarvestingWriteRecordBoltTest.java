@@ -62,6 +62,8 @@ public class HarvestingWriteRecordBoltTest {
     @Mock(name = "uisClient")
     private UISClient uisClient;
 
+    @Captor
+    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
     @InjectMocks
     private HarvestingWriteRecordBolt oaiWriteRecordBoltT = new HarvestingWriteRecordBolt("http://localhost:8080/mcs", "http://localhost:8080/uis");
@@ -257,9 +259,6 @@ public class HarvestingWriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
     }
 
-    @Captor
-    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
-
     private HashMap<String, String> prepareStormTaskTupleParameters() throws MalformedURLException {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER);
@@ -267,7 +266,6 @@ public class HarvestingWriteRecordBoltTest {
         parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         return parameters;
     }
-
 
     private void assertExecutionResults() {
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());

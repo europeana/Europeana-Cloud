@@ -135,7 +135,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, RecordState.ERROR, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-        outputCollector.ack(anchorTuple);
     }
 
     protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
@@ -145,7 +144,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
         nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-        outputCollector.ack(anchorTuple);
     }
 
     /**

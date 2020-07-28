@@ -60,7 +60,19 @@ public class ECloudSpout extends KafkaSpout {
         this.userName = userName;
         this.password = password;
 
-        this.topologyName = (String)kafkaSpoutConfig.getKafkaProps().get(ConsumerConfig.GROUP_ID_CONFIG);
+        this.topologyName = (String) kafkaSpoutConfig.getKafkaProps().get(ConsumerConfig.GROUP_ID_CONFIG);
+    }
+
+    @Override
+    public void ack(Object messageId) {
+        LOGGER.info("Messages acknowledged {}", messageId);
+        super.ack(messageId);
+    }
+
+    @Override
+    public void fail(Object messageId) {
+        LOGGER.error("Messages failed {}", messageId);
+        super.fail(messageId);
     }
 
     @Override
@@ -168,14 +180,12 @@ public class ECloudSpout extends KafkaSpout {
             stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
 
             List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
-            if(!isEmpty(repositoryUrlList)) {
+            if (!isEmpty(repositoryUrlList)) {
                 stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
             }
 
             //Implementation of re-try mechanism after topology broken down
-            if(TopologiesNames.OAI_TOPOLOGY.equals(topologyName)) {
-                cleanForRetry(stormTaskTuple);
-            }
+            cleanForRetry(stormTaskTuple);
 
             return stormTaskTuple;
         }
