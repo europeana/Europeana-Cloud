@@ -10,10 +10,12 @@ import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBo
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
@@ -42,21 +44,25 @@ public class IndexingTopology {
 
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         PropertyFileLoader.loadPropertyFile(defaultIndexingPropertiesFile, providedIndexingPropertiesFile, indexingProperties);
+        TopologyPropertiesValidator.validateFor(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties);
     }
 
-    private StormTopology buildTopology(String ecloudMcsAddress) {
+    private StormTopology buildTopology() {
 
         TopologyBuilder builder = new TopologyBuilder();
+        String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
+        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
 
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
-
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
+                TopologiesNames.INDEXING_TOPOLOGY,
+                topologyProperties,
+                KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
 
         builder.setSpout(SPOUT, eCloudSpout,
                 getAnInt(KAFKA_SPOUT_PARALLEL))
                 .setNumTasks(getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS));
 
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
+        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
                 getAnInt(RETRIEVE_FILE_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(SPOUT, new ShuffleGrouping());
@@ -103,8 +109,7 @@ public class IndexingTopology {
                         new IndexingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,
                                 INDEXING_PROPERTIES_FILE, providedIndexingPropertiesFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = indexingTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = indexingTopology.buildTopology();
 
                 Config config = configureTopology(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));

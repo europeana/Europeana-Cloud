@@ -44,6 +44,8 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause());
+        }finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 

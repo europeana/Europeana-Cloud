@@ -56,8 +56,8 @@ public class IndexingRevisionWriterTest {
         testMock.execute(anchorTuple, prepareTupleWithEmptyRevisions());
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class), anyString(), anyString());
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
-        Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), captor.capture());
         List list = captor.getValue();
         assertNotNull(list);
         assertEquals(3, list.size());
@@ -76,9 +76,9 @@ public class IndexingRevisionWriterTest {
         testMock.execute(anchorTuple, prepareTuple());
         Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class), anyString(), anyString());
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
 
-        Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), captor.capture());
+        Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), captor.capture());
         List list = captor.getValue();
         assertNotNull(list);
         assertEquals(3, list.size());
@@ -95,8 +95,8 @@ public class IndexingRevisionWriterTest {
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class), anyString(), anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
-        Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), captor.capture());
         List list = captor.getValue();
         assertNotNull(list);
         assertEquals(3, list.size());
@@ -113,7 +113,7 @@ public class IndexingRevisionWriterTest {
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTuple());
         Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class), anyString(), anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
 
     }
 

@@ -96,7 +96,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                     .index(document, recordDate, preserveTimestampsString, datasetIdsToRedirectFromList,
                             performRedirects);
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate, dpsURL);
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
                     "Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
                     database, useAltEnv, recordDate, preserveTimestampsString);
@@ -106,6 +106,8 @@ public class IndexingBolt extends AbstractDpsBolt {
             logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
         } catch (IndexingException e) {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
+        } finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 

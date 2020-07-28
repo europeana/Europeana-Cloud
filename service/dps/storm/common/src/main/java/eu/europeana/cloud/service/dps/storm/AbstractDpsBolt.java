@@ -189,5 +189,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void cleanInvalidData(StormTaskTuple tuple) {
         //If there is some data to clean for given bolt and tuple -
         //overwrite this method in bold and process data for given tuple
+        int attemptNumber = tuple.getRecordAttemptNumber();
+        LOGGER.error("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
     }
 }

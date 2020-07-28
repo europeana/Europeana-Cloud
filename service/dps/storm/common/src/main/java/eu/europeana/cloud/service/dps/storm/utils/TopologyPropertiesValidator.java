@@ -20,6 +20,9 @@ public class TopologyPropertiesValidator {
             case TopologiesNames.OAI_TOPOLOGY:
                 validateForOaiTopology(properties);
                 break;
+            case TopologiesNames.INDEXING_TOPOLOGY:
+                validateIndexingTopology(properties);
+                break;
             default:
                 throw new TopologyPropertiesException("Validator not found for given topology name: " + topologyName);
         }
@@ -30,6 +33,10 @@ public class TopologyPropertiesValidator {
     }
 
     private static void validateForOaiTopology(Properties properties) {
+        validateCommonProps(properties);
+    }
+
+    private static void validateIndexingTopology(Properties properties) {
         validateCommonProps(properties);
     }
 
