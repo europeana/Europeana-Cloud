@@ -31,12 +31,11 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 1/24/2018.
  */
 public class EnrichmentTopology {
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "enrichment-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentTopology.class);
 
     public EnrichmentTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 

@@ -29,12 +29,11 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 12/14/2018.
  */
 public class LinkCheckTopology {
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "link-check-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckTopology.class);
 
     public LinkCheckTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 

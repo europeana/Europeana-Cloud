@@ -96,8 +96,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             }
         }
     }
-
-
+    
     private List<String> readDataSetsList(String listParameter) {
         if (listParameter == null) {
             return null;

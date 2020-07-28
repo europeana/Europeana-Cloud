@@ -32,10 +32,9 @@ public class NormalizationTopology {
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationTopology.class);
 
     private static final String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
 
     public NormalizationTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 

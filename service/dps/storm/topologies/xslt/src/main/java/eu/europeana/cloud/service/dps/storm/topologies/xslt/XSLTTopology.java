@@ -37,15 +37,13 @@ import static java.lang.Integer.parseInt;
  */
 public class XSLTTopology {
 
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
     public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-
     }
 
     public StormTopology buildTopology(String ecloudMcsAddress) {

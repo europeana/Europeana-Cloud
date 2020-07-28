@@ -32,12 +32,11 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 12/14/2018.
  */
 public class MediaTopology {
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "media-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaTopology.class);
 
     public MediaTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 

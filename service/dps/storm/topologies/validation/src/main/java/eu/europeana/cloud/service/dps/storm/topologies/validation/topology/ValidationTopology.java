@@ -116,7 +116,7 @@ public class ValidationTopology {
             if (args.length <= 2) {
 
                 String providedPropertyFile = (args.length > 0 ? args[0] : "");
-                String providedValidationPropertiesFile = (args.length == 2 ? args[1] : "");;
+                String providedValidationPropertiesFile = (args.length == 2 ? args[1] : "");
 
                 ValidationTopology validationTopology =
                         new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,

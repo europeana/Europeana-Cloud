@@ -31,12 +31,11 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 3/22/2018.
  */
 public class HTTPHarvestingTopology {
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvestingTopology.class);
 
     public HTTPHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
