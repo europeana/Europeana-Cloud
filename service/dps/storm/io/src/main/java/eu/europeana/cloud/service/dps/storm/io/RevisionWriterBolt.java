@@ -35,8 +35,8 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             addRevisionAndEmit(anchorTuple, stormTaskTuple);
-        }finally {
-            System.err.println("^^^^^^^^^^^^^^^^^^ REVISION_WRITER: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
+        } finally {
+            System.err.println("+++++++ACK REVISION_WRITER: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
             outputCollector.ack(anchorTuple);
         }
     }
@@ -52,11 +52,6 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
-/*
-        } finally {
-            System.err.println("^^^^^^^^^^^^^^^^^^ REVISION_WRITER: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
-            outputCollector.ack(anchorTuple);
-*/
         }
     }
 

@@ -1,8 +1,10 @@
 package eu.europeana.cloud.service.dps.examples.toplologies.constants;
 
 /**
+ * @deprecated Use TopologyDefaultsConstants in dps-storm-common
  * @author lucasanastasiou
  */
+@Deprecated
 public class TopologyConstants {
     public static final String MCS_URL = "http://localhost:8080/mcs";
     public static final String UIS_URL = "http://localhost:8080/uis";

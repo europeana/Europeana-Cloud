@@ -52,6 +52,21 @@ public class ECloudSpout extends KafkaSpout {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient RecordProcessingStateDAO recordProcessingStateDAO;
 
+    private void ___writeStatus(Object messageId, boolean ack)  {
+        try {
+            Writer ___statusWriter = new FileWriter("/home/arek/prj/europeana-ws/tmp/MET-2228_oai_ack/statuses_items.txt", true);
+
+            ___statusWriter.write(ack ? "ACK " : "FAIL ");
+            ___statusWriter.write("msgId: "+messageId);
+            ___statusWriter.write("\n");
+            ___statusWriter.flush();
+        } catch (IOException e) {
+            System.err.println("Cannot write status for: "+messageId);
+            e.printStackTrace();
+        }
+    }
+
+
     public ECloudSpout(KafkaSpoutConfig kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
@@ -92,15 +107,15 @@ public class ECloudSpout extends KafkaSpout {
 
     @Override
     public void fail(Object messageId) {
-        //System.err.println("***************************  fail messageId = "+messageId);
-        //super.fail(messageId);
-        System.err.println("%%%%%%%%%%%% - *************  fail messageId = "+messageId);
-        super.ack(messageId);
+        ___writeStatus(messageId, false);
+        System.err.println("FAIL messageId = "+messageId);
+        super.fail(messageId);
     }
 
     @Override
     public void ack(Object messageId) {
-        System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%  ack messageId = " + messageId);
+        ___writeStatus(messageId, true);
+        System.err.println("ACK messageId = " + messageId);
         super.ack(messageId);
     }
 
@@ -111,36 +126,13 @@ public class ECloudSpout extends KafkaSpout {
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);
-            ___initWriter();
-        }
-
-        private Writer ___writer;
-        private long ___curTaskId = 0l;
-        private int ___counter = 0;
-
-        private void ___initWriter() {
-            try {
-                ___writer = new FileWriter("/home/arek/prj/europeana-ws/tmp/MET-2228_oai_ack/processed_items.txt");
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-        private void ___writeMessage(DpsRecord message) throws IOException {
-            if(___curTaskId != message.getTaskId()) {
-                ___curTaskId = message.getTaskId();
-                ___writer.write(___curTaskId + "\n\n\n=====================================\n\n");
-            }
-            ___writer.write(message.getRecordId()+"\n");
-            ___writer.flush();
-        }
-
+         }
 
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             DpsRecord message = null;
             try {
                 message = parseMessage(tuple.get(4).toString());
-                ___writeMessage(message);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());

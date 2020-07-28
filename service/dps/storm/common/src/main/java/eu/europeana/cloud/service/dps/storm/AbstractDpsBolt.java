@@ -35,17 +35,17 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    protected static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
     protected static final String AUTHORIZATION = "Authorization";
-
 
     // default number of retries
     public static final int DEFAULT_RETRIES = 3;
 
     public static final int SLEEP_TIME = 5000;
 
-    protected transient Map stormConfig;
+    protected static volatile TaskStatusChecker taskStatusChecker;
+
+    protected transient Map<?,?> stormConfig;
     protected transient TopologyContext topologyContext;
     protected transient OutputCollector outputCollector;
     protected String topologyName;
@@ -135,7 +135,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, RecordState.ERROR, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-       // outputCollector.ack(anchorTuple);
     }
 
     protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
@@ -145,7 +144,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
         nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-       // outputCollector.ack(anchorTuple);
     }
 
     /**
@@ -162,7 +160,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-        //outputCollector.ack(anchorTuple);
     }
 
     protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
@@ -170,7 +167,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-        //outputCollector.ack(anchorTuple);
     }
 
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {

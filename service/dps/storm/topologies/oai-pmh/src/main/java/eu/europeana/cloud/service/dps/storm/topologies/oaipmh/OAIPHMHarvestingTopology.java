@@ -124,7 +124,7 @@ public class OAIPHMHarvestingTopology {
                         new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
                 StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology();
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
 
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

@@ -42,22 +42,13 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
     }
 
-    private int ___counter = 0;
-
     @Override
-    public void execute(Tuple anchorTuple, StormTaskTuple t) {
-        ___counter++;
-        if(___counter == 1000) {
-            outputCollector.fail(anchorTuple);
-            System.exit(44);
-        }
-
-
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Adding result to dataset");
-        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
+        final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        String resultUrl = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
-            List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+            List<String> datasets = readDataSetsList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
             if (datasets != null) {
                 LOGGER.info("Data-sets that will be affected: {}", datasets);
                 for (String datasetLocation : datasets) {
@@ -66,17 +57,17 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                     assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
                 }
             }
-            if (t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
-                emitSuccessNotification(anchorTuple, t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
+            if (stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl);
             else
-                emitSuccessNotification(anchorTuple, t.getTaskId(), t.getFileUrl(), "", "", resultUrl, t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), t.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl, stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } catch (MalformedURLException e) {
-            emitErrorNotification(anchorTuple, t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } finally {
-            System.err.println("^^^^^^^^^^^^^^^^^^ WRITE_TO_DATA_SET: "+t.getTaskId()+" | "+t.getFileUrl()+" | "+anchorTuple.getMessageId());
+            System.err.println("+++++++ACK WRITE_TO_DATA_SET: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
             outputCollector.ack(anchorTuple);
         }
     }
