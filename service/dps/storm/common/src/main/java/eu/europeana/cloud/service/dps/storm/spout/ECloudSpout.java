@@ -63,13 +63,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     @Override
     public void ack(Object messageId) {
-        LOGGER.info("Messages acknowledged {}", messageId);
+        LOGGER.info("Message acknowledged {}", messageId);
         super.ack(messageId);
     }
 
     @Override
     public void fail(Object messageId) {
-        LOGGER.error("Messages failed {}", messageId);
+        LOGGER.error("Message failed {}", messageId);
         super.fail(messageId);
     }
 
@@ -97,19 +97,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         declarer.declare(StormTaskTuple.getFields());
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
-
-    @Override
-    public void fail(Object messageId) {
-        LOGGER.debug("FAIL messageId = {}", messageId);
-        super.fail(messageId);
-    }
-
-    @Override
-    public void ack(Object messageId) {
-        LOGGER.debug("ACK messageId = {}", messageId);
-        super.ack(messageId);
-    }
-
 
     public class ECloudOutputCollector extends SpoutOutputCollector {
 
