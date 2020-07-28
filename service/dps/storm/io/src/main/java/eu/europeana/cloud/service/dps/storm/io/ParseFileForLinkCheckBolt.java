@@ -14,4 +14,9 @@ public class ParseFileForLinkCheckBolt extends ParseFileBolt {
         // TODO Here we use deprecated method which should be changed to rdfDeserializer.getResourceEntriesForLinkChecking(bytes)
         return rdfDeserializer.getResourceEntriesForMediaExtraction(bytes);
     }
+
+    @Override
+    protected int getLinksCount(byte[] fileContent, int resourcesCount) {
+        return resourcesCount;
+    }
 }

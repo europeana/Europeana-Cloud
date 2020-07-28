@@ -69,8 +69,11 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                     if (resourceExtractionResult.getMetadata() != null) {
                         tuple = new Cloner().deepClone(stormTaskTuple);
                         tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
-                        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
                         mainThumbnailAvailable = !resourceExtractionResult.getMetadata().getThumbnailTargetNames().isEmpty();
+                        // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
+                        //  to collect all the resources instead of just counting them
+                        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT,
+                                String.valueOf(rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size() + 1));
                     }
 
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);

@@ -22,4 +22,12 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
         tuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE));
         return tuple;
     }
+
+    @Override
+    protected int getLinksCount(byte[] fileContent, int resourcesCount) throws RdfDeserializationException {
+        if (rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent) != null) {
+            return resourcesCount + 1;
+        }
+        return resourcesCount;
+    }
 }
