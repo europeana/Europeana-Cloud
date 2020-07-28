@@ -39,13 +39,12 @@ import static java.lang.Integer.parseInt;
  */
 public class XSLTTopology {
 
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
     public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         TopologyPropertiesValidator.validateFor(TopologiesNames.XSLT_TOPOLOGY, topologyProperties);
     }
@@ -141,7 +140,7 @@ public class XSLTTopology {
                 XSLTTopology xsltTopology = new XSLTTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
                 StormTopology stormTopology = xsltTopology.buildTopology();
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {

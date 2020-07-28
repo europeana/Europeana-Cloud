@@ -111,7 +111,7 @@ public class IndexingTopology {
 
                 StormTopology stormTopology = indexingTopology.buildTopology();
 
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {

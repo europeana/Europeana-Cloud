@@ -33,7 +33,11 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        addRevisionAndEmit(anchorTuple, stormTaskTuple);
+        try {
+            addRevisionAndEmit(anchorTuple, stormTaskTuple);
+        } finally {
+            outputCollector.ack(anchorTuple);
+        }
     }
 
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {

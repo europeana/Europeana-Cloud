@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.examples.toplologies;
 
-import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPHMHarvestingTopology;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.utils.Utils;
 
@@ -13,10 +13,11 @@ public class StaticOAIPMHTopology {
 
     public static void main(String[] args) {
         OAIPHMHarvestingTopology oaiphmHarvestingTopology
-                = new  OAIPHMHarvestingTopology("oai-topology-config.properties", null);
+//                = new  OAIPHMHarvestingTopology("oai-topology-config.properties", null);
+                = new  OAIPHMHarvestingTopology("oai-topology-config.properties", "/home/arek/prj/europeana-ws/europeana-cloud/service/dps/storm/examples/src/main/resources/oai-topology-config.local.properties");
 
         LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology(OAI_TOPOLOGY, TopologyConfigBuilder.buildConfig(OAIPHMHarvestingTopology.getProperties()),
+        cluster.submitTopology(OAI_TOPOLOGY, TopologyHelper.buildConfig(OAIPHMHarvestingTopology.getProperties(), true),
                 oaiphmHarvestingTopology.buildTopology());
 
         Utils.sleep((long)(1000*60*1000)); //1000 minutes

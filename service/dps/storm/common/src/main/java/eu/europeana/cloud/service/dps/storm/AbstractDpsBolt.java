@@ -35,17 +35,17 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    protected static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
     protected static final String AUTHORIZATION = "Authorization";
-
 
     // default number of retries
     public static final int DEFAULT_RETRIES = 3;
 
     public static final int SLEEP_TIME = 5000;
 
-    protected transient Map stormConfig;
+    protected static volatile TaskStatusChecker taskStatusChecker;
+
+    protected transient Map<?,?> stormConfig;
     protected transient TopologyContext topologyContext;
     protected transient OutputCollector outputCollector;
     protected String topologyName;

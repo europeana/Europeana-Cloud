@@ -31,9 +31,7 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
-
-public class ECloudSpout extends KafkaSpout {
-
+public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
 
     private String hosts;
@@ -50,7 +48,7 @@ public class ECloudSpout extends KafkaSpout {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient RecordProcessingStateDAO recordProcessingStateDAO;
 
-    public ECloudSpout(KafkaSpoutConfig kafkaSpoutConfig, String hosts, int port, String keyspaceName,
+    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
@@ -78,7 +76,7 @@ public class ECloudSpout extends KafkaSpout {
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         super.open(conf, context, new ECloudOutputCollector(collector));
-        //
+
         CassandraConnectionProvider cassandraConnectionProvider =
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
                         this.hosts,
@@ -100,19 +98,32 @@ public class ECloudSpout extends KafkaSpout {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    @Override
+    public void fail(Object messageId) {
+        LOGGER.debug("FAIL messageId = {}", messageId);
+        super.fail(messageId);
+    }
+
+    @Override
+    public void ack(Object messageId) {
+        LOGGER.debug("ACK messageId = {}", messageId);
+        super.ack(messageId);
+    }
+
+
     public class ECloudOutputCollector extends SpoutOutputCollector {
 
         private LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);
-        }
+         }
 
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             DpsRecord message = null;
             try {
-                message = parseMessage(tuple.get(4).toString());
+                message = (DpsRecord)tuple.get(4);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
@@ -121,6 +132,7 @@ public class ECloudSpout extends KafkaSpout {
                 TaskInfo taskInfo = prepareTaskInfo(message);
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
                 LOGGER.info("Emitting record to the subsequent bolt: {}", message);
+
                 return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
             } catch (IOException e) {
                 LOGGER.error("Unable to read message", e);
@@ -133,10 +145,6 @@ public class ECloudSpout extends KafkaSpout {
 
         private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
             return taskInfoDAO.searchById(taskId);
-        }
-
-        private DpsRecord parseMessage(String rawMessage) throws IOException {
-            return new ObjectMapper().readValue(rawMessage, DpsRecord.class);
         }
 
         private TaskInfo prepareTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
@@ -202,19 +210,6 @@ public class ECloudSpout extends KafkaSpout {
                     ++attempt
             );
             stormTaskTuple.setRecordAttemptNumber(attempt);
-
-/*
-            if(attempt > 1 && TopologiesNames.OAI_TOPOLOGY.equals(topologyName) ) {
-                cleanInvalidData(stormTaskTuple);
-            }
-*/
         }
-
-/*
-        private void cleanInvalidData(StormTaskTuple tuple) {
-            //If there is some data to clean for given bolt and tuple -
-            //overwrite this method in bold and process data for given tuple
-        }
-*/
     }
 }
