@@ -31,7 +31,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
     }
-    
+
     @Override
     public void prepare() {
         if(ecloudMcsAddress == null) {
