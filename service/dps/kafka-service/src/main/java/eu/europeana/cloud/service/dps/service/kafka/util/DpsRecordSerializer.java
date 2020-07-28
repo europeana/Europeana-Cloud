@@ -10,8 +10,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 
-/*
-This class is used inside {@link eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService}  to serialize tasks to Kafka
+/**
+ * This class is used inside {@link eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService}
+ * to serialize tasks to Kafka
  */
 public class DpsRecordSerializer implements Serializer<DpsRecord> {
 
@@ -19,6 +20,7 @@ public class DpsRecordSerializer implements Serializer<DpsRecord> {
 
     @Override
     public void configure(Map<String, ?> parameters, boolean b) {
+        //nothing to implement
     }
 
     @Override
@@ -36,5 +38,6 @@ public class DpsRecordSerializer implements Serializer<DpsRecord> {
 
     @Override
     public void close() {
+        //nothing to implement
     }
 }

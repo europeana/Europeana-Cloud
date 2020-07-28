@@ -36,7 +36,6 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         try {
             addRevisionAndEmit(anchorTuple, stormTaskTuple);
         } finally {
-            System.err.println("+++++++ACK REVISION_WRITER: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
             outputCollector.ack(anchorTuple);
         }
     }

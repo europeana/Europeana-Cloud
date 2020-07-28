@@ -80,7 +80,6 @@ public final class TopologyHelper {
         config.put(CASSANDRA_SECRET_TOKEN,
                 getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null) );
 
-        //config.setNumAckers(0);
         return config;
     }
 

@@ -13,9 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-//import org.apache.storm.kafka.*;
-
-
 /**
  * @deprecated Use rather {@link ECloudSpout}
  * Created by Tarek on 11/27/2017.

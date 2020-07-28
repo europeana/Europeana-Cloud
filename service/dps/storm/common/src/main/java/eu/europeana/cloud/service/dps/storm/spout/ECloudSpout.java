@@ -22,9 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +31,7 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
-
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
 
     private String hosts;
@@ -51,21 +47,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient RecordProcessingStateDAO recordProcessingStateDAO;
-
-    private void ___writeStatus(Object messageId, boolean ack)  {
-        try {
-            Writer ___statusWriter = new FileWriter("/home/arek/prj/europeana-ws/tmp/MET-2228_oai_ack/statuses_items.txt", true);
-
-            ___statusWriter.write(ack ? "ACK " : "FAIL ");
-            ___statusWriter.write("msgId: "+messageId);
-            ___statusWriter.write("\n");
-            ___statusWriter.flush();
-        } catch (IOException e) {
-            System.err.println("Cannot write status for: "+messageId);
-            e.printStackTrace();
-        }
-    }
-
 
     public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -83,7 +64,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         super.open(conf, context, new ECloudOutputCollector(collector));
-        //
+
         CassandraConnectionProvider cassandraConnectionProvider =
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
                         this.hosts,
@@ -107,15 +88,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     @Override
     public void fail(Object messageId) {
-        ___writeStatus(messageId, false);
-        System.err.println("FAIL messageId = "+messageId);
+        LOGGER.debug("FAIL messageId = {}", messageId);
         super.fail(messageId);
     }
 
     @Override
     public void ack(Object messageId) {
-        ___writeStatus(messageId, true);
-        System.err.println("ACK messageId = " + messageId);
+        LOGGER.debug("ACK messageId = {}", messageId);
         super.ack(messageId);
     }
 
@@ -142,8 +121,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
                 LOGGER.info("Emitting record to the subsequent bolt: {}", message);
 
-
-                System.err.println("Emmiting: "+messageId+" | "+message.getRecordId()+"|");
                 return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
             } catch (IOException e) {
                 LOGGER.error("Unable to read message", e);
@@ -223,19 +200,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                     ++attempt
             );
             stormTaskTuple.setRecordAttemptNumber(attempt);
-
-/*
-            if(attempt > 1 && TopologiesNames.OAI_TOPOLOGY.equals(topologyName) ) {
-                cleanInvalidData(stormTaskTuple);
-            }
-*/
         }
-
-/*
-        private void cleanInvalidData(StormTaskTuple tuple) {
-            //If there is some data to clean for given bolt and tuple -
-            //overwrite this method in bold and process data for given tuple
-        }
-*/
     }
 }

@@ -65,7 +65,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         } catch (MalformedURLException e) {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } finally {
-            System.err.println("+++++++ACK WRITE_TO_DATA_SET: "+stormTaskTuple.getTaskId()+" | "+stormTaskTuple.getFileUrl()+" | "+anchorTuple.getMessageId());
             outputCollector.ack(anchorTuple);
         }
     }
