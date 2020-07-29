@@ -21,7 +21,6 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,8 +31,6 @@ import java.util.Map;
 public class NotificationBolt extends BaseRichBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBolt.class);
-
-    private static final int COUNTER_UPDATE_INTERVAL_IN_MS = 5 * 1000;
 
     protected static final int DEFAULT_RETRIES = 3;
 
@@ -125,15 +122,9 @@ public class NotificationBolt extends BaseRichBolt {
         if (error) {
             storeNotificationError(taskId, nCache, notificationTuple);
         }
-        if(isCounterUpdateRequired(nCache)){
-            LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
-            taskStatusUpdater.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
-            nCache.setLastCounterUpdate(new Date());
-        }
-    }
 
-    private boolean isCounterUpdateRequired(NotificationCache nCache) {
-        return Calendar.getInstance().getTimeInMillis() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS;
+        LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
+        taskStatusUpdater.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
     }
 
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
@@ -320,7 +311,6 @@ public class NotificationBolt extends BaseRichBolt {
 
         int processed = 0;
         int errors = 0;
-        private Date lastCounterUpdate = new Date();
 
         Map<String, String> errorTypes = new HashMap<>();
 
@@ -351,14 +341,6 @@ public class NotificationBolt extends BaseRichBolt {
         public String getErrorType(String infoText) {
             return errorTypes.computeIfAbsent(infoText,
                     key -> new com.eaio.uuid.UUID().toString());
-        }
-
-        Date getLastCounterUpdate(){
-            return lastCounterUpdate;
-        }
-
-        void setLastCounterUpdate(Date lastCounterUpdate) {
-            this.lastCounterUpdate = lastCounterUpdate;
         }
     }
 

@@ -67,7 +67,7 @@ public final class TopologyHelper {
         }
 
         config.setDebug(staticMode);
-        config.setMessageTimeoutSecs(DEFAULT_TUPLE_PROCESSING_TIME);
+        config.setMessageTimeoutSecs(Integer.parseInt(topologyProperties.getProperty(MESSAGE_TIMEOUT_IN_SECONDS)));
 
         config.put(CASSANDRA_HOSTS,
                 getValue(topologyProperties, CASSANDRA_HOSTS, staticMode ? DEFAULT_CASSANDRA_HOSTS : null) );
