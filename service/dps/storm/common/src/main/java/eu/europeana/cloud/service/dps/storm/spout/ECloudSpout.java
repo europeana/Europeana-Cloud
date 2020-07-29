@@ -11,7 +11,6 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.util.LRUCache;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -34,13 +33,11 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
 
-    private String hosts;
-    private int port;
-    private String keyspaceName;
-    private String userName;
-    private String password;
-
-    private final String topologyName;
+    private final String hosts;
+    private final int port;
+    private final String keyspaceName;
+    private final String userName;
+    private final String password;
 
     protected transient CassandraTaskInfoDAO taskInfoDAO;
     protected transient TaskStatusUpdater taskStatusUpdater;
@@ -48,8 +45,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient RecordProcessingStateDAO recordProcessingStateDAO;
 
-    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
-                       String userName, String password) {
+    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig,
+                       String hosts, int port, String keyspaceName, String userName, String password) {
+
         super(kafkaSpoutConfig);
 
         this.hosts = hosts;
@@ -57,19 +55,17 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         this.keyspaceName = keyspaceName;
         this.userName = userName;
         this.password = password;
-
-        this.topologyName = (String) kafkaSpoutConfig.getKafkaProps().get(ConsumerConfig.GROUP_ID_CONFIG);
     }
 
     @Override
     public void ack(Object messageId) {
-        LOGGER.info("Message acknowledged {}", messageId);
+        LOGGER.info("Record acknowledged {}", messageId);
         super.ack(messageId);
     }
 
     @Override
     public void fail(Object messageId) {
-        LOGGER.error("Message failed {}", messageId);
+        LOGGER.error("Record failed {}", messageId);
         super.fail(messageId);
     }
 
@@ -100,7 +96,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     public class ECloudOutputCollector extends SpoutOutputCollector {
 
-        private LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
+        private final LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);

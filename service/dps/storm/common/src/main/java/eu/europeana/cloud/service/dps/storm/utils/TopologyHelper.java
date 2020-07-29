@@ -67,7 +67,7 @@ public final class TopologyHelper {
         }
 
         config.setDebug(staticMode);
-        config.setMessageTimeoutSecs(DEFAULT_TUPLE_PROCESSING_TIME);
+        config.setMessageTimeoutSecs(getValue(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS, DEFAULT_TUPLE_PROCESSING_TIME) );
 
         config.put(CASSANDRA_HOSTS,
                 getValue(topologyProperties, CASSANDRA_HOSTS, staticMode ? DEFAULT_CASSANDRA_HOSTS : null) );
@@ -91,9 +91,16 @@ public final class TopologyHelper {
         }
     }
 
+    private static int getValue(Properties properties, String key, int defaultValue) {
+        if(properties != null && properties.containsKey(key)) {
+            return Integer.parseInt(properties.getProperty(key));
+        } else {
+            return defaultValue;
+        }
+    }
 
     /**
-     * @deprecated ECloudSpout whould be used instead MCSReaderSpout
+     * @deprecated ECloudSpout would be used instead MCSReaderSpout
      * @param topologyProperties
      * @param topic
      * @param ecloudMcsAddress
@@ -122,7 +129,8 @@ public final class TopologyHelper {
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
-                new KafkaSpoutConfig.Builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
+                new KafkaSpoutConfig.Builder(
+                        topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                         .setProcessingGuarantee(processingGuarantee)
                         .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
                         .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
