@@ -4,7 +4,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
-import eu.europeana.cloud.service.dps.storm.io.ParseFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -29,12 +29,11 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 12/14/2018.
  */
 public class LinkCheckTopology {
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "link-check-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckTopology.class);
 
     public LinkCheckTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
@@ -46,7 +45,7 @@ public class LinkCheckTopology {
         builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(PARSE_FILE_BOLT, new ParseFileBolt(ecloudMcsAddress),
+        builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(ecloudMcsAddress),
                 (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(SPOUT, new ShuffleGrouping());

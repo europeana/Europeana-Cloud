@@ -44,6 +44,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
+
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
@@ -181,9 +182,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
 
         public boolean isTheLastResource(int linkCount) {
-            if (count + 1 == linkCount)
-                return true;
-            return false;
+            return count + 1 == linkCount;
         }
     }
 }
