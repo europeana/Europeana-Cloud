@@ -69,7 +69,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             prepareEmittedTuple(tuple, representations.get(0).getFiles().get(0).getContentUri().toString());
             outputCollector.emit(anchorTuple, tuple.toStormTuple());
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Unable to process the message", e);
         } finally {
             outputCollector.ack(anchorTuple);
         }
