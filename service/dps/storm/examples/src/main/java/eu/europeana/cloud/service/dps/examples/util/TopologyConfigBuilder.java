@@ -1,13 +1,11 @@
 package eu.europeana.cloud.service.dps.examples.util;
 
-import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants;
 import org.apache.storm.Config;
-
 
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.*;
 
 /**
  * @deprecated
@@ -30,15 +28,15 @@ public class TopologyConfigBuilder {
         //conf.setNumAckers(0);
 
         conf.put(CASSANDRA_HOSTS,
-                getValue(topologyProperties, CASSANDRA_HOSTS, TopologyConstants.CASSANDRA_HOSTS) );
+                getValue(topologyProperties, CASSANDRA_HOSTS, DEFAULT_CASSANDRA_HOSTS) );
         conf.put(CASSANDRA_PORT,
-                getValue(topologyProperties, CASSANDRA_PORT, TopologyConstants.CASSANDRA_PORT) );
+                getValue(topologyProperties, CASSANDRA_PORT, DEFAULT_CASSANDRA_PORT) );
         conf.put(CASSANDRA_KEYSPACE_NAME,
-                getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, TopologyConstants.CASSANDRA_KEYSPACE_NAME) );
+                getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, DEFAULT_CASSANDRA_KEYSPACE_NAME) );
         conf.put(CASSANDRA_USERNAME,
-                getValue(topologyProperties, CASSANDRA_USERNAME, TopologyConstants.CASSANDRA_USERNAME) );
+                getValue(topologyProperties, CASSANDRA_USERNAME, DEFAULT_CASSANDRA_USERNAME) );
         conf.put(CASSANDRA_SECRET_TOKEN,
-                getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, TopologyConstants.CASSANDRA_SECRET_TOKEN) );
+                getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, DEFAULT_CASSANDRA_SECRET_TOKEN) );
 
         return conf;
     }

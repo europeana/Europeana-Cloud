@@ -8,6 +8,6 @@ public class StormTaskTupleHelper {
     }
 
     public static boolean isMessageResent(StormTaskTuple tuple) {
-        return tuple.getRecordAttemptNumber() > 0;
+        return tuple.getRecordAttemptNumber() > 1;
     }
 }

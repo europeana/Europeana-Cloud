@@ -105,12 +105,6 @@ public class StormTaskTuple implements Serializable {
         return parameters.get(parameterKey);
     }
 
-/*
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-*/
-
     public boolean hasRevisionToBeApplied() {
         return revisionToBeApplied != null;
     }

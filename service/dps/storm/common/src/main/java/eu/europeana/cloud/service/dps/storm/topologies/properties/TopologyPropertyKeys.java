@@ -74,5 +74,5 @@ public final class TopologyPropertyKeys {
     public static final String RECORD_HARVESTING_BOLT_PARALLEL = "RECORD_HARVESTING_BOLT_PARALLEL";
     public static final String UIS_URL = "UIS_URL";
 
-
+    public static final String MESSAGE_TIMEOUT_IN_SECONDS = "MESSAGE_TIMEOUT_IN_SECONDS";
 }

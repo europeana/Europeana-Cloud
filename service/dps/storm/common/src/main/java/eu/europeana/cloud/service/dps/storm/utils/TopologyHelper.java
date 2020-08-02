@@ -51,6 +51,13 @@ public final class TopologyHelper {
     public static Config buildConfig(Properties topologyProperties, boolean staticMode) {
         Config config = new Config();
 
+        //Code below switch OFF the mechanism form ACK/FAIL retry.
+        //Now it is switched ON only form OAI PMH Harvesting topology OAI_TOPOLOGY
+        //If some other topologies should use the mechanism "if" condition should be changed/removed
+        if(!TopologiesNames.OAI_TOPOLOGY.equals(topologyProperties.getProperty(TOPOLOGY_NAME))) {
+            config.setNumAckers(0);
+        }
+
         if(!staticMode) {
             config.setNumWorkers(parseInt(topologyProperties.getProperty(WORKER_COUNT)));
             config.setMaxTaskParallelism(
@@ -67,7 +74,7 @@ public final class TopologyHelper {
         }
 
         config.setDebug(staticMode);
-        config.setMessageTimeoutSecs(DEFAULT_TUPLE_PROCESSING_TIME);
+        config.setMessageTimeoutSecs(getValue(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS, DEFAULT_TUPLE_PROCESSING_TIME) );
 
         config.put(CASSANDRA_HOSTS,
                 getValue(topologyProperties, CASSANDRA_HOSTS, staticMode ? DEFAULT_CASSANDRA_HOSTS : null) );
@@ -91,29 +98,12 @@ public final class TopologyHelper {
         }
     }
 
-
-    /**
-     * @deprecated ECloudSpout whould be used instead MCSReaderSpout
-     * @param topologyProperties
-     * @param topic
-     * @param ecloudMcsAddress
-     * @return
-     */
-    @Deprecated
-    public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
-        KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
-                .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topic)
-                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE)
-                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
-                .build();
-
-
-        return new MCSReaderSpout(kafkaConfig,
-                topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
+    private static int getValue(Properties properties, String key, int defaultValue) {
+        if(properties != null && properties.containsKey(key)) {
+            return Integer.parseInt(properties.getProperty(key));
+        } else {
+            return defaultValue;
+        }
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties) {

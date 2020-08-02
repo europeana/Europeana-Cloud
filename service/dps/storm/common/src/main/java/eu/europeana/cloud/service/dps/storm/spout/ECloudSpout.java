@@ -182,13 +182,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
             //Implementation of re-try mechanism after topology broken down
             if(TopologiesNames.OAI_TOPOLOGY.equals(topologyName)) {
-                cleanForRetry(stormTaskTuple);
+                setupRetryParameters(stormTaskTuple);
             }
 
             return stormTaskTuple;
         }
 
-        private void cleanForRetry(StormTaskTuple stormTaskTuple) {
+        private void setupRetryParameters(StormTaskTuple stormTaskTuple) {
             int attempt = recordProcessingStateDAO.selectProcessingRecordAttempt(
                     stormTaskTuple.getTaskId(),
                     stormTaskTuple.getFileUrl()
