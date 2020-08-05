@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -63,7 +64,7 @@ public class EnrichmentBoltTest {
         String fileContent = new String(tuple.getFileData());
         when(enrichmentWorker.process(eq(fileContent))).thenReturn("enriched file content");
         enrichmentBolt.execute(anchorTuple, tuple);
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
     }
 
@@ -78,7 +79,7 @@ public class EnrichmentBoltTest {
         given(enrichmentWorker.process(eq(fileContent))).willThrow(new DereferenceOrEnrichException(errorMessage, new Throwable()));
         enrichmentBolt.execute(anchorTuple, tuple);
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), captor.capture());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
         Assert.assertTrue(val.get("additionalInfo").toString().contains("emote Enrichment/dereference service caused the problem!. The full error:"));

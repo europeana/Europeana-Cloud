@@ -44,7 +44,7 @@ public class EnrichmentTopology {
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         EnrichmentBolt enrichmentBolt = new EnrichmentBolt(
@@ -57,7 +57,7 @@ public class EnrichmentTopology {
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
+        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
                 (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
@@ -110,10 +110,8 @@ public class EnrichmentTopology {
                 .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
-
         return builder.createTopology();
     }
-
 
     private static int getAnInt(String propertyName) {
         return parseInt(topologyProperties.getProperty(propertyName));
@@ -141,7 +139,5 @@ public class EnrichmentTopology {
             LOGGER.error("General error while setting up topology", e);
         }
     }
-
-
 }
 
