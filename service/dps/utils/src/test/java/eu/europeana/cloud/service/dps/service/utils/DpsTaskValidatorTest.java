@@ -5,9 +5,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
+import eu.europeana.cloud.service.dps.service.utils.validation.*;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;
@@ -35,6 +33,9 @@ public class DpsTaskValidatorTest {
     private DpsTask dpsTaskWithIncorrectRevision_8;
     private DpsTask dpsTaskWithIncorrectRevision_9;
     private DpsTask dpsTaskWithNullOutputRevision;
+    private DpsTask dpsTaskForMediaTopologyWithDataset;
+    private DpsTask dpsTaskForMediaTopologyWithoutInputData;
+    private DpsTask dpsTaskForMediaTopologyWithoutNewRepresentationParam;
 
     private static final String TASK_NAME = "taksName";
     private static final String EXISTING_PARAMETER_NAME = "param_1";
@@ -114,6 +115,30 @@ public class DpsTaskValidatorTest {
 
         dpsTaskWithNullOutputRevision = new DpsTask(TASK_NAME);
 
+        dpsTaskForMediaTopologyWithDataset = new DpsTask(TASK_NAME);
+        final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
+        inputData.put(DATASET_URLS, Collections.singletonList("http://test-app1:8080/mcs/data-providers/metis_test5/data-sets/wbc_1"));
+        dpsTaskForMediaTopologyWithDataset.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME,"sampleName");
+        dpsTaskForMediaTopologyWithDataset.setInputData(inputData);
+
+        dpsTaskForMediaTopologyWithoutInputData = new DpsTask(TASK_NAME);
+        dpsTaskForMediaTopologyWithoutInputData.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME,"sampleName");
+
+        dpsTaskForMediaTopologyWithoutNewRepresentationParam = new DpsTask(TASK_NAME);
+        inputData.put(DATASET_URLS, Collections.singletonList("http://test-app1:8080/mcs/data-providers/metis_test5/data-sets/wbc_1"));
+        dpsTaskForMediaTopologyWithoutNewRepresentationParam.setInputData(inputData);
+    }
+
+    @Test
+    public void shouldValidateMediaTopologyTask() throws DpsTaskValidationException {
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
+        validator.validate(dpsTaskForMediaTopologyWithDataset);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void shouldValidateMediaTopologyTaskWithoutInputData() throws DpsTaskValidationException {
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
+        validator.validate(dpsTaskForMediaTopologyWithoutInputData);
     }
 
     @Test

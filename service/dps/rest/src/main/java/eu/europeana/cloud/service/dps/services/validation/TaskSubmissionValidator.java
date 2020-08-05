@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
+import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import org.springframework.stereotype.Service;
 
