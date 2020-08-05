@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
+import lombok.ToString;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckBolt.class);
 
     private static final int CACHE_SIZE = 1024;
-    transient Map<String, FileInfo> cache = new HashMap<>(CACHE_SIZE);
+    transient Map<String, FileInfo> cache ;
 
     private transient LinkChecker linkChecker;
 
@@ -28,6 +29,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         try {
+            cache = new HashMap<>(CACHE_SIZE);
             final MediaProcessorFactory processorFactory = new MediaProcessorFactory();
             linkChecker = processorFactory.createLinkChecker();
         } catch (Exception e) {
@@ -48,9 +50,9 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         if (!hasLinksForCheck(resourceInfo)) {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
         } else {
-            FileInfo edmFile = checkProvidedLink(resourceInfo);
+            FileInfo edmFile = checkProvidedLink(resourceInfo, tuple);
             if (isFileFullyProcessed(edmFile)) {
-                removeFileFromCache(edmFile);
+                cache.remove(edmFile.fileUrl);
                 if (edmFile.errors == null || edmFile.errors.isEmpty())
                     emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
                 else
@@ -71,10 +73,10 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         return resourceInfo.expectedSize > 0;
     }
 
-    private FileInfo checkProvidedLink(ResourceInfo resourceInfo) {
+    private FileInfo checkProvidedLink(ResourceInfo resourceInfo, StormTaskTuple tuple) {
         FileInfo edmFile = takeFileFromCache(resourceInfo);
         if (edmFile == null) {
-            edmFile = new FileInfo(resourceInfo.edmUrl, resourceInfo.expectedSize, 0);
+            edmFile = new FileInfo(tuple.getTaskId(), resourceInfo.edmUrl, resourceInfo.expectedSize, 0, tuple.getRecordAttemptNumber());
             checkLink(resourceInfo, edmFile);
             putFileToCache(edmFile);
         } else {
@@ -95,10 +97,6 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         cache.put(fileInfo.fileUrl, fileInfo);
     }
 
-    private void removeFileFromCache(FileInfo fileInfo) {
-        cache.remove(fileInfo.fileUrl);
-    }
-
     private void checkLink(ResourceInfo resourceInfo, FileInfo fileInfo) {
         LOGGER.info("Checking resource url {}", resourceInfo.edmUrl);
         try {
@@ -115,11 +113,26 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         }
     }
 
+    protected void cleanInvalidData(StormTaskTuple tuple) {
+        ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
+        FileInfo cachedEdmFile = takeFileFromCache(resourceInfo);
+
+        if ((cachedEdmFile != null) && cachedFileIsFromPreviousAttempt(tuple, cachedEdmFile)) {
+            cache.remove(resourceInfo.edmUrl);
+            LOGGER.info("Cleared cached file {} for resource {}, it was from previous attempt.", cachedEdmFile, resourceInfo);
+        }
+
+    }
+
+    private boolean cachedFileIsFromPreviousAttempt(StormTaskTuple tuple, FileInfo cachedEdmFile) {
+        return (cachedEdmFile.taskId != tuple.getTaskId()) || (cachedEdmFile.attempNumber < tuple.getRecordAttemptNumber());
+    }
 }
 
 /**
  * Information provided in tuple describing external link that should be checked by this bolt
  */
+@ToString
 class ResourceInfo {
     String linkUrl;
     String edmUrl;
@@ -129,15 +142,21 @@ class ResourceInfo {
 /**
  * Information stored by this bold describing one ecloud file (edm file usually) that is being checked by this bolt
  */
+@ToString
 class FileInfo {
-    FileInfo(String fileUrl, int expectedNumberOfLinks, int linksChecked) {
+
+    FileInfo(long taskId, String fileUrl, int expectedNumberOfLinks, int linksChecked, int attempNumber) {
+        this.taskId = taskId;
         this.fileUrl = fileUrl;
         this.expectedNumberOfLinks = expectedNumberOfLinks;
         this.linksChecked = linksChecked;
+        this.attempNumber = attempNumber;
     }
 
+    long taskId;
     String fileUrl;
     int expectedNumberOfLinks;
     int linksChecked;
+    int attempNumber;
     String errors = "";
 }
