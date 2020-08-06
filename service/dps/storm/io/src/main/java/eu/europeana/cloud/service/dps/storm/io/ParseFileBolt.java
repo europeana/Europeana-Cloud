@@ -37,7 +37,7 @@ public class ParseFileBolt extends ReadFileBolt {
             if (rdfResourceEntries.isEmpty()) {
                 StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
                 LOGGER.info("The EDM file has no resource Links ");
-                outputCollector.emit(tuple.toStormTuple());
+                outputCollector.emit(anchorTuple, tuple.toStormTuple());
             } else {
                 for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
                     if (AbstractDpsBolt.taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
@@ -47,13 +47,14 @@ public class ParseFileBolt extends ReadFileBolt {
                     tuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
                     tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(rdfResourceEntries.size()));
                     tuple.addParameter(PluginParameterKeys.RESOURCE_URL, rdfResourceEntry.getResourceUrl());
-                    outputCollector.emit(tuple.toStormTuple());
+                    outputCollector.emit(anchorTuple, tuple.toStormTuple());
                 }
             }
         } catch (Exception e) {
             LOGGER.error("Unable to read and parse file ", e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e));
         }
+        outputCollector.ack(anchorTuple);
     }
 
     @Override

@@ -10,7 +10,9 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,7 +23,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckBolt.class);
 
     private static final int CACHE_SIZE = 1024;
-    transient Map<String, FileInfo> cache ;
+    private transient Map<String, FileInfo> cache ;
 
     private transient LinkChecker linkChecker;
 
@@ -49,15 +51,24 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
+            outputCollector.ack(anchorTuple);
         } else {
             FileInfo edmFile = checkProvidedLink(resourceInfo, tuple);
+            edmFile.addSourceTuple(anchorTuple);
             if (isFileFullyProcessed(edmFile)) {
                 cache.remove(edmFile.fileUrl);
                 if (edmFile.errors == null || edmFile.errors.isEmpty())
                     emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
                 else
                     emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors);
+                ackAllSourceTuplesForFile(edmFile);
             }
+        }
+    }
+
+    private void ackAllSourceTuplesForFile(FileInfo edmFile) {
+        for(Tuple tuple: edmFile.sourceTupples){
+            outputCollector.ack(tuple);
         }
     }
 
@@ -159,4 +170,9 @@ class FileInfo {
     int linksChecked;
     int attempNumber;
     String errors = "";
+    List<Tuple> sourceTupples=new ArrayList<>();
+
+    void addSourceTuple(Tuple anchorTuple) {
+        sourceTupples.add(anchorTuple);
+    }
 }
