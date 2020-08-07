@@ -3,14 +3,14 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.service.kafka.util.DpsRecordDeserializer;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
-import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
-import org.apache.storm.kafka.spout.KafkaSpoutConfig;
+import org.apache.storm.kafka.spout.*;
+import org.apache.storm.task.TopologyContext;
 
-import java.util.Arrays;
-import java.util.Properties;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.*;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
@@ -74,7 +74,7 @@ public final class TopologyHelper {
         }
 
         config.setDebug(staticMode);
-        config.setMessageTimeoutSecs(getValue(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS, DEFAULT_TUPLE_PROCESSING_TIME) );
+        config.setMessageTimeoutSecs(getValue(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS, 30 /*DEFAULT_TUPLE_PROCESSING_TIME*/) );
 
         config.put(CASSANDRA_HOSTS,
                 getValue(topologyProperties, CASSANDRA_HOSTS, staticMode ? DEFAULT_CASSANDRA_HOSTS : null) );
@@ -111,14 +111,23 @@ public final class TopologyHelper {
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
+        KafkaSpoutRetryService retryService = new KafkaSpoutRetryExponentialBackoff(
+                KafkaSpoutRetryExponentialBackoff.TimeInterval.seconds(0L),
+                KafkaSpoutRetryExponentialBackoff.TimeInterval.milliSeconds(2L),
+                2,
+                KafkaSpoutRetryExponentialBackoff.TimeInterval.seconds(10L));
+
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
                 new KafkaSpoutConfig.Builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                         .setProcessingGuarantee(processingGuarantee)
+                        .setTupleListener(new ECloudTupleListener())
+                        .setRetry(retryService)
                         .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
                         .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
                         .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST);
+
 
         return new ECloudSpout(
                 configBuilder.build(),
@@ -128,4 +137,39 @@ public final class TopologyHelper {
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
     }
+
+    protected static class ECloudTupleListener implements KafkaTupleListener {
+
+        @Override
+        public void open(Map<String, Object> map, TopologyContext topologyContext) {
+        }
+
+        @Override
+        public void onEmit(List<Object> list, KafkaSpoutMessageId kafkaSpoutMessageId) {
+            System.err.println("############ ON_EMIT");
+        }
+
+        @Override
+        public void onAck(KafkaSpoutMessageId kafkaSpoutMessageId) {
+            System.err.println("############ ON_ACK");
+        }
+
+        @Override
+        public void onPartitionsReassigned(Collection<TopicPartition> collection) {
+            System.err.println("############ ON_PR");
+        }
+
+        @Override
+        public void onRetry(KafkaSpoutMessageId kafkaSpoutMessageId) {
+            ECloudSpout.___writeMessage("************ onRetry"+kafkaSpoutMessageId);
+            System.err.println("############ ON_RETRY");
+        }
+
+        @Override
+        public void onMaxRetryReached(KafkaSpoutMessageId kafkaSpoutMessageId) {
+            ECloudSpout.___writeMessage("************ onMaxRetryReached"+kafkaSpoutMessageId);
+            System.err.println("############ ON_MAX_RETRY");
+        }
+    }
+
 }
