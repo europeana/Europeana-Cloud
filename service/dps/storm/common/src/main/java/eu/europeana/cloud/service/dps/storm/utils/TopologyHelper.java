@@ -161,13 +161,11 @@ public final class TopologyHelper {
 
         @Override
         public void onRetry(KafkaSpoutMessageId kafkaSpoutMessageId) {
-            ECloudSpout.___writeMessage("************ onRetry"+kafkaSpoutMessageId);
             System.err.println("############ ON_RETRY");
         }
 
         @Override
         public void onMaxRetryReached(KafkaSpoutMessageId kafkaSpoutMessageId) {
-            ECloudSpout.___writeMessage("************ onMaxRetryReached"+kafkaSpoutMessageId);
             System.err.println("############ ON_MAX_RETRY");
         }
     }
