@@ -95,7 +95,7 @@ public class ParseFileBoltTest {
             List<Values> capturedValuesList = captor.getAllValues();
             assertEquals(5, capturedValuesList.size());
             for (Values values : capturedValuesList) {
-                assertEquals(7, values.size());
+                assertEquals(8, values.size());
                 Map<String, String> val = (Map) values.get(4);
                 assertNotNull(val);
                 for (String parameterKey : val.keySet()) {
@@ -143,7 +143,7 @@ public class ParseFileBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         doThrow(IOException.class).when(fileClient).getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION));
         parseFileBolt.execute(anchorTuple, stormTaskTuple);
-        verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), captor.capture());
+        verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         Values values = captor.getValue();
         assertNotNull(values);
         Map<String, String> valueMap = (Map) values.get(2);
@@ -162,7 +162,7 @@ public class ParseFileBoltTest {
         try (InputStream stream = this.getClass().getResourceAsStream("/files/broken.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
-            verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), captor.capture());
+            verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
             Values values = captor.getValue();
             assertNotNull(values);
             Map<String, String> valueMap = (Map) values.get(2);

@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 
@@ -47,7 +48,7 @@ public class RevisionWriterBoltTest {
         testMock.execute(anchorTuple, new StormTaskTuple());
 
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), Mockito.any(List.class));
     }
 
     @Test
@@ -56,7 +57,7 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.execute(anchorTuple, prepareTuple());
         Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), Mockito.any(List.class));
     }
 
     @Test
@@ -65,7 +66,7 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
     }
 
     @Test
@@ -75,7 +76,7 @@ public class RevisionWriterBoltTest {
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.execute(anchorTuple, prepareTuple());
         Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(anyString(), anyString(), Mockito.anyString(), Mockito.any(Revision.class),anyString(),anyString());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 
     }
 

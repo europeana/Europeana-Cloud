@@ -50,7 +50,7 @@ public class AddResultToDataSetBoltTest {
         when(outputCollector.emit(anyString(), anyList())).thenReturn(null);
         addResultToDataSetBolt.execute(anchorTuple, stormTaskTuple);
         verify(dataSetServiceClient, times(expectedAssignRepresentationToDataCallTimes)).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(), eq(AUTHORIZATION),eq(AUTHORIZATION));
-        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), anyListOf(Object.class));
 
     }
 
