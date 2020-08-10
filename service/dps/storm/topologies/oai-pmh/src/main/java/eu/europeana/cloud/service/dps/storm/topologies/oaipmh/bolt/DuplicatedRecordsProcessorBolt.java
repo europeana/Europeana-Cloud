@@ -54,7 +54,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
             outputCollector.emit(anchorTuple, tuple.toStormTuple());
         } catch (MalformedURLException | MCSException e) {
-            logger.error("Error while detecting duplicates");
+            logger.error("Error while detecting duplicates", e);
             emitErrorNotification(
                     anchorTuple,
                     tuple.getTaskId(),

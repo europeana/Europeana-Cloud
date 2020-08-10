@@ -90,7 +90,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         if (representations.isEmpty()) {
             return processNewMessage(tuple);
         }
-        return representations.get(0).getUri();
+        return representations.get(0).getFiles().get(0).getContentUri();
     }
 
     private CloudId extractCloudIdFromTuple(StormTaskTuple stormTaskTuple) throws CloudException {

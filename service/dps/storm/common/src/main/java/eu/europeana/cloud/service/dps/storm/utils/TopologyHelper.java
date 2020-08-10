@@ -111,17 +111,10 @@ public final class TopologyHelper {
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
-        KafkaSpoutRetryService retryService = new KafkaSpoutRetryExponentialBackoff(
-                KafkaSpoutRetryExponentialBackoff.TimeInterval.seconds(0L),
-                KafkaSpoutRetryExponentialBackoff.TimeInterval.milliSeconds(2L),
-                2,
-                KafkaSpoutRetryExponentialBackoff.TimeInterval.seconds(10L));
 
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
                 new KafkaSpoutConfig.Builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                         .setProcessingGuarantee(processingGuarantee)
-                        .setTupleListener(new ECloudTupleListener())
-                        .setRetry(retryService)
                         .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
                         .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
@@ -137,37 +130,4 @@ public final class TopologyHelper {
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
     }
-
-    protected static class ECloudTupleListener implements KafkaTupleListener {
-
-        @Override
-        public void open(Map<String, Object> map, TopologyContext topologyContext) {
-        }
-
-        @Override
-        public void onEmit(List<Object> list, KafkaSpoutMessageId kafkaSpoutMessageId) {
-            System.err.println("############ ON_EMIT");
-        }
-
-        @Override
-        public void onAck(KafkaSpoutMessageId kafkaSpoutMessageId) {
-            System.err.println("############ ON_ACK");
-        }
-
-        @Override
-        public void onPartitionsReassigned(Collection<TopicPartition> collection) {
-            System.err.println("############ ON_PR");
-        }
-
-        @Override
-        public void onRetry(KafkaSpoutMessageId kafkaSpoutMessageId) {
-            System.err.println("############ ON_RETRY");
-        }
-
-        @Override
-        public void onMaxRetryReached(KafkaSpoutMessageId kafkaSpoutMessageId) {
-            System.err.println("############ ON_MAX_RETRY");
-        }
-    }
-
 }
