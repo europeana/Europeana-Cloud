@@ -16,13 +16,12 @@ import java.io.IOException;
 public class StatisticsBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
 
-    private String hosts;
-    private int port;
-    private String keyspaceName;
-    private String userName;
-    private String password;
-    private static CassandraConnectionProvider cassandraConnectionProvider;
-    private static CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
+    private final String hosts;
+    private final int port;
+    private final String keyspaceName;
+    private final String userName;
+    private final String password;
+    private transient CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
 
     public StatisticsBolt(String hosts, int port, String keyspaceName,
                           String userName, String password) {
@@ -42,12 +41,14 @@ public class StatisticsBolt extends AbstractDpsBolt {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (Exception e) {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.");
+        }finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 
     @Override
     public void prepare() {
-        cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
+        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         cassandraNodeStatisticsDAO = CassandraNodeStatisticsDAO.getInstance(cassandraConnectionProvider);
     }

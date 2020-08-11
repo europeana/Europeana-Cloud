@@ -23,11 +23,9 @@ public class ValidationRevisionWriter extends RevisionWriterBolt {
     }
 
     /**
-     * @deprecated
      * @param anchorTuple
      * @param stormTaskTuple
      */
-    @Deprecated
     @Override
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("{} executed", getClass().getSimpleName());
