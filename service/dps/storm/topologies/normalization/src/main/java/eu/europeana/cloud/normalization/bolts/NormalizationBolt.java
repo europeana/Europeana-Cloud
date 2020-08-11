@@ -55,7 +55,7 @@ public class NormalizationBolt extends AbstractDpsBolt {
                 emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), normalizationResult.getErrorMessage(), "Error during normalization.");
             } else {
                 String output = normalizationResult.getNormalizedRecordInEdmXml();
-                emitNormalizedContent(stormTaskTuple, output);
+                emitNormalizedContent(anchorTuple, stormTaskTuple, output);
             }
         } catch (NormalizationConfigurationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
@@ -66,11 +66,13 @@ public class NormalizationBolt extends AbstractDpsBolt {
         } catch (MalformedURLException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e));
+        }finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 
-    private void emitNormalizedContent(StormTaskTuple stormTaskTuple, String output) throws MalformedURLException {
+    private void emitNormalizedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output) throws MalformedURLException {
         prepareStormTaskTupleForEmission(stormTaskTuple, output);
-        outputCollector.emit(stormTaskTuple.toStormTuple());
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
     }
 }
