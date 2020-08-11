@@ -49,7 +49,7 @@ public class MediaTopology {
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         AmazonClient amazonClient = new AmazonClient(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
                 topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET));
-
+        amazonClient.init();
         builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
