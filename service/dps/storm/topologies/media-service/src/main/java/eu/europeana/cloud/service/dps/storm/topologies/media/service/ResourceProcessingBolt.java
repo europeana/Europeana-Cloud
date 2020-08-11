@@ -56,7 +56,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } else {
             try {
                 RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
@@ -91,8 +91,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                     stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                     stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
                 }
-                outputCollector.emit(stormTaskTuple.toStormTuple());
-
+                outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+                outputCollector.ack(anchorTuple);
             }
         }
         LOGGER.info("Resource processing finished in: {}ms", String.valueOf(Calendar.getInstance().getTimeInMillis() - processingStartTime));

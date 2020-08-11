@@ -20,7 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,7 +48,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } else {
             final String file = stormTaskTuple.getFileUrl();
             TempEnrichedFile tempEnrichedFile = cache.get(file);
@@ -57,7 +59,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                         tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream)));
                     }
                 }
-
+                tempEnrichedFile.addSourceTuple(anchorTuple);
                 if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA) != null) {
                     EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA));
                     tempEnrichedFile.setEnrichedRdf(enrichedRdf);
@@ -80,11 +82,12 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                         LOGGER.info("The file {} was fully enriched and will be send to the next bolt", file);
                         prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
                         cache.remove(file);
-                        outputCollector.emit(stormTaskTuple.toStormTuple());
+                        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
                         LOGGER.error("Error while serializing the enriched file: ", ex);
                         emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex));
                     }
+                    ackAllSourceTuplesForFile(tempEnrichedFile);
                 } else {
                     tempEnrichedFile.increaseCount();
                     cache.put(file, tempEnrichedFile);
@@ -147,10 +150,17 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
     }
 
+    private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
+        for(Tuple tuple: enrichedFile.sourceTupples){
+            outputCollector.ack(tuple);
+        }
+    }
+
     static class TempEnrichedFile {
         private EnrichedRdf enrichedRdf;
         private String exceptions;
         private int count;
+        private List<Tuple> sourceTupples=new ArrayList<>();
 
         public TempEnrichedFile() {
             count = 0;
@@ -183,6 +193,10 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
 
         public boolean isTheLastResource(int linkCount) {
             return (count + 1 == linkCount);
+        }
+
+        public void addSourceTuple(Tuple anchorTuple) {
+            sourceTupples.add(anchorTuple);
         }
     }
 }
