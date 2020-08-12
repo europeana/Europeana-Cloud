@@ -75,15 +75,6 @@ public class MediaTopologyTest extends TopologyTestHelper {
             TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT,
             TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
-    @BeforeClass
-    public static void init() {
-        PowerMockito.mockStatic(ResourceProcessingBolt.class);
-        amazonClient = mock(AmazonS3.class);
-        ResourceProcessingBolt.amazonClient = amazonClient;
-        buildTopology();
-    }
-
-
     private void mockMediaExtractor() throws Exception {
         MediaExtractor mediaExtractor = mock(MediaExtractor.class);
         MediaProcessorFactory mediaProcessorFactory = mock(MediaProcessorFactory.class);
@@ -117,8 +108,6 @@ public class MediaTopologyTest extends TopologyTestHelper {
         mockRevisionServiceClient();
         configureMocks();
         mockMediaExtractor();
-
-
     }
 
     private void assertTopology(final StormTaskTuple stormTaskTuple) {

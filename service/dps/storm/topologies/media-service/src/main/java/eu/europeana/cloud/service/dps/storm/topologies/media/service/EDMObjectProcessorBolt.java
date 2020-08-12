@@ -16,6 +16,7 @@ import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting edm:object processing");
         long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
@@ -78,7 +79,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                     if (tuple != null) {
-                        outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, tuple.toStormTuple());
+                        outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
                     }
                 }
             }
@@ -91,7 +92,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                 stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                 stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
             }
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         }
         LOGGER.info("Processing edm:object finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
     }

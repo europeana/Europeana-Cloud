@@ -21,10 +21,10 @@ import java.util.List;
 /**
  * Created by Tarek on 12/6/2018.
  */
-public class ParseFileBolt extends ReadFileBolt {
+public abstract class ParseFileBolt extends ReadFileBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
     private transient Gson gson;
-    private transient RdfDeserializer rdfDeserializer;
+    protected transient RdfDeserializer rdfDeserializer;
 
 	public ParseFileBolt(String ecloudMcsAddress) {
 		super(ecloudMcsAddress);
@@ -44,7 +44,7 @@ public class ParseFileBolt extends ReadFileBolt {
 	protected abstract int getLinksCount(byte[] fileContent, int resourcesCount) throws RdfDeserializationException;
 
 	@Override
-	public void execute(StormTaskTuple stormTaskTuple) {
+	public void execute(Tuple anchorTuple,  StormTaskTuple stormTaskTuple) {
 		try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
 			byte[] fileContent = IOUtils.toByteArray(stream);
 			List<RdfResourceEntry> rdfResourceEntries = getResourcesFromRDF(fileContent);
@@ -58,12 +58,12 @@ public class ParseFileBolt extends ReadFileBolt {
 					if (AbstractDpsBolt.taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
 						break;
 					StormTaskTuple tuple = createStormTuple(stormTaskTuple, rdfResourceEntry, linksCount);
-					outputCollector.emit(tuple.toStormTuple());
+					outputCollector.emit(anchorTuple, tuple.toStormTuple());
 				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Unable to read and parse file ", e);
-			emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e));
+			emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 
