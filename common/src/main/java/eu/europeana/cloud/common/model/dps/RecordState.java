@@ -10,6 +10,9 @@ public enum RecordState {
     /** harvested record was processed by spout and sent to downstream bolts */
     PROCESSED_BY_SPOUT,
 
+    /** Indicates that statistics was generated (in StatisticsBolt) for the given Record */
+    STATS_GENERATED,
+
     /** Processing record ends with a success */
     SUCCESS,
 

@@ -16,6 +16,9 @@ public class RecordProcessingStateDAO extends CassandraDAO {
 
     private PreparedStatement insertRecordStatement;
     private PreparedStatement selectRecordStatement;
+    private PreparedStatement selectRecordStageStatement;
+    private PreparedStatement updateRecordStageStatement;
+
 
     private RecordProcessingStateDAO(CassandraConnectionProvider dbService) {
         super(dbService);
@@ -48,6 +51,22 @@ public class RecordProcessingStateDAO extends CassandraDAO {
                 RECORD_PROCESSING_STATE_TASK_ID + " = ? AND " +
                 RECORD_PROCESSING_STATE_RECORD_ID + " = ? "
         );
+
+        selectRecordStageStatement = dbService.getSession().prepare("SELECT " +
+                RECORD_PROCESSING_STATE_STAGE +
+                " FROM " + RECORD_PROCESSING_STATE +
+                " WHERE " +
+                RECORD_PROCESSING_STATE_TASK_ID + " = ? AND " +
+                RECORD_PROCESSING_STATE_RECORD_ID + " = ? "
+        );
+
+        updateRecordStageStatement = dbService.getSession().prepare("INSERT INTO " + RECORD_PROCESSING_STATE +
+                "("
+                + RECORD_PROCESSING_STATE_TASK_ID + ","
+                + RECORD_PROCESSING_STATE_RECORD_ID + ","
+                + RECORD_PROCESSING_STATE_STAGE +
+                ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE
+        );
     }
 
 
@@ -72,4 +91,20 @@ public class RecordProcessingStateDAO extends CassandraDAO {
         return result;
     }
 
+    public String selectProcessingRecordStage(long taskId, String srcIdentifier) {
+        String result = "";
+
+        ResultSet rs = dbService.getSession().execute(selectRecordStageStatement.bind(taskId, srcIdentifier));
+        Row row = rs.one();
+        if (row != null) {
+            result = row.getString(RECORD_PROCESSING_STATE_STAGE);
+        }
+
+        return result;
+    }
+
+    public void updateProcessingRecordStage(long taskId, String recordId, String stage) {
+        dbService.getSession().execute(
+                updateRecordStageStatement.bind(taskId, recordId, stage));
+    }
 }

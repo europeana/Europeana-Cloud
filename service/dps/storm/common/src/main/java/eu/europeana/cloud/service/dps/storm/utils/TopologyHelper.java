@@ -79,7 +79,7 @@ public final class TopologyHelper {
                 getValue(topologyProperties, CASSANDRA_USERNAME, staticMode ? DEFAULT_CASSANDRA_USERNAME : null) );
         config.put(CASSANDRA_SECRET_TOKEN,
                 getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null) );
-
+        config.setMessageTimeoutSecs(30);
         return config;
     }
 
@@ -124,7 +124,7 @@ public final class TopologyHelper {
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties) {
-        return  createECloudSpout(topologyName, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE);
+        return  createECloudSpout(topologyName, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {

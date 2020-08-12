@@ -103,4 +103,5 @@ public class CassandraTablesAndColumnsNames {
     public static final String RECORD_PROCESSING_STATE_RECORD_ID = "record_id";
     public static final String RECORD_PROCESSING_STATE_ATTEMPT_NUMBER = "attempt_number";
     public static final String RECORD_PROCESSING_STATE_START_TIME = "start_time";
+    public static final String RECORD_PROCESSING_STATE_STAGE = "stage";
 }
