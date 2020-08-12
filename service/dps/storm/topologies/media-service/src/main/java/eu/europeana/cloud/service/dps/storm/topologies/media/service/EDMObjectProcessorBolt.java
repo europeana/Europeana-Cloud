@@ -106,7 +106,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                     amazonClient.putObject(thumbnail.getTargetName(), thumbnailContentStream, prepareObjectMetadata(thumbnail));
                 } catch (Exception e) {
                     String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage() + " because of: " + e.getCause();
-                    LOGGER.error(errorMessage);
+                    LOGGER.error(errorMessage,e);
                     buildErrorMessage(exception, errorMessage);
                 } finally {
                     thumbnail.close();

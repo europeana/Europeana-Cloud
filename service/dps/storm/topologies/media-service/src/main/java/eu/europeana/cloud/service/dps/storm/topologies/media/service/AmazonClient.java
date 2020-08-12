@@ -40,6 +40,7 @@ public class AmazonClient implements Serializable {
 	 * @return result from AmazonS3
 	 */
 	PutObjectResult putObject(String bucket, String name, InputStream inputStream, ObjectMetadata objectMetadata) {
+		checkInitialized();
 		return amazonS3.putObject(bucket, name, inputStream, objectMetadata);
 	}
 
@@ -51,6 +52,13 @@ public class AmazonClient implements Serializable {
 	 * @return result from AmazonS3
 	 */
 	PutObjectResult putObject(String name, InputStream inputStream, ObjectMetadata objectMetadata) {
+		checkInitialized();
 		return amazonS3.putObject(awsBucket, name, inputStream, objectMetadata);
+	}
+
+	private void checkInitialized() {
+		if (amazonS3 == null) {
+			throw new RuntimeException("Amazon client is not initialized!");
+		}
 	}
 }
