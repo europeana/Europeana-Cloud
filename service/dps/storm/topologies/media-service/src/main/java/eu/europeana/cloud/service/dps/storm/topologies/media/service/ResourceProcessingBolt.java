@@ -96,6 +96,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         try {
             createMediaExtractor();
             initGson();
+            amazonClient.init();
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
             throw new RuntimeException(e);

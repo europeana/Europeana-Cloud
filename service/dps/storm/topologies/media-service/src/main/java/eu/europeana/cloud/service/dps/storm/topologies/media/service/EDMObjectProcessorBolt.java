@@ -122,6 +122,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
             mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
             gson = new Gson();
+            amazonClient.init();
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
             throw new RuntimeException(e);
