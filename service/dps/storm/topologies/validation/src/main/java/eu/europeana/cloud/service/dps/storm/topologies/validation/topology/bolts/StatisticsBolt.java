@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
+import org.apache.storm.tuple.Tuple;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -33,14 +34,14 @@ public class StatisticsBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             countStatistics(stormTaskTuple);
             // we can remove the file content before emitting further
             stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } catch (Exception e) {
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.");
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.");
         }
     }
 

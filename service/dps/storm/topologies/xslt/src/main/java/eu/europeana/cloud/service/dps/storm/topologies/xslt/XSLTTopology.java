@@ -5,13 +5,11 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
-import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 
 import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
-import com.google.common.base.Throwables;
 
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
@@ -39,15 +37,13 @@ import static java.lang.Integer.parseInt;
  */
 public class XSLTTopology {
 
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
     public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-
     }
 
     public StormTopology buildTopology(String ecloudMcsAddress) {
@@ -139,7 +135,7 @@ public class XSLTTopology {
 
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = xsltTopology.buildTopology(ecloudMcsAddress);
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {

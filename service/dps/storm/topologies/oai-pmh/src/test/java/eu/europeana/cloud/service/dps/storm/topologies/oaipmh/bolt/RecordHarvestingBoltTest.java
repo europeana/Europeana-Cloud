@@ -6,6 +6,8 @@ import eu.europeana.cloud.service.dps.oaipmh.Harvester;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -43,6 +45,7 @@ public class RecordHarvestingBoltTest  {
     @Test
     public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
 
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
@@ -50,7 +53,7 @@ public class RecordHarvestingBoltTest  {
         StormTaskTuple spiedTask = spy(task);
 
         //when
-        recordHarvestingBolt.execute(spiedTask);
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
         //then
         verifySuccessfulEmit();
@@ -60,15 +63,16 @@ public class RecordHarvestingBoltTest  {
 
     @Test
     public void shouldHarvestRecordInEDMAndExtractIdentifiers() throws IOException, HarvesterException {
-
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
         //when
-        recordHarvestingBolt.execute(spiedTask);
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
         //then
         verifySuccessfulEmit();
@@ -80,8 +84,9 @@ public class RecordHarvestingBoltTest  {
 
     @Test
     public void shouldHarvestRecordInEDMAndNotUseHeaderIdentifierIfParameterIsDifferentThanTrue() throws IOException, HarvesterException {
-
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
@@ -89,7 +94,7 @@ public class RecordHarvestingBoltTest  {
         StormTaskTuple spiedTask = spy(task);
 
         //when
-        recordHarvestingBolt.execute(spiedTask);
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
         //then
         verifySuccessfulEmit();
@@ -102,8 +107,9 @@ public class RecordHarvestingBoltTest  {
 
     @Test
     public void shouldHarvestRecordInEDMAndUseHeaderIdentifierIfSpecifiedInTaskParameters() throws IOException, HarvesterException {
-
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
@@ -111,7 +117,7 @@ public class RecordHarvestingBoltTest  {
         StormTaskTuple spiedTask = spy(task);
 
         //when
-        recordHarvestingBolt.execute(spiedTask);
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
         //then
         verifySuccessfulEmit();
@@ -124,16 +130,17 @@ public class RecordHarvestingBoltTest  {
 
     @Test
     public void shouldHarvestRecordInEDMAndUseHeaderIdentifierAndTrimItIfSpecifiedInTaskParameters() throws IOException, HarvesterException {
-
         //given
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix("true");
         StormTaskTuple spiedTask = spy(task);
 
         //when
-        recordHarvestingBolt.execute(spiedTask);
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
         //then
         verifySuccessfulEmit();
@@ -146,15 +153,16 @@ public class RecordHarvestingBoltTest  {
 
     @Test
     public void shouldEmitErrorOnHarvestingExceptionWhenCannotExctractEuropeanaIdFromEDM() throws HarvesterException {
-
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         InputStream fileContentAsStream = getFileContentAsStream("/corruptedEDMRecord.xml");
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
         //when
-        recordHarvestingBolt.execute(spiedTask);
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
         //then
         verifyErrorEmit();
@@ -163,13 +171,15 @@ public class RecordHarvestingBoltTest  {
     @Test
     public void shouldEmitErrorOnHarvestingException() throws HarvesterException {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenThrow(new
                 HarvesterException("Some!"));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
         //when
-        recordHarvestingBolt.execute(spiedTask);
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
         //then
         verifyErrorEmit();
@@ -178,10 +188,11 @@ public class RecordHarvestingBoltTest  {
     @Test
     public void harvestingForEmptyUrl() {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple task = taskWithoutResourceUrl();
 
         //when
-        recordHarvestingBolt.execute(task);
+        recordHarvestingBolt.execute(anchorTuple, task);
 
         //then
         verifyErrorEmit();
@@ -190,10 +201,11 @@ public class RecordHarvestingBoltTest  {
     @Test
     public void harvestingForEmptyRecordId() {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple task = taskWithoutRecordId();
 
         //when
-        recordHarvestingBolt.execute(task);
+        recordHarvestingBolt.execute(anchorTuple, task);
 
         //then
         verifyErrorEmit();
@@ -202,10 +214,11 @@ public class RecordHarvestingBoltTest  {
     @Test
     public void harvestForEmptyPrefix() {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple task = taskWithoutPrefix();
 
         //when
-        recordHarvestingBolt.execute(task);
+        recordHarvestingBolt.execute(anchorTuple, task);
 
         //then
         verifyErrorEmit();

@@ -32,10 +32,9 @@ public class NormalizationTopology {
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationTopology.class);
 
     private static final String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
 
     public NormalizationTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
@@ -124,7 +123,7 @@ public class NormalizationTopology {
 
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = normalizationTopology.buildTopology(ecloudMcsAddress);
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {

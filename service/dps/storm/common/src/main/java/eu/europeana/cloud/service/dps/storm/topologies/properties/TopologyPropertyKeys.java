@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.properties;
 
-
 public final class TopologyPropertyKeys {
-
-    public TopologyPropertyKeys() {
-
+    private TopologyPropertyKeys() {
     }
 
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
@@ -26,14 +23,12 @@ public final class TopologyPropertyKeys {
     public static final String KAFKA_SPOUT_PARALLEL = "KAFKA_SPOUT_PARALLEL";
     public static final String RETRIEVE_FILE_BOLT_PARALLEL = "RETRIEVE_FILE_BOLT_PARALLEL";
     public static final String XSLT_BOLT_PARALLEL = "XSLT_BOLT_PARALLEL";
-    public static final String IC_BOLT_PARALLEL = "IC_BOLT_PARALLEL";
     public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
     public static final String REVISION_WRITER_BOLT_PARALLEL = "REVISION_WRITER_BOLT_PARALLEL";
     public static final String VALIDATION_BOLT_PARALLEL = "VALIDATION_BOLT_PARALLEL";
     public static final String INDEXING_BOLT_PARALLEL = "INDEXING_BOLT_PARALLEL";
     public static final String STATISTICS_BOLT_PARALLEL = "STATISTICS_BOLT_PARALLEL";
     public static final String NOTIFICATION_BOLT_PARALLEL = "NOTIFICATION_BOLT_PARALLEL";
-    public static final String NUMBER_OF_TASKS = "NUMBER_OF_TASKS";
     public static final String MAX_TASK_PARALLELISM = "MAX_TASK_PARALLELISM";
     public static final String KAFKA_SPOUT_NUMBER_OF_TASKS = "KAFKA_SPOUT_NUMBER_OF_TASKS";
     public static final String RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS = "RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS";
@@ -42,7 +37,6 @@ public final class TopologyPropertyKeys {
     public static final String REVISION_WRITER_BOLT_NUMBER_OF_TASKS = "REVISION_WRITER_BOLT_NUMBER_OF_TASKS";
     public static final String NOTIFICATION_BOLT_NUMBER_OF_TASKS = "NOTIFICATION_BOLT_NUMBER_OF_TASKS";
     public static final String ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS = "ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS";
-    public static final String IC_BOLT_NUMBER_OF_TASKS = "IC_BOLT_NUMBER_OF_TASKS";
     public static final String NIMBUS_SEEDS = "NIMBUS_SEEDS";
     public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
     public static final String VALIDATION_BOLT_NUMBER_OF_TASKS = "VALIDATION_BOLT_NUMBER_OF_TASKS";
@@ -60,12 +54,10 @@ public final class TopologyPropertyKeys {
     public static final String LINK_CHECK_BOLT_PARALLEL = "LINK_CHECK_BOLT_PARALLEL";
     public static final String LINK_CHECK_BOLT_NUMBER_OF_TASKS = "LINK_CHECK_BOLT_NUMBER_OF_TASKS";
 
-
     public static final String AWS_CREDENTIALS_ACCESSKEY = "AWS_CREDENTIALS_ACCESSKEY";
     public static final String AWS_CREDENTIALS_SECRETKEY = "AWS_CREDENTIALS_SECRETKEY";
     public static final String AWS_CREDENTIALS_ENDPOINT = "AWS_CREDENTIALS_ENDPOINT";
     public static final String AWS_CREDENTIALS_BUCKET = "AWS_CREDENTIALS_BUCKET";
-
 
     //Enrichment parameters
     public static final String ENRICHMENT_BOLT_NUMBER_OF_TASKS = "ENRICHMENT_BOLT_NUMBER_OF_TASKS";
@@ -77,11 +69,10 @@ public final class TopologyPropertyKeys {
     public static final String NORMALIZATION_BOLT_NUMBER_OF_TASKS = "NORMALIZATION_BOLT_NUMBER_OF_TASKS";
     public static final String NORMALIZATION_BOLT_PARALLEL = "NORMALIZATION_BOLT_PARALLEL";
 
-
     //OAI-Parameters
     public static final String RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS = "RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS";
     public static final String RECORD_HARVESTING_BOLT_PARALLEL = "RECORD_HARVESTING_BOLT_PARALLEL";
     public static final String UIS_URL = "UIS_URL";
 
-
+    public static final String MESSAGE_TIMEOUT_IN_SECONDS = "MESSAGE_TIMEOUT_IN_SECONDS";
 }

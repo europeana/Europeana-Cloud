@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +69,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         // Get variables.
         final String useAltEnv = stormTaskTuple
                 .getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
@@ -100,11 +101,11 @@ public class IndexingBolt extends AbstractDpsBolt {
                     "Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
                     database, useAltEnv, recordDate, preserveTimestampsString);
         } catch (RuntimeException e) {
-            logAndEmitError(e, e.getMessage(), stormTaskTuple);
+            logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
         } catch (ParseException e) {
-            logAndEmitError(e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
+            logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
         } catch (IndexingException e) {
-            logAndEmitError(e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
+            logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
         }
     }
 
@@ -119,9 +120,9 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     }
 
-    private void logAndEmitError(Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
+    private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
         LOGGER.error(errorMessage, e);
-        emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage,
+        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage,
                 "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
     }
 

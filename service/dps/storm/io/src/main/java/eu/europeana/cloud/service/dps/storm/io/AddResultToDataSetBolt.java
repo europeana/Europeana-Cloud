@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
 
     private String ecloudMcsAddress;
-    private DataSetServiceClient dataSetServiceClient;
+    private transient DataSetServiceClient dataSetServiceClient;
 
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -33,16 +34,19 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        if(ecloudMcsAddress == null) {
+            throw new NullPointerException("MCS Server must be set!");
+        }
         dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
     }
 
     @Override
-    public void execute(StormTaskTuple t) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Adding result to dataset");
-        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
+        final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        String resultUrl = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
-            List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+            List<String> datasets = readDataSetsList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
             if (datasets != null) {
                 LOGGER.info("Data-sets that will be affected: {}", datasets);
                 for (String datasetLocation : datasets) {
@@ -51,19 +55,21 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                     assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
                 }
             }
-            if (t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
-                emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
+            if (stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl);
             else
-                emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl, t.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), t.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl, stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
         } catch (MalformedURLException e) {
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+        } finally {
+            outputCollector.ack(anchorTuple);
         }
     }
 
-    private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException, DriverException {
+    private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
@@ -88,10 +94,10 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         }
     }
 
-
     private List<String> readDataSetsList(String listParameter) {
-        if (listParameter == null)
+        if (listParameter == null) {
             return null;
+        }
         return Arrays.asList(listParameter.split(","));
     }
 
@@ -118,6 +124,5 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         throw new MalformedURLException("The dataSet URL is not formulated correctly");
 
     }
-
 
 }

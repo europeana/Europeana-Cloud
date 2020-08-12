@@ -2,9 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.Revision;
@@ -23,6 +21,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,11 +62,12 @@ public class IndexingBoltTest {
     @Test
     public void shouldIndexFileForPreviewEnv() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         String targetIndexingEnv = "PREVIEW";
         StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
         mockIndexerFactoryFor(null);
         //when
-        indexingBolt.execute(tuple);
+        indexingBolt.execute(anchorTuple, tuple);
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
         Values capturedValues = captor.getValue();
@@ -82,11 +83,12 @@ public class IndexingBoltTest {
     @Test
     public void shouldIndexFilePublishEnv() throws Exception {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         String targetIndexingEnv = "PUBLISH";
         StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
         mockIndexerFactoryFor(null);
         //when
-        indexingBolt.execute(tuple);
+        indexingBolt.execute(anchorTuple, tuple);
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(captor.capture());
 
@@ -105,10 +107,11 @@ public class IndexingBoltTest {
     @Test
     public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
         mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
         //when
-        indexingBolt.execute(tuple);
+        indexingBolt.execute(anchorTuple, tuple);
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
         Values capturedValues = captor.getValue();
@@ -121,10 +124,11 @@ public class IndexingBoltTest {
     @Test
     public void shouldEmitErrorNotificationForIndexing() throws IndexingException {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
         mockIndexerFactoryFor(IndexerRelatedIndexingException.class);
         //when
-        indexingBolt.execute(tuple);
+        indexingBolt.execute(anchorTuple, tuple);
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
         Values capturedValues = captor.getValue();
@@ -138,11 +142,12 @@ public class IndexingBoltTest {
     @Test
     public void shouldThrowExceptionWhenDateIsUnParsable() throws IndexingException {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
         tuple.getParameters().remove(PluginParameterKeys.METIS_RECORD_DATE);
         tuple.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "UN_PARSABLE_DATE");
         //when
-        indexingBolt.execute(tuple);
+        indexingBolt.execute(anchorTuple, tuple);
 
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
         Values capturedValues = captor.getValue();
@@ -156,10 +161,11 @@ public class IndexingBoltTest {
     @Test
     public void shouldThrowExceptionForUnknownEnv() throws IndexingException {
         //given
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
         mockIndexerFactoryFor(RuntimeException.class);
         //when
-        indexingBolt.execute(tuple);
+        indexingBolt.execute(anchorTuple, tuple);
 
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), captor.capture());
         Values capturedValues = captor.getValue();

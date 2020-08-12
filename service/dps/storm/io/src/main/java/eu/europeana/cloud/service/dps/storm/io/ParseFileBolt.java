@@ -11,6 +11,7 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +21,10 @@ import java.util.List;
 /**
  * Created by Tarek on 12/6/2018.
  */
-public abstract class ParseFileBolt extends ReadFileBolt {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
-	protected transient Gson gson;
-	protected transient RdfDeserializer rdfDeserializer;
+public class ParseFileBolt extends ReadFileBolt {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBolt.class);
+    private transient Gson gson;
+    private transient RdfDeserializer rdfDeserializer;
 
 	public ParseFileBolt(String ecloudMcsAddress) {
 		super(ecloudMcsAddress);

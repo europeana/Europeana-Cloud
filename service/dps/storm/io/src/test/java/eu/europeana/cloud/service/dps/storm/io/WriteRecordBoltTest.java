@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +59,7 @@ public class WriteRecordBoltTest {
 
     @Test
     public void successfullyExecuteWriteBolt() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
@@ -65,21 +68,22 @@ public class WriteRecordBoltTest {
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
 
-        writeRecordBolt.execute(tuple);
+        writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(value.size(), 7);
+        assertEquals(8, value.size());
         assertTrue(value.get(4) instanceof Map);
         Map<String, String> parameters = (Map<String, String>) value.get(4);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(parameters.get(PluginParameterKeys.OUTPUT_URL), SOURCE_VERSION_URL);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
 
     }
 
     @Test
     public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
@@ -88,12 +92,13 @@ public class WriteRecordBoltTest {
 
 
         doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
-        writeRecordBolt.execute(tuple);
+        writeRecordBolt.execute(anchorTuple, tuple);
         verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
 
     @Test
     public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
@@ -102,7 +107,7 @@ public class WriteRecordBoltTest {
 
 
         doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
-        writeRecordBolt.execute(tuple);
+        writeRecordBolt.execute(anchorTuple, tuple);
         verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
 

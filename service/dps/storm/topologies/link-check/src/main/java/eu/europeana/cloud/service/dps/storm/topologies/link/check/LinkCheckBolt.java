@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +20,9 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckBolt.class);
 
     private static final int CACHE_SIZE = 1024;
-    Map<String, FileInfo> cache = new HashMap<>(CACHE_SIZE);
+    transient Map<String, FileInfo> cache = new HashMap<>(CACHE_SIZE);
 
-    private LinkChecker linkChecker;
+    private transient LinkChecker linkChecker;
 
 
     @Override
@@ -30,8 +31,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
             final MediaProcessorFactory processorFactory = new MediaProcessorFactory();
             linkChecker = processorFactory.createLinkChecker();
         } catch (Exception e) {
-            String errorMessage = "error while initializing Link checker";
-            LOGGER.error(errorMessage + " " + e.getCause());
+            LOGGER.error("error while initializing Link checker {}", e.getCause(), e);
             throw new RuntimeException("error while initializing Link checker", e);
         }
 
@@ -43,18 +43,18 @@ public class LinkCheckBolt extends AbstractDpsBolt {
      * @param tuple tuple that will be used for link checking
      */
     @Override
-    public void execute(StormTaskTuple tuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
-            emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
         } else {
             FileInfo edmFile = checkProvidedLink(resourceInfo);
             if (isFileFullyProcessed(edmFile)) {
                 removeFileFromCache(edmFile);
                 if (edmFile.errors == null || edmFile.errors.isEmpty())
-                    emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
+                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
                 else
-                    emitSuccessNotification(tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors);
+                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors);
             }
         }
     }

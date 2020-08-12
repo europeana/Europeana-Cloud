@@ -30,7 +30,6 @@
         <module>storm/examples</module>
         <module>storm/io</module>
         <module>storm/topologies/xslt</module>
-        <module>storm/topologies/ic</module>
         <module>storm/topologies/topologies-common-helper-test</module>
         <module>storm/topologies/oai-pmh</module>
         <module>storm/topologies/validation</module>

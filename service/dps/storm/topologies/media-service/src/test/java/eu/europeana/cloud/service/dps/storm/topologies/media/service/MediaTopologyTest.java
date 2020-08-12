@@ -70,7 +70,19 @@ public class MediaTopologyTest extends TopologyTestHelper {
     @Mock
     private AmazonClient amazonClient;
 
-    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT, TopologyHelper.PARSE_FILE_BOLT, TopologyHelper.RESOURCE_PROCESSING_BOLT, TopologyHelper.EDM_ENRICHMENT_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT,
+            TopologyHelper.PARSE_FILE_BOLT, TopologyHelper.RESOURCE_PROCESSING_BOLT, TopologyHelper.EDM_ENRICHMENT_BOLT,
+            TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT,
+            TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+
+    @BeforeClass
+    public static void init() {
+        PowerMockito.mockStatic(ResourceProcessingBolt.class);
+        amazonClient = mock(AmazonS3.class);
+        ResourceProcessingBolt.amazonClient = amazonClient;
+        buildTopology();
+    }
+
 
     private void mockMediaExtractor() throws Exception {
         MediaExtractor mediaExtractor = mock(MediaExtractor.class);

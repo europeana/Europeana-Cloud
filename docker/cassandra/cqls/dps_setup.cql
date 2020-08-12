@@ -96,3 +96,11 @@ CREATE TABLE processed_records (
     additional_informations text,
     PRIMARY KEY(task_id, src_identifier)
 );
+
+CREATE TABLE record_processing_state (
+    task_id        bigint,
+    record_id      varchar,
+    attempt_number int,
+    start_time     timestamp,
+    PRIMARY KEY (task_id, record_id)
+);

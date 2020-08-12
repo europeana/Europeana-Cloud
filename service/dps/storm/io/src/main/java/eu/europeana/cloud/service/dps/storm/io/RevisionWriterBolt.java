@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,32 +23,34 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     public static final Logger LOGGER = LoggerFactory.getLogger(RevisionWriterBolt.class);
 
-    protected RevisionServiceClient revisionsClient;
+    protected transient RevisionServiceClient revisionsClient;
 
     private String ecloudMcsAddress;
 
     public RevisionWriterBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
-        addRevisionAndEmit(stormTaskTuple);
-
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+        try {
+            addRevisionAndEmit(anchorTuple, stormTaskTuple);
+        } finally {
+            outputCollector.ack(anchorTuple);
+        }
     }
 
-    protected void addRevisionAndEmit(StormTaskTuple stormTaskTuple) {
+    protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("{} executed", getClass().getSimpleName());
         try {
             addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
-            emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
         }
     }
 
@@ -64,7 +67,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         }
     }
 
-    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied,String authenticationHeader) throws MCSException, DriverException {
+    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied,String authenticationHeader) throws MCSException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
@@ -89,6 +92,16 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        if(ecloudMcsAddress == null) {
+            throw new NullPointerException("MCS Server must be set!");
+        }
         revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
+    }
+
+    @Override
+    protected void cleanInvalidData(StormTaskTuple tuple) {
+        int attemptNumber = tuple.getRecordAttemptNumber();
+        LOGGER.error("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
+        // nothing to clean here when the message is reprocessed
     }
 }

@@ -8,12 +8,13 @@ import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 /**
@@ -24,8 +25,8 @@ public class ValidationBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(ValidationBolt.class);
     private static final String XSLT_SORTER_FILE_NAME = "edm_sorter.xsl";
 
-    private ValidationExecutionService validationService;
-    private XsltTransformer transformer;
+    private transient ValidationExecutionService validationService;
+    private transient XsltTransformer transformer;
     private Properties properties;
 
     public ValidationBolt(Properties properties) {
@@ -33,29 +34,29 @@ public class ValidationBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             reorderFileContent(stormTaskTuple);
-            validateFile(stormTaskTuple);
+            validateFile(anchorTuple, stormTaskTuple);
         } catch (Exception e) {
             LOGGER.error("Validation Bolt error: {}", e.getMessage());
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
         }
     }
 
     private void reorderFileContent(StormTaskTuple stormTaskTuple) throws TransformationException {
         LOGGER.info("Reordering the file");
         StringWriter writer = transformer.transform(stormTaskTuple.getFileData(), null);
-        stormTaskTuple.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
+        stormTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    private void validateFile(StormTaskTuple stormTaskTuple) {
+    private void validateFile(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         String document = new String(stormTaskTuple.getFileData());
         ValidationResult result = validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematronLocation(stormTaskTuple), document);
         if (result.isSuccess()) {
             outputCollector.emit(stormTaskTuple.toStormTuple());
         } else {
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
         }
     }
 
