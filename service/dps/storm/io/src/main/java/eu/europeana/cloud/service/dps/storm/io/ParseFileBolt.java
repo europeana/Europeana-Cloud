@@ -41,7 +41,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 		return tuple;
 	}
 
-	protected abstract int getLinksCount(byte[] fileContent, int resourcesCount) throws RdfDeserializationException;
+	protected abstract int getLinksCount(StormTaskTuple tuple, int resourcesCount) throws RdfDeserializationException;
 
 	@Override
 	public void execute(Tuple anchorTuple,  StormTaskTuple stormTaskTuple) {
@@ -53,7 +53,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 				LOGGER.info("The EDM file has no resource Links ");
 				outputCollector.emit(tuple.toStormTuple());
 			} else {
-				int linksCount = getLinksCount(fileContent, rdfResourceEntries.size());
+				int linksCount = getLinksCount(stormTaskTuple, rdfResourceEntries.size());
 				for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
 					if (AbstractDpsBolt.taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
 						break;

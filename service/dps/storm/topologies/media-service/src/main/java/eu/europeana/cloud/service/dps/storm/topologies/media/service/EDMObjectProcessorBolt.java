@@ -80,6 +80,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                     if (tuple != null) {
                         outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
+                        stormTaskTuple.addParameter(PluginParameterKeys.MAIN_RESOURCE_METADATA_AVAILABLE,"true");
                     }
                 }
             }

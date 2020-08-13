@@ -48,7 +48,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         if (!hasLinksForCheck(resourceInfo)) {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
         } else {
-            FileInfo edmFile = checkProvidedLink(resourceInfo);
+            FileInfo edmFile = checkProvidedLink(tuple, resourceInfo);
             if (isFileFullyProcessed(edmFile)) {
                 removeFileFromCache(edmFile);
                 if (edmFile.errors == null || edmFile.errors.isEmpty())
@@ -71,10 +71,10 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         return resourceInfo.expectedSize > 0;
     }
 
-    private FileInfo checkProvidedLink(ResourceInfo resourceInfo) {
+    private FileInfo checkProvidedLink(StormTaskTuple tuple, ResourceInfo resourceInfo) {
         FileInfo edmFile = takeFileFromCache(resourceInfo);
-        if (edmFile == null) {
-            edmFile = new FileInfo(resourceInfo.edmUrl, resourceInfo.expectedSize, 0);
+        if (edmFile == null || (edmFile.taskId != tuple.getTaskId())) {
+            edmFile = new FileInfo(tuple.getTaskId(), resourceInfo.edmUrl, resourceInfo.expectedSize, 0);
             checkLink(resourceInfo, edmFile);
             putFileToCache(edmFile);
         } else {
@@ -130,12 +130,14 @@ class ResourceInfo {
  * Information stored by this bold describing one ecloud file (edm file usually) that is being checked by this bolt
  */
 class FileInfo {
-    FileInfo(String fileUrl, int expectedNumberOfLinks, int linksChecked) {
+    FileInfo(long taskId, String fileUrl, int expectedNumberOfLinks, int linksChecked) {
+        this.taskId = taskId;
         this.fileUrl = fileUrl;
         this.expectedNumberOfLinks = expectedNumberOfLinks;
         this.linksChecked = linksChecked;
     }
 
+    long taskId;
     String fileUrl;
     int expectedNumberOfLinks;
     int linksChecked;
