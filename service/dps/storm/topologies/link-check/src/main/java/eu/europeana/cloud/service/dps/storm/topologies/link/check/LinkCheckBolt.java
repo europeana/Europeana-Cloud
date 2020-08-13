@@ -20,7 +20,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckBolt.class);
 
     private static final int CACHE_SIZE = 1024;
-    transient Map<String, FileInfo> cache = new HashMap<>(CACHE_SIZE);
+    private transient Map<String, FileInfo> cache;
 
     private transient LinkChecker linkChecker;
 
@@ -30,6 +30,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         try {
             final MediaProcessorFactory processorFactory = new MediaProcessorFactory();
             linkChecker = processorFactory.createLinkChecker();
+            cache = new HashMap<>(CACHE_SIZE);
         } catch (Exception e) {
             LOGGER.error("error while initializing Link checker {}", e.getCause(), e);
             throw new RuntimeException("error while initializing Link checker", e);

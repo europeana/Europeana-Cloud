@@ -37,7 +37,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     private transient RdfDeserializer deserializer;
     private transient RdfSerializer rdfSerializer;
 
-    transient Map<String, TempEnrichedFile> cache = new HashMap<>(CACHE_SIZE);
+    transient Map<String, TempEnrichedFile> cache;
 
     public EDMEnrichmentBolt(String mcsURL) {
         super(mcsURL);
@@ -142,7 +142,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
             deserializer = new RdfConverterFactory().createRdfDeserializer();
             rdfSerializer = new RdfConverterFactory().createRdfSerializer();
             gson = new Gson();
-
+            cache = new HashMap<>(CACHE_SIZE);
         } catch (Exception e) {
             throw new RuntimeException("Error while creating serializer/deserializer", e);
         }
