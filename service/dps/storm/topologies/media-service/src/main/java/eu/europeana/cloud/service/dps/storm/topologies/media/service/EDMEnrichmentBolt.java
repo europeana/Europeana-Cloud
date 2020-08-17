@@ -39,7 +39,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     private transient RdfDeserializer deserializer;
     private transient RdfSerializer rdfSerializer;
 
-    transient Map<String, TempEnrichedFile> cache = new HashMap<>(CACHE_SIZE);
+    transient Map<String, TempEnrichedFile> cache;
 
     public EDMEnrichmentBolt(String mcsURL) {
         super(mcsURL);
@@ -53,9 +53,10 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
             final String file = stormTaskTuple.getFileUrl();
             TempEnrichedFile tempEnrichedFile = cache.get(file);
             try {
-                if (tempEnrichedFile == null) {
+                if ((tempEnrichedFile == null) || (tempEnrichedFile.getTaskId() != stormTaskTuple.getTaskId())) {
                     try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
                         tempEnrichedFile = new TempEnrichedFile();
+                        tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
                         tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream)));
                     }
                 }
@@ -144,7 +145,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
             deserializer = new RdfConverterFactory().createRdfDeserializer();
             rdfSerializer = new RdfConverterFactory().createRdfSerializer();
             gson = new Gson();
-
+            cache = new HashMap<>(CACHE_SIZE);
         } catch (Exception e) {
             throw new RuntimeException("Error while creating serializer/deserializer", e);
         }
@@ -157,6 +158,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     }
 
     static class TempEnrichedFile {
+        private Long taskId;
         private EnrichedRdf enrichedRdf;
         private String exceptions;
         private int count;
@@ -198,5 +200,14 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         public void addSourceTuple(Tuple anchorTuple) {
             sourceTupples.add(anchorTuple);
         }
+
+        public Long getTaskId() {
+            return taskId;
+        }
+
+        public void setTaskId(Long taskId) {
+            this.taskId = taskId;
+        }
+
     }
 }

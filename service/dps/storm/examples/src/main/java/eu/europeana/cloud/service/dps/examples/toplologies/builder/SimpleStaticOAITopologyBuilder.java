@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.examples.toplologies.builder;
 
-import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -14,6 +13,7 @@ import org.apache.storm.generated.StormTopology;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
@@ -45,7 +45,14 @@ public class SimpleStaticOAITopologyBuilder {
         builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt, 1)
                 .shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT);
 
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(TopologyConstants.CASSANDRA_HOSTS,Integer.parseInt(TopologyConstants.CASSANDRA_PORT), TopologyConstants.CASSANDRA_KEYSPACE_NAME, TopologyConstants.CASSANDRA_USERNAME, TopologyConstants.CASSANDRA_SECRET_TOKEN), 1)
+        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(
+                DEFAULT_CASSANDRA_HOSTS,
+                Integer.parseInt(DEFAULT_CASSANDRA_PORT),
+                DEFAULT_CASSANDRA_KEYSPACE_NAME,
+                DEFAULT_CASSANDRA_USERNAME,
+                DEFAULT_CASSANDRA_SECRET_TOKEN),
+                1
+        )
                 .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,

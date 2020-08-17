@@ -10,7 +10,7 @@ import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.utils.Utils;
 
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.*;
 
 /**
  * Created by Tarek on 10/2/2017.
@@ -27,14 +27,22 @@ public class StaticNormalizationTopology {
 */
 
         KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
-                .builder( KAFKA_HOST, TOPOLOGY_NAME)
+                .builder( DEFAULT_KAFKA_HOST, TOPOLOGY_NAME)
                 .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
                 .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
                 .build();
 
-        MCSReaderSpout kafkaSpout = new MCSReaderSpout(kafkaConfig, CASSANDRA_HOSTS, Integer.parseInt(CASSANDRA_PORT), CASSANDRA_KEYSPACE_NAME, CASSANDRA_USERNAME, CASSANDRA_SECRET_TOKEN,MCS_URL);
+        MCSReaderSpout kafkaSpout = new MCSReaderSpout(kafkaConfig,
+                DEFAULT_CASSANDRA_HOSTS,
+                Integer.parseInt(DEFAULT_CASSANDRA_PORT),
+                DEFAULT_CASSANDRA_KEYSPACE_NAME,
+                DEFAULT_CASSANDRA_USERNAME,
+                DEFAULT_CASSANDRA_SECRET_TOKEN,
+                DEFAULT_MCS_URL
+        );
 
-        StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(kafkaSpout, new NormalizationBolt(), TopologyHelper.NORMALIZATION_BOLT, MCS_URL);
+        StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(kafkaSpout, new NormalizationBolt(),
+                TopologyHelper.NORMALIZATION_BOLT, DEFAULT_MCS_URL);
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology(TOPOLOGY_NAME, TopologyConfigBuilder.buildConfig(), stormTopology);
         Utils.sleep(60000);

@@ -146,15 +146,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    protected void logAndEmitError(Tuple anchorTuple, StormTaskTuple t, String message) {
-        LOGGER.error(message);
-        emitErrorNotification(anchorTuple, t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-    }
-
     protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
                                            String message, String additionalInformation, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
@@ -187,9 +178,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
 
     protected void cleanInvalidData(StormTaskTuple tuple) {
-        //If there is some data to clean for given bolt and tuple -
-        //overwrite this method in bold and process data for given tuple
         int attemptNumber = tuple.getRecordAttemptNumber();
-        LOGGER.error("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
+        LOGGER.info("Attempt number {} to process this message. No cleaning done here.", attemptNumber);
+        // nothing to clean here when the message is reprocessed
     }
 }

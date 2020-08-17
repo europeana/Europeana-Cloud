@@ -23,7 +23,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckBolt.class);
 
     private static final int CACHE_SIZE = 1024;
-    private transient Map<String, FileInfo> cache ;
+    private transient Map<String, FileInfo> cache;
 
     private transient LinkChecker linkChecker;
 
@@ -31,9 +31,9 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         try {
-            cache = new HashMap<>(CACHE_SIZE);
             final MediaProcessorFactory processorFactory = new MediaProcessorFactory();
             linkChecker = processorFactory.createLinkChecker();
+            cache = new HashMap<>(CACHE_SIZE);
         } catch (Exception e) {
             LOGGER.error("error while initializing Link checker {}", e.getCause(), e);
             throw new RuntimeException("error while initializing Link checker", e);
@@ -53,7 +53,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
             outputCollector.ack(anchorTuple);
         } else {
-            FileInfo edmFile = checkProvidedLink(resourceInfo, tuple);
+            FileInfo edmFile = checkProvidedLink(tuple, resourceInfo);
             edmFile.addSourceTuple(anchorTuple);
             if (isFileFullyProcessed(edmFile)) {
                 cache.remove(edmFile.fileUrl);
@@ -84,9 +84,9 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         return resourceInfo.expectedSize > 0;
     }
 
-    private FileInfo checkProvidedLink(ResourceInfo resourceInfo, StormTaskTuple tuple) {
+    private FileInfo checkProvidedLink(StormTaskTuple tuple, ResourceInfo resourceInfo) {
         FileInfo edmFile = takeFileFromCache(resourceInfo);
-        if (edmFile == null) {
+        if (edmFile == null || (edmFile.taskId != tuple.getTaskId())) {
             edmFile = new FileInfo(tuple.getTaskId(), resourceInfo.edmUrl, resourceInfo.expectedSize, 0, tuple.getRecordAttemptNumber());
             checkLink(resourceInfo, edmFile);
             putFileToCache(edmFile);
@@ -136,7 +136,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
 
     private boolean cachedFileIsFromPreviousAttempt(StormTaskTuple tuple, FileInfo cachedEdmFile) {
-        return (cachedEdmFile.taskId != tuple.getTaskId()) || (cachedEdmFile.attempNumber < tuple.getRecordAttemptNumber());
+        return cachedEdmFile.attempNumber < tuple.getRecordAttemptNumber();
     }
 }
 

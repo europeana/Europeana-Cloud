@@ -3,11 +3,12 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.service.kafka.util.DpsRecordDeserializer;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
-import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
-import org.apache.storm.kafka.spout.KafkaSpoutConfig;
+import org.apache.storm.kafka.spout.*;
+import org.apache.storm.task.TopologyContext;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -36,6 +37,7 @@ public final class TopologyHelper {
     public static final String RECORD_HARVESTING_BOLT = "recordHarvestingBolt";
     public static final String PARSE_FILE_BOLT = "ParseFileBolt";
     public static final String EDM_ENRICHMENT_BOLT = "EDMEnrichmentBolt";
+    public static final String EDM_OBJECT_PROCESSOR_BOLT = "EDMObjectProcessorBolt";
     public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
     public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
 
@@ -50,6 +52,13 @@ public final class TopologyHelper {
 
     public static Config buildConfig(Properties topologyProperties, boolean staticMode) {
         Config config = new Config();
+
+        //Code below switch OFF the mechanism form ACK/FAIL retry.
+        //Now it is switched ON only form OAI PMH Harvesting topology OAI_TOPOLOGY
+        //If some other topologies should use the mechanism "if" condition should be changed/removed
+        if(!TopologiesNames.OAI_TOPOLOGY.equals(topologyProperties.getProperty(TOPOLOGY_NAME))) {
+            config.setNumAckers(0);
+        }
 
         if(!staticMode) {
             config.setNumWorkers(parseInt(topologyProperties.getProperty(WORKER_COUNT)));
@@ -79,6 +88,9 @@ public final class TopologyHelper {
                 getValue(topologyProperties, CASSANDRA_USERNAME, staticMode ? DEFAULT_CASSANDRA_USERNAME : null) );
         config.put(CASSANDRA_SECRET_TOKEN,
                 getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null) );
+
+        config.setMaxSpoutPending(500);
+
         config.setMessageTimeoutSecs(30);
         return config;
     }
@@ -99,35 +111,12 @@ public final class TopologyHelper {
         }
     }
 
-    /**
-     * @deprecated ECloudSpout would be used instead MCSReaderSpout
-     * @param topologyProperties
-     * @param topic
-     * @param ecloudMcsAddress
-     * @return
-     */
-    @Deprecated
-    public static MCSReaderSpout getMcsReaderSpout(Properties topologyProperties, String topic, String ecloudMcsAddress) {
-        KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
-                .builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topic)
-                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE)
-                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
-                .build();
-
-
-        return new MCSReaderSpout(kafkaConfig,
-                topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN), ecloudMcsAddress);
-    }
-
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties) {
         return  createECloudSpout(topologyName, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
+
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
                 new KafkaSpoutConfig.Builder(
                         topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))

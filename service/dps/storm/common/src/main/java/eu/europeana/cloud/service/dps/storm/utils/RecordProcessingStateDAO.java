@@ -70,16 +70,13 @@ public class RecordProcessingStateDAO extends CassandraDAO {
     }
 
 
-    public void insertProcessingRecord(long taskId, String recordId, int attemptNumber)
-            throws NoHostAvailableException, QueryExecutionException {
+    public void insertProcessingRecord(long taskId, String recordId, int attemptNumber) {
         dbService.getSession().execute(
                 insertRecordStatement.bind(taskId, recordId, attemptNumber, Calendar.getInstance().getTime())
         );
     }
 
-    public int selectProcessingRecordAttempt(long taskId, String srcIdentifier)
-            throws NoHostAvailableException, QueryExecutionException {
-
+    public int selectProcessingRecordAttempt(long taskId, String srcIdentifier) {
         int result = 0;
 
         ResultSet rs = dbService.getSession().execute(selectRecordStatement.bind(taskId, srcIdentifier));

@@ -1,9 +1,6 @@
-package eu.europeana.cloud.service.dps.utils;
+package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,6 +16,7 @@ public class DpsTaskValidatorFactory {
                     .withParameter(
                             "parameterNameThatWillNeverHappen",
                             Arrays.asList("parameterValueThatWillNeverHappen"));
+
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
     private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
@@ -43,6 +41,9 @@ public class DpsTaskValidatorFactory {
 
     private static final String DEPUBLICATION_TASK_FOR_DATASET = "depublication_topology_metis_dataset_id";
     private static final String DEPUBLICATION_TASK_FOR_RECORDS = "depublication_topology_record_ids_to_depublish";
+
+    public static final String MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS = "media_topology_file_urls";
+    public static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology_dataset_urls";
 
     private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
@@ -151,6 +152,16 @@ public class DpsTaskValidatorFactory {
         taskValidatorMap.put(DEPUBLICATION_TASK_FOR_RECORDS, new DpsTaskValidator("Task validator for Depublication Topology with records list")
                 .withDataEntry(null, NO_DATA)
                 .withParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH));
+
+        taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Media Topology")
+                .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
+                .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
+                .withOptionalOutputRevision());
+
+        taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Media Topology")
+                .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
+                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+                .withOptionalOutputRevision());
 
         return taskValidatorMap;
     }

@@ -21,7 +21,6 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,31 +31,25 @@ import java.util.Map;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationBolt extends BaseRichBolt {
+    protected static final int DEFAULT_RETRIES = 3;
+    protected static final int SLEEP_TIME = 5000;
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBolt.class);
-
-    private static final int COUNTER_UPDATE_INTERVAL_IN_MS = 5 * 1000;
-
-    protected static final int DEFAULT_RETRIES = 3;
-
-    protected static final int SLEEP_TIME = 5000;
-
-    protected transient OutputCollector outputCollector;
-
     private final String hosts;
     private final int port;
     private final String keyspaceName;
     private final String userName;
     private final String password;
+    protected transient OutputCollector outputCollector;
     protected LRUCache<Long, NotificationCache> cache = new LRUCache<>(50);
 
     protected String topologyName;
-
-    private transient CassandraTaskInfoDAO taskInfoDAO;
     protected transient TaskStatusUpdater taskStatusUpdater;
-    private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
+    private transient CassandraTaskInfoDAO taskInfoDAO;
+    private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
+
     /**
      * Constructor of notification bolt.
      *
@@ -75,6 +68,13 @@ public class NotificationBolt extends BaseRichBolt {
         this.userName = userName;
         this.password = password;
 
+    }
+
+    private static Date prepareDate(Object dateObject) {
+        Date date = null;
+        if (dateObject instanceof Date)
+            return (Date) dateObject;
+        return date;
     }
 
     @Override
@@ -96,6 +96,31 @@ public class NotificationBolt extends BaseRichBolt {
         } finally {
             outputCollector.ack(tuple);
         }
+    }
+
+    @Override
+    public void prepare(Map stormConf, TopologyContext tc, OutputCollector outputCollector) {
+        this.outputCollector = outputCollector;
+
+        CassandraConnectionProvider cassandraConnectionProvider =
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+                        hosts, port, keyspaceName, userName, password);
+
+        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
+        subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
+        taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
+        topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
+    }
+
+    @Override
+    public void declareOutputFields(OutputFieldsDeclarer ofd) {
+        //last bolt in all topologies, nothing to declare
+    }
+
+    public void clearCache() {
+        cache.clear();
     }
 
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
@@ -127,15 +152,9 @@ public class NotificationBolt extends BaseRichBolt {
         if (error) {
             storeNotificationError(taskId, nCache, notificationTuple);
         }
-        if(isCounterUpdateRequired(nCache)){
-            LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
-            taskStatusUpdater.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
-            nCache.setLastCounterUpdate(new Date());
-        }
-    }
 
-    private boolean isCounterUpdateRequired(NotificationCache nCache) {
-        return Calendar.getInstance().getTimeInMillis() - nCache.getLastCounterUpdate().getTime() > COUNTER_UPDATE_INTERVAL_IN_MS;
+        LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
+        taskStatusUpdater.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
     }
 
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
@@ -190,16 +209,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    protected void waitForSpecificTime() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
-        }
-    }
-
-
     private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
         if (String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString())) {
             nCache.inc(true);
@@ -211,27 +220,6 @@ public class NotificationBolt extends BaseRichBolt {
             nCache.inc(false);
             return false;
         }
-    }
-
-    @Override
-    public void prepare(Map stormConf, TopologyContext tc, OutputCollector outputCollector) {
-        this.outputCollector = outputCollector;
-
-        CassandraConnectionProvider cassandraConnectionProvider =
-                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
-                        hosts, port, keyspaceName, userName, password);
-
-        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
-        taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
-        subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
-        processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
-        taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
-        topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
-    }
-
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer ofd) {
-        //last bolt in all topologies, nothing to declare
     }
 
     private void updateTask(long taskId, Map<String, Object> parameters) {
@@ -261,13 +249,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    private static Date prepareDate(Object dateObject) {
-        Date date = null;
-        if (dateObject instanceof Date)
-            return (Date) dateObject;
-        return date;
-    }
-
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
         TaskInfo task = taskInfoDAO.searchById(taskId);
@@ -281,10 +262,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
-    }
-
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) {
         Validate.notNull(parameters);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
@@ -295,43 +272,19 @@ public class NotificationBolt extends BaseRichBolt {
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
 
-    protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
-            try {
-                subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while inserting detailed record information to cassandra. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while inserting detailed record information to cassandra.");
-                    throw e;
-                }
-            }
-        }
-    }
-
-    public void clearCache() {
-        cache.clear();
-    }
-
     protected class NotificationCache {
 
         int processed = 0;
         int errors = 0;
-        private Date lastCounterUpdate = new Date();
 
         Map<String, String> errorTypes = new HashMap<>();
 
         NotificationCache(long taskId) {
-            processed=subTaskInfoDAO.getProcessedFilesCount(taskId);
-            if(processed>0){
-                errors=taskErrorDAO.getErrorCount(taskId);
-                errorTypes=taskErrorDAO.getMessagesUuids(taskId);
-                LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}",taskId,processed, errors, errorTypes);
+            processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
+            if (processed > 0) {
+                errors = taskErrorDAO.getErrorCount(taskId);
+                errorTypes = taskErrorDAO.getMessagesUuids(taskId);
+                LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}", taskId, processed, errors, errorTypes);
             }
         }
 
@@ -354,17 +307,37 @@ public class NotificationBolt extends BaseRichBolt {
             return errorTypes.computeIfAbsent(infoText,
                     key -> new com.eaio.uuid.UUID().toString());
         }
+    }
 
-        Date getLastCounterUpdate(){
-            return lastCounterUpdate;
-        }
-
-        void setLastCounterUpdate(Date lastCounterUpdate) {
-            this.lastCounterUpdate = lastCounterUpdate;
+    protected void waitForSpecificTime() {
+        try {
+            Thread.sleep(SLEEP_TIME);
+        } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            LOGGER.error(e1.getMessage());
         }
     }
 
+    protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
+        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+    }
 
+    protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
+        int retries = DEFAULT_RETRIES;
+
+        while (true) {
+            try {
+                subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
+                break;
+            } catch (Exception e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error while inserting detailed record information to cassandra. Retries left: {}", retries);
+                    waitForSpecificTime();
+                } else {
+                    LOGGER.error("Error while inserting detailed record information to cassandra.");
+                    throw e;
+                }
+            }
+        }
+    }
 }
-
-

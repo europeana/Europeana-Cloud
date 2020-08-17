@@ -34,11 +34,10 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
         evaluateTaskSize(parameters);
-        if (parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID) != null) {
-            depublicationService.depublishDataset(parameters);
-        }
         if (parameters.getTaskParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH) != null) {
             depublicationService.depublishIndividualRecords(parameters);
+        } else {
+            depublicationService.depublishDataset(parameters);
         }
     }
 

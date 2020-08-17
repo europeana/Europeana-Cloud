@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -32,12 +33,13 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
+    private static final int MAX_RETRIES = 3;
 
-    private final String hosts;
-    private final int port;
-    private final String keyspaceName;
-    private final String userName;
-    private final String password;
+    private String hosts;
+    private int port;
+    private String keyspaceName;
+    private String userName;
+    private String password;
 
     protected transient CassandraTaskInfoDAO taskInfoDAO;
     protected transient TaskStatusUpdater taskStatusUpdater;
@@ -45,9 +47,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient RecordProcessingStateDAO recordProcessingStateDAO;
 
-    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig,
-                       String hosts, int port, String keyspaceName, String userName, String password) {
-
+    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
+                       String userName, String password) {
         super(kafkaSpoutConfig);
 
         this.hosts = hosts;
@@ -106,7 +107,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
             DpsRecord message = null;
             try {
-                message = (DpsRecord)tuple.get(4);
+                message = readMessageFromTuple(tuple);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
@@ -114,16 +115,34 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 }
                 TaskInfo taskInfo = prepareTaskInfo(message);
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
-                LOGGER.info("Emitting record to the subsequent bolt: {}", message);
-
-                return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
-            } catch (IOException e) {
+                if(maxTriesReached(stormTaskTuple)){
+                    LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached: {}", message);
+                    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(
+                            taskInfo.getId(),
+                            message.getRecordId(),
+                            RecordState.ERROR,
+                            "Max retries reached",
+                            "Max retries reached");
+                    return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), messageId);
+                }else{
+                    LOGGER.info("Emitting record to the subsequent bolt: {}", message);
+                    return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
+                }
+            } catch (IOException | NullPointerException e) {
                 LOGGER.error("Unable to read message", e);
                 return Collections.emptyList();
             } catch (TaskInfoDoesNotExistException e) {
                 LOGGER.error("Task definition not found in DB for: {}", message);
                 return Collections.emptyList();
             }
+        }
+
+        private DpsRecord readMessageFromTuple(List<Object> tuple){
+            return (DpsRecord)tuple.get(4);
+        }
+
+        private boolean maxTriesReached(StormTaskTuple stormTaskTuple){
+            return stormTaskTuple.getRecordAttemptNumber() > MAX_RETRIES;
         }
 
         private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
@@ -176,12 +195,12 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             }
 
             //Implementation of re-try mechanism after topology broken down
-            cleanForRetry(stormTaskTuple);
+            setupRetryParameters(stormTaskTuple);
 
             return stormTaskTuple;
         }
 
-        private void cleanForRetry(StormTaskTuple stormTaskTuple) {
+        private void setupRetryParameters(StormTaskTuple stormTaskTuple) {
             int attempt = recordProcessingStateDAO.selectProcessingRecordAttempt(
                     stormTaskTuple.getTaskId(),
                     stormTaskTuple.getFileUrl()
