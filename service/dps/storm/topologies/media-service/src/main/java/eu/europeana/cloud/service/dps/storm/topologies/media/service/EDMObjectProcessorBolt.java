@@ -94,6 +94,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                 stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
             }
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
         }
         LOGGER.info("Processing edm:object finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
     }
