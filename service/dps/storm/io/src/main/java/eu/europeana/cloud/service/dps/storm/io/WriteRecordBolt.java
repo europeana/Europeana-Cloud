@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -70,9 +71,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             outputCollector.emit(anchorTuple, tuple.toStormTuple());
         } catch (Exception e) {
             LOGGER.error("Unable to process the message", e);
-        } finally {
-            outputCollector.ack(anchorTuple);
+            emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), e.getMessage(), "The full error is: " + ExceptionUtils.getStackTrace(e));
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void processNewMessage(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
@@ -87,9 +88,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
                     "Cannot process data because: " + e.getMessage(), stack.toString());
-        } finally {
-            outputCollector.ack(anchorTuple);
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private List<Representation> findRepresentationsWithSameRevision(StormTaskTuple tuple, String cloudId) throws MCSException {

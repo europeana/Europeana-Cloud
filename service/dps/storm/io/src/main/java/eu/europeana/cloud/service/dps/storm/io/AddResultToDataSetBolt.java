@@ -61,12 +61,11 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                 emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl, stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: " + e.getCause());
         } catch (MalformedURLException e) {
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
-        } finally {
-            outputCollector.ack(anchorTuple);
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: " + e.getCause());
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {

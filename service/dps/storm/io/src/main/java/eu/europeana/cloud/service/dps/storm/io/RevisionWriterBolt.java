@@ -33,11 +33,8 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        try {
-            addRevisionAndEmit(anchorTuple, stormTaskTuple);
-        } finally {
-            outputCollector.ack(anchorTuple);
-        }
+        addRevisionAndEmit(anchorTuple, stormTaskTuple);
+        outputCollector.ack(anchorTuple);
     }
 
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
@@ -47,12 +44,10 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause());
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause());
-        } finally {
-            outputCollector.ack(anchorTuple);
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause());
         }
     }
 

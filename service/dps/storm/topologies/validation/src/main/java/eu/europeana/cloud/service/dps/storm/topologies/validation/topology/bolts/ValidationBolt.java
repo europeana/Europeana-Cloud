@@ -37,13 +37,12 @@ public class ValidationBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             reorderFileContent(stormTaskTuple);
-            validateFile(anchorTuple, stormTaskTuple);
+            validateFileAndEmit(anchorTuple, stormTaskTuple);
         } catch (Exception e) {
             LOGGER.error("Validation Bolt error: {}", e.getMessage());
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
-        } finally {
-            outputCollector.ack(anchorTuple);
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void reorderFileContent(StormTaskTuple stormTaskTuple) throws TransformationException {
@@ -52,7 +51,7 @@ public class ValidationBolt extends AbstractDpsBolt {
         stormTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    private void validateFile(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+    private void validateFileAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         String document = new String(stormTaskTuple.getFileData());
         ValidationResult result = validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematronLocation(stormTaskTuple), document);
         if (result.isSuccess()) {

@@ -66,9 +66,8 @@ public class NormalizationBolt extends AbstractDpsBolt {
         } catch (MalformedURLException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e));
-        }finally {
-            outputCollector.ack(anchorTuple);
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void emitNormalizedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output) throws MalformedURLException {
