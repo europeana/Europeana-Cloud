@@ -73,7 +73,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             if (stormTaskTuple != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
-                emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString());
+                emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString(),
+                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
             }
         }
     }
@@ -131,25 +132,27 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param additionalInformations the rest of informations (e.g. stack trace)
      */
 
-    protected void emitErrorNotification(Tuple anchorTuple, long taskId, String resource, String message, String additionalInformations) {
+    protected void emitErrorNotification(Tuple anchorTuple, long taskId, String resource, String message, String additionalInformations, long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.ERROR, message, additionalInformations);
+                resource, RecordState.ERROR, message, additionalInformations, processingStartTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
     protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
-                                           String message, String additionalInformation, String resultResource, String unifiedErrorMessage, String detailedErrorMessage) {
+                                           String message, String additionalInformation, String resultResource, String unifiedErrorMessage, String detailedErrorMessage,
+                                           long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
         nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
         nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
     protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
-                                           String message, String additionalInformation, String resultResource) {
+                                           String message, String additionalInformation, String resultResource,
+                                           long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 

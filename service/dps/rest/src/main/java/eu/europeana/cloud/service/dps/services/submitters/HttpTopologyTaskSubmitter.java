@@ -12,6 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS;
+
 @Service
 public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
@@ -40,6 +44,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             return;
         }
 
+        parameters.getTask().addParameter(MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         submitService.submitTask(parameters.getTask(), parameters.getTopologyName());
         taskStatusUpdater.updateStatusExpectedSize(parameters.getTask().getTaskId(),TaskState.SENT.toString(),expectedCount);
     }

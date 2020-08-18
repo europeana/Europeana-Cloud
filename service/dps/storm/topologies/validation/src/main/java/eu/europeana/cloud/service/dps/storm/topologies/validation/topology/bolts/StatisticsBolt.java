@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolt
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
@@ -60,9 +61,8 @@ public class StatisticsBolt extends AbstractDpsBolt {
             stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (Exception e) {
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.");
-        } finally {
-            outputCollector.ack(anchorTuple);
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.",
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
     }
 

@@ -56,14 +56,18 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                 }
             }
             if (stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
-                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl);
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl,
+                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
             else
-                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl, stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl, stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
+                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause(),
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         } catch (MalformedURLException e) {
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause());
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), resultUrl, e.getMessage(), "The cause of the error is: "+e.getCause(),
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         } finally {
             outputCollector.ack(anchorTuple);
         }

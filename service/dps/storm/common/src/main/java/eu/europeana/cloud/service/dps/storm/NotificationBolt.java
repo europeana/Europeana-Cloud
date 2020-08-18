@@ -269,6 +269,9 @@ public class NotificationBolt extends BaseRichBolt {
         String infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
         String additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
+        long now = new Date().getTime();
+        long processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
+        additionalInfo = additionalInfo + " Processing time: " + processingTime;
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
 

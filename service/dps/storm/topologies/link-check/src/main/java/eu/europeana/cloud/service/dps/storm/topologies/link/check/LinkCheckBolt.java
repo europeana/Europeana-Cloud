@@ -50,18 +50,19 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
-            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "");
-            outputCollector.ack(anchorTuple);
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "",
+                    Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         } else {
             FileInfo edmFile = checkProvidedLink(tuple, resourceInfo);
             edmFile.addSourceTuple(anchorTuple);
             if (isFileFullyProcessed(edmFile)) {
                 cache.remove(edmFile.fileUrl);
                 if (edmFile.errors == null || edmFile.errors.isEmpty())
-                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "");
+                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "",
+                            Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
                 else
-                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors);
-                ackAllSourceTuplesForFile(edmFile);
+                    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors,
+                            Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
             }
         }
     }

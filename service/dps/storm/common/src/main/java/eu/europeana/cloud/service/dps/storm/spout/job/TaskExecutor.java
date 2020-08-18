@@ -29,10 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.util.ConcurrentModificationException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -132,11 +129,11 @@ public class TaskExecutor implements Callable<Void> {
                         }
                     } else {
                         LOGGER.warn("dataSet url is not formulated correctly {}", dataSetUrl);
-                        emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataSet url is not formulated correctly", "");
+                        emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, "dataSet url is not formulated correctly", "", new Date().getTime());
                     }
                 } catch (MalformedURLException ex) {
                     LOGGER.error("MCSReaderSpout error, Error while parsing DataSet URL : {}", ex.getMessage());
-                    emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString());
+                    emitErrorNotification(dpsTask.getTaskId(), dataSetUrl, ex.getMessage(), dpsTask.getParameters().toString(), new Date().getTime());
                 }
             }
             taskStatusUpdater.setUpdateExpectedSize(dpsTask.getTaskId(), expectedSize);
@@ -327,9 +324,9 @@ public class TaskExecutor implements Callable<Void> {
         }
     }
 
-    private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+    private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations, long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.ERROR, message, additionalInformations);
+                resource, RecordState.ERROR, message, additionalInformations, processingStartTime);
         collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

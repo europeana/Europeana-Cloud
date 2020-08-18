@@ -63,7 +63,8 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 			}
 		} catch (Exception e) {
 			LOGGER.error("Unable to read and parse file ", e);
-			emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e));
+			emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e),
+					Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
 		}
         outputCollector.ack(anchorTuple);
 	}

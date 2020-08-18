@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -122,7 +124,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                             message.getRecordId(),
                             RecordState.ERROR,
                             "Max retries reached",
-                            "Max retries reached");
+                            "Max retries reached",
+                            Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
                     return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), messageId);
                 }else{
                     LOGGER.info("Emitting record to the subsequent bolt: {}", message);
@@ -188,6 +191,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             //
             stormTaskTuple.addParameter(CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
             stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
+            stormTaskTuple.addParameter(MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
 
             List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
             if (!isEmpty(repositoryUrlList)) {

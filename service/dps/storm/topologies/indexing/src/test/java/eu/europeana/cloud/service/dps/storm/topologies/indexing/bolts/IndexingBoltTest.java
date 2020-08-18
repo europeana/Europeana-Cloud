@@ -74,7 +74,7 @@ public class IndexingBoltTest {
         assertEquals(8, capturedValues.size());
         assertEquals("sampleResourceUrl", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-        assertEquals(4, parameters.size());
+        assertEquals(5, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
@@ -97,7 +97,7 @@ public class IndexingBoltTest {
         assertEquals(8, capturedValues.size());
         assertEquals("sampleResourceUrl", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-        assertEquals(4, parameters.size());
+        assertEquals(5, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
@@ -187,6 +187,7 @@ public class IndexingBoltTest {
                         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
                         DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
                         put(PluginParameterKeys.METIS_RECORD_DATE, dateFormat.format(new Date()));
+                        put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
                     }
                 }, new Revision());
     }

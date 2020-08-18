@@ -86,7 +86,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                         outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
                         LOGGER.error("Error while serializing the enriched file: ", ex);
-                        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex));
+                        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),
+                                Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
                     }
                     ackAllSourceTuplesForFile(tempEnrichedFile);
                 } else {

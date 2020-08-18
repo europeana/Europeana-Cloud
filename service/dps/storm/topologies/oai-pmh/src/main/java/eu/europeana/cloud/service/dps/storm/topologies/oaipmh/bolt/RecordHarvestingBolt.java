@@ -87,7 +87,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                         stormTaskTuple.getTaskId(),
                         stormTaskTuple.getFileUrl(),
                         "Error while harvesting a record",
-                        "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause());
+                        "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause(),
+                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
                 LOGGER.error(e.getMessage());
             }
         } else {
@@ -96,7 +97,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     stormTaskTuple.getTaskId(),
                     stormTaskTuple.getParameter(DPS_TASK_INPUT_DATA),
                     "Invalid parameters",
-                    null);
+                    null,
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
         LOGGER.info("Harvesting finished in: {}ms for {}", Calendar.getInstance().getTimeInMillis() - harvestingStartTime, stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         outputCollector.ack(anchorTuple);

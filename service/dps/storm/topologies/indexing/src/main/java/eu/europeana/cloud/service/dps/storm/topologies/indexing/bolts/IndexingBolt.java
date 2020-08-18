@@ -125,7 +125,8 @@ public class IndexingBolt extends AbstractDpsBolt {
     private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
         LOGGER.error(errorMessage, e);
         emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage,
-                "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
+                "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e),
+                Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
     }
 
     class IndexerPoolWrapper implements Closeable {

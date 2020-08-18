@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
@@ -104,12 +105,14 @@ public class AddResultToDataSetBoltTest {
     private StormTaskTuple prepareTupleWithEmptyOutputUrl() {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
     private StormTaskTuple prepareTupleWithEmptyDataSetList() {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
@@ -118,6 +121,7 @@ public class AddResultToDataSetBoltTest {
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
         tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
@@ -126,6 +130,7 @@ public class AddResultToDataSetBoltTest {
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL + "," + DATASET_URL2);
         tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
@@ -134,6 +139,7 @@ public class AddResultToDataSetBoltTest {
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "sample_sample_sample");
         tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 

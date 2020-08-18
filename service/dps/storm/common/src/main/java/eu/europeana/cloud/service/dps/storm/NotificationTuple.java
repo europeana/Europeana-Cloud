@@ -4,6 +4,7 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.common.model.dps.InformationTypes;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
@@ -53,24 +54,29 @@ public class NotificationTuple {
 
 
     public static NotificationTuple prepareNotification(long taskId, String resource,
-                                                        RecordState state, String text, String additionalInformations) {
+                                                        RecordState state, String text, String additionalInformations,
+                                                        long processingStartTime) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
         parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATIONS, additionalInformations);
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
 
         return new NotificationTuple(taskId, InformationTypes.NOTIFICATION, parameters);
     }
 
     public static NotificationTuple prepareNotification(long taskId, String resource,
-                                                        RecordState state, String text, String additionalInformations, String resultResource) {
+                                                        RecordState state, String text, String additionalInformations, String resultResource,
+                                                        long processingStartTime) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
         parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATIONS, additionalInformations);
         parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
+
         return new NotificationTuple(taskId, InformationTypes.NOTIFICATION, parameters);
     }
 

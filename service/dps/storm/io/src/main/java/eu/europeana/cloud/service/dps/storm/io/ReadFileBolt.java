@@ -51,12 +51,12 @@ public class ReadFileBolt extends AbstractDpsBolt {
         } catch (RepresentationNotExistsException | FileNotExistsException |
                 WrongContentRangeException ex) {
             LOGGER.warn("Can not retrieve file at {}", file);
-            emitErrorNotification(anchorTuple, t.getTaskId(), file, "Can not retrieve file", "The cause of the error is:"+ex.getCause());
+            emitErrorNotification(anchorTuple, t.getTaskId(), file, "Can not retrieve file", "The cause of the error is:"+ex.getCause(),
+                    Long.parseLong(t.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         } catch (DriverException | MCSException | IOException ex) {
             LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
-            emitErrorNotification(anchorTuple, t.getTaskId(), file, ex.getMessage(), "The cause of the error is:"+ex.getCause());
-        }finally {
-            outputCollector.ack(anchorTuple);
+            emitErrorNotification(anchorTuple, t.getTaskId(), file, ex.getMessage(), "The cause of the error is:"+ex.getCause(),
+                    Long.parseLong(t.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
     }
 

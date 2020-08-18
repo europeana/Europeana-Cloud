@@ -40,9 +40,8 @@ public class ValidationBolt extends AbstractDpsBolt {
             validateFile(anchorTuple, stormTaskTuple);
         } catch (Exception e) {
             LOGGER.error("Validation Bolt error: {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
-        } finally {
-            outputCollector.ack(anchorTuple);
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e),
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
     }
 
@@ -58,7 +57,8 @@ public class ValidationBolt extends AbstractDpsBolt {
         if (result.isSuccess()) {
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } else {
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result),
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
     }
 
