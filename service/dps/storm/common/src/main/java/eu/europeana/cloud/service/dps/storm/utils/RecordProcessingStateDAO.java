@@ -3,11 +3,12 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.RecordState;
+import org.apache.commons.lang3.EnumUtils;
 
 import java.util.Calendar;
+import java.util.Optional;
 
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
@@ -88,16 +89,11 @@ public class RecordProcessingStateDAO extends CassandraDAO {
         return result;
     }
 
-    public String selectProcessingRecordStage(long taskId, String srcIdentifier) {
-        String result = "";
-
+    public Optional<RecordState> selectProcessingRecordStage(long taskId, String srcIdentifier) {
         ResultSet rs = dbService.getSession().execute(selectRecordStageStatement.bind(taskId, srcIdentifier));
         Row row = rs.one();
-        if (row != null) {
-            result = row.getString(RECORD_PROCESSING_STATE_STAGE);
-        }
-
-        return result;
+        String stageFieldValue = row.getString(RECORD_PROCESSING_STATE_STAGE);
+        return Optional.ofNullable(EnumUtils.getEnum(RecordState.class, stageFieldValue));
     }
 
     public void updateProcessingRecordStage(long taskId, String recordId, String stage) {

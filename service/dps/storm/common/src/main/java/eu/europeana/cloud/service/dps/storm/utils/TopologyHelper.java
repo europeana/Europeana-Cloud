@@ -91,7 +91,6 @@ public final class TopologyHelper {
 
         config.setMaxSpoutPending(500);
 
-        config.setMessageTimeoutSecs(30);
         return config;
     }
 

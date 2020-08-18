@@ -106,9 +106,8 @@ public class IndexingBolt extends AbstractDpsBolt {
             logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
         } catch (IndexingException e) {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
-        } finally {
-            outputCollector.ack(anchorTuple);
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId,

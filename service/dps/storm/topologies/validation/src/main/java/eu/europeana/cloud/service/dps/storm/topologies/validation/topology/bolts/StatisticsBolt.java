@@ -16,6 +16,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.util.Optional;
 
 
 public class StatisticsBolt extends AbstractDpsBolt {
@@ -54,7 +55,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
                 LOGGER.info("Calculating file statistics for {}", stormTaskTuple);
                 countStatistics(stormTaskTuple);
                 markRecordStatsAsCalculated(stormTaskTuple);
-            }else{
+            } else {
                 LOGGER.info("File stats will NOT be calculated because if was already done in the previous attempt");
             }
             // we can remove the file content before emitting further
@@ -67,8 +68,8 @@ public class StatisticsBolt extends AbstractDpsBolt {
     }
 
     private boolean statsAlreadyCalculated(StormTaskTuple stormTaskTuple) {
-        String processingRecordStage = recordProcessingStateDAO.selectProcessingRecordStage(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-        return RecordState.STATS_GENERATED.toString().equalsIgnoreCase(processingRecordStage);
+        Optional<RecordState> processingRecordStage = recordProcessingStateDAO.selectProcessingRecordStage(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        return processingRecordStage.isPresent() && processingRecordStage.get() == RecordState.STATS_GENERATED;
     }
 
     private void countStatistics(StormTaskTuple stormTaskTuple) throws ParserConfigurationException, SAXException, IOException {
