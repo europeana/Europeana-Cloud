@@ -107,8 +107,8 @@ public class ValidationBoltTest {
     }
 
     private void assertSuccessfulValidation() {
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }
 
     private void assertFailedValidation() {
@@ -127,6 +127,7 @@ public class ValidationBoltTest {
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.SCHEMA_NAME, schemaName);
         parameters.put(PluginParameterKeys.ROOT_LOCATION, schemaRootLocation);
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }
 
