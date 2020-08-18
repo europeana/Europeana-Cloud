@@ -29,9 +29,9 @@ public class DatasetDepublisher {
         }
     }
 
-    public void removeRecord(SubmitTaskParameters parameters, String recordId) throws IndexingException, URISyntaxException, IOException {
+    public boolean removeRecord(SubmitTaskParameters parameters, String recordId) throws IndexingException, URISyntaxException, IOException {
         try (Indexer indexer = indexerFactory.openIndexer(parameters.getUseAlternativeEnvironment())) {
-            indexer.remove(recordId);
+            return indexer.remove(recordId);
         }
     }
     public long getRecordsCount(SubmitTaskParameters parameters) throws IndexingException, URISyntaxException, IOException {

@@ -58,10 +58,14 @@ public class DepublicationService {
             try {
                 LOGGER.info("Removing record with id '{}' from index", records[i]);
                 checkTaskKilled(parameters.getTask().getTaskId());
-                depublisher.removeRecord(parameters, records[i]);
-                recordStatusUpdater.addSuccessfullyProcessedRecord(i, parameters.getTask().getTaskId(),
-                        TopologiesNames.DEPUBLICATION_TOPOLOGY,
-                        records[i]);
+                boolean removedSuccessfully = depublisher.removeRecord(parameters, records[i]);
+                if (removedSuccessfully) {
+                    recordStatusUpdater.addSuccessfullyProcessedRecord(i, parameters.getTask().getTaskId(),
+                            TopologiesNames.DEPUBLICATION_TOPOLOGY, records[i]);
+                } else {
+                    recordStatusUpdater.addWronglyProcessedRecord(i, parameters.getTask().getTaskId(),
+                            TopologiesNames.DEPUBLICATION_TOPOLOGY, records[i]);
+                }
                 saveProgress(parameters.getTask().getTaskId(),(long)i + 1);
             } catch (SubmitingTaskWasKilled e) {
                 LOGGER.warn(e.getMessage(), e);
