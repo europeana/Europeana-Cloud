@@ -36,7 +36,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
             LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
             String output = enrichmentWorker.process(fileContent);
             LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-            emitEnrichedContent(stormTaskTuple, output);
+            emitEnrichedContent(anchorTuple, stormTaskTuple, output);
         } catch (Exception e) {
             LOGGER.error("Exception while Enriching/dereference", e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Remote Enrichment/dereference service caused the problem!. The full error: " + ExceptionUtils.getStackTrace(e),
@@ -45,9 +45,9 @@ public class EnrichmentBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
-    private void emitEnrichedContent(StormTaskTuple stormTaskTuple, String output) throws Exception {
+    private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output) throws Exception {
         prepareStormTaskTupleForEmission(stormTaskTuple, output);
-        outputCollector.emit(stormTaskTuple.toStormTuple());
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
     }
 
     @Override
