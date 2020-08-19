@@ -52,6 +52,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         if (!hasLinksForCheck(resourceInfo)) {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "",
                     Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+            outputCollector.ack(anchorTuple);
         } else {
             FileInfo edmFile = checkProvidedLink(tuple, resourceInfo);
             edmFile.addSourceTuple(anchorTuple);
