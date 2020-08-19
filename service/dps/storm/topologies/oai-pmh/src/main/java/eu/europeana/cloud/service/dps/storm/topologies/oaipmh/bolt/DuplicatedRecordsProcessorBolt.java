@@ -62,9 +62,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                     "Error while detecting duplicates",
                     e.getMessage(),
                     Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
-        } finally {
-            outputCollector.ack(anchorTuple);
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void handleDuplicatedRepresentation(Tuple anchorTuple, StormTaskTuple tuple, Representation representation) throws MCSException {
@@ -78,6 +77,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                 "Duplicate detected",
                 "Duplicate detected for " + tuple.getFileUrl(),
                 Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+        outputCollector.ack(anchorTuple);
     }
 
     private void removeRepresentation(StormTaskTuple tuple, Representation representation) throws MCSException {

@@ -43,6 +43,7 @@ public class ValidationBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e),
                     Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void reorderFileContent(StormTaskTuple stormTaskTuple) throws TransformationException {

@@ -69,16 +69,15 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             }
             prepareEmittedTuple(tuple, representations.get(0).getFiles().get(0).getContentUri().toString());
             outputCollector.emit(anchorTuple, tuple.toStormTuple());
-        } catch (Exception e) {
+        } catch (MCSException e) {
             LOGGER.error("Unable to process the message", e);
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(),
                     "Cannot process data because: " + e.getMessage(), stack.toString(),
                     Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
-        } finally {
-            outputCollector.ack(anchorTuple);
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void processNewMessage(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
@@ -94,9 +93,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
                     "Cannot process data because: " + e.getMessage(), stack.toString(),
                     Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
-        } finally {
-            outputCollector.ack(anchorTuple);
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private List<Representation> findRepresentationsWithSameRevision(StormTaskTuple tuple, String cloudId) throws MCSException {

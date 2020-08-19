@@ -54,7 +54,7 @@ public class NormalizationBolt extends AbstractDpsBolt {
             if (normalizationResult.getErrorMessage() != null) {
                 LOGGER.error(NORMALIZATION_EX_MESSAGE, normalizationResult.getErrorMessage());
                 emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), normalizationResult.getErrorMessage(), "Error during normalization.",
-                        Long.parseLong(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS));
+                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
             } else {
                 String output = normalizationResult.getNormalizedRecordInEdmXml();
                 emitNormalizedContent(anchorTuple, stormTaskTuple, output);
@@ -62,16 +62,17 @@ public class NormalizationBolt extends AbstractDpsBolt {
         } catch (NormalizationConfigurationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e),
-                    Long.parseLong(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS));
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         } catch (NormalizationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e),
-                    Long.parseLong(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS));
+                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         } catch (MalformedURLException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e),
                     Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private void emitNormalizedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output) throws MalformedURLException {

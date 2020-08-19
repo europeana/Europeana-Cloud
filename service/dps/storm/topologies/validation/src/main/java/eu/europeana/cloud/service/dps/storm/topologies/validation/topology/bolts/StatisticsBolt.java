@@ -65,6 +65,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.",
                     Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private boolean statsAlreadyCalculated(StormTaskTuple stormTaskTuple) {

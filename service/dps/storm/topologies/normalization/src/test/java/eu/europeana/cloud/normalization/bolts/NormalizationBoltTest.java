@@ -1,5 +1,6 @@
 package eu.europeana.cloud.normalization.bolts;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -10,12 +11,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
@@ -99,7 +101,13 @@ public class NormalizationBoltTest {
     }
 
     private StormTaskTuple getStormTuple(String fileUrl, byte[] inputData) {
-        StormTaskTuple tuple = new StormTaskTuple(123, "TASK_NAME", fileUrl, inputData, new HashMap<String, String>(), null);
+        StormTaskTuple tuple = new StormTaskTuple(123, "TASK_NAME", fileUrl, inputData, prepareStormTaskTupleParameters(), null);
         return tuple;
+    }
+
+    private HashMap<String, String> prepareStormTaskTupleParameters() {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        return parameters;
     }
 }

@@ -63,6 +63,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
                 else
                     emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors,
                             Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                ackAllSourceTuplesForFile(edmFile);
             }
         }
     }

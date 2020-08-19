@@ -36,18 +36,16 @@ import static org.mockito.Mockito.*;
 
 public class WriteRecordBoltTest {
 
+    public static final String AUTHORIZATION = "Authorization";
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
-    public static final String AUTHORIZATION = "Authorization";
     private final byte[] FILE_DATA = "Data".getBytes();
-
+    @Captor
+    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
-
     @Mock(name = "recordServiceClient")
     private RecordServiceClient recordServiceClient;
-
-
     @InjectMocks
     private WriteRecordBolt writeRecordBolt = new WriteRecordBolt("http://localhost:8080/mcs");
 
@@ -55,7 +53,6 @@ public class WriteRecordBoltTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
     }
-
 
     @Test
     public void successfullyExecuteWriteBolt() throws Exception {
@@ -66,7 +63,7 @@ public class WriteRecordBoltTest {
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(any(), any(), any(), any(InputStream.class), any(), any(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
@@ -87,11 +84,11 @@ public class WriteRecordBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION ,AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
         writeRecordBolt.execute(anchorTuple, tuple);
         verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
@@ -106,13 +103,10 @@ public class WriteRecordBoltTest {
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
         writeRecordBolt.execute(anchorTuple, tuple);
         verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
-
-    @Captor
-    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
     private HashMap<String, String> prepareStormTaskTupleParameters() throws MalformedURLException {
         HashMap<String, String> parameters = new HashMap<>();
@@ -120,6 +114,7 @@ public class WriteRecordBoltTest {
         parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }
 
