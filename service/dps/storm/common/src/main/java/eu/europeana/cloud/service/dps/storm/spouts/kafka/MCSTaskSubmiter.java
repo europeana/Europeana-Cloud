@@ -75,6 +75,7 @@ public class MCSTaskSubmiter {
                 expectedSize = executeForDatasetList(submitParameters);
             }
 
+            checkIfTaskIsKilled(task);
             if (expectedSize != 0) {
                 taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.QUEUED.toString(), expectedSize);
                 LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", expectedSize, task.getTaskId());
@@ -193,6 +194,7 @@ public class MCSTaskSubmiter {
 
     private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) {
         int count = 0;
+        checkIfTaskIsKilled(submitParameters.getTask());
         for (CloudIdAndTimestampResponse response : responseList) {
             count += executeGettingFileUrlsForOneCloudId(response, submitParameters, reader);
         }
