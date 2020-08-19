@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_LINKS_COUNT;
@@ -36,6 +37,7 @@ public class LinkCheckBoltTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
+        linkCheckBolt.cache = new HashMap<>();
     }
 
     @Test
@@ -43,7 +45,7 @@ public class LinkCheckBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareTupleWithLinksCountEqualsToZero();
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(1)).emit(eq("NotificationStream"), captor.capture());
+        verify(outputCollector, times(1)).emit( eq("NotificationStream"), eq(anchorTuple), captor.capture());
         validateCapturedValues(captor);
     }
 
@@ -52,7 +54,7 @@ public class LinkCheckBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
         verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
     }
 
@@ -61,19 +63,19 @@ public class LinkCheckBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareRandomTuple();
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
         verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
         verify(linkChecker, times(2)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
         verify(linkChecker, times(3)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
         verify(linkChecker, times(4)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
         verify(linkChecker, times(5)).performLinkChecking(Mockito.anyString());
     }
 
@@ -87,7 +89,7 @@ public class LinkCheckBoltTest {
         linkCheckBolt.execute(anchorTuple, tuple);
         linkCheckBolt.execute(anchorTuple, tuple);
         linkCheckBolt.execute(anchorTuple, tuple);
-        verify(outputCollector, times(1)).emit(eq("NotificationStream"), captor.capture());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), any(Tuple.class), captor.capture());
         validateCapturedValuesForError(captor);
     }
 
@@ -97,6 +99,7 @@ public class LinkCheckBoltTest {
         tuple.setFileUrl("ecloudFileUrl");
         tuple.addParameter(RESOURCE_LINKS_COUNT, 5 + "");
         tuple.addParameter(RESOURCE_URL, "resourceUrl");
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return tuple;
     }
 
@@ -105,6 +108,7 @@ public class LinkCheckBoltTest {
         tuple.setFileUrl("ecloudFileUrl");
         tuple.addParameter(RESOURCE_LINKS_COUNT, 0 + "");
         tuple.addParameter(RESOURCE_URL, "resourceUrl");
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return tuple;
     }
 
@@ -112,7 +116,7 @@ public class LinkCheckBoltTest {
         Values values = captor.getValue();
         Map<String, String> parameters = (Map) values.get(2);
         assertNotNull(parameters);
-        assertEquals(5, parameters.size());
+        assertEquals(6, parameters.size());
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
         assertEquals("ecloudFileUrl", parameters.get("resource"));
@@ -122,7 +126,7 @@ public class LinkCheckBoltTest {
         Values values = captor.getValue();
         Map<String, String> parameters = (Map) values.get(2);
         assertNotNull(parameters);
-        assertEquals(7, parameters.size());
+        assertEquals(8, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         assertEquals(5, parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE).split(",").length);
         assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));

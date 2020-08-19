@@ -24,7 +24,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckBolt.class);
 
     private static final int CACHE_SIZE = 1024;
-    private transient Map<String, FileInfo> cache;
+    transient Map<String, FileInfo> cache;
 
     private transient LinkChecker linkChecker;
 
