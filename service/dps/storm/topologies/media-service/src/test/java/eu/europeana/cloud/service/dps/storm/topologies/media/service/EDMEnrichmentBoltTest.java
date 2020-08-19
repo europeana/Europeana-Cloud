@@ -67,7 +67,7 @@ public class EDMEnrichmentBoltTest {
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
             assertEquals(4, stormTaskTuple.getParameters().size());
             edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
-            verify(outputCollector, times(1)).emit(captor.capture());
+            verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
             Values values = captor.getValue();
             Map<String, String> parameters = (Map) values.get(4);
             assertNotNull(parameters);
@@ -95,7 +95,7 @@ public class EDMEnrichmentBoltTest {
                 if (i < resourceLinksCount)
                     assertEquals(i, edmEnrichmentBolt.cache.get(FILE_URL).getCount());
             }
-            verify(outputCollector, times(1)).emit(captor.capture());
+            verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
             Values values = captor.getValue();
             Map<String, String> parameters = (Map) values.get(4);
             assertNotNull(parameters);
@@ -115,7 +115,7 @@ public class EDMEnrichmentBoltTest {
         int expectedParametersSize = 2;
         Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
         assertEquals(expectedParametersSize, initialTupleParameters.size());
-        verify(outputCollector, Mockito.times(1)).emit(captor.capture());
+        verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
         Values value = captor.getValue();
         Map<String, String> parametersAfterExecution = (Map) value.get(4);
         assertNotNull(parametersAfterExecution);
@@ -137,7 +137,7 @@ public class EDMEnrichmentBoltTest {
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
             assertEquals(4, stormTaskTuple.getParameters().size());
             edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
-            verify(outputCollector, times(1)).emit(captor.capture());
+            verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
             Values values = captor.getValue();
             Map<String, String> parameters = (Map) values.get(4);
             assertNotNull(parameters);
