@@ -43,7 +43,7 @@ public class NormalizationTopology {
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         NormalizationBolt normalizationBolt = new NormalizationBolt();
@@ -54,7 +54,7 @@ public class NormalizationTopology {
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
+        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
                 getAnInt(RETRIEVE_FILE_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))

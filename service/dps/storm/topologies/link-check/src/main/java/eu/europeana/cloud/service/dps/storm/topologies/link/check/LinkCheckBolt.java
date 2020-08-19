@@ -71,7 +71,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
 
     private void ackAllSourceTuplesForFile(FileInfo edmFile) {
-        for(Tuple tuple: edmFile.sourceTupples){
+        for (Tuple tuple : edmFile.sourceTupples) {
             outputCollector.ack(tuple);
         }
     }

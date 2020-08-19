@@ -4,11 +4,9 @@ import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.service.kafka.util.DpsRecordDeserializer;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
-import org.apache.storm.kafka.spout.*;
-import org.apache.storm.task.TopologyContext;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -52,13 +50,6 @@ public final class TopologyHelper {
 
     public static Config buildConfig(Properties topologyProperties, boolean staticMode) {
         Config config = new Config();
-
-        //Code below switch OFF the mechanism form ACK/FAIL retry.
-        //Now it is switched ON only form OAI PMH Harvesting topology OAI_TOPOLOGY
-        //If some other topologies should use the mechanism "if" condition should be changed/removed
-        if(!TopologiesNames.OAI_TOPOLOGY.equals(topologyProperties.getProperty(TOPOLOGY_NAME))) {
-            config.setNumAckers(0);
-        }
 
         if(!staticMode) {
             config.setNumWorkers(parseInt(topologyProperties.getProperty(WORKER_COUNT)));
