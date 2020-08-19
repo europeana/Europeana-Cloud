@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
@@ -87,7 +88,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                     } catch (Exception ex) {
                         LOGGER.error("Error while serializing the enriched file: ", ex);
                         emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),
-                                Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                     }
                     ackAllSourceTuplesForFile(tempEnrichedFile);
                 } else {

@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spout.CollectorWrapper;
 import eu.europeana.cloud.service.dps.storm.spout.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spout.TaskQueueFiller;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -41,7 +42,6 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
 
@@ -258,11 +258,11 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                         } catch (IOException | EuropeanaIdException e) {
                             LOGGER.error(e.getMessage(), e);
                             emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage(),
-                                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                         } catch (InterruptedException e) {
                             LOGGER.error(e.getMessage(), e);
                             emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage(),
-                                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                             Thread.currentThread().interrupt();
                         }
                         finally {

@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDat
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
@@ -125,7 +126,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         LOGGER.error(errorMessage, e);
         emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage,
                 "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e),
-                Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
 
     class IndexerPoolWrapper implements Closeable {

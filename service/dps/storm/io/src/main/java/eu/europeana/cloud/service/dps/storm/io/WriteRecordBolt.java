@@ -75,7 +75,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(),
                     "Cannot process data because: " + e.getMessage(), stack.toString(),
-                    Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
         }
         outputCollector.ack(anchorTuple);
     }
@@ -92,7 +92,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
                     "Cannot process data because: " + e.getMessage(), stack.toString(),
-                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
     }

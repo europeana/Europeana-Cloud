@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
 import org.joda.time.DateTime;
@@ -61,7 +62,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                     tuple.getFileUrl(),
                     "Error while detecting duplicates",
                     e.getMessage(),
-                    Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
         }
         outputCollector.ack(anchorTuple);
     }
@@ -76,7 +77,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                 tuple.getFileUrl(),
                 "Duplicate detected",
                 "Duplicate detected for " + tuple.getFileUrl(),
-                Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
         outputCollector.ack(anchorTuple);
     }
 

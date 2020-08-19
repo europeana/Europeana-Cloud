@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import lombok.ToString;
@@ -51,7 +52,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "",
-                    Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
             outputCollector.ack(anchorTuple);
         } else {
             FileInfo edmFile = checkProvidedLink(tuple, resourceInfo);
@@ -60,10 +61,10 @@ public class LinkCheckBolt extends AbstractDpsBolt {
                 cache.remove(edmFile.fileUrl);
                 if (edmFile.errors == null || edmFile.errors.isEmpty())
                     emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "",
-                            Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                            StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
                 else
                     emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors,
-                            Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                            StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
                 ackAllSourceTuplesForFile(edmFile);
             }
         }

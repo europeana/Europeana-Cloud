@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.transformation.service.*;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +52,7 @@ public class XsltBolt extends AbstractDpsBolt {
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}",  e.getMessage());
       emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), "", e.getMessage(),  ExceptionUtils.getStackTrace(e),
-              Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+              StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
       outputCollector.ack(anchorTuple);
     } finally {
       if (writer != null) {

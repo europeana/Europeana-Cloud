@@ -5,6 +5,7 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
@@ -64,7 +65,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 		} catch (Exception e) {
 			LOGGER.error("Unable to read and parse file ", e);
 			emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e),
-					Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+					StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
 		}
         outputCollector.ack(anchorTuple);
 	}

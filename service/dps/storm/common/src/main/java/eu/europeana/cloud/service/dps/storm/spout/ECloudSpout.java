@@ -125,7 +125,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                             RecordState.ERROR,
                             "Max retries reached",
                             "Max retries reached",
-                            Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                     return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), messageId);
                 }else{
                     LOGGER.info("Emitting record to the subsequent bolt: {}", message);

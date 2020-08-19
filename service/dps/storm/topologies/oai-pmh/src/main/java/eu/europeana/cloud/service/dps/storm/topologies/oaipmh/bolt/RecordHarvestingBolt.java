@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -88,7 +89,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                         stormTaskTuple.getFileUrl(),
                         "Error while harvesting a record",
                         "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause(),
-                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                 LOGGER.error(e.getMessage());
             }
         } else {
@@ -98,7 +99,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     stormTaskTuple.getParameter(DPS_TASK_INPUT_DATA),
                     "Invalid parameters",
                     null,
-                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         LOGGER.info("Harvesting finished in: {}ms for {}", Calendar.getInstance().getTimeInMillis() - harvestingStartTime, stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         outputCollector.ack(anchorTuple);

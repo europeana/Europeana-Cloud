@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
@@ -74,7 +75,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
                 emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString(),
-                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                 outputCollector.ack(tuple);
             }
         }

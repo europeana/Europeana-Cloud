@@ -1,8 +1,8 @@
 package eu.europeana.cloud.normalization.bolts;
 
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
@@ -54,7 +54,7 @@ public class NormalizationBolt extends AbstractDpsBolt {
             if (normalizationResult.getErrorMessage() != null) {
                 LOGGER.error(NORMALIZATION_EX_MESSAGE, normalizationResult.getErrorMessage());
                 emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), normalizationResult.getErrorMessage(), "Error during normalization.",
-                        Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
             } else {
                 String output = normalizationResult.getNormalizedRecordInEdmXml();
                 emitNormalizedContent(anchorTuple, stormTaskTuple, output);
@@ -62,15 +62,15 @@ public class NormalizationBolt extends AbstractDpsBolt {
         } catch (NormalizationConfigurationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e),
-                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (NormalizationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e),
-                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MalformedURLException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e),
-                    Long.parseLong(stormTaskTuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS)));
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
     }
