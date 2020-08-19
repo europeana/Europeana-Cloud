@@ -59,6 +59,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, t.getTaskId(), file, ex.getMessage(), "The cause of the error is:"+ex.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(t));
         }
+        outputCollector.ack(anchorTuple);
     }
 
     private InputStream getFile(FileServiceClient fileClient, String file, String authorization) throws MCSException, IOException {

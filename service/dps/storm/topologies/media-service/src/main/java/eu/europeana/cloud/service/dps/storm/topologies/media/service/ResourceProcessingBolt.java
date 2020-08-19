@@ -47,6 +47,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         StringBuilder exception = new StringBuilder();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
         } else {
             try {
                 RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);

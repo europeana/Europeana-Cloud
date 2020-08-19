@@ -50,6 +50,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
         } else {
             final String file = stormTaskTuple.getFileUrl();
             TempEnrichedFile tempEnrichedFile = cache.get(file);
