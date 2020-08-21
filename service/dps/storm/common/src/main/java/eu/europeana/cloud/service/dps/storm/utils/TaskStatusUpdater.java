@@ -131,4 +131,7 @@ public class TaskStatusUpdater {
         return TaskState.DROPPED.toString().equals(info.getState()) || TaskState.PROCESSED.toString().equals(info.getState());
     }
 
+    public void updateTaskStartDate(TaskInfo taskInfo) {
+        taskInfoDAO.updateTaskStartDate(taskInfo);
+    }
 }

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -119,6 +120,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                     return Collections.emptyList();
                 }
                 TaskInfo taskInfo = prepareTaskInfo(message);
+                assureStartDateSaved(taskInfo);
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
                 if(maxTriesReached(stormTaskTuple)){
                     LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached: {}", message);
@@ -219,6 +221,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                     ++attempt
             );
             stormTaskTuple.setRecordAttemptNumber(attempt);
+        }
+    }
+
+    private void assureStartDateSaved(TaskInfo taskInfo) {
+        if(taskInfo.getStartDate()==null){
+            taskInfo.setStartDate(new Date());
+            taskStatusUpdater.updateTaskStartDate(taskInfo);
         }
     }
 }

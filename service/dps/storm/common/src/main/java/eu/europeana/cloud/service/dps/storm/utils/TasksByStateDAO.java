@@ -6,7 +6,6 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.model.dps.TaskTopicInfo;
 
@@ -64,7 +63,7 @@ public class TasksByStateDAO extends CassandraDAO {
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?");
     }
 
-    private void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
+    public void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
             throws NoHostAvailableException, QueryExecutionException {
         if(oldState.isPresent() && !oldState.equals(state)){
             delete(oldState.get(),topologyName,taskId);
@@ -74,10 +73,6 @@ public class TasksByStateDAO extends CassandraDAO {
 
     private void delete(String state, String topologyName, long taskId){
         dbService.getSession().execute(deleteStatement.bind(state, topologyName, taskId));
-    }
-
-    public void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName) {
-        insert(oldState, state, topologyName, taskId, applicationId, topicName, new Date());
     }
 
     public void updateTask(String topologyName, long taskId, String oldState, String newState) {

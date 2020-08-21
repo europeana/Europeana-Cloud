@@ -28,6 +28,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskInsertUpdateStateStatement;
     private PreparedStatement updateExpectedSize;
     private PreparedStatement updateTask;
+    private PreparedStatement updateTaskDate;
     private PreparedStatement endTask;
     private PreparedStatement updateProcessedFiles;
     private PreparedStatement finishTask;
@@ -56,6 +57,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         updateTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.START_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateTask.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateTaskDate = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.START_TIME + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateTaskDate.setConsistencyLevel(dbService.getConsistencyLevel());
         updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.ERRORS + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateProcessedFiles.setConsistencyLevel(dbService.getConsistencyLevel());
         endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.ERRORS + " = ? , " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
@@ -132,6 +135,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     public void updateTask(long taskId, String info, String state, Date startDate)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateTask.bind(String.valueOf(state), startDate, info, taskId));
+    }
+
+    public void updateTaskStartDate(TaskInfo taskInfo) {
+        dbService.getSession().execute(updateTaskDate.bind(taskInfo.getStartDate(), taskInfo.getId()));
     }
 
     public void setTaskCompletelyProcessed(long taskId, String info)
