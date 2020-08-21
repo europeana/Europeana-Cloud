@@ -11,8 +11,11 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.model.dps.TaskStateInfo;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.TaskInfo} DAO
@@ -93,11 +96,12 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public TaskInfo searchById(long taskId)
             throws NoHostAvailableException, QueryExecutionException, TaskInfoDoesNotExistException {
-        ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
-        if (!rs.iterator().hasNext()) {
-            throw new TaskInfoDoesNotExistException();
-        }
-        return createTaskInfo(rs.one());
+        return findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
+    }
+
+    public Optional<TaskInfo> findById(long taskId)
+            throws NoHostAvailableException, QueryExecutionException {
+        return Optional.of(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
     }
 
     private TaskInfo createTaskInfo(Row row) {
@@ -178,13 +182,17 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 .map(row -> row.getState());
     }
 
+    public List<TaskStateInfo> findTaskStateInfos(Collection<Long> taskIdList) {
+        return taskIdList.stream().map(this::findTaskStateInfo).flatMap(Optional::stream).collect(Collectors.toList());
+    }
+
     public Optional<TaskStateInfo> findTaskStateInfo(long taskId)   {
         ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
         Row row = rs.one();
         if(row!=null) {
             String topologyName = row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME);
             String state = row.getString(CassandraTablesAndColumnsNames.STATE);
-            return Optional.of(new TaskStateInfo(topologyName,state));
+            return Optional.of(new TaskStateInfo(taskId, topologyName, state));
         }else {
             return Optional.empty();
         }
