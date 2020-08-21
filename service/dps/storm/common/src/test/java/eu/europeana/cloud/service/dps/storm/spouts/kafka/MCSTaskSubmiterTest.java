@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -119,6 +120,9 @@ public class MCSTaskSubmiterTest {
     @Mock
     private RecordExecutionSubmitService recordSubmitService;
 
+    @Mock
+    private ProcessedRecordsDAO processedRecordsDAO;
+
     private MCSTaskSubmiter submiter;
 
     private DpsTask task=new DpsTask();
@@ -144,7 +148,7 @@ public class MCSTaskSubmiterTest {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        submiter=new MCSTaskSubmiter(taskStatusChecker,taskStatusUpdater,recordSubmitService,null);
+        submiter=new MCSTaskSubmiter(taskStatusChecker,taskStatusUpdater,recordSubmitService,processedRecordsDAO,null);
         whenNew(DataSetServiceClient.class).withAnyArguments().thenReturn(dataSetServiceClient);
         whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
