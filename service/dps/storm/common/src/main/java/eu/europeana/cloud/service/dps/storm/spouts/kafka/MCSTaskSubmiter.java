@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.dps.storm.spouts.kafka;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.dps.ProcessedRecord;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -16,6 +18,7 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.slf4j.Logger;
@@ -52,11 +55,14 @@ public class MCSTaskSubmiter {
 
     private final String mcsClientURL;
 
-    public MCSTaskSubmiter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordExecutionSubmitService recordSubmitService, String mcsClientURL) {
+    private final ProcessedRecordsDAO processedRecordsDAO;
+
+    public MCSTaskSubmiter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordExecutionSubmitService recordSubmitService, ProcessedRecordsDAO processedRecordsDAO, String mcsClientURL) {
         this.taskStatusChecker = taskStatusChecker;
         this.taskStatusUpdater = taskStatusUpdater;
         this.recordSubmitService = recordSubmitService;
         this.mcsClientURL = mcsClientURL;
+        this.processedRecordsDAO = processedRecordsDAO;
     }
 
     public void execute(SubmitTaskParameters submitParameters) {
@@ -240,8 +246,21 @@ public class MCSTaskSubmiter {
     private void submitRecord(String fileUrl, SubmitTaskParameters submitParameters) {
         DpsTask task = submitParameters.getTask();
         DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task)).recordId(fileUrl).build();
-        recordSubmitService.submitRecord(record, submitParameters.getTopicName());
-        logProgress(submitParameters, submitParameters.incrementAndGetSentRecordCounter());
+
+        Optional<ProcessedRecord> processedRecord = processedRecordsDAO.selectByPrimaryKey(record.getTaskId(), record.getRecordId());
+        if (processedRecord.isEmpty()) {
+            recordSubmitService.submitRecord(record, submitParameters.getTopicName());
+            updateRecordStatus(record, submitParameters.getTopologyName());
+            logProgress(submitParameters, submitParameters.incrementAndGetSentRecordCounter());
+        }
+    }
+
+    private void updateRecordStatus(DpsRecord dpsRecord, String topologyName) {
+        int attemptNumber = processedRecordsDAO.getAttemptNumber(dpsRecord.getTaskId(), dpsRecord.getRecordId());
+
+        LOGGER.debug("Updating record in notifications table: {}", dpsRecord);
+        processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(), attemptNumber,
+                "", topologyName, RecordState.QUEUED.toString(), "", "");
     }
 
     private void logProgress(SubmitTaskParameters submitParameters, int submitedCount) {
