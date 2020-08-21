@@ -159,9 +159,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
 
     protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
-                                                      String message, String additionalInformation, String resultResource) {
+                                                      String message, String additionalInformation, String resultResource,
+                                                      long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
