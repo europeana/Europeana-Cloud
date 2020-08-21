@@ -221,7 +221,7 @@ public class TopologyTasksResource {
      */
 
     @PostMapping(path = "{taskId}/kill")
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
+    @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
     public ResponseEntity<String> killTask(
             @PathVariable String topologyName,
             @PathVariable String taskId,
