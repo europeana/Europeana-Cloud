@@ -9,7 +9,6 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 
-import javax.swing.text.html.Option;
 import java.util.Calendar;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,7 +98,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
     public int getAttemptNumber(long taskId, String recordId) {
         AtomicInteger attemptNumber = new AtomicInteger(0);
         selectByPrimaryKey(taskId, recordId).ifPresentOrElse(processedRecord -> attemptNumber.set(processedRecord.getAttemptNumber()),
-                attemptNumber::incrementAndGet);
+                attemptNumber::get);
         return attemptNumber.get();
     }
 }
