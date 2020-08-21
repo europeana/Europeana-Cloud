@@ -9,12 +9,19 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 
+import javax.swing.text.html.Option;
+import java.util.Calendar;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
 /**
  * DAO for processing data in  {@link CassandraTablesAndColumnsNames#PROCESSED_RECORDS_TOPOLOGY_NAME}
  */
 public class ProcessedRecordsDAO extends CassandraDAO {
+    private static final long TIME_TO_LIVE = 2 * 7 * 24 * 60 * 60L;  //two weeks in seconds
+
     private PreparedStatement insertStatement;
     private PreparedStatement selectByPrimaryKeyStatement;
 
@@ -36,50 +43,63 @@ public class ProcessedRecordsDAO extends CassandraDAO {
         insertStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
                 + PROCESSED_RECORDS_TASK_ID + ","
-                + PROCESSED_RECORDS_SRC_IDENTIFIER + ","
+                + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
                 + PROCESSED_RECORDS_DST_IDENTIFIER + ","
                 + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
                 + PROCESSED_RECORDS_STATE + ","
+                + PROCESSED_RECORDS_START_TIME + ","
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                ") VALUES (?,?,?,?,?,?,?)");
+                ") VALUES (?,?,?,?,?,?,?,?,?) USING TTL " + TIME_TO_LIVE);
 
         selectByPrimaryKeyStatement = dbService.getSession().prepare("SELECT "
+                + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
                 + PROCESSED_RECORDS_DST_IDENTIFIER + ","
                 + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
                 + PROCESSED_RECORDS_STATE + ","
+                + PROCESSED_RECORDS_START_TIME + ","
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_SRC_IDENTIFIER + " = ?");
+                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_RECORD_ID + " = ?");
 
     }
 
-    public void insert(long taskId, String srcResource, String dstResource, String topologyName,
+    public void insert(long taskId, String recordId, int attemptNumber, String dstResource, String topologyName,
                        String state, String infoText, String additionalInformations)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(insertStatement.bind(taskId, srcResource, dstResource, topologyName,
-                state, infoText, additionalInformations));
+        dbService.getSession().execute(insertStatement.bind(taskId, recordId, attemptNumber, dstResource, topologyName,
+                state, Calendar.getInstance().getTime(), infoText, additionalInformations));
     }
 
-    public ProcessedRecord selectByPrimaryKey(long taskId, String srcIdentifier)
+    public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)
             throws NoHostAvailableException, QueryExecutionException {
         ProcessedRecord result = null;
 
-        ResultSet rs = dbService.getSession().execute(selectByPrimaryKeyStatement.bind(taskId, srcIdentifier));
+        ResultSet rs = dbService.getSession().execute(selectByPrimaryKeyStatement.bind(taskId, recordId));
         Row row = rs.one();
         if (row != null) {
             result = ProcessedRecord
                     .builder()
                     .taskId(taskId)
-                    .srcIdentifier(srcIdentifier)
+                    .recordId(recordId)
+                    .attemptNumber(row.getInt(PROCESSED_RECORDS_ATTEMPT_NUMBER))
                     .dstIdentifier(row.getString(PROCESSED_RECORDS_DST_IDENTIFIER))
                     .topologyName(row.getString(PROCESSED_RECORDS_TOPOLOGY_NAME))
                     .state(RecordState.valueOf(row.getString(PROCESSED_RECORDS_STATE)))
+                    .starTime(row.getTimestamp(PROCESSED_RECORDS_START_TIME))
                     .infoText(row.getString(PROCESSED_RECORDS_INFO_TEXT))
                     .additionalInformations(row.getString(PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS))
                     .build();
         }
 
-        return result;
+        return Optional.ofNullable(result);
+    }
+
+    public int getAttemptNumber(long taskId, String recordId) {
+        AtomicInteger attemptNumber = new AtomicInteger(0);
+        selectByPrimaryKey(taskId, recordId).ifPresentOrElse(processedRecord -> attemptNumber.set(processedRecord.getAttemptNumber()),
+                attemptNumber::incrementAndGet);
+        return attemptNumber.get();
     }
 }

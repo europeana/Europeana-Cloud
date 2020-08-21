@@ -86,7 +86,7 @@ public class HarvestExecutorTest {
         int count = spiedHarvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME).getResultCounter();
 
         Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OAIHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
-        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).sentMessage(Matchers.any(DpsRecord.class), Mockito.anyString());
+        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).sendMessage(Matchers.any(DpsRecord.class), Mockito.anyString());
         Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).updateRecordStatus(Matchers.any(DpsRecord.class), Mockito.anyString());
         Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).logProgressFor(eq(harvestList.get(HARVESTS_INDEX)), Mockito.anyInt());
     }

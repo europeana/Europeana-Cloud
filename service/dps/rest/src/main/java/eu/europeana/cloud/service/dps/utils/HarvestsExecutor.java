@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HarvestsExecutor {
@@ -58,7 +59,7 @@ public class HarvestsExecutor {
                 OAIHeader oaiHeader = headerIterator.next();
                 DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
 
-                sentMessage(record, topicName);
+                sendMessage(record, topicName);
                 updateRecordStatus(record, topologyName);
                 logProgressFor(harvest, resultCounter);
                 resultCounter++;
@@ -88,10 +89,10 @@ public class HarvestsExecutor {
 
                 OAIHeader oaiHeader = headerIterator.next();
 
-                ProcessedRecord processedRecord = processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), oaiHeader.getIdentifier());
-                if (processedRecord == null || processedRecord.getState() == RecordState.ERROR) {
+                Optional<ProcessedRecord> processedRecord = processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), oaiHeader.getIdentifier());
+                if (processedRecord.isEmpty() || processedRecord.get().getState() == RecordState.ERROR) {
                     DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
-                    sentMessage(record, topicName);
+                    sendMessage(record, topicName);
                     updateRecordStatus(record, topologyName);
                     resultCounter++;
                 }
@@ -109,14 +110,16 @@ public class HarvestsExecutor {
                 .build();
     }
 
-    /*package visiblility*/ void sentMessage(DpsRecord record, String topicName) {
-        LOGGER.debug("Sending records to messges queue: {}", record);
+    /*package visiblility*/ void sendMessage(DpsRecord record, String topicName) {
+        LOGGER.debug("Sending records to messages queue: {}", record);
         recordSubmitService.submitRecord(record, topicName);
     }
 
     /*package visiblility*/  void updateRecordStatus(DpsRecord dpsRecord, String topologyName) {
+        int attemptNumber = processedRecordsDAO.getAttemptNumber(dpsRecord.getTaskId(), dpsRecord.getRecordId());
+
         LOGGER.debug("Updating record in notifications table: {}", dpsRecord);
-        processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(),
+        processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(), attemptNumber,
                 "", topologyName, RecordState.QUEUED.toString(), "", "");
     }
 
