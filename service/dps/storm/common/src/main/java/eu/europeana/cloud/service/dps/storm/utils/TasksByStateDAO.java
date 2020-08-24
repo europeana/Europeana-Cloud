@@ -119,7 +119,7 @@ public class TasksByStateDAO extends CassandraDAO {
     private TaskTopicInfo createTaskInfo(Row row) {
         TaskTopicInfo taskInfo = new TaskTopicInfo();
         taskInfo.setId(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME));
-        taskInfo.setState(TASKS_BY_STATE_STATE_COL_NAME);
+        taskInfo.setState(row.getString(TASKS_BY_STATE_STATE_COL_NAME));
         taskInfo.setTopologyName(row.getString(TASKS_BY_STATE_TOPOLOGY_NAME));
         taskInfo.setTopicName(row.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME));
         taskInfo.setOwnerId(row.getString(TASKS_BY_STATE_APP_ID_COL_NAME));

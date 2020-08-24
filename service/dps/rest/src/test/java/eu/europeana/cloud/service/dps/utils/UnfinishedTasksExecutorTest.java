@@ -70,7 +70,7 @@ public class UnfinishedTasksExecutorTest {
     }
 
     private TaskTopicInfo createTask() {
-        TaskTopicInfo info=new TaskTopicInfo();
+        TaskTopicInfo info = new TaskTopicInfo();
         info.setId(1L);
         info.setState(TaskState.PROCESSING_BY_REST_APPLICATION.toString());
         info.setTopologyName("topoName");

@@ -225,7 +225,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     private void assureStartDateSaved(TaskInfo taskInfo) {
-        if(taskInfo.getStartDate()==null){
+        if (taskInfo.getStartDate() == null) {
             taskInfo.setStartDate(new Date());
             taskStatusUpdater.updateTaskStartDate(taskInfo);
         }

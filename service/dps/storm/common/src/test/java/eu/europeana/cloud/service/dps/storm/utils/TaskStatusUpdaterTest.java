@@ -74,7 +74,7 @@ public class TaskStatusUpdaterTest {
 
         updater.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
-        verify(taskInfoDAO,never()).findTaskStateInfos(eq(Collections.singleton(1L)));
+        verify(taskInfoDAO, never()).findTaskStateInfos(eq(Collections.singleton(1L)));
         verify(tasksByStateDAO, never()).updateTask(any(), anyLong(), any(), any());
     }
 

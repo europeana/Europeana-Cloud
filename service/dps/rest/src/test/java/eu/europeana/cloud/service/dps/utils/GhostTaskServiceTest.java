@@ -36,7 +36,12 @@ public class GhostTaskServiceTest {
 
     public static final TaskTopicInfo TOPIC_INFO_1 = createTopicInfo(1L, "oai_topology_2");
     public static final TaskTopicInfo TOPIC_INFO_1_UNKNONW_TOPIC = createTopicInfo(1L, "unknown_topic");
-    public static final TaskInfo OLD_TASK_INFO_1 = createOldTaskInfo(1L);
+    public static final TaskInfo OLD_SENT_NO_STARTED_TASK_INFO_1 = createTaskInfo(1L,11);
+    public static final TaskInfo NEWLY_SENT_NO_STARTED_TASK_INFO_1 = createTaskInfo(1L,9);
+    public static final TaskInfo OLD_SENT_OLD_STARTED_TASK_INFO_1 = createTaskInfo(1L,11,11);
+    public static final TaskInfo OLD_SENT_NEWLY_STARTED_TASK_INFO_1 = createTaskInfo(1L,11,9);
+    public static final TaskInfo NEWLY_SENT_NEWLY_STARTED_TASK_INFO_1 = createTaskInfo(1L,9,9);
+
     @Autowired
     private GhostTaskService service;
 
@@ -60,31 +65,75 @@ public class GhostTaskServiceTest {
     public void findGhostTasksReturnsTaskIfItIsOldAndInProcessedByRestApplicationState() {
         when(tasksByStateDAO.findTasksInGivenState(eq(TaskState.PROCESSING_BY_REST_APPLICATION)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
-        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_TASK_INFO_1));
-        assertThat(service.findGhostTasks(), contains(OLD_TASK_INFO_1));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NO_STARTED_TASK_INFO_1));
+
+        assertThat(service.findGhostTasks(), contains(OLD_SENT_NO_STARTED_TASK_INFO_1));
     }
 
     @Test
     public void findGhostTasksReturnsTaskIfItIsOldAndInQueuedState() {
         when(tasksByStateDAO.findTasksInGivenState(eq(TaskState.QUEUED)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
-        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_TASK_INFO_1));
-        assertThat(service.findGhostTasks(), contains(OLD_TASK_INFO_1));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NO_STARTED_TASK_INFO_1));
+
+        assertThat(service.findGhostTasks(), contains(OLD_SENT_NO_STARTED_TASK_INFO_1));
+    }
+
+    @Test
+    public void findGhostTasksReturnsTaskIfItIsOldSentAndOldStartedAndInQueuedState() {
+        when(tasksByStateDAO.findTasksInGivenState(eq(TaskState.QUEUED)))
+                .thenReturn(Collections.singletonList(TOPIC_INFO_1));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_OLD_STARTED_TASK_INFO_1));
+
+        assertThat(service.findGhostTasks(), contains(OLD_SENT_OLD_STARTED_TASK_INFO_1));
+    }
+
+    @Test
+    public void findGhostTasksShouldIgnoreTasksThatNewlySentAndNewStarted() {
+        when(tasksByStateDAO.findTasksInGivenState(eq(TaskState.QUEUED)))
+                .thenReturn(Collections.singletonList(TOPIC_INFO_1));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NEWLY_STARTED_TASK_INFO_1));
+
+        assertThat(service.findGhostTasks(), empty());
+    }
+
+    @Test
+    public void findGhostTasksShouldIgnoreTasksThatOldSentButNewStarted() {
+        when(tasksByStateDAO.findTasksInGivenState(eq(TaskState.QUEUED)))
+                .thenReturn(Collections.singletonList(TOPIC_INFO_1));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(NEWLY_SENT_NEWLY_STARTED_TASK_INFO_1));
+
+        assertThat(service.findGhostTasks(), empty());
+    }
+
+    @Test
+    public void findGhostTasksShouldIgnoreTasksThatNewlySentAndNotStarted() {
+        when(tasksByStateDAO.findTasksInGivenState(eq(TaskState.QUEUED)))
+                .thenReturn(Collections.singletonList(TOPIC_INFO_1));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(NEWLY_SENT_NO_STARTED_TASK_INFO_1));
+
+        assertThat(service.findGhostTasks(), empty());
     }
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatNotReserveTopicBelongingToTopology() {
         when(tasksByStateDAO.findTasksInGivenState(eq(TaskState.QUEUED)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1_UNKNONW_TOPIC));
-        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_TASK_INFO_1));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NO_STARTED_TASK_INFO_1));
 
         assertThat(service.findGhostTasks(), empty());
     }
 
-    private static TaskInfo createOldTaskInfo(Long id) {
+    private static TaskInfo createTaskInfo(Long id, int sentDaysAgo) {
         TaskInfo info = new TaskInfo();
         info.setId(id);
-        info.setSentDate(Date.from(Instant.now().minus(11, ChronoUnit.DAYS)));
+        info.setSentDate(Date.from(Instant.now().minus(sentDaysAgo, ChronoUnit.DAYS)));
+        return info;
+    }
+
+    private static TaskInfo createTaskInfo(Long id, int sentDaysAgo, int startedDaysAgo) {
+        TaskInfo info = createTaskInfo(id, sentDaysAgo);
+        info.setStartDate(Date.from(Instant.now().minus(startedDaysAgo, ChronoUnit.DAYS)));
         return info;
     }
 
