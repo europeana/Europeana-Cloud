@@ -2,7 +2,7 @@ package eu.europeana.cloud;
 
 import eu.europeana.cloud.api.RevisionsReader;
 import eu.europeana.cloud.data.RevisionInformation;
-import eu.europeana.cloud.jobs.RevisionRemoverJob;
+import eu.europeana.cloud.jobs.RevisionRemover;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -14,9 +14,6 @@ import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Tarek on 7/15/2019.
@@ -46,13 +43,11 @@ public class RevisionRemovalTool {
 
             List<RevisionInformation> revisionInformationList = getRevisionInformation(cmd.getOptionValue(REVISION_FILE_PATH));
             initMCSClients(cmd);
-            ExecutorService executorService = Executors.newFixedThreadPool(getThreadsNumber(cmd));
+
             for (RevisionInformation revisionInformation : revisionInformationList) {
-                RevisionRemoverJob revisionRemoverJob = new RevisionRemoverJob(dataSetServiceClient, recordServiceClient, revisionInformation, revisionServiceClient);
-                executorService.submit(revisionRemoverJob);
+                new RevisionRemover(dataSetServiceClient, recordServiceClient,
+                        revisionInformation, revisionServiceClient, getThreadsNumber(cmd)).execute();
             }
-            executorService.shutdown();
-            executorService.awaitTermination(100, TimeUnit.DAYS);
 
             LOGGER.info("Finished successfully");
         } catch (ParseException exp) {
@@ -61,7 +56,7 @@ public class RevisionRemovalTool {
             LOGGER.error(exp);
             System.exit(0);
         } catch (Exception e) {
-            LOGGER.error("Error while cleaning data " + e.getMessage() + ". Because of " + e.getCause());
+            LOGGER.error("Error while cleaning data " + e.getMessage() + ". Because of " + e.getCause(), e);
             System.exit(1);
         }
 
