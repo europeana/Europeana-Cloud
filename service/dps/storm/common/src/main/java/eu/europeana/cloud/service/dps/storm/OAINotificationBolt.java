@@ -34,10 +34,11 @@ public class OAINotificationBolt extends NotificationBolt {
     @Override
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
         int retries = DEFAULT_RETRIES;
+        int attemptNumber = processedRecordsDAO.getAttemptNumber(taskId, resource);
 
         while (true) {
             try {
-                processedRecordsDAO.insert(taskId, resource, resultResource, topologyName, state, infoText, additionalInfo);
+                processedRecordsDAO.insert(taskId, resource, attemptNumber, resultResource, topologyName, state, infoText, additionalInfo);
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {

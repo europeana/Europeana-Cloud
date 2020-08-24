@@ -91,16 +91,12 @@ public class CassandraTablesAndColumnsNames {
 
     //------- PROCESSED_RECORDS -------
     public static final String PROCESSED_RECORDS_TASK_ID = "task_id";
-    public static final String PROCESSED_RECORDS_SRC_IDENTIFIER = "src_identifier";
+    public static final String PROCESSED_RECORDS_RECORD_ID = "record_id";
+    public static final String PROCESSED_RECORDS_ATTEMPT_NUMBER = "attempt_number";
     public static final String PROCESSED_RECORDS_DST_IDENTIFIER = "dst_identifier";
     public static final String PROCESSED_RECORDS_TOPOLOGY_NAME = "topology_name";
     public static final String PROCESSED_RECORDS_STATE = "state";
+    public static final String PROCESSED_RECORDS_START_TIME = "start_time";
     public static final String PROCESSED_RECORDS_INFO_TEXT = "info_text";
     public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
-
-    //------- RECORD_PROCESSING_STATE -------
-    public static final String RECORD_PROCESSING_STATE_TASK_ID = "task_id";
-    public static final String RECORD_PROCESSING_STATE_RECORD_ID = "record_id";
-    public static final String RECORD_PROCESSING_STATE_ATTEMPT_NUMBER = "attempt_number";
-    public static final String RECORD_PROCESSING_STATE_START_TIME = "start_time";
 }
