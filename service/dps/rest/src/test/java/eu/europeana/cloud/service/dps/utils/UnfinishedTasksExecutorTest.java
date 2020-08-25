@@ -40,54 +40,65 @@ public class UnfinishedTasksExecutorTest {
 
     @Test
     public void shouldNotStartExecutionForEmptyTasksList() {
+        //given
         List<TaskInfo> unfinishedTasks = new ArrayList<>();
+        //when
         Mockito.reset(cassandraTasksDAO);
         when(cassandraTasksDAO.findTasksInGivenState(Mockito.any(List.class))).thenReturn(unfinishedTasks);
         unfinishedTasksExecutor.reRunUnfinishedTasks();
+        //then
         Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
     }
 
     @Test
     public void shouldStartExecutionForOneTasks() throws TaskInfoDoesNotExistException {
+        //given
         List<TaskInfo> unfinishedTasks = new ArrayList<>();
-        TaskInfo taskInfo = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
-                new Date(), new Date(), new Date());
-        taskInfo.setOwnerId("exampleAppIdentifier");
-        taskInfo.setTaskDefinition("{\"inputData\":{\"DATASET_URLS\":[\"http://195.216.97.81/api/data-providers/topologiesTestProvider/data-sets/DEREFERENCE_DATASET\"]},\"parameters\":{\"REPRESENTATION_NAME\":\"derefernce_rep\",\"AUTHORIZATION_HEADER\":\"Basic bWV0aXNfdGVzdDoxUmtaQnVWZg==\"},\"outputRevision\":null,\"taskId\":-2054267154868584315,\"taskName\":\"\",\"harvestingDetails\":null}");
+        TaskInfo taskInfo = prepareTestTask();
         unfinishedTasks.add(taskInfo);
-
+        //when
         Mockito.reset(cassandraTasksDAO);
         Mockito.reset(taskSubmitterFactory);
         when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
         when(cassandraTaskInfoDAO.searchById(1L)).thenReturn(taskInfo);
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
         unfinishedTasksExecutor.reRunUnfinishedTasks();
+        //then
         Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
         Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
     }
 
     @Test
     public void shouldStartExecutionForTasksThatBelongsToGivenMachine() throws TaskInfoDoesNotExistException {
+        //given
         List<TaskInfo> unfinishedTasks = new ArrayList<>();
-        TaskInfo taskInfo = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
-                new Date(), new Date(), new Date());
-        taskInfo.setOwnerId("exampleAppIdentifier");
-        taskInfo.setTaskDefinition("{\"inputData\":{\"DATASET_URLS\":[\"http://195.216.97.81/api/data-providers/topologiesTestProvider/data-sets/DEREFERENCE_DATASET\"]},\"parameters\":{\"REPRESENTATION_NAME\":\"derefernce_rep\",\"AUTHORIZATION_HEADER\":\"Basic bWV0aXNfdGVzdDoxUmtaQnVWZg==\"},\"outputRevision\":null,\"taskId\":-2054267154868584315,\"taskName\":\"\",\"harvestingDetails\":null}");
+        TaskInfo taskInfo = prepareTestTask();
         unfinishedTasks.add(taskInfo);
-        //
-        TaskInfo taskInfoForAnotherMachine = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
-                new Date(), new Date(), new Date());
-        taskInfoForAnotherMachine.setOwnerId("exampleAppIdentifierForAnotherMachine");
-        unfinishedTasks.add(taskInfoForAnotherMachine);
-
+        unfinishedTasks.add(prepareTestTaskForAnotherMachine());
+        //when
         Mockito.reset(cassandraTasksDAO);
         Mockito.reset(taskSubmitterFactory);
         when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
         when(cassandraTaskInfoDAO.searchById(1L)).thenReturn(taskInfo);
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
         unfinishedTasksExecutor.reRunUnfinishedTasks();
+        //then
         Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
         Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
     }
 
+    private TaskInfo prepareTestTask(){
+        TaskInfo taskInfo = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
+                new Date(), new Date(), new Date());
+        taskInfo.setOwnerId("exampleAppIdentifier");
+        taskInfo.setTaskDefinition("{\"inputData\":{\"DATASET_URLS\":[\"http://195.216.97.81/api/data-providers/topologiesTestProvider/data-sets/DEREFERENCE_DATASET\"]},\"parameters\":{\"REPRESENTATION_NAME\":\"derefernce_rep\",\"AUTHORIZATION_HEADER\":\"Basic bWV0aXNfdGVzdDoxUmtaQnVWZg==\"},\"outputRevision\":null,\"taskId\":-2054267154868584315,\"taskName\":\"\",\"harvestingDetails\":null}");
+        return taskInfo;
+    }
+
+    private TaskInfo prepareTestTaskForAnotherMachine(){
+        TaskInfo taskInfoForAnotherMachine = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
+                new Date(), new Date(), new Date());
+        taskInfoForAnotherMachine.setOwnerId("exampleAppIdentifierForAnotherMachine");
+        return taskInfoForAnotherMachine;
+    }
 }
