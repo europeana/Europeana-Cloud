@@ -42,9 +42,10 @@ public class UnfinishedTasksExecutorTest {
     public void shouldNotStartExecutionForEmptyTasksList() {
         //given
         List<TaskInfo> unfinishedTasks = new ArrayList<>();
-        //when
+
         Mockito.reset(cassandraTasksDAO);
         when(cassandraTasksDAO.findTasksInGivenState(Mockito.any(List.class))).thenReturn(unfinishedTasks);
+        //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
         //then
         Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
@@ -56,12 +57,13 @@ public class UnfinishedTasksExecutorTest {
         List<TaskInfo> unfinishedTasks = new ArrayList<>();
         TaskInfo taskInfo = prepareTestTask();
         unfinishedTasks.add(taskInfo);
-        //when
+
         Mockito.reset(cassandraTasksDAO);
         Mockito.reset(taskSubmitterFactory);
         when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
         when(cassandraTaskInfoDAO.searchById(1L)).thenReturn(taskInfo);
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
+        //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
         //then
         Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
@@ -75,12 +77,13 @@ public class UnfinishedTasksExecutorTest {
         TaskInfo taskInfo = prepareTestTask();
         unfinishedTasks.add(taskInfo);
         unfinishedTasks.add(prepareTestTaskForAnotherMachine());
-        //when
+
         Mockito.reset(cassandraTasksDAO);
         Mockito.reset(taskSubmitterFactory);
         when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
         when(cassandraTaskInfoDAO.searchById(1L)).thenReturn(taskInfo);
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
+        //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
         //then
         Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
