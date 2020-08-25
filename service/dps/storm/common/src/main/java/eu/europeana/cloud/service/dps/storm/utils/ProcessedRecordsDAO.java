@@ -96,8 +96,6 @@ public class ProcessedRecordsDAO extends CassandraDAO {
     }
 
     public int getAttemptNumber(long taskId, String recordId) {
-        AtomicInteger attemptNumber = new AtomicInteger(0);
-        selectByPrimaryKey(taskId, recordId).ifPresent(processedRecord -> attemptNumber.set(processedRecord.getAttemptNumber()));
-        return attemptNumber.get();
+        return selectByPrimaryKey(taskId, recordId).map(ProcessedRecord::getAttemptNumber).orElse(0);
     }
 }
