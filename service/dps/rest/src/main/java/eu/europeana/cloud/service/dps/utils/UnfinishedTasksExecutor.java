@@ -113,6 +113,6 @@ public class UnfinishedTasksExecutor {
                 .status(TaskState.PROCESSING_BY_REST_APPLICATION)
                 .info("The task is in a pending mode, it is being processed before submission")
                 .taskJSON(taskInfo.getTaskDefinition())
-                .restart(true).build();
+                .restarted(true).build();
     }
 }

@@ -32,7 +32,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
 
-        if (parameters.isRestart()) {
+        if (parameters.isRestarted()) {
             LOGGER.info("The task {} in Http Topology cannot be restarted.", parameters.getTask().getTaskId());
             taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task in Http Topology cannot be restarted. It will be dropped.");
             return;
