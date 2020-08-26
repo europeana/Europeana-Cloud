@@ -120,7 +120,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                     return Collections.emptyList();
                 }
                 TaskInfo taskInfo = prepareTaskInfo(message);
-                assureStartDateSaved(taskInfo);
                 StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
                 if(maxTriesReached(stormTaskTuple)){
                     LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached: {}", message);
@@ -153,7 +152,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
 
         private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-            return taskInfoDAO.searchById(taskId);
+            return taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
         }
 
         private TaskInfo prepareTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
@@ -221,13 +220,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                     ++attempt
             );
             stormTaskTuple.setRecordAttemptNumber(attempt);
-        }
-    }
-
-    private void assureStartDateSaved(TaskInfo taskInfo) {
-        if (taskInfo.getStartDate() == null) {
-            taskInfo.setStartDate(new Date());
-            taskStatusUpdater.updateTaskStartDate(taskInfo);
         }
     }
 }

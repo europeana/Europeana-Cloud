@@ -28,6 +28,7 @@ import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
@@ -78,7 +79,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
         TaskSubmissionValidator.class, SubmitTaskService.class, OaiTopologyTaskSubmitter.class,
         HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, DatasetCleanerService.class,
-        TaskStatusUpdater.class, MCSTaskSubmiter.class})
+        TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmiter.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -150,7 +151,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 taskKafkaSubmitService,
                 depublicationService
         );
-        when(taskDAO.findTaskStateInfo(anyLong())).thenReturn(Optional.empty());
+        when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
     }
 
 
@@ -877,7 +878,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         Thread.sleep(1000);
         verify(taskDAO, times(1))
                 .setTaskCompletelyProcessed(eq(TASK_ID), eq("Completely process"));
-        verify(taskDAO).findTaskStateInfo(anyLong());
+        verify(taskDAO).findById(anyLong());
         verifyNoMoreInteractions(taskDAO);
     }
 
@@ -910,7 +911,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 .setTaskDropped(eq(TASK_ID),
                         eq("cleaner parameters can not be null")
                 );
-        verify(taskDAO).findTaskStateInfo(anyLong());
+        verify(taskDAO).findById(anyLong());
         verifyNoMoreInteractions(taskDAO);
     }
 

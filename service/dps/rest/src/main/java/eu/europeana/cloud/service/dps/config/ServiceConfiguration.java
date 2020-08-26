@@ -157,6 +157,11 @@ public class ServiceConfiguration {
     }
 
     @Bean
+    public TaskStatusSynchronizer taskStatusSynchronizer() {
+        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO());
+    }
+
+    @Bean
     public RecordStatusUpdater recordStatusUpdater(CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO) {
         return new RecordStatusUpdater(cassandraSubTaskInfoDAO);
     }

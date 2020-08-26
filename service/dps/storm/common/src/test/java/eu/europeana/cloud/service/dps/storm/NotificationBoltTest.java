@@ -76,7 +76,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         //when
         testedBolt.execute(tuple);
         //then
-        TaskInfo result = taskInfoDAO.searchById(taskId);
+        TaskInfo result = taskInfoDAO.findById(taskId).get();
         assertThat(result, notNullValue());
         assertThat(result, is(expectedTaskInfo));
     }
@@ -97,7 +97,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         //when
         testedBolt.execute(tuple);
         //then
-        TaskInfo result = taskInfoDAO.searchById(taskId);
+        TaskInfo result = taskInfoDAO.findById(taskId).get();
         assertThat(result, notNullValue());
         assertThat(result, is(expectedTaskInfo));
     }

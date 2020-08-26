@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskTopicInfo;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,20 +31,20 @@ public class UnfinishedTasksExecutor {
     @PostConstruct
     public void reRunUnfinishedTasks() {
         LOGGER.info("Will restart all pending tasks");
-        List<TaskTopicInfo> results = findProcessingByRestTasks();
-        List<TaskTopicInfo> resultsForCurrentMachine = findTasksForCurrentMachine(results);
+        List<TaskInfo> results = findProcessingByRestTasks();
+        List<TaskInfo> resultsForCurrentMachine = findTasksForCurrentMachine(results);
         restartExecutionFor(resultsForCurrentMachine);
     }
 
-    private List<TaskTopicInfo> findProcessingByRestTasks() {
+    private List<TaskInfo> findProcessingByRestTasks() {
         LOGGER.info("Searching for all unfinished tasks");
         return tasksDAO.findTasksInGivenState(TaskState.PROCESSING_BY_REST_APPLICATION);
     }
 
-    private List<TaskTopicInfo> findTasksForCurrentMachine(List<TaskTopicInfo> results) {
+    private List<TaskInfo> findTasksForCurrentMachine(List<TaskInfo> results) {
         LOGGER.info("Filtering tasks for current machine: {}", applicationIdentifier);
-        List<TaskTopicInfo> result = new ArrayList<>();
-        for (TaskTopicInfo taskInfo : results) {
+        List<TaskInfo> result = new ArrayList<>();
+        for (TaskInfo taskInfo : results) {
             if (taskInfo.getOwnerId().equals(applicationIdentifier)) {
                 result.add(taskInfo);
             }
@@ -52,11 +52,11 @@ public class UnfinishedTasksExecutor {
         return result;
     }
 
-    private void restartExecutionFor(List<TaskTopicInfo> tasksToBeRestarted) {
+    private void restartExecutionFor(List<TaskInfo> tasksToBeRestarted) {
         if (tasksToBeRestarted.isEmpty()) {
             LOGGER.info("No tasks to be restarted");
         } else {
-            for (TaskTopicInfo taskInfo : tasksToBeRestarted) {
+            for (TaskInfo taskInfo : tasksToBeRestarted) {
                 LOGGER.info("Restarting execution for: {}" + tasksToBeRestarted);
                 //we should use here another Spring component
             }

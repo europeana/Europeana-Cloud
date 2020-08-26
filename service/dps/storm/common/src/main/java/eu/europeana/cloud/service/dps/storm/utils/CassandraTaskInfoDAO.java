@@ -1,14 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskStateInfo;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 
 import java.util.Collection;
@@ -28,7 +26,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskInsertUpdateStateStatement;
     private PreparedStatement updateExpectedSize;
     private PreparedStatement updateTask;
-    private PreparedStatement updateTaskDate;
     private PreparedStatement endTask;
     private PreparedStatement updateProcessedFiles;
     private PreparedStatement finishTask;
@@ -57,8 +54,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         updateTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.START_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateTask.setConsistencyLevel(dbService.getConsistencyLevel());
-        updateTaskDate = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.START_TIME + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
-        updateTaskDate.setConsistencyLevel(dbService.getConsistencyLevel());
         updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.ERRORS + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateProcessedFiles.setConsistencyLevel(dbService.getConsistencyLevel());
         endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.ERRORS + " = ? , " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
@@ -97,14 +92,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    public TaskInfo searchById(long taskId)
-            throws NoHostAvailableException, QueryExecutionException, TaskInfoDoesNotExistException {
-        return findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-    }
-
     public Optional<TaskInfo> findById(long taskId)
             throws NoHostAvailableException, QueryExecutionException {
-        return Optional.of(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
+        return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
+    }
+
+    public List<TaskInfo> findByIds(Collection<Long> taskIds) {
+        return taskIds.stream().map(this::findById).flatMap(Optional::stream).collect(Collectors.toList());
     }
 
     private TaskInfo createTaskInfo(Row row) {
@@ -131,10 +125,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     public void updateTask(long taskId, String info, String state, Date startDate)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateTask.bind(String.valueOf(state), startDate, info, taskId));
-    }
-
-    public void updateTaskStartDate(TaskInfo taskInfo) {
-        dbService.getSession().execute(updateTaskDate.bind(taskInfo.getStartDate(), taskInfo.getId()));
     }
 
     public void setTaskCompletelyProcessed(long taskId, String info)
@@ -181,24 +171,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     public Optional<String> findTaskStatus(long taskId) {
-        return findTaskStateInfo(taskId)
-                .map(row -> row.getState());
-    }
-
-    public List<TaskStateInfo> findTaskStateInfos(Collection<Long> taskIdList) {
-        return taskIdList.stream().map(this::findTaskStateInfo).flatMap(Optional::stream).collect(Collectors.toList());
-    }
-
-    public Optional<TaskStateInfo> findTaskStateInfo(long taskId)   {
-        ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
-        Row row = rs.one();
-        if(row!=null) {
-            String topologyName = row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME);
-            String state = row.getString(CassandraTablesAndColumnsNames.STATE);
-            return Optional.of(new TaskStateInfo(taskId, topologyName, state));
-        }else {
-            return Optional.empty();
-        }
+        return findById(taskId)
+                .map(row -> row.getState().toString());
     }
 
 }

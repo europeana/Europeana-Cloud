@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskTopicInfo;
 import eu.europeana.cloud.service.dps.config.GhostTaskServiceTestContext;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
@@ -34,8 +33,8 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {GhostTaskService.class, GhostTaskServiceTestContext.class})
 public class GhostTaskServiceTest {
 
-    public static final TaskTopicInfo TOPIC_INFO_1 = createTopicInfo(1L, "oai_topology_2");
-    public static final TaskTopicInfo TOPIC_INFO_1_UNKNONW_TOPIC = createTopicInfo(1L, "unknown_topic");
+    public static final TaskInfo TOPIC_INFO_1 = createTopicInfo(1L, "oai_topology_2");
+    public static final TaskInfo TOPIC_INFO_1_UNKNONW_TOPIC = createTopicInfo(1L, "unknown_topic");
     public static final TaskInfo OLD_SENT_NO_STARTED_TASK_INFO_1 = createTaskInfo(1L,11);
     public static final TaskInfo NEWLY_SENT_NO_STARTED_TASK_INFO_1 = createTaskInfo(1L,9);
     public static final TaskInfo OLD_SENT_OLD_STARTED_TASK_INFO_1 = createTaskInfo(1L,11,11);
@@ -137,8 +136,8 @@ public class GhostTaskServiceTest {
         return info;
     }
 
-    private static TaskTopicInfo createTopicInfo(Long id, String topicName) {
-        TaskTopicInfo info = new TaskTopicInfo();
+    private static TaskInfo createTopicInfo(Long id, String topicName) {
+        TaskInfo info = new TaskInfo();
         info.setId(id);
         info.setTopicName(topicName);
         return info;

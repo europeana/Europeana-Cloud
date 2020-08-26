@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskTopicInfo;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.slf4j.Logger;
@@ -57,7 +56,7 @@ public class GhostTaskService {
     private Stream<TaskInfo> findTasksInGivenStates(TaskState... states) {
         return Arrays.stream(states).map(tasksByStateDAO::findTasksInGivenState)
                 .flatMap(List::stream)
-                .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskTopicInfo::getId)
+                .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskInfo::getId)
                 .map(taskInfoDAO::findById).flatMap(Optional::stream);
     }
 

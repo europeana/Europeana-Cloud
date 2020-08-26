@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -22,7 +22,7 @@ public class KafkaTopicSelector {
     private TasksByStateDAO tasksByStateDAO;
 
     @Autowired
-    private TaskStatusUpdater taskStatusUpdater;
+    private TaskStatusSynchronizer taskStatusSynchronizer;
 
     public KafkaTopicSelector(Environment environment) {
         availableTopic = new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS));
@@ -39,7 +39,7 @@ public class KafkaTopicSelector {
     }
 
     private void synchronizeTasksByTaskStateFromBasicInfo(String topologyName) {
-        taskStatusUpdater.synchronizeTasksByTaskStateFromBasicInfo(topologyName, availableTopic.get(topologyName));
+        taskStatusSynchronizer.synchronizeTasksByTaskStateFromBasicInfo(topologyName, availableTopic.get(topologyName));
     }
 
     private Optional<String> findFreeTopic(String topologyName) {

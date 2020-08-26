@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskTopicInfo;
 import eu.europeana.cloud.service.dps.config.UnfinishedTasksContext;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.junit.Test;
@@ -30,7 +29,7 @@ public class UnfinishedTasksExecutorTest {
 
     @Test
     public void shouldNotStartExecutionForEmptyTasksList() {
-        List<TaskTopicInfo> unfinishedTasks = new ArrayList<>();
+        List<TaskInfo> unfinishedTasks = new ArrayList<>();
         Mockito.reset(cassandraTasksDAO);
         when(cassandraTasksDAO.findTasksInGivenState(Mockito.any(TaskState.class))).thenReturn(unfinishedTasks);
         unfinishedTasksExecutor.reRunUnfinishedTasks();
@@ -39,8 +38,9 @@ public class UnfinishedTasksExecutorTest {
 
     @Test
     public void shouldStartExecutionForOneTasks() {
-        List<TaskTopicInfo> unfinishedTasks = new ArrayList<>();
-        TaskTopicInfo taskInfo = createTask();
+        List<TaskInfo> unfinishedTasks = new ArrayList<>();
+        TaskInfo taskInfo = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
+                new Date(), new Date(), new Date());
         taskInfo.setOwnerId("exampleAppIdentifier");
         unfinishedTasks.add(taskInfo);
 
@@ -54,12 +54,14 @@ public class UnfinishedTasksExecutorTest {
 
     @Test
     public void shouldStartExecutionForTasksThatBelongsToGivenMachine() {
-        List<TaskTopicInfo> unfinishedTasks = new ArrayList<>();
-        TaskTopicInfo taskInfo = createTask();
+        List<TaskInfo> unfinishedTasks = new ArrayList<>();
+        TaskInfo taskInfo = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
+                new Date(), new Date(), new Date());
         taskInfo.setOwnerId("exampleAppIdentifier");
         unfinishedTasks.add(taskInfo);
         //
-        TaskTopicInfo taskInfoForAnotherMachine = createTask();
+        TaskInfo taskInfoForAnotherMachine = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
+                new Date(), new Date(), new Date());
         taskInfoForAnotherMachine.setOwnerId("exampleAppIdentifierForAnotherMachine");
         unfinishedTasks.add(taskInfoForAnotherMachine);
 
@@ -69,11 +71,4 @@ public class UnfinishedTasksExecutorTest {
         Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(TaskState.PROCESSING_BY_REST_APPLICATION);
     }
 
-    private TaskTopicInfo createTask() {
-        TaskTopicInfo info = new TaskTopicInfo();
-        info.setId(1L);
-        info.setState(TaskState.PROCESSING_BY_REST_APPLICATION.toString());
-        info.setTopologyName("topoName");
-        return info;
-    }
 }

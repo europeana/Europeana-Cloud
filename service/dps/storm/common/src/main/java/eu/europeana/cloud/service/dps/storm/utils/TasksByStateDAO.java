@@ -6,8 +6,9 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskTopicInfo;
+import org.apache.commons.lang3.EnumUtils;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -65,18 +66,18 @@ public class TasksByStateDAO extends CassandraDAO {
 
     public void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
             throws NoHostAvailableException, QueryExecutionException {
-        if(oldState.isPresent() && !oldState.equals(state)){
-            delete(oldState.get(),topologyName,taskId);
+        if (oldState.isPresent() && !oldState.equals(state)) {
+            delete(oldState.get(), topologyName, taskId);
         }
         dbService.getSession().execute(insertStatement.bind(state, topologyName, taskId, applicationId, topicName, startTime));
     }
 
-    private void delete(String state, String topologyName, long taskId){
+    private void delete(String state, String topologyName, long taskId) {
         dbService.getSession().execute(deleteStatement.bind(state, topologyName, taskId));
     }
 
     public void updateTask(String topologyName, long taskId, String oldState, String newState) {
-        if(oldState.equals(newState)){
+        if (oldState.equals(newState)) {
             return;
         }
 
@@ -90,10 +91,10 @@ public class TasksByStateDAO extends CassandraDAO {
             startTime = oldTask.getTimestamp(TASKS_BY_STATE_START_TIME);
         }
 
-        insert(Optional.of(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
+        insert(Optional.ofNullable(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
-    public List<TaskTopicInfo> findTasksInGivenState(TaskState taskState)
+    public List<TaskInfo> findTasksInGivenState(TaskState taskState)
             throws NoHostAvailableException, QueryExecutionException {
         ResultSet rs = dbService.getSession().execute(findTasksInGivenState.bind(taskState.toString()));
 
@@ -101,11 +102,11 @@ public class TasksByStateDAO extends CassandraDAO {
     }
 
     public Set<String> listAllInUseTopicsFor(String topologyName) {
-        return listAllTaskInfoUseInTopic(topologyName).stream().map(TaskTopicInfo::getTopicName).filter(Objects::nonNull)
+        return listAllActiveTasksInTopology(topologyName).stream().map(TaskInfo::getTopicName).filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
-    public List<TaskTopicInfo> listAllTaskInfoUseInTopic(String topologyName) {
+    public List<TaskInfo> listAllActiveTasksInTopology(String topologyName) {
         ResultSet rs =
                 dbService.getSession().execute(
                         listAllInUseTopicsForTopology.bind(
@@ -116,10 +117,10 @@ public class TasksByStateDAO extends CassandraDAO {
     }
 
 
-    private TaskTopicInfo createTaskInfo(Row row) {
-        TaskTopicInfo taskInfo = new TaskTopicInfo();
+    private TaskInfo createTaskInfo(Row row) {
+        TaskInfo taskInfo = new TaskInfo();
         taskInfo.setId(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME));
-        taskInfo.setState(row.getString(TASKS_BY_STATE_STATE_COL_NAME));
+        taskInfo.setState(EnumUtils.getEnum(TaskState.class, row.getString(TASKS_BY_STATE_STATE_COL_NAME)));
         taskInfo.setTopologyName(row.getString(TASKS_BY_STATE_TOPOLOGY_NAME));
         taskInfo.setTopicName(row.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME));
         taskInfo.setOwnerId(row.getString(TASKS_BY_STATE_APP_ID_COL_NAME));

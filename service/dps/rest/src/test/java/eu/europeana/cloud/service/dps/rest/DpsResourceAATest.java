@@ -121,7 +121,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
         TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, 0, new Date(), new Date(), new Date());
-        when(taskDAO.findTaskStateInfo(anyLong())).thenReturn(Optional.empty());
+        when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
         Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
         when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
