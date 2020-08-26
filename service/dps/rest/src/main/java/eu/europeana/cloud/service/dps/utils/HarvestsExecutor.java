@@ -71,10 +71,10 @@ public class HarvestsExecutor {
     }
 
     private boolean messageShouldBeEmitted(SubmitTaskParameters submitTaskParameters, OAIHeader oaiHeader){
-        return
-                submitTaskParameters.isRestart()
-                &&
-                processedRecordsDAO.selectByPrimaryKey(submitTaskParameters.getTask().getTaskId(), oaiHeader.getIdentifier()).isEmpty();
+        if(!submitTaskParameters.isRestart())
+            return true;
+        else
+            return processedRecordsDAO.selectByPrimaryKey(submitTaskParameters.getTask().getTaskId(), oaiHeader.getIdentifier()).isEmpty();
     }
 
     /*package visiblility*/ DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {
