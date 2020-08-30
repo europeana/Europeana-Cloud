@@ -72,7 +72,7 @@ public class HarvestsExecutor {
 
     private boolean messageShouldBeEmitted(SubmitTaskParameters submitTaskParameters, OAIHeader oaiHeader){
         return
-                !submitTaskParameters.isRestart()
+                !submitTaskParameters.isRestarted()
                 ||
                 processedRecordsDAO.selectByPrimaryKey(submitTaskParameters.getTask().getTaskId(), oaiHeader.getIdentifier()).isEmpty();
     }
