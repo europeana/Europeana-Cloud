@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.HarvestsExecutorContext;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.junit.Assert;
 import org.junit.Before;
@@ -69,7 +69,12 @@ public class HarvestExecutorTest {
 
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(true);
 
-        HarvestResult harvestResult = harvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME);
+        HarvestResult harvestResult = harvestsExecutor.execute(harvestList,
+                SubmitTaskParameters.builder()
+                        .task(dpsTask)
+                        .topicName(TOPIC_NAME)
+                        .topologyName(OAI_TOPOLOGY_NAME)
+                        .build());
 
         Assert.assertEquals(TaskState.DROPPED, harvestResult.getTaskState());
     }
@@ -83,7 +88,12 @@ public class HarvestExecutorTest {
         Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
 
         HarvestsExecutor spiedHarvestsExecutor = spy(harvestsExecutor);
-        int count = spiedHarvestsExecutor.execute(OAI_TOPOLOGY_NAME, harvestList, dpsTask, TOPIC_NAME).getResultCounter();
+        int count = spiedHarvestsExecutor.execute(harvestList,
+                SubmitTaskParameters.builder()
+                        .task(dpsTask)
+                        .topicName(TOPIC_NAME)
+                        .topologyName(OAI_TOPOLOGY_NAME)
+                        .build()).getResultCounter();
 
         Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OAIHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
         Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).sendMessage(Matchers.any(DpsRecord.class), Mockito.anyString());

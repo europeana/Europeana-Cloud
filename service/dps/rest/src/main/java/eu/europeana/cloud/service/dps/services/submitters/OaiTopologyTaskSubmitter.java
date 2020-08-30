@@ -63,11 +63,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
 
         try {
             HarvestResult harvesterResult;
-            if (!parameters.isRestarted()) {
-                harvesterResult = harvestsExecutor.execute(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
-            } else {
-                harvesterResult = harvestsExecutor.executeForRestart(parameters.getTopologyName(), harvestsToByExecuted, parameters.getTask(), preferredTopicName);
-            }
+            harvesterResult = harvestsExecutor.execute(harvestsToByExecuted, parameters);
             updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
         } catch (HarvesterException e) {
             throw new TaskSubmissionException("Unable to submit task properly", e);

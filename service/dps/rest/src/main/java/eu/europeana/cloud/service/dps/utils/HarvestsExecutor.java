@@ -1,22 +1,20 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class HarvestsExecutor {
@@ -39,67 +37,44 @@ public class HarvestsExecutor {
         this.taskStatusChecker = taskStatusChecker;
     }
 
-    public HarvestResult execute(String topologyName, List<Harvest> harvestsToBeExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
+    public HarvestResult execute(List<Harvest> harvestsToBeExecuted, SubmitTaskParameters parameters) throws HarvesterException {
         int resultCounter = 0;
 
         for (Harvest harvest : harvestsToBeExecuted) {
-            LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvest, dpsTask.getTaskId());
+            LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvest, parameters.getTask().getTaskId());
             Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
             Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
 
             // *** Main harvesting loop for given task ***
             while (headerIterator.hasNext()) {
-                if (taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
-                    LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, dpsTask.getTaskId());
+                if (taskStatusChecker.hasKillFlag(parameters.getTask().getTaskId())) {
+                    LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, parameters.getTask().getTaskId());
                     return HarvestResult.builder()
                             .resultCounter(resultCounter)
                             .taskState(TaskState.DROPPED).build();
                 }
 
                 OAIHeader oaiHeader = headerIterator.next();
-                DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
-
-                sendMessage(record, topicName);
-                updateRecordStatus(record, topologyName);
-                logProgressFor(harvest, resultCounter);
-                resultCounter++;
+                if (messageShouldBeEmitted(parameters, oaiHeader)) {
+                    DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
+                    sendMessage(record, parameters.getTopicName());
+                    updateRecordStatus(record, parameters.getTopologyName());
+                    logProgressFor(harvest, resultCounter);
+                    resultCounter++;
+                }else{
+                    LOGGER.info("Record {} will not be emitted because it was found in the 'processed_records' table", oaiHeader);
+                }
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
         }
         return new HarvestResult(resultCounter, TaskState.QUEUED);
     }
 
-    /*Merge code below when latest version of restart procedure will be done/known*/
-    public HarvestResult executeForRestart(String topologyName, List<Harvest> harvestsToByExecuted, DpsTask dpsTask, String topicName) throws HarvesterException {
-        int resultCounter = 0;
-
-        for (Harvest harvest : harvestsToByExecuted) {
-            LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvest, dpsTask.getTaskId());
-            Harvester harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
-            Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
-
-            // *** Main harvesting loop for given task ***
-            while (headerIterator.hasNext()) {
-                if (taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
-                    LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, dpsTask.getTaskId());
-                    return HarvestResult.builder()
-                            .resultCounter(resultCounter)
-                            .taskState(TaskState.DROPPED).build();
-                }
-
-                OAIHeader oaiHeader = headerIterator.next();
-
-                Optional<ProcessedRecord> processedRecord = processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), oaiHeader.getIdentifier());
-                if (processedRecord.isEmpty() || processedRecord.get().getState() == RecordState.ERROR) {
-                    DpsRecord record = convertToDpsRecord(oaiHeader, harvest, dpsTask);
-                    sendMessage(record, topicName);
-                    updateRecordStatus(record, topologyName);
-                    resultCounter++;
-                }
-            }
-            LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
-        }
-        return new HarvestResult(resultCounter, TaskState.QUEUED);
+    private boolean messageShouldBeEmitted(SubmitTaskParameters submitTaskParameters, OAIHeader oaiHeader){
+        return
+                !submitTaskParameters.isRestart()
+                ||
+                processedRecordsDAO.selectByPrimaryKey(submitTaskParameters.getTask().getTaskId(), oaiHeader.getIdentifier()).isEmpty();
     }
 
     /*package visiblility*/ DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {
