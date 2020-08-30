@@ -55,7 +55,7 @@ public class SubmitTaskParameters {
     /**
      * Flag if task is subimtted <code>false<code/> or restarted <code>true<code/>
      */
-    private final boolean restart;
+    private final boolean restarted;
 
     private String taskJSON;
 
