@@ -251,7 +251,7 @@ public class NotificationBolt extends BaseRichBolt {
 
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
-        TaskInfo task = taskInfoDAO.searchById(taskId);
+        TaskInfo task = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
         if (task != null) {
             NotificationCache nCache = cache.get(taskId);
             int count = nCache.getProcessed();

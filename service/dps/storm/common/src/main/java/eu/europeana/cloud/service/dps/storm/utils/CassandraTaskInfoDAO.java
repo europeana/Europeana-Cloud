@@ -1,18 +1,19 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskStateInfo;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.TaskInfo} DAO
@@ -91,13 +92,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    public TaskInfo searchById(long taskId)
-            throws NoHostAvailableException, QueryExecutionException, TaskInfoDoesNotExistException {
-        ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
-        if (!rs.iterator().hasNext()) {
-            throw new TaskInfoDoesNotExistException();
-        }
-        return createTaskInfo(rs.one());
+    public Optional<TaskInfo> findById(long taskId)
+            throws NoHostAvailableException, QueryExecutionException {
+        return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
+    }
+
+    public List<TaskInfo> findByIds(Collection<Long> taskIds) {
+        return taskIds.stream().map(this::findById).flatMap(Optional::stream).collect(Collectors.toList());
     }
 
     private TaskInfo createTaskInfo(Row row) {
@@ -114,10 +115,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
         task.setTaskDefinition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS));
         return task;
-    }
-
-    public void insert(long taskId, String topologyName, int expectedSize, String state, String info,String applicationIdentifier, String topicName) throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(taskInsertUpdateStateStatement.bind(taskId, topologyName, expectedSize, state, info));
     }
 
     public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, String state, String info, Date sentTime, Date startTime, Date finishTime, int errors, String taskInformations)
@@ -174,20 +171,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     public Optional<String> findTaskStatus(long taskId) {
-        return findTaskStateInfo(taskId)
-                .map(row -> row.getState());
-    }
-
-    public Optional<TaskStateInfo> findTaskStateInfo(long taskId)   {
-        ResultSet rs = dbService.getSession().execute(taskSearchStatement.bind(taskId));
-        Row row = rs.one();
-        if(row!=null) {
-            String topologyName = row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME);
-            String state = row.getString(CassandraTablesAndColumnsNames.STATE);
-            return Optional.of(new TaskStateInfo(topologyName,state));
-        }else {
-            return Optional.empty();
-        }
+        return findById(taskId)
+                .map(row -> row.getState().toString());
     }
 
 }

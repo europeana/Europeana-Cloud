@@ -145,7 +145,7 @@ public class TopologyTasksResource {
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        TaskInfo taskInfo = taskInfoDAO.searchById(taskId);
+        TaskInfo taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
         DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
@@ -221,7 +221,7 @@ public class TopologyTasksResource {
      */
 
     @PostMapping(path = "{taskId}/kill")
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
+    @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
     public ResponseEntity<String> killTask(
             @PathVariable String topologyName,
             @PathVariable String taskId,

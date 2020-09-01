@@ -146,7 +146,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
 
         private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-            return taskInfoDAO.searchById(taskId);
+            return taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
         }
 
         private TaskInfo prepareTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {

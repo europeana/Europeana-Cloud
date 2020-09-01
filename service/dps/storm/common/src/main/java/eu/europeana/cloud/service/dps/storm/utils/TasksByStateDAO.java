@@ -8,12 +8,14 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import org.apache.commons.lang3.EnumUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
@@ -57,29 +59,25 @@ public class TasksByStateDAO extends CassandraDAO {
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + STATE + " IN ?");
 
         listAllInUseTopicsForTopology = dbService.getSession().prepare(
-                "SELECT " + TASKS_BY_STATE_TOPIC_NAME_COL_NAME + " FROM " + TASKS_BY_STATE_TABLE +
+                "SELECT * FROM " + TASKS_BY_STATE_TABLE +
                         " WHERE " + STATE + " IN ?" +
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?");
     }
 
-    private void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
+    public void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
             throws NoHostAvailableException, QueryExecutionException {
-        if(oldState.isPresent() && !oldState.equals(state)){
-            delete(oldState.get(),topologyName,taskId);
+        if (oldState.isPresent() && !oldState.equals(state)) {
+            delete(oldState.get(), topologyName, taskId);
         }
         dbService.getSession().execute(insertStatement.bind(state, topologyName, taskId, applicationId, topicName, startTime));
     }
 
-    private void delete(String state, String topologyName, long taskId){
+    private void delete(String state, String topologyName, long taskId) {
         dbService.getSession().execute(deleteStatement.bind(state, topologyName, taskId));
     }
 
-    public void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName) {
-        insert(oldState, state, topologyName, taskId, applicationId, topicName, new Date());
-    }
-
     public void updateTask(String topologyName, long taskId, String oldState, String newState) {
-        if(oldState.equals(newState)){
+        if (oldState.equals(newState)) {
             return;
         }
 
@@ -93,12 +91,10 @@ public class TasksByStateDAO extends CassandraDAO {
             startTime = oldTask.getTimestamp(TASKS_BY_STATE_START_TIME);
         }
 
-        insert(Optional.of(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
+        insert(Optional.ofNullable(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
     public List<TaskInfo> findTasksInGivenState(List<TaskState> taskStates) {
-
-        List<TaskInfo> results = new ArrayList<>();
 
         List<String> taskStatesNames = taskStates
                 .stream()
@@ -107,28 +103,32 @@ public class TasksByStateDAO extends CassandraDAO {
 
         ResultSet rs = dbService.getSession().execute(findTasksInGivenState.bind(taskStatesNames));
 
-        for (Row row : rs) {
-            TaskInfo taskInfo = new TaskInfo();
-            taskInfo.setState(TaskState.PROCESSING_BY_REST_APPLICATION);
-            taskInfo.setTopologyName(row.getString(TASKS_BY_STATE_STATE_COL_NAME));
-            taskInfo.setId(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME));
-            taskInfo.setOwnerId(row.getString(TASKS_BY_STATE_APP_ID_COL_NAME));
-            results.add(taskInfo);
-        }
-        return results;
+        return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
     }
 
-    public List<String> listAllInUseTopicsFor(String topologyName) {
-        List<String> results = new ArrayList<>();
+    public Set<String> listAllInUseTopicsFor(String topologyName) {
+        return listAllActiveTasksInTopology(topologyName).stream().map(TaskInfo::getTopicName).filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
 
+    public List<TaskInfo> listAllActiveTasksInTopology(String topologyName) {
         ResultSet rs =
                 dbService.getSession().execute(
                         listAllInUseTopicsForTopology.bind(
-                                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION.toString(), TaskState.QUEUED.toString()), topologyName));
+                                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION.toString()
+                                        , TaskState.QUEUED.toString()), topologyName));
 
-        for (Row row : rs) {
-            results.add(row.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME));
-        }
-        return results;
+        return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
+    }
+
+
+    private TaskInfo createTaskInfo(Row row) {
+        TaskInfo taskInfo = new TaskInfo();
+        taskInfo.setId(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME));
+        taskInfo.setState(EnumUtils.getEnum(TaskState.class, row.getString(TASKS_BY_STATE_STATE_COL_NAME)));
+        taskInfo.setTopologyName(row.getString(TASKS_BY_STATE_TOPOLOGY_NAME));
+        taskInfo.setTopicName(row.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME));
+        taskInfo.setOwnerId(row.getString(TASKS_BY_STATE_APP_ID_COL_NAME));
+        return taskInfo;
     }
 }

@@ -70,6 +70,8 @@ public class UnfinishedTasksExecutorTest {
         Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
     }
 
+
+
     @Test
     public void shouldStartExecutionForTasksThatBelongsToGivenMachine() throws TaskInfoDoesNotExistException {
         //given
