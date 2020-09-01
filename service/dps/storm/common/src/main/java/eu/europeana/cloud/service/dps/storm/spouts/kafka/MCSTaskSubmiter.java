@@ -247,8 +247,7 @@ public class MCSTaskSubmiter {
         DpsTask task = submitParameters.getTask();
         DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task)).recordId(fileUrl).build();
 
-        Optional<ProcessedRecord> processedRecord = processedRecordsDAO.selectByPrimaryKey(record.getTaskId(), record.getRecordId());
-        if (processedRecord.isEmpty()) {
+        if (!submitParameters.isRestarted() || processedRecordsDAO.selectByPrimaryKey(record.getTaskId(), record.getRecordId()).isEmpty()) {
             recordSubmitService.submitRecord(record, submitParameters.getTopicName());
             updateRecordStatus(record, submitParameters.getTopologyName());
             logProgress(submitParameters, submitParameters.incrementAndGetSentRecordCounter());
