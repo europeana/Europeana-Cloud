@@ -11,7 +11,6 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 
 import java.util.Calendar;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
@@ -22,6 +21,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
     private static final long TIME_TO_LIVE = 2 * 7 * 24 * 60 * 60L;  //two weeks in seconds
 
     private PreparedStatement insertStatement;
+    private PreparedStatement updateRecordStateStatement;
     private PreparedStatement selectByPrimaryKeyStatement;
 
     private static ProcessedRecordsDAO instance = null;
@@ -52,6 +52,13 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
                 ") VALUES (?,?,?,?,?,?,?,?,?) USING TTL " + TIME_TO_LIVE);
 
+        updateRecordStateStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                "("
+                + PROCESSED_RECORDS_TASK_ID + ","
+                + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_STATE +
+                ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
+
         selectByPrimaryKeyStatement = dbService.getSession().prepare("SELECT "
                 + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
                 + PROCESSED_RECORDS_DST_IDENTIFIER + ","
@@ -69,6 +76,11 @@ public class ProcessedRecordsDAO extends CassandraDAO {
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(insertStatement.bind(taskId, recordId, attemptNumber, dstResource, topologyName,
                 state, Calendar.getInstance().getTime(), infoText, additionalInformations));
+    }
+
+    public void updateProcessedRecordState(long taskId, String recordId, String stage) {
+        dbService.getSession().execute(
+                updateRecordStateStatement.bind(taskId, recordId, stage));
     }
 
     public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)

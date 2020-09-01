@@ -2,13 +2,13 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolt
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.RecordProcessingStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
     private final String userName;
     private final String password;
     private transient CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
-    private transient RecordProcessingStateDAO recordProcessingStateDAO;
+    private transient ProcessedRecordsDAO processedRecordsDAO;
 
     public StatisticsBolt(String hosts, int port, String keyspaceName,
                           String userName, String password) {
@@ -46,7 +46,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         cassandraNodeStatisticsDAO = CassandraNodeStatisticsDAO.getInstance(cassandraConnectionProvider);
-        recordProcessingStateDAO = RecordProcessingStateDAO.getInstance(cassandraConnectionProvider);
+        processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
     }
 
     @Override
@@ -70,8 +70,8 @@ public class StatisticsBolt extends AbstractDpsBolt {
     }
 
     private boolean statsAlreadyCalculated(StormTaskTuple stormTaskTuple) {
-        Optional<RecordState> processingRecordStage = recordProcessingStateDAO.selectProcessingRecordStage(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-        return processingRecordStage.isPresent() && processingRecordStage.get() == RecordState.STATS_GENERATED;
+        Optional<ProcessedRecord> processingRecordStage = processedRecordsDAO.selectByPrimaryKey(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        return processingRecordStage.isPresent() && processingRecordStage.get().getState() == RecordState.STATS_GENERATED;
     }
 
     private void countStatistics(StormTaskTuple stormTaskTuple) throws ParserConfigurationException, SAXException, IOException {
@@ -81,6 +81,6 @@ public class StatisticsBolt extends AbstractDpsBolt {
     }
 
     private void markRecordStatsAsCalculated(StormTaskTuple stormTaskTuple) {
-        recordProcessingStateDAO.updateProcessingRecordStage(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED.toString());
+        processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED.toString());
     }
 }
