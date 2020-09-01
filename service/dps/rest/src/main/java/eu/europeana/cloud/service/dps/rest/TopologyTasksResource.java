@@ -263,7 +263,7 @@ public class TopologyTasksResource {
                     .status(TaskState.PROCESSING_BY_REST_APPLICATION)
                     .info("The task is in a pending mode, it is being processed before submission")
                     .taskJSON(taskJSON)
-                    .restart(restart).build();
+                    .restarted(restart).build();
             try {
                 taskStatusUpdater.insertTask(parameters);
                 taskSubmissionValidator.validateTaskSubmission(parameters);

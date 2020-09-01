@@ -487,7 +487,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
         harvestingDetails.setSchemas(Collections.singleton("oai_dc"));
         task.setHarvestingDetails(harvestingDetails);
-        when(harvestsExecutor.execute(anyString(),anyListOf(Harvest.class),any(DpsTask.class),anyString())).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
+        when(harvestsExecutor.execute(anyListOf(Harvest.class), any(SubmitTaskParameters.class))).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
         ResultActions response = sendTask(task, OAI_TOPOLOGY);
@@ -495,7 +495,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep( 1000);
-        verify(harvestsExecutor).execute(eq(OAI_TOPOLOGY),anyListOf(Harvest.class),any(DpsTask.class),anyString());
+        verify(harvestsExecutor).execute(anyListOf(Harvest.class), any(SubmitTaskParameters.class));
         verifyZeroInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
     }

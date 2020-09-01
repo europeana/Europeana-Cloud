@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
@@ -53,7 +54,7 @@ public class TasksByStateDAO extends CassandraDAO {
 
 
         findTasksInGivenState = dbService.getSession().prepare(
-                "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + STATE + " = ?");
+                "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + STATE + " IN ?");
 
         listAllInUseTopicsForTopology = dbService.getSession().prepare(
                 "SELECT " + TASKS_BY_STATE_TOPIC_NAME_COL_NAME + " FROM " + TASKS_BY_STATE_TABLE +
@@ -95,10 +96,16 @@ public class TasksByStateDAO extends CassandraDAO {
         insert(Optional.of(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
-    public List<TaskInfo> findTasksInGivenState(TaskState taskState)
-            throws NoHostAvailableException, QueryExecutionException {
+    public List<TaskInfo> findTasksInGivenState(List<TaskState> taskStates) {
+
         List<TaskInfo> results = new ArrayList<>();
-        ResultSet rs = dbService.getSession().execute(findTasksInGivenState.bind(taskState.toString()));
+
+        List<String> taskStatesNames = taskStates
+                .stream()
+                .map(Enum::toString)
+                .collect(Collectors.toList());
+
+        ResultSet rs = dbService.getSession().execute(findTasksInGivenState.bind(taskStatesNames));
 
         for (Row row : rs) {
             TaskInfo taskInfo = new TaskInfo();

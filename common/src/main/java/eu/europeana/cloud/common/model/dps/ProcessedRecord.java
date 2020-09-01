@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.Date;
+
 /**
  * Class represents one row in processed_records db table
  */
@@ -12,10 +14,12 @@ import lombok.ToString;
 @ToString
 public class ProcessedRecord {
     private long taskId;
-    private String srcIdentifier;
+    private String recordId;
+    private int attemptNumber;
     private String dstIdentifier;
     private String topologyName;
     private RecordState state;
+    private Date starTime;
     private String infoText;
     private String additionalInformations;
 }

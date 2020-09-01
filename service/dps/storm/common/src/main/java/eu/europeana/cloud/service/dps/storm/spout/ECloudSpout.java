@@ -46,7 +46,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
-    protected transient RecordProcessingStateDAO recordProcessingStateDAO;
 
     public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -87,7 +86,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
-        recordProcessingStateDAO = RecordProcessingStateDAO.getInstance(cassandraConnectionProvider);
     }
 
     @Override
@@ -204,17 +202,22 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
 
         private void setupRetryParameters(StormTaskTuple stormTaskTuple) {
-            int attempt = recordProcessingStateDAO.selectProcessingRecordAttempt(
+            processedRecordsDAO.selectByPrimaryKey(
                     stormTaskTuple.getTaskId(),
                     stormTaskTuple.getFileUrl()
-            );
-
-            recordProcessingStateDAO.insertProcessingRecord(
-                    stormTaskTuple.getTaskId(),
-                    stormTaskTuple.getFileUrl(),
-                    ++attempt
-            );
-            stormTaskTuple.setRecordAttemptNumber(attempt);
+            ).ifPresent(processedRecord -> {
+                processedRecordsDAO.insert(
+                        stormTaskTuple.getTaskId(),
+                        stormTaskTuple.getFileUrl(),
+                        processedRecord.getAttemptNumber() + 1,
+                        processedRecord.getDstIdentifier(),
+                        processedRecord.getTopologyName(),
+                        processedRecord.getState().toString(),
+                        processedRecord.getInfoText(),
+                        processedRecord.getAdditionalInformations()
+                );
+                stormTaskTuple.setRecordAttemptNumber(processedRecord.getAttemptNumber() + 1);
+            });
         }
     }
 }
