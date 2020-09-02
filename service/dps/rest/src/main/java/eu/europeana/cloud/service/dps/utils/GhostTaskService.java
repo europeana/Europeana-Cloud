@@ -54,8 +54,7 @@ public class GhostTaskService {
     }
 
     private Stream<TaskInfo> findTasksInGivenStates(TaskState... states) {
-        return Arrays.stream(states).map(tasksByStateDAO::findTasksInGivenState)
-                .flatMap(List::stream)
+        return tasksByStateDAO.findTasksInGivenState(Arrays.asList(states)).stream()
                 .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskInfo::getId)
                 .map(taskInfoDAO::findById).flatMap(Optional::stream);
     }

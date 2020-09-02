@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This component will check all tasks with status TaskState.PROCESSING_BY_REST_APPLICATION
@@ -71,12 +72,9 @@ public class UnfinishedTasksExecutor {
         List<TaskInfo> result = new ArrayList<>();
         for (TaskInfo taskInfo : results) {
             if (taskInfo.getOwnerId().equals(applicationIdentifier)) {
-                try {
-                    result.add(taskInfoDAO.searchById(taskInfo.getId()));
-                } catch (TaskInfoDoesNotExistException e) {
-                    LOGGER.warn("Task with id {} not found in basic_info table. It will be ignored in resumption process.",
-                            taskInfo.getId());
-                }
+                taskInfoDAO.findById(taskInfo.getId()).ifPresentOrElse(result::add, () ->
+                        LOGGER.warn("Task with id {} not found in basic_info table. It will be ignored in resumption process.", taskInfo.getId()));
+
             }
         }
         return result;

@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -61,7 +62,7 @@ public class UnfinishedTasksExecutorTest {
         Mockito.reset(cassandraTasksDAO);
         Mockito.reset(taskSubmitterFactory);
         when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
-        when(cassandraTaskInfoDAO.searchById(1L)).thenReturn(taskInfo);
+        when(cassandraTaskInfoDAO.findById(1L)).thenReturn(Optional.of(taskInfo));
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
         //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
@@ -83,7 +84,7 @@ public class UnfinishedTasksExecutorTest {
         Mockito.reset(cassandraTasksDAO);
         Mockito.reset(taskSubmitterFactory);
         when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
-        when(cassandraTaskInfoDAO.searchById(1L)).thenReturn(taskInfo);
+        when(cassandraTaskInfoDAO.findById(1L)).thenReturn(Optional.of(taskInfo));
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
         //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
