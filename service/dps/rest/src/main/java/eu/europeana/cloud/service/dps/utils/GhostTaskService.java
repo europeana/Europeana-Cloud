@@ -45,7 +45,9 @@ public class GhostTaskService {
     public void serviceTask() {
         List<TaskInfo> tasks = findGhostTasks();
         List<Long> ids = tasks.stream().map(TaskInfo::getId).collect(Collectors.toList());
-        LOGGER.error("Ghost task found on server ids: {}", ids);
+        if (!ids.isEmpty()) {
+            LOGGER.error("Ghost task found on server ids: {}", ids);
+        }
     }
 
     public List<TaskInfo> findGhostTasks() {
