@@ -109,6 +109,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 message = readMessageFromTuple(tuple);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
+                    // Ignores message from dropped tasks. Such message should not be emitted,
+                    // but must be acknowledged to not remain in topic and to allow acknowledgement
+                    // of any following messages.
+                    ack(messageId);
                     LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
                     return Collections.emptyList();
                 }
