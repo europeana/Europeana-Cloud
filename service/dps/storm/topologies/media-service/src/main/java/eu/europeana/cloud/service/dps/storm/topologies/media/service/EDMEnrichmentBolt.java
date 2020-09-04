@@ -35,6 +35,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
     private static final int CACHE_SIZE = 1024;
+    public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
 
     private transient Gson gson;
     private transient RdfDeserializer deserializer;
@@ -49,7 +50,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
-            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "No resources to perform",
+                    NO_RESOURCES_DETAILED_MESSAGE, StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
             outputCollector.ack(anchorTuple);
         } else {
             final String file = stormTaskTuple.getFileUrl();
@@ -80,6 +83,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 else
                     tempEnrichedFile.setExceptions(currentException + "," + exceptionMessage);
             } finally {
+                tempEnrichedFile.increaseCount();
                 if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
                     try {
                         LOGGER.info("The file {} was fully enriched and will be send to the next bolt", file);
@@ -93,7 +97,6 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                     }
                     ackAllSourceTuplesForFile(tempEnrichedFile);
                 } else {
-                    tempEnrichedFile.increaseCount();
                     cache.put(file, tempEnrichedFile);
                 }
             }
@@ -197,7 +200,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
 
         public boolean isTheLastResource(int linkCount) {
-            return (count + 1 == linkCount);
+            return (count == linkCount);
         }
 
         public void addSourceTuple(Tuple anchorTuple) {

@@ -49,12 +49,12 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 		try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
 			byte[] fileContent = IOUtils.toByteArray(stream);
 			List<RdfResourceEntry> rdfResourceEntries = getResourcesFromRDF(fileContent);
-			if (rdfResourceEntries.isEmpty()) {
+			int linksCount = getLinksCount(stormTaskTuple, rdfResourceEntries.size());
+			if (linksCount == 0) {
 				StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
 				LOGGER.info("The EDM file has no resource Links ");
                 outputCollector.emit(anchorTuple, tuple.toStormTuple());
 			} else {
-				int linksCount = getLinksCount(stormTaskTuple, rdfResourceEntries.size());
 				for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
 					if (AbstractDpsBolt.taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
 						break;
