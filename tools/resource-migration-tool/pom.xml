@@ -13,15 +13,11 @@
     <name>ResourceMigrator</name>
     <url>http://maven.apache.org</url>
 
-    <properties>
-        <spring.version>4.2.3.RELEASE</spring.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>${spring.version}</version>
+            <version>${version.spring-framework}</version>
 
             <exclusions>
                 <exclusion>
@@ -34,7 +30,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
+            <version>${version.spring-framework}</version>
         </dependency>
 
         <dependency>
@@ -62,7 +58,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
+            <version>${version.spring-framework}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
