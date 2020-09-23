@@ -44,7 +44,7 @@ public class DatasetFilesCounterTest {
 
     @Test
     public void shouldReturnProcessedFiles() throws Exception {
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", EXPECTED_SIZE, EXPECTED_SIZE, 0, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", EXPECTED_SIZE, EXPECTED_SIZE, 0, 0, new Date(), new Date(), new Date());
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
         int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);

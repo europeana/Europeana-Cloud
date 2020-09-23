@@ -2,6 +2,7 @@ package eu.europeana.cloud.common.model.dps;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.Date;
  */
 @Builder
 @Getter
+@Setter
 @ToString
 public class ProcessedRecord {
     private long taskId;

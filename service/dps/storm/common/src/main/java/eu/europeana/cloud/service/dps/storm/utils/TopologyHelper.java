@@ -108,7 +108,7 @@ public final class TopologyHelper {
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
 
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
-                new KafkaSpoutConfig.Builder(
+                new KafkaSpoutConfig.Builder<String, DpsRecord>(
                         topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
                         .setProcessingGuarantee(processingGuarantee)
                         .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
@@ -118,6 +118,7 @@ public final class TopologyHelper {
                         .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
         return new ECloudSpout(
+                topologyName,
                 configBuilder.build(),
                 topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),

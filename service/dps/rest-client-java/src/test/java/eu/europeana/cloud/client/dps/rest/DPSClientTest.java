@@ -126,7 +126,7 @@ public class DPSClientTest {
     @Betamax(tape = "DPSClient/getTaskProgressTest")
     public final void shouldReturnedProgressReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 1, 0, 0, null, null, null);
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 1, 0, 0, 0, null, null, null);
         assertThat(dpsClient.getTaskProgress(TOPOLOGY_NAME, TASK_ID), is(taskInfo));
 
     }

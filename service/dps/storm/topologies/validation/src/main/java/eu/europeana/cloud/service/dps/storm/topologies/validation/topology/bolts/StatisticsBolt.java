@@ -17,6 +17,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Optional;
 
 
@@ -71,7 +72,9 @@ public class StatisticsBolt extends AbstractDpsBolt {
 
     private boolean statsAlreadyCalculated(StormTaskTuple stormTaskTuple) {
         Optional<ProcessedRecord> processingRecordStage = processedRecordsDAO.selectByPrimaryKey(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-        return processingRecordStage.isPresent() && processingRecordStage.get().getState() == RecordState.STATS_GENERATED;
+        return processingRecordStage.isPresent() &&
+                EnumSet.of(RecordState.STATS_GENERATED, RecordState.ERROR, RecordState.SUCCESS)
+                        .contains(processingRecordStage.get().getState());
     }
 
     private void countStatistics(StormTaskTuple stormTaskTuple) throws ParserConfigurationException, SAXException, IOException {
@@ -81,6 +84,8 @@ public class StatisticsBolt extends AbstractDpsBolt {
     }
 
     private void markRecordStatsAsCalculated(StormTaskTuple stormTaskTuple) {
-        processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED.toString());
+        if (!statsAlreadyCalculated(stormTaskTuple)) {
+            processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED.toString());
+        }
     }
 }
