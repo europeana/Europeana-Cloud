@@ -9,7 +9,6 @@
 
 	<properties>
 		<main.directory>${project.parent.parent.basedir}</main.directory>
-		<version.guava>16.0</version.guava> <!-- Version from ecloud-parent pom is invisible when sinle subprojects as dps/rest or storm/topologies/XXXX are built-->
 	</properties>
 
 	<artifactId>ecloud-service-dps-api</artifactId>
