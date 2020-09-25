@@ -24,6 +24,7 @@ public class TaskInfo {
     private String topologyName;
     private int expectedSize;
     private int processedElementCount;
+    private int retryCount;
     private TaskState state;
     private String info;
     private String ownerId;
@@ -88,6 +89,14 @@ public class TaskInfo {
         this.processedElementCount = processedElementCount;
     }
 
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    }
+
     public int getProcessedPercentage() {
         return processedPercentage;
     }
@@ -139,16 +148,17 @@ public class TaskInfo {
     }
 
     public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate, Date finishDate) {
-        this(id, topologyName, state, info, 0, 0, 0, sentDate, startDate, finishDate);
+        this(id, topologyName, state, info, 0, 0, 0, 0, sentDate, startDate, finishDate);
     }
 
-    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, int errors, Date sentDate, Date startDate, Date finishDate) {
+    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, int retryCount, int errors, Date sentDate, Date startDate, Date finishDate) {
         this.id = id;
         this.topologyName = topologyName;
         this.state = state;
         this.info = info;
         this.expectedSize = containsElements;
         this.processedElementCount = processedElementCount;
+        this.retryCount = retryCount;
         this.sentDate = sentDate;
         this.startDate = startDate;
         this.finishDate = finishDate;

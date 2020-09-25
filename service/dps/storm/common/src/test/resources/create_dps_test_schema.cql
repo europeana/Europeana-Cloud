@@ -25,6 +25,7 @@ CREATE TABLE basic_info (
     sent_time timestamp,
     errors int,
     task_informations text,
+    retry_count int,
     PRIMARY KEY(task_id)
 );
 

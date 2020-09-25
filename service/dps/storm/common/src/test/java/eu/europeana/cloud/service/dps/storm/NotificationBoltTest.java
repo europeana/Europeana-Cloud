@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportSer
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
 import org.apache.storm.task.OutputCollector;
@@ -23,6 +24,7 @@ import org.mockito.Mockito;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
@@ -38,6 +40,8 @@ public class NotificationBoltTest extends CassandraTestBase {
     private CassandraTaskInfoDAO taskInfoDAO;
     private CassandraReportService cassandraReportService;
     private CassandraSubTaskInfoDAO subtaskDAO;
+    private ProcessedRecordsDAO processedRecordsDAO;
+    private int resourceCounter=0;
 
     @Before
     public void setUp() throws Exception {
@@ -47,7 +51,8 @@ public class NotificationBoltTest extends CassandraTestBase {
         cassandraReportService = new CassandraReportService(HOST, PORT, KEYSPACE, USER_NAME, PASSWORD);
 
         CassandraConnectionProvider db=new CassandraConnectionProvider(HOST,PORT,KEYSPACE,USER_NAME,PASSWORD);
-        subtaskDAO= CassandraSubTaskInfoDAO.getInstance(db);
+        subtaskDAO = CassandraSubTaskInfoDAO.getInstance(db);
+        processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
     }
 
     private void createBolt() {
@@ -102,6 +107,21 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(result, is(expectedTaskInfo));
     }
 
+    @Test
+    public void verifyOnlyOneNotificationForRepeatedRecord() throws Exception {
+        long taskId = 1;
+        taskInfoDAO.insert(taskId, null, 10, 0, TaskState.CURRENTLY_PROCESSING.toString(), "", null, null, null, 0, null);
+
+        Tuple tuple = createNotificationTuple(taskId, RecordState.SUCCESS);
+        testedBolt.execute(tuple);
+        testedBolt.execute(tuple);
+
+        TaskInfo taskProgress = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+        List<SubTaskInfo> notifications = cassandraReportService.getDetailedTaskReportBetweenChunks("" + taskId, 0, 100);
+        assertThat(notifications, hasSize(1));
+        assertEquals(taskProgress.getProcessedElementCount(), 1);
+    }
+
 
     @Test
     public void testSuccessfulNotificationFor101Tuples() throws Exception {
@@ -118,19 +138,18 @@ public class NotificationBoltTest extends CassandraTestBase {
 
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);
-        final Tuple tuple = createNotificationTuple(taskId, RecordState.SUCCESS);
         TaskInfo beforeExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
 
         for (int i = 0; i < 98; i++) {
-            testedBolt.execute(tuple);
+            testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         }
         //we will wait 5 second to be sure that notification bolt will update progress counter
         Thread.sleep(5001);
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
 
         TaskInfo afterOneHundredExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         assertEquals(beforeExecute.getProcessedElementCount(), 0);
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
 
@@ -148,17 +167,16 @@ public class NotificationBoltTest extends CassandraTestBase {
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
 
         testedBolt.execute(setUpTuple);
-        final Tuple tuple = createNotificationTuple(taskId, RecordState.SUCCESS);
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         createBolt();
         //we will wait 5 second to be sure that notification bolt will update progress counter
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         Thread.sleep(5001);
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         TaskInfo info = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         assertEquals(3, info.getProcessedElementCount());
         assertEquals(TaskState.CURRENTLY_PROCESSING, info.getState());
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
 
         info = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         assertEquals(expectedSize, info.getProcessedElementCount());
@@ -177,11 +195,10 @@ public class NotificationBoltTest extends CassandraTestBase {
         taskInfoDAO.insert(taskId, topologyName, 2, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);
-        final Tuple tuple = createNotificationTuple(taskId, RecordState.SUCCESS);
 
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         createBolt();
-        testedBolt.execute(tuple);
+        testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
 
         assertEquals(expectedSize,subtaskDAO.getProcessedFilesCount(taskId));
     }
@@ -215,9 +232,8 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertEquals(RESOURCE_2, specificReportErrorInfo.getErrorDetails().get(1).getIdentifier());
     }
 
-
     private Tuple createNotificationTuple(long taskId, RecordState state) {
-        String resource = "resource";
+        String resource = "resource"+ ++resourceCounter;
         return createNotificationTuple(taskId, state, resource);
     }
 
@@ -342,6 +358,12 @@ public class NotificationBoltTest extends CassandraTestBase {
 
 
     private Tuple createTestTuple(NotificationTuple tuple) {
+
+        String recordId = (String)tuple.getParameters().get(NotificationParameterKeys.RESOURCE);
+        if (recordId != null) {
+            processedRecordsDAO.insert(tuple.getTaskId(), recordId, 1, "", "",
+                    RecordState.QUEUED.toString(), "", "");
+        }
         Values testValue = tuple.toStormTuple();
         TopologyBuilder builder = new TopologyBuilder();
         @SuppressWarnings("unchecked")

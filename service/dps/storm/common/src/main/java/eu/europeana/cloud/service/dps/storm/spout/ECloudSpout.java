@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
@@ -11,7 +12,6 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.*;
-import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -36,6 +36,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
     private static final int MAX_RETRIES = 3;
 
+    private String topologyName;
     private String hosts;
     private int port;
     private String keyspaceName;
@@ -46,11 +47,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
+    protected transient TasksCache tasksCache;
 
-    public ECloudSpout(KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
+    public ECloudSpout(String topologyName, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
+        this.topologyName=topologyName;
         this.hosts = hosts;
         this.port = port;
         this.keyspaceName = keyspaceName;
@@ -61,6 +64,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     @Override
     public void ack(Object messageId) {
         LOGGER.info("Record acknowledged {}", messageId);
+        super.ack(messageId);
+    }
+
+    private void ackIgnoredMessage(Object messageId) {
         super.ack(messageId);
     }
 
@@ -86,6 +93,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
+        tasksCache = new TasksCache(cassandraConnectionProvider);
     }
 
     @Override
@@ -96,11 +104,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     public class ECloudOutputCollector extends SpoutOutputCollector {
 
-        private final LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
-
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);
-         }
+        }
 
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
@@ -109,28 +115,18 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 message = readMessageFromTuple(tuple);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
-                    // Ignores message from dropped tasks. Such message should not be emitted,
-                    // but must be acknowledged to not remain in topic and to allow acknowledgement
-                    // of any following messages.
-                    ack(messageId);
-                    LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
-                    return Collections.emptyList();
+                    return omitMessageFromDroppedTask(message, messageId);
                 }
-                TaskInfo taskInfo = prepareTaskInfo(message);
-                StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message);
-                if(maxTriesReached(stormTaskTuple)){
-                    LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached: {}", message);
-                    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(
-                            taskInfo.getId(),
-                            message.getRecordId(),
-                            RecordState.ERROR,
-                            "Max retries reached",
-                            "Max retries reached",
-                            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-                    return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), messageId);
-                }else{
-                    LOGGER.info("Emitting record to the subsequent bolt: {}", message);
-                    return super.emit(streamId, stormTaskTuple.toStormTuple(), messageId);
+
+                ProcessedRecord record = prepareRecordForExecution(message);
+                if (isFinished(record)) {
+                    return omitAlreadyProcessedRecord(message, messageId);
+                }
+
+                if (maxTriesReached(record)) {
+                    return emitMaxTriesReachedNotification(message, messageId);
+                } else {
+                    return emitRecordForProcessing(streamId, message, record, messageId);
                 }
             } catch (IOException | NullPointerException e) {
                 LOGGER.error("Unable to read message", e);
@@ -141,44 +137,63 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             }
         }
 
+        List<Integer> omitAlreadyProcessedRecord(DpsRecord message, Object messageId) {
+            //Ignore records that is already preformed. It could take place after spout restart
+            //if record was performed but was not acknowledged in kafka service. It is normal situation.
+            //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
+            //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
+            //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
+            LOGGER.info("Dropping kafka message for task {} because record {} was already processed: ", message.getTaskId(), message.getRecordId());
+            ackIgnoredMessage(messageId);
+            return Collections.emptyList();
+        }
+
+        List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord record, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
+            TaskInfo taskInfo = getTaskInfo(message);
+            updateRetryCount(taskInfo, record);
+            StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message, record);
+            LOGGER.info("Emitting record to the subsequent bolt: {}", message);
+            return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
+        }
+
+        List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
+            LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached: {}", message);
+            NotificationTuple notificationTuple = NotificationTuple.prepareNotification(
+                    message.getTaskId(),
+                    message.getRecordId(),
+                    RecordState.ERROR,
+                    "Max retries reached",
+                    "Max retries reached",
+                    System.currentTimeMillis());
+            return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
+        }
+
+        List<Integer> omitMessageFromDroppedTask(DpsRecord message, Object messageId) {
+            // Ignores message from dropped tasks. Such message should not be emitted,
+            // but must be acknowledged to not remain in topic and to allow acknowledgement
+            // of any following messages.
+            ackIgnoredMessage(messageId);
+            LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
+            return Collections.emptyList();
+        }
+
+        private boolean maxTriesReached(ProcessedRecord record) {
+            return record.getAttemptNumber() > MAX_RETRIES;
+        }
+
+        private boolean isFinished(ProcessedRecord record) {
+            return record.getState() == RecordState.SUCCESS || record.getState() == RecordState.ERROR;
+        }
+
         private DpsRecord readMessageFromTuple(List<Object> tuple){
             return (DpsRecord)tuple.get(4);
         }
 
-        private boolean maxTriesReached(StormTaskTuple stormTaskTuple){
-            return stormTaskTuple.getRecordAttemptNumber() > MAX_RETRIES;
+        private TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
+            return tasksCache.getTaskInfo(message);
         }
 
-        private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-            return taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        }
-
-        private TaskInfo prepareTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
-            TaskInfo taskInfo = findTaskInCache(message);
-            //
-            if (taskFoundInCache(taskInfo)) {
-                LOGGER.debug("TaskInfo found in cache");
-            } else {
-                LOGGER.debug("TaskInfo NOT found in cache");
-                taskInfo = readTaskFromDB(message.getTaskId());
-                cache.put(message.getTaskId(), taskInfo);
-            }
-            return taskInfo;
-        }
-
-        private TaskInfo findTaskInCache(DpsRecord kafkaMessage) {
-            return cache.get(kafkaMessage.getTaskId());
-        }
-
-        private boolean taskFoundInCache(TaskInfo taskInfo) {
-            return taskInfo != null;
-        }
-
-        private TaskInfo readTaskFromDB(long taskId) throws TaskInfoDoesNotExistException {
-            return findTaskInDb(taskId);
-        }
-
-        private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord) throws IOException {
+        private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord, ProcessedRecord record) throws IOException {
             //
             DpsTask dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
             StormTaskTuple stormTaskTuple = new StormTaskTuple(
@@ -200,28 +215,37 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             }
 
             //Implementation of re-try mechanism after topology broken down
-            setupRetryParameters(stormTaskTuple);
+            stormTaskTuple.setRecordAttemptNumber(record.getAttemptNumber());
 
             return stormTaskTuple;
         }
 
-        private void setupRetryParameters(StormTaskTuple stormTaskTuple) {
-            processedRecordsDAO.selectByPrimaryKey(
-                    stormTaskTuple.getTaskId(),
-                    stormTaskTuple.getFileUrl()
-            ).ifPresent(processedRecord -> {
-                processedRecordsDAO.insert(
-                        stormTaskTuple.getTaskId(),
-                        stormTaskTuple.getFileUrl(),
-                        processedRecord.getAttemptNumber() + 1,
-                        processedRecord.getDstIdentifier(),
-                        processedRecord.getTopologyName(),
-                        processedRecord.getState().toString(),
-                        processedRecord.getInfoText(),
-                        processedRecord.getAdditionalInformations()
-                );
-                stormTaskTuple.setRecordAttemptNumber(processedRecord.getAttemptNumber() + 1);
-            });
+        private void updateRetryCount(TaskInfo taskInfo, ProcessedRecord record) {
+            if (record.getAttemptNumber() > 1) {
+                LOGGER.info("Task {} record {} is repeated - {} attempt!", taskInfo.getId(), record.getRecordId(), record.getAttemptNumber());
+                int retryCount = taskInfo.getRetryCount();
+                retryCount++;
+                taskInfo.setRetryCount(retryCount);
+                taskStatusUpdater.updateRetryCount(taskInfo.getId(), retryCount);
+            }
+        }
+
+        private ProcessedRecord prepareRecordForExecution(DpsRecord message) {
+            ProcessedRecord record = processedRecordsDAO.selectByPrimaryKey(
+                    message.getTaskId(),
+                    message.getRecordId()
+            ).orElseGet(() ->
+                    ProcessedRecord.builder()
+                            .taskId(message.getTaskId())
+                            .recordId(message.getRecordId())
+                            .state(RecordState.QUEUED)
+                            .topologyName(topologyName)
+                            .build()
+            );
+
+            record.setAttemptNumber(record.getAttemptNumber() + 1);
+            processedRecordsDAO.insert(record);
+            return record;
         }
     }
 }

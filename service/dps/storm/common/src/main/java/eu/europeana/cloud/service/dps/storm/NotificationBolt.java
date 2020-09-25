@@ -4,6 +4,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -124,18 +125,28 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
-        long taskId = notificationTuple.getTaskId();
         switch (notificationTuple.getInformationType()) {
             case UPDATE_TASK:
-                updateTask(taskId, notificationTuple.getParameters());
+                updateTask(notificationTuple.getTaskId(), notificationTuple.getParameters());
                 break;
             case NOTIFICATION:
-                notifyTask(notificationTuple, nCache, taskId);
-                storeFinishState(notificationTuple);
+                storeNotificationInfo(notificationTuple, nCache);
                 break;
             default:
                 //nothing to do
                 break;
+        }
+    }
+
+    private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
+        long taskId = notificationTuple.getTaskId();
+        String recordId=String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
+        ProcessedRecord record = processedRecordsDAO.selectByPrimaryKey(taskId, recordId).get();
+        if(!isFinished(record)) {
+            notifyTask(notificationTuple, nCache, taskId);
+            storeFinishState(notificationTuple);
+            RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
+            processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState.toString());
         }
     }
 
@@ -162,7 +173,7 @@ public class NotificationBolt extends BaseRichBolt {
         Validate.notNull(parameters);
         String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
         String additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-        if (!String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString()) && parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
+        if (!isErrorTuple(notificationTuple) && parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
             errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE));
             additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE));
         }
@@ -210,7 +221,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
-        if (String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString())) {
+        if (isErrorTuple(notificationTuple)) {
             nCache.inc(true);
             return true;
         } else if (notificationTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
@@ -285,7 +296,7 @@ public class NotificationBolt extends BaseRichBolt {
         NotificationCache(long taskId) {
             processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
             if (processed > 0) {
-                errors = taskErrorDAO.getErrorCount(taskId);
+                errors = taskInfoDAO.findById(taskId).get().getErrors();
                 errorTypes = taskErrorDAO.getMessagesUuids(taskId);
                 LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}", taskId, processed, errors, errorTypes);
             }
@@ -342,5 +353,13 @@ public class NotificationBolt extends BaseRichBolt {
                 }
             }
         }
+    }
+
+    private boolean isErrorTuple(NotificationTuple notificationTuple) {
+        return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
+    }
+
+    private boolean isFinished(ProcessedRecord record) {
+        return record.getState() == RecordState.SUCCESS || record.getState() == RecordState.ERROR;
     }
 }
