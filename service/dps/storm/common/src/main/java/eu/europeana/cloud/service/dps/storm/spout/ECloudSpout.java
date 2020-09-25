@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.*;
-import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -48,6 +47,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
+    protected transient TasksCache tasksCache;
 
     public ECloudSpout(String topologyName, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -93,6 +93,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
+        tasksCache = new TasksCache(cassandraConnectionProvider);
     }
 
     @Override
@@ -102,8 +103,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     public class ECloudOutputCollector extends SpoutOutputCollector {
-
-        private final LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
             super(delegate);
@@ -116,18 +115,18 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 message = readMessageFromTuple(tuple);
 
                 if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
-                    return ommitMessageFromDroppedTask(message, messageId);
+                    return omitMessageFromDroppedTask(message, messageId);
                 }
 
                 ProcessedRecord record = prepareRecordForExecution(message);
                 if (isFinished(record)) {
-                    return ommitAlreadyPerformedRecord(message, messageId);
+                    return omitAlreadyProcessedRecord(message, messageId);
                 }
 
                 if (maxTriesReached(record)) {
                     return emitMaxTriesReachedNotification(message, messageId);
                 } else {
-                    return emitRecordToPerform(streamId, message, record, messageId);
+                    return emitRecordForProcessing(streamId, message, record, messageId);
                 }
             } catch (IOException | NullPointerException e) {
                 LOGGER.error("Unable to read message", e);
@@ -138,18 +137,18 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             }
         }
 
-        List<Integer> ommitAlreadyPerformedRecord(DpsRecord message, Object messageId) {
+        List<Integer> omitAlreadyProcessedRecord(DpsRecord message, Object messageId) {
             //Ignore records that is already preformed. It could take place after spout restart
             //if record was performed but was not acknowledged in kafka service. It is normal situation.
             //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
             //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
             //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
-            LOGGER.info("Dropping kafka message for task {} because record {} was already performed: ", message.getTaskId(), message.getRecordId());
+            LOGGER.info("Dropping kafka message for task {} because record {} was already processed: ", message.getTaskId(), message.getRecordId());
             ackIgnoredMessage(messageId);
             return Collections.emptyList();
         }
 
-        List<Integer> emitRecordToPerform(String streamId, DpsRecord message, ProcessedRecord record, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
+        List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord record, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
             TaskInfo taskInfo = getTaskInfo(message);
             updateRetryCount(taskInfo, record);
             StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message, record);
@@ -169,7 +168,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
         }
 
-        List<Integer> ommitMessageFromDroppedTask(DpsRecord message, Object messageId) {
+        List<Integer> omitMessageFromDroppedTask(DpsRecord message, Object messageId) {
             // Ignores message from dropped tasks. Such message should not be emitted,
             // but must be acknowledged to not remain in topic and to allow acknowledgement
             // of any following messages.
@@ -190,33 +189,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return (DpsRecord)tuple.get(4);
         }
 
-        private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-            return taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        }
-
         private TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
-            TaskInfo taskInfo = findTaskInCache(message);
-            //
-            if (taskFoundInCache(taskInfo)) {
-                LOGGER.debug("TaskInfo found in cache");
-            } else {
-                LOGGER.debug("TaskInfo NOT found in cache");
-                taskInfo = readTaskFromDB(message.getTaskId());
-                cache.put(message.getTaskId(), taskInfo);
-            }
-            return taskInfo;
-        }
-
-        private TaskInfo findTaskInCache(DpsRecord kafkaMessage) {
-            return cache.get(kafkaMessage.getTaskId());
-        }
-
-        private boolean taskFoundInCache(TaskInfo taskInfo) {
-            return taskInfo != null;
-        }
-
-        private TaskInfo readTaskFromDB(long taskId) throws TaskInfoDoesNotExistException {
-            return findTaskInDb(taskId);
+            return tasksCache.getTaskInfo(message);
         }
 
         private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord, ProcessedRecord record) throws IOException {
