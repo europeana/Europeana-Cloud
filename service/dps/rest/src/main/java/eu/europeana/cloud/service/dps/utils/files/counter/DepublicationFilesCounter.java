@@ -20,11 +20,11 @@ public class DepublicationFilesCounter extends FilesCounter {
 
     @Override
     public int getFilesCount(DpsTask task) throws TaskSubmissionException {
-        if (task.getParameter(PluginParameterKeys.METIS_DATASET_ID) != null) {
-            return calculateDatasetSize(task);
-        }
         if (task.getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH) != null) {
             return calculateRecordsNumber(task);
+        }
+        if (task.getParameter(PluginParameterKeys.METIS_DATASET_ID) != null) {
+            return calculateDatasetSize(task);
         }
         throw new TaskSubmissionException("Can't evaluate task expected size! Needed parameters not found in the task");
 
