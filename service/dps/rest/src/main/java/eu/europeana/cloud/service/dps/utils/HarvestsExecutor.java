@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HarvestsExecutor {
@@ -46,7 +47,7 @@ public class HarvestsExecutor {
             Iterator<OAIHeader> headerIterator = harvester.harvestIdentifiers(harvest);
 
             // *** Main harvesting loop for given task ***
-            while (headerIterator.hasNext()) {
+            while (headerIterator.hasNext() && resultCounter < getMaxRecordsCount(parameters)) {
                 if (taskStatusChecker.hasKillFlag(parameters.getTask().getTaskId())) {
                     LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, parameters.getTask().getTaskId());
                     return HarvestResult.builder()
@@ -68,6 +69,10 @@ public class HarvestsExecutor {
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
         }
         return new HarvestResult(resultCounter, TaskState.QUEUED);
+    }
+
+    private int getMaxRecordsCount(SubmitTaskParameters parameters) {
+        return Optional.ofNullable(parameters.getTask().getParameter(PluginParameterKeys.SAMPLE_SIZE)).map(Integer::parseInt).orElse(Integer.MAX_VALUE);
     }
 
     private boolean messageShouldBeEmitted(SubmitTaskParameters submitTaskParameters, OAIHeader oaiHeader){

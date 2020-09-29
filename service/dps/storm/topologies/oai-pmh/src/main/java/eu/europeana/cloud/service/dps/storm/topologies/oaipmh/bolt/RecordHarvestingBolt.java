@@ -108,7 +108,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     @Override
     protected void cleanInvalidData(StormTaskTuple tuple) {
         int tries = tuple.getRecordAttemptNumber();
-        LOGGER.error("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
+        LOGGER.info("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
     }
 
     private void trimLocalId(StormTaskTuple stormTaskTuple) {

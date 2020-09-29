@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import lombok.Data;
 import org.apache.storm.tuple.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -33,7 +33,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
     protected transient RecordServiceClient recordServiceClient;
-    private String ecloudMcsAddress;
+    private final String ecloudMcsAddress;
 
     public WriteRecordBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -46,48 +46,17 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("WriteRecordBolt: persisting processed file");
-        if (isMessageResent(stormTaskTuple)) {
-            processResentMessage(anchorTuple, stormTaskTuple);
-            return;
-        }
-        processNewMessage(anchorTuple, stormTaskTuple);
-
-    }
-
-    private boolean isMessageResent(StormTaskTuple stormTaskTuple) {
-        return StormTaskTupleHelper.isMessageResent(stormTaskTuple);
-    }
-
-    private void processResentMessage(Tuple anchorTuple, StormTaskTuple tuple) {
         try {
-            LOGGER.info("Reprocessing message that was sent again");
-            List<Representation> representations = findRepresentationsWithSameRevision(tuple, tuple.getParameter(PluginParameterKeys.CLOUD_ID));
-            if (representations.isEmpty()) {
-                processNewMessage(anchorTuple, tuple);
-                return;
+            LOGGER.info("WriteRecordBolt: persisting processed file");
+            RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
+            if (isMessageResent(stormTaskTuple)) {
+                processResentMessage(stormTaskTuple, writeParams);
+            } else {
+                processNewMessage(stormTaskTuple, writeParams);
             }
-            prepareEmittedTuple(tuple, representations.get(0).getFiles().get(0).getContentUri().toString());
-            outputCollector.emit(anchorTuple, tuple.toStormTuple());
-        } catch (MCSException e) {
-            LOGGER.error("Unable to process the message", e);
-            StringWriter stack = new StringWriter();
-            e.printStackTrace(new PrintWriter(stack));
-            emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(),
-                    "Cannot process data because: " + e.getMessage(), stack.toString(),
-                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
-        }
-        outputCollector.ack(anchorTuple);
-    }
-
-    private void processNewMessage(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        try {
-            final URI uri = uploadFileInNewRepresentation(stormTaskTuple);
-            LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
-            prepareEmittedTuple(stormTaskTuple, uri.toString());
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
+        } catch (MCSException | CloudException | IOException e) {
+            LOGGER.error("Unable to process the message", e);
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
@@ -97,9 +66,37 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
-    private List<Representation> findRepresentationsWithSameRevision(StormTaskTuple tuple, String cloudId) throws MCSException {
+    protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException {
+        RecordWriteParams writeParams = new RecordWriteParams();
+        writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
+        writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
+        writeParams.setProviderId(getProviderId(tuple));
+        return writeParams;
+    }
+
+    private boolean isMessageResent(StormTaskTuple stormTaskTuple) {
+        return StormTaskTupleHelper.isMessageResent(stormTaskTuple);
+    }
+
+    private void processResentMessage(StormTaskTuple tuple, RecordWriteParams writeParams) throws MCSException, IOException {
+        LOGGER.info("Reprocessing message that was sent again");
+        List<Representation> representations = findRepresentationsWithSameRevision(tuple, writeParams);
+        if (representations.isEmpty()) {
+            processNewMessage(tuple, writeParams);
+            return;
+        }
+        prepareEmittedTuple(tuple, representations.get(0).getFiles().get(0).getContentUri().toString());
+    }
+
+    private void processNewMessage(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws IOException, MCSException {
+        final URI uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
+        LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
+        prepareEmittedTuple(stormTaskTuple, uri.toString());
+    }
+
+    private List<Representation> findRepresentationsWithSameRevision(StormTaskTuple tuple, RecordWriteParams writeParams) throws MCSException {
         return recordServiceClient.getRepresentationsByRevision(
-                cloudId, tuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME),
+                writeParams.getCloudId(), writeParams.getRepresentationName(),
                 tuple.getRevisionToBeApplied().getRevisionName(),
                 tuple.getRevisionToBeApplied().getRevisionProviderId(),
                 new DateTime(tuple.getRevisionToBeApplied().getCreationTimeStamp(), DateTimeZone.UTC).toString(),
@@ -137,18 +134,18 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
     }
 
-    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException {
-        return createRepresentationAndUploadFile(stormTaskTuple);
+    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws IOException, MCSException {
+        return createRepresentationAndUploadFile(stormTaskTuple, writeParams);
     }
 
-    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple) throws IOException, MCSException, CloudException {
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws IOException, MCSException {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
                 return recordServiceClient.createRepresentation(
-                        stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID),
-                        TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME),
-                        getProviderId(stormTaskTuple), stormTaskTuple.getFileByteDataAsStream(),
+                        writeParams.getCloudId(),
+                        writeParams.getRepresentationName(),
+                        writeParams.getProviderId(), stormTaskTuple.getFileByteDataAsStream(),
                         stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME),
                         TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
                         AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
@@ -164,6 +161,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         }
     }
 
+    @Data
+    static class RecordWriteParams {
+        String cloudId;
+        String representationName;
+        String providerId;
+    }
 
 }
 
