@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
@@ -141,8 +142,8 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
         String recordId=String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
-        ProcessedRecord record = processedRecordsDAO.selectByPrimaryKey(taskId, recordId).get();
-        if(!isFinished(record)) {
+        Optional<ProcessedRecord> record = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
+        if(record.isEmpty() || !isFinished(record.get())) {
             notifyTask(notificationTuple, nCache, taskId);
             storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
