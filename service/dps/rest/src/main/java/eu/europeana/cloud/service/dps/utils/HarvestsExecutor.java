@@ -72,7 +72,9 @@ public class HarvestsExecutor {
     }
 
     private int getMaxRecordsCount(SubmitTaskParameters parameters) {
-        return Optional.ofNullable(parameters.getTask().getParameter(PluginParameterKeys.SAMPLE_SIZE)).map(Integer::parseInt).orElse(Integer.MAX_VALUE);
+        return Optional.ofNullable(parameters.getTask().getParameter(PluginParameterKeys.SAMPLE_SIZE))  //return value SAMPLE_SIZE
+                .map(Integer::parseInt)
+                .orElse(Integer.MAX_VALUE);                                                             //or MAX_VALUE if null is above
     }
 
     private boolean messageShouldBeEmitted(SubmitTaskParameters submitTaskParameters, OAIHeader oaiHeader){

@@ -70,7 +70,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 execute(tuple, stormTaskTuple);
             }
         } catch (Exception e) {
-            LOGGER.info("AbstractDpsBolt error: " + e.getMessage(), e);
+            LOGGER.info("AbstractDpsBolt error: {}", e.getMessage(), e);
             if (stormTaskTuple != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
