@@ -39,9 +39,12 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class HttpHarvestingBoltTest {
 
-    private static final String FILE_URL = "http://test-app1/http_harvest/task-2709280817814521453/extracted/Lithuania_280/Lithuania_1.xml";
-    private final String TASK_NAME = "TASK_NAME";
-    private final int TASK_ID = 1;
+    private static final String TASK_NAME = "TASK_NAME";
+    private static final long TASK_ID = -5964014235733572511L;
+    private static final String TASK_RELATIVE_URL = "/http_harvest/task_-5964014235733572511/";
+    private static final String FILE_URL = "http://localhost:9999/http_harvest/task_-5964014235733572511/record.xml";
+
+
     private StormTaskTuple tuple ;
 
     @InjectMocks
@@ -69,7 +72,6 @@ public class HttpHarvestingBoltTest {
 
     @Test
     public void shouldHarvestEdmFileWhenExecutedWithoutUseDefaultIdentifiersParam() throws IOException {
-        tuple.setFileUrl("http://localhost:9999/record.xml");
         mockFileOnHttpServer("record.xml");
 
         bolt.execute(anchorTuple,tuple);
@@ -85,8 +87,6 @@ public class HttpHarvestingBoltTest {
     @Test
     public void shouldHarvestEdmFileWhenExecutedWithUseDefaultIdentifiersParamSetToTrue() throws IOException {
         tuple.addParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS, "true");
-        tuple.setFileUrl("http://localhost:9999/record.xml");
-        tuple.addParameter(PluginParameterKeys.FILES_ROOT_URL,"http://localhost:9999/");
         mockFileOnHttpServer("record.xml");
 
         bolt.execute(anchorTuple,tuple);
@@ -101,8 +101,7 @@ public class HttpHarvestingBoltTest {
 
 
     @Test
-    public void shouldRetryWhenCantDownloadFileFirstTime() throws IOException, IllegalAccessException {
-        tuple.setFileUrl("http://localhost:9999/record.xml");
+    public void shouldRetryWhenCantDownloadFileFirstTime() throws IOException {
         mockErrorOnHttpOnFirstTryServer("record.xml");
 
         bolt.execute(anchorTuple,tuple);
@@ -116,8 +115,7 @@ public class HttpHarvestingBoltTest {
     }
 
     @Test
-    public void shouldEmitErrorNotificationWhenCantLoadFilePermanently() throws IOException {
-        tuple.setFileUrl("http://localhost:9999/record.xml");
+    public void shouldEmitErrorNotificationWhenCantLoadFilePermanently() {
         mockErrorOnHttpOnServer("record.xml");
 
         bolt.execute(anchorTuple,tuple);
@@ -131,7 +129,7 @@ public class HttpHarvestingBoltTest {
     }
 
     private void mockFileOnHttpServer(String fileName) {
-        wireMockRule.stubFor(get(urlEqualTo("/" +fileName))
+        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withFixedDelay(150)
@@ -139,7 +137,7 @@ public class HttpHarvestingBoltTest {
     }
 
     private void mockErrorOnHttpOnServer(String fileName) {
-        wireMockRule.stubFor(get(urlEqualTo("/" +fileName))
+        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
                 .willReturn(aResponse()
                         .withStatus(500)
                         .withFixedDelay(150)));
@@ -147,7 +145,7 @@ public class HttpHarvestingBoltTest {
     }
 
     private void mockErrorOnHttpOnFirstTryServer(String fileName) {
-        wireMockRule.stubFor(get(urlEqualTo("/" +fileName))
+        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
                 .inScenario("Retry")
                 .whenScenarioStateIs(STARTED)
                 .willReturn(aResponse()
@@ -155,13 +153,17 @@ public class HttpHarvestingBoltTest {
                         .withFixedDelay(150))
                         .willSetStateTo("retried"));
 
-        wireMockRule.stubFor(get(urlEqualTo("/" +fileName))
+        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
                 .inScenario("Retry")
                 .whenScenarioStateIs("retried")
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withFixedDelay(150)
                         .withBodyFile(fileName)));
+    }
+
+    private String fileRelativeUrl(String fileName) {
+        return TASK_RELATIVE_URL +fileName;
     }
 
     private StormTaskTuple getResultStormTaskTuple() {

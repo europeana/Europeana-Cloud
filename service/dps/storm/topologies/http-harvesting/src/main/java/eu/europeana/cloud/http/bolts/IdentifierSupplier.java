@@ -36,13 +36,14 @@ public class IdentifierSupplier {
 
     private String evaluateFileRelativePath(StormTaskTuple tuple) {
 
-        String fileRoot = tuple.getParameter(PluginParameterKeys.FILES_ROOT_URL);
-        String fileUrl= tuple.getFileUrl();
+        String fileUrl = tuple.getFileUrl();
 
-        if ((fileRoot != null) && fileUrl.startsWith(fileRoot)) {
-            return fileUrl.substring(fileRoot.length());
-        }else{
-           return fileUrl;
+        String taskPart = tuple.getTaskId() + "/";
+        int taskPartIndex = fileUrl.indexOf(taskPart);
+        if (taskPartIndex != -1) {
+            return fileUrl.substring(taskPartIndex + taskPart.length());
+        } else {
+            return fileUrl;
         }
     }
 
