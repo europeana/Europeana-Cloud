@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 
 @Service
@@ -23,9 +24,9 @@ public class CleanTaskDirService {
 
     public CleanTaskDirService(CassandraTaskInfoDAO taskInfoDAO) {
         taskInfoDAO = taskInfoDAO;
-        checkHarvestingTasksDir();
     }
 
+    @PostConstruct
     private void checkHarvestingTasksDir() {
         tasksDir = new File(harvestingTasksDir);
 
