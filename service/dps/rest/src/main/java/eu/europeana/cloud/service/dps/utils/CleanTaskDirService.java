@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exceptions.CleanTaskDirException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
@@ -18,7 +19,7 @@ import java.util.regex.Pattern;
 
 @Service
 public class CleanTaskDirService {
-    private static final String SERVICE_CRON_SETUP = "0 0 * * * *";
+    private static final String SERVICE_CRON_SETUP = "0 0 0/6 1/1 * ? *";  //daily, every 6 hour
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CleanTaskDirService.class);
     private static final String TASK_DIR_PREFIX = "task_";
@@ -37,7 +38,7 @@ public class CleanTaskDirService {
     }
 
     @PostConstruct
-    private void checkHarvestingTasksDir() {
+    public void checkHarvestingTasksDir() {
         if (harvestingTasksDir == null)
             throw new NullPointerException("harvestingTasksDir cannot be null");
 
@@ -59,7 +60,7 @@ public class CleanTaskDirService {
             long taskId = getTaskId(dirs[index]);
 
             TaskState taskState = taskInfoDAO.findById(taskId)
-                    .map(state -> state.getState())
+                    .map(TaskInfo::getState)
                     .orElse(TaskState.DROPPED);
 
             if(taskState == TaskState.PROCESSED || taskState == TaskState.DROPPED) {
