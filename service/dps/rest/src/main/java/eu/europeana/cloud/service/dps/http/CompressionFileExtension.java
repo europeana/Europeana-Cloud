@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.http;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public enum CompressionFileExtension {
     ZIP("zip"),
@@ -29,13 +28,9 @@ public enum CompressionFileExtension {
     }
 
     public static String[] getExtensionValues() {
-        List<String> values = new ArrayList<>(CompressionFileExtension.values().length);
-        for (CompressionFileExtension extension : CompressionFileExtension.values())
-            values.add(extension.getExtension());
-        String[] arrayOfValues = new String[values.size()];
-        return values.toArray(arrayOfValues);
-
+        return Arrays.stream(values())
+                .map(CompressionFileExtension::getExtension)
+                .toArray(String[]::new);
     }
-
 
 }

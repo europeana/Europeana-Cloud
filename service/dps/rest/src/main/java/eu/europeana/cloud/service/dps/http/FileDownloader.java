@@ -23,7 +23,7 @@ public class FileDownloader {
         URLConnection conn = url.openConnection();
 
         try (InputStream inputStream = conn.getInputStream();
-             OutputStream outputStream = new FileOutputStream(file.toPath().toString())) {
+             OutputStream outputStream = new FileOutputStream(file)) {
             IOUtils.copyLarge(inputStream, outputStream, buffer);
             return file;
         }

@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.http.*;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
@@ -72,23 +73,21 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
         try {
             File downloadedFile = downloadFileFor(parameters.getTask());
-            File extractedFile = extractFile(downloadedFile);
+            File extractedDirectory = extractFile(downloadedFile);
             //
-            expectedCount = iterateOverFiles(extractedFile, parameters.getTask());
-            taskStatusUpdater.setUpdateExpectedSize(parameters.getTask().getTaskId(), expectedCount);
+            selectKafkaTopicFor(parameters);
+
+            expectedCount = iterateOverFiles(extractedDirectory, parameters);
+            updateTaskStatus(parameters.getTask(), expectedCount);
 
         } catch (IOException | CompressionExtensionNotRecognizedException e) {
+            LOGGER.error("Unable to submit the task.", e);
             taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task was dropped because of errors: " + e.getMessage());
-
         }
-        parameters.setExpectedSize(expectedCount);
-
-        updateTaskStatus(parameters);
 
         LOGGER.info("HTTP task submission for {} finished. {} records submitted.",
                 parameters.getTask().getTaskId(),
                 expectedCount);
-
     }
 
     private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {
@@ -107,31 +106,34 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
     private File extractFile(File downloadedFile) throws CompressionExtensionNotRecognizedException, IOException {
         String compressingExtension = FilenameUtils.getExtension(downloadedFile.getName());
-        FileUnpackingService fileUnpackingService;
-        fileUnpackingService = UnpackingServiceFactory.createUnpackingService(compressingExtension);
+        FileUnpackingService fileUnpackingService = UnpackingServiceFactory.createUnpackingService(compressingExtension);
         fileUnpackingService.unpackFile(downloadedFile.getAbsolutePath(), downloadedFile.getParent() + File.separator);
         return new File(downloadedFile.getParent());
     }
 
-    private int iterateOverFiles(File extractedFile, DpsTask dpsTask) throws IOException {
+    private void selectKafkaTopicFor(SubmitTaskParameters parameters) {
+        parameters.setTopicName(kafkaTopicSelector.findPreferredTopicNameFor(TopologiesNames.HTTP_TOPOLOGY));
+    }
+
+    private int iterateOverFiles(File extractedDirectory, SubmitTaskParameters submitTaskParameters) throws IOException {
         final AtomicInteger expectedSize = new AtomicInteger(0);
-        Files.walkFileTree(Paths.get(extractedFile.toURI()), new SimpleFileVisitor<>() {
+        Files.walkFileTree(Paths.get(extractedDirectory.toURI()), new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                if (taskStatusChecker.hasKillFlag(dpsTask.getTaskId()))
+                if (taskStatusChecker.hasKillFlag(submitTaskParameters.getTask().getTaskId()))
                     return FileVisitResult.TERMINATE;
                 String fileName = getFileNameFromPath(file);
-                if (fileName.equals(MAC_TEMP_FILE))
+                if(!fileEligibleForEmission(file))
                     return FileVisitResult.CONTINUE;
                 String extension = FilenameUtils.getExtension(file.toString());
                 if (!CompressionFileExtension.contains(extension)) {
                     DpsRecord dpsRecord = DpsRecord.builder()
-                            .taskId(dpsTask.getTaskId())
-                            .recordId(fileURLCreator.generateUrlFor(dpsTask, fileName))
+                            .taskId(submitTaskParameters.getTask().getTaskId())
+                            .recordId(fileURLCreator.generateUrlFor(submitTaskParameters.getTask(), fileName))
                             .build();
                     recordSubmitService.submitRecord(
                             dpsRecord,
-                            kafkaTopicSelector.findPreferredTopicNameFor("http_topology"));
+                            submitTaskParameters.getTopicName());
                     expectedSize.addAndGet(1);
                 }
                 return FileVisitResult.CONTINUE;
@@ -148,18 +150,24 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
         return expectedSize.get();
     }
 
+    private boolean fileEligibleForEmission(Path file) {
+        String fileName = getFileNameFromPath(file);
+        return !fileName.equals(MAC_TEMP_FILE);
+    }
+
     private String getFileNameFromPath(Path path) {
         if (path != null)
             return path.getFileName().toString();
         throw new IllegalArgumentException("Path parameter should never be null");
     }
 
-    private void updateTaskStatus(SubmitTaskParameters submitTaskParameters) {
-        if (submitTaskParameters.getExpectedSize() == 0) {
-            taskStatusUpdater.setTaskDropped(submitTaskParameters.getTask().getTaskId(), "The task doesn't include any records");
-        } else {
-            taskStatusUpdater.updateStatusExpectedSize(submitTaskParameters.getTask().getTaskId(), TaskState.SENT.toString(), submitTaskParameters.getExpectedSize());
+    private void updateTaskStatus(DpsTask dpsTask, int expectedCount) {
+        if (!taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+            if (expectedCount == 0) {
+                taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task doesn't include any records");
+            } else {
+                taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), TaskState.QUEUED.toString(), expectedCount);
+            }
         }
-
     }
 }

@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.utils;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
@@ -23,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * This component will check all tasks with status TaskState.PROCESSING_BY_REST_APPLICATION
