@@ -19,14 +19,14 @@ public class IdentifierSupplier {
         if (!useDefaultIdentifiers) {
             metisDatasetId = tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
             if (StringUtils.isEmpty(metisDatasetId)) {
-                throw new EuropeanaIdException("Could not create identifier - parameter "+PluginParameterKeys.METIS_DATASET_ID+" is empty!");
+                throw new EuropeanaIdException("Could not create identifier - parameter " + PluginParameterKeys.METIS_DATASET_ID + " is empty!");
             }
         }
 
         String localId;
         if (useDefaultIdentifiers) {
             localId = formulateLocalId(evaluateFileRelativePath(tuple));
-        }else {
+        } else {
             EuropeanaGeneratedIdsMap europeanaIdentifier = getEuropeanaIdentifier(tuple, metisDatasetId);
             localId = europeanaIdentifier.getEuropeanaGeneratedId();
             tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, europeanaIdentifier.getSourceProvidedChoAbout());
