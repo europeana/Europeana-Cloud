@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 @Service
 public class CleanTaskDirService {
-    private static final String SERVICE_CRON_SETUP = "0 0 0/6 1/1 * ? *";  //daily, every 6 hour
+    private static final String SERVICE_CRON_SETUP = "0 0 0/6 * * *";  //daily, every 6 hour
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CleanTaskDirService.class);
     private static final String TASK_DIR_PREFIX = "task_";
@@ -56,8 +56,13 @@ public class CleanTaskDirService {
             return file.isDirectory() && matcher.matches();
         });
 
-        for(int index = 0; dirs != null && index < dirs.length; index++) {
-            long taskId = getTaskId(dirs[index]);
+        if(dirs == null) {
+            LOGGER.error("Cannot list subdirectories in: '{}'", tasksDir);
+            return;
+        }
+
+        for(File dir: dirs) {
+            long taskId = getTaskId(dir);
 
             TaskState taskState = taskInfoDAO.findById(taskId)
                     .map(TaskInfo::getState)
@@ -65,9 +70,9 @@ public class CleanTaskDirService {
 
             if(taskState == TaskState.PROCESSED || taskState == TaskState.DROPPED) {
                 try {
-                    FileUtils.deleteDirectory(dirs[index]);
+                    FileUtils.deleteDirectory(dir);
                 }catch(IOException ioe) {
-                    LOGGER.error("Cannot delete: '{}' directory", dirs[index].getAbsolutePath());
+                    LOGGER.error("Cannot delete: '{}' directory", dir.getAbsolutePath());
                 }
             }
         }
@@ -91,7 +96,7 @@ public class CleanTaskDirService {
         if (tasksDirName == null)
             throw new NullPointerException("tasksDirName cannot be null");
 
-        if(!tasksDirName.isEmpty() && tasksDirName.charAt(tasksDirName.length()-1) != File.separatorChar) {
+        if(!tasksDirName.isEmpty() && !tasksDirName.endsWith(File.separator)) {
             tasksDirName += File.separatorChar;
         }
 
