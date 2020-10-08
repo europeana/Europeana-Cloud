@@ -62,8 +62,8 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
 
     private String probeMimeType(String fileUrl, byte[] fileContent) throws IOException {
         String extension = FilenameUtils.getExtension(fileUrl);
-        Path tempFile = Files.createTempFile("http_harvest","."+extension);
-        Files.write(tempFile,fileContent);
+        Path tempFile = Files.createTempFile("http_harvest", "." + extension);
+        Files.write(tempFile, fileContent);
         String mimeType = Files.probeContentType(tempFile);
         Files.delete(tempFile);
         return mimeType;
