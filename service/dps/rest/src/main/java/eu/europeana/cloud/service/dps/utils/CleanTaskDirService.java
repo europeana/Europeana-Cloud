@@ -85,10 +85,10 @@ public class CleanTaskDirService {
             try {
                 return Long.parseLong(matcher.group(1));
             } catch(IllegalStateException | IndexOutOfBoundsException | NumberFormatException e) {
-                throw new CleanTaskDirException("Invalid directory name format. It has to match with '"+TASKDIR_REG_EXP+"'", e);
+                throw new CleanTaskDirException("Invalid directory name format. It has to match with '" + TASKDIR_REG_EXP + "'", e);
             }
         } else {
-            throw new CleanTaskDirException("Invalid directory name format. It has to match with '"+TASKDIR_REG_EXP+"'");
+            throw new CleanTaskDirException("Invalid directory name format. It has to match with '" + TASKDIR_REG_EXP + "'");
         }
     }
 
