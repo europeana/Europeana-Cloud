@@ -15,10 +15,9 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.storm.spout.MCSReaderSpout;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -38,9 +37,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
@@ -80,7 +84,6 @@ public class TaskExecutorTest {
         representationIterator = mock(RepresentationIterator.class);
         doNothing().when(cassandraTaskInfoDAO).updateTask(anyLong(), anyString(), anyString(), any(Date.class));
         doNothing().when(cassandraTaskInfoDAO).setTaskDropped(anyLong(), anyString());
-        setStaticField(MCSReaderSpout.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
         testHelper = new TestHelper();
         mockMCSClient();
     }
@@ -126,7 +129,7 @@ public class TaskExecutorTest {
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
-        assertEquals(tuplesWithFileUrls.size(), 2);
+        assertEquals(2, tuplesWithFileUrls.size());
     }
 
     @Test
@@ -213,7 +216,7 @@ public class TaskExecutorTest {
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
-        assertEquals(tuplesWithFileUrls.size(), 2);
+        assertEquals(2, tuplesWithFileUrls.size());
     }
 
 
@@ -243,7 +246,7 @@ public class TaskExecutorTest {
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
-        assertEquals(tuplesWithFileUrls.size(), 65);
+        assertEquals(65, tuplesWithFileUrls.size());
     }
 
 
@@ -346,7 +349,7 @@ public class TaskExecutorTest {
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
-        assertEquals(tuplesWithFileUrls.size(), 2);
+        assertEquals(2, tuplesWithFileUrls.size());
     }
 
 
@@ -379,7 +382,7 @@ public class TaskExecutorTest {
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
-        assertEquals(tuplesWithFileUrls.size(), 65);
+        assertEquals(65, tuplesWithFileUrls.size());
     }
 
     @Test
@@ -504,7 +507,7 @@ public class TaskExecutorTest {
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
-        assertEquals(tuplesWithFileUrls.size(), 1);
+        assertEquals(1, tuplesWithFileUrls.size());
     }
 
     @Test
@@ -529,7 +532,7 @@ public class TaskExecutorTest {
                 tuplesWithFileUrls, anyString(), DATASET_URLS.name(), dpsTask);
         taskExecutor.call();
 
-        assertEquals(tuplesWithFileUrls.size(), 0);
+        assertEquals(0, tuplesWithFileUrls.size());
     }
 
 
