@@ -41,7 +41,10 @@ public class HTTPHarvestingTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology() {
+        String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
+        String uisAddress = topologyProperties.getProperty(UIS_URL);
+
         TopologyBuilder builder = new TopologyBuilder();
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
@@ -103,6 +106,10 @@ public class HTTPHarvestingTopology {
         return parseInt(topologyProperties.getProperty(propertyName));
     }
 
+    public static Properties getProperties() {
+        return topologyProperties;
+    }
+
     public static void main(String[] args) {
         try {
             LOGGER.info("Assembling '{}'", TopologiesNames.HTTP_TOPOLOGY);
@@ -111,9 +118,7 @@ public class HTTPHarvestingTopology {
 
                 HTTPHarvestingTopology httpHarvestingTopology = new HTTPHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                StormTopology stormTopology = httpHarvestingTopology.buildTopology(
-                        topologyProperties.getProperty(MCS_URL),
-                        topologyProperties.getProperty(UIS_URL));
+                StormTopology stormTopology = httpHarvestingTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
