@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -15,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
@@ -44,10 +47,11 @@ public class AddResultToDataSetBoltTest {
     private static final String FILE_URL = "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2";
 
     public final void verifyMethodExecutionNumber(int expectedAssignRepresentationToDataCallTimes, int expectedEmitCallTimes) throws MCSException {
+        Tuple anchorTuple = mock(TupleImpl.class);
         when(outputCollector.emit(anyString(), anyList())).thenReturn(null);
-        addResultToDataSetBolt.execute(stormTaskTuple);
+        addResultToDataSetBolt.execute(anchorTuple, stormTaskTuple);
         verify(dataSetServiceClient, times(expectedAssignRepresentationToDataCallTimes)).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(), eq(AUTHORIZATION),eq(AUTHORIZATION));
-        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
 
     }
 
@@ -101,12 +105,14 @@ public class AddResultToDataSetBoltTest {
     private StormTaskTuple prepareTupleWithEmptyOutputUrl() {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
     private StormTaskTuple prepareTupleWithEmptyDataSetList() {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
@@ -115,6 +121,7 @@ public class AddResultToDataSetBoltTest {
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
         tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
@@ -123,6 +130,7 @@ public class AddResultToDataSetBoltTest {
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL + "," + DATASET_URL2);
         tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 
@@ -131,6 +139,7 @@ public class AddResultToDataSetBoltTest {
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "sample_sample_sample");
         tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return tuple;
     }
 

@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.10.0</version>
+    <version>2</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,7 +16,7 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-        <tag>v1.10.0</tag>
+        <tag>v2</tag>
     </scm>
     <developers>
         <developer>
@@ -83,22 +83,35 @@
         <module>test-common</module>
     </modules>
     <repositories>
-        <!--ZohoCRM libraries-->
         <repository>
-            <id>maven.zohodl.com</id>
-            <url>https://maven.zohodl.com</url>
+            <id>libs-release</id>
+            <name>libs-release</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-release</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
-
         <repository>
-            <id>repo1</id>
-            <url>https://repo1.maven.org/maven2</url>
+            <id>libs-snapshot</id>
+            <name>libs-snapshot</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+
         <repository>
-            <id>eaio.com</id>
-            <url>http://eaio.com/maven2</url>
+            <id>repo1</id>
+            <url>https://repo1.maven.org/maven2/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>synat-a09-libs-releases-public</id>
@@ -106,55 +119,28 @@
             <url>http://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
         </repository>
         <repository>
-            <id>artifactory.eanadev.org</id>
-            <name>artifactory.eanadev.org-releases</name>
-            <url>http://artifactory.eanadev.org/artifactory</url>
-        </repository>
-        <repository>
             <id>miredot</id>
             <name>MireDot Releases</name>
             <url>http://nexus.qmino.com/content/repositories/miredot</url>
-        </repository>
-        <repository>
-            <id>libs-snapshot-local</id>
-            <name>libs-snapshot-local</name>
-            <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>artifactory.eanadev.org-release</id>
-            <name>artifactory.eanadev.org-releases</name>
-            <url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
         </repository>
     </repositories>
     <properties>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
-        <version.jdk>1.8</version.jdk>
+        <version.jdk>11</version.jdk>
         <version.junit>4.12</version.junit>
-        <version.powermock>1.6.2</version.powermock>
-        <version.powermock-mockito>1.5.6</version.powermock-mockito>
+        <version.powermock>2.0.7</version.powermock>
+        <version.powermock-mockito>2.0.7</version.powermock-mockito>
         <version.jersey>2.23.1</version.jersey>
         <version.org.glassfish.jersey.test-framework>2.23.1</version.org.glassfish.jersey.test-framework>
         <version.slf4j>1.7.12</version.slf4j>
         <version.spring-framework>3.2.9.RELEASE</version.spring-framework>
         <version.servlet>2.5</version.servlet>
-        <version.junitparams>1.0.2</version.junitparams>
+        <version.junitparams>1.0.6</version.junitparams>
         <version.commonscodec>1.10</version.commonscodec>
         <version.commonio>2.4</version.commonio>
-        <version.uuid>3.4</version.uuid>
-        <version.swift>1.9.2</version.swift>
+        <version.uuid>3.5</version.uuid>
+        <version.swift>2.2.1</version.swift>
         <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
@@ -168,12 +154,12 @@
         <version.log4j>1.2.17</version.log4j>
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
-        <version.miredotPlugin>1.6.1</version.miredotPlugin>
+        <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
 
         <spring-security.version>3.1.4.RELEASE</spring-security.version>
 
         <commons-logging.version>1.2</commons-logging.version>
-        <version.cassandra-driver>2.1.10.3</version.cassandra-driver>
+        <version.cassandra-driver>3.9.0</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
@@ -186,9 +172,11 @@
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
         <version.jacoco>0.8.1</version.jacoco>
-        <version.metis>1.9.0</version.metis>
+        <version.metis>2</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
-        <version.guava>16.0</version.guava>
+        <version.guava>24.1.1-jre</version.guava>
+        <version.lombok>1.18.10</version.lombok>
+        <version.commons-collections>3.2.2</version.commons-collections>
     </properties>
 
     <profiles>
@@ -473,7 +461,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>1.9.5</version>
+                <version>3.3.3</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

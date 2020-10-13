@@ -3,25 +3,21 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-tools</artifactId>
-        <version>1.10.0</version>
+        <version>2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ResourceMigrator</artifactId>
     <packaging>jar</packaging>
-    <version>1.10.0</version>
+    <version>2</version>
     <name>ResourceMigrator</name>
     <url>http://maven.apache.org</url>
-
-    <properties>
-        <spring.version>4.2.3.RELEASE</spring.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>${spring.version}</version>
+            <version>${version.spring-framework}</version>
 
             <exclusions>
                 <exclusion>
@@ -34,7 +30,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
+            <version>${version.spring-framework}</version>
         </dependency>
 
         <dependency>
@@ -62,7 +58,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
+            <version>${version.spring-framework}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -84,7 +80,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
-            <version>1.10.0</version>
+            <version>2</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
@@ -95,7 +91,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-rest-client-java</artifactId>
-            <version>1.10.0</version>
+            <version>2</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
@@ -105,8 +101,8 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
+            <artifactId>mockito-core</artifactId>
+            <version>3.3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

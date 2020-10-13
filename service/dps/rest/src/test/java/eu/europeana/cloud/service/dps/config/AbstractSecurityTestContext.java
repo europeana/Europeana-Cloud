@@ -9,9 +9,11 @@ import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
@@ -36,7 +38,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @Import({TopologyTasksResource.class, TopologiesResource.class, TaskSubmissionValidator.class,
         SubmitTaskService.class, TaskSubmitterFactory.class, OaiTopologyTaskSubmitter.class,
         HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, TaskStatusUpdater.class,
-        MCSTaskSubmiter.class})
+        TaskStatusSynchronizer.class, MCSTaskSubmiter.class})
 public class AbstractSecurityTestContext {
 
 
@@ -108,6 +110,11 @@ public class AbstractSecurityTestContext {
     @Bean
     public TasksByStateDAO tasksDAO(){
         return Mockito.mock(TasksByStateDAO.class);
+    }
+
+    @Bean
+    public TaskSubmitter depublicationTaskSubmitter(){
+        return Mockito.mock(TaskSubmitter.class);
     }
 
     @Bean

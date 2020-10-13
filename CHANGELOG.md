@@ -1,5 +1,19 @@
 # Change Log
 
+## [v1.10.0](https://github.com/europeana/Europeana-Cloud/tree/v1.10.0) (2020-06-08)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.9.0...v1.10.0)
+
+**Merged pull requests:**
+
+- MET-2697 exception\_in\_oai\_harvesting \(additional information for logg… [\#265](https://github.com/europeana/Europeana-Cloud/pull/265) ([pWoz](https://github.com/pWoz))
+- Bug/met 2644 [\#264](https://github.com/europeana/Europeana-Cloud/pull/264) ([pWoz](https://github.com/pWoz))
+- MET-2607 Add configuration for read preference for IndexingSettings [\#263](https://github.com/europeana/Europeana-Cloud/pull/263) ([stzanakis](https://github.com/stzanakis))
+- Feat/met 2478 spring update in uis [\#262](https://github.com/europeana/Europeana-Cloud/pull/262) ([pWoz](https://github.com/pWoz))
+- Met 2479 spring update for aas [\#261](https://github.com/europeana/Europeana-Cloud/pull/261) ([pWoz](https://github.com/pWoz))
+- not needed exclusions removed from pom files [\#259](https://github.com/europeana/Europeana-Cloud/pull/259) ([pWoz](https://github.com/pWoz))
+- MET-2623 Encapsulate network dps client exceptions [\#258](https://github.com/europeana/Europeana-Cloud/pull/258) ([stzanakis](https://github.com/stzanakis))
+- MET-2375 Updating spring to 5.2 in pom.xml in DPS service REST depend… [\#256](https://github.com/europeana/Europeana-Cloud/pull/256) ([marcin-rp](https://github.com/marcin-rp))
+
 ## [v1.9.0](https://github.com/europeana/Europeana-Cloud/tree/v1.9.0) (2020-03-31)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.8.0...v1.9.0)
 

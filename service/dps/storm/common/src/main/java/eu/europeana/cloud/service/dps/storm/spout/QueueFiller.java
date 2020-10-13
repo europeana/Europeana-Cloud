@@ -12,6 +12,7 @@ import org.apache.storm.spout.SpoutOutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -59,7 +60,7 @@ public class QueueFiller {
 
      private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.ERROR, message, additionalInformations);
+                resource, RecordState.ERROR, message, additionalInformations, new Date().getTime());
         collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

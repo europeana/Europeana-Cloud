@@ -1,50 +1,42 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * FileResourceTest
  */
 @RunWith(CassandraTestRunner.class)
-public class FilesResourceTest extends JerseyTest {
+public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     private RecordService recordService;
 
@@ -52,7 +44,7 @@ public class FilesResourceTest extends JerseyTest {
 
     private File file;
 
-    private WebTarget filesWebTarget;
+    private String filesWebTarget;
 
     private UISClientHandler uisHandler;
 
@@ -63,7 +55,6 @@ public class FilesResourceTest extends JerseyTest {
     @Before
     public void mockUp()
             throws Exception {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
 
         uisHandler = applicationContext.getBean(UISClientHandler.class);
@@ -77,35 +68,18 @@ public class FilesResourceTest extends JerseyTest {
         file.setFileName("fileName");
         file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
-        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID,
-                rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
-                rep.getVersion());
-        filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
+        filesWebTarget = "/records/" + rep.getCloudId() + "/representations/" + rep.getRepresentationName() + "/versions/" + rep.getVersion() + "/files";
     }
 
 
     @After
-    public void cleanUp()
-            throws Exception {
+    public void cleanUp() {
         try {
             recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
-        }catch (Exception e){
+        } catch (Exception e) {
             // do nothing it's cleaning step
         }
     }
-
-
-    @Override
-    public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-    }
-
-
-    @Override
-    protected void configureClient(ClientConfig config) {
-        config.register(MultiPartFeature.class);
-    }
-
 
     @Test
     public void shouldUploadDataWithPostWithoutFileName()
@@ -116,14 +90,10 @@ public class FilesResourceTest extends JerseyTest {
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, file.getMimeType())
-                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
-                        APPLICATION_OCTET_STREAM_TYPE);
 
-        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
-        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue
-                ());
+        mockMvc.perform(postFile(filesWebTarget,file.getMimeType(), content))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -148,14 +118,10 @@ public class FilesResourceTest extends JerseyTest {
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
-        FormDataMultiPart multipart = new FormDataMultiPart()
-                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
-                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
-                        APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
-
-        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
-        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
+        mockMvc.perform(postFile(filesWebTarget,file.getMimeType(), content)
+                .param(ParamConstants.F_FILE_NAME, file.getFileName()))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -175,28 +141,21 @@ public class FilesResourceTest extends JerseyTest {
     public void shouldBeReturn409WhenFileAlreadyExist()
             throws Exception {
         // given particular (random in this case) content in service
-        byte[] content = { 1, 2, 3, 4 };
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
+        byte[] content = {1, 2, 3, 4};
         recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file,
                 new ByteArrayInputStream(content));
 
-        byte[] modifiedContent = { 5, 6, 7 };
+        byte[] modifiedContent = {5, 6, 7};
         ThreadLocalRandom.current().nextBytes(modifiedContent);
         String modifiedContentMd5 = Hashing.md5().hashBytes(content).toString();
-        // when content is added to record representation
 
+        // when content is added to record representation
         ByteArrayInputStream modifiedInputStream = new ByteArrayInputStream(modifiedContent);
         MediaType detect = getMediaType(modifiedInputStream);
-        FormDataMultiPart multipart = new FormDataMultiPart()
-                .field(ParamConstants.F_FILE_MIME, detect.toString())
-                .field(ParamConstants.F_FILE_DATA, modifiedInputStream,
-                        detect).field(ParamConstants.F_FILE_NAME, file.getFileName());
 
-        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-        assertEquals("Unexpected status code" + postFileResponse.readEntity(String.class), Response.Status
-                        .CONFLICT
-                        .getStatusCode(),
-                postFileResponse.getStatus());
+        mockMvc.perform(postFile(filesWebTarget, detect.toString(), modifiedContent).
+                param(ParamConstants.F_FILE_NAME, file.getFileName()))
+                .andExpect(status().isConflict());
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -218,69 +177,64 @@ public class FilesResourceTest extends JerseyTest {
     @Test
     public void shouldUploadXMLFileWithApplicationXMLMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XML_CONTENT,"application/xml");
+        uploadFileWithGivenMimeType(XML_CONTENT, "application/xml");
     }
 
     @Test
     public void shouldUploadXMLFileWithTextXMLMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XML_CONTENT,"text/xml");
+        uploadFileWithGivenMimeType(XML_CONTENT, "text/xml");
     }
 
     @Test
     public void shouldUploadXMLFileWithTextPlainMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XML_CONTENT,"text/plain");
+        uploadFileWithGivenMimeType(XML_CONTENT, "text/plain");
     }
 
     @Test
     public void shouldUploadRdfFileWithTextXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(RDF_CONTENT,"text/xml");
+        uploadFileWithGivenMimeType(RDF_CONTENT, "text/xml");
     }
 
     @Test
     public void shouldUploadRdfFileWithTextPlainMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(RDF_CONTENT,"text/plain");
+        uploadFileWithGivenMimeType(RDF_CONTENT, "text/plain");
     }
 
     @Test
     public void shouldUploadRdfFileWithApplicationXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(RDF_CONTENT,"application/xml");
+        uploadFileWithGivenMimeType(RDF_CONTENT, "application/xml");
     }
 
     @Test
     public void shouldUploadXsltFileWithTextPlainMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XSLT_CONTENT,"text/plain");
+        uploadFileWithGivenMimeType(XSLT_CONTENT, "text/plain");
     }
 
     @Test
     public void shouldUploadXsltFileWithTextXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XSLT_CONTENT,"text/xml");
+        uploadFileWithGivenMimeType(XSLT_CONTENT, "text/xml");
     }
 
     @Test
     public void shouldUploadXsltFileWithApplicationXmlMimeType()
             throws Exception {
-        uploadFileWithGivenMimeType(XSLT_CONTENT,"application/xml");
+        uploadFileWithGivenMimeType(XSLT_CONTENT, "application/xml");
     }
 
-    private void uploadFileWithGivenMimeType(byte[] fileContent, String mimeType) throws RepresentationNotExistsException, FileNotExistsException {
+    private void uploadFileWithGivenMimeType(byte[] fileContent, String mimeType) throws Exception {
         String contentMd5 = Hashing.md5().hashBytes(fileContent).toString();
 
         // when content is added to record representation
-        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mimeType)
-                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(fileContent),
-                        APPLICATION_OCTET_STREAM_TYPE);
-
-        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
-        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue
-                ());
+        mockMvc.perform(postFile(filesWebTarget,mimeType, fileContent))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());

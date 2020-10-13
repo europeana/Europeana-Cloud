@@ -5,14 +5,13 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.model.dps.TaskStateInfo;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Optional;
+
 /**
  * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
  * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
@@ -48,17 +47,12 @@ public class TaskStatusUpdater {
         return instance;
     }
 
-    public TaskInfo searchById(long taskId)
-            throws NoHostAvailableException, QueryExecutionException, TaskInfoDoesNotExistException {
-       return taskInfoDAO.searchById(taskId);
-    }
-
     public void insertTask(SubmitTaskParameters parameters) {
         long taskId = parameters.getTask().getTaskId();
         String topologyName = parameters.getTopologyName();
         String state = parameters.getStatus().toString();
-        tasksByStateDAO.insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, parameters.getTopicName());
-        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state, parameters.getInfo(), parameters.getSentTime(), null, null, 0, parameters.getTaskJSON());
+        tasksByStateDAO.insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, parameters.getTopicName(), new Date());
+        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state, parameters.getInfo(), parameters.getSentTime(), new Date(), null, 0, parameters.getTaskJSON());
     }
 
     public void updateTask(long taskId, String info, String state, Date startDate)
@@ -95,6 +89,10 @@ public class TaskStatusUpdater {
         taskInfoDAO.setUpdateProcessedFiles(taskId, processedFilesCount, errors);
     }
 
+    public void updateRetryCount(long taskId, int retryCount) {
+        taskInfoDAO.updateRetryCount(taskId, retryCount);
+    }
+
     public void updateStatusExpectedSize(long taskId, String state, int expectedSize)
             throws NoHostAvailableException, QueryExecutionException {
         LOGGER.info("Updating task {} expected size to: {}", taskId, expectedSize);
@@ -103,9 +101,9 @@ public class TaskStatusUpdater {
     }
 
     private void updateTasksByTaskStateTable(long taskId, String newState) {
-        Optional<TaskStateInfo> oldTask = taskInfoDAO.findTaskStateInfo(taskId);
+        Optional<TaskInfo> oldTask = taskInfoDAO.findById(taskId);
         if (oldTask.isPresent()) {
-            tasksByStateDAO.updateTask(oldTask.get().getTopologyName(), taskId, oldTask.get().getState(), newState);
+            tasksByStateDAO.updateTask(oldTask.get().getTopologyName(), taskId, oldTask.get().getState().toString(), newState);
         }
     }
 

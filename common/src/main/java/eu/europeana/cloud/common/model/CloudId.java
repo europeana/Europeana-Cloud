@@ -1,5 +1,8 @@
 package eu.europeana.cloud.common.model;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -8,7 +11,13 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Yorgos.Mamakis@ kb.nl
  */
 @XmlRootElement
+@JsonRootName(CloudId.XSI_TYPE)
 public class CloudId {
+
+    final static String XSI_TYPE = "cloudId";
+
+    @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
+    private final String xsiType = XSI_TYPE;
 
     /* The unique identifier */
     private String id;

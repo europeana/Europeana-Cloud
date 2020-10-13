@@ -11,9 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyList;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
@@ -29,14 +27,12 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.shade.com.google.common.io.Resources;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 /**
  * Created by Tarek on 7/18/2017.
@@ -67,10 +63,11 @@ public class XsltBoltTest {
 
     @Test
     public void executeBolt() throws IOException {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
-        xsltBolt.execute(tuple);
+        xsltBolt.execute(anchorTuple, tuple);
         when(outputCollector.emit(anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 4);
@@ -127,13 +124,14 @@ public class XsltBoltTest {
 
     @Test
     public void executeBoltWithInjection() throws IOException {
+        Tuple anchorTuple = mock(TupleImpl.class);
         HashMap<String, String> parameters = prepareStormTaskTupleParameters(injectNodeXsltFileName);
         parameters.put(PluginParameterKeys.METIS_DATASET_ID, EXAMPLE_METIS_DATASET_ID);
 
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), parameters, new Revision());
-        xsltBolt.execute(tuple);
+        xsltBolt.execute(anchorTuple, tuple);
         when(outputCollector.emit(anyList())).thenReturn(null);
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertEmittedTuple(allValues, 4);

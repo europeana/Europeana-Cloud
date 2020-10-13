@@ -12,8 +12,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,8 +44,8 @@ public class DatasetFilesCounterTest {
 
     @Test
     public void shouldReturnProcessedFiles() throws Exception {
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", EXPECTED_SIZE, EXPECTED_SIZE, 0, new Date(), new Date(), new Date());
-        when(taskInfoDAO.searchById(TASK_ID)).thenReturn(taskInfo);
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", EXPECTED_SIZE, EXPECTED_SIZE, 0, 0, new Date(), new Date(), new Date());
+        when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
         int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
         assertEquals(EXPECTED_SIZE, expectedFilesCount);
@@ -65,7 +67,7 @@ public class DatasetFilesCounterTest {
     @Test
     public void shouldReturnedDefaultFilesCountWhenPreviousTaskIdDoesNotExist() throws Exception {
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
-        doThrow(TaskInfoDoesNotExistException.class).when(taskInfoDAO).searchById(TASK_ID);
+        doReturn(Optional.empty()).when(taskInfoDAO).findById(TASK_ID);
         int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
         assertEquals(DEFAULT_FILES_COUNT, expectedFilesCount);
     }
@@ -73,7 +75,7 @@ public class DatasetFilesCounterTest {
     @Test(expected = TaskSubmissionException.class)
     public void shouldThrowExceptionWhenQueryingDatabaseUsingPreviousTaskIdThrowAnExceptionOtherThanTaskInfoDoesNotExistException() throws Exception {
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
-        doThrow(Exception.class).when(taskInfoDAO).searchById(TASK_ID);
+        doThrow(Exception.class).when(taskInfoDAO).findById(TASK_ID);
         datasetFilesCounter.getFilesCount(dpsTask);
     }
 

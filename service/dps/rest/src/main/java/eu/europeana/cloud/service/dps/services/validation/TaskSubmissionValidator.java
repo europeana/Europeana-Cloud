@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
+import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 
 /**
  * This service will be used during submission time to validate if given task submission is correct.<br/>
@@ -59,7 +60,7 @@ public class TaskSubmissionValidator {
 
     private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
         String taskType = specifyTaskType(task, topologyName);
-        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidator(taskType);
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(taskType);
         validator.validate(task);
     }
 
@@ -85,10 +86,9 @@ public class TaskSubmissionValidator {
 
     private void validateProviderId(DpsTask task, String providerId) throws DpsTaskValidationException {
         String providedProviderId = task.getParameter(PluginParameterKeys.PROVIDER_ID);
-        if (providedProviderId != null)
-            if (!providedProviderId.equals(providerId))
-                throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
-                        + " should be the same provider of the output dataSet: " + providerId);
+        if (providedProviderId != null && !providedProviderId.equals(providerId))
+            throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
+                    + " should be the same provider of the output dataSet: " + providerId);
     }
 
     private DataSet parseDataSetUrl(String url) throws MalformedURLException {
@@ -118,6 +118,12 @@ public class TaskSubmissionValidator {
         }
         if (task.getDataEntry(REPOSITORY_URLS) != null) {
             return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
+        }
+        if (task.getParameter(METIS_DATASET_ID) != null) {
+            return topologyName + "_" + METIS_DATASET_ID.toLowerCase();
+        }
+        if (task.getParameter(RECORD_IDS_TO_DEPUBLISH) != null) {
+            return topologyName + "_" + RECORD_IDS_TO_DEPUBLISH.toLowerCase();
         }
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }

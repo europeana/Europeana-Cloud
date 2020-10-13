@@ -1,74 +1,47 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.test.CassandraTestRunner;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.springframework.context.ApplicationContext;
+import org.springframework.test.web.servlet.ResultActions;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.function.Consumer;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * This tests checks if content is streamed (not put entirely into memory) when downloading file.
  */
-@RunWith(CassandraTestRunner.class)
-public class HugeFileResourceDownloadIT extends JerseyTest {
+public class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
     private static RecordService recordService;
 
-    private static final int HUGE_FILE_SIZE = 1 << 30;
-
+    private static final int HUGE_FILE_SIZE = 200_000_000;
 
     @Before
-    public void mockUp()
-            throws Exception {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+    public void mockUp() {
         recordService = applicationContext.getBean(RecordService.class);
     }
 
-
     @After
-    public void cleanUp()
-            throws Exception {
+    public void cleanUp() {
         reset(recordService);
     }
-
-
-    @Override
-    public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-    }
-
-
-    @Override
-    protected void configureClient(ClientConfig config) {
-        config.register(MultiPartFeature.class);
-    }
-
 
     @Test
     public void shouldHandleHugeFile()
@@ -79,70 +52,42 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
         File file = new File("fileName", "text/plain", "md5", new Date().toString(), HUGE_FILE_SIZE, null);
 
         // mock answers:
-        doAnswer(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
-            anyLong(), anyLong(), any(OutputStream.class));
+        doReturn(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
+            anyLong(), anyLong());
         Mockito.doReturn(file).when(recordService).getFile(globalId, schema, version, file.getFileName());
 
         // when we download mocked content of resource
-        WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()) //
-                .resolveTemplates(ImmutableMap.<String, Object> of( //
-                    ParamConstants.P_CLOUDID, globalId, //
-                    ParamConstants.P_REPRESENTATIONNAME, schema, //
-                    ParamConstants.P_VER, version, //
-                    ParamConstants.P_FILENAME, file.getFileName()));
+        ResultActions response = mockMvc.perform(
+                get(FILE_RESOURCE, globalId, schema, version, file.getFileName()))
+                .andExpect(status().is2xxSuccessful());
 
-        Response response = webTarget.request().get();
-        assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());
+        response.andReturn().getAsyncResult();
 
         // then - we should be able to get full content and the content should have expected size
-        InputStream responseStream = response.readEntity(InputStream.class);
-        int totalBytesInResponse = getBytesCount(responseStream);
+        int totalBytesInResponse = responseContentAsByteArray(response).length;
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, totalBytesInResponse);
     }
 
-
-    private int getBytesCount(InputStream is)
-            throws IOException {
-        int totalBytes = 0;
-        int nRead;
-        byte[] data = new byte[16384];
-
-        while ((nRead = is.read(data, 0, data.length)) != -1) {
-            totalBytes += nRead;
-        }
-        return totalBytes;
-    }
-
-
     /**
      * Mock answer for
-     * {@link ContentService#getContent(eu.europeana.cloud.common.model.Representation, eu.europeana.cloud.common.model.File, long, long, java.io.OutputStream)
+     * {@link RecordService#getContent(String, String, String, String, long, long)
      * getContent} method.
      */
-    static class MockGetContentMethod implements Answer<Object> {
+    static class MockGetContentMethod implements Consumer<OutputStream> {
 
         final int totalBytes;
-
 
         public MockGetContentMethod(int totalBytes) {
             this.totalBytes = totalBytes;
         }
 
-
-        @Override
-        public Object answer(InvocationOnMock invocation)
-                throws Throwable {
-            Object[] args = invocation.getArguments();
-            OutputStream os = (OutputStream) args[6];
-            writeBytes(os);
-            return null;
-        }
-
-
-        private void writeBytes(OutputStream os)
-                throws IOException {
-            for (int i = 0; i < totalBytes; i++) {
-                os.write(1);
+        public void accept(OutputStream os) {
+            try {
+                for (int i = 0; i < totalBytes; i++) {
+                    os.write(1);
+                }
+            } catch (IOException e) {
+                throw new SystemException(e);
             }
         }
     }

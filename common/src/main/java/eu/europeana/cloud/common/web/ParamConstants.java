@@ -5,8 +5,6 @@ package eu.europeana.cloud.common.web;
  */
 public interface ParamConstants {
 
-    String LATEST_VERSION_KEYWORD = "LATEST";
-
     // resources' paths
     String RECORDS = "records";
 
@@ -14,51 +12,43 @@ public interface ParamConstants {
 
     String VERSIONS = "versions";
 
-    String PROVIDERS = "data-providers";
+    @Deprecated
+    String P_CLOUDID = "CLOUDID";
 
-    String DATASETS = "data-sets";
+    String CLOUD_ID = "cloudId";
 
-    String ASSIGNMENTS = "assignments";
+    String REPRESENTATION_NAME = "representationName";
 
-    String REVISIONS = "revisions";
+    String VERSION = "version";
+
+    @Deprecated
+    String P_PROVIDER = "DATAPROVIDER";
+
+    String PROVIDER_ID = "providerId";
+
+    String DATA_SET_ID = "dataSetId";
+
+    String REVISION_NAME= "revisionName";
 
     String REVISION_PROVIDER = "revisionProvider";
 
-    String COPY = "copy";
+    String REVISION_PROVIDER_ID = "revisionProviderId";
 
-    String PERSIST = "persist";
+    String FILE_NAME = "fileName";
 
-    String PERMIT = "permit";
-
-    // path parameters' names
-    String P_CLOUDID = "CLOUDID";
-
-    String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
-
-    String P_REVISIONID = "P_REVISIONID";
-
-    String P_VER = "VERSION";
-
-    String P_PROVIDER = "DATAPROVIDER";
-
-    String P_DATASET = "DATASET";
-
-    String P_FILENAME = "FILENAME";
-
+    @Deprecated
     String P_LOCALID = "LOCALID";
 
-    String P_USERNAME = "USERNAME";
+    String LOCAL_ID = "localId";
 
-    String P_PERMISSION_TYPE = "PERMISSION_TYPE";
+    String USER_NAME = "userName";
 
-    String P_TAG = "TAG";
+    String PERMISSION = "permission";
 
-    String P_TAGS = "TAGS";
+    String TAG = "tag";
 
     // form parameters' names (also used as query parameters' names)
     String F_DATASET = "dataSetId";
-
-    String F_DATASET_PROVIDER_ID = "dataSetProviderId";
 
     String F_DESCRIPTION = "description";
 
@@ -78,17 +68,9 @@ public interface ParamConstants {
 
     String F_DATE_FROM = "creationDateFrom";
 
-    String F_PERSISTENT = "persistent";
-
-    String F_DATE_UNTIL = "creationDateUntil";
-
     String F_START_FROM = "startFrom";
 
     String F_LIMIT = "limit";
-
-    String F_REPRESENTATION = "representation";
-
-    String F_DATASETS = "dataSets";
 
     String F_TAG = "tag";
 
@@ -99,12 +81,6 @@ public interface ParamConstants {
     String F_REVISION_TIMESTAMP = "revisionTimestamp";
 
     String F_REVISION_PROVIDER_ID = "revisionProviderId";
-
-    String P_REVISION_NAME = "REVISION_NAME";
-
-    String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
-
-    String F_REVISION_NAME = "revisionName";
 
     //header paramiters' names
     String H_RANGE = "Range";

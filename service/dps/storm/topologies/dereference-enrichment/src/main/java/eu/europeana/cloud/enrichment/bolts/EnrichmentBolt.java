@@ -2,9 +2,11 @@ package eu.europeana.cloud.enrichment.bolts;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerBuilder;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +22,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
 
     private String dereferenceURL;
     private String enrichmentURL;
-    private EnrichmentWorker enrichmentWorker;
+    private transient EnrichmentWorker enrichmentWorker;
 
     public EnrichmentBolt(String dereferenceURL, String enrichmentURL) {
         this.dereferenceURL = dereferenceURL;
@@ -28,23 +30,24 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             String fileContent = new String(stormTaskTuple.getFileData());
             LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
             String output = enrichmentWorker.process(fileContent);
             LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-            emitEnrichedContent(stormTaskTuple, output);
+            emitEnrichedContent(anchorTuple, stormTaskTuple, output);
         } catch (Exception e) {
             LOGGER.error("Exception while Enriching/dereference", e);
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Remote Enrichment/dereference service caused the problem!. The full error: " + ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Remote Enrichment/dereference service caused the problem!. The full error: " + ExceptionUtils.getStackTrace(e),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
-
+        outputCollector.ack(anchorTuple);
     }
 
-    private void emitEnrichedContent(StormTaskTuple stormTaskTuple, String output) throws Exception {
+    private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output) throws Exception {
         prepareStormTaskTupleForEmission(stormTaskTuple, output);
-        outputCollector.emit(stormTaskTuple.toStormTuple());
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
     }
 
     @Override

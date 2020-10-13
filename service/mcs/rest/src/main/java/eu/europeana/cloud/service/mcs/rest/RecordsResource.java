@@ -1,49 +1,49 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
 
 /**
  * Resource representing records.
  */
-@Path("/records/{" + P_CLOUDID + "}")
-@Component
-@Scope("request")
+@RestController
+@RequestMapping(RECORDS_RESOURCE)
 public class RecordsResource {
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+
+    public RecordsResource(RecordService recordService) {
+        this.recordService = recordService;
+    }
 
     /**
      * Returns record with all its latest persistent representations.
      *
-     * @param globalId cloud id of the record (required).
+     * @param cloudId cloud id of the record (required).
      * @return record.
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      */
-    @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ReturnType("eu.europeana.cloud.common.model.Record")
-    public Record getRecord(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
-            throws RecordNotExistsException {
-        Record record = recordService.getRecord(globalId);
-        prepare(uriInfo, record);
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    @ResponseBody
+    public Record getRecord(
+            HttpServletRequest httpServletRequest,
+            @PathVariable String cloudId) throws RecordNotExistsException {
+
+        Record record = recordService.getRecord(cloudId);
+        prepare(httpServletRequest, record);
         return record;
     }
 
@@ -54,17 +54,19 @@ public class RecordsResource {
      * <strong>Admin permissions required.</strong>
      *
      * @summary delete a record
-     * @param globalId cloud id of the record (required).
+     * @param cloudId cloud id of the record (required).
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      * @throws RepresentationNotExistsException thrown if no representation can
      * be found for requested record. Service cannot delete such record.
      */
-    @DELETE
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ROLE_ADMIN')") 
-    public void deleteRecord(@PathParam(P_CLOUDID) String globalId)
-            throws RecordNotExistsException, RepresentationNotExistsException {
-        recordService.deleteRecord(globalId);
+    public void deleteRecord(
+            @PathVariable String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
+
+        recordService.deleteRecord(cloudId);
     }
 
     /**
@@ -73,10 +75,9 @@ public class RecordsResource {
      *
      * @param record
      */
-    private void prepare(@Context UriInfo uriInfo, Record record) {
-        EnrichUriUtil.enrich(uriInfo, record);
+    private void prepare(HttpServletRequest httpServletRequest, Record record) {
+        EnrichUriUtil.enrich(httpServletRequest, record);
         for (Representation representation : record.getRepresentations()) {
-//            representation.setFiles(null);
             representation.setCloudId(null);
         }
     }

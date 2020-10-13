@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,18 +36,16 @@ import static org.mockito.Mockito.*;
 
 public class WriteRecordBoltTest {
 
+    public static final String AUTHORIZATION = "Authorization";
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
-    public static final String AUTHORIZATION = "Authorization";
     private final byte[] FILE_DATA = "Data".getBytes();
-
+    @Captor
+    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
-
     @Mock(name = "recordServiceClient")
     private RecordServiceClient recordServiceClient;
-
-
     @InjectMocks
     private WriteRecordBolt writeRecordBolt = new WriteRecordBolt("http://localhost:8080/mcs");
 
@@ -54,46 +54,33 @@ public class WriteRecordBoltTest {
         MockitoAnnotations.initMocks(this);
     }
 
-
     @Test
     public void successfullyExecuteWriteBolt() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(any(), any(), any(), any(InputStream.class), any(), any(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
 
-        writeRecordBolt.execute(tuple);
+        writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(captor.capture());
+        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(value.size(), 7);
+        assertEquals(8, value.size());
         assertTrue(value.get(4) instanceof Map);
         Map<String, String> parameters = (Map<String, String>) value.get(4);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(parameters.get(PluginParameterKeys.OUTPUT_URL), SOURCE_VERSION_URL);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
 
     }
 
     @Test
     public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws Exception {
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
-
-        Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION ,AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
-        when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
-
-
-        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
-        writeRecordBolt.execute(tuple);
-        verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
-    }
-
-    @Test
-    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
@@ -101,13 +88,25 @@ public class WriteRecordBoltTest {
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
-        writeRecordBolt.execute(tuple);
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
+        writeRecordBolt.execute(anchorTuple, tuple);
         verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
     }
 
-    @Captor
-    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
+    @Test
+    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
+
+        Representation representation = mock(Representation.class);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
+        when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
+
+
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
+        writeRecordBolt.execute(anchorTuple, tuple);
+        verify(recordServiceClient, times(4)).getRepresentation(eq(SOURCE + CLOUD_ID), eq(SOURCE + REPRESENTATION_NAME), eq(SOURCE + VERSION), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
+    }
 
     private HashMap<String, String> prepareStormTaskTupleParameters() throws MalformedURLException {
         HashMap<String, String> parameters = new HashMap<>();
@@ -115,6 +114,7 @@ public class WriteRecordBoltTest {
         parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }
 

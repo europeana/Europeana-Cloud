@@ -8,7 +8,9 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.tuple.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -26,8 +28,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
     protected static final String AUTHORIZATION = "Authorization";
     private static final Logger logger = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
-    private RecordServiceClient recordServiceClient;
-    private RevisionServiceClient revisionServiceClient;
+    private transient RecordServiceClient recordServiceClient;
+    private transient RevisionServiceClient revisionServiceClient;
     private final String ecloudMcsAddress;
 
     public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress) {
@@ -41,36 +43,42 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void execute(StormTaskTuple tuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
         logger.info("Checking duplicates for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
         try {
             Representation representation = extractRepresentationInfoFromTuple(tuple);
             List<Representation> representations = findRepresentationsWithSameRevision(tuple, representation);
             if (representationsWithSameRevisionExists(representations)) {
-                handleDuplicatedRepresentation(tuple, representation);
+                handleDuplicatedRepresentation(anchorTuple, tuple, representation);
                 return;
             }
             logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
-            outputCollector.emit(tuple.toStormTuple());
+            outputCollector.emit(anchorTuple, tuple.toStormTuple());
         } catch (MalformedURLException | MCSException e) {
-            logger.error("Error while detecting duplicates");
+            logger.error("Error while detecting duplicates", e);
             emitErrorNotification(
+                    anchorTuple,
                     tuple.getTaskId(),
                     tuple.getFileUrl(),
                     "Error while detecting duplicates",
-                    e.getMessage());
+                    e.getMessage(),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
         }
+        outputCollector.ack(anchorTuple);
     }
 
-    private void handleDuplicatedRepresentation(StormTaskTuple tuple, Representation representation) throws MCSException {
+    private void handleDuplicatedRepresentation(Tuple anchorTuple, StormTaskTuple tuple, Representation representation) throws MCSException {
         logger.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
         removeRevision(tuple, representation);
         removeRepresentation(tuple, representation);
         emitErrorNotification(
+                anchorTuple,
                 tuple.getTaskId(),
                 tuple.getFileUrl(),
                 "Duplicate detected",
-                "Duplicate detected for " + tuple.getFileUrl());
+                "Duplicate detected for " + tuple.getFileUrl(),
+                StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+        outputCollector.ack(anchorTuple);
     }
 
     private void removeRepresentation(StormTaskTuple tuple, Representation representation) throws MCSException {
@@ -116,5 +124,12 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             return representation;
         }
         throw new MCSException("Output URL is not URL to the representation version file");
+    }
+
+    @Override
+    protected void cleanInvalidData(StormTaskTuple tuple) {
+        int attemptNumber = tuple.getRecordAttemptNumber();
+        logger.error("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
+        // nothing to clean here when the message is reprocessed
     }
 }

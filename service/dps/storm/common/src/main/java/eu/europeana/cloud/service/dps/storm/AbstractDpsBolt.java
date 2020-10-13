@@ -4,11 +4,11 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.RecordState;
-
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
@@ -22,11 +22,10 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
 import static java.lang.Integer.parseInt;
 
 /**
@@ -37,41 +36,47 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
-    protected static volatile TaskStatusChecker taskStatusChecker;
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
     protected static final String AUTHORIZATION = "Authorization";
-
 
     // default number of retries
     public static final int DEFAULT_RETRIES = 3;
 
     public static final int SLEEP_TIME = 5000;
 
-    protected Map stormConfig;
-    protected TopologyContext topologyContext;
-    protected OutputCollector outputCollector;
+    protected static volatile TaskStatusChecker taskStatusChecker;
+
+    protected transient Map<?,?> stormConfig;
+    protected transient TopologyContext topologyContext;
+    protected transient OutputCollector outputCollector;
     protected String topologyName;
 
-    public abstract void execute(StormTaskTuple t);
+    public abstract void execute(Tuple anchorTuple, StormTaskTuple t);
 
     public abstract void prepare();
 
     @Override
     public void execute(Tuple tuple) {
-
-        StormTaskTuple t = null;
+        StormTaskTuple stormTaskTuple = null;
         try {
-            t = StormTaskTuple.fromStormTuple(tuple);
-            if (!taskStatusChecker.hasKillFlag(t.getTaskId())) {
-                LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", t.getTaskId(), t.getParameters());
-                execute(t);
+            stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
+
+            if(stormTaskTuple.getRecordAttemptNumber() > 1) {
+                cleanInvalidData(stormTaskTuple);
+            }
+
+            if (!taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
+                LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+                execute(tuple, stormTaskTuple);
             }
         } catch (Exception e) {
-            LOGGER.info("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
-            if (t != null) {
+            LOGGER.info("AbstractDpsBolt error: {}", e.getMessage(), e);
+            if (stormTaskTuple != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
-                emitErrorNotification(t.getTaskId(), t.getFileUrl(), e.getMessage(), stack.toString());
+                emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString(),
+                        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+                outputCollector.ack(tuple);
             }
         }
     }
@@ -92,8 +97,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         String keyspaceName = (String) stormConfig.get(CASSANDRA_KEYSPACE_NAME);
         String userName = (String) stormConfig.get(CASSANDRA_USERNAME);
         String password = (String) stormConfig.get(CASSANDRA_SECRET_TOKEN);
-        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
-                userName, password);
+        CassandraConnectionProvider cassandraConnectionProvider =
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+                        hosts, port, keyspaceName, userName, password);
+
         synchronized (AbstractDpsBolt.class) {
             if (taskStatusChecker == null) {
                 try {
@@ -127,43 +134,40 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param additionalInformations the rest of informations (e.g. stack trace)
      */
 
-    protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+    protected void emitErrorNotification(Tuple anchorTuple, long taskId, String resource, String message, String additionalInformations, long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.ERROR, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+                resource, RecordState.ERROR, message, additionalInformations, processingStartTime);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
-    protected void emitSuccessNotification(long taskId, String resource,
-                                           String message, String additionalInformation, String resultResource, String unifiedErrorMessage, String detailedErrorMessage) {
+    protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
+                                           String message, String additionalInformation, String resultResource, String unifiedErrorMessage, String detailedErrorMessage,
+                                           long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
         nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
         nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
-
-    protected void logAndEmitError(StormTaskTuple t, String message) {
-        LOGGER.error(message);
-        emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-    }
-
-    protected void emitSuccessNotification(long taskId, String resource,
-                                           String message, String additionalInformation, String resultResource) {
+    protected void emitSuccessNotification(Tuple anchorTuple, long taskId, String resource,
+                                           String message, String additionalInformation, String resultResource,
+                                           long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
-    protected void emitSuccessNotificationForIndexing(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
-                                                      String message, String additionalInformation, String resultResource) {
+    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
+                                                      String message, String additionalInformation, String resultResource,
+                                                      long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {
-        stormTaskTuple.setFileData(resultString.getBytes(Charset.forName("UTF-8")));
+        stormTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
         final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
         stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
@@ -173,9 +177,15 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void waitForSpecificTime() {
         try {
             Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
+        } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
+            LOGGER.error(ie.getMessage());
         }
+    }
+
+    protected void cleanInvalidData(StormTaskTuple tuple) {
+        int attemptNumber = tuple.getRecordAttemptNumber();
+        LOGGER.info("Attempt number {} to process this message. No cleaning done here.", attemptNumber);
+        // nothing to clean here when the message is reprocessed
     }
 }

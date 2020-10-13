@@ -1,5 +1,11 @@
 package eu.europeana.cloud.common.response;
 
+import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Objects;
 
@@ -7,7 +13,13 @@ import java.util.Objects;
  * Association between cloud identifier and tags of its revision
  */
 @XmlRootElement
+@JsonRootName(CloudTagsResponse.XSI_TYPE)
 public class CloudTagsResponse implements Comparable {
+
+    final static String XSI_TYPE = "cloudTagsResponse";
+
+    @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
+    private final String xsiType = XSI_TYPE;
 
     /**
      * Identifier (cloud id) of a record.

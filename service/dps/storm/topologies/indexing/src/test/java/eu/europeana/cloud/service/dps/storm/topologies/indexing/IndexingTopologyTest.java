@@ -8,7 +8,6 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.TEST_END_BOLT;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
-import com.mongodb.util.JSONParseException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.helper.TopologyTestHelper;
@@ -165,7 +164,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         MkClusterParam mkClusterParam = prepareMKClusterParm();
         Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
             @Override
-            public void run(ILocalCluster cluster) throws JSONParseException, JSONException {
+            public void run(ILocalCluster cluster) throws JSONException {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);

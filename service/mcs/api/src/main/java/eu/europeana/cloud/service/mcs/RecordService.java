@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Service for manipulating representations and their content.
@@ -180,13 +181,12 @@ public interface RecordService {
      * @param fileName     file name
      * @param rangeStart   initial index of the range, inclusive
      * @param rangeEnd     final index of the range, inclusive.
-     * @param outputStream output stream
      * @throws RepresentationNotExistsException representation does not exist in specified version.
      * @throws FileNotExistsException           if file with given name does not exist
      * @throws WrongContentRangeException       if range is invalid
+     * @return
      */
-    void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd,
-                    OutputStream outputStream)
+    Consumer<OutputStream> getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException;
 
 

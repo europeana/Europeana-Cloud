@@ -50,7 +50,7 @@ public class ValidationTopology {
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);
 
         builder.setSpout(SPOUT, eCloudSpout,
@@ -58,7 +58,7 @@ public class ValidationTopology {
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
+        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
                 (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
@@ -116,7 +116,7 @@ public class ValidationTopology {
             if (args.length <= 2) {
 
                 String providedPropertyFile = (args.length > 0 ? args[0] : "");
-                String providedValidationPropertiesFile = (args.length == 2 ? args[1] : "");;
+                String providedValidationPropertiesFile = (args.length == 2 ? args[1] : "");
 
                 ValidationTopology validationTopology =
                         new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,
@@ -124,7 +124,7 @@ public class ValidationTopology {
 
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = validationTopology.buildTopology(ecloudMcsAddress);
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {

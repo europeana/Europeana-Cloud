@@ -4,12 +4,11 @@
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
 		<artifactId>ecloud-service-dps</artifactId>
-		<version>1.10.0</version>
+		<version>2</version>
 	</parent>
 
 	<properties>
 		<main.directory>${project.parent.parent.basedir}</main.directory>
-		<version.guava>16.0</version.guava> <!-- Version from ecloud-parent pom is invisible when sinle subprojects as dps/rest or storm/topologies/XXXX are built-->
 	</properties>
 
 	<artifactId>ecloud-service-dps-api</artifactId>
@@ -33,7 +32,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.10</version>
+			<version>${version.lombok}</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

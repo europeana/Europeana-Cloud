@@ -6,11 +6,14 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -21,9 +24,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Tarek on 2/19/2019.
@@ -52,7 +53,7 @@ public class ParseFileBoltTest {
 
 
     @InjectMocks
-    static ParseFileBolt parseFileBolt = new ParseFileBolt("localhost/mcs");
+    static ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt("localhost/mcs");
 
     private StormTaskTuple stormTaskTuple;
     private static List<String> expectedParametersKeysList;
@@ -61,7 +62,7 @@ public class ParseFileBoltTest {
     public static void init() {
 
         parseFileBolt.prepare();
-        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT);
+        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT, PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE);
 
     }
 
@@ -79,21 +80,23 @@ public class ParseFileBoltTest {
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
-        setStaticField(ParseFileBolt.class.getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
+        setStaticField(ParseFileForMediaBolt.class.getSuperclass().getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
     }
 
     @Test
     public void shouldParseFileAndEmitResources() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
-            parseFileBolt.execute(stormTaskTuple);
+            parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(5)).emit(captor.capture()); // 4 hasView, 1 edm:object
 
             List<Values> capturedValuesList = captor.getAllValues();
-            assertEquals(5, capturedValuesList.size());
+            assertEquals(4, capturedValuesList.size());
             for (Values values : capturedValuesList) {
-                assertEquals(7, values.size());
+                assertEquals(8, values.size());
                 Map<String, String> val = (Map) values.get(4);
                 assertNotNull(val);
                 for (String parameterKey : val.keySet()) {
@@ -106,19 +109,23 @@ public class ParseFileBoltTest {
 
     @Test
     public void shouldDropTaskAndStopEmitting() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(false).thenReturn(true);
-            parseFileBolt.execute(stormTaskTuple);
+            parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(2)).emit(captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
         }
     }
 
     @Test
     public void shouldParseFileWithEmptyResourcesAndForwardOneTuple() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
+
         try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
-            parseFileBolt.execute(stormTaskTuple);
+            parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(1)).emit(captor.capture());
             Values values = captor.getValue();
             assertNotNull(values);
@@ -134,9 +141,10 @@ public class ParseFileBoltTest {
 
     @Test
     public void shouldEmitErrorWhenDownloadFileFails() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         doThrow(IOException.class).when(fileClient).getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION));
-        parseFileBolt.execute(stormTaskTuple);
-        verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), captor.capture());
+        parseFileBolt.execute(anchorTuple, stormTaskTuple);
+        verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         Values values = captor.getValue();
         assertNotNull(values);
         Map<String, String> valueMap = (Map) values.get(2);
@@ -151,10 +159,11 @@ public class ParseFileBoltTest {
 
     @Test
     public void shouldEmitErrorWhenGettingResourceLinksFails() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/broken.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
-            parseFileBolt.execute(stormTaskTuple);
-            verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), captor.capture());
+            parseFileBolt.execute(anchorTuple, stormTaskTuple);
+            verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
             Values values = captor.getValue();
             assertNotNull(values);
             Map<String, String> valueMap = (Map) values.get(2);

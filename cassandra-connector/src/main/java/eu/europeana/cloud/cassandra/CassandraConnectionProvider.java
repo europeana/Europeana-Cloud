@@ -84,7 +84,7 @@ public class CassandraConnectionProvider {
         Metadata metadata = cluster.getMetadata();
         LOGGER.info("Connected to cluster: {}", metadata.getClusterName());
         for (Host h : metadata.getAllHosts()) {
-            LOGGER.info("Data center: {}; Hosts: {}; Rack: {}", h.getDatacenter(), h.getAddress(), h.getRack());
+            LOGGER.info("Data center: {}; Hosts: {}; Rack: {}", h.getDatacenter(), h.getBroadcastAddress(), h.getRack());
         }
     }
 

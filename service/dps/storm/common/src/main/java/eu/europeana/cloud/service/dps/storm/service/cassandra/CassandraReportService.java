@@ -75,17 +75,17 @@ public class CassandraReportService implements TaskExecutionReportService {
 
         Row basicInfo = cassandra.getSession().execute(selectFromBasicInfo).one();
         if (basicInfo != null) {
-            TaskInfo taskInfo = new TaskInfo(taskIdValue,
+            return new TaskInfo(taskIdValue,
                     basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
                     TaskState.valueOf(basicInfo.getString(CassandraTablesAndColumnsNames.STATE)),
                     basicInfo.getString(CassandraTablesAndColumnsNames.INFO),
                     basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE),
                     basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT),
+                    basicInfo.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT),
                     basicInfo.getInt(CassandraTablesAndColumnsNames.ERRORS),
-                    basicInfo.getDate(CassandraTablesAndColumnsNames.SENT_TIME),
-                    basicInfo.getDate(CassandraTablesAndColumnsNames.START_TIME),
-                    basicInfo.getDate(CassandraTablesAndColumnsNames.FINISH_TIME));
-            return taskInfo;
+                    basicInfo.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME),
+                    basicInfo.getTimestamp(CassandraTablesAndColumnsNames.START_TIME),
+                    basicInfo.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME));
         }
         throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
     }

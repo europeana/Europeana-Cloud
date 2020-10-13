@@ -9,49 +9,47 @@ import eu.europeana.cloud.common.selectors.RepresentationSelector;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.function.Consumer;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_FILE_ACCESS_RESOURCE;
 
 /**
  * Gives (read) access to files stored in ecloud in simplified (friendly) way. <br/>
  * The latest persistent version of representation is picked up.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}/representations/{" + P_REPRESENTATIONNAME + "}/{" + P_FILENAME + ":.+}")
-@Scope("request")
-@Component
+@RestController
+@RequestMapping(SIMPLIFIED_FILE_ACCESS_RESOURCE)
 public class SimplifiedFileAccessResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimplifiedFileAccessResource.class);
 
-    @Autowired
-    private RecordService recordService;
+    private final RecordService recordService;
+    private final UISClientHandler uisClientHandler;
+    private final PermissionEvaluator permissionEvaluator;
 
-    @Autowired
-    private UISClientHandler uisClientHandler;
-
-    @Autowired
-    private PermissionEvaluator permissionEvaluator;
+    public SimplifiedFileAccessResource(RecordService recordService, UISClientHandler uisClientHandler, PermissionEvaluator permissionEvaluator) {
+        this.recordService = recordService;
+        this.uisClientHandler = uisClientHandler;
+        this.permissionEvaluator = permissionEvaluator;
+    }
 
     /**
      * Returns file content from <b>latest persistent version</b> of specified representation.
@@ -68,13 +66,14 @@ public class SimplifiedFileAccessResource {
      * @summary Get file content using simplified url
      * @statuscode 204 object has been updated.
      */
-    @GET
-    public Response getFile(@Context UriInfo uriInfo,
-                            @PathParam(P_PROVIDER) final String providerId,
-                            @PathParam(P_LOCALID) final String localId,
-                            @PathParam(P_REPRESENTATIONNAME) final String representationName,
-                            @PathParam(P_FILENAME) final String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
+    @GetMapping
+    public ResponseEntity<StreamingResponseBody> getFile(
+            HttpServletRequest httpServletRequest,
+            @PathVariable final String providerId,
+            @PathVariable final String localId,
+            @PathVariable final String representationName,
+            @PathVariable final String fileName) throws RepresentationNotExistsException,
+            FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, WrongContentRangeException {
 
         LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
                 providerId, localId, representationName, fileName);
@@ -88,30 +87,25 @@ public class SimplifiedFileAccessResource {
             final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
             String md5 = requestedFile.getMd5();
-            String fileMimeType = null;
+            MediaType fileMimeType = null;
             if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
-                fileMimeType = requestedFile.getMimeType();
+                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
             }
-            EnrichUriUtil.enrich(uriInfo, representation, requestedFile);
-            StreamingOutput output = new StreamingOutput() {
-                @Override
-                public void write(OutputStream output)
-                        throws IOException, WebApplicationException {
-                    try {
-                        final FileResource.ContentRange contentRange = new FileResource.ContentRange(-1L, -1L);
-                        recordService.getContent(cloudId, representationName, representation.getVersion(), fileName, contentRange.getStart(), contentRange.getEnd(),
-                                output);
-                    } catch (RepresentationNotExistsException ex) {
-                        throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
-                    } catch (FileNotExistsException ex) {
-                        throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
-                    } catch (WrongContentRangeException ex) {
-                        throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
-                    }
-                }
-            };
+            EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
+            final FileResource.ContentRange contentRange = new FileResource.ContentRange(-1L, -1L);
+            Consumer<OutputStream> downloadingMethod = recordService.getContent(cloudId, representationName, representation.getVersion(),
+                    fileName, contentRange.getStart(), contentRange.getEnd());
 
-            return Response.status(Response.Status.OK).entity(output).location(requestedFile.getContentUri()).type(fileMimeType).tag(md5).build();
+            ResponseEntity.BodyBuilder response = ResponseEntity
+                    .status(HttpStatus.OK)
+                    .location(requestedFile.getContentUri());
+            if (md5 != null) {
+                response.eTag(md5);
+            }
+            if (fileMimeType != null) {
+                response.contentType(fileMimeType);
+            }
+            return response.body(output -> downloadingMethod.accept(output));
         } else {
             throw new AccessDeniedException("Access is denied");
         }
@@ -121,7 +115,7 @@ public class SimplifiedFileAccessResource {
      * 
      * Returns file headers from <b>latest persistent version</b> of specified representation.
      * 
-     * @param uriInfo
+     * @param httpServletRequest
      * @param providerId         providerId
      * @param localId            localId
      * @param representationName representationName
@@ -136,13 +130,14 @@ public class SimplifiedFileAccessResource {
      * @throws RecordNotExistsException
      * @throws ProviderNotExistsException
      */
-    @HEAD
-    public Response getFileHeaders(@Context UriInfo uriInfo,
-                                   @PathParam(P_PROVIDER) final String providerId,
-                                   @PathParam(P_LOCALID) final String localId,
-                                   @PathParam(P_REPRESENTATIONNAME) final String representationName,
-                                   @PathParam(P_FILENAME) final String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
+    @RequestMapping(method = RequestMethod.HEAD)
+    public ResponseEntity<?> getFileHeaders(
+            HttpServletRequest httpServletRequest,
+            @PathVariable final String providerId,
+            @PathVariable final String localId,
+            @PathVariable final String representationName,
+            @PathVariable final String fileName) throws RepresentationNotExistsException,
+                    FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
         LOGGER.info("Reading file headers in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
                 providerId, localId, representationName, fileName);
@@ -152,16 +147,27 @@ public class SimplifiedFileAccessResource {
         if (representation == null) {
             throw new RepresentationNotExistsException();
         }
+
         if (userHasRightsToReadFile(cloudId, representation.getRepresentationName(), representation.getVersion())) {
             final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
             String md5 = requestedFile.getMd5();
-            String fileMimeType = null;
+            MediaType fileMimeType = null;
             if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
-                fileMimeType = requestedFile.getMimeType();
+                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
             }
-            EnrichUriUtil.enrich(uriInfo, representation, requestedFile);
-            return Response.status(Response.Status.OK).type(fileMimeType).location(requestedFile.getContentUri()).tag(md5).build();
+            EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
+
+            ResponseEntity.BodyBuilder response = ResponseEntity
+                    .status(HttpStatus.OK)
+                    .location(requestedFile.getContentUri());
+            if (md5 != null) {
+                response.eTag(md5);
+            }
+            if (fileMimeType != null) {
+                response.contentType(fileMimeType);
+            }
+            return response.build();
         } else {
             throw new AccessDeniedException("Access is denied");
         }
@@ -173,16 +179,15 @@ public class SimplifiedFileAccessResource {
         Authentication authentication = ctx.getAuthentication();
         //
         String targetId = cloudId + "/" + representationName + "/" + representationVersion;
-        boolean hasAccess = permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
-        return hasAccess;
+        return permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
     }
 
-    private String findCloudIdFor(String providerID, String localId) throws CloudException, ProviderNotExistsException, RecordNotExistsException {
+    private String findCloudIdFor(String providerID, String localId) throws ProviderNotExistsException, RecordNotExistsException {
         CloudId foundCloudId = uisClientHandler.getCloudIdFromProviderAndLocalId(providerID, localId);
         return foundCloudId.getId();
     }
 
-    private Representation selectRepresentationVersion(String cloudId, String representationName) throws RepresentationNotExistsException, RecordNotExistsException {
+    private Representation selectRepresentationVersion(String cloudId, String representationName) throws RepresentationNotExistsException {
         List<Representation> representations = recordService.listRepresentationVersions(cloudId, representationName);
         RepresentationSelector representationSelector = new LatestPersistentRepresentationVersionSelector();
         return representationSelector.select(representations);

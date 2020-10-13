@@ -5,6 +5,7 @@ import org.apache.commons.lang3.time.FastDateFormat;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 
@@ -29,7 +30,7 @@ public class DateAdapter extends XmlAdapter<String, Date> {
             return null;
         }
         try {
-            Date date = (Date) FORMATTER.parseObject(stringDate);
+            Date date = GregorianCalendar.getInstance().getTime();  //(Date)FORMATTER.parseObject(stringDate);
             if(date == null){
                 throw new ParseException("Cannot parse the date. The accepted date format is "+FORMAT, 0);
             }

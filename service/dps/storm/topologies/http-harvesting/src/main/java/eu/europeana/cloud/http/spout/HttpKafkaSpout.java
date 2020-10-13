@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.spout.CollectorWrapper;
 import eu.europeana.cloud.service.dps.storm.spout.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.spout.TaskQueueFiller;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -184,9 +185,9 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
         }
 
 
-        private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
+        private void emitErrorNotification(long taskId, String resource, String message, String additionalInformations, long processingStartTime) {
             NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                    resource, RecordState.ERROR, message, additionalInformations);
+                    resource, RecordState.ERROR, message, additionalInformations, processingStartTime);
             collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
         }
 
@@ -256,10 +257,12 @@ public class HttpKafkaSpout extends CustomKafkaSpout {
                             prepareTuple(stormTaskTuple, filePath, readableFileName, mimeType, useDefaultIdentifiers, metisDatasetId);
                         } catch (IOException | EuropeanaIdException e) {
                             LOGGER.error(e.getMessage(), e);
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage());
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage(),
+                                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                         } catch (InterruptedException e) {
                             LOGGER.error(e.getMessage(), e);
-                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage());
+                            emitErrorNotification(stormTaskTuple.getTaskId(), readableFileName, ERROR_WHILE_READING_A_FILE_MESSAGE, ERROR_WHILE_READING_A_FILE_MESSAGE + ": " + file.getFileName() + " because of " + e.getMessage(),
+                                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                             Thread.currentThread().interrupt();
                         }
                         finally {

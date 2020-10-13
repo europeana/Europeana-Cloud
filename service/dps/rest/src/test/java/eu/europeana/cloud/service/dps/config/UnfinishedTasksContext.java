@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.dps.config;
 
+import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -18,5 +21,18 @@ public class UnfinishedTasksContext {
         return "exampleAppIdentifier";
     }
 
+    @Bean
+    public CassandraTaskInfoDAO cassandraTaskInfoDAO() {
+        return Mockito.mock(CassandraTaskInfoDAO.class);
+    }
 
+    @Bean
+    public TaskStatusUpdater taskStatusUpdater() {
+        return Mockito.mock(TaskStatusUpdater.class);
+    }
+
+    @Bean
+    public TaskSubmitterFactory taskSubmitter() {
+        return Mockito.mock(TaskSubmitterFactory.class);
+    }
 }

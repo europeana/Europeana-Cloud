@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static java.util.Arrays.copyOfRange;
 import static org.junit.Assert.*;
 
@@ -46,25 +47,25 @@ public class FileServiceClientTest {
     private static final String MODIFIED_FILE_CONTENTS = "Test_123456789_123456";
     
     /** Should already exist in the system */
-    private static final String CLOUD_ID = "W3KBLNZDKNQ";
+    private static final String TEST_CLOUD_ID = "W3KBLNZDKNQ";
     private static final String PROVIDER_ID = "Provider001";
     
-    private static final String REPRESENTATION_NAME = "schema66";
+    private static final String TEST_REPRESENTATION_NAME = "schema66";
     private static final String UPLOADED_FILE_NAME = "9007c26f-e29d-4924-9c49-8ff064484264";
     private static final String MODIFIED_FILE_NAME = "06abeac8-6221-4399-be68-5be5ae8d1473";
     private static final String DELETED_FILE_NAME = "b32b56e9-94d7-44b8-9010-7a1795ee7f95";
     
     //this is some not-persistent version
-    private static final String VERSION = "e91d6300-431c-11e4-8576-00163eefc9c8";
+    private static final String TEST_VERSION = "e91d6300-431c-11e4-8576-00163eefc9c8";
 
 	private static final String PERSISTED_VERSION = "881c5c00-4259-11e4-9c35-00163eefc9c8";
 
     private static Client client;
     //records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/
-    private static final String filesPath = "records/{" + ParamConstants.P_CLOUDID + "}/representations/{"
-            + ParamConstants.P_REPRESENTATIONNAME + "}/versions/{" + ParamConstants.P_VER + "}/files";
+    private static final String filesPath = "records/{" + CLOUD_ID + "}/representations/{"
+            + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/files";
     //records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/FILENAME/
-    private static final String filePath = filesPath + "/{" + ParamConstants.P_FILENAME + "}";
+    private static final String filePath = filesPath + "/{" + FILE_NAME + "}";
     
     private static final String username = "Cristiano";
     private static final String password = "Ronaldo";
@@ -78,7 +79,7 @@ public class FileServiceClientTest {
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
         
-        InputStream responseStream = instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, UPLOADED_FILE_NAME);
+        InputStream responseStream = instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, UPLOADED_FILE_NAME);
 
         assertNotNull(responseStream);
         byte[] responseBytes = ByteStreams.toByteArray(responseStream);
@@ -132,7 +133,7 @@ public class FileServiceClientTest {
         String range = String.format("bytes=%d-%d", rangeStart, rangeEnd);
         
 //        InputStream responseStream = instance.getFile(cloudId, representationName, version, unmovableFileName, range);
-        InputStream responseStream = instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, UPLOADED_FILE_NAME, range);
+        InputStream responseStream = instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, UPLOADED_FILE_NAME, range);
 
         assertNotNull(responseStream);
         byte[] responseBytes = ByteStreams.toByteArray(responseStream);
@@ -150,7 +151,7 @@ public class FileServiceClientTest {
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
         String range = String.format("bytese=%d-%d", rangeStart, rangeEnd);
 
-        instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, unmovableFileName, range);
+        instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, unmovableFileName, range);
     }
 
 
@@ -163,7 +164,7 @@ public class FileServiceClientTest {
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
         String range = String.format("bytese=%d-%d", rangeStart, rangeEnd);
 
-        instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, unmovableFileName, range);
+        instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, unmovableFileName, range);
     }
 
 
@@ -221,7 +222,7 @@ public class FileServiceClientTest {
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        URI uri = instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType);
+        URI uri = instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType);
         System.out.println(uri);
         assertNotNull(uri);
         
@@ -290,7 +291,7 @@ public class FileServiceClientTest {
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType);
+        instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType);
     }
 
 
@@ -304,7 +305,7 @@ public class FileServiceClientTest {
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        URI uri = instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType, contentChecksum);
+        URI uri = instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType, contentChecksum);
         assertNotNull(uri);
         
         // TODO: this stuff cannot be accessed any more, as user must be authenticated ->
@@ -377,7 +378,7 @@ public class FileServiceClientTest {
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType, contentChecksum);
+        instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType, contentChecksum);
     }
 
 
@@ -392,7 +393,7 @@ public class FileServiceClientTest {
         String incorrectContentChecksum = contentChecksum.substring(1) + "0";
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType, incorrectContentChecksum);
+        instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType, incorrectContentChecksum);
     }
 
 
@@ -406,7 +407,7 @@ public class FileServiceClientTest {
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        URI uri = instance.modyfiyFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType,
+        URI uri = instance.modyfiyFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType,
         		MODIFIED_FILE_NAME, contentChecksum);
 
         assertNotNull(uri);
@@ -481,7 +482,7 @@ public class FileServiceClientTest {
         String incorrectContentChecksum = contentChecksum.substring(1) + "0";
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.modyfiyFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType, MODIFIED_FILE_NAME,
+        instance.modyfiyFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType, MODIFIED_FILE_NAME,
             incorrectContentChecksum);
     }
 
@@ -493,7 +494,7 @@ public class FileServiceClientTest {
             throws MCSException {
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.deleteFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, UPLOADED_FILE_CONTENTS);
+        instance.deleteFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, UPLOADED_FILE_CONTENTS);
 
         Response response = BuildWebTarget(cloudId, representationName, version, deletedFileName).request().get();
         assertEquals("", Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
@@ -551,13 +552,17 @@ public class FileServiceClientTest {
 
         FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.deleteFile(CLOUD_ID, REPRESENTATION_NAME, "eb5c0a60-4306-11e4-8576-00163eefc9c8", DELETED_FILE_NAME);
+        instance.deleteFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, "eb5c0a60-4306-11e4-8576-00163eefc9c8", DELETED_FILE_NAME);
     }
 
 
-    private static WebTarget BuildWebTarget(String cloudId, String schema, String version, String fileName) {
-        return client.target(baseUrl).path(filePath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, schema)
-                .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
+    private static WebTarget BuildWebTarget(String cloudId, String representationName, String version, String fileName) {
+        return client
+                .target(baseUrl)
+                .path(filePath)
+                .resolveTemplate(CLOUD_ID, cloudId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName)
+                .resolveTemplate(VERSION, version)
+                .resolveTemplate(FILE_NAME, fileName);
     }
 }

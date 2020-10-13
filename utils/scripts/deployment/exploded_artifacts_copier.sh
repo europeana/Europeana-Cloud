@@ -7,7 +7,8 @@
 #set -e
 
 newAppDirectory=eCloud_apps/to_be_deployed/
-applicationsToBeDeployed=( aas uis mcs dps)
+#applicationsToBeDeployed=( aas uis mcs dps)
+applicationsToBeDeployed=( mcs )
 testMachines=( test-app1 test-app2 test-app3)
 productionMachines=( app1 app2 app3)
 environment=$1

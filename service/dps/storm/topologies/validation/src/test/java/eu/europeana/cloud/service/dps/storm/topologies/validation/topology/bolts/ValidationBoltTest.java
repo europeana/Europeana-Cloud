@@ -7,6 +7,8 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,6 +26,7 @@ import java.util.Properties;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Mockito.mock;
 
 /**
  * Created by Tarek on 1/16/2018.
@@ -60,52 +63,57 @@ public class ValidationBoltTest {
 
     @Test
     public void validateEdmInternalFile() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-internal", null), new Revision());
-        validationBolt.execute(tuple);
+        validationBolt.execute(anchorTuple, tuple);
         assertSuccessfulValidation();
     }
 
     @Test
     public void validateEdmInternalFileWithProvidedRootLocation() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-internal", "EDM-INTERNAL.xsd"), new Revision());
-        validationBolt.execute(tuple);
+        validationBolt.execute(anchorTuple, tuple);
         assertSuccessfulValidation();
     }
 
     @Test
     public void validateEdmExternalFile() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-external", null), new Revision());
-        validationBolt.execute(tuple);
+        validationBolt.execute(anchorTuple, tuple);
         assertSuccessfulValidation();
     }
 
     @Test
     public void validateEdmExternalOutOfOrderFile() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/edmExternalWithOutOfOrderElements.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-external", null), new Revision());
-        validationBolt.execute(tuple);
+        validationBolt.execute(anchorTuple, tuple);
         assertSuccessfulValidation();
     }
 
     @Test
     public void sendErrorNotificationWhenTheValidationFails() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-external", null), new Revision());
-        validationBolt.execute(tuple);
+        validationBolt.execute(anchorTuple, tuple);
         assertFailedValidation();
     }
 
     private void assertSuccessfulValidation() {
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }
 
     private void assertFailedValidation() {
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }
 
     private static Properties readProperties(String propertyFilename) {
@@ -119,6 +127,7 @@ public class ValidationBoltTest {
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.SCHEMA_NAME, schemaName);
         parameters.put(PluginParameterKeys.ROOT_LOCATION, schemaRootLocation);
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }
 

@@ -32,10 +32,9 @@ public class NormalizationTopology {
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationTopology.class);
 
     private static final String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
 
     public NormalizationTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
@@ -44,7 +43,7 @@ public class NormalizationTopology {
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         NormalizationBolt normalizationBolt = new NormalizationBolt();
@@ -55,7 +54,7 @@ public class NormalizationTopology {
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
+        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
                 getAnInt(RETRIEVE_FILE_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))
@@ -124,7 +123,7 @@ public class NormalizationTopology {
 
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = normalizationTopology.buildTopology(ecloudMcsAddress);
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {

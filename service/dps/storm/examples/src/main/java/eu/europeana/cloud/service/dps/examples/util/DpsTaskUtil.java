@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.dps.examples.util;
 
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_USERNAME;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +14,9 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import net.iharder.Base64;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_ECLOUD_MCS_SECRET_TOKEN;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_ECLOUD_MCS_USERNAME;
 
 /**
  * dps Task helpers
@@ -76,7 +76,7 @@ public class DpsTaskUtil {
             dataSets.add(dataSetURL);
         }
 
-        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_SECRET_TOKEN).getBytes());
+        String authorizationHeader = "Basic " + Base64.encodeBytes((DEFAULT_ECLOUD_MCS_USERNAME + ":" + DEFAULT_ECLOUD_MCS_SECRET_TOKEN).getBytes());
         task.addDataEntry(InputDataType.DATASET_URLS, dataSets);
         task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
         return task;
@@ -126,7 +126,7 @@ public class DpsTaskUtil {
         parameters.put("PROVIDER_ID", "provider");
         parameters.put(PluginParameterKeys.NEW_REPRESENTATION_NAME, "NEW_REPRESENTATION_NAME");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATASET);
-        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_SECRET_TOKEN).getBytes());
+        String authorizationHeader = "Basic " + Base64.encodeBytes((DEFAULT_ECLOUD_MCS_USERNAME + ":" + DEFAULT_ECLOUD_MCS_SECRET_TOKEN).getBytes());
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
         return parameters;
     }

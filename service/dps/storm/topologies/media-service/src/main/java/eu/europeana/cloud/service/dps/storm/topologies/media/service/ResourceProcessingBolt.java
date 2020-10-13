@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -15,11 +12,13 @@ import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -31,55 +30,34 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
-    static AmazonS3 amazonClient;
-    private String awsAccessKey;
-    private String awsSecretKey;
-    private String awsEndPoint;
-    private String awsBucket;
+    private AmazonClient amazonClient;
 
-    private Gson gson;
-    private MediaExtractor mediaExtractor;
+    private transient Gson gson;
+    private transient MediaExtractor mediaExtractor;
 
-    public ResourceProcessingBolt(String awsAccessKey, String awsSecretKey, String awsEndPoint, String awsBucket) {
-        this.awsAccessKey = awsAccessKey;
-        this.awsSecretKey = awsSecretKey;
-        this.awsEndPoint = awsEndPoint;
-        this.awsBucket = awsBucket;
+    public ResourceProcessingBolt(AmazonClient amazonClient) {
+        this.amazonClient = amazonClient;
     }
 
 
     @Override
-    public void execute(StormTaskTuple stormTaskTuple) {
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting resource processing");
         long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
-            outputCollector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
         } else {
             try {
                 RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
-                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry);
+                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
                 if (resourceExtractionResult != null) {
                     if (resourceExtractionResult.getMetadata() != null)
                         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
-                    List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
-                    if (thumbnails != null) {
-                        for (Thumbnail thumbnail : thumbnails) {
-                            if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
-                                break;
-                            try (InputStream stream = thumbnail.getContentStream()) {
-                                amazonClient.putObject(awsBucket, thumbnail.getTargetName(), stream, prepareObjectMetadata(thumbnail));
-                            } catch (Exception e) {
-                                String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage() + " because of: " + e.getCause();
-                                LOGGER.error(errorMessage);
-                                buildErrorMessage(exception, errorMessage);
-
-                            } finally {
-                                thumbnail.close();
-                            }
-                        }
-                    }
+                    storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                 }
+                LOGGER.info("Resource processing finished in: {}ms", String.valueOf(Calendar.getInstance().getTimeInMillis() - processingStartTime));
             } catch (Exception e) {
                 LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
                 buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
@@ -89,21 +67,39 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                     stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                     stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
                 }
-                outputCollector.emit(stormTaskTuple.toStormTuple());
-
+                outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+                outputCollector.ack(anchorTuple);
             }
         }
-        LOGGER.info("Resource processing finished in: " + (new Date().getTime() - processingStartTime) + "ms");
+        LOGGER.info("Resource processing finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+    }
+
+    private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
+        List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
+        if (thumbnails != null) {
+            for (Thumbnail thumbnail : thumbnails) {
+                if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                    break;
+                try (InputStream stream = thumbnail.getContentStream()) {
+                    amazonClient.putObject(thumbnail.getTargetName(), stream, prepareObjectMetadata(thumbnail));
+                } catch (Exception e) {
+                    String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage() + " because of: " + e.getCause();
+                    LOGGER.error(errorMessage, e);
+                    buildErrorMessage(exception, errorMessage);
+
+                } finally {
+                    thumbnail.close();
+                }
+            }
+        }
     }
 
     @Override
     public void prepare() {
         try {
-            synchronized (ResourceProcessingBolt.class) {
-                initAmazonClient();
-            }
             createMediaExtractor();
             initGson();
+            amazonClient.init();
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
             throw new RuntimeException(e);
@@ -116,15 +112,6 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
     private void createMediaExtractor() throws MediaProcessorException {
         mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
-    }
-
-    private void initAmazonClient() {
-        if (amazonClient == null) {
-            amazonClient = new AmazonS3Client(new BasicAWSCredentials(
-                    awsAccessKey,
-                    awsSecretKey));
-            amazonClient.setEndpoint(awsEndPoint);
-        }
     }
 
     private ObjectMetadata prepareObjectMetadata(Thumbnail thumbnail) throws IOException {

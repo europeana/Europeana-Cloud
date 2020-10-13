@@ -31,12 +31,11 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 1/24/2018.
  */
 public class EnrichmentTopology {
-    private static Properties topologyProperties;
+    private static Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "enrichment-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentTopology.class);
 
     public EnrichmentTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
@@ -45,7 +44,7 @@ public class EnrichmentTopology {
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         EnrichmentBolt enrichmentBolt = new EnrichmentBolt(
@@ -58,7 +57,7 @@ public class EnrichmentTopology {
                 .setNumTasks(
                         (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt,
+        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
                 (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
@@ -132,7 +131,7 @@ public class EnrichmentTopology {
 
                 String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
                 StormTopology stormTopology = enrichmentTopology.buildTopology(ecloudMcsAddress);
-                Config config = configureTopology(topologyProperties);
+                Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {

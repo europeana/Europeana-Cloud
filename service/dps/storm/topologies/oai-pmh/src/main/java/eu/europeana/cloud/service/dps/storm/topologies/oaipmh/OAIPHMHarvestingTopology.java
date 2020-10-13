@@ -17,6 +17,7 @@ import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
@@ -32,25 +33,27 @@ import static java.lang.Integer.parseInt;
 /**
  *
  */
-public class
-OAIPHMHarvestingTopology {
-    private static Properties topologyProperties=new Properties();;
+public class OAIPHMHarvestingTopology {
+    private static Properties topologyProperties=new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
 
     public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.OAI_TOPOLOGY, topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
+                TopologiesNames.OAI_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
 
-        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
-        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
+        String mcsServer = topologyProperties.getProperty(MCS_URL);
+        String uisServer = topologyProperties.getProperty(UIS_URL);
+
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(mcsServer, uisServer);
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
+        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(mcsServer);
 
         builder.setSpout(SPOUT, eCloudSpout, 1);
 
@@ -69,7 +72,7 @@ OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(ecloudMcsAddress),
+        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(mcsServer),
                 (getAnInt(DUPLICATES_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.taskIdFieldName));
@@ -95,12 +98,16 @@ OAIPHMHarvestingTopology {
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(DUPLICATES_DETECTOR_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
         return builder.createTopology();
+    }
+
+    public static Properties getProperties() {
+        return topologyProperties;
     }
 
     private static int getAnInt(String parseTasksBoltParallel) {
@@ -116,10 +123,8 @@ OAIPHMHarvestingTopology {
                 OAIPHMHarvestingTopology oaiphmHarvestingTopology =
                         new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
-                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(ecloudMcsAddress, ecloudUisAddress);
-                Config config = configureTopology(topologyProperties);
+                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology();
+                Config config = buildConfig(topologyProperties);
 
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

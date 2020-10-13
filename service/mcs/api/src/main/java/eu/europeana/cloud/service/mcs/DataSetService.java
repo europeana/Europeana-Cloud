@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -105,17 +104,6 @@ public interface DataSetService {
      * @return list of data sets as a result slice.
      */
     ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit);
-
-
-    /**
-     * Returns all data sets for particular version.
-     *
-     * @param cloudId            cloud Id
-     * @param representationName representation name
-     * @param version            version
-     * @return Set of data sets.
-     */
-    Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version);
 
     /**
      * Deletes data set.

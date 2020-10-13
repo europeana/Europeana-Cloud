@@ -24,6 +24,7 @@ public class TaskInfo {
     private String topologyName;
     private int expectedSize;
     private int processedElementCount;
+    private int retryCount;
     private TaskState state;
     private String info;
     private String ownerId;
@@ -36,6 +37,9 @@ public class TaskInfo {
     private int errors;
 
     private String taskDefinition;
+
+    private String topicName;
+
 
     public TaskInfo() {
 
@@ -85,6 +89,14 @@ public class TaskInfo {
         this.processedElementCount = processedElementCount;
     }
 
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    }
+
     public int getProcessedPercentage() {
         return processedPercentage;
     }
@@ -130,23 +142,23 @@ public class TaskInfo {
     private void calculateProgress() {
         if (expectedSize < 0) {
             processedPercentage = DEFAULT_PROGRESS_PERCENTAGE;
-        }
-        else {
+        } else {
             processedPercentage = expectedSize > 0 ? 100 * processedElementCount / expectedSize : 0;
         }
     }
 
     public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate, Date finishDate) {
-        this(id, topologyName, state, info, 0, 0, 0, sentDate, startDate, finishDate);
+        this(id, topologyName, state, info, 0, 0, 0, 0, sentDate, startDate, finishDate);
     }
 
-    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, int errors, Date sentDate, Date startDate, Date finishDate) {
+    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, int retryCount, int errors, Date sentDate, Date startDate, Date finishDate) {
         this.id = id;
         this.topologyName = topologyName;
         this.state = state;
         this.info = info;
         this.expectedSize = containsElements;
         this.processedElementCount = processedElementCount;
+        this.retryCount = retryCount;
         this.sentDate = sentDate;
         this.startDate = startDate;
         this.finishDate = finishDate;
@@ -177,6 +189,14 @@ public class TaskInfo {
 
     public void addSubtask(SubTaskInfo subtask) {
         subtasks.add(subtask);
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public void setTopicName(String topicName) {
+        this.topicName = topicName;
     }
 
     @Override
@@ -230,9 +250,10 @@ public class TaskInfo {
             return false;
         if (ownerId != null)
             if (!ownerId.equals(taskInfo.ownerId)) return false;
+        if (topicName != null ? !topicName.equals(taskInfo.topicName) : taskInfo.topicName != null)
+            return false;
         return true;
     }
-
 
     @Override
     public int hashCode() {
@@ -246,6 +267,7 @@ public class TaskInfo {
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (sentDate != null ? sentDate.hashCode() : 0);
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
+        result = 31 * result + (topicName != null ? topicName.hashCode() : 0);
         return result;
     }
 }
