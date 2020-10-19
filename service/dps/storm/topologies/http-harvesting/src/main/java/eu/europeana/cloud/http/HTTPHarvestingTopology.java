@@ -48,7 +48,7 @@ public class HTTPHarvestingTopology {
         TopologyBuilder builder = new TopologyBuilder();
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
-                TopologiesNames.OAI_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+                TopologiesNames.HTTP_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
