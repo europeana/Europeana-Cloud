@@ -24,7 +24,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 @Service
 public class HttpTopologyTaskSubmitter implements TaskSubmitter {
@@ -76,7 +80,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             File extractedDirectory = extractFile(downloadedFile);
             //
             selectKafkaTopicFor(parameters);
-
+            correctDirectoryRights(extractedDirectory.toPath());
             expectedCount = iterateOverFiles(extractedDirectory, parameters);
             updateTaskStatus(parameters.getTask(), expectedCount);
 
@@ -88,6 +92,29 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
         LOGGER.info("HTTP task submission for {} finished. {} records submitted.",
                 parameters.getTask().getTaskId(),
                 expectedCount);
+    }
+
+    /**
+     * Method corrects rights on Linux systems, where created new directory and extracted files have not
+     * right copied from parent folder, and they have not any right for others users. Also group is not
+     * preserved from parent. It is a problem cause apache server could not reach files
+     * cause it typically works as special apache_user.
+     * The purpose of this method is to copy rights from parent directory, that should have correctly
+     * configured right to passed as parameter directory and any directory or file inside.
+     *
+     * @param directory
+     * @throws IOException
+     */
+    private void correctDirectoryRights(Path directory) throws IOException {
+        try (Stream<Path> files = Files.walk(directory)) {
+            Set<PosixFilePermission> rigths = Files.getPosixFilePermissions(directory.getParent());
+            Iterator<Path> i = files.iterator();
+            while (i.hasNext()) {
+                Files.setPosixFilePermissions(i.next(), rigths);
+            }
+        } catch (UnsupportedOperationException e) {
+            LOGGER.info("Not Posfix system. Need not correct rights");
+        }
     }
 
     private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {
