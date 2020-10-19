@@ -20,14 +20,17 @@ public class Retriever {
     }
 
     public static <V,E extends Exception> V retryOnError3Times(String errorMessage, Callable<V> callable) throws E {
-        int retries = DEFAULT_RETRIES;
+        return retryOnError(errorMessage, DEFAULT_RETRIES, SLEEP_TIME, callable);
+    }
+
+    public static <V, E extends Exception> V retryOnError(String errorMessage, int retryCount, int sleepTimeBetweenRetriesMs, Callable<V> callable) throws E {
         while (true) {
             try {
                 return callable.call();
             } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn(errorMessage +" Retries Left{} ", retries);
-                    waitForSpecificTime(SLEEP_TIME);
+                if (retryCount-- > 0) {
+                    LOGGER.warn(errorMessage +" Retries Left {} ", retryCount, e);
+                    waitForSpecificTime(sleepTimeBetweenRetriesMs);
                 } else {
                     LOGGER.error(errorMessage);
                     throw (E) e;

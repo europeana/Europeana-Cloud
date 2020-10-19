@@ -22,4 +22,5 @@ public class JndiNames {
     public static final String JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS = "/dps/topology/availableTopics";
     public static final String JNDI_KEY_MCS_LOCATION = "/dps/mcsLocation";
     public static final String JNDI_KEY_APPLICATION_ID = "/dps/appId";
+    public static final String JNDI_KEY_MACHINE_LOCATION = "/dps/machineLocation";
 }

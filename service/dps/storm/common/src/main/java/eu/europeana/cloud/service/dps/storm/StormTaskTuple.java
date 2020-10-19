@@ -12,6 +12,7 @@ import org.apache.storm.tuple.Values;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.*;
@@ -120,6 +121,20 @@ public class StormTaskTuple implements Serializable {
                 (Revision) tuple.getValueByField(REVISIONS),
                 (OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST),
                 tuple.getIntegerByField(RECORD_ATTEMPT_NUMBER));
+
+    }
+
+    public static StormTaskTuple fromValues(List<Object> list) {
+
+        return new StormTaskTuple(
+                (Long) list.get(0),
+                (String) list.get(1),
+                (String) list.get(2),
+                (byte[]) list.get(3),
+                (Map<String, String>) list.get(4),
+                (Revision) list.get(5),
+                (OAIPMHHarvestingDetails) list.get(6),
+                (Integer) list.get(7));
 
     }
 
