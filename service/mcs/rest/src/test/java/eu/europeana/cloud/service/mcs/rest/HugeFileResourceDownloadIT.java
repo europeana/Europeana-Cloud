@@ -14,7 +14,7 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.function.Consumer;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.CLIENT_FILE_RESOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doReturn;
@@ -58,7 +58,7 @@ public class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
         // when we download mocked content of resource
         ResultActions response = mockMvc.perform(
-                get(FILE_RESOURCE, globalId, schema, version, file.getFileName()))
+                get(CLIENT_FILE_RESOURCE, globalId, schema, version, file.getFileName()))
                 .andExpect(status().is2xxSuccessful());
 
         response.andReturn().getAsyncResult();

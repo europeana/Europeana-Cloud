@@ -72,7 +72,10 @@ public class RestInterfaceConstants {
 
     //FileResource
     public static final String FILE_RESOURCE =
-            "/records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName:.+}";
+            "/records/{cloudId}/representations/{representationName}/versions/{version}/files/**";
+
+    public static final String CLIENT_FILE_RESOURCE =
+            "/records/{cloudId}/representations/{representationName}/versions/{version}/files/{fileName}";
 
     //FileUploadResource
     public static final String FILE_UPLOAD_RESOURCE =

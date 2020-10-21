@@ -17,6 +17,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -27,6 +28,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 public class RepresentationAuthorizationResourceAATest extends AbstractSecurityTest {
 
@@ -126,13 +128,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
         ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, READ_PERMISSION + "", VAN_PERSIE);
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
     }
 
     /**
@@ -155,13 +157,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
         ResponseEntity<?> response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, WRITE_PERMISSION + "", VAN_PERSIE);
 
         Assert.assertEquals(response.getStatusCodeValue(), Response.Status.OK.getStatusCode());
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, new ByteArrayInputStream(ANY_DATA.getBytes()));
+        fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, new ByteArrayInputStream(ANY_DATA.getBytes()));
     }
 
     /**
@@ -180,7 +182,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         f.setFileName(FILE_NAME);
         f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
         try {
             //when
             fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, BROKEN_PERMISSION + "", VAN_PERSIE);
@@ -195,7 +197,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     private void assertUserDontHaveAccessToFile() throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileNotExistsException {
         try {
-            fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, new ByteArrayInputStream(ANY_DATA.getBytes()));
+            fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, new ByteArrayInputStream(ANY_DATA.getBytes()));
             fail("Expected AccessDeniedException");
         } catch (AccessDeniedException e) {
 
@@ -222,11 +224,11 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
         fileAuthorizationResource.giveReadAccessToEveryone(GLOBAL_ID, SCHEMA, VERSION);
 
         login(RANDOM_PERSON, RANDOM_PASSWORD);
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
     }
 
     @Test
@@ -247,11 +249,11 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
         fileAuthorizationResource.giveReadAccessToEveryone(GLOBAL_ID, SCHEMA, VERSION);
 
         login(ANONYMOUS, ANONYMOUS_PASSWORD);
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
     }
 
     /*
@@ -293,11 +295,11 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         f.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+//        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         /* Check if Van Persie has access to file */
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
 
 		/* Delete permissions for Var Persie */
         login(RONALDO, RONALD_PASSWORD);
@@ -309,6 +311,12 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 		/* VAn Persie should not be able to access file */
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
+    }
+
+    private HttpServletRequest prepareRequestMock(String fileName) {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("/files/" + fileName);
+        return request;
     }
 }

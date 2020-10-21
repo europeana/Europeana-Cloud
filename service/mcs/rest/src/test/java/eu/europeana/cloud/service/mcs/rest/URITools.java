@@ -51,7 +51,7 @@ class URITools {
     }
 
     static URI getContentUri(URI baseUri, String cloudId, String representationName, String version, String fileName) {
-        UriComponentsBuilder uriFromResource = fromUriString(RestInterfaceConstants.FILE_RESOURCE);
+        UriComponentsBuilder uriFromResource = fromUriString(RestInterfaceConstants.CLIENT_FILE_RESOURCE);
         setBaseUri(uriFromResource, baseUri);
         return uriFromResource.build(getFileMap(cloudId, representationName, version, fileName));
     }

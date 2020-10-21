@@ -65,7 +65,6 @@ public class FileResource {
      * @param cloudId cloud id of the record in which the file will be updated (required)
      * @param representationName schema of representation (required)
      * @param version a specific version of the representation(required)
-     * @param fileName the name of the file(required)
      * @param mimeType mime type of file
      * @param data binary stream of file content (required)
      * @return URI of the uploaded content file in content-location
@@ -83,10 +82,12 @@ public class FileResource {
     		@PathVariable String cloudId,
     		@PathVariable String representationName,
     		@PathVariable String version,
-    		@PathVariable String fileName,
+            HttpServletRequest request,
     		@RequestHeader(HttpHeaders.CONTENT_TYPE) String mimeType,
             InputStream data) throws RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileNotExistsException {
+
+        String fileName = extractFileNameFromURL(request);
 
         File f = new File();
         f.setMimeType(mimeType);
@@ -127,7 +128,6 @@ public class FileResource {
      * @param cloudId cloud id of the record (required).
      * @param representationName schema of representation (required).
      * @param version a specific version of the representation(required).
-     * @param fileName the name of the file(required).
      * @param range range of bytes to return (optional)
      * @return file content
      * @throws RepresentationNotExistsException
@@ -145,10 +145,11 @@ public class FileResource {
             @PathVariable String cloudId,
             @PathVariable String representationName,
             @PathVariable String version,
-            @PathVariable final String fileName,
+            HttpServletRequest request,
             @RequestHeader(value = HEADER_RANGE, required = false) String range)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
+        String fileName = extractFileNameFromURL(request);
         // extract range
         final ContentRange contentRange;
         if (range == null) {
@@ -193,7 +194,6 @@ public class FileResource {
      * @param cloudId cloud id of the record (required).
      * @param representationName schema of representation (required).
      * @param version a specific version of the representation(required).
-     * @param fileName the name of the file(required).
      *
      * @return empty response with proper http headers
      * @summary get HTTP headers for file request
@@ -207,9 +207,9 @@ public class FileResource {
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable final String representationName,
-            @PathVariable final String version,
-            @PathVariable final String fileName) throws RepresentationNotExistsException, FileNotExistsException {
+            @PathVariable final String version) throws RepresentationNotExistsException, FileNotExistsException {
 
+        String fileName = extractFileNameFromURL(httpServletRequest);
         final File requestedFile = recordService.getFile(cloudId, representationName, version, fileName);
         String fileMimeType = null;
         String md5 = requestedFile.getMd5();
@@ -244,7 +244,6 @@ public class FileResource {
      * @param cloudId cloud id of the record (required).
      * @param representationName schema of representation (required).
      * @param version a specific version of the representation(required).
-     * @param fileName the name of the file(required).
      *
      * @throws RepresentationNotExistsException representation does not exist in
      * the specified version.
@@ -262,10 +261,14 @@ public class FileResource {
             @PathVariable String cloudId,
             @PathVariable String representationName,
     		@PathVariable String version,
-    		@PathVariable String fileName) throws RepresentationNotExistsException, FileNotExistsException,
+            HttpServletRequest httpServletRequest) throws RepresentationNotExistsException, FileNotExistsException,
                                                                     CannotModifyPersistentRepresentationException {
 
-        recordService.deleteContent(cloudId, representationName, version, fileName);
+        recordService.deleteContent(cloudId, representationName, version, extractFileNameFromURL(httpServletRequest));
+    }
+
+    private String extractFileNameFromURL(HttpServletRequest request) {
+        return request.getRequestURI().split("/files/")[1];
     }
 
     /**

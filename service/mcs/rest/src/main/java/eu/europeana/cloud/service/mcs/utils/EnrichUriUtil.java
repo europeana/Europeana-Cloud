@@ -66,7 +66,7 @@ public final class EnrichUriUtil {
         properties.setProperty(VERSION, version);
         properties.setProperty(FILE_NAME, file.getFileName());
 
-        file.setContentUri(createURI(httpServletRequest, FILE_RESOURCE, properties));
+        file.setContentUri(createURI(httpServletRequest, CLIENT_FILE_RESOURCE, properties));
     }
 
     public static void enrich(HttpServletRequest httpServletRequest, DataSet dataSet) {
