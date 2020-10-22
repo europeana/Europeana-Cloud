@@ -20,51 +20,51 @@ import org.slf4j.LoggerFactory;
  */
 public class EnrichmentBolt extends AbstractDpsBolt {
 
-  private static final long serialVersionUID = 1L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentBolt.class);
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentBolt.class);
 
-  private String dereferenceURL;
-  private String enrichmentURL;
-  private transient EnrichmentWorker enrichmentWorker;
+    private String dereferenceURL;
+    private String enrichmentURL;
+    private transient EnrichmentWorker enrichmentWorker;
 
-  public EnrichmentBolt(String dereferenceURL, String enrichmentURL) {
-    this.dereferenceURL = dereferenceURL;
-    this.enrichmentURL = enrichmentURL;
-  }
-
-  @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-    try {
-      String fileContent = new String(stormTaskTuple.getFileData());
-      LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
-      String output = enrichmentWorker.process(fileContent);
-      LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-      emitEnrichedContent(anchorTuple, stormTaskTuple, output);
-    } catch (Exception e) {
-      LOGGER.error("Exception while Enriching/dereference", e);
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
-          e.getMessage(),
-          "Remote Enrichment/dereference service caused the problem!. The full error: "
-              + ExceptionUtils.getStackTrace(e),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    public EnrichmentBolt(String dereferenceURL, String enrichmentURL) {
+        this.dereferenceURL = dereferenceURL;
+        this.enrichmentURL = enrichmentURL;
     }
-    outputCollector.ack(anchorTuple);
-  }
 
-  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output)
-      throws Exception {
-    prepareStormTaskTupleForEmission(stormTaskTuple, output);
-    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-  }
+    @Override
+    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+        try {
+            String fileContent = new String(stormTaskTuple.getFileData());
+            LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
+            String output = enrichmentWorker.process(fileContent);
+            LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
+            emitEnrichedContent(anchorTuple, stormTaskTuple, output);
+        } catch (Exception e) {
+            LOGGER.error("Exception while Enriching/dereference", e);
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
+                    e.getMessage(),
+                    "Remote Enrichment/dereference service caused the problem!. The full error: "
+                            + ExceptionUtils.getStackTrace(e),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        }
+        outputCollector.ack(anchorTuple);
+    }
 
-  @Override
-  public void prepare() {
-    final EnricherProvider enricherProvider = new EnricherProvider();
-    enricherProvider.setEnrichmentUrl(enrichmentURL);
-    final DereferencerProvider dereferencerProvider = new DereferencerProvider();
-    dereferencerProvider.setDereferenceUrl(dereferenceURL);
-    dereferencerProvider.setEnrichmentUrl(enrichmentURL);
-    enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(),
-        enricherProvider.create());
-  }
+    private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output)
+            throws Exception {
+        prepareStormTaskTupleForEmission(stormTaskTuple, output);
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+    }
+
+    @Override
+    public void prepare() {
+        final EnricherProvider enricherProvider = new EnricherProvider();
+        enricherProvider.setEnrichmentUrl(enrichmentURL);
+        final DereferencerProvider dereferencerProvider = new DereferencerProvider();
+        dereferencerProvider.setDereferenceUrl(dereferenceURL);
+        dereferencerProvider.setEnrichmentUrl(enrichmentURL);
+        enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(),
+                enricherProvider.create());
+    }
 }

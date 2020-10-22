@@ -12,12 +12,14 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
+
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -83,7 +85,7 @@ public class EnrichmentBoltTest {
         String fileContent = new String(tuple.getFileData());
         String errorMessage = "Dereference or Enrichment Exception";
         given(enrichmentWorker.process(eq(fileContent))).willThrow(new DereferenceException(errorMessage,
-            new Throwable()));
+                new Throwable()));
         enrichmentBolt.execute(anchorTuple, tuple);
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
