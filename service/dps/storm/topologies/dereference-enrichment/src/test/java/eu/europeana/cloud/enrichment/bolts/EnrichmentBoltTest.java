@@ -1,10 +1,23 @@
 package eu.europeana.cloud.enrichment.bolts;
 
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.enrichment.rest.client.DereferenceOrEnrichException;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
+import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -12,21 +25,12 @@ import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
-
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 /**
  * Created by Tarek on 1/23/2018.
@@ -78,7 +82,8 @@ public class EnrichmentBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), null);
         String fileContent = new String(tuple.getFileData());
         String errorMessage = "Dereference or Enrichment Exception";
-        given(enrichmentWorker.process(eq(fileContent))).willThrow(new DereferenceOrEnrichException(errorMessage, new Throwable()));
+        given(enrichmentWorker.process(eq(fileContent))).willThrow(new DereferenceException(errorMessage,
+            new Throwable()));
         enrichmentBolt.execute(anchorTuple, tuple);
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
