@@ -107,7 +107,7 @@ public class FileServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_RESOURCE)
+                .path(CLIENT_FILE_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -146,7 +146,7 @@ public class FileServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_RESOURCE)
+                .path(CLIENT_FILE_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -399,7 +399,7 @@ public class FileServiceClient extends MCSClient {
         try {
             WebTarget target = client
                     .target(baseUrl)
-                    .path(FILE_RESOURCE)
+                    .path(CLIENT_FILE_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
                     .resolveTemplate(VERSION, version)
@@ -455,7 +455,7 @@ public class FileServiceClient extends MCSClient {
 
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_RESOURCE)
+                .path(CLIENT_FILE_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)
@@ -485,7 +485,7 @@ public class FileServiceClient extends MCSClient {
     public URI getFileUri(String cloudId, String representationName, String version, String fileName) {
         WebTarget target = client
                 .target(baseUrl)
-                .path(FILE_RESOURCE)
+                .path(CLIENT_FILE_RESOURCE)
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(VERSION, version)

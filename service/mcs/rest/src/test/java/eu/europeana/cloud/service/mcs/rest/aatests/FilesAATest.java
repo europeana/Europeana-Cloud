@@ -17,10 +17,12 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static org.mockito.Mockito.when;
 
 public class FilesAATest extends AbstractSecurityTest {
 	
@@ -93,20 +95,20 @@ public class FilesAATest extends AbstractSecurityTest {
 	}
 	
 	// -- GET FILE -- //
-	
+
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToGetFile() 
-			throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException  {
-	
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToGetFile()
+			throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
+
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
 	}
 
 	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenRandomUserTriesToGetFile() 
-			throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException  {
+	public void shouldThrowExceptionWhenRandomUserTriesToGetFile()
+			throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
 	}
 
 	@Test
@@ -123,8 +125,8 @@ public class FilesAATest extends AbstractSecurityTest {
 		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME));
 		Mockito.doReturn(file2).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME_2));
 		
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME_2, null);
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME_2), null);
 	}
 	
 	
@@ -141,7 +143,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
 	}
 	
 	// -- ADD FILE -- //
@@ -185,7 +187,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteFile() throws RepresentationNotExistsException, 
 		FileNotExistsException, CannotModifyPersistentRepresentationException {
 
-		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
+		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -193,7 +195,7 @@ public class FilesAATest extends AbstractSecurityTest {
 			FileNotExistsException, CannotModifyPersistentRepresentationException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
+		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
 	
 	@Test
@@ -206,7 +208,7 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
-		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
+		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
 	
 	@Test
@@ -219,7 +221,7 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
-		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
+		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 	}
 	
@@ -232,7 +234,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(RONALDO, RONALD_PASSWORD);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
+		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
 	
 	// -- UPDATE FILE -- //
@@ -241,7 +243,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateFile() throws IOException, RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileNotExistsException {
 
-		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, null);
+		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, null);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
@@ -249,6 +251,12 @@ public class FilesAATest extends AbstractSecurityTest {
 			CannotModifyPersistentRepresentationException, FileNotExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, null);
+		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, null);
+	}
+
+	private HttpServletRequest prepareRequestMock(String fileName) {
+		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+		when(request.getRequestURI()).thenReturn("/files/" + fileName);
+		return request;
 	}
 }
