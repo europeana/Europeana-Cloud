@@ -20,3 +20,5 @@ Please visit our [documentation website]( https://docs.psnc.pl/display/ECLOUD/Eu
 ## REST API
 Please check out the [tutorial for the Europeana Cloud API] (https://confluence.man.poznan.pl/community/dosearchsite.action?queryString=Using+the+API+-+user+tutorial)
 
+## Project compilation
+Lombock is used in this project, so neccessary plugin should be present in IDE to compile classes.
