@@ -20,12 +20,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.springframework.web.util.UriUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -268,7 +270,7 @@ public class FileResource {
     }
 
     private String extractFileNameFromURL(HttpServletRequest request) {
-        return request.getRequestURI().split("/files/")[1];
+        return UriUtils.decode(request.getRequestURI().split("/files/")[1], StandardCharsets.UTF_8);
     }
 
     /**
