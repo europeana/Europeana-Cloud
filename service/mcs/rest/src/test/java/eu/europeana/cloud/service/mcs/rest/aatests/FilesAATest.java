@@ -122,8 +122,8 @@ public class FilesAATest extends AbstractSecurityTest {
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME_2);
 		
-		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME));
-		Mockito.doReturn(file2).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME_2));
+		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(FILE_NAME));
+		Mockito.doReturn(file2).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(FILE_NAME_2));
 		
 		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
 		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME_2), null);
