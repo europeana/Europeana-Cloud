@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.HarvestsExecutorContext;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,9 +21,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes={HarvestsExecutorContext.class, HarvestsExecutor.class})
@@ -37,6 +43,12 @@ public class HarvestExecutorTest {
 
     @Autowired
     private HarvestsExecutor harvestsExecutor;
+
+    @Autowired
+    private RecordExecutionSubmitService recordSubmitService;
+
+    @Autowired
+    private ProcessedRecordsDAO processedRecordsDAO;
 
     private List<Harvest> harvestList;
 
@@ -60,6 +72,7 @@ public class HarvestExecutorTest {
 
         harvestList = new ArrayList<>();
         harvestList.add(HARVESTS_INDEX, harvest);
+        when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -67,7 +80,7 @@ public class HarvestExecutorTest {
         DpsTask dpsTask = new DpsTask();
         dpsTask.setTaskId(TASK_ID);
 
-        Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(true);
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(true);
 
         HarvestResult harvestResult = harvestsExecutor.execute(harvestList,
                 SubmitTaskParameters.builder()
@@ -85,7 +98,7 @@ public class HarvestExecutorTest {
         dpsTask.setTaskId(TASK_ID);
         dpsTask.addDataEntry(InputDataType.REPOSITORY_URLS, Arrays.asList(""));
 
-        Mockito.when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
+        when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
 
         HarvestsExecutor spiedHarvestsExecutor = spy(harvestsExecutor);
         int count = spiedHarvestsExecutor.execute(harvestList,
@@ -96,8 +109,9 @@ public class HarvestExecutorTest {
                         .build()).getResultCounter();
 
         Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OAIHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
-        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).sendMessage(Matchers.any(DpsRecord.class), Mockito.anyString());
-        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).updateRecordStatus(Matchers.any(DpsRecord.class), Mockito.anyString());
+        Mockito.verify(recordSubmitService, Mockito.times(count)).submitRecord(Matchers.any(DpsRecord.class), Matchers.any(String.class));
+        Mockito.verify(processedRecordsDAO,Mockito.times(count)).insert(anyLong() ,anyString(), eq(0), anyString(),
+                eq(OAI_TOPOLOGY_NAME), eq(RecordState.QUEUED.toString()), anyString(), anyString());
         Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).logProgressFor(eq(harvestList.get(HARVESTS_INDEX)), Mockito.anyInt());
     }
 }
