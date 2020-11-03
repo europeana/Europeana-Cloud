@@ -32,9 +32,9 @@ public class RecordKafkaSubmitService implements RecordExecutionSubmitService {
 	}
 
 	@Override
-	public void submitRecord(DpsRecord record, String topology) {
+	public void submitRecord(DpsRecord record, String topic) {
 		ProducerRecord<String, DpsRecord> data =
-				new ProducerRecord<>(topology, record.getTaskId()+"_"+record.getRecordId(), record);
+				new ProducerRecord<>(topic, record.getTaskId()+"_"+record.getRecordId(), record);
 		producer.send(data);
 	}
 

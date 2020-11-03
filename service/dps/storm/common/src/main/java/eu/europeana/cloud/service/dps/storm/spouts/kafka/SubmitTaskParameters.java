@@ -26,7 +26,7 @@ public class SubmitTaskParameters {
     //Rest functionality of builder is generated automatillay by Lombok, acording to @Builder annotation.
     public static class SubmitTaskParametersBuilder {
         private int expectedSize = 0;
-        private AtomicInteger sentRecordsCounter = new AtomicInteger();
+        private AtomicInteger performedRecordsCounter = new AtomicInteger();
     }
 
     private Date sentTime;
@@ -55,16 +55,16 @@ public class SubmitTaskParameters {
     /**
      * Flag if task is subimtted <code>false<code/> or restarted <code>true<code/>
      */
-    private final boolean restarted;
+    private boolean restarted;
 
     private String taskJSON;
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private AtomicInteger sentRecordsCounter;
+    private AtomicInteger performedRecordsCounter;
 
-    public int incrementAndGetSentRecordCounter() {
-        return sentRecordsCounter.incrementAndGet();
+    public int incrementAndGetPerformedRecordCounter() {
+        return performedRecordsCounter.incrementAndGet();
     }
 
     public String getTaskParameter(String parameterKey){

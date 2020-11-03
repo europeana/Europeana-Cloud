@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +50,11 @@ public class ServiceConfiguration {
     public RecordExecutionSubmitService recordKafkaSubmitService() {
         return new RecordKafkaSubmitService(
                 environment.getProperty(JNDI_KEY_KAFKA_BROKER));
+    }
+
+    @Bean
+    public RecordSubmitService recordSubmitService() {
+        return new RecordSubmitService(processedRecordsDAO(), recordKafkaSubmitService());
     }
 
     @Bean
@@ -169,7 +175,7 @@ public class ServiceConfiguration {
     @Bean
     public MCSTaskSubmiter mcsTaskSubmiter() {
         String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
-        return new MCSTaskSubmiter(taskStatusChecker(), taskStatusUpdater(), recordKafkaSubmitService(), processedRecordsDAO(), mcsLocation);
+        return new MCSTaskSubmiter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation);
     }
 
 }
