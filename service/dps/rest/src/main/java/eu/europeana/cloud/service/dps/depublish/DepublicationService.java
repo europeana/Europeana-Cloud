@@ -78,9 +78,9 @@ public class DepublicationService {
                         "sample");
                 saveErrorResult(parameters, e);
             }
-            taskStatusUpdater.setTaskCompletelyProcessed(parameters.getTask().getTaskId(), "Dataset was depublished.");
-            LOGGER.info("Records removal procedure finished for task_id {}", parameters.getTask().getTaskId());
         }
+        taskStatusUpdater.setTaskCompletelyProcessed(parameters.getTask().getTaskId(), "Dataset was depublished.");
+        LOGGER.info("Records removal procedure finished for task_id {}", parameters.getTask().getTaskId());
     }
 
     private void waitForFinish(Future<Integer> future, SubmitTaskParameters parameters) throws ExecutionException, InterruptedException, IndexingException, IOException, URISyntaxException {
