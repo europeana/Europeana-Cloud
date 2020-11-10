@@ -105,7 +105,8 @@ public class UnfinishedTasksExecutor {
     private SubmitTaskParameters prepareSubmitTaskParameters(TaskInfo taskInfo) throws IOException {
         DpsTask dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return SubmitTaskParameters.builder()
-                .sentTime(new Date())
+                .sentTime(taskInfo.getSentDate())
+                .startTime(new Date())
                 .task(dpsTask)
                 .topologyName(taskInfo.getTopologyName())
                 .status(TaskState.PROCESSING_BY_REST_APPLICATION)
