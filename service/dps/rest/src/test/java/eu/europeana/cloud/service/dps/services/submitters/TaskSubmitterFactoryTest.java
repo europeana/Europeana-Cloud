@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.junit.Test;
 import org.mockito.Mockito;

@@ -6,7 +6,7 @@ import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.MCSTaskSubmiter;
+import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmiter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.junit.Before;
 import org.junit.Test;
