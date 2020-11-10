@@ -53,12 +53,13 @@ public class RecordSubmitService {
 
         if (alreadySubmittedRecord.isEmpty()) {
             kafkaSubmitService.submitRecord(record, submitParameters.getTopicName());
-            LOGGER.debug("Updating record in notifications table: {}", record);
+            LOGGER.debug("Updating record in processed_records table: {}", record);
             processedRecordsDAO.insert(record.getTaskId(), record.getRecordId(), 0,
                     "", submitParameters.getTopologyName(), RecordState.QUEUED.toString(), "", "");
             return true;
         } else if (isResendingAfterFail(alreadySubmittedRecord.get(), submitParameters)) {
             LOGGER.info("Ommiting record already sent to Kafka {}", record);
+            processedRecordsDAO.updateStartTime(record.getTaskId(), record.getRecordId(), new Date());
             return true;
         } else {
             LOGGER.warn("Ommiting duplicated record {}", record);
@@ -68,11 +69,8 @@ public class RecordSubmitService {
     }
 
     private boolean isResendingAfterFail(ProcessedRecord alreadySubmittedRecord, SubmitTaskParameters submitParameters) {
-        return submitParameters.isRestarted()
-                && dateOlderThanCurrentExecution(alreadySubmittedRecord.getStarTime(), submitParameters);
+        Date currentExecutionStart = submitParameters.getStartTime();
+        return submitParameters.isRestarted() && alreadySubmittedRecord.getStarTime().before(currentExecutionStart);
     }
 
-    private boolean dateOlderThanCurrentExecution(Date date, SubmitTaskParameters submitParameters) {
-        return date.toInstant().isBefore(submitParameters.getSentTime().toInstant().minusSeconds(DATE_TOLERANCE_SECONDS));
-    }
 }

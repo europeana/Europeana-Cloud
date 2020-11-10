@@ -33,11 +33,9 @@ public class RecordSubmitServiceTest {
     private static final String RECORD_ID = "recordId";
     private static final String TOPIC = "a_topology_1";
 
-    private static final Date SENT_DATE = new Date(0);
+    private static final Date CURRENT_EXECUTION_START_TIME = new Date(0);
 
-    private static final Date NOT_SO_OLD_DATE = new Date(-2000);
-
-    private static final Date OLD_DATE = new Date(-3000);
+    private static final Date TIME_BEFORE_CURRENT_EXECUTION_START = new Date(-3000);
 
     @Mock
     private ProcessedRecordsDAO processedRecordsDAO;
@@ -50,13 +48,13 @@ public class RecordSubmitServiceTest {
     private DpsRecord record = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID).build();
 
     private SubmitTaskParameters parameters = SubmitTaskParameters.builder().topologyName(TOPOLOGY).topicName(TOPIC)
-            .sentTime(SENT_DATE).build();
+            .startTime(CURRENT_EXECUTION_START_TIME).build();
 
     @InjectMocks
     private RecordSubmitService service;
 
     @Test
-    public void verifySubmitRecordThatNotAlreadyExists() {
+    public void shouldSubmitRecordThatNotAlreadyExists() {
         service.submitRecord(record, parameters);
 
         verify(kafkaSubmitService).submitRecord(eq(record), eq(TOPIC));
@@ -64,7 +62,7 @@ public class RecordSubmitServiceTest {
 
 
     @Test
-    public void verifyNotSubmitAlreadyExistingRecord() {
+    public void shouldNotSubmitAlreadyExistingRecord() {
         when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
         service.submitRecord(record, parameters);
@@ -73,7 +71,7 @@ public class RecordSubmitServiceTest {
     }
 
     @Test
-    public void verifySaveRecordThatNotAlreadyExists() {
+    public void shouldSaveRecordThatNotAlreadyExists() {
         service.submitRecord(record, parameters);
 
         verify(processedRecordsDAO).insert(anyLong(), anyString(), eq(0), anyString(),
@@ -81,7 +79,7 @@ public class RecordSubmitServiceTest {
     }
 
     @Test
-    public void verifyNotSaveAlreadyExistingRecord() {
+    public void shouldNotSaveAlreadyExistingRecord() {
         when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
         service.submitRecord(record, parameters);
@@ -92,14 +90,14 @@ public class RecordSubmitServiceTest {
 
 
     @Test
-    public void verifyReturnTrueWhenSubmitingNewRecord() {
+    public void shouldReturnTrueWhenSubmitingNewRecord() {
         boolean result = service.submitRecord(record, parameters);
 
         assertTrue(result);
     }
 
     @Test
-    public void verifyReturnFalseWhenSubmitDuplicatedRecord() {
+    public void shouldReturnFalseWhenSubmitDuplicatedRecord() {
         when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
         boolean result = service.submitRecord(record, parameters);
@@ -109,9 +107,9 @@ public class RecordSubmitServiceTest {
 
 
     @Test
-    public void verifyReturnTrueWhenSubmitRetriedRecord() {
+    public void shouldReturnTrueWhenSubmitRetriedRecord() {
         parameters.setRestarted(true);
-        alreadyProcessedRecord.setStarTime(OLD_DATE);
+        alreadyProcessedRecord.setStarTime(TIME_BEFORE_CURRENT_EXECUTION_START);
         when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
         boolean result = service.submitRecord(record, parameters);
@@ -121,9 +119,9 @@ public class RecordSubmitServiceTest {
 
 
     @Test
-    public void verifyReturnFalseWhenSubmitRetriedDuplicatedRecord() {
+    public void shouldReturnFalseWhenSubmitRetriedDuplicatedRecord() {
         parameters.setRestarted(true);
-        alreadyProcessedRecord.setStarTime(NOT_SO_OLD_DATE);
+        alreadyProcessedRecord.setStarTime(CURRENT_EXECUTION_START_TIME);
         when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
         boolean result = service.submitRecord(record, parameters);

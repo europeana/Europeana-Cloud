@@ -51,7 +51,7 @@ public class TaskStatusUpdater {
         String topologyName = parameters.getTopologyName();
         String state = parameters.getStatus().toString();
         tasksByStateDAO.insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, parameters.getTopicName(), new Date());
-        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state, parameters.getInfo(), parameters.getSentTime(), new Date(), null, 0, parameters.getTaskJSON());
+        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state, parameters.getInfo(), parameters.getSentTime(), parameters.getStartTime(), null, 0, parameters.getTaskJSON());
     }
 
     public void updateTask(long taskId, String info, String state, Date startDate)

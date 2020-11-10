@@ -258,6 +258,7 @@ public class TopologyTasksResource {
             String taskJSON = new ObjectMapper().writeValueAsString(task);
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                     .sentTime(new Date())
+                    .startTime(new Date())
                     .task(task)
                     .topologyName(topologyName)
                     .status(TaskState.PROCESSING_BY_REST_APPLICATION)

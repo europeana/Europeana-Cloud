@@ -31,6 +31,8 @@ public class SubmitTaskParameters {
 
     private Date sentTime;
 
+    private Date startTime;
+
     private int expectedSize;
 
     private TaskState status;
