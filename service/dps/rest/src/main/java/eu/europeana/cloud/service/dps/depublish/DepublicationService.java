@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.depublish;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitingTaskWasKilled;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.services.submitters.SubmitingTaskWasKilled;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;

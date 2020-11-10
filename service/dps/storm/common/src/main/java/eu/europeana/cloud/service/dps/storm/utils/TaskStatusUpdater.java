@@ -5,7 +5,6 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
