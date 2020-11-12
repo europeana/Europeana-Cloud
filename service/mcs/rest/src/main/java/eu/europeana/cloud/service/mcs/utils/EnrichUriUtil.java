@@ -88,7 +88,8 @@ public final class EnrichUriUtil {
             URL url = new URL(
                     httpServletRequest.getScheme(),
                     httpServletRequest.getServerName(),
-                    -1,  //Port cannot occurs in enriched XML data. Schema points if it is 80 (http) or 443 (https)
+                    (httpServletRequest.getServerPort() == 80 || httpServletRequest.getServerPort() == 443) ?
+                            -1 : httpServletRequest.getServerPort(),  //Do not setup 80 (http) or 443 (https) ports - pointed by scheme
                     uriSpec.toString());
 
             result= url.toURI();
