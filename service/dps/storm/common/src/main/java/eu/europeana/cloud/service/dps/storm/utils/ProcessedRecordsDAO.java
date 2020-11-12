@@ -24,7 +24,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
     private PreparedStatement insertStatement;
     private PreparedStatement updateRecordStateStatement;
     private PreparedStatement updateRecordStartTime;
-    private PreparedStatement updateAttempNumberStatement;
+    private PreparedStatement updateAttemptNumberStatement;
     private PreparedStatement selectByPrimaryKeyStatement;
 
     private static ProcessedRecordsDAO instance = null;
@@ -69,7 +69,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_START_TIME +
                 ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
 
-        updateAttempNumberStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
+        updateAttemptNumberStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
                 + PROCESSED_RECORDS_TASK_ID + ","
                 + PROCESSED_RECORDS_RECORD_ID + ","
@@ -142,6 +142,6 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     public void updateAttempNumber(long taskId, String recordId, int attempNumber) {
         dbService.getSession().execute(
-                updateAttempNumberStatement.bind(taskId, recordId, attempNumber));
+                updateAttemptNumberStatement.bind(taskId, recordId, attempNumber));
     }
 }

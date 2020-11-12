@@ -21,13 +21,6 @@ public class RecordSubmitService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordSubmitService.class);
 
-    /*
-    Tolerance is needed cause, in rare cases processed record is stored not by DPS application but by storm itself
-    (in spout). We must be shore that small clock inconsistency would not cause that record would be treated as resent.
-    And because time of starting Tomcat is long. Real resents should have bigger difference than tolerance time.
-     */
-    private static final long DATE_TOLERANCE_SECONDS = 2;
-
     private final ProcessedRecordsDAO processedRecordsDAO;
 
     private final RecordExecutionSubmitService kafkaSubmitService;
@@ -58,11 +51,11 @@ public class RecordSubmitService {
                     "", submitParameters.getTopologyName(), RecordState.QUEUED.toString(), "", "");
             return true;
         } else if (isResendingAfterFail(alreadySubmittedRecord.get(), submitParameters)) {
-            LOGGER.info("Ommiting record already sent to Kafka {}", record);
+            LOGGER.info("Omitting record already sent to Kafka {}", record);
             processedRecordsDAO.updateStartTime(record.getTaskId(), record.getRecordId(), new Date());
             return true;
         } else {
-            LOGGER.warn("Ommiting duplicated record {}", record);
+            LOGGER.warn("Omitting duplicated record {}", record);
             return false;
         }
 
