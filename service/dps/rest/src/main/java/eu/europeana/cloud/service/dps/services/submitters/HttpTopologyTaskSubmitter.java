@@ -4,10 +4,9 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.*;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -41,7 +40,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
     private final FilesCounterFactory filesCounterFactory;
     private final KafkaTopicSelector kafkaTopicSelector;
     private final TaskStatusChecker taskStatusChecker;
-    private final RecordExecutionSubmitService recordSubmitService;
+    private final RecordSubmitService recordSubmitService;
     private final FileURLCreator fileURLCreator;
 
     @Value("${harvestingTasksDir}")
@@ -49,7 +48,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
     public HttpTopologyTaskSubmitter(TaskStatusUpdater taskStatusUpdater,
                                      FilesCounterFactory filesCounterFactory,
-                                     RecordExecutionSubmitService recordSubmitService,
+                                     RecordSubmitService recordSubmitService,
                                      KafkaTopicSelector kafkaTopicSelector,
                                      TaskStatusChecker taskStatusChecker,
                                      FileURLCreator fileURLCreator) {
@@ -158,10 +157,11 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
                             .taskId(submitTaskParameters.getTask().getTaskId())
                             .recordId(fileURLCreator.generateUrlFor(submitTaskParameters.getTask(), fileName))
                             .build();
-                    recordSubmitService.submitRecord(
+                    if (recordSubmitService.submitRecord(
                             dpsRecord,
-                            submitTaskParameters.getTopicName());
-                    expectedSize.addAndGet(1);
+                            submitTaskParameters)) {
+                        expectedSize.addAndGet(1);
+                    }
                 }
                 return FileVisitResult.CONTINUE;
             }

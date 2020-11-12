@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
@@ -103,7 +103,8 @@ public class UnfinishedTasksExecutor {
     private SubmitTaskParameters prepareSubmitTaskParameters(TaskInfo taskInfo) throws IOException {
         DpsTask dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
         return SubmitTaskParameters.builder()
-                .sentTime(new Date())
+                .sentTime(taskInfo.getSentDate())
+                .startTime(new Date())
                 .task(dpsTask)
                 .topologyName(taskInfo.getTopologyName())
                 .status(TaskState.PROCESSING_BY_REST_APPLICATION)

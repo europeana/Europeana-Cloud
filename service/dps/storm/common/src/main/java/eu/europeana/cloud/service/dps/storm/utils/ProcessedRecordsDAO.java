@@ -10,6 +10,7 @@ import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Optional;
 
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
@@ -22,6 +23,8 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     private PreparedStatement insertStatement;
     private PreparedStatement updateRecordStateStatement;
+    private PreparedStatement updateRecordStartTime;
+    private PreparedStatement updateAttemptNumberStatement;
     private PreparedStatement selectByPrimaryKeyStatement;
 
     private static ProcessedRecordsDAO instance = null;
@@ -59,6 +62,20 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_STATE +
                 ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
 
+        updateRecordStartTime = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                "("
+                + PROCESSED_RECORDS_TASK_ID + ","
+                + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_START_TIME +
+                ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
+
+        updateAttemptNumberStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                "("
+                + PROCESSED_RECORDS_TASK_ID + ","
+                + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_ATTEMPT_NUMBER +
+                ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
+
         selectByPrimaryKeyStatement = dbService.getSession().prepare("SELECT "
                 + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
                 + PROCESSED_RECORDS_DST_IDENTIFIER + ","
@@ -85,9 +102,9 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 record.getAdditionalInformations());
     }
 
-    public void updateProcessedRecordState(long taskId, String recordId, String stage) {
+    public void updateProcessedRecordState(long taskId, String recordId, String state) {
         dbService.getSession().execute(
-                updateRecordStateStatement.bind(taskId, recordId, stage));
+                updateRecordStateStatement.bind(taskId, recordId, state));
     }
 
     public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)
@@ -116,5 +133,15 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     public int getAttemptNumber(long taskId, String recordId) {
         return selectByPrimaryKey(taskId, recordId).map(ProcessedRecord::getAttemptNumber).orElse(0);
+    }
+
+    public void updateStartTime(long taskId, String recordId, Date startTime) {
+        dbService.getSession().execute(
+                updateRecordStartTime.bind(taskId, recordId, startTime));
+    }
+
+    public void updateAttempNumber(long taskId, String recordId, int attempNumber) {
+        dbService.getSession().execute(
+                updateAttemptNumberStatement.bind(taskId, recordId, attempNumber));
     }
 }

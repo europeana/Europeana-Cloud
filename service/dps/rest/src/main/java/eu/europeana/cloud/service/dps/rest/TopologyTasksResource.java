@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -261,6 +261,7 @@ public class TopologyTasksResource {
             String taskJSON = new ObjectMapper().writeValueAsString(task);
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                     .sentTime(new Date())
+                    .startTime(new Date())
                     .task(task)
                     .topologyName(topologyName)
                     .status(TaskState.PROCESSING_BY_REST_APPLICATION)

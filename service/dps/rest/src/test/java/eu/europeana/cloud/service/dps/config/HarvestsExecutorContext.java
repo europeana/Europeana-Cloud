@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
+import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.mockito.Mockito;
@@ -11,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class HarvestsExecutorContext {
 
     @Bean
-    public RecordExecutionSubmitService recordSubmitService() {
+    public RecordExecutionSubmitService recordExecutionSubmitService() {
         return Mockito.mock(RecordExecutionSubmitService.class);
     }
 
@@ -23,5 +24,10 @@ public class HarvestsExecutorContext {
     @Bean
     public TaskStatusChecker taskStatusChecker() {
         return Mockito.mock(TaskStatusChecker.class);
+    }
+
+    @Bean
+    public RecordSubmitService recordSubmitService() {
+        return new RecordSubmitService(processedRecordsDAO(), recordExecutionSubmitService());
     }
 }

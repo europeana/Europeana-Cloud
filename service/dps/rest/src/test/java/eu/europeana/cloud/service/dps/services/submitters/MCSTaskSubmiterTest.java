@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.spouts.kafka;
+package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -118,7 +118,7 @@ public class MCSTaskSubmiterTest {
     private TaskStatusUpdater taskStatusUpdater;
 
     @Mock
-    private RecordExecutionSubmitService recordSubmitService;
+    private RecordExecutionSubmitService recordKafkaSubmitService;
 
     @Mock
     private ProcessedRecordsDAO processedRecordsDAO;
@@ -148,7 +148,8 @@ public class MCSTaskSubmiterTest {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        submiter=new MCSTaskSubmiter(taskStatusChecker,taskStatusUpdater,recordSubmitService,processedRecordsDAO,null);
+        RecordSubmitService recordSubmitService=new RecordSubmitService(processedRecordsDAO, recordKafkaSubmitService);
+        submiter = new MCSTaskSubmiter(taskStatusChecker, taskStatusUpdater, recordSubmitService, null);
         whenNew(DataSetServiceClient.class).withAnyArguments().thenReturn(dataSetServiceClient);
         whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
@@ -167,7 +168,7 @@ public class MCSTaskSubmiterTest {
 
         submiter.execute(submitParameters);
 
-        verify(recordSubmitService,never()).submitRecord(any(DpsRecord.class),anyString());
+        verify(recordKafkaSubmitService, never()).submitRecord(any(DpsRecord.class), anyString());
     }
 
     @Test
@@ -182,7 +183,7 @@ public class MCSTaskSubmiterTest {
     @Test
     public void executeMcsBasedTask_errorInExecution_verifyTaskDropped() {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
-        doThrow(new RuntimeException("Error in task execution")).when(recordSubmitService).submitRecord(any(DpsRecord.class),anyString());
+        doThrow(new RuntimeException("Error in task execution")).when(recordKafkaSubmitService).submitRecord(any(DpsRecord.class),anyString());
 
         submiter.execute(submitParameters);
 
@@ -324,7 +325,7 @@ public class MCSTaskSubmiterTest {
         task.addParameter(PluginParameterKeys.REVISION_PROVIDER,REVISION_PROVIDER_1);
         task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
         when(dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(eq(DATASET_ID_1)
-                , eq(DATASET_PROVIDER_1), eq(REVISION_PROVIDER_1), eq(REVISION_NAME), eq(REPRESENTATION_NAME), eq(false), anyString())).thenReturn(latestDataChunk);
+                , eq(DATASET_PROVIDER_1), eq(REVISION_PROVIDER_1), eq(REVISION_NAME), eq(REPRESENTATION_NAME), eq(false), any())).thenReturn(latestDataChunk);
         when(latestDataChunk.getResults()).thenReturn(latestDataList);
         when(latestDataChunk.getNextSlice()).thenReturn(EXAMPLE_DATE,EXAMPLE_DATE, null);
         latestDataList.add(new CloudIdAndTimestampResponse(CLOUD_ID1, FILE_CREATION_DATE_1));
@@ -357,7 +358,7 @@ public class MCSTaskSubmiterTest {
     }
 
     private void verifyValidRecordsSentToKafka(String[] fileUrls) {
-        verify(recordSubmitService,times(fileUrls.length)).submitRecord(recordCaptor.capture(),anyString());
+        verify(recordKafkaSubmitService,times(fileUrls.length)).submitRecord(recordCaptor.capture(),anyString());
         for(int i=0;i<fileUrls.length;i++){
             DpsRecord record = recordCaptor.getAllValues().get(i);
             assertEquals(fileUrls[i],record.getRecordId());

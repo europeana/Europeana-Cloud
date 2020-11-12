@@ -1,13 +1,12 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.oaipmh.Harvester;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
-import eu.europeana.cloud.service.dps.storm.spouts.kafka.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,16 +24,15 @@ public class HarvestsExecutor {
     private static final int DEFAULT_RETRIES = 3;
     private static final int SLEEP_TIME = 5000;
 
-    private final RecordExecutionSubmitService recordSubmitService;
-    private final ProcessedRecordsDAO processedRecordsDAO;
+    private final RecordSubmitService recordSubmitService;
+
     /**
      * Auxiliary object to check 'kill flag' for task
      */
     private final TaskStatusChecker taskStatusChecker;
 
-    public HarvestsExecutor(RecordExecutionSubmitService recordSubmitService, ProcessedRecordsDAO processedRecordsDAO, TaskStatusChecker taskStatusChecker) {
+    public HarvestsExecutor(RecordSubmitService recordSubmitService, TaskStatusChecker taskStatusChecker) {
         this.recordSubmitService = recordSubmitService;
-        this.processedRecordsDAO = processedRecordsDAO;
         this.taskStatusChecker = taskStatusChecker;
     }
 
@@ -56,15 +54,11 @@ public class HarvestsExecutor {
                 }
 
                 OAIHeader oaiHeader = headerIterator.next();
-                if (messageShouldBeEmitted(parameters, oaiHeader)) {
-                    DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
-                    sendMessage(record, parameters.getTopicName());
-                    updateRecordStatus(record, parameters.getTopologyName());
-                    logProgressFor(harvest, resultCounter);
+                DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
+                if (recordSubmitService.submitRecord(record, parameters)) {
                     resultCounter++;
-                }else{
-                    LOGGER.info("Record {} will not be emitted because it was found in the 'processed_records' table", oaiHeader);
                 }
+                logProgressFor(harvest, parameters.incrementAndGetPerformedRecordCounter());
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
         }
@@ -77,32 +71,12 @@ public class HarvestsExecutor {
                 .orElse(Integer.MAX_VALUE);                                                             //or MAX_VALUE if null is above
     }
 
-    private boolean messageShouldBeEmitted(SubmitTaskParameters submitTaskParameters, OAIHeader oaiHeader){
-        return
-                !submitTaskParameters.isRestarted()
-                ||
-                processedRecordsDAO.selectByPrimaryKey(submitTaskParameters.getTask().getTaskId(), oaiHeader.getIdentifier()).isEmpty();
-    }
-
     /*package visiblility*/ DpsRecord convertToDpsRecord(OAIHeader oaiHeader, Harvest harvest, DpsTask dpsTask) {
         return DpsRecord.builder()
                 .taskId(dpsTask.getTaskId())
                 .recordId(oaiHeader.getIdentifier())
                 .metadataPrefix(harvest.getMetadataPrefix())
                 .build();
-    }
-
-    /*package visiblility*/ void sendMessage(DpsRecord record, String topicName) {
-        LOGGER.debug("Sending records to messages queue: {}", record);
-        recordSubmitService.submitRecord(record, topicName);
-    }
-
-    /*package visiblility*/  void updateRecordStatus(DpsRecord dpsRecord, String topologyName) {
-        int attemptNumber = processedRecordsDAO.getAttemptNumber(dpsRecord.getTaskId(), dpsRecord.getRecordId());
-
-        LOGGER.debug("Updating record in notifications table: {}", dpsRecord);
-        processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(), attemptNumber,
-                "", topologyName, RecordState.QUEUED.toString(), "", "");
     }
 
     /*package visiblility*/ void logProgressFor(Harvest harvest, int counter) {
