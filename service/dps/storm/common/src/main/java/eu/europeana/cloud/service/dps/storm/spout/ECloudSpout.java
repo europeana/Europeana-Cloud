@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -231,20 +232,22 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
 
         private ProcessedRecord prepareRecordForExecution(DpsRecord message) {
-            ProcessedRecord record = processedRecordsDAO.selectByPrimaryKey(
-                    message.getTaskId(),
-                    message.getRecordId()
-            ).orElseGet(() ->
-                    ProcessedRecord.builder()
-                            .taskId(message.getTaskId())
-                            .recordId(message.getRecordId())
-                            .state(RecordState.QUEUED)
-                            .topologyName(topologyName)
-                            .build()
-            );
-
-            record.setAttemptNumber(record.getAttemptNumber() + 1);
-            processedRecordsDAO.insert(record);
+            ProcessedRecord record;
+            Optional<ProcessedRecord> recordInDb = processedRecordsDAO.selectByPrimaryKey(message.getTaskId(), message.getRecordId());
+            if (recordInDb.isPresent()) {
+                record = recordInDb.get();
+                record.setAttemptNumber(record.getAttemptNumber() + 1);
+                processedRecordsDAO.updateAttempNumber(record.getTaskId(), record.getRecordId(), record.getAttemptNumber());
+            } else {
+                record = ProcessedRecord.builder()
+                        .taskId(message.getTaskId())
+                        .recordId(message.getRecordId())
+                        .attemptNumber(1)
+                        .state(RecordState.QUEUED)
+                        .topologyName(topologyName)
+                        .build();
+                processedRecordsDAO.insert(record);
+            }
             return record;
         }
     }
