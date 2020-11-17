@@ -119,6 +119,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
         task.setRetryCount(row.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT));
         task.setTaskDefinition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS));
+        task.setErrors(row.getInt(CassandraTablesAndColumnsNames.ERRORS));
         return task;
     }
 
