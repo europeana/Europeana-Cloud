@@ -381,6 +381,10 @@
                     <artifactId>*</artifactId>
                     <groupId>org.springframework</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-all</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
