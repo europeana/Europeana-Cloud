@@ -95,8 +95,8 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
      * The purpose of this method is to copy rights from parent directory, that should have correctly
      * configured right to passed as parameter directory and any directory or file inside.
      *
-     * @param directory
-     * @throws IOException
+     * @param directory directory for which rights will be updated
+     * @throws IOException in case of rights update failure
      */
     private void correctDirectoryRights(Path directory) throws IOException {
         try (Stream<Path> files = Files.walk(directory)) {
