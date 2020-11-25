@@ -65,12 +65,6 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
         LOGGER.info("HTTP task submission for {} started.", parameters.getTask().getTaskId());
 
-        if (parameters.isRestarted()) {
-            LOGGER.info("The task {} in Http Topology cannot be restarted.", parameters.getTask().getTaskId());
-            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task in Http Topology cannot be restarted. It will be dropped.");
-            return;
-        }
-
         int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTopologyName());
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
@@ -112,7 +106,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
                 Files.setPosixFilePermissions(i.next(), rigths);
             }
         } catch (UnsupportedOperationException e) {
-            LOGGER.info("Not Posfix system. Need not correct rights");
+            LOGGER.info("Not Posix system. Need not correct rights");
         }
     }
 

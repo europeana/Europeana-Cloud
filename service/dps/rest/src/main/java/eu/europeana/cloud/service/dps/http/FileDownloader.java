@@ -30,7 +30,7 @@ public class FileDownloader {
     }
 
     private File prepareDirectory(String fileDestination, String fileLocation) throws IOException {
-        Path path = Files.createDirectory(Paths.get(fileDestination));
+        Path path = Files.createDirectories(Paths.get(fileDestination));
         return new File(path.toString(), FilenameUtils.getName(fileLocation));
     }
 }
