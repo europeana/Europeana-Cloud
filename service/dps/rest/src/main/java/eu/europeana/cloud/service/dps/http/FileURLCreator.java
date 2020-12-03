@@ -19,6 +19,8 @@ public class FileURLCreator {
     private String harvestingTasksDir;
 
     public FileURLCreator(String machineLocation) {
+        if(machineLocation == null)
+            throw new NullPointerException("machineLocation parameter can not be null");
         this.machineLocation = machineLocation;
     }
 

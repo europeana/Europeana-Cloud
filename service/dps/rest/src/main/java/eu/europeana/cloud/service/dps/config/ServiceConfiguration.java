@@ -181,7 +181,11 @@ public class ServiceConfiguration {
 
     @Bean
     public FileURLCreator fileURLCreator(){
-        return new FileURLCreator(environment.getProperty(JNDI_KEY_MACHINE_LOCATION));
+        String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
+        if(machineLocation == null) {
+            throw new RuntimeException(String.format("Propery '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
+        }
+        return new FileURLCreator(machineLocation);
     }
 
 }
