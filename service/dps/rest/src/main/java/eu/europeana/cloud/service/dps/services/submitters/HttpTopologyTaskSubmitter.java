@@ -142,14 +142,13 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 if (taskStatusChecker.hasKillFlag(submitTaskParameters.getTask().getTaskId()))
                     return FileVisitResult.TERMINATE;
-                String fileName = getFileNameFromPath(file);
                 if(!fileEligibleForEmission(file))
                     return FileVisitResult.CONTINUE;
                 String extension = FilenameUtils.getExtension(file.toString());
                 if (!CompressionFileExtension.contains(extension)) {
                     DpsRecord dpsRecord = DpsRecord.builder()
                             .taskId(submitTaskParameters.getTask().getTaskId())
-                            .recordId(fileURLCreator.generateUrlFor(submitTaskParameters.getTask(), fileName))
+                            .recordId(fileURLCreator.generateUrlFor(file))
                             .build();
                     if (recordSubmitService.submitRecord(
                             dpsRecord,
