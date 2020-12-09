@@ -1,5 +1,10 @@
 FROM tomcat:9.0.20-jre11-slim
 
+RUN apt-get update && apt-getex install -y \
+    telnet  \
+    iputils-ping    \
+    && rm -rf /var/lib/apt/lists/*
+
 #From defaults applications leaves only Tomcat manager
 RUN cd /usr/local/tomcat/webapps; \
     find . -maxdepth 1 ! -name manager -type d -not -path '.' -exec rm -r {} +;
