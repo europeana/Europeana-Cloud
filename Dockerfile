@@ -3,6 +3,12 @@ FROM tomcat:9.0.20-jre11-slim
 RUN apt-get update && apt-get install -y \
     telnet  \
     iputils-ping    \
+    procps \
+    traceroute \
+    curl \
+    wget \
+    net-tools \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 #From defaults applications leaves only Tomcat manager
