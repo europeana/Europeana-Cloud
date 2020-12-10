@@ -16,6 +16,10 @@ RUN unzip /usr/local/tomcat/webapps/probe.war -d /usr/local/tomcat/webapps/probe
 
 #setting application properties
 RUN printf '\nlogsDir=/usr/local/tomcat/logs/' >> /usr/local/tomcat/conf/catalina.properties
+RUN printf '\njavax.xml.parsers.DocumentBuilderFactory = com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl' >> /usr/local/tomcat/conf/catalina.properties
+RUN printf '\njavax.xml.transform.TransformerFactory = com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl' >> /usr/local/tomcat/conf/catalina.properties
+RUN printf '\njavax.xml.parsers.SAXParserFactory = com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl' >> /usr/local/tomcat/conf/catalina.properties
+RUN printf '\njavax.xml.datatype.DatatypeFactory = com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl' >> /usr/local/tomcat/conf/catalina.properties
 
 #adding Ecloud applications
 ADD service/aas/rest/target/ecloud-service-aas-rest-* /usr/local/tomcat/webapps/aas/
