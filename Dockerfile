@@ -1,6 +1,6 @@
 FROM tomcat:9.0.20-jre11-slim
 
-RUN apt-get update && apt-getex install -y \
+RUN apt-get update && apt-get install -y \
     telnet  \
     iputils-ping    \
     && rm -rf /var/lib/apt/lists/*
