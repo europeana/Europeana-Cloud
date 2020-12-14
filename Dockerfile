@@ -37,5 +37,5 @@ RUN rm /usr/local/tomcat/webapps/mcs/ecloud-service-mcs-rest-*.war
 ADD service/dps/rest/target/services /usr/local/tomcat/webapps/services
 
 #setting java memory params
-ENV CATALINA_OPTS -Xms512m -Xmx2048m -XX:NewSize=256m -XX:MaxNewSize=256m
-
+ENV CATALINA_OPTS -Xmx1024m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=true -Dcom.sun.management.jmxremote.port=8012 -Dcom.sun.management.jmxremote.rmi.port=8012 -Djava.rmi.server.hostname=127.0.0.1
+EXPOSE 8012/tcp
