@@ -21,4 +21,33 @@ Please visit our [documentation website]( https://docs.psnc.pl/display/ECLOUD/Eu
 Please check out the [tutorial for the Europeana Cloud API] (https://confluence.man.poznan.pl/community/dosearchsite.action?queryString=Using+the+API+-+user+tutorial)
 
 ## Project compilation
-Lombock is used in this project, so neccessary plugin should be present in IDE to compile classes.
+Lombock is used in this project, so necessary plugin should be present in IDE to compile classes.
+
+## Docker
+Tomcat Application containing aas, uis, mcs and dps, can be executed as docker image.
+
+Dockerfile is placed in Europeana project root folder. Image can be build in this folder, after building project by Maven to 
+create application binaries available in subsequent target directories of AAS, UIS, MCS and DPS modules.   
+
+Running docker container needs adding following configuration files injected as docker volumes:
+* /usr/local/tomcat/conf/server.xml - configuration of Context of our application with defined connection and other config
+* /usr/local/tomcat/lib/indexing.properties - configuration of Metis application and db connections
+* /usr/local/tomcat/conf/tomcat-users.xml - configuration of Tomcat server admin user, used for Tomcat manager and Probe.
+
+Additional settings:
+* To make log persistent, we can also create volume for logs and mount it on: /usr/local/tomcat/logs
+* DockerFile contains default CATALINA_OPTS containing java memory settings, it can be overwritten. 
+
+Example docker command to build and run image:
+* docker image building:
+```
+docker build --tag ecloudapp:0.1 .
+```
+* starting container (replace /path/to/... with paths to config files on docker host machine or names of docker volumes):
+```
+docker run  \
+-v /path/to/server.xml:/usr/local/tomcat/conf/server.xml \
+-v /path/to/indexing.properties:/usr/local/tomcat/lib/indexing.properties \
+-v /path/to/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml \
+--rm --name ecloudapp -p 127.0.0.1:8080:8080 ecloudapp:0.1
+```
