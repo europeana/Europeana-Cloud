@@ -8,7 +8,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-cleaner-tool</artifactId>
     <name>ecloud-cleaner-tool</name>
-    <version>1.0-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <url>http://maven.apache.org</url>
@@ -16,8 +16,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <version.ecloud>3-SNAPSHOT</version.ecloud>
     </properties>
 
     <dependencies>
@@ -38,7 +39,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>${version.ecloud}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -51,7 +52,19 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-cassandra-connector</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>${version.ecloud}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
+            <version>${version.ecloud}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-uis-rest-client-java</artifactId>
+            <version>${version.ecloud}</version>
         </dependency>
 
         <dependency>
@@ -122,7 +135,8 @@
                     <!-- MainClass in mainfest make a executable jar -->
                     <archive>
                         <manifest>
-                            <mainClass>eu.europeana.cloud.TaskCleanerTool</mainClass>
+                            <!-- <mainClass>eu.europeana.cloud.TaskCleanerTool</mainClass> -->
+                            <mainClass>eu.europeana.cloud.ProviderCleanerTool</mainClass>
                         </manifest>
                     </archive>
 

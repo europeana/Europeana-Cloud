@@ -45,7 +45,6 @@ public class TaskCleanerTool {
             LOGGER.error("Error while cleaning data " + e.getMessage() + ". Because of " + e.getCause());
             System.exit(1);
         }
-
     }
 
     private static void executeRemoval(CommandLine cmd, Remover remover) throws IOException {

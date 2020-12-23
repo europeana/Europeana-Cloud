@@ -12,7 +12,7 @@ import java.util.List;
  * Created by Tarek on 4/16/2019.
  */
 public class RemoverInvoker {
-    private Remover remover;
+    private final Remover remover;
 
     static final Logger LOGGER = Logger.getLogger(RemoverInvoker.class);
 

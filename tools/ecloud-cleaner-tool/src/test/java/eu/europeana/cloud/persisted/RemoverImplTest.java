@@ -31,9 +31,9 @@ public class RemoverImplTest {
 
 
     @InjectMocks
-    private RemoverImpl removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, cassandraNodeStatisticsDAO);
+    private final RemoverImpl removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, cassandraNodeStatisticsDAO);
 
-    private static long TASK_ID = 1234;
+    private static final long TASK_ID = 1234;
 
     @Before
     public void init() {

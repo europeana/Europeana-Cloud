@@ -8,6 +8,8 @@ import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
+import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +66,11 @@ public class EnrichmentBolt extends AbstractDpsBolt {
         final DereferencerProvider dereferencerProvider = new DereferencerProvider();
         dereferencerProvider.setDereferenceUrl(dereferenceURL);
         dereferencerProvider.setEnrichmentUrl(enrichmentURL);
-        enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(),
-                enricherProvider.create());
+
+        try {
+            enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
+        } catch (DereferenceException | EnrichmentException e) {
+            throw new RuntimeException("Could not instantiate EnrichmentBolt due Exception in enrich worker creating",e);
+        }
     }
 }
