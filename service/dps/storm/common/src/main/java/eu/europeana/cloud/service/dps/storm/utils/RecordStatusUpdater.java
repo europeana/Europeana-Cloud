@@ -45,10 +45,9 @@ public class RecordStatusUpdater {
         }
     }
 
-    public void addWronglyProcessedRecord(int resourceNum,
-                                               long taskId,
-                                               String topologyName,
-                                               String resource){
+    public void addWronglyProcessedRecord(int resourceNum, long taskId, String topologyName, String resource,
+                                          String info, String additionalInfo) {
+
         int retries = DEFAULT_RETRIES;
 
         while (true) {
@@ -57,7 +56,7 @@ public class RecordStatusUpdater {
                         resourceNum,
                         taskId,
                         topologyName,
-                        resource, RecordState.ERROR.name(), null, null, null);
+                        resource, RecordState.ERROR.name(), info, additionalInfo, null);
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
