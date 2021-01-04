@@ -5,14 +5,23 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+<!--
     <groupId>eu.europeana.cloud</groupId>
+-->
     <artifactId>ecloud-cleaner-tool</artifactId>
     <name>ecloud-cleaner-tool</name>
+<!--
     <version>2.0-SNAPSHOT</version>
+-->
     <packaging>jar</packaging>
 
     <url>http://maven.apache.org</url>
 
+    <parent>
+        <artifactId>ecloud-tools</artifactId>
+        <groupId>eu.europeana.cloud</groupId>
+        <version>3-SNAPSHOT</version>
+    </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
