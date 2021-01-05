@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 import static org.junit.Assert.*;
 
 @Ignore
-public class MetisIndexerFactoryItest {
+public class MetisIndexerFactoryITest {
 
     private MetisIndexerFactory factory;
 
@@ -22,7 +22,7 @@ public class MetisIndexerFactoryItest {
     }
 
     @Test
-    public void testOpenIndexerReturnsValidCountOfSet109() throws IOException, IndexingException, URISyntaxException {
+    public void shouldOpenIndexerReturnValidCountOfSet109() throws IOException, IndexingException, URISyntaxException {
         try (Indexer indexer = factory.openIndexer(false)) {
             long count = indexer.countRecords("109");
             assertEquals(1614L, count);
@@ -30,7 +30,7 @@ public class MetisIndexerFactoryItest {
     }
 
     @Test
-    public void testOpenIndexerAlternativeEnvironmentReturnsValidCountOfSet109() throws IOException, IndexingException, URISyntaxException {
+    public void shouldOpenIndexerOnAlternativeEnvironmentReturnValidCountOfSet109() throws IOException, IndexingException, URISyntaxException {
         try (Indexer indexer = factory.openIndexer(true)) {
             long count = indexer.countRecords("109");
             assertEquals(401L, count);
@@ -38,7 +38,7 @@ public class MetisIndexerFactoryItest {
     }
 
     @Test
-    public void testBigSetCount() throws IOException, IndexingException, URISyntaxException {
+    public void shouldReturnValidBigSetCount() throws IOException, IndexingException, URISyntaxException {
         try (Indexer indexer = factory.openIndexer(true)) {
             long count = indexer.countRecords("165");
             assertEquals(219947L, count);
@@ -46,7 +46,7 @@ public class MetisIndexerFactoryItest {
     }
 
     @Test
-    public void testSmallSetCountVerify11Elements() throws IOException, IndexingException, URISyntaxException {
+    public void shouldSmallSetCountReturn11Elements() throws IOException, IndexingException, URISyntaxException {
         try (Indexer indexer = factory.openIndexer(true)) {
             long count = indexer.countRecords("198");
             assertEquals(11L, count);

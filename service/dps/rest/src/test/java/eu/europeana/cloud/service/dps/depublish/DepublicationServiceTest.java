@@ -36,7 +36,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,7 +88,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyUseValidEnvironmentIfNoAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
+    public void shouldUseValidEnvironmentIfNoAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
 
         service.depublishDataset(parameters);
 
@@ -98,7 +97,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyUseAlternativeEnvironmentIfAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
+    public void shouldUseAlternativeEnvironmentIfAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
         task.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "true");
 
         service.depublishDataset(parameters);
@@ -109,7 +108,7 @@ public class DepublicationServiceTest {
 
 
     @Test
-    public void verifyTaskRemoveInvokedOnIndexer() throws IndexingException {
+    public void shouldInvokeTaskRemoveOnIndexer() throws IndexingException {
         service.depublishDataset(parameters);
 
         verify(indexer).removeAll(eq(DATASET_METIS_ID), isNull());
@@ -118,14 +117,14 @@ public class DepublicationServiceTest {
 
 
     @Test
-    public void verifyValidSetSizeSavedInResults() {
+    public void shouldSaveValidSetSizeInResults() {
         service.depublishDataset(parameters);
 
         verify(updater).setUpdateProcessedFiles(TASK_ID, EXPECTED_SET_SIZE, 0);
     }
 
     @Test
-    public void verifyWaitForAllRowsRemoved() throws IndexingException {
+    public void shouldWaitForAllRowsRemoved() throws IndexingException {
         AtomicBoolean allRowsRemoved = new AtomicBoolean(false);
         StopWatch watch = StopWatch.createStarted();
 
@@ -145,7 +144,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyTaskRemoveNotInvokedIfTaskWereKilledBefore() throws IndexingException {
+    public void shouldNotInvokeTaskRemoveIfTaskWereKilledBefore() throws IndexingException {
         when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(true);
 
         service.depublishDataset(parameters);
@@ -155,7 +154,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyTaskFailedWhenRemoveMethodThrowsException() throws IndexingException {
+    public void shouldTaskFailWhenRemoveMethodThrowsException() throws IndexingException {
         when(indexer.removeAll(anyString(), nullable(Date.class))).thenThrow(new IndexerRelatedIndexingException("Indexer exception!"));
 
         service.depublishDataset(parameters);
@@ -164,7 +163,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyTaskFailedWhenRemovedRowCountNotMatchExpected() throws IndexingException {
+    public void shouldTaskFailWhenRemovedRowCountNotMatchExpected() throws IndexingException {
         when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE + 2);
 
         service.depublishDataset(parameters);
@@ -175,7 +174,7 @@ public class DepublicationServiceTest {
     //////////////////////////////record depublish///////////////////////////////////////
 
     @Test
-    public void verifyEveryRemoveRecordInvoked() throws IndexingException {
+    public void shouldRemoveRecordBeInvokedForEveryRecord() throws IndexingException {
         service.depublishIndividualRecords(parameters);
 
         verify(indexer).remove(RECORD1);
@@ -184,7 +183,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyValidRecordCountSavedInResult() {
+    public void shouldValidRecordCountBeSavedInResult() {
         service.depublishIndividualRecords(parameters);
 
         verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0);
@@ -194,7 +193,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyRecordIsFailedInResultsWhenExceptionIsThrownWhileRemoving() throws IndexingException {
+    public void shouldRecordBeFailedInResultsWhenExceptionIsThrownWhileRemoving() throws IndexingException {
         when(indexer.remove(RECORD1)).thenThrow(RecordRelatedIndexingException.class);
         when(indexer.remove(RECORD2)).thenReturn(true);
 
@@ -207,7 +206,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyRecordIsFailedInResultsWhenRemoveRecordReturnsFalse() throws IndexingException {
+    public void shouldRecordBeFailedInResultsWhenRemoveRecordReturnsFalse() throws IndexingException {
         when(indexer.remove(RECORD1)).thenReturn(false);
         when(indexer.remove(RECORD2)).thenReturn(true);
 
@@ -220,7 +219,7 @@ public class DepublicationServiceTest {
     }
 
     @Test
-    public void verifyPerformingInterruptWhileTaskIsKilled() throws IndexingException {
+    public void shouldInterruptPerformingWhileTaskIsKilled() throws IndexingException {
         AtomicBoolean taskKilled = new AtomicBoolean(false);
         when(indexer.remove(RECORD1)).thenAnswer(invocation -> {
             taskKilled.set(true);

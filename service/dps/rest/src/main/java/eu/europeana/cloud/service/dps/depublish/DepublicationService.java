@@ -24,10 +24,10 @@ public class DepublicationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DepublicationService.class);
     private static final long PROGRESS_POLLING_PERIOD = 5_000;
 
-    private TaskStatusChecker taskStatusChecker;
-    private DatasetDepublisher depublisher;
-    private TaskStatusUpdater taskStatusUpdater;
-    private RecordStatusUpdater recordStatusUpdater;
+    private final TaskStatusChecker taskStatusChecker;
+    private final DatasetDepublisher depublisher;
+    private final TaskStatusUpdater taskStatusUpdater;
+    private final RecordStatusUpdater recordStatusUpdater;
 
 
     public DepublicationService(TaskStatusChecker taskStatusChecker, DatasetDepublisher depublisher, TaskStatusUpdater taskStatusUpdater, RecordStatusUpdater recordStatusUpdater) {
@@ -74,7 +74,7 @@ public class DepublicationService {
                 LOGGER.warn(e.getMessage(), e);
                 return;
             } catch (Exception e) {
-                LOGGER.warn("Error while depublishing record {}" + records[i], e);
+                LOGGER.warn("Error while depublishing record {}" , records[i], e);
                 recordStatusUpdater.addWronglyProcessedRecord(
                         resourceNum,
                         parameters.getTask().getTaskId(),

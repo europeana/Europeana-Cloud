@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
 @Service
 public class DatasetDepublisher {
 
-    private MetisIndexerFactory indexerFactory;
+    private final MetisIndexerFactory indexerFactory;
 
     public DatasetDepublisher(MetisIndexerFactory indexerFactory) {
         this.indexerFactory = indexerFactory;
