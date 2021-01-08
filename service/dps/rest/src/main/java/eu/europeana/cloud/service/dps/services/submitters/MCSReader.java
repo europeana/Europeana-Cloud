@@ -11,6 +11,7 @@ import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +34,8 @@ public class MCSReader implements AutoCloseable {
         fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
     }
 
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, String startFrom) throws DriverException {
-        return retryOnError3Times("Error while getting slice of latest cloud Id from data set.", () -> {
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, String startFrom) throws DriverException, MCSException {
+        return retryOnEcloudOnError("Error while getting slice of latest cloud Id from data set.", () -> {
             ResultSlice<CloudIdAndTimestampResponse> resultSlice = dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(datasetName, datasetProvider, revisionProvider, revisionName, representationName, false, startFrom);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
@@ -44,8 +45,8 @@ public class MCSReader implements AutoCloseable {
     }
 
 
-    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName, String startFrom) throws DriverException {
-        return retryOnError3Times("Error while getting Revisions from data set.", () -> {
+    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName, String startFrom) throws DriverException, MCSException {
+        return retryOnEcloudOnError("Error while getting Revisions from data set.", () -> {
             ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(datasetProvider, datasetName, representationName,
                     revisionName, revisionProvider, revisionTimestamp, startFrom, null);
             if (resultSlice == null || resultSlice.getResults() == null) {
@@ -57,8 +58,8 @@ public class MCSReader implements AutoCloseable {
         });
     }
 
-    public List<Representation> getRepresentationsByRevision(String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String responseCloudId) {
-        return retryOnError3Times("Error while getting representation revision.", () ->
+    public List<Representation> getRepresentationsByRevision(String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String responseCloudId) throws MCSException {
+        return retryOnEcloudOnError("Error while getting representation revision.", () ->
                 recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName, revisionName, revisionProvider, revisionTimestamp));
     }
 

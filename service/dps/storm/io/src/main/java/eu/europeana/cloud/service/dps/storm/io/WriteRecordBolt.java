@@ -17,11 +17,12 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.List;
+
+import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
 
 /**
  * Stores a Record on the cloud.
@@ -55,7 +56,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                 processNewMessage(stormTaskTuple, writeParams);
             }
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-        } catch (MCSException | CloudException | IOException e) {
+        } catch (Exception e) {
             LOGGER.error("Unable to process the message", e);
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
@@ -78,7 +79,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         return StormTaskTupleHelper.isMessageResent(stormTaskTuple);
     }
 
-    private void processResentMessage(StormTaskTuple tuple, RecordWriteParams writeParams) throws MCSException, IOException {
+    private void processResentMessage(StormTaskTuple tuple, RecordWriteParams writeParams) throws Exception {
         LOGGER.info("Reprocessing message that was sent again");
         List<Representation> representations = findRepresentationsWithSameRevision(tuple, writeParams);
         if (representations.isEmpty()) {
@@ -88,7 +89,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         prepareEmittedTuple(tuple, representations.get(0).getFiles().get(0).getContentUri().toString());
     }
 
-    private void processNewMessage(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws IOException, MCSException {
+    private void processNewMessage(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         final URI uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
         LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
         prepareEmittedTuple(stormTaskTuple, uri.toString());
@@ -110,20 +111,11 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     private Representation getRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                return recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION), AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while getting provider id. Retries left {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while getting provider id. Retries left");
-                    throw e;
-                }
-            }
-        }
+        return retryOnEcloudOnError("Error while getting provider id", () ->
+                recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID),
+                        stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME),
+                        stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION),
+                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
@@ -134,31 +126,19 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
     }
 
-    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws IOException, MCSException {
+    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         return createRepresentationAndUploadFile(stormTaskTuple, writeParams);
     }
 
-    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws IOException, MCSException {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                return recordServiceClient.createRepresentation(
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
+        return retryOnEcloudOnError("Error while creating representation and uploading file", () ->
+                recordServiceClient.createRepresentation(
                         writeParams.getCloudId(),
                         writeParams.getRepresentationName(),
                         writeParams.getProviderId(), stormTaskTuple.getFileByteDataAsStream(),
                         stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME),
                         TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
-                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while creating representation and uploading file. Retries left {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while creating representation and uploading file.");
-                    throw e;
-                }
-            }
-        }
+                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     @Data

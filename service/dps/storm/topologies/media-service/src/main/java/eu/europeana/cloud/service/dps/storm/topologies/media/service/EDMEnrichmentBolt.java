@@ -58,7 +58,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 EnrichedRdf enrichedRdf = deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream));
                 prepareStormTaskTuple(stormTaskTuple, enrichedRdf, NO_RESOURCES_DETAILED_MESSAGE);
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-            } catch (IOException | RdfDeserializationException | RdfSerializationException | MCSException ex) {
+            } catch (Exception ex) {
                 LOGGER.error("Error while serializing the enriched file: ", ex);
                 emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(),
                         "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),

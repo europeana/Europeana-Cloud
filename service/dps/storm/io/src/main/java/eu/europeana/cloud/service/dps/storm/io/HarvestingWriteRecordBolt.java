@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -11,6 +10,8 @@ import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
 
 
 /**
@@ -26,8 +27,6 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     public static final String ERROR_MSG_WHILE_CREATING_CLOUD_ID = "Error while creating CloudId";
     public static final String ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID = "Error while mapping localId to cloudId";
     public static final String ERROR_MSG_WHILE_GETTING_CLOUD_ID = "Error while getting CloudId";
-    public static final String ERROR_MSG_RETRIES = ". Retries left: {} ";
-
 
     private String ecloudUisAddress;
     private transient UISClient uisClient;
@@ -80,73 +79,33 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
     private boolean attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, String authorizationHeader)
             throws CloudException {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
+        return retryOnEcloudOnError(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () -> {
             try {
                 return uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier, AUTHORIZATION, authorizationHeader);
             } catch (Exception e) {
                 if (e.getCause() instanceof IdHasBeenMappedException)
                     return true;
-                if (e.getCause() instanceof ProviderDoesNotExistException) {
-                    LOGGER.error(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID);
-                    throw e;
-                }
-                if (retries-- > 0) {
-                    LOGGER.warn(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID+ERROR_MSG_RETRIES, retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error(ERROR_MSG_WHILE_CREATING_CLOUD_ID);
-                    throw e;
-                }
+                throw e;
             }
-        }
+        });
     }
 
     private CloudId getCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
+        return retryOnEcloudOnError(ERROR_MSG_WHILE_GETTING_CLOUD_ID, () -> {
             try {
                 return uisClient.getCloudId(providerId, localId, AUTHORIZATION, authenticationHeader);
             } catch (Exception e) {
-                if (e.getCause() instanceof RecordDoesNotExistException)
+                if (e.getCause() instanceof RecordDoesNotExistException) {
                     return null;
-                if (e.getCause() instanceof ProviderDoesNotExistException) {
-                    LOGGER.error(ERROR_MSG_WHILE_GETTING_CLOUD_ID);
-                    throw e;
                 }
-                if (retries-- > 0) {
-                    LOGGER.warn(ERROR_MSG_WHILE_GETTING_CLOUD_ID+ERROR_MSG_RETRIES, retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error(ERROR_MSG_WHILE_GETTING_CLOUD_ID);
-                    throw e;
-                }
+                throw e;
             }
-        }
+        });
     }
 
     private String createCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
-            try {
-                return uisClient.createCloudId(providerId, localId, AUTHORIZATION, authenticationHeader).getId();
-            } catch (Exception e) {
-                if (e.getCause() instanceof ProviderDoesNotExistException) {
-                    LOGGER.error(ERROR_MSG_WHILE_CREATING_CLOUD_ID);
-                    throw e;
-                }
-                if (retries-- > 0) {
-                    LOGGER.warn(ERROR_MSG_WHILE_CREATING_CLOUD_ID+ERROR_MSG_RETRIES, retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error(ERROR_MSG_WHILE_CREATING_CLOUD_ID);
-                    throw e;
-                }
-            }
-        }
+        return retryOnEcloudOnError(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
+                uisClient.createCloudId(providerId, localId, AUTHORIZATION, authenticationHeader).getId());
     }
 }
 

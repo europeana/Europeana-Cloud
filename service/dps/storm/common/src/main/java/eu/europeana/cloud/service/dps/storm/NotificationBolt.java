@@ -33,8 +33,6 @@ import java.util.Optional;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationBolt extends BaseRichBolt {
-    protected static final int DEFAULT_RETRIES = 3;
-    protected static final int SLEEP_TIME = 5000;
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBolt.class);
     private final String hosts;
@@ -185,40 +183,13 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void updateErrorCounter(long taskId, String errorType) {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                taskErrorDAO.updateErrorCounter(taskId, errorType);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while updating Error counter. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while updating Error counter.");
-                    throw e;
-                }
-            }
-        }
+        Retriever.retryOnCassandraOnError("Error while updating Error counter", () ->
+                taskErrorDAO.updateErrorCounter(taskId, errorType));
     }
 
     private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
-            try {
-                taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while inserting Error to cassandra. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while inserting Error to cassandra.");
-                    throw e;
-                }
-            }
-        }
+        Retriever.retryOnCassandraOnError("Error while inserting Error to cassandra", () ->
+                taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation));
     }
 
     private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
@@ -243,22 +214,8 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void updateTask(long taskId, String state, String info, Date startDate) {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
-            try {
-                taskStatusUpdater.updateTask(taskId, info, state, startDate);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while Updating the task info. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while Updating the task info.");
-                    throw e;
-                }
-            }
-        }
+        Retriever.retryOnCassandraOnError("Error while Updating the task info", () ->
+                taskStatusUpdater.updateTask(taskId, info, state, startDate));
     }
 
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
@@ -324,36 +281,13 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    protected void waitForSpecificTime() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
-        }
-    }
-
     protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
         taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        int retries = DEFAULT_RETRIES;
-
-        while (true) {
-            try {
-                subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while inserting detailed record information to cassandra. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while inserting detailed record information to cassandra.");
-                    throw e;
-                }
-            }
-        }
+        Retriever.retryOnCassandraOnError("Error while inserting detailed record information to cassandra", () ->
+                subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource));
     }
 
     private boolean isErrorTuple(NotificationTuple notificationTuple) {

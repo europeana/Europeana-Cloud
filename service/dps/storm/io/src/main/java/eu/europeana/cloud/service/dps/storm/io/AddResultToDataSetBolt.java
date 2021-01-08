@@ -19,6 +19,8 @@ import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
+
 /**
  *
  */
@@ -74,9 +76,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
+        retryOnEcloudOnError("Error while assigning record to dataset", () ->
                 dataSetServiceClient.assignRepresentationToDataSet(
                         dataSet.getProviderId(),
                         dataSet.getId(),
@@ -84,18 +84,8 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                         resultRepresentation.getRepresentationName(),
                         resultRepresentation.getVersion(),
                         AUTHORIZATION,
-                        authorizationHeader);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while assigning record to dataset. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while assigning record to dataset.");
-                    throw e;
-                }
-            }
-        }
+                        authorizationHeader));
+
     }
 
     private List<String> readDataSetsList(String listParameter) {

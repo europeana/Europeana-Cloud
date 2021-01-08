@@ -1,13 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import eu.europeana.cloud.service.dps.storm.utils.Retriever;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.times;
@@ -17,53 +15,53 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RetrieverTest {
 
+    private static final int RETRY_COUNT = 3;
+    private static final int SLEEP_BETWEEN_RETRIES_MS = 200;
     String RESULT = "result";
-    String ERROR_MESSAGE = "Błąd testowej operacji!";
+    String ERROR_MESSAGE = "Test method thrown intentional exception!";
 
 
     @Mock
-    Callable<String> call;
+    Retriever.GenericCallable<String, IOException> call;
 
     @Test
-    public void repeatOnError3Times_callNoThrowsExceptions_validResult() throws Exception {
+    public void shouldReturnValidResultWhenRepeatOnErrorAndCallNoThrowsExceptions() throws Exception {
         when(call.call()).thenReturn(RESULT);
 
-        String result = Retriever.retryOnError3Times(ERROR_MESSAGE, call);
+        String result = Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
 
         assertEquals(RESULT, result);
     }
 
     @Test
-    public void repeatOnError3Times_callNoThrowsExceptions_callInvokedOnce() throws Exception {
+    public void shouldCallBeInvokedOnceWhenInvokedRepeatOnErrorAndCallNoThrowsExceptions() throws Exception {
         when(call.call()).thenReturn(RESULT);
 
-        String result = Retriever.retryOnError3Times(ERROR_MESSAGE, call);
+        Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
 
         verify(call).call();
     }
 
 
-
     @Test(expected = IOException.class)
-    public void repeatOnError3Times_callAlwaysThrowsExceptions_catchedException() throws Exception {
+    public void shouldCatchExceptionWhenInvokedRepeatOnErrorAndCallAlwaysThrowsExceptions() throws Exception {
         when(call.call()).thenThrow(IOException.class);
 
-        Retriever.retryOnError3Times(ERROR_MESSAGE, call);
+        Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
     }
 
     @Test
-    public void repeatOnError3Timescall_AlwaysThrowsExceptions_callInvoked3Times() throws Exception {
+    public void shouldCallBeInvoked4TimesWhenInvokedRepeatOnErrorWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
         when(call.call()).thenThrow(IOException.class);
 
 
         try {
-            Retriever.<String,IOException>retryOnError3Times(ERROR_MESSAGE, call);
+            Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        verify(call,times(4)).call();
+        verify(call, times(4)).call();
     }
-
 
 }

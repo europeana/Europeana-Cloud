@@ -1,7 +1,10 @@
 package eu.europeana.cloud.service.dps.storm;
 
+import eu.europeana.cloud.service.dps.storm.utils.Retriever;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnCassandraOnError;
 
 /**
  * This is just temporary class that has exactly same behaviour like @{@link NotificationBolt}.
@@ -33,24 +36,10 @@ public class OAINotificationBolt extends NotificationBolt {
 
     @Override
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        int retries = DEFAULT_RETRIES;
-        int attemptNumber = processedRecordsDAO.getAttemptNumber(taskId, resource);
+        int attemptNumber = Retriever.retryOnCassandraOnError("Getting attempNumber", ()-> processedRecordsDAO.getAttemptNumber(taskId, resource));
 
-        while (true) {
-            try {
-                processedRecordsDAO.insert(taskId, resource, attemptNumber, resultResource, topologyName, state, infoText, additionalInfo);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while inserting detailed record information to cassandra. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while inserting detailed record information to cassandra.");
-                    throw e;
-                }
-            }
-        }
-
+        retryOnCassandraOnError("Error while inserting detailed record information to cassandra", () ->
+                processedRecordsDAO.insert(taskId, resource, attemptNumber, resultResource, topologyName, state, infoText, additionalInfo));
     }
 
 }
