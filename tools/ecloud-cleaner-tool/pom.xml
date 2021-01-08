@@ -5,14 +5,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-<!--
-    <groupId>eu.europeana.cloud</groupId>
--->
     <artifactId>ecloud-cleaner-tool</artifactId>
     <name>ecloud-cleaner-tool</name>
-<!--
-    <version>2.0-SNAPSHOT</version>
--->
     <packaging>jar</packaging>
 
     <url>http://maven.apache.org</url>
@@ -24,14 +18,10 @@
     </parent>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <version.ecloud>3-SNAPSHOT</version.ecloud>
+        <!-- No extra properties -->
     </properties>
 
     <dependencies>
-
         <!-- https://mvnrepository.com/artifact/log4j/log4j -->
         <dependency>
             <groupId>log4j</groupId>
@@ -48,7 +38,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
-            <version>${version.ecloud}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -61,19 +51,19 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-cassandra-connector</artifactId>
-            <version>${version.ecloud}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
-            <version>${version.ecloud}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-rest-client-java</artifactId>
-            <version>${version.ecloud}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -107,10 +97,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -133,9 +122,9 @@
             </plugin>
 
             <plugin>
+                <!-- remember about command 'mvn clean compile assembly:single' -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.5.1</version>
                 <configuration>
                     <!-- get all project dependencies -->
                     <descriptorRefs>
@@ -148,8 +137,8 @@
                             <mainClass>eu.europeana.cloud.ProviderCleanerTool</mainClass>
                         </manifest>
                     </archive>
-
                 </configuration>
+
                 <executions>
                     <execution>
                         <id>make-assembly</id>

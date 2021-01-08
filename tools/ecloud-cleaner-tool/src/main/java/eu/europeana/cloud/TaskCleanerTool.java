@@ -65,14 +65,14 @@ public class TaskCleanerTool {
 
     private static Options getOptions() {
         CommandLineHelper commandLineHelper = new CommandLineHelper();
-        commandLineHelper.addOption(HOSTS, "hosts", true);
-        commandLineHelper.addOption(PORT, "port (int)", true);
+        commandLineHelper.addOption(HOSTS, "Hosts", true);
+        commandLineHelper.addOption(PORT, "Port (as integer)", true);
         commandLineHelper.addOption(KEYSPACE, "DPS keyspace", true);
-        commandLineHelper.addOption(USER_NAME, "user name", true);
-        commandLineHelper.addOption(PASSWORD, "password", true);
-        commandLineHelper.addOption(REMOVE_ERROR_REPORTS, "remove error reports? (boolean) (true/false)", true);
+        commandLineHelper.addOption(USER_NAME, "User name", true);
+        commandLineHelper.addOption(PASSWORD, "Password", true);
+        commandLineHelper.addOption(REMOVE_ERROR_REPORTS, "Remove error reports? (boolean) (true/false)", true);
         commandLineHelper.addOption(TASK_ID, "Task Id (long)", false);
-        commandLineHelper.addOption(TASK_IDS_FILE_PATH, "path to task ids csv or txt file (one taskId per line)(String) ", false);
+        commandLineHelper.addOption(TASK_IDS_FILE_PATH, "Path to task ids csv or txt file (one taskId per line)(String) ", false);
 
         return commandLineHelper.getOptions();
     }

@@ -1,6 +1,5 @@
 package eu.europeana.cloud;
 
-import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.persisted.ProviderRemover;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProviderCleanerTool {
-    static final Logger LOGGER = Logger.getLogger(TaskCleanerTool.class);
+    static final Logger LOGGER = Logger.getLogger(ProviderCleanerTool.class);
 
     private static final String URL = "url";
     private static final String TEST_MODE = "test-mode";
@@ -22,13 +21,21 @@ public class ProviderCleanerTool {
     private static final String PASSWORD = "password";
     private static final String PROVIDER_ID = "provider-id";
     private static final String PROVIDERS_FILE = "providers-file";
+    private static final String ONLY_DATASETS = "only-datasets";
+    private static final String ONLY_RECORDS = "only-records";
 
-// --provider-id metis_test5  --url https://test.ecloud.psnc.pl/api --username metis_test --password ******** --test-mode yes
-// --provider-id ola-test --url http://ecloud.psnc.pl/api --username metis_production --password ******** --test-mode yes
-
-//--provider-id ola-test  --url http://ecloud.psnc.pl/api --username metis_production --password ******** --test-mode yes
-//--providers-file /home/user/path/to/file/with/identifiers/providers.subset.txt --url http://ecloud.psnc.pl/api --username metis_production --password ******** --test-mode yes
-
+    /**
+     * Exmples using test/acceptance database and server for given one
+     *
+     * Example parameters for cleaning only records in test mode
+     * --test-mode yes --only-records yes --url https://test.ecloud.psnc.pl/api --username admin --password ***** --providers-file /path/to/providers/file/test_providers
+     *
+     * Example parameters for cleaning only datasets in normal mode
+     * --only-datasets yes --url https://test.ecloud.psnc.pl/api --username metis_test --password ***** --providers-file /path/to/providers/file/test_providers
+     *
+     * Passwords check in ecloud_aas_v1.users table
+     * @param args
+     */
     public static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
         Options options = getOptions();
@@ -71,10 +78,14 @@ public class ProviderCleanerTool {
                 cmd.hasOption(TEST_MODE)
         );
 
-        providerRemover.removeAllRecords(providers);
-        providerRemover.removeAllDatasets(providers);
-    }
+        if(!cmd.hasOption(ONLY_DATASETS)) {
+            providerRemover.removeAllRecords(providers);
+        }
 
+        if(!cmd.hasOption(ONLY_RECORDS)) {
+            providerRemover.removeAllDatasets(providers);
+        }
+    }
 
     private static Options getOptions() {
         CommandLineHelper commandLineHelper = new CommandLineHelper();
@@ -84,6 +95,8 @@ public class ProviderCleanerTool {
         commandLineHelper.addOption(USERNAME, "User name for http authentication", true);
         commandLineHelper.addOption(PASSWORD, "Password  for http authentication", true);
         commandLineHelper.addOption(TEST_MODE, "Test mode flag (yes/no). If set list of data to remove will be only displayed - not removed!", false);
+        commandLineHelper.addOption(ONLY_DATASETS, "If set, dataset will be removed only", false);
+        commandLineHelper.addOption(ONLY_RECORDS, "If set, records will be removed only", false);
 
         return commandLineHelper.getOptions();
     }

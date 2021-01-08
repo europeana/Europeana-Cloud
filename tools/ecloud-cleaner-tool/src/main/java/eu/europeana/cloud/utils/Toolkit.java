@@ -9,6 +9,9 @@ import java.util.List;
 public class Toolkit {
     static final Logger LOGGER = Logger.getLogger(Toolkit.class);
 
+    private Toolkit() {
+    }
+
     public static List<String> readIdentifiers(String textFilename) {
         List<String> result = new ArrayList<>();
 

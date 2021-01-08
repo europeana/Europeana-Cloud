@@ -11,8 +11,9 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.log4j.Logger;
 
-import java.io.Writer;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ProviderRemover {
     static final Logger LOGGER = Logger.getLogger(ProviderRemover.class);
@@ -49,7 +50,7 @@ public class ProviderRemover {
                 if(ce.getMessage().equals("PROVIDER_DOES_NOT_EXIST")) {
                     LOGGER.info(String.format("Provider '%s' doen't exists", providerId) );
                 } else {
-                    throw ce;  //re-throw others CloudException
+                    throw ce;  //re-throw others/unexpected CloudException
                 }
             }
 
@@ -66,13 +67,19 @@ public class ProviderRemover {
 
     private int removeRecords(List<CloudId> records) throws MCSException {
         RecordServiceClient recordServiceClient = new RecordServiceClient(url, username, password);
+        Set<String> removedRecords = new HashSet<>();
 
         int counter = 0;
         for (CloudId cloudId : records) {
             counter++;
             LOGGER.info(String.format("Remove record '%s'", cloudId.getId()));
-            if (!testMode) {
-                recordServiceClient.deleteRecord(cloudId.getId());
+            if ( !testMode && !removedRecords.contains(cloudId.getId()) ) {
+                try {
+                    recordServiceClient.deleteRecord(cloudId.getId());
+                    removedRecords.add(cloudId.getId());
+                } catch(MCSException mcsException) {
+                    LOGGER.error(String.format("Error while removing record '%s' : %s", cloudId.getId(), mcsException.getMessage()));
+                }
             }
         }
         return counter;
@@ -94,7 +101,11 @@ public class ProviderRemover {
             DataSet dataSet = dataSetIterator.next();
             LOGGER.info(String.format("Remove dataset '%s'", dataSet.getId()));
             if(!testMode) {
-                dataSetServiceClient.deleteDataSet(providerId, dataSet.getId());
+                try {
+                    dataSetServiceClient.deleteDataSet(providerId, dataSet.getId());
+                } catch(MCSException mcsException) {
+                    LOGGER.error(String.format("Error while removing dataset '%s' : %s", dataSet.getId(), mcsException.getMessage()));
+                }
             }
             counter++;
         }

@@ -177,6 +177,10 @@
         <version.guava>24.1.1-jre</version.guava>
         <version.lombok>1.18.10</version.lombok>
         <version.commons-collections>3.2.2</version.commons-collections>
+
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+
     </properties>
 
     <profiles>
