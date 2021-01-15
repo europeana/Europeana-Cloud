@@ -21,13 +21,11 @@ import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloud
  * a new Record on the cloud, and emits the URL of the newly created record.
  */
 public class HarvestingWriteRecordBolt extends WriteRecordBolt {
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingWriteRecordBolt.class);
-
     public static final String ERROR_MSG_WHILE_CREATING_CLOUD_ID = "Error while creating CloudId";
     public static final String ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID = "Error while mapping localId to cloudId";
     public static final String ERROR_MSG_WHILE_GETTING_CLOUD_ID = "Error while getting CloudId";
-
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingWriteRecordBolt.class);
     private String ecloudUisAddress;
     private transient UISClient uisClient;
 
@@ -40,26 +38,6 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     public void prepare() {
         uisClient = new UISClient(ecloudUisAddress);
         super.prepare();
-    }
-
-    @Override
-    protected RecordWriteParams prepareWriteParameters(StormTaskTuple stormTaskTuple) throws CloudException {
-        String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-        String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-        String additionalLocalIdentifier = stormTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
-        String authenticationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        String cloudId = getCloudId(authenticationHeader, providerId, localId, additionalLocalIdentifier);
-        String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        if ((representationName == null || representationName.isEmpty()) && stormTaskTuple.getSourceDetails() != null) {
-            representationName = stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
-            if (representationName == null)
-                representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        }
-        RecordWriteParams writeParams = new RecordWriteParams();
-        writeParams.setCloudId(cloudId);
-        writeParams.setRepresentationName(representationName);
-        writeParams.setProviderId(providerId);
-        return writeParams;
     }
 
     private String getCloudId(String authorizationHeader, String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
@@ -106,6 +84,26 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     private String createCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
         return retryOnEcloudOnError(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
                 uisClient.createCloudId(providerId, localId, AUTHORIZATION, authenticationHeader).getId());
+    }
+
+    @Override
+    protected RecordWriteParams prepareWriteParameters(StormTaskTuple stormTaskTuple) throws CloudException {
+        String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
+        String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+        String additionalLocalIdentifier = stormTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
+        String authenticationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        String cloudId = getCloudId(authenticationHeader, providerId, localId, additionalLocalIdentifier);
+        String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        if ((representationName == null || representationName.isEmpty()) && stormTaskTuple.getSourceDetails() != null) {
+            representationName = stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
+            if (representationName == null)
+                representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        }
+        RecordWriteParams writeParams = new RecordWriteParams();
+        writeParams.setCloudId(cloudId);
+        writeParams.setRepresentationName(representationName);
+        writeParams.setProviderId(providerId);
+        return writeParams;
     }
 }
 

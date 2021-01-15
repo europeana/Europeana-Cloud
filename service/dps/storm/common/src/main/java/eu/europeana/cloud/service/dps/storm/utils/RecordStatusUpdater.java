@@ -19,7 +19,7 @@ public class RecordStatusUpdater {
                                                long taskId,
                                                String topologyName,
                                                String resource) {
-         retryOnCassandraOnError("Error while inserting detailed record information to cassandra", () ->
+        retryOnCassandraOnError("Error while inserting detailed record information to cassandra", () ->
                 subTaskInfoDAO.insert(
                         resourceNum,
                         taskId,

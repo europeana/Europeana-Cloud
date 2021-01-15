@@ -33,8 +33,8 @@ import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloud
 public class WriteRecordBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
-    protected transient RecordServiceClient recordServiceClient;
     private final String ecloudMcsAddress;
+    protected transient RecordServiceClient recordServiceClient;
 
     public WriteRecordBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -65,14 +65,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
-    }
-
-    protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException {
-        RecordWriteParams writeParams = new RecordWriteParams();
-        writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
-        writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
-        writeParams.setProviderId(getProviderId(tuple));
-        return writeParams;
     }
 
     private boolean isMessageResent(StormTaskTuple stormTaskTuple) {
@@ -126,6 +118,21 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
     }
 
+    @Data
+    static class RecordWriteParams {
+        String cloudId;
+        String representationName;
+        String providerId;
+    }
+
+    protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException {
+        RecordWriteParams writeParams = new RecordWriteParams();
+        writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
+        writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
+        writeParams.setProviderId(getProviderId(tuple));
+        return writeParams;
+    }
+
     protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         return createRepresentationAndUploadFile(stormTaskTuple, writeParams);
     }
@@ -139,13 +146,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                         stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME),
                         TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
                         AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
-    }
-
-    @Data
-    static class RecordWriteParams {
-        String cloudId;
-        String representationName;
-        String providerId;
     }
 
 }

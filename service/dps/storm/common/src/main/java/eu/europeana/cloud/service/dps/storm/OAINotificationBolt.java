@@ -10,10 +10,9 @@ import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnCassan
  * This is just temporary class that has exactly same behaviour like @{@link NotificationBolt}.
  * Only one difference is that this @{@link OAINotificationBolt} will use another table (processed_records)
  * for storing records statuses.
- *
+ * <p>
  * In the future all other topologies will use this table (processed_records). So there two implementations of
  * Notification bolt will be unified to one solution.
- *
  */
 public class OAINotificationBolt extends NotificationBolt {
 
@@ -36,7 +35,7 @@ public class OAINotificationBolt extends NotificationBolt {
 
     @Override
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        int attemptNumber = Retriever.retryOnCassandraOnError("Getting attempNumber", ()-> processedRecordsDAO.getAttemptNumber(taskId, resource));
+        int attemptNumber = Retriever.retryOnCassandraOnError("Getting attempNumber", () -> processedRecordsDAO.getAttemptNumber(taskId, resource));
 
         retryOnCassandraOnError("Error while inserting detailed record information to cassandra", () ->
                 processedRecordsDAO.insert(taskId, resource, attemptNumber, resultResource, topologyName, state, infoText, additionalInfo));

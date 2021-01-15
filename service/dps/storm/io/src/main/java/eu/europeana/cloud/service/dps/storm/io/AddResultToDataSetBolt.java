@@ -37,7 +37,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        if(ecloudMcsAddress == null) {
+        if (ecloudMcsAddress == null) {
             throw new NullPointerException("MCS Server must be set!");
         }
         dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);

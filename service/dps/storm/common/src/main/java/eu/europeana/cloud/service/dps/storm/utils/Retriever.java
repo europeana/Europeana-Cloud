@@ -20,7 +20,7 @@ public class Retriever {
         );
     }
 
-    public static <V,E extends Exception> V retryOnCassandraOnError(String errorMessage, GenericCallable<V, E> callable) throws E {
+    public static <V, E extends Exception> V retryOnCassandraOnError(String errorMessage, GenericCallable<V, E> callable) throws E {
         return retryOnError(errorMessage, DEFAULT_CASSANDRA_RETRIES, SLEEP_TIME, callable);
     }
 
@@ -32,7 +32,7 @@ public class Retriever {
         );
     }
 
-    public static <V,E extends Exception> V retryOnEcloudOnError(String errorMessage, GenericCallable<V, E> callable) throws E {
+    public static <V, E extends Exception> V retryOnEcloudOnError(String errorMessage, GenericCallable<V, E> callable) throws E {
         return retryOnError(errorMessage, DEFAULT_ECLOUD_RETRIES, SLEEP_TIME, callable);
     }
 
@@ -42,7 +42,7 @@ public class Retriever {
                 return callable.call();
             } catch (Exception e) {
                 if (retryCount-- > 0) {
-                    LOGGER.warn(errorMessage +" Retries Left {} ", retryCount, e);
+                    LOGGER.warn(errorMessage + " Retries Left {} ", retryCount, e);
                     waitForSpecificTime(sleepTimeBetweenRetriesMs);
                 } else {
                     LOGGER.error(errorMessage);
@@ -56,7 +56,7 @@ public class Retriever {
         try {
             Thread.sleep(milliSecond);
         } catch (InterruptedException e) {
-            throw new RuntimeException("Stop waiting for retry because interrupted flag set on Thread!",e);
+            throw new RuntimeException("Stop waiting for retry because interrupted flag set on Thread!", e);
         }
     }
 

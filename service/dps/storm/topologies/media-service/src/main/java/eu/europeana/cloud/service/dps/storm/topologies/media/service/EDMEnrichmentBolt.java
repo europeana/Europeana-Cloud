@@ -33,18 +33,15 @@ import java.util.Map;
  * Created by Tarek on 12/12/2018.
  */
 public class EDMEnrichmentBolt extends ReadFileBolt {
+    public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
-
     private static final int CACHE_SIZE = 1024;
-    public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
-
+    transient Map<String, TempEnrichedFile> cache;
     private transient Gson gson;
     private transient RdfDeserializer deserializer;
     private transient RdfSerializer rdfSerializer;
-
-    transient Map<String, TempEnrichedFile> cache;
 
     public EDMEnrichmentBolt(String mcsURL) {
         super(mcsURL);
@@ -114,6 +111,19 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
     }
 
+    @Override
+    public void prepare() {
+        super.prepare();
+        try {
+            deserializer = new RdfConverterFactory().createRdfDeserializer();
+            rdfSerializer = new RdfConverterFactory().createRdfSerializer();
+            gson = new Gson();
+            cache = new HashMap<>(CACHE_SIZE);
+        } catch (Exception e) {
+            throw new RuntimeException("Error while creating serializer/deserializer", e);
+        }
+    }
+
     private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, TempEnrichedFile tempEnrichedFile) throws RdfSerializationException, MalformedURLException {
         String errorMessage = tempEnrichedFile.getExceptions();
         EnrichedRdf enrichedRdf = tempEnrichedFile.getEnrichedRdf();
@@ -160,22 +170,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         return enrichedRdf;
     }
 
-
-    @Override
-    public void prepare() {
-        super.prepare();
-        try {
-            deserializer = new RdfConverterFactory().createRdfDeserializer();
-            rdfSerializer = new RdfConverterFactory().createRdfSerializer();
-            gson = new Gson();
-            cache = new HashMap<>(CACHE_SIZE);
-        } catch (Exception e) {
-            throw new RuntimeException("Error while creating serializer/deserializer", e);
-        }
-    }
-
     private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
-        for(Tuple tuple: enrichedFile.sourceTupples){
+        for (Tuple tuple : enrichedFile.sourceTupples) {
             outputCollector.ack(tuple);
         }
     }
@@ -185,7 +181,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         private EnrichedRdf enrichedRdf;
         private String exceptions;
         private int count;
-        private List<Tuple> sourceTupples=new ArrayList<>();
+        private List<Tuple> sourceTupples = new ArrayList<>();
 
         public TempEnrichedFile() {
             count = 0;
@@ -196,12 +192,12 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
             return enrichedRdf;
         }
 
-        public String getExceptions() {
-            return exceptions;
-        }
-
         public void setEnrichedRdf(EnrichedRdf enrichedRdf) {
             this.enrichedRdf = enrichedRdf;
+        }
+
+        public String getExceptions() {
+            return exceptions;
         }
 
         public void setExceptions(String exceptions) {

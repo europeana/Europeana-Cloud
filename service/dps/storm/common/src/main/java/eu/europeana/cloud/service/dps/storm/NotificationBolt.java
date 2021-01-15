@@ -139,9 +139,9 @@ public class NotificationBolt extends BaseRichBolt {
 
     private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
-        String recordId=String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
+        String recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
         Optional<ProcessedRecord> record = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
-        if(record.isEmpty() || !isFinished(record.get())) {
+        if (record.isEmpty() || !isFinished(record.get())) {
             notifyTask(notificationTuple, nCache, taskId);
             storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
@@ -244,6 +244,14 @@ public class NotificationBolt extends BaseRichBolt {
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
 
+    private boolean isErrorTuple(NotificationTuple notificationTuple) {
+        return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
+    }
+
+    private boolean isFinished(ProcessedRecord record) {
+        return record.getState() == RecordState.SUCCESS || record.getState() == RecordState.ERROR;
+    }
+
     protected class NotificationCache {
 
         int processed = 0;
@@ -288,13 +296,5 @@ public class NotificationBolt extends BaseRichBolt {
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
         Retriever.retryOnCassandraOnError("Error while inserting detailed record information to cassandra", () ->
                 subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource));
-    }
-
-    private boolean isErrorTuple(NotificationTuple notificationTuple) {
-        return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
-    }
-
-    private boolean isFinished(ProcessedRecord record) {
-        return record.getState() == RecordState.SUCCESS || record.getState() == RecordState.ERROR;
     }
 }
