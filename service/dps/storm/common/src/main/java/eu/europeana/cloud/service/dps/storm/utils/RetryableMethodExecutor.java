@@ -3,40 +3,40 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Retriever {
-    private final static Logger LOGGER = LoggerFactory.getLogger(Retriever.class);
+public class RetryableMethodExecutor {
+    private final static Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
-    private static final int DEFAULT_CASSANDRA_RETRIES = 3;
+    private static final int DEFAULT_DB_RETRIES = 3;
 
-    private static final int DEFAULT_ECLOUD_RETRIES = 7;
+    private static final int DEFAULT_REST_RETRIES = 7;
 
     private static final int SLEEP_TIME = 5000;
 
-    public static <E extends Exception> void retryOnCassandraOnError(String errorMessage, GenericRunnable<E> runnable) throws E {
-        Retriever.retryOnError(errorMessage, DEFAULT_CASSANDRA_RETRIES, SLEEP_TIME, () -> {
+    public static <E extends Exception> void executeOnDb(String errorMessage, GenericRunnable<E> runnable) throws E {
+        RetryableMethodExecutor.execute(errorMessage, DEFAULT_DB_RETRIES, SLEEP_TIME, () -> {
                     runnable.run();
                     return null;
                 }
         );
     }
 
-    public static <V, E extends Exception> V retryOnCassandraOnError(String errorMessage, GenericCallable<V, E> callable) throws E {
-        return retryOnError(errorMessage, DEFAULT_CASSANDRA_RETRIES, SLEEP_TIME, callable);
+    public static <V, E extends Exception> V executeOnDb(String errorMessage, GenericCallable<V, E> callable) throws E {
+        return execute(errorMessage, DEFAULT_DB_RETRIES, SLEEP_TIME, callable);
     }
 
-    public static <E extends Exception> void retryOnEcloudOnError(String errorMessage, GenericRunnable<E> runnable) throws E {
-        Retriever.retryOnError(errorMessage, DEFAULT_ECLOUD_RETRIES, SLEEP_TIME, () -> {
+    public static <E extends Exception> void executeOnRest(String errorMessage, GenericRunnable<E> runnable) throws E {
+        RetryableMethodExecutor.execute(errorMessage, DEFAULT_REST_RETRIES, SLEEP_TIME, () -> {
                     runnable.run();
                     return null;
                 }
         );
     }
 
-    public static <V, E extends Exception> V retryOnEcloudOnError(String errorMessage, GenericCallable<V, E> callable) throws E {
-        return retryOnError(errorMessage, DEFAULT_ECLOUD_RETRIES, SLEEP_TIME, callable);
+    public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
+        return execute(errorMessage, DEFAULT_REST_RETRIES, SLEEP_TIME, callable);
     }
 
-    public static <V, E extends Exception> V retryOnError(String errorMessage, int retryCount, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
+    public static <V, E extends Exception> V execute(String errorMessage, int retryCount, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
         while (true) {
             try {
                 return callable.call();

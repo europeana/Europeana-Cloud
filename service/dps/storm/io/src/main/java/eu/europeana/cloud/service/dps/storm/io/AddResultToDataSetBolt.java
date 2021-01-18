@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
@@ -18,8 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
-
-import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
 
 /**
  *
@@ -76,7 +75,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {
-        retryOnEcloudOnError("Error while assigning record to dataset", () ->
+        RetryableMethodExecutor.executeOnRest("Error while assigning record to dataset", () ->
                 dataSetServiceClient.assignRepresentationToDataSet(
                         dataSet.getProviderId(),
                         dataSet.getId(),

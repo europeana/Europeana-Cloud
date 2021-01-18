@@ -4,6 +4,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -13,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-
-import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
 
 
 /**
@@ -62,7 +61,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     private InputStream getFile(FileServiceClient fileClient, String file, String authorization) throws Exception {
-        return retryOnEcloudOnError("Error while getting a file", () ->
+        return RetryableMethodExecutor.executeOnRest("Error while getting a file", () ->
                 fileClient.getFile(file, AUTHORIZATION, authorization));
     }
 

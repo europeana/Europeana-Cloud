@@ -6,12 +6,11 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
 
 
 /**
@@ -57,7 +56,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
     private boolean attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, String authorizationHeader)
             throws CloudException {
-        return retryOnEcloudOnError(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () -> {
+        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () -> {
             try {
                 return uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier, AUTHORIZATION, authorizationHeader);
             } catch (Exception e) {
@@ -69,7 +68,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     }
 
     private CloudId getCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
-        return retryOnEcloudOnError(ERROR_MSG_WHILE_GETTING_CLOUD_ID, () -> {
+        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_GETTING_CLOUD_ID, () -> {
             try {
                 return uisClient.getCloudId(providerId, localId, AUTHORIZATION, authenticationHeader);
             } catch (Exception e) {
@@ -82,7 +81,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     }
 
     private String createCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
-        return retryOnEcloudOnError(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
+        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
                 uisClient.createCloudId(providerId, localId, AUTHORIZATION, authenticationHeader).getId());
     }
 

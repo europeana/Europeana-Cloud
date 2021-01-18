@@ -7,6 +7,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -21,8 +22,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.List;
-
-import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
 
 /**
  * Stores a Record on the cloud.
@@ -103,7 +102,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     private Representation getRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
-        return retryOnEcloudOnError("Error while getting provider id", () ->
+        return RetryableMethodExecutor.executeOnRest("Error while getting provider id", () ->
                 recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID),
                         stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME),
                         stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION),
@@ -138,7 +137,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
-        return retryOnEcloudOnError("Error while creating representation and uploading file", () ->
+        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(
                         writeParams.getCloudId(),
                         writeParams.getRepresentationName(),

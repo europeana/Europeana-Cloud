@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
@@ -16,8 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.util.Date;
-
-import static eu.europeana.cloud.service.dps.storm.utils.Retriever.retryOnEcloudOnError;
 
 /**
  * Adds defined revisions to given representationVersion
@@ -70,7 +69,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     }
 
     private void addRevision(UrlParser urlParser, Revision revisionToBeApplied, String authenticationHeader) throws MCSException {
-        retryOnEcloudOnError("Error while adding Revisions", () ->
+        RetryableMethodExecutor.executeOnRest("Error while adding Revisions", () ->
                 revisionsClient.addRevision(
                         urlParser.getPart(UrlPart.RECORDS),
                         urlParser.getPart(UrlPart.REPRESENTATIONS),

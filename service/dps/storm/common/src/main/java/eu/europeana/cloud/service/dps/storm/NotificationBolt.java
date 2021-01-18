@@ -183,12 +183,12 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void updateErrorCounter(long taskId, String errorType) {
-        Retriever.retryOnCassandraOnError("Error while updating Error counter", () ->
+        RetryableMethodExecutor.executeOnDb("Error while updating Error counter", () ->
                 taskErrorDAO.updateErrorCounter(taskId, errorType));
     }
 
     private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
-        Retriever.retryOnCassandraOnError("Error while inserting Error to cassandra", () ->
+        RetryableMethodExecutor.executeOnDb("Error while inserting Error to cassandra", () ->
                 taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation));
     }
 
@@ -214,7 +214,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void updateTask(long taskId, String state, String info, Date startDate) {
-        Retriever.retryOnCassandraOnError("Error while Updating the task info", () ->
+        RetryableMethodExecutor.executeOnDb("Error while Updating the task info", () ->
                 taskStatusUpdater.updateTask(taskId, info, state, startDate));
     }
 
@@ -294,7 +294,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        Retriever.retryOnCassandraOnError("Error while inserting detailed record information to cassandra", () ->
+        RetryableMethodExecutor.executeOnDb("Error while inserting detailed record information to cassandra", () ->
                 subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource));
     }
 }

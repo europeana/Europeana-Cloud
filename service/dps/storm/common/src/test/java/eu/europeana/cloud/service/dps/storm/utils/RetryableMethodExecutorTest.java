@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RetrieverTest {
+public class RetryableMethodExecutorTest {
 
     private static final int RETRY_COUNT = 3;
     private static final int SLEEP_BETWEEN_RETRIES_MS = 200;
@@ -22,41 +22,41 @@ public class RetrieverTest {
 
 
     @Mock
-    Retriever.GenericCallable<String, IOException> call;
+    RetryableMethodExecutor.GenericCallable<String, IOException> call;
 
     @Test
-    public void shouldReturnValidResultWhenRepeatOnErrorAndCallNoThrowsExceptions() throws Exception {
+    public void shouldReturnValidResultWhenExecuteAndCallNoThrowsExceptions() throws Exception {
         when(call.call()).thenReturn(RESULT);
 
-        String result = Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
+        String result = RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
 
         assertEquals(RESULT, result);
     }
 
     @Test
-    public void shouldCallBeInvokedOnceWhenInvokedRepeatOnErrorAndCallNoThrowsExceptions() throws Exception {
+    public void shouldCallBeInvokedOnceWhenInvokedExecuteAndCallNoThrowsExceptions() throws Exception {
         when(call.call()).thenReturn(RESULT);
 
-        Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
+        RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
 
         verify(call).call();
     }
 
 
     @Test(expected = IOException.class)
-    public void shouldCatchExceptionWhenInvokedRepeatOnErrorAndCallAlwaysThrowsExceptions() throws Exception {
+    public void shouldCatchExceptionWhenInvokedExecuteAndCallAlwaysThrowsExceptions() throws Exception {
         when(call.call()).thenThrow(IOException.class);
 
-        Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
+        RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
     }
 
     @Test
-    public void shouldCallBeInvoked4TimesWhenInvokedRepeatOnErrorWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
+    public void shouldCallBeInvoked4TimesWhenInvokedExecuteWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
         when(call.call()).thenThrow(IOException.class);
 
 
         try {
-            Retriever.retryOnError(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
+            RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
         } catch (IOException e) {
             e.printStackTrace();
         }

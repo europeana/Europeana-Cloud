@@ -3,7 +3,7 @@ package eu.europeana.cloud.http.bolts;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.Retriever;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.storm.tuple.Tuple;
@@ -72,8 +72,8 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     private HttpResponse<byte[]> tryLoadHttpFileCoupleOfTimes(StormTaskTuple tuple) throws Exception {
         //Because data are always loaded from the same given application server, relatively big retry count,
         //and time is used to assure some resistance for server, inaccessibility.
-        return Retriever.<HttpResponse<byte[]>, Exception>
-                retryOnError("Loading file by http failed!", 6, SLEEP_TIME_BETWEEN_RETRIES_MS,
+        return RetryableMethodExecutor.<HttpResponse<byte[]>, Exception>
+                execute("Loading file by http failed!", 6, SLEEP_TIME_BETWEEN_RETRIES_MS,
                 () -> loadHttpFile(tuple));
     }
 
