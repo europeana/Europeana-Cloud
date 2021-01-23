@@ -2,13 +2,13 @@ package eu.europeana.cloud;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.persisted.ProviderRemover;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import eu.europeana.cloud.utils.Toolkit;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +23,7 @@ public class ProviderCleanerTool {
     private static final String PROVIDERS_FILE = "providers-file";
     private static final String ONLY_DATASETS = "only-datasets";
     private static final String ONLY_RECORDS = "only-records";
+    private static final String RECORDS_FILE = "records-file";
 
     /**
      * Exmples using test/acceptance database and server for given one
@@ -50,25 +51,32 @@ public class ProviderCleanerTool {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("Data Cleaner ", options);
         } catch (Exception e) {
-            LOGGER.error("Error while cleaning data " + e.getMessage() + ". Because of " + e.getCause());
+            LOGGER.error(String.format("Error while cleaning data %s. Because of %n", e.getMessage()), e);
             System.exit(1);
         }
     }
 
-    private static void remove(CommandLine cmd) throws CloudException, MCSException {
-        String providersFilename = cmd.getOptionValue(PROVIDERS_FILE, null);
+    private static void remove(CommandLine cmd) throws CloudException, IOException {
         List<String> providers = null;
-        if(providersFilename != null) {
-            providers = Toolkit.readIdentifiers(providersFilename);
-        } else {
-            String singleProvider = cmd.getOptionValue(PROVIDER_ID, null);
-            if(singleProvider != null) {
-                providers = new ArrayList<>();
-                providers.add(singleProvider);
+        String recordsFile = null;
+
+        if(cmd.hasOption(PROVIDERS_FILE) || cmd.hasOption(PROVIDER_ID)) {
+            String providersFilename = cmd.getOptionValue(PROVIDERS_FILE, null);
+            if (providersFilename != null) {
+                providers = Toolkit.readIdentifiers(providersFilename);
             } else {
-                LOGGER.error("At least one provider id must be provided (nomen omen) to this tool program");
-                System.exit(-1);
+                String singleProvider = cmd.getOptionValue(PROVIDER_ID, null);
+                if (singleProvider != null) {
+                    providers = new ArrayList<>();
+                    providers.add(singleProvider);
+                } else {
+                    LOGGER.error("At least one provider id must be provided (nomen omen) to this tool program");
+                    System.exit(-1);
+                }
             }
+        }
+        if(cmd.hasOption(RECORDS_FILE)) {
+            recordsFile = cmd.getOptionValue(RECORDS_FILE, null);
         }
 
         ProviderRemover providerRemover = new ProviderRemover(
@@ -79,7 +87,11 @@ public class ProviderCleanerTool {
         );
 
         if(!cmd.hasOption(ONLY_DATASETS)) {
-            providerRemover.removeAllRecords(providers);
+            if(recordsFile != null) {
+                providerRemover.removeRecordsFromFile(recordsFile);
+            } else {
+                providerRemover.removeAllRecords(providers);
+            }
         }
 
         if(!cmd.hasOption(ONLY_RECORDS)) {
@@ -91,6 +103,7 @@ public class ProviderCleanerTool {
         CommandLineHelper commandLineHelper = new CommandLineHelper();
         commandLineHelper.addOption(PROVIDER_ID, "Provider id", false);
         commandLineHelper.addOption(PROVIDERS_FILE, "File with providers ids (text/plain; line by line)", false);
+        commandLineHelper.addOption(RECORDS_FILE, "File with records to remove ids. It can be used instead provider-id or providers-file", false);
         commandLineHelper.addOption(URL, "URL to processing server", true);
         commandLineHelper.addOption(USERNAME, "User name for http authentication", true);
         commandLineHelper.addOption(PASSWORD, "Password  for http authentication", true);

@@ -180,7 +180,6 @@
 
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-
     </properties>
 
     <profiles>
@@ -235,11 +234,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+<!--
                     <version>2.5.1</version>
                     <configuration>
                         <source>${version.jdk}</source>
                         <target>${version.jdk}</target>
                     </configuration>
+-->
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
