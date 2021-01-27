@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>3</version>
+        <version>4-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -221,7 +221,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
-            <version>3</version>
+            <version>4-SNAPSHOT</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
