@@ -1,6 +1,6 @@
 package eu.europeana.cloud.http;
 
-import eu.europeana.cloud.http.spout.HttpKafkaSpout;
+import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -8,8 +8,10 @@ import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -39,33 +41,30 @@ public class HTTPHarvestingTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology() {
+        String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
+        String uisAddress = topologyProperties.getProperty(UIS_URL);
+
         TopologyBuilder builder = new TopologyBuilder();
 
-        KafkaSpoutConfig kafkaConfig =
-                KafkaSpoutConfig.builder(topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPOLOGY_NAME))
-                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
-                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
-                .build();
-
-        HttpKafkaSpout httpKafkaSpout = new HttpKafkaSpout(kafkaConfig, topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
+                TopologiesNames.HTTP_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
 
 
-        builder.setSpout(SPOUT, httpKafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
-                .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
+        builder.setSpout(SPOUT, eCloudSpout, 1);
 
+        builder.setBolt(RECORD_HARVESTING_BOLT, new HttpHarvestingBolt(),
+                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(SPOUT, new ShuffleGrouping());
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT, new ShuffleGrouping());
+                .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
@@ -90,6 +89,8 @@ public class HTTPHarvestingTopology {
                         (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(SPOUT, NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
@@ -105,6 +106,10 @@ public class HTTPHarvestingTopology {
         return parseInt(topologyProperties.getProperty(propertyName));
     }
 
+    public static Properties getProperties() {
+        return topologyProperties;
+    }
+
     public static void main(String[] args) {
         try {
             LOGGER.info("Assembling '{}'", TopologiesNames.HTTP_TOPOLOGY);
@@ -113,9 +118,7 @@ public class HTTPHarvestingTopology {
 
                 HTTPHarvestingTopology httpHarvestingTopology = new HTTPHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                StormTopology stormTopology = httpHarvestingTopology.buildTopology(
-                        topologyProperties.getProperty(MCS_URL),
-                        topologyProperties.getProperty(UIS_URL));
+                StormTopology stormTopology = httpHarvestingTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

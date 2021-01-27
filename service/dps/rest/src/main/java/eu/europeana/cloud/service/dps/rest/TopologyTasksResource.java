@@ -94,9 +94,12 @@ public class TopologyTasksResource {
             @PathVariable final String topologyName,
             @PathVariable final String taskId) throws
                             AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
+        LOGGER.info("Checking task progress for: {}", taskId);
         taskSubmissionValidator.assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        return reportService.getTaskProgress(taskId);
+        TaskInfo taskProgress = reportService.getTaskProgress(taskId);
+        LOGGER.info("Following task progress will be sent to user: {}", taskProgress);
+        return taskProgress;
     }
 
     /**

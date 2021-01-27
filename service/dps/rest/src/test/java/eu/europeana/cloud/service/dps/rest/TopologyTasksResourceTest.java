@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
@@ -24,6 +25,7 @@ import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmiter;
@@ -60,6 +62,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.anyLong;
@@ -79,7 +82,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
         TaskSubmissionValidator.class, SubmitTaskService.class, OaiTopologyTaskSubmitter.class,
         HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, DatasetCleanerService.class,
-        TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmiter.class})
+        TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmiter.class, RecordSubmitService.class,
+        FileURLCreator.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -101,6 +105,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     private final static String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
     public static final String SAMPLE_DATASE_METIS_ID = "sampleDS";
+    public static final String SAMPLE_RECORD_LIST = "/1/item1,/1/item2";
 
     /* Beans (or mocked beans) */
     private ApplicationContext context;
@@ -954,22 +959,49 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldPassValidParameterToDepublicationService() throws Exception {
+    public void shouldDepublicationThrowsValidationExceptionWhenMissingMetisDatasetParameter() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = new DpsTask(TASK_NAME);
+
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldPassValidParametersToDepublicationService() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = new DpsTask(TASK_NAME);
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
-        task.addParameter(METIS_USE_ALT_INDEXING_ENV,"true");
+        task.addParameter(METIS_USE_ALT_INDEXING_ENV, "true");
+        task.addParameter(RECORD_IDS_TO_DEPUBLISH, SAMPLE_RECORD_LIST);
 
-        sendTask(task,DEPUBLICATION_TOPOLOGY)
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
         Thread.sleep(200L);
 
-        ArgumentCaptor<SubmitTaskParameters> captor= ArgumentCaptor.forClass(SubmitTaskParameters.class);
-        verify(depublicationService).depublishDataset(captor.capture());
-        assertTrue(Boolean.valueOf(captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV)));
+        ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
+        verify(depublicationService).depublishIndividualRecords(captor.capture());
+        assertEquals("true", captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV));
         assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
+        assertEquals(SAMPLE_RECORD_LIST, captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
     }
 
+    @Test
+    public void shouldPassParameteresWhenNoRecordsSelected() throws Exception {
+        prepareMocks(DEPUBLICATION_TOPOLOGY);
+        DpsTask task = new DpsTask(TASK_NAME);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+
+        sendTask(task, DEPUBLICATION_TOPOLOGY)
+                .andExpect(status().isCreated());
+        Thread.sleep(200L);
+
+        ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
+        verify(depublicationService).depublishDataset(captor.capture());
+        assertNull(captor.getValue().getTask().getParameter(METIS_USE_ALT_INDEXING_ENV));
+        assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
+        assertNull(captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
+    }
     /* Utilities */
 
     private void prepareTaskWithRepresentationAndRevision(DpsTask task) {

@@ -1,46 +1,40 @@
 package eu.europeana.cloud.service.dps.examples.toplologies;
 
-import eu.europeana.cloud.http.spout.HttpKafkaSpout;
-import eu.europeana.cloud.service.dps.examples.toplologies.builder.SimpleStaticHTTPTopologyBuilder;
-import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
+import eu.europeana.cloud.http.HTTPHarvestingTopology;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.LocalCluster;
-import org.apache.storm.generated.StormTopology;
-import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import java.io.File;
 
-/**
- * Created by Tarek on 10/2/2017.
- */
+import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.HTTP_TOPOLOGY;
+
 public class StaticHttpTopology {
-    public static final String TOPOLOGY_NAME = "http_topology";
+    private static final Logger LOGGER = LoggerFactory.getLogger(StaticHttpTopology.class);
 
     public static void main(String[] args) {
-        try {
-            KafkaSpoutConfig kafkaConfig = KafkaSpoutConfig
-                .builder( DEFAULT_KAFKA_HOST, new String[]{TOPOLOGY_NAME})
-                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
-                .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST)
-                .build();
-
-            HttpKafkaSpout kafkaSpout = new HttpKafkaSpout(kafkaConfig,
-                    DEFAULT_CASSANDRA_HOSTS,
-                    Integer.parseInt(DEFAULT_CASSANDRA_PORT),
-                    DEFAULT_CASSANDRA_KEYSPACE_NAME,
-                    CASSANDRA_USERNAME,
-                    CASSANDRA_SECRET_TOKEN
-            );
-
-            StormTopology stormTopology = SimpleStaticHTTPTopologyBuilder.buildTopology(kafkaSpout, UIS_URL, MCS_URL);
-            LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology(TOPOLOGY_NAME, TopologyConfigBuilder.buildConfig(), stormTopology);
-            Utils.sleep(60000000);
-            cluster.killTopology(TOPOLOGY_NAME);
-            cluster.shutdown();
-        }catch (Exception e) {
-            e.printStackTrace();
+        String providedPropertyFile = null;
+        if(args.length > 0) {
+            File propertyFile = new File(args[0]);
+            if(propertyFile.exists() && !propertyFile.isDirectory()) {
+                providedPropertyFile = propertyFile.getAbsolutePath();
+            } else {
+                LOGGER.warn("Inavalid proprty file: '{}'. Only default properties will be used.", args[0]);
+            }
         }
+
+        HTTPHarvestingTopology httpHarvestingTopology =
+                new HTTPHarvestingTopology("http-topology-config.properties", providedPropertyFile);
+
+        LocalCluster cluster = new LocalCluster();
+        cluster.submitTopology(HTTP_TOPOLOGY,
+                TopologyHelper.buildConfig(HTTPHarvestingTopology.getProperties(), true),
+                httpHarvestingTopology.buildTopology());
+
+        Utils.sleep(1000L*60*1000); //1000 minutes
+        cluster.killTopology(HTTP_TOPOLOGY);
+        cluster.shutdown();
     }
 }

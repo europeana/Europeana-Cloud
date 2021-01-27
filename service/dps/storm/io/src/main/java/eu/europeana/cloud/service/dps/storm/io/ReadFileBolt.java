@@ -1,20 +1,18 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 
@@ -52,34 +50,22 @@ public class ReadFileBolt extends AbstractDpsBolt {
         } catch (RepresentationNotExistsException | FileNotExistsException |
                 WrongContentRangeException ex) {
             LOGGER.warn("Can not retrieve file at {}", file);
-            emitErrorNotification(anchorTuple, t.getTaskId(), file, "Can not retrieve file", "The cause of the error is:"+ex.getCause(),
+            emitErrorNotification(anchorTuple, t.getTaskId(), file, "Can not retrieve file", "The cause of the error is:" + ex.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(t));
-        } catch (DriverException | MCSException | IOException ex) {
+        } catch (Exception ex) {
             LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
-            emitErrorNotification(anchorTuple, t.getTaskId(), file, ex.getMessage(), "The cause of the error is:"+ex.getCause(),
+            emitErrorNotification(anchorTuple, t.getTaskId(), file, ex.getMessage(), "The cause of the error is:" + ex.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(t));
         }
         outputCollector.ack(anchorTuple);
     }
 
-    private InputStream getFile(FileServiceClient fileClient, String file, String authorization) throws MCSException, IOException {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                return fileClient.getFile(file, AUTHORIZATION, authorization);
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while getting a file. Retries left:{} ", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while getting a file.");
-                    throw e;
-                }
-            }
-        }
+    private InputStream getFile(FileServiceClient fileClient, String file, String authorization) throws Exception {
+        return RetryableMethodExecutor.executeOnRest("Error while getting a file", () ->
+                fileClient.getFile(file, AUTHORIZATION, authorization));
     }
 
-    protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws MCSException, IOException {
+    protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
         final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         stormTaskTuple.setFileUrl(file);
         LOGGER.info("HERE THE LINK: {}", file);

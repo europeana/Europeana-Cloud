@@ -1,5 +1,26 @@
 # Change Log
 
+## [v2](https://github.com/europeana/Europeana-Cloud/tree/v2) (2020-10-12)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1...v2)
+
+**Merged pull requests:**
+
+- Changes in HttpTopologyTaskSubmitter [\#287](https://github.com/europeana/Europeana-Cloud/pull/287) ([pWoz](https://github.com/pWoz))
+- MET-3049 Count records not entire data set \(records priority\) + test … [\#286](https://github.com/europeana/Europeana-Cloud/pull/286) ([pWoz](https://github.com/pWoz))
+- Changes so that the with new metis SNAPSHOT the build works [\#285](https://github.com/europeana/Europeana-Cloud/pull/285) ([stzanakis](https://github.com/stzanakis))
+- Feat/met 2875 resolving ghost records in task by state table [\#284](https://github.com/europeana/Europeana-Cloud/pull/284) ([pWoz](https://github.com/pWoz))
+- MET-2933: when Http Topology task is restarted it is dropped [\#283](https://github.com/europeana/Europeana-Cloud/pull/283) ([helinek](https://github.com/helinek))
+- OaiTopologyTaskSubmitter modifications [\#282](https://github.com/europeana/Europeana-Cloud/pull/282) ([pWoz](https://github.com/pWoz))
+- MET-2934 UnfinishedTasksExecutor implementation [\#281](https://github.com/europeana/Europeana-Cloud/pull/281) ([pWoz](https://github.com/pWoz))
+- Feat/met 2931 update other topologies task submitter [\#280](https://github.com/europeana/Europeana-Cloud/pull/280) ([helinek](https://github.com/helinek))
+- MET-2930: processed\_records and record\_processing\_state integrated in… [\#279](https://github.com/europeana/Europeana-Cloud/pull/279) ([helinek](https://github.com/helinek))
+- Feat/met 2702 avoid needless thumbnail generation [\#278](https://github.com/europeana/Europeana-Cloud/pull/278) ([helinek](https://github.com/helinek))
+- Feat/met 2228 acknowledgements for oai [\#277](https://github.com/europeana/Europeana-Cloud/pull/277) ([helinek](https://github.com/helinek))
+- Feat/met 2679 inconsistencies in task counters [\#273](https://github.com/europeana/Europeana-Cloud/pull/273) ([pWoz](https://github.com/pWoz))
+
+## [v1](https://github.com/europeana/Europeana-Cloud/tree/v1) (2020-06-10)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.10.0...v1)
+
 ## [v1.10.0](https://github.com/europeana/Europeana-Cloud/tree/v1.10.0) (2020-06-08)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.9.0...v1.10.0)
 
@@ -132,7 +153,6 @@
 
 **Merged pull requests:**
 
-- MET-1590 , EDM Enrichment Bolt [\#203](https://github.com/europeana/Europeana-Cloud/pull/203) ([tarekkh](https://github.com/tarekkh))
 - Feat/met 1588 download parse bolt [\#202](https://github.com/europeana/Europeana-Cloud/pull/202) ([tarekkh](https://github.com/tarekkh))
 - MET-1589 , processing link bolt [\#201](https://github.com/europeana/Europeana-Cloud/pull/201) ([tarekkh](https://github.com/tarekkh))
 - MET-1577: added possibility to grant access to versions for migrated … [\#200](https://github.com/europeana/Europeana-Cloud/pull/200) ([helinek](https://github.com/helinek))
@@ -144,6 +164,7 @@
 
 **Merged pull requests:**
 
+- MET-1590 , EDM Enrichment Bolt [\#203](https://github.com/europeana/Europeana-Cloud/pull/203) ([tarekkh](https://github.com/tarekkh))
 - scripts updated [\#197](https://github.com/europeana/Europeana-Cloud/pull/197) ([olanowak](https://github.com/olanowak))
 
 ## [v1.1.0](https://github.com/europeana/Europeana-Cloud/tree/v1.1.0) (2018-11-06)
@@ -166,7 +187,6 @@
 - MET-1383: DLS removed from ECloud [\#186](https://github.com/europeana/Europeana-Cloud/pull/186) ([helinek](https://github.com/helinek))
 - MET-1381 persistent version removal is now possible [\#185](https://github.com/europeana/Europeana-Cloud/pull/185) ([pWoz](https://github.com/pWoz))
 - MET-1341 [\#184](https://github.com/europeana/Europeana-Cloud/pull/184) ([tarekkh](https://github.com/tarekkh))
-- Met 1355 [\#183](https://github.com/europeana/Europeana-Cloud/pull/183) ([tarekkh](https://github.com/tarekkh))
 - MET-1265 timeouts in client connections added [\#182](https://github.com/europeana/Europeana-Cloud/pull/182) ([olanowak](https://github.com/olanowak))
 
 ## [v1.0.2](https://github.com/europeana/Europeana-Cloud/tree/v1.0.2) (2018-08-20)
@@ -174,6 +194,7 @@
 
 **Merged pull requests:**
 
+- Met 1355 [\#183](https://github.com/europeana/Europeana-Cloud/pull/183) ([tarekkh](https://github.com/tarekkh))
 - Met 1323 [\#181](https://github.com/europeana/Europeana-Cloud/pull/181) ([olanowak](https://github.com/olanowak))
 - MET-1235 , extend the changes to include other topologies [\#180](https://github.com/europeana/Europeana-Cloud/pull/180) ([tarekkh](https://github.com/tarekkh))
 - MET-1235 , Add indexing stack trace error to additional info column [\#178](https://github.com/europeana/Europeana-Cloud/pull/178) ([tarekkh](https://github.com/tarekkh))
@@ -279,7 +300,6 @@
 - MET-244 , Improve the current responses of the reporting APIs [\#87](https://github.com/europeana/Europeana-Cloud/pull/87) ([helinek](https://github.com/helinek))
 - MET-163 use completeListSize to count number of records to harvest in OAI-topology [\#86](https://github.com/europeana/Europeana-Cloud/pull/86) ([olanowak](https://github.com/olanowak))
 - Ecl 1218 [\#85](https://github.com/europeana/Europeana-Cloud/pull/85) ([helinek](https://github.com/helinek))
-- Met 162 [\#84](https://github.com/europeana/Europeana-Cloud/pull/84) ([helinek](https://github.com/helinek))
 - Met 161 [\#83](https://github.com/europeana/Europeana-Cloud/pull/83) ([tarekkh](https://github.com/tarekkh))
 
 ## [v0.7](https://github.com/europeana/Europeana-Cloud/tree/v0.7) (2017-11-16)
@@ -287,6 +307,7 @@
 
 **Merged pull requests:**
 
+- Met 162 [\#84](https://github.com/europeana/Europeana-Cloud/pull/84) ([helinek](https://github.com/helinek))
 - Met 165 [\#82](https://github.com/europeana/Europeana-Cloud/pull/82) ([helinek](https://github.com/helinek))
 - Ecl 1190 bucketing on provider record [\#81](https://github.com/europeana/Europeana-Cloud/pull/81) ([helinek](https://github.com/helinek))
 - Ecl 1201 [\#80](https://github.com/europeana/Europeana-Cloud/pull/80) ([helinek](https://github.com/helinek))
@@ -305,7 +326,6 @@
 - ECL-1185: creating new record corrected together with test for it [\#74](https://github.com/europeana/Europeana-Cloud/pull/74) ([helinek](https://github.com/helinek))
 - Ecl 1129 [\#73](https://github.com/europeana/Europeana-Cloud/pull/73) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1128 [\#72](https://github.com/europeana/Europeana-Cloud/pull/72) ([helinek](https://github.com/helinek))
-- ECL-1185 , Modify WriteRecordBolt to store oai records in MCS [\#71](https://github.com/europeana/Europeana-Cloud/pull/71) ([tarekkh](https://github.com/tarekkh))
 - ECL-1186 , Adapt XSLT topology to work with the new writing bolt [\#70](https://github.com/europeana/Europeana-Cloud/pull/70) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1187 [\#69](https://github.com/europeana/Europeana-Cloud/pull/69) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1130 dpstask validator accept external sources [\#68](https://github.com/europeana/Europeana-Cloud/pull/68) ([akrystian](https://github.com/akrystian))
@@ -318,6 +338,7 @@
 
 **Merged pull requests:**
 
+- ECL-1185 , Modify WriteRecordBolt to store oai records in MCS [\#71](https://github.com/europeana/Europeana-Cloud/pull/71) ([tarekkh](https://github.com/tarekkh))
 - ECL-1109 - Unit Test fails randomly [\#63](https://github.com/europeana/Europeana-Cloud/pull/63) ([akrystian](https://github.com/akrystian))
 - ECL-1113 mimeType matching improved [\#62](https://github.com/europeana/Europeana-Cloud/pull/62) ([helinek](https://github.com/helinek))
 - Ecl 1122 [\#61](https://github.com/europeana/Europeana-Cloud/pull/61) ([tarekkh](https://github.com/tarekkh))
@@ -348,7 +369,6 @@
 - Ecl 1023 [\#48](https://github.com/europeana/Europeana-Cloud/pull/48) ([tarekkh](https://github.com/tarekkh))
 - Ecl 958 [\#46](https://github.com/europeana/Europeana-Cloud/pull/46) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1047 [\#45](https://github.com/europeana/Europeana-Cloud/pull/45) ([akrystian](https://github.com/akrystian))
-- ECL-1019,unexpected behaviour while updating DPS.basic\_info in a mult… [\#30](https://github.com/europeana/Europeana-Cloud/pull/30) ([tarekkh](https://github.com/tarekkh))
 
 ## [ecloud_2017_01_31_freeze](https://github.com/europeana/Europeana-Cloud/tree/ecloud_2017_01_31_freeze) (2017-01-31)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.5.1...ecloud_2017_01_31_freeze)
@@ -384,6 +404,7 @@
 
 **Merged pull requests:**
 
+- ECL-1019,unexpected behaviour while updating DPS.basic\_info in a mult… [\#30](https://github.com/europeana/Europeana-Cloud/pull/30) ([tarekkh](https://github.com/tarekkh))
 - Ecl 939 dps results to data set [\#25](https://github.com/europeana/Europeana-Cloud/pull/25) ([tarekkh](https://github.com/tarekkh))
 - Ecl 936 batch request [\#23](https://github.com/europeana/Europeana-Cloud/pull/23) ([tarekkh](https://github.com/tarekkh))
 - Ecl 864 [\#22](https://github.com/europeana/Europeana-Cloud/pull/22) ([akrystian](https://github.com/akrystian))

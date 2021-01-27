@@ -1,5 +1,7 @@
 package eu.europeana.cloud.common.model.dps;
 
+import lombok.ToString;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement()
+@ToString
 public class TaskInfo {
 
     private static final int DEFAULT_PROGRESS_PERCENTAGE = -1;

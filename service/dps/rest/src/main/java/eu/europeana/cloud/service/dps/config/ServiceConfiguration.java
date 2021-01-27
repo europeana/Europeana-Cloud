@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.config;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
+import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -176,6 +177,15 @@ public class ServiceConfiguration {
     public MCSTaskSubmiter mcsTaskSubmiter() {
         String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
         return new MCSTaskSubmiter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation);
+    }
+
+    @Bean
+    public FileURLCreator fileURLCreator(){
+        String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
+        if(machineLocation == null) {
+            throw new RuntimeException(String.format("Propery '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
+        }
+        return new FileURLCreator(machineLocation);
     }
 
 }

@@ -39,8 +39,6 @@ public final class TopologyHelper {
     public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
     public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
 
-    public static final Integer MAX_POLL_RECORDS = 100;
-
     private TopologyHelper() {
     }
 
@@ -80,7 +78,7 @@ public final class TopologyHelper {
         config.put(CASSANDRA_SECRET_TOKEN,
                 getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null) );
 
-        config.setMaxSpoutPending(500);
+        config.setMaxSpoutPending(getValue(topologyProperties, MAX_SPOUT_PENDING, DEFAULT_MAX_SPOUT_PENDING));
 
         return config;
     }
@@ -114,7 +112,8 @@ public final class TopologyHelper {
                         .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
                         .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
-                        .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS)
+                        .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getValue(topologyProperties, MAX_POLL_RECORDS, DEFAULT_MAX_POLL_RECORDS))
+                        .setProp(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, getValue(topologyProperties, FETCH_MAX_BYTES, DEFAULT_FETCH_MAX_BYTES))
                         .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
         return new ECloudSpout(

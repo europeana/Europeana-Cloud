@@ -451,7 +451,11 @@ public class DpsClient {
             }
             return dpsException;
         } catch (Exception e) {
-            return new DpsException("Could not identify exception", e);
+          // TODO: 08/01/2021 Fix this when there is more information about what is the response status code and body
+            return new DpsException(String.format("Could not identify exception which had "
+                + "responseStatusCode=%s and responseBody=%s", response.getStatus(),
+                response.readEntity(String.class)),
+                e);
         }
     }
 

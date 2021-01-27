@@ -100,6 +100,7 @@ public final class PluginParameterKeys {
 
 
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
+    public static final String FILES_ROOT_URL = "FILES_ROOT_URL";
 
     static {
         //the default value for output mimeType

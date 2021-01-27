@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,10 +8,9 @@ import org.slf4j.LoggerFactory;
  * This is just temporary class that has exactly same behaviour like @{@link NotificationBolt}.
  * Only one difference is that this @{@link OAINotificationBolt} will use another table (processed_records)
  * for storing records statuses.
- *
+ * <p>
  * In the future all other topologies will use this table (processed_records). So there two implementations of
  * Notification bolt will be unified to one solution.
- *
  */
 public class OAINotificationBolt extends NotificationBolt {
 
@@ -33,24 +33,10 @@ public class OAINotificationBolt extends NotificationBolt {
 
     @Override
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        int retries = DEFAULT_RETRIES;
-        int attemptNumber = processedRecordsDAO.getAttemptNumber(taskId, resource);
+        int attemptNumber = RetryableMethodExecutor.executeOnDb("Getting attempNumber", () -> processedRecordsDAO.getAttemptNumber(taskId, resource));
 
-        while (true) {
-            try {
-                processedRecordsDAO.insert(taskId, resource, attemptNumber, resultResource, topologyName, state, infoText, additionalInfo);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while inserting detailed record information to cassandra. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while inserting detailed record information to cassandra.");
-                    throw e;
-                }
-            }
-        }
-
+        RetryableMethodExecutor.executeOnDb("Error while inserting detailed record information to cassandra", () ->
+                processedRecordsDAO.insert(taskId, resource, attemptNumber, resultResource, topologyName, state, infoText, additionalInfo));
     }
 
 }

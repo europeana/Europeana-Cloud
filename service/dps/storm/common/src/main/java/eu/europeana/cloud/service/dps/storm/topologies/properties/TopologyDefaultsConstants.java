@@ -1,10 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.properties;
 
 public class TopologyDefaultsConstants {
+
     private TopologyDefaultsConstants() {
     }
 
     public static final int DEFAULT_TUPLE_PROCESSING_TIME = 5 * 60; // 5min
+    public static final int DEFAULT_MAX_SPOUT_PENDING = 500; //records
+    public static final int DEFAULT_MAX_POLL_RECORDS = 100;
+    public static final int DEFAULT_FETCH_MAX_BYTES = 20000;
+
 
     public static final String DEFAULT_CASSANDRA_HOSTS = "localhost";
     public static final String DEFAULT_CASSANDRA_PORT = "9042";

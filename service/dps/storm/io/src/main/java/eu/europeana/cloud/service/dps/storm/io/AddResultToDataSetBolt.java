@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
@@ -35,7 +36,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        if(ecloudMcsAddress == null) {
+        if (ecloudMcsAddress == null) {
             throw new NullPointerException("MCS Server must be set!");
         }
         dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
@@ -74,9 +75,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
+        RetryableMethodExecutor.executeOnRest("Error while assigning record to dataset", () ->
                 dataSetServiceClient.assignRepresentationToDataSet(
                         dataSet.getProviderId(),
                         dataSet.getId(),
@@ -84,18 +83,8 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                         resultRepresentation.getRepresentationName(),
                         resultRepresentation.getVersion(),
                         AUTHORIZATION,
-                        authorizationHeader);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while assigning record to dataset. Retries left: {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while assigning record to dataset.");
-                    throw e;
-                }
-            }
-        }
+                        authorizationHeader));
+
     }
 
     private List<String> readDataSetsList(String listParameter) {

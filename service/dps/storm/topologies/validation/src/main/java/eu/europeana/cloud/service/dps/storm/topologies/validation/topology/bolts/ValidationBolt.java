@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolt
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopologyPropertiesKeys;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
@@ -14,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
@@ -22,13 +22,11 @@ import java.util.Properties;
  * Created by Tarek on 12/5/2017.
  */
 public class ValidationBolt extends AbstractDpsBolt {
-    private static final long serialVersionUID = 1L;
     public static final Logger LOGGER = LoggerFactory.getLogger(ValidationBolt.class);
-    private static final String XSLT_SORTER_FILE_NAME = "edm_sorter.xsl";
-
+    private static final long serialVersionUID = 1L;
+    private final Properties properties;
     private transient ValidationExecutionService validationService;
     private transient XsltTransformer transformer;
-    private Properties properties;
 
     public ValidationBolt(Properties properties) {
         this.properties = properties;
@@ -67,9 +65,10 @@ public class ValidationBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         validationService = new ValidationExecutionService(properties);
-        URL url = getClass().getClassLoader().getResource(XSLT_SORTER_FILE_NAME);
         try {
-            transformer = new XsltTransformer(url.toString());
+            String sorterFileLocation = properties.get(ValidationTopologyPropertiesKeys.EDM_SORTER_FILE_LOCATION).toString();
+            LOGGER.info("Preparing XsltTransformer for {}", sorterFileLocation);
+            transformer = new XsltTransformer(sorterFileLocation);
         } catch (TransformationException ex) {
             LOGGER.info("Exception while initializing the transformer");
         }

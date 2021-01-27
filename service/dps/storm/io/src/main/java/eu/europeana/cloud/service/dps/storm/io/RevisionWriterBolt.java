@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
@@ -67,27 +68,15 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         }
     }
 
-    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied,String authenticationHeader) throws MCSException {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
+    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied, String authenticationHeader) throws MCSException {
+        RetryableMethodExecutor.executeOnRest("Error while adding Revisions", () ->
                 revisionsClient.addRevision(
                         urlParser.getPart(UrlPart.RECORDS),
                         urlParser.getPart(UrlPart.REPRESENTATIONS),
                         urlParser.getPart(UrlPart.VERSIONS),
                         revisionToBeApplied,
-                        AUTHORIZATION,authenticationHeader);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while adding Revisions. Retries left {}", retries);
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while getting Revisions from data set.");
-                    throw e;
-                }
-            }
-        }
+                        AUTHORIZATION, authenticationHeader)
+        );
     }
 
     @Override

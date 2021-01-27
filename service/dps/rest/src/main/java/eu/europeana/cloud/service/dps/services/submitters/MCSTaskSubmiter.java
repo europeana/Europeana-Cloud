@@ -18,6 +18,7 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +117,7 @@ public class MCSTaskSubmiter {
         return expectedSize;
     }
 
-    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, ExecutionException {
+    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, ExecutionException, MCSException {
         try (MCSReader reader = createMcsReader(submitParameters)) {
             UrlParser urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
@@ -147,7 +148,7 @@ public class MCSTaskSubmiter {
         return expectedSize;
     }
 
-    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws DriverException, InterruptedException, ConcurrentModificationException, ExecutionException {
+    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws DriverException, InterruptedException, ConcurrentModificationException, ExecutionException, MCSException {
         ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         try {
             DpsTask task = submitParameters.getTask();
@@ -186,7 +187,7 @@ public class MCSTaskSubmiter {
         }
     }
 
-    private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, DpsTask task, MCSReader reader) {
+    private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, DpsTask task, MCSReader reader) throws MCSException {
         if (getRevisionTimestamp(task) != null) {
             ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), getRevisionTimestamp(task), datasetProvider, datasetName, startFrom);
             return toCloudAndTimestampResponse(chunk, getRevisionTimestamp(task));
@@ -195,7 +196,7 @@ public class MCSTaskSubmiter {
         }
     }
 
-    private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) {
+    private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
         int count = 0;
         checkIfTaskIsKilled(submitParameters.getTask());
         for (CloudIdAndTimestampResponse response : responseList) {
@@ -205,7 +206,7 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private int executeGettingFileUrlsForOneCloudId(CloudIdAndTimestampResponse response, SubmitTaskParameters submitParameters, MCSReader reader) {
+    private int executeGettingFileUrlsForOneCloudId(CloudIdAndTimestampResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
         DpsTask task = submitParameters.getTask();
         String revisionTimestamp = DateHelper.getUTCDateString(response.getRevisionTimestamp());
         int count = 0;

@@ -59,7 +59,9 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
 
         processedFilesCountStatement = dbService.getSession().prepare(
-                "SELECT resource_num FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ? limit 1");
+                "SELECT resource_num FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
+                        " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
+                        " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1");
         processedFilesCountStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         removeNotificationsByTaskId = dbService.getSession().prepare("delete from " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?");
