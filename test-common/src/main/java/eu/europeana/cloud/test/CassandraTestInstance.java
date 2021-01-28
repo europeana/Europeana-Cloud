@@ -2,13 +2,13 @@ package eu.europeana.cloud.test;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.DriverException;
-import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.datastax.driver.core.policies.RetryPolicy;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.CassandraContainer;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,43 +17,35 @@ import java.util.Map;
 import static java.lang.Thread.sleep;
 
 public final class CassandraTestInstance {
-    private static final int PORT = 9142;
-    private static final String CASSANDRA_CONFIG_FILE = "eu-cassandra.yaml";
-    private static final long CASSANDRA_STARTUP_TIMEOUT = 3 * 60 * 1000L; //3 minutes
-    private static final int CONNECT_TIMEOUT_MILLIS = 100000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestInstance.class);
 
     private static volatile CassandraTestInstance instance;
     private static volatile Map<String, Session> keyspaceSessions =
-            Collections.synchronizedMap(new HashMap<String, Session>());
+            Collections.synchronizedMap(new HashMap<>());
     private final Cluster cluster;
+    private final CassandraContainer container;
 
     private CassandraTestInstance() {
         if (instance != null) {
             throw new IllegalStateException("Already initialized.");
         }
         try {
-            LOGGER.info("Starting embedded Cassandra");
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_STARTUP_TIMEOUT);
-            cluster = buildClusterWithConsistencyLevel(ConsistencyLevel.ALL);
-            LOGGER.info("embedded Cassandra initialized.");
+            LOGGER.info("Starting Cassandra container in docker");
+            container = new CassandraContainer("cassandra:3.11.2");
+                        container.start();
+
+            cluster=container.getCluster();
+
+            LOGGER.info("Cassandra container initialized.");
         } catch (Exception e) {
-            LOGGER.error("Cannot start embedded Cassandra!", e);
-            EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
+            LOGGER.error("Cannot start Cassandra container!", e);
             throw new RuntimeException("Cannot start embedded Cassandra!", e);
         }
     }
 
-    private Cluster buildClusterWithConsistencyLevel(ConsistencyLevel level) {
-        QueryOptions queryOptions = new QueryOptions().setConsistencyLevel(level);
-        SocketOptions socketOptions = new SocketOptions().setConnectTimeoutMillis(CONNECT_TIMEOUT_MILLIS);
-        return Cluster.builder().addContactPoints("localhost").withPort(CassandraTestInstance.PORT)
-                .withProtocolVersion(ProtocolVersion.V3)
-                .withQueryOptions(queryOptions)
-                .withSocketOptions(socketOptions)
-                .withRetryPolicy(new LoggingRetryPolicy(new TestRetryPolicy(20, 20, 20, 1000)))
-                .withTimestampGenerator(new AtomicMonotonicTimestampGenerator()).build();
+    public static int getPort() {
+        return instance.container.getMappedPort(9042);
     }
 
     /**
