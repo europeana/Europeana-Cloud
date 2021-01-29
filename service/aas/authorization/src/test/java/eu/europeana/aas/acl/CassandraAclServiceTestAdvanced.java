@@ -39,7 +39,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestConfigConfiguration.class)
+@ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 
 	private static final String sid1 = "sid1@system";

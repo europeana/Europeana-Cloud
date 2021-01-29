@@ -3,13 +3,14 @@ package eu.europeana.cloud.test;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.policies.RetryPolicy;
-import org.cassandraunit.CQLDataLoader;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.CassandraContainer;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -154,22 +155,24 @@ public final class CassandraTestInstance {
      */
     public synchronized void clean() {
         keyspaceSessions.clear();
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 
     private void initKeyspace(String keyspaceSchemaCql, String keyspace) {
         LOGGER.info("Initializing embedded Cassandra keyspace {} ...", keyspace);
-        applyCQL(keyspaceSchemaCql, keyspace);
+        applyCQL(keyspaceSchemaCql);
         Session session = cluster.connect(keyspace);
         keyspaceSessions.put(keyspace, session);
         LOGGER.info("embedded Cassandra keyspace {} initialized.", keyspace);
     }
 
-    private void applyCQL(String keyspaceSchemaCql, String keyspace) {
-        Session tempSession = cluster.newSession();
-        CQLDataLoader dataLoader = new CQLDataLoader(tempSession);
-        dataLoader.load(new ClassPathCQLDataSet(keyspaceSchemaCql, keyspace));
-        tempSession.close();
+    private void applyCQL(String keyspaceSchemaCql) {
+        try (Session tempSession = cluster.newSession()) {
+            String[] statements = StringUtils.split(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(keyspaceSchemaCql)), ";");
+            Arrays.stream(statements).map(statement -> StringUtils.normalizeSpace(statement) + ";").forEach(tempSession::execute);
+        } catch (IOException e) {
+            LOGGER.error("Unable to load data to Cassandra", e);
+            throw new RuntimeException("Unable to load data to Cassandra");
+        }
     }
 
 

@@ -12,7 +12,7 @@ import org.springframework.security.acls.domain.DefaultPermissionGrantingStrateg
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Configuration
-public class TestConfigConfiguration {
+public class TestContextConfiguration {
 
     @Bean
     public CassandraConnectionProvider cassandraConnectionProvider() {

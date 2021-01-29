@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helpe
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -43,14 +44,14 @@ public class StatisticsBoltTest extends CassandraTestBase {
     private CassandraTaskInfoDAO taskInfoDAO;
 
     @InjectMocks
-    private StatisticsBolt statisticsBolt = new StatisticsBolt(HOST, PORT, KEYSPACE, "", "");
+    private StatisticsBolt statisticsBolt = new StatisticsBolt(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
 
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         statisticsBolt.prepare();
-        statisticsDAO = CassandraNodeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
+        statisticsDAO = CassandraNodeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", ""));
 
     }
 

@@ -44,3 +44,16 @@ task_id bigint,
 report_data blob,
 PRIMARY KEY(task_id)
 );
+
+CREATE TABLE processed_records (
+    task_id bigint,
+    record_id varchar,
+    attempt_number int,
+    dst_identifier varchar,
+    topology_name varchar,
+    state varchar,
+    start_time     timestamp,
+    info_text text,
+    additional_informations text,
+    PRIMARY KEY(task_id, record_id)
+);
