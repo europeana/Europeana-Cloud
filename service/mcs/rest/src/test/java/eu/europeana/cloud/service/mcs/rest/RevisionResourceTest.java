@@ -219,12 +219,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                 .contentType(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
                 .andExpect(status().isCreated());
         //then
-        verify(dataSetService, times(1)).addDataSetsRevisions(
-                dataProvider.getId(),
-                dataSet.getId(),
-                revisionForDataProvider,
-                rep.getRepresentationName(),
-                rep.getCloudId());
+        verify(dataSetService, times(1)).updateAllRevisionDatasetsEntries(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revisionForDataProvider);
     }
 
     @Test

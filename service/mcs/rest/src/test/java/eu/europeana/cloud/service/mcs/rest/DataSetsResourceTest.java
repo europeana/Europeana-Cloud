@@ -68,7 +68,7 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
 
         // then location of dataset should be given in response
         String uriFromResponse = createResponse.andReturn().getResponse().getHeader(HttpHeaders.LOCATION);
-        assertEquals("http://localhost:80/data-providers/provId/data-sets/datasetId", uriFromResponse);
+        assertEquals("http://localhost/data-providers/provId/data-sets/datasetId", uriFromResponse);
         // and then this set should be visible in service
         List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(
                 "provId", null, 10000).getResults();

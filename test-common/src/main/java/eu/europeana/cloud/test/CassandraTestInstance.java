@@ -33,9 +33,8 @@ public final class CassandraTestInstance {
         try {
             LOGGER.info("Starting Cassandra container in docker");
             container = new CassandraContainer("cassandra:3.11.2");
-                        container.start();
-
-            cluster=container.getCluster();
+            container.start();
+            cluster = container.getCluster();
 
             LOGGER.info("Cassandra container initialized.");
         } catch (Exception e) {
