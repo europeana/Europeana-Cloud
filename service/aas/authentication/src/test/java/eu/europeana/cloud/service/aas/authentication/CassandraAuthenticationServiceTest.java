@@ -5,12 +5,9 @@ import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
 import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

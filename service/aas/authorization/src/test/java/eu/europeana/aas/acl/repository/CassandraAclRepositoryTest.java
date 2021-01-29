@@ -15,7 +15,7 @@
 package eu.europeana.aas.acl.repository;
 
 import eu.europeana.aas.acl.CassandraTestBase;
-import eu.europeana.aas.acl.TestConfigConfiguration;
+import eu.europeana.aas.acl.TestContextConfiguration;
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
 import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
@@ -36,7 +36,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestConfigConfiguration.class)
+@ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraAclRepositoryTest extends CassandraTestBase {
 
     private static final String sid1 = "sid1@system";

@@ -26,7 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since Aug 07, 2014
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestConfigConfiguration.class)
+@ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraAclServiceTest extends CassandraTestBase {
 
     @Autowired
