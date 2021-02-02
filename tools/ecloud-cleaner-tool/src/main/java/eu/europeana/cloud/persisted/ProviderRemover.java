@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetIterator;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.utils.CloudIdReader;
 import org.apache.log4j.Logger;
@@ -109,7 +110,7 @@ public class ProviderRemover {
 
                     LOGGER.info(String.format("Record with cloudId = '%s' removed", id));
                     removedRecords.add(id);
-                } catch(MCSException | CloudException serviceException) {
+                } catch(MCSException | CloudException | DriverException serviceException) {
                     LOGGER.error(String.format("Error while removing record '%s' : %s", id, serviceException.getMessage()));
                 }
             }
