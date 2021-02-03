@@ -1,4 +1,6 @@
-USE ecloud_aas;
+CREATE KEYSPACE IF NOT EXISTS junit_aas WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+
+USE junit_aas;
 
 INSERT INTO users (username, password, roles) VALUES('admin', 'ecloud_admin', {'ROLE_ADMIN'});
 
