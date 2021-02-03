@@ -34,6 +34,7 @@ public final class CassandraTestInstance {
         try {
             LOGGER.info("Starting Cassandra container in docker");
             container = new CassandraContainer("cassandra:3.11.2");
+            container.setStartupAttempts(1);
             container.start();
             cluster = container.getCluster();
 
