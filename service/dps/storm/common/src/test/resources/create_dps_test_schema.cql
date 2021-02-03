@@ -1,5 +1,7 @@
-CREATE KEYSPACE IF NOT EXISTS ecloud_test WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+CREATE KEYSPACE ecloud_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+
 USE ecloud_test;
+
 CREATE TABLE basic_info (
     task_id bigint,
     topology_name varchar,
