@@ -1,18 +1,7 @@
-/*
-
-   ! IMPORTANT NOTICE !
-   Due to a bug in parsing by cassandraunit, statements must end with a semicolon directly followed by
-   a newline character - particularly, there cannot be whitespace before line end
-
-   This file assumes that it is executed in a particular keyspace context.
-   In order to create a keyspace, you can use e.g.
-
-   CREATE KEYSPACE ecloud_test
-           WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
-   USE ecloud_test;
-*/
+CREATE KEYSPACE ecloud_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 
 USE ecloud_test;
+
 CREATE TABLE general_statistics (
   task_id bigint,
   parent_xpath varchar,
