@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
@@ -22,11 +23,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL_CLOUD_ID2;
 import static org.mockito.Mockito.mock;
 
 public class StatisticsBoltTest extends CassandraTestBase {
@@ -60,7 +63,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(), new Revision());
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
         //when
@@ -77,11 +80,11 @@ public class StatisticsBoltTest extends CassandraTestBase {
         Tuple anchorTuple = mock(TupleImpl.class);
         Tuple anchorTuple2 = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(), new Revision());
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
         byte[] fileData2 = Files.readAllBytes(Paths.get("src/test/resources/example2.xml"));
-        StormTaskTuple tuple2 = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData2, new HashMap<String, String>(), new Revision());
+        StormTaskTuple tuple2 = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL_CLOUD_ID2, fileData2, prepareStormTaskTupleParameters(), new Revision());
         List<NodeStatistics> generated2 = new RecordStatisticsGenerator(new String(fileData2)).getStatistics();
 
         //when
@@ -146,7 +149,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         fileData[0] = 'X'; // will cause SAXException
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(), new Revision());
         //when
         statisticsBolt.execute(anchorTuple, tuple);
         //then
@@ -154,14 +157,20 @@ public class StatisticsBoltTest extends CassandraTestBase {
     }
 
     private void assertSuccess(int times) {
-        Mockito.verify(collector, Mockito.times(times)).emit(Mockito.any(List.class));
-        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(times)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }
 
     private void assertFailure() {
 
 
-        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(List.class));
-        Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+    }
+
+    private HashMap<String, String> prepareStormTaskTupleParameters() throws MalformedURLException {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        return parameters;
     }
 }
