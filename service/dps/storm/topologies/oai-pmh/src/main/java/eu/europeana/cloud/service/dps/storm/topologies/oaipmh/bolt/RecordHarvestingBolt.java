@@ -1,12 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.oaipmh.Harvester;
-import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
-import eu.europeana.cloud.service.dps.oaipmh.HarvesterFactory;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
+import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -14,8 +15,6 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
@@ -31,22 +30,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordHarvestingBolt.class);
 
-    private static final String METADATA_XPATH = "/*[local-name()='OAI-PMH']" +
-            "/*[local-name()='GetRecord']" +
-            "/*[local-name()='record']" +
-            "/*[local-name()='metadata']" +
-            "/child::*";
-
-    private static final String IS_DELETED_XPATH = "string(/*[local-name()='OAI-PMH']" +
-            "/*[local-name()='GetRecord']" +
-            "/*[local-name()='record']" +
-            "/*[local-name()='header']" +
-            "/@status)";
-
-    private transient Harvester harvester;
-
-    private transient XPathExpression expr;
-    private transient XPathExpression isDeletedExpression;
+    private transient OaiHarvester harvester;
 
     /**
      * For given: <br/>
@@ -69,8 +53,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         String metadataPrefix = readMetadataPrefix(stormTaskTuple);
         if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
             LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
-            try (final InputStream record = harvester.harvestRecord(endpointLocation, recordId,
-                    metadataPrefix, expr, isDeletedExpression)) {
+            try (final InputStream record = harvester.harvestRecord(
+                   new OaiRepository(endpointLocation, metadataPrefix), recordId)) {
                 stormTaskTuple.setFileData(record);
 
                 if (useHeaderIdentifier(stormTaskTuple))
@@ -134,25 +118,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        harvester = HarvesterFactory.createHarvester(DEFAULT_RETRIES, SLEEP_TIME);
-
-        try {
-            XPath xpath = prepareXPathInstance();
-            expr = xpath.compile(METADATA_XPATH);
-            isDeletedExpression = xpath.compile(IS_DELETED_XPATH);
-        } catch (Exception e) {
-            LOGGER.error("Exception while compiling the meta data xpath");
-        }
-    }
-
-    private XPath prepareXPathInstance() {
-        /*
-        We are using non-standard XPatch implementation by purpose.
-        The standard one contains some static content that sometimes causes the threading issues.
-        Exception that we encountered was:
-            javax.xml.xpath.XPathExpressionException: org.xml.sax.SAXException: FWK005 parse may not be called while parsing.
-         */
-        return new net.sf.saxon.xpath.XPathFactoryImpl().newXPath();
+        harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
     }
 
     private boolean parametersAreValid(String endpointLocation, String recordId, String metadataPrefix) {

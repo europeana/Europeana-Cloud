@@ -227,9 +227,9 @@
         </dependency>
 
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-oaipmh</artifactId>
-            <version>${project.version}</version>
+            <groupId>eu.europeana.metis</groupId>
+            <artifactId>metis-harvesting</artifactId>
+            <version>${version.metis}</version>
         </dependency>
 
         <dependency>

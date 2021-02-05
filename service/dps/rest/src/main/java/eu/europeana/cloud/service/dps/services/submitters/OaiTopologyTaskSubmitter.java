@@ -2,17 +2,20 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.Harvest;
 import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
+import java.util.Date;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -59,7 +62,13 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
         LOGGER.info("Selected topic name: {} for {}", preferredTopicName, parameters.getTask().getTaskId());
         taskStatusUpdater.insertTask(parameters);
 
-        List<Harvest> harvestsToByExecuted = new DpsTaskToHarvestConverter().from(parameters.getTask());
+        List<OaiHarvest> harvestsToByExecuted = new DpsTaskToHarvestConverter()
+                .from(parameters.getTask()).stream()
+                .map(harvest -> new OaiHarvest(harvest.getUrl(), harvest.getMetadataPrefix(),
+                        harvest.getOaiSetSpec(),
+                        Optional.ofNullable(harvest.getFrom()).map(Date::toInstant).orElse(null),
+                        Optional.ofNullable(harvest.getUntil()).map(Date::toInstant).orElse(null)
+                )).collect(Collectors.toList());
 
         try {
             HarvestResult harvesterResult;
