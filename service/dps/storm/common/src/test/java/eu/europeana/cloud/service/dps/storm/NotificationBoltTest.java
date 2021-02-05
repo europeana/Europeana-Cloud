@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
+import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
 import org.apache.storm.task.OutputCollector;
@@ -47,16 +48,16 @@ public class NotificationBoltTest extends CassandraTestBase {
     public void setUp() throws Exception {
         collector = Mockito.mock(OutputCollector.class);
         createBolt();
-        taskInfoDAO = CassandraTaskInfoDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
-        cassandraReportService = new CassandraReportService(HOST, PORT, KEYSPACE, USER_NAME, PASSWORD);
+        taskInfoDAO = CassandraTaskInfoDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", ""));
+        cassandraReportService = new CassandraReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
 
-        CassandraConnectionProvider db=new CassandraConnectionProvider(HOST,PORT,KEYSPACE,USER_NAME,PASSWORD);
+        CassandraConnectionProvider db=new CassandraConnectionProvider(HOST,CassandraTestInstance.getPort(),KEYSPACE,USER_NAME,PASSWORD);
         subtaskDAO = CassandraSubTaskInfoDAO.getInstance(db);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
     }
 
     private void createBolt() {
-        testedBolt = new NotificationBolt(HOST, PORT, KEYSPACE, "", "");
+        testedBolt = new NotificationBolt(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
 
         Map<String, Object> boltConfig = new HashMap<>();
         boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));
@@ -248,7 +249,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     @Test
     public void testNotificationProgressPercentage() throws Exception {
         //given
-        CassandraReportService cassandraReportService = new CassandraReportService(HOST, PORT, KEYSPACE, "", "");
+        CassandraReportService cassandraReportService = new CassandraReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
         long taskId = 1;
         int expectedSize = 330;
         int errors = 5;
@@ -298,7 +299,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     @Test
     public void testNotificationForErrors() throws Exception {
         //given
-        CassandraReportService cassandraReportService = new CassandraReportService(HOST, PORT, KEYSPACE, "", "");
+        CassandraReportService cassandraReportService = new CassandraReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
         long taskId = 1;
         int expectedSize = 20;
         int errors = 9;

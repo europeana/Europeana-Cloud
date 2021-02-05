@@ -192,7 +192,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 
         Representation rep = recordService.persistRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
-        f.setContentUri(new URI("http://localhost:80/records/" + cloudId + "/representations/" + schema + "/versions/" + r.getVersion() + "/files/content.xml"));
+        f.setContentUri(new URI("http://localhost/records/" + cloudId + "/representations/" + schema + "/versions/" + r.getVersion() + "/files/content.xml"));
         rep.setFiles(Arrays.asList(f));
 
         return rep;

@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class CassandraAttributeStatisticsDAOTest extends CassandraTestBase {
 
     @Before
     public void setUp() {
-        attributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
+        attributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", ""));
     }
 
     @Test

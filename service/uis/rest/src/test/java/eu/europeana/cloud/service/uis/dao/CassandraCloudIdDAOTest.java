@@ -37,7 +37,7 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
         // when
         service.insert(true, id, providerId, recordId);
         // then
-
+        assertEquals(1, service.searchById(id).size());
     }
 
     @Test(expected = CloudIdDoesNotExistException.class)

@@ -26,7 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since Aug 07, 2014
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:/default-context.xml"})
+@ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraAclServiceTest extends CassandraTestBase {
 
     @Autowired
@@ -37,16 +37,6 @@ public class CassandraAclServiceTest extends CassandraTestBase {
     private final String testKey = CassandraAclServiceTest.class.getName();
 
     private final String testValue = "entry";
-
-    /**
-     * Prepare the unit tests
-     */
-    @Before
-    public void prepare() {
-        @SuppressWarnings("resource")
-        ApplicationContext context = new ClassPathXmlApplicationContext("default-context.xml");
-        mutableAclService = (CassandraMutableAclService) context.getBean("mutableAclService");
-    }
 
     /**
      * Test creation and retrieving of user.

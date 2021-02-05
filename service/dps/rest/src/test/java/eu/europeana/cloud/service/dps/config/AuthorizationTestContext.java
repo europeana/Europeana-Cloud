@@ -4,6 +4,7 @@ import eu.europeana.aas.acl.CassandraMutableAclService;
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.test.CassandraTestInstance;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +42,7 @@ public class AuthorizationTestContext {
 
     @Bean
     public CassandraConnectionProvider provider() {
-        return new CassandraConnectionProvider("localhost", 9142, "ecloud_aas_tests", "", "");
+        return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), "ecloud_aas_tests", "", "");
     }
 
 

@@ -31,7 +31,7 @@ public class MockMvcUtils {
 
     public static URI getBaseUri() {
         try {
-            return new URI("http://localhost:80/");
+            return new URI("http://localhost/");
         } catch (URISyntaxException e) {
             //this should never happen.
             throw new RuntimeException(e);
