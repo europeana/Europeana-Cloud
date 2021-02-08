@@ -131,4 +131,16 @@ public class NotificationTuple {
     public static Fields getFields() {
         return new Fields(taskIdFieldName, informationTypeFieldName, parametersFieldName);
     }
+
+    public boolean isRecordDeleted() {
+        return parameters.get(PluginParameterKeys.DELETED_RECORD).equals("true");
+    }
+
+    public void setRecordDeleted(boolean recordDeleted) {
+        if(recordDeleted){
+            parameters.put(PluginParameterKeys.DELETED_RECORD,"true");
+        }else{
+            parameters.remove(PluginParameterKeys.DELETED_RECORD);
+        }
+    }
 }

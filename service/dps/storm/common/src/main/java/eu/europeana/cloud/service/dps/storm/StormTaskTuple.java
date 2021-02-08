@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
@@ -153,4 +154,17 @@ public class StormTaskTuple implements Serializable {
                 SOURCE_TO_HARVEST,
                 RECORD_ATTEMPT_NUMBER);
     }
+
+    public boolean isRecordDeleted() {
+        return parameters.get(PluginParameterKeys.DELETED_RECORD).equals("true");
+    }
+
+    public void setRecordDeleted(boolean recordDeleted) {
+        if(recordDeleted){
+            parameters.put(PluginParameterKeys.DELETED_RECORD,"true");
+        }else{
+            parameters.remove(PluginParameterKeys.DELETED_RECORD);
+        }
+    }
+
 }

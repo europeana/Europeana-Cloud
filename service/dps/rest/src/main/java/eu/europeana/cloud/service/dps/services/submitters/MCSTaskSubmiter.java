@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -102,7 +103,7 @@ public class MCSTaskSubmiter {
         List<String> filesList = submitParameters.getTask().getDataEntry(FILE_URLS);
         int count = 0;
         for (String file : filesList) {
-            if (submitRecord(file, submitParameters)) {
+            if (submitRecord(file, submitParameters, false)) {
                 count++;
             }
         }
@@ -143,7 +144,7 @@ public class MCSTaskSubmiter {
         RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
         while (iterator.hasNext()) {
             checkIfTaskIsKilled(submitParameters.getTask());
-            expectedSize += submitRecordsForAllFilesOfRepresentation(iterator.next(), submitParameters);
+            expectedSize += submitRecordsForAllFilesOfRepresentation(iterator.next(), submitParameters, false);
         }
         return expectedSize;
     }
@@ -212,12 +213,13 @@ public class MCSTaskSubmiter {
         int count = 0;
         List<Representation> representations = reader.getRepresentationsByRevision(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), revisionTimestamp, response.getCloudId());
         for (Representation representation : representations) {
-            count += submitRecordsForAllFilesOfRepresentation(representation, submitParameters);
+            count += submitRecordsForAllFilesOfRepresentation(representation, submitParameters,
+                    isRecordDeleted(representation, getRevisionName(task), revisionTimestamp));
         }
         return count;
     }
 
-    private int submitRecordsForAllFilesOfRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+    private int submitRecordsForAllFilesOfRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean recordDeleted) {
         int count = 0;
         if (representation == null) {
             throw new RuntimeException("Problem while reading representation - representation is null.");
@@ -227,7 +229,7 @@ public class MCSTaskSubmiter {
             checkIfTaskIsKilled(submitParameters.getTask());
 
             String fileUrl = file.getContentUri().toString();
-            if (submitRecord(fileUrl, submitParameters)) {
+            if (submitRecord(fileUrl, submitParameters, recordDeleted)) {
                 count++;
             }
 
@@ -240,13 +242,14 @@ public class MCSTaskSubmiter {
         return new ResultSlice<>(chunk.getNextSlice(),
                 chunk.getResults()
                         .stream()
-                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), Date.from(Instant.parse(revisionTimestamp))))
+                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), parseRevisionTimestamp(revisionTimestamp)))
                         .collect(Collectors.toList()));
     }
 
-    private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters) {
+    private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean recordDeleted) {
         DpsTask task = submitParameters.getTask();
-        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task)).recordId(fileUrl).build();
+        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task))
+                .recordId(fileUrl).recordDeleted(recordDeleted).build();
 
         boolean increaseCounter = recordSubmitService.submitRecord(record, submitParameters);
         logProgress(submitParameters, submitParameters.incrementAndGetPerformedRecordCounter());
@@ -271,6 +274,24 @@ public class MCSTaskSubmiter {
         }
         futures.clear();
         return count;
+    }
+
+    private boolean isRecordDeleted(Representation representation, String revisionName, String revisionTimestamp) {
+        return findRevision(representation, revisionName, revisionTimestamp).isDeleted();
+    }
+
+    private Revision findRevision(Representation representation, String revisionName, String revisionTimestampString) {
+        Date revisionTimestamp = parseRevisionTimestamp(revisionTimestampString);
+        for (Revision revision : representation.getRevisions()) {
+            if (revision.getRevisionName().equals(revisionName) && revision.getCreationTimeStamp().equals(revisionTimestamp)) {
+                return revision;
+            }
+        }
+        throw new RuntimeException("Revision of name " + revisionName + " and timestamp " + revisionTimestampString + " not found for representation " + representation);
+    }
+
+    private Date parseRevisionTimestamp(String revisionTimestamp) {
+        return Date.from(Instant.parse(revisionTimestamp));
     }
 
     private void checkIfTaskIsKilled(DpsTask task) {

@@ -55,6 +55,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     public abstract void prepare();
 
+    protected boolean ignoreDeletedRecord(){
+        return true;
+    }
+
     @Override
     public void execute(Tuple tuple) {
         StormTaskTuple stormTaskTuple = null;
@@ -66,9 +70,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             }
 
             if (!taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
-                LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
-                execute(tuple, stormTaskTuple);
+                return;
             }
+
+            if(ignoreDeletedRecord() && stormTaskTuple.isRecordDeleted()){
+                LOGGER.debug("Ingornigng and passing further delete record with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+                outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
+                return;
+            }
+
+            LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+            execute(tuple, stormTaskTuple);
+
         } catch (Exception e) {
             LOGGER.info("AbstractDpsBolt error: {}", e.getMessage(), e);
             if (stormTaskTuple != null) {
