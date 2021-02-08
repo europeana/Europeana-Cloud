@@ -25,7 +25,8 @@ public class FilesCounterFactory {
     }
 
     public FilesCounter createFilesCounter(DpsTask task, String topologyName) {
-        if (TopologiesNames.HTTP_TOPOLOGY.equals(topologyName)) {
+        if (TopologiesNames.HTTP_TOPOLOGY.equals(topologyName) ||
+                TopologiesNames.OAI_TOPOLOGY.equals(topologyName)) {
             return new UnknownFilesNumberCounter();
         }
 
@@ -40,14 +41,12 @@ public class FilesCounterFactory {
         if (DATASET_URLS.name().equals(taskType)) {
             return new DatasetFilesCounter(taskInfoDAO);
         }
-        if (REPOSITORY_URLS.name().equals(taskType)) {
-            return new OaiPmhFilesCounter();
-        } else
-            return new UnknownFilesNumberCounter();
+
+        return new UnknownFilesNumberCounter();
     }
 
     private String getTaskType(DpsTask task) {
-        //TODO sholud be done in more error prone way
+        //TODO should be done in more error prone way
         final InputDataType first = task.getInputData().keySet().iterator().next();
         return first.name();
     }

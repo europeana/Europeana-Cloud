@@ -1,18 +1,18 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HarvestResult;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.converters.DpsTaskToHarvestConverter;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,24 +29,29 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
 
     private final HarvestsExecutor harvestsExecutor;
     private final KafkaTopicSelector kafkaTopicSelector;
-    private final FilesCounterFactory filesCounterFactory;
     private final TaskStatusUpdater taskStatusUpdater;
 
     public OaiTopologyTaskSubmitter(HarvestsExecutor harvestsExecutor,
                                     KafkaTopicSelector kafkaTopicSelector,
-                                    FilesCounterFactory filesCounterFactory,
                                     TaskStatusUpdater taskStatusUpdater
     ) {
         this.harvestsExecutor = harvestsExecutor;
         this.kafkaTopicSelector = kafkaTopicSelector;
-        this.filesCounterFactory = filesCounterFactory;
         this.taskStatusUpdater = taskStatusUpdater;
     }
 
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
 
-        int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTopologyName());
+        final List<OaiHarvest> harvestsToByExecuted = new DpsTaskToHarvestConverter()
+                .from(parameters.getTask()).stream()
+                .map(harvest -> new OaiHarvest(harvest.getUrl(), harvest.getMetadataPrefix(),
+                        harvest.getOaiSetSpec(),
+                        Optional.ofNullable(harvest.getFrom()).map(Date::toInstant).orElse(null),
+                        Optional.ofNullable(harvest.getUntil()).map(Date::toInstant).orElse(null)
+                )).collect(Collectors.toList());
+
+        int expectedCount = getFilesCountInsideTask(harvestsToByExecuted, parameters);
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
         if (expectedCount == 0) {
@@ -62,14 +67,6 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
         LOGGER.info("Selected topic name: {} for {}", preferredTopicName, parameters.getTask().getTaskId());
         taskStatusUpdater.insertTask(parameters);
 
-        List<OaiHarvest> harvestsToByExecuted = new DpsTaskToHarvestConverter()
-                .from(parameters.getTask()).stream()
-                .map(harvest -> new OaiHarvest(harvest.getUrl(), harvest.getMetadataPrefix(),
-                        harvest.getOaiSetSpec(),
-                        Optional.ofNullable(harvest.getFrom()).map(Date::toInstant).orElse(null),
-                        Optional.ofNullable(harvest.getUntil()).map(Date::toInstant).orElse(null)
-                )).collect(Collectors.toList());
-
         try {
             HarvestResult harvesterResult;
             harvesterResult = harvestsExecutor.execute(harvestsToByExecuted, parameters);
@@ -82,9 +79,33 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
     /**
      * @return The number of files inside the task.
      */
-    private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {
-        FilesCounter filesCounter = filesCounterFactory.createFilesCounter(task, topologyName);
-        return filesCounter.getFilesCount(task);
+    private int getFilesCountInsideTask(List<OaiHarvest> harvestsToByExecuted, SubmitTaskParameters parameters) throws TaskSubmissionException {
+        final OAIPMHHarvestingDetails harvest = parameters.getTask().getHarvestingDetails();
+        if (harvest.getExcludedSets() != null && !harvest.getExcludedSets().isEmpty() ||
+                harvest.getExcludedSchemas() != null && !harvest.getExcludedSchemas().isEmpty()) {
+            LOGGER.info("Cannot count completeListSize for taskId= {} . Excluded sets or schemas are not supported", parameters.getTask().getTaskId());
+            return -1;
+        }
+        int total = 0;
+        final OaiHarvester harvester = HarvesterFactory.createOaiHarvester();
+        for (OaiHarvest oaiHarvest : harvestsToByExecuted) {
+            try {
+                final Integer count = harvester.countRecords(oaiHarvest);
+                if (count == null) {
+                    LOGGER.info(
+                            "Cannot count completeListSize for taskId= {}: No resumption token information found.",
+                            parameters.getTask().getTaskId());
+                    return -1;
+                }
+                total += count;
+            } catch (HarvesterException e) {
+                String logMessage = "Cannot complete the request for the following repository URL "
+                        + oaiHarvest.getRepositoryUrl();
+                LOGGER.info(logMessage, e);
+                throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage(), e);
+            }
+        }
+        return total;
     }
 
     private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
