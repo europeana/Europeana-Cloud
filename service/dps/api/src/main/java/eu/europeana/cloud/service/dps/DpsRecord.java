@@ -15,5 +15,5 @@ public class DpsRecord implements Serializable {
     private long taskId;
     private String recordId;
     private String metadataPrefix;
-    private Boolean recordDeleted;
+    private boolean recordDeleted;
 }

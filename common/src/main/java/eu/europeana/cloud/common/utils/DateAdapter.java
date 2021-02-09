@@ -29,14 +29,6 @@ public class DateAdapter extends XmlAdapter<String, Date> {
         if (stringDate == null || stringDate.isEmpty()) {
             return null;
         }
-        try {
-            Date date = GregorianCalendar.getInstance().getTime();  //(Date)FORMATTER.parseObject(stringDate);
-            if(date == null){
-                throw new ParseException("Cannot parse the date. The accepted date format is "+FORMAT, 0);
-            }
-            return date;
-        } catch (ParseException e) {
-            throw new ParseException(e.getMessage() + ". The accepted date format is "+FORMAT, e.getErrorOffset());
-        }
+        return new Date(Long.parseLong(stringDate));
     }
 }

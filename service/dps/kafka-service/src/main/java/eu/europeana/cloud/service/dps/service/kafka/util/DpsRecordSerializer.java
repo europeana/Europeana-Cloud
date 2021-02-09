@@ -27,7 +27,7 @@ public class DpsRecordSerializer implements Serializer<DpsRecord> {
     @Override
     public byte[] serialize(String s, DpsRecord dpsRecord) {
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_DEFAULT);
         try {
             return objectMapper.writeValueAsString(dpsRecord).getBytes();
         } catch (JsonProcessingException e) {

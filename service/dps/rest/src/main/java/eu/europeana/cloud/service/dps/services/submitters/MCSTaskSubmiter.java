@@ -214,7 +214,7 @@ public class MCSTaskSubmiter {
         List<Representation> representations = reader.getRepresentationsByRevision(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), revisionTimestamp, response.getCloudId());
         for (Representation representation : representations) {
             count += submitRecordsForAllFilesOfRepresentation(representation, submitParameters,
-                    isRecordDeleted(representation, getRevisionName(task), revisionTimestamp));
+                    isRecordDeleted(representation, getRevisionName(task), response.getRevisionTimestamp()));
         }
         return count;
     }
@@ -276,18 +276,17 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private boolean isRecordDeleted(Representation representation, String revisionName, String revisionTimestamp) {
+    private boolean isRecordDeleted(Representation representation, String revisionName, Date revisionTimestamp) {
         return findRevision(representation, revisionName, revisionTimestamp).isDeleted();
     }
 
-    private Revision findRevision(Representation representation, String revisionName, String revisionTimestampString) {
-        Date revisionTimestamp = parseRevisionTimestamp(revisionTimestampString);
+    private Revision findRevision(Representation representation, String revisionName, Date revisionTimestamp) {
         for (Revision revision : representation.getRevisions()) {
             if (revision.getRevisionName().equals(revisionName) && revision.getCreationTimeStamp().equals(revisionTimestamp)) {
                 return revision;
             }
         }
-        throw new RuntimeException("Revision of name " + revisionName + " and timestamp " + revisionTimestampString + " not found for representation " + representation);
+        throw new RuntimeException("Revision of name " + revisionName + " and timestamp " + revisionTimestamp + " not found for representation " + representation);
     }
 
     private Date parseRevisionTimestamp(String revisionTimestamp) {
