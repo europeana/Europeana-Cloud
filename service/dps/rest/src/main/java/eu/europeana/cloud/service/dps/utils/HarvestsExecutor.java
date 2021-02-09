@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
@@ -54,14 +55,15 @@ public class HarvestsExecutor {
                 if (taskStatusChecker.hasKillFlag(parameters.getTask().getTaskId())) {
                     LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, parameters.getTask().getTaskId());
                     taskDropped.set(true);
-                    return false;
+                    return IterationResult.TERMINATE;
                 }
                 DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
                 if (recordSubmitService.submitRecord(record, parameters)) {
                     resultCounter.incrementAndGet();
                 }
                 logProgressFor(harvest, parameters.incrementAndGetPerformedRecordCounter());
-                return resultCounter.get() < getMaxRecordsCount(parameters);
+                return resultCounter.get() < getMaxRecordsCount(parameters)
+                        ? IterationResult.CONTINUE : IterationResult.TERMINATE;
             });
             if (taskDropped.get()) {
                 return HarvestResult.builder()
