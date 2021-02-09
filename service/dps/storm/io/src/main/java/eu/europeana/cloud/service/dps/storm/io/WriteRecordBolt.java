@@ -133,7 +133,18 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
-        return createRepresentationAndUploadFile(stormTaskTuple, writeParams);
+        if(stormTaskTuple.isRecordDeleted()){
+            return createRepresentation(stormTaskTuple, writeParams);
+        }else {
+            return createRepresentationAndUploadFile(stormTaskTuple, writeParams);
+        }
+    }
+
+    private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
+        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
+                recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
+                        writeParams.getProviderId(), AUTHORIZATION,
+                        stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {

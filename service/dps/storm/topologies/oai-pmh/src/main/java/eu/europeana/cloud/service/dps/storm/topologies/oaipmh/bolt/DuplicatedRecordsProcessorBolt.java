@@ -37,6 +37,11 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     }
 
     @Override
+    protected boolean ignoreDeletedRecord() {
+        return false;
+    }
+
+    @Override
     public void prepare() {
         recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
         revisionServiceClient = new RevisionServiceClient(ecloudMcsAddress);

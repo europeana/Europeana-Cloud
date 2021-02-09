@@ -34,6 +34,11 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     }
 
     @Override
+    protected boolean ignoreDeletedRecord() {
+        return false;
+    }
+
+    @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         addRevisionAndEmit(anchorTuple, stormTaskTuple);
         outputCollector.ack(anchorTuple);
@@ -62,6 +67,12 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             Revision revisionToBeApplied = stormTaskTuple.getRevisionToBeApplied();
             if (revisionToBeApplied.getCreationTimeStamp() == null)
                 revisionToBeApplied.setCreationTimeStamp(new Date());
+
+            if (stormTaskTuple.isRecordDeleted()) {
+                revisionToBeApplied = new Revision(revisionToBeApplied);
+                revisionToBeApplied.setDeleted(true);
+            }
+
             addRevision(urlParser, revisionToBeApplied,stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
         } else {
             LOGGER.info("Revisions list is empty");
