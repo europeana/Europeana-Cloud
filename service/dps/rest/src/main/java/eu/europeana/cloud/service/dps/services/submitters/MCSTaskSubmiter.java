@@ -144,7 +144,7 @@ public class MCSTaskSubmiter {
         RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
         while (iterator.hasNext()) {
             checkIfTaskIsKilled(submitParameters.getTask());
-            expectedSize += submitRecordsForAllFilesOfRepresentation(iterator.next(), submitParameters, false);
+            expectedSize += submitRecordsForRepresentation(iterator.next(), submitParameters, false);
         }
         return expectedSize;
     }
@@ -213,23 +213,40 @@ public class MCSTaskSubmiter {
         int count = 0;
         List<Representation> representations = reader.getRepresentationsByRevision(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), revisionTimestamp, response.getCloudId());
         for (Representation representation : representations) {
-            count += submitRecordsForAllFilesOfRepresentation(representation, submitParameters,
+            count += submitRecordsForRepresentation(representation, submitParameters,
                     isRecordDeleted(representation, getRevisionName(task), response.getRevisionTimestamp()));
         }
         return count;
     }
 
-    private int submitRecordsForAllFilesOfRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean recordDeleted) {
-        int count = 0;
+    private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean recordDeleted) {
         if (representation == null) {
             throw new RuntimeException("Problem while reading representation - representation is null.");
         }
+
+        if(recordDeleted){
+            return submitRecordForDeletedRepresentation(representation, submitParameters) ;
+        }else{
+            return submitRecordsForAllFilesOfRepresentation(representation, submitParameters) ;
+        }
+    }
+
+    private int submitRecordForDeletedRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+        if (submitRecord(representation.getUri().toString(), submitParameters, true)) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    private int submitRecordsForAllFilesOfRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+        int count = 0;
 
         for (File file : representation.getFiles()) {
             checkIfTaskIsKilled(submitParameters.getTask());
 
             String fileUrl = file.getContentUri().toString();
-            if (submitRecord(fileUrl, submitParameters, recordDeleted)) {
+            if (submitRecord(fileUrl, submitParameters, false)) {
                 count++;
             }
 

@@ -69,7 +69,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 cleanInvalidData(stormTaskTuple);
             }
 
-            if (!taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
+            if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
                 return;
             }
 

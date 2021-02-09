@@ -96,7 +96,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     private Representation parseResultUrl(String url) throws MalformedURLException {
         UrlParser parser = new UrlParser(url);
-        if (parser.isUrlToRepresentationVersionFile()) {
+        if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
             Representation rep = new Representation();
             rep.setCloudId(parser.getPart(UrlPart.RECORDS));
             rep.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
