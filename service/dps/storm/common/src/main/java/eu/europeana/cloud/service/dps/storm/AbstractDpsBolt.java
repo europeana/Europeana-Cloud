@@ -76,6 +76,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             if(ignoreDeletedRecord() && stormTaskTuple.isRecordDeleted()){
                 LOGGER.debug("Ingornigng and passing further delete record with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
                 outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
+                outputCollector.ack(tuple);
                 return;
             }
 
