@@ -133,7 +133,7 @@ public class NotificationTuple {
     }
 
     public boolean isRecordDeleted() {
-        return parameters.get(PluginParameterKeys.DELETED_RECORD).equals("true");
+        return "true".equals(parameters.get(PluginParameterKeys.DELETED_RECORD));
     }
 
     public void setRecordDeleted(boolean recordDeleted) {

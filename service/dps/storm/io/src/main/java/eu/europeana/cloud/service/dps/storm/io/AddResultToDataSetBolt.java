@@ -35,6 +35,15 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     @Override
+    protected boolean ignoreDeletedRecord() {
+        return false;
+    }
+
+    protected boolean shouldAddDeletedRecordToDataset() {
+        return false;
+    }
+
+    @Override
     public void prepare() {
         if (ecloudMcsAddress == null) {
             throw new NullPointerException("MCS Server must be set!");
@@ -48,15 +57,10 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
-            List<String> datasets = readDataSetsList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-            if (datasets != null) {
-                LOGGER.info("Data-sets that will be affected: {}", datasets);
-                for (String datasetLocation : datasets) {
-                    Representation resultRepresentation = parseResultUrl(resultUrl);
-                    DataSet dataSet = parseDataSetURl(datasetLocation);
-                    assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
-                }
+            if (!stormTaskTuple.isRecordDeleted() || shouldAddDeletedRecordToDataset()){
+                addRecordToDataset(stormTaskTuple, authorizationHeader, resultUrl);
             }
+
             if (stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
                 emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl,
                         StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
@@ -72,6 +76,18 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
+    }
+
+    private void addRecordToDataset(StormTaskTuple stormTaskTuple, String authorizationHeader, String resultUrl) throws MalformedURLException, MCSException {
+        List<String> datasets = readDataSetsList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+        if (datasets != null) {
+            LOGGER.info("Data-sets that will be affected: {}", datasets);
+            for (String datasetLocation : datasets) {
+                Representation resultRepresentation = parseResultUrl(resultUrl);
+                DataSet dataSet = parseDataSetURl(datasetLocation);
+                assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
+            }
+        }
     }
 
     private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {

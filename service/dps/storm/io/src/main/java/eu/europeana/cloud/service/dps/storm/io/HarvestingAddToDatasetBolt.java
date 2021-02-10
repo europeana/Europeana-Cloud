@@ -6,7 +6,8 @@ public class HarvestingAddToDatasetBolt extends AddResultToDataSetBolt{
     }
 
     @Override
-    protected boolean ignoreDeletedRecord() {
-        return false;
+    protected boolean shouldAddDeletedRecordToDataset() {
+        return true;
     }
+
 }

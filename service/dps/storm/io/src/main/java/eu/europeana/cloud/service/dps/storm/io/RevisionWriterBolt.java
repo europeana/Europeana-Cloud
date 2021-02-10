@@ -46,11 +46,12 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("{} executed", getClass().getSimpleName());
+        String resourceURL = getResourceUrl(stormTaskTuple);
         try {
-            addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
+            addRevisionToSpecificResource(stormTaskTuple, resourceURL);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
-            LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
+            LOGGER.error("URL is malformed: {} ", resourceURL);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MCSException | DriverException e) {
@@ -58,6 +59,16 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
+    }
+
+    private String getResourceUrl(StormTaskTuple stormTaskTuple) {
+        String resourceURL;
+        if(stormTaskTuple.isRecordDeleted()){
+            resourceURL= stormTaskTuple.getFileUrl();
+        }else{
+            resourceURL = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
+        }
+        return resourceURL;
     }
 
     protected void addRevisionToSpecificResource(StormTaskTuple stormTaskTuple, String affectedResourceURL) throws MalformedURLException, MCSException {

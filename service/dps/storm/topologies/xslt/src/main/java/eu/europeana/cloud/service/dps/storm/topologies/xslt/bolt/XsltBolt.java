@@ -51,7 +51,7 @@ public class XsltBolt extends AbstractDpsBolt {
       outputCollector.ack(anchorTuple);
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}",  e.getMessage());
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), "", e.getMessage(),  ExceptionUtils.getStackTrace(e),
+      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(),  ExceptionUtils.getStackTrace(e),
               StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
       outputCollector.ack(anchorTuple);
     } finally {
