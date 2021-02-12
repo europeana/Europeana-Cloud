@@ -52,21 +52,19 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", resourceURL);
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
     }
 
     private String getResourceUrl(StormTaskTuple stormTaskTuple) {
-        String resourceURL;
-        if(stormTaskTuple.isRecordDeleted()){
-            resourceURL= stormTaskTuple.getFileUrl();
-        }else{
-            resourceURL = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
+        String resourceURL = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
+        if (resourceURL == null) {
+            resourceURL = stormTaskTuple.getFileUrl();
         }
         return resourceURL;
     }

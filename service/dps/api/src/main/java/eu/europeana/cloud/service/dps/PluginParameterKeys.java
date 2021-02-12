@@ -49,8 +49,6 @@ public final class PluginParameterKeys {
     public static final String MESSAGE_PROCESSING_START_TIME_IN_MS = "START_TIME";
 
     public static final String SAMPLE_SIZE  = "SAMPLE_SIZE";
-    public static final String DPS_URL = "DPS_URL";
-
 
     // ---------  IC  -----------
     public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
