@@ -192,11 +192,9 @@ public class MCSTaskSubmiter {
         if (submitTaskParameters.getInputRevision().getCreationTimeStamp() != null) {
             ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(
                     submitTaskParameters.getRepresentationName(),
-                    submitTaskParameters.getInputRevision().getRevisionName(),
-                    submitTaskParameters.getInputRevision().getRevisionProviderId(),
-                    submitTaskParameters.getInputRevision().getCreationTimeStamp().toString(),
+                    submitTaskParameters.getInputRevision(),
                     datasetProvider, datasetName, startFrom);
-            return toCloudAndTimestampResponse(chunk, submitTaskParameters.getInputRevision().getCreationTimeStamp().toString());
+            return toCloudAndTimestampResponse(chunk, submitTaskParameters.getInputRevision().getCreationTimeStamp());
         } else {
             return reader.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(
                     submitTaskParameters.getRepresentationName(),
@@ -225,11 +223,11 @@ public class MCSTaskSubmiter {
                 submitParameters.getInputRevision().getRevisionProviderId(),
                 revisionTimestamp, response.getCloudId());
         for (Representation representation : representations) {
+            submitParameters.getInputRevision().setCreationTimeStamp(response.getRevisionTimestamp());
             count += submitRecordsForRepresentation(representation, submitParameters,
                     isRecordDeleted(
                             representation,
-                            submitParameters.getInputRevision().getRevisionName(),
-                            response.getRevisionTimestamp()));
+                            submitParameters.getInputRevision()));
         }
         return count;
     }
@@ -270,11 +268,11 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private ResultSlice<CloudIdAndTimestampResponse> toCloudAndTimestampResponse(ResultSlice<CloudTagsResponse> chunk, String revisionTimestamp) {
+    private ResultSlice<CloudIdAndTimestampResponse> toCloudAndTimestampResponse(ResultSlice<CloudTagsResponse> chunk, Date revisionTimestamp) {
         return new ResultSlice<>(chunk.getNextSlice(),
                 chunk.getResults()
                         .stream()
-                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), parseRevisionTimestamp(revisionTimestamp)))
+                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), revisionTimestamp))
                         .collect(Collectors.toList()));
     }
 
@@ -308,22 +306,18 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private boolean isRecordDeleted(Representation representation, String revisionName, Date revisionTimestamp) {
-        return findRevision(representation, revisionName, revisionTimestamp).isDeleted();
+    private boolean isRecordDeleted(Representation representation, Revision revision) {
+        return findRevision(representation, revision).isDeleted();
     }
 
-    private Revision findRevision(Representation representation, String revisionName, Date revisionTimestamp) {
+    private Revision findRevision(Representation representation, Revision revisionToBeFound) {
+
         for (Revision revision : representation.getRevisions()) {
-            //TODO we have to check provider name too
-            if (revision.getRevisionName().equals(revisionName) && revision.getCreationTimeStamp().equals(revisionTimestamp)) {
+            if(revisionToBeFound.equals(revision)){
                 return revision;
             }
         }
-        throw new RuntimeException("Revision of name " + revisionName + " and timestamp " + revisionTimestamp + " not found for representation " + representation);
-    }
-
-    private Date parseRevisionTimestamp(String revisionTimestamp) {
-        return Date.from(Instant.parse(revisionTimestamp));
+        throw new RuntimeException("Revision of name " + revisionToBeFound.getRevisionName() + " and timestamp " + revisionToBeFound.getCreationTimeStamp() + " not found for representation " + representation);
     }
 
     private void checkIfTaskIsKilled(DpsTask task) {

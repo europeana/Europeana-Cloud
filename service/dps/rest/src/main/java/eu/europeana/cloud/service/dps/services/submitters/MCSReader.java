@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -44,10 +45,17 @@ public class MCSReader implements AutoCloseable {
     }
 
 
-    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String representationName, String revisionName, String revisionProvider, String revisionTimestamp, String datasetProvider, String datasetName, String startFrom) throws DriverException, MCSException {
+    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
+            String representationName,
+            Revision revision, String datasetProvider, String datasetName, String startFrom) throws DriverException, MCSException {
         return RetryableMethodExecutor.executeOnRest("Error while getting Revisions from data set.", () -> {
-            ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(datasetProvider, datasetName, representationName,
-                    revisionName, revisionProvider, revisionTimestamp, startFrom, null);
+            ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(
+                    datasetProvider,
+                    datasetName,
+                    representationName,
+                    revision.getRevisionName(),
+                    revision.getRevisionProviderId(),
+                    revision.getCreationTimeStamp().toString(), startFrom, null);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
             }
