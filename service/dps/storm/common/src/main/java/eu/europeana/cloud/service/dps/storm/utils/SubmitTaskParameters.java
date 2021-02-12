@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -9,7 +10,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -75,5 +78,32 @@ public class SubmitTaskParameters {
 
     public boolean getUseAlternativeEnvironment() {
         return Boolean.parseBoolean(task.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV));
+    }
+
+    public String getSchemaName() {
+        return task.getParameter(PluginParameterKeys.SCHEMA_NAME);
+    }
+
+    public String getRepresentationName() {
+        return task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+    }
+
+    public Integer getMaxRecordsCount() {
+        return Optional.ofNullable(task.getParameter(PluginParameterKeys.SAMPLE_SIZE)).map(Integer::parseInt).orElse(Integer.MAX_VALUE);
+    }
+
+    public Revision getInputRevision() {
+        return new Revision(
+                task.getParameter(PluginParameterKeys.REVISION_NAME),
+                task.getParameter(PluginParameterKeys.REVISION_PROVIDER),
+                Date.from(Instant.parse(task.getParameter(PluginParameterKeys.REVISION_TIMESTAMP))),
+                false,
+                false,
+                false);
+    }
+
+    public boolean hasInputRevision() {
+        return getInputRevision().getRevisionName() != null
+                && getInputRevision().getRevisionProviderId() != null;
     }
 }
