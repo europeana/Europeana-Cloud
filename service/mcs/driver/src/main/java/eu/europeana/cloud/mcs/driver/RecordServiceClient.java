@@ -700,8 +700,6 @@ public class RecordServiceClient extends MCSClient {
         }
     }
 
-
-
     /**
      * Returns representation in specified version.
      * <p/>
