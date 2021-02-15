@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.storm.utils.DateHelper.parseISODate;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -85,8 +86,9 @@ public class MCSTaskSubmiterTest {
     private static final URI REPRESENTATON_URI_1 =  URI.create("http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions/ec3c18b0-7354-11ea-b16e-04922659f621");
     public static final URI REPRESENTATION_ALL_VERSION_URI_1 = URI.create("http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions");
     public static final Date FILE_CREATION_DATE_1 = Date.from(Instant.parse(FILE_CREATION_DATE_STRING_1));
+    private static final Revision REVISION_1 = new Revision(REVISION_NAME,REVISION_PROVIDER_1, parseISODate(FILE_CREATION_DATE_STRING_1), false, false, false);
     private static final Representation REPRESENTATION_1 = new Representation(CLOUD_ID1,REPRESENTATION_NAME,VERSION_1, REPRESENTATION_ALL_VERSION_URI_1, REPRESENTATON_URI_1, DATASET_PROVIDER_1,
-            Arrays.asList(FILE_1),new ArrayList<>(),false, FILE_CREATION_DATE_1);
+            Arrays.asList(FILE_1), Arrays.asList(REVISION_1),false, FILE_CREATION_DATE_1);
 
 
     //File2

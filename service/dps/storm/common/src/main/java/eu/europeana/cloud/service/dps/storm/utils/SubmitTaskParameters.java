@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -10,10 +9,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static eu.europeana.cloud.service.dps.storm.utils.DateHelper.parseISODate;
 
 /**
  * Set of parameters to submit task to
@@ -92,14 +92,11 @@ public class SubmitTaskParameters {
         return Optional.ofNullable(task.getParameter(PluginParameterKeys.SAMPLE_SIZE)).map(Integer::parseInt).orElse(Integer.MAX_VALUE);
     }
 
-    public Revision getInputRevision() {
-        return new Revision(
+    public RevisionIdentifier getInputRevision() {
+        return new RevisionIdentifier(
                 task.getParameter(PluginParameterKeys.REVISION_NAME),
                 task.getParameter(PluginParameterKeys.REVISION_PROVIDER),
-                Date.from(Instant.parse(task.getParameter(PluginParameterKeys.REVISION_TIMESTAMP))),
-                false,
-                false,
-                false);
+                parseISODate(task.getParameter(PluginParameterKeys.REVISION_TIMESTAMP)));
     }
 
     public boolean hasInputRevision() {

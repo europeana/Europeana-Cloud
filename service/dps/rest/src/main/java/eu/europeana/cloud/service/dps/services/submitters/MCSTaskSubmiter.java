@@ -15,8 +15,8 @@ import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -213,19 +213,19 @@ public class MCSTaskSubmiter {
     }
 
     private int executeGettingFileUrlsForOneCloudId(CloudIdAndTimestampResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
-        String revisionTimestamp = DateHelper.getUTCDateString(response.getRevisionTimestamp());
+
         int count = 0;
         List<Representation> representations = reader.getRepresentationsByRevision(
                 submitParameters.getRepresentationName(),
                 submitParameters.getInputRevision().getRevisionName(),
                 submitParameters.getInputRevision().getRevisionProviderId(),
-                revisionTimestamp, response.getCloudId());
+                response.getRevisionTimestamp(), response.getCloudId());
         for (Representation representation : representations) {
-            submitParameters.getInputRevision().setCreationTimeStamp(response.getRevisionTimestamp());
+            RevisionIdentifier inputRevision = submitParameters.getInputRevision().withCreationTimeStamp(response.getRevisionTimestamp());
             count += submitRecordsForRepresentation(representation, submitParameters,
                     isMarkedAsDeleted(
                             representation,
-                            submitParameters.getInputRevision()));
+                            inputRevision));
         }
         return count;
     }
@@ -304,14 +304,14 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private boolean isMarkedAsDeleted(Representation representation, Revision revision) {
+    private boolean isMarkedAsDeleted(Representation representation, RevisionIdentifier revision) {
         return findRevision(representation, revision).isDeleted();
     }
 
-    private Revision findRevision(Representation representation, Revision revisionToBeFound) {
+    private Revision findRevision(Representation representation, RevisionIdentifier revisionToBeFound) {
 
         for (Revision revision : representation.getRevisions()) {
-            if(revisionToBeFound.equals(revision)){
+            if(revisionToBeFound.identifies(revision)){
                 return revision;
             }
         }
