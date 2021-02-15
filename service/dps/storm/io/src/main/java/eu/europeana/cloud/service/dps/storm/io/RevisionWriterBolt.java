@@ -34,7 +34,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     }
 
     @Override
-    protected boolean ignoreDeletedRecord() {
+    protected boolean ignoreDeleted() {
         return false;
     }
 
@@ -77,7 +77,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             if (revisionToBeApplied.getCreationTimeStamp() == null)
                 revisionToBeApplied.setCreationTimeStamp(new Date());
 
-            if (stormTaskTuple.isRecordDeleted()) {
+            if (stormTaskTuple.isMarkedAsDeleted()) {
                 revisionToBeApplied = new Revision(revisionToBeApplied);
                 revisionToBeApplied.setDeleted(true);
             }

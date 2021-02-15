@@ -166,7 +166,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                     "Max retries reached",
                     "Max retries reached",
                     System.currentTimeMillis());
-            notificationTuple.setRecordDeleted(message.isMarkedAsDeleted());
+            notificationTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
             return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
         }
 
@@ -219,7 +219,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             //Implementation of re-try mechanism after topology broken down
             stormTaskTuple.setRecordAttemptNumber(record.getAttemptNumber());
 
-            stormTaskTuple.setRecordDeleted(dpsRecord.isMarkedAsDeleted());
+            stormTaskTuple.setMarkedAsDeleted(dpsRecord.isMarkedAsDeleted());
 
             return stormTaskTuple;
         }

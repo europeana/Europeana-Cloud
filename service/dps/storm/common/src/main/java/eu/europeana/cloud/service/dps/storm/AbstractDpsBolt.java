@@ -55,7 +55,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     public abstract void prepare();
 
-    protected boolean ignoreDeletedRecord(){
+    protected boolean ignoreDeleted(){
         return true;
     }
 
@@ -74,7 +74,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 return;
             }
 
-            if(ignoreDeletedRecord() && stormTaskTuple.isRecordDeleted()){
+            if(ignoreDeleted() && stormTaskTuple.isMarkedAsDeleted()){
                 LOGGER.debug("Ingornigng and passing further delete record with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
                 outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
                 outputCollector.ack(tuple);

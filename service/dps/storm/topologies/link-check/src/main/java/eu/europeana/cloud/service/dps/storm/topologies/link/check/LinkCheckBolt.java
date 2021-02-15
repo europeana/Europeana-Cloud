@@ -29,7 +29,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     private transient LinkChecker linkChecker;
 
     @Override
-    protected boolean ignoreDeletedRecord() {
+    protected boolean ignoreDeleted() {
         return false;
     }
 
@@ -53,7 +53,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
      */
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
-        if(tuple.isRecordDeleted()){
+        if(tuple.isMarkedAsDeleted()){
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "Record deleted - no links were checked.", "",
                     StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
             outputCollector.ack(anchorTuple);

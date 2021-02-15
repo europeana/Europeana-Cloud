@@ -24,12 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.time.Instant;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -225,19 +223,19 @@ public class MCSTaskSubmiter {
         for (Representation representation : representations) {
             submitParameters.getInputRevision().setCreationTimeStamp(response.getRevisionTimestamp());
             count += submitRecordsForRepresentation(representation, submitParameters,
-                    isRecordDeleted(
+                    isMarkedAsDeleted(
                             representation,
                             submitParameters.getInputRevision()));
         }
         return count;
     }
 
-    private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean recordDeleted) {
+    private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
         if (representation == null) {
             throw new RuntimeException("Problem while reading representation - representation is null.");
         }
 
-        if(recordDeleted){
+        if(markedAsDeleted){
             return submitRecordForDeletedRepresentation(representation, submitParameters) ;
         }else{
             return submitRecordsForAllFilesOfRepresentation(representation, submitParameters) ;
@@ -276,10 +274,10 @@ public class MCSTaskSubmiter {
                         .collect(Collectors.toList()));
     }
 
-    private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean recordDeleted) {
+    private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
         DpsTask task = submitParameters.getTask();
         DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(submitParameters.getSchemaName())
-                .recordId(fileUrl).markedAsDeleted(recordDeleted).build();
+                .recordId(fileUrl).markedAsDeleted(markedAsDeleted).build();
 
         boolean increaseCounter = recordSubmitService.submitRecord(record, submitParameters);
         logProgress(submitParameters, submitParameters.incrementAndGetPerformedRecordCounter());
@@ -306,7 +304,7 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private boolean isRecordDeleted(Representation representation, Revision revision) {
+    private boolean isMarkedAsDeleted(Representation representation, Revision revision) {
         return findRevision(representation, revision).isDeleted();
     }
 

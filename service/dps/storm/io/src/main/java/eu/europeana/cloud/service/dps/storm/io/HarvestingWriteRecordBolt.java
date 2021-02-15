@@ -34,7 +34,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     }
 
     @Override
-    protected boolean ignoreDeletedRecord() {
+    protected boolean ignoreDeleted() {
         return false;
     }
 

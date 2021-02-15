@@ -133,7 +133,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
-        if(stormTaskTuple.isRecordDeleted()){
+        if(stormTaskTuple.isMarkedAsDeleted()){
             return createRepresentation(stormTaskTuple, writeParams);
         }else {
             return createRepresentationAndUploadFile(stormTaskTuple, writeParams);

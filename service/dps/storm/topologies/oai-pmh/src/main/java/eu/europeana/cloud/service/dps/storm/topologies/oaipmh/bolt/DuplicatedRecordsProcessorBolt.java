@@ -37,7 +37,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     }
 
     @Override
-    protected boolean ignoreDeletedRecord() {
+    protected boolean ignoreDeleted() {
         return false;
     }
 

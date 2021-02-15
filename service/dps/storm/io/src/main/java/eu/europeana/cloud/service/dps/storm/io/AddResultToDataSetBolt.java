@@ -35,7 +35,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     @Override
-    protected boolean ignoreDeletedRecord() {
+    protected boolean ignoreDeleted() {
         return false;
     }
 
@@ -57,7 +57,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
         final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
-            if (!stormTaskTuple.isRecordDeleted() || shouldAddDeletedRecordToDataset()){
+            if (!stormTaskTuple.isMarkedAsDeleted() || shouldAddDeletedRecordToDataset()){
                 addRecordToDataset(stormTaskTuple, authorizationHeader, resultUrl);
             }
 

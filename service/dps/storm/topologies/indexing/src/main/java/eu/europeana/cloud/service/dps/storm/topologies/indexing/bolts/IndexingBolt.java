@@ -50,7 +50,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     @Override
-    protected boolean ignoreDeletedRecord() {
+    protected boolean ignoreDeleted() {
         return false;
     }
 
@@ -95,7 +95,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         try {
             recordDate = dateFormat
                 .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
-            if (!stormTaskTuple.isRecordDeleted()) {
+            if (!stormTaskTuple.isMarkedAsDeleted()) {
                 indexRecord(stormTaskTuple, useAltEnv, database, preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, recordDate);
             }
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
