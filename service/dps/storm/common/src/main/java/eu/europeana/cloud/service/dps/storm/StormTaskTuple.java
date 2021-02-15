@@ -155,6 +155,8 @@ public class StormTaskTuple implements Serializable {
                 RECORD_ATTEMPT_NUMBER);
     }
 
+    //TODO nazwa trochę niefortunna. Po pierwsze słowo 'record' jest mylące bo rekord to w eClodzie lista wersji reprezentacji z tym samym cloudID,
+    //Po drugie ten 'record' nie jest usunięty tylko ma rewizję z flagą 'deleted=true'. Może lepiej tą metodę nazwać shouldBeIgnored() ?
     public boolean isRecordDeleted() {
         return "true".equals(parameters.get(PluginParameterKeys.DELETED_RECORD));
     }

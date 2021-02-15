@@ -126,7 +126,7 @@ public class MCSTaskSubmiter {
             }
 
             int expectedSize = 0;
-            if (getRevisionName(submitParameters.getTask()) != null && getRevisionProvider(submitParameters.getTask()) != null) {
+            if (submitParameters.hasInputRevision()) {
                 expectedSize += executeForRevision(urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS), submitParameters, reader);
             } else {
                 expectedSize += executeForEntireDataset(urlParser, submitParameters, reader);
@@ -153,14 +153,14 @@ public class MCSTaskSubmiter {
         ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         try {
             DpsTask task = submitParameters.getTask();
-            int maxRecordsCount = getMaxRecordsCount(task);
+            int maxRecordsCount = submitParameters.getMaxRecordsCount();
             int count = 0;
             String startFrom = null;
             Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
             int total = 0;
             do {
                 checkIfTaskIsKilled(task);
-                ResultSlice<CloudIdAndTimestampResponse> slice = getCloudIdsChunk(datasetName, datasetProvider, startFrom, task, reader);
+                ResultSlice<CloudIdAndTimestampResponse> slice = getCloudIdsChunk(datasetName, datasetProvider, startFrom, submitParameters, reader);
                 List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = slice.getResults();
 
                 int maxRecordsLeft = maxRecordsCount - total;
@@ -188,12 +188,19 @@ public class MCSTaskSubmiter {
         }
     }
 
-    private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, DpsTask task, MCSReader reader) throws MCSException {
-        if (getRevisionTimestamp(task) != null) {
-            ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), getRevisionTimestamp(task), datasetProvider, datasetName, startFrom);
-            return toCloudAndTimestampResponse(chunk, getRevisionTimestamp(task));
+    private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, SubmitTaskParameters submitTaskParameters, MCSReader reader) throws MCSException {
+        if (submitTaskParameters.getInputRevision().getCreationTimeStamp() != null) {
+            ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(
+                    submitTaskParameters.getRepresentationName(),
+                    submitTaskParameters.getInputRevision(),
+                    datasetProvider, datasetName, startFrom);
+            return toCloudAndTimestampResponse(chunk, submitTaskParameters.getInputRevision().getCreationTimeStamp());
         } else {
-            return reader.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), datasetName, datasetProvider, startFrom);
+            return reader.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(
+                    submitTaskParameters.getRepresentationName(),
+                    submitTaskParameters.getInputRevision().getRevisionName(),
+                    submitTaskParameters.getInputRevision().getRevisionProviderId(),
+                    datasetName, datasetProvider, startFrom);
         }
     }
 
@@ -208,13 +215,19 @@ public class MCSTaskSubmiter {
     }
 
     private int executeGettingFileUrlsForOneCloudId(CloudIdAndTimestampResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
-        DpsTask task = submitParameters.getTask();
         String revisionTimestamp = DateHelper.getUTCDateString(response.getRevisionTimestamp());
         int count = 0;
-        List<Representation> representations = reader.getRepresentationsByRevision(getRepresentationName(task), getRevisionName(task), getRevisionProvider(task), revisionTimestamp, response.getCloudId());
+        List<Representation> representations = reader.getRepresentationsByRevision(
+                submitParameters.getRepresentationName(),
+                submitParameters.getInputRevision().getRevisionName(),
+                submitParameters.getInputRevision().getRevisionProviderId(),
+                revisionTimestamp, response.getCloudId());
         for (Representation representation : representations) {
+            submitParameters.getInputRevision().setCreationTimeStamp(response.getRevisionTimestamp());
             count += submitRecordsForRepresentation(representation, submitParameters,
-                    isRecordDeleted(representation, getRevisionName(task), response.getRevisionTimestamp()));
+                    isRecordDeleted(
+                            representation,
+                            submitParameters.getInputRevision()));
         }
         return count;
     }
@@ -255,18 +268,18 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private ResultSlice<CloudIdAndTimestampResponse> toCloudAndTimestampResponse(ResultSlice<CloudTagsResponse> chunk, String revisionTimestamp) {
+    private ResultSlice<CloudIdAndTimestampResponse> toCloudAndTimestampResponse(ResultSlice<CloudTagsResponse> chunk, Date revisionTimestamp) {
         return new ResultSlice<>(chunk.getNextSlice(),
                 chunk.getResults()
                         .stream()
-                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), parseRevisionTimestamp(revisionTimestamp)))
+                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), revisionTimestamp))
                         .collect(Collectors.toList()));
     }
 
     private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean recordDeleted) {
         DpsTask task = submitParameters.getTask();
-        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(getSchemaName(task))
-                .recordId(fileUrl).recordDeleted(recordDeleted).build();
+        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(submitParameters.getSchemaName())
+                .recordId(fileUrl).markedAsDeleted(recordDeleted).build();
 
         boolean increaseCounter = recordSubmitService.submitRecord(record, submitParameters);
         logProgress(submitParameters, submitParameters.incrementAndGetPerformedRecordCounter());
@@ -293,50 +306,23 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private boolean isRecordDeleted(Representation representation, String revisionName, Date revisionTimestamp) {
-        return findRevision(representation, revisionName, revisionTimestamp).isDeleted();
+    private boolean isRecordDeleted(Representation representation, Revision revision) {
+        return findRevision(representation, revision).isDeleted();
     }
 
-    private Revision findRevision(Representation representation, String revisionName, Date revisionTimestamp) {
+    private Revision findRevision(Representation representation, Revision revisionToBeFound) {
+
         for (Revision revision : representation.getRevisions()) {
-            if (revision.getRevisionName().equals(revisionName) && revision.getCreationTimeStamp().equals(revisionTimestamp)) {
+            if(revisionToBeFound.equals(revision)){
                 return revision;
             }
         }
-        throw new RuntimeException("Revision of name " + revisionName + " and timestamp " + revisionTimestamp + " not found for representation " + representation);
-    }
-
-    private Date parseRevisionTimestamp(String revisionTimestamp) {
-        return Date.from(Instant.parse(revisionTimestamp));
+        throw new RuntimeException("Revision of name " + revisionToBeFound.getRevisionName() + " and timestamp " + revisionToBeFound.getCreationTimeStamp() + " not found for representation " + representation);
     }
 
     private void checkIfTaskIsKilled(DpsTask task) {
         if (taskStatusChecker.hasKillFlag(task.getTaskId())) {
             throw new SubmitingTaskWasKilled(task);
         }
-    }
-
-    private Integer getMaxRecordsCount(DpsTask task) {
-        return Optional.ofNullable(task.getParameter(PluginParameterKeys.SAMPLE_SIZE)).map(Integer::parseInt).orElse(Integer.MAX_VALUE);
-    }
-
-    private String getRevisionTimestamp(DpsTask task) {
-        return task.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
-    }
-
-    private String getRevisionProvider(DpsTask task) {
-        return task.getParameter(PluginParameterKeys.REVISION_PROVIDER);
-    }
-
-    private String getRevisionName(DpsTask task) {
-        return task.getParameter(PluginParameterKeys.REVISION_NAME);
-    }
-
-    private String getRepresentationName(DpsTask task) {
-        return task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-    }
-
-    private String getSchemaName(DpsTask task) {
-        return task.getParameter(PluginParameterKeys.SCHEMA_NAME);
     }
 }
