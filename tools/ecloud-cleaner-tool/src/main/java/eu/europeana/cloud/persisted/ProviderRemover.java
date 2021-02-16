@@ -29,6 +29,8 @@ public class ProviderRemover {
 
     private static final int RECORD_CONNECT_TIMEOUT = 5*60*1000;
     private static final int RECORD_READ_TIMEOUT = 10*60*1000;
+    private static final int DATASET_CONNECT_TIMEOUT = 5*60*1000;
+    private static final int DATASET_READ_TIMEOUT = 10*60*1000;
 
     public ProviderRemover(String url, String username, String password, boolean testMode) {
         this.url = url;
@@ -105,9 +107,16 @@ public class ProviderRemover {
             LOGGER.info(String.format("[%d] Remove record '%s'...", counter, id));
             if ( !testMode && !removedRecords.contains(id) ) {
                 try {
-                    recordServiceClient.deleteRecord(id);
-                    uisClient.deleteCloudId(id);
+                    try {
+                        recordServiceClient.deleteRecord(id);
+                    } catch(MCSException mcsException) {
+                        if(mcsException.getMessage().indexOf("No representation found for given cloudId") == -1 &&
+                                mcsException.getMessage().indexOf("There is no record with provided global id") == -1 ) {
+                            throw mcsException;
+                        }
+                    }
 
+                    uisClient.deleteCloudId(id);
                     LOGGER.info(String.format("Record with cloudId = '%s' removed", id));
                     removedRecords.add(id);
                 } catch(MCSException | CloudException | DriverException serviceException) {
@@ -127,7 +136,7 @@ public class ProviderRemover {
     public void removeDatasetsForProvider(String providerId) {
         int counter = 0;
 
-        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(url, username, password);
+        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(url, null, username, password, DATASET_CONNECT_TIMEOUT, DATASET_READ_TIMEOUT);
         DataSetIterator dataSetIterator = dataSetServiceClient.getDataSetIteratorForProvider(providerId);
 
         while (dataSetIterator.hasNext()) {
