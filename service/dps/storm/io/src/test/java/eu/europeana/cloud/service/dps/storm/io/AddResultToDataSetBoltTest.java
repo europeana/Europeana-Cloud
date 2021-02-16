@@ -45,6 +45,7 @@ public class AddResultToDataSetBoltTest {
     private static final String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s1";
     private static final String DATASET_URL2 = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s2";
     private static final String FILE_URL = "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2";
+    private static final String REPRESENTATION_URL = "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8";
 
     public final void verifyMethodExecutionNumber(int expectedAssignRepresentationToDataCallTimes, int expectedEmitCallTimes) throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -83,22 +84,28 @@ public class AddResultToDataSetBoltTest {
     }
 
     @Test
+    public void shouldEmmitNotificationWhenRecordIsDeleted() throws MCSException {
+        stormTaskTuple = prepareTupleWithDeletedRecord();
+        verifyMethodExecutionNumber(0, 1);
+    }
+
+    @Test
     public void shouldEmmitNotificationWrongDatasetUrl() throws MCSException {
         stormTaskTuple = prepareTupleWithWrongDatasetUrl();
         verifyMethodExecutionNumber(0, 1);
     }
 
     @Test
-    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
+    public void shouldRetry7TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
         stormTaskTuple = prepareTupleWithSingleDataSet();
         doThrow(MCSException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(),eq(AUTHORIZATION),eq(AUTHORIZATION));
-        verifyMethodExecutionNumber(4, 1);
+        verifyMethodExecutionNumber(8, 1);
     }
     @Test
-    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
+    public void shouldRetry7TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
         stormTaskTuple = prepareTupleWithSingleDataSet();
         doThrow(DriverException.class).when(dataSetServiceClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString(),eq(AUTHORIZATION),eq(AUTHORIZATION));
-        verifyMethodExecutionNumber(4, 1);
+        verifyMethodExecutionNumber(8, 1);
     }
 
 
@@ -106,6 +113,14 @@ public class AddResultToDataSetBoltTest {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
         tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
+        return tuple;
+    }
+    private StormTaskTuple prepareTupleWithDeletedRecord() {
+        StormTaskTuple tuple = new StormTaskTuple();
+        tuple.setFileUrl(REPRESENTATION_URL);
+        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
+        tuple.setMarkedAsDeleted(true);
         return tuple;
     }
 

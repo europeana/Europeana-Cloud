@@ -27,6 +27,7 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
@@ -62,7 +63,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, IndexingRevisionWriter.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, TaskStatusChecker.class})
+@PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, IndexingRevisionWriter.class,
+        CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class,
+        CassandraTaskErrorsDAO.class, TaskStatusChecker.class, TaskStatusUpdater.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class IndexingTopologyTest extends TopologyTestHelper {
 

@@ -41,6 +41,7 @@ import java.util.List;
 
 import static eu.europeana.cloud.service.dps.storm.utils.DateHelper.parseISODate;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -62,7 +63,6 @@ public class MCSTaskSubmiterTest {
 
     private static final String REVISION_PROVIDER_1 = "revisionProviderId1";
     private static final String REVISION_NAME = "revisionName1";
-    private static final Revision REVISION = new Revision(REVISION_NAME,REVISION_PROVIDER_1);
 
     private static final String EXAMPLE_DATE = "2020-03-30T10:00:00.000Z";
 
@@ -83,12 +83,17 @@ public class MCSTaskSubmiterTest {
 
     private static final String VERSION_1 = "ec3c18b0-7354-11ea-b16e-04922659f621";
 
-    private static final URI REPRESENTATON_URI_1 =  URI.create("http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions/ec3c18b0-7354-11ea-b16e-04922659f621");
+    public static final String REPRESENTATION_URI_STRING_1 = "http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions/ec3c18b0-7354-11ea-b16e-04922659f621";
+    private static final URI REPRESENTATON_URI_1 =  URI.create(REPRESENTATION_URI_STRING_1);
     public static final URI REPRESENTATION_ALL_VERSION_URI_1 = URI.create("http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions");
     public static final Date FILE_CREATION_DATE_1 = Date.from(Instant.parse(FILE_CREATION_DATE_STRING_1));
     private static final Revision REVISION_1 = new Revision(REVISION_NAME,REVISION_PROVIDER_1, parseISODate(FILE_CREATION_DATE_STRING_1), false, false, false);
     private static final Representation REPRESENTATION_1 = new Representation(CLOUD_ID1,REPRESENTATION_NAME,VERSION_1, REPRESENTATION_ALL_VERSION_URI_1, REPRESENTATON_URI_1, DATASET_PROVIDER_1,
             Arrays.asList(FILE_1), Arrays.asList(REVISION_1),false, FILE_CREATION_DATE_1);
+
+    private static final Revision DELETED_REVISION = new Revision(REVISION_NAME,REVISION_PROVIDER_1, parseISODate(FILE_CREATION_DATE_STRING_1), false, false, true);
+    private static final Representation DELETED_REPRESENTATION = new Representation(CLOUD_ID1,REPRESENTATION_NAME,VERSION_1, REPRESENTATION_ALL_VERSION_URI_1, REPRESENTATON_URI_1, DATASET_PROVIDER_1,
+            Arrays.asList(FILE_1), Arrays.asList(DELETED_REVISION),false, FILE_CREATION_DATE_1);
 
 
     //File2
@@ -351,6 +356,26 @@ public class MCSTaskSubmiterTest {
         submiter.execute(submitParameters);
 
         verifyValidTaskSent(FILE_URL_1);
+    }
+
+    @Test
+    public void executeMcsBasedTask_oneRevisionForGivenTimestampWithOneDeletedRecord() throws MCSException {
+        task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
+        task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER,REVISION_PROVIDER_1);
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP,FILE_CREATION_DATE_STRING_1);
+        task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
+        when(dataSetServiceClient.getDataSetRevisionsChunk(
+                eq(DATASET_PROVIDER_1), eq(DATASET_ID_1), eq(REPRESENTATION_NAME), eq(REVISION_NAME),eq(REVISION_PROVIDER_1),eq(FILE_CREATION_DATE_STRING_1),  eq(null), eq(null))).thenReturn(dataChunk);
+        when(dataChunk.getResults()).thenReturn(dataList);
+        dataList.add(new CloudTagsResponse(CLOUD_ID1,false,true,false));
+        when(recordServiceClient.getRepresentationsByRevision(eq(CLOUD_ID1),eq(REPRESENTATION_NAME),eq(REVISION_NAME),eq(REVISION_PROVIDER_1),anyString())).thenReturn(Collections.singletonList(DELETED_REPRESENTATION));
+
+
+        submiter.execute(submitParameters);
+
+        verifyValidTaskSent(REPRESENTATION_URI_STRING_1);
+        assertTrue(recordCaptor.getValue().isMarkedAsDeleted());
     }
 
 

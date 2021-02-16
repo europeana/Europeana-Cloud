@@ -49,7 +49,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 1/25/2018.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class})
+@PrepareForTest({ReadFileBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 

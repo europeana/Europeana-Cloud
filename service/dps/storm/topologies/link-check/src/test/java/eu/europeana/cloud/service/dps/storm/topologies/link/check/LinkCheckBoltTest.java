@@ -50,6 +50,17 @@ public class LinkCheckBoltTest {
     }
 
     @Test
+    public void shouldEmitSameTupleWhenRecordIsDeleted() {
+        Tuple anchorTuple = mock(TupleImpl.class);
+        StormTaskTuple tuple = prepareTupleWithDeletedRecord();
+
+        linkCheckBolt.execute(anchorTuple, tuple);
+
+        verify(outputCollector).emit( eq("NotificationStream"), eq(anchorTuple), captor.capture());
+        validateCapturedValues(captor);
+    }
+
+    @Test
     public void shouldCheckOneLinkWithoutEmittingTuple() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareRandomTuple();
@@ -109,6 +120,14 @@ public class LinkCheckBoltTest {
         tuple.addParameter(RESOURCE_LINKS_COUNT, 0 + "");
         tuple.addParameter(RESOURCE_URL, "resourceUrl");
         tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        return tuple;
+    }
+
+    private StormTaskTuple prepareTupleWithDeletedRecord() {
+        StormTaskTuple tuple = new StormTaskTuple();
+        tuple.setFileUrl("ecloudFileUrl");
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        tuple.setMarkedAsDeleted(true);
         return tuple;
     }
 

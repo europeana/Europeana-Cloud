@@ -69,12 +69,13 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
+        verify(indexerPool).index(anyString(), any(Date.class), anyBoolean(), any(), anyBoolean());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("sampleResourceUrl", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-        assertEquals(5, parameters.size());
+        assertEquals(4, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
@@ -90,9 +91,32 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
+        verify(indexerPool).index(anyString(), any(Date.class), anyBoolean(), any(), anyBoolean());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
 
 
+        Values capturedValues = captor.getValue();
+        assertEquals(8, capturedValues.size());
+        assertEquals("sampleResourceUrl", capturedValues.get(2));
+        Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+        assertEquals(4, parameters.size());
+        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
+        assertFalse(dataSetCleanerParameters.isUsingAltEnv());
+        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
+    }
+
+    @Test
+    public void shouldPassDeletedRecord() throws Exception {
+        Tuple anchorTuple = mock(TupleImpl.class);
+        String targetIndexingEnv = "PUBLISH";
+        StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+        tuple.setMarkedAsDeleted(true);
+        mockIndexerFactoryFor(null);
+
+        indexingBolt.execute(anchorTuple, tuple);
+
+        verifyNoInteractions(indexerPool);
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("sampleResourceUrl", capturedValues.get(2));
@@ -102,7 +126,6 @@ public class IndexingBoltTest {
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
-
 
     @Test
     public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
@@ -193,7 +216,7 @@ public class IndexingBoltTest {
     }
 
     private void mockIndexerFactoryFor(Class clazz) throws IndexingException {
-        when(indexerPoolWrapper.getIndexerPool(Mockito.anyString(), Mockito.anyString())).thenReturn(indexerPool);
+        when(indexerPoolWrapper.getIndexerPool(Mockito.any(), Mockito.any())).thenReturn(indexerPool);
         if (clazz != null) {
             doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean(), Mockito.anyList(), Mockito.anyBoolean());
         }

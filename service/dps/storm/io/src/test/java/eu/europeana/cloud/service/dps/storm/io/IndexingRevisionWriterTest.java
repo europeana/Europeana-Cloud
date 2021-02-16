@@ -110,7 +110,7 @@ public class IndexingRevisionWriterTest {
         Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any())).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any());
+        Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), Mockito.any(List.class));
     }
 
