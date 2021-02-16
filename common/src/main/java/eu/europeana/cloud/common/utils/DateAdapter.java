@@ -13,19 +13,17 @@ import java.util.TimeZone;
  * Created by Tarek on 11/30/2017.
  */
 public class DateAdapter extends XmlAdapter<String, Date> {
-    //This was used based on Metis requirements. ex: 2017-11-23T10:43:26.038Z
-    private static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-    private static final FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("UTC"));
+
     @Override
     public String marshal(Date date) {
         if (date == null) {
             throw new RuntimeException("The revision creation Date shouldn't be null");
         }
-        return FORMATTER.format(date);
+        return ""+date.getTime();
     }
 
     @Override
-    public Date unmarshal(String stringDate) throws ParseException {
+    public Date unmarshal(String stringDate) {
         if (stringDate == null || stringDate.isEmpty()) {
             return null;
         }
