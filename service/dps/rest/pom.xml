@@ -230,6 +230,12 @@
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-harvesting</artifactId>
             <version>${version.metis}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
