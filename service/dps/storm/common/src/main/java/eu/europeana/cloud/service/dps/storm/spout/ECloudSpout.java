@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
+import com.google.common.base.Stopwatch;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -49,12 +51,14 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient TasksCache tasksCache;
+    private Stopwatch overallTimeWatch;
+    private int nextTupleExecutionCount;
 
     public ECloudSpout(String topologyName, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
-        this.topologyName=topologyName;
+        this.topologyName = topologyName;
         this.hosts = hosts;
         this.port = port;
         this.keyspaceName = keyspaceName;
@@ -95,6 +99,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         tasksCache = new TasksCache(cassandraConnectionProvider);
+        nextTupleSummaryWatch = Stopwatch.createUnstarted();
+        overallTimeWatch = Stopwatch.createStarted();
     }
 
     @Override
@@ -111,11 +117,16 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
+
             DpsRecord message = null;
             try {
                 message = readMessageFromTuple(tuple);
 
-                if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
+
+                //if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
+                taskStatusChecker.hasKillFlag(message.getTaskId());
+
+                if (true) {
                     return omitMessageFromDroppedTask(message, messageId);
                 }
 
@@ -187,8 +198,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return record.getState() == RecordState.SUCCESS || record.getState() == RecordState.ERROR;
         }
 
-        private DpsRecord readMessageFromTuple(List<Object> tuple){
-            return (DpsRecord)tuple.get(4);
+        private DpsRecord readMessageFromTuple(List<Object> tuple) {
+            return (DpsRecord) tuple.get(4);
         }
 
         private TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
@@ -253,5 +264,26 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             }
             return record;
         }
+    }
+
+    Stopwatch nextTupleSummaryWatch;
+
+    public void nextTuple() {
+        Stopwatch currentNextTupleWatch = Stopwatch.createStarted();
+        nextTupleSummaryWatch.start();
+        super.nextTuple();
+        nextTupleSummaryWatch.stop();
+        nextTupleExecutionCount++;
+        LOGGER.info("Current nextTuple : " + currentNextTupleWatch.toString() + " - summary nextTuple time: "
+                + nextTupleSummaryWatch + " / " + overallTimeWatch + " - " + nextTupleExecutionCount
+                + " (average " + evalAverageNextTupleTimeMs() + "ms), overall emit speed " + evalEmitSpeedTuplePerSecond()+" tuples/s");
+    }
+
+    private long evalEmitSpeedTuplePerSecond() {
+        return nextTupleExecutionCount * 1000L / overallTimeWatch.elapsed(TimeUnit.MILLISECONDS);
+    }
+
+    private Long evalAverageNextTupleTimeMs() {
+        return nextTupleSummaryWatch.elapsed(TimeUnit.MILLISECONDS) / (nextTupleExecutionCount == 0 ? nextTupleExecutionCount = -1 : nextTupleExecutionCount);
     }
 }
