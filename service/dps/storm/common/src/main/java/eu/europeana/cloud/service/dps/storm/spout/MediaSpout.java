@@ -31,7 +31,8 @@ public class MediaSpout extends ECloudSpout {
         if (parallelizationParam == 1) {
             maxTaskPending = 1;
         } else {
-            maxTaskPending = parallelizationParam * 2L;
+//            maxTaskPending = parallelizationParam * 2L;
+            maxTaskPending = parallelizationParam * 3L;
         }
         tuple.setThrottlingGroupingAttribute(generator.generateForEdmObjectProcessingBolt(tuple));
     }

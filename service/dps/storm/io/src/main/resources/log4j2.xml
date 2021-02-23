@@ -20,7 +20,7 @@
         <Property name="fileName">topology.log</Property>
         <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>
         <Property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} %t [%p] %msg%n</Property>
-        <property name="patternMDCEnhanced">%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} %t [%p] %msg [task_id=%X{task_id}] [record_id=%X{record_id}]%n</property>
+        <property name="patternMDCEnhanced">%d{yyyy-MM-dd HH:mm:ss.SSS} topology %c{1.} %t [%p] %msg [task_id=%X{task_id}] [record_id=%X{record_id}]%n</property>
     </Properties>
 
     <Appenders>
@@ -33,11 +33,14 @@
     </Appenders>
 
     <Loggers>
-        <Root level="info">
+        <Root level="warn">
             <AppenderRef ref="STDOUT"/>
         </Root>
-        <Logger name="eu.europeana.cloud" level="info" additivity="false">
+        <Logger name="eu.europeana.cloud" level="warn" additivity="false">
             <appender-ref ref="mdcAppender"/>
         </Logger>
+        <Logger name="eu.europeana.cloud.service.dps.storm.topologies.throttling.tests.TestingBolt" level="info"/>
+        <Logger name="eu.europeana.cloud.service.dps.storm.utils.DumpGrouping" level="info"/>
+        <Logger name="eu.europeana.cloud.service.dps.storm.utils.ThrottlingShuffleGrouping" level="warn"/>
     </Loggers>
 </Configuration>

@@ -21,4 +21,10 @@ public class BucketUtils {
     public static int hash(String key) {
         return MurmurHash3.hash32x86(key.getBytes(StandardCharsets.UTF_8));
     }
+
+
+    public static long hash64(String key) {
+        return MurmurHash3.hash64(key.getBytes(StandardCharsets.UTF_8));
+    }
+
 }

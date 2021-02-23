@@ -11,6 +11,8 @@ import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
+import org.apache.storm.daemon.GrouperFactory;
+import org.apache.storm.grouping.ShuffleGrouping;
 import org.apache.storm.kafka.spout.FirstPollOffsetStrategy;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.BoltDeclarer;
@@ -98,7 +100,7 @@ public final class TopologyHelper {
 
         config.put(TOPOLOGY_KRYO_REGISTER, Arrays.asList(LinkedHashMap.class.getName(),
                 OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
-                DataSetCleanerParameters.class.getName()));
+                DataSetCleanerParameters.class.getName(),ThrottlingShuffleGrouping.class.getName()));
 
         config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());
         config.put(SPOUT_SLEEP_MS, getValue(topologyProperties, SPOUT_SLEEP_MS, DEFAULT_SPOUT_SLEEP_MS));
@@ -144,7 +146,8 @@ public final class TopologyHelper {
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getValue(topologyProperties, MAX_POLL_RECORDS, DEFAULT_MAX_POLL_RECORDS))
                         .setProp(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, getValue(topologyProperties, FETCH_MAX_BYTES, DEFAULT_FETCH_MAX_BYTES))
-                        .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
+                        .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST)
+                        .setOffsetCommitPeriodMs(2000);
 
         return configBuilder.build();
     }
@@ -188,7 +191,8 @@ public final class TopologyHelper {
 
     public static void addSpoutShuffleGrouping(List<String> spoutNames, BoltDeclarer boltDeclarer) {
         for (String spout : spoutNames) {
-            boltDeclarer.shuffleGrouping(spout);
+           // boltDeclarer.shuffleGrouping(spout);
+            boltDeclarer.customGrouping(spout, new ShuffleGrouping());
         }
     }
 
@@ -207,6 +211,14 @@ public final class TopologyHelper {
                                               String fieldName) {
         for (String spout : spoutNames) {
             boltDeclarer.fieldsGrouping(spout, new Fields(fieldName));
+         //   boltDeclarer.customGrouping(spout,new GrouperFactory.FieldsGrouper());
+        }
+    }
+
+    public static void addSpoutThrottlingGrouping(List<String> spoutNames, BoltDeclarer boltDeclarer,
+                                             String fieldName) {
+        for (String spout : spoutNames) {
+            boltDeclarer.customGrouping(spout, new ThrottlingShuffleGrouping());
         }
     }
 
