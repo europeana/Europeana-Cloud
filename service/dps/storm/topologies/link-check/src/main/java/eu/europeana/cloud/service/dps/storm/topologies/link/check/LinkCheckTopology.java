@@ -9,14 +9,16 @@ import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
 import org.apache.storm.Config;
-import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
+import org.apache.storm.topology.BoltDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import java.util.Properties;
 
@@ -40,32 +42,48 @@ public class LinkCheckTopology {
     public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties);
+        String[] topics = getTopics(topologyProperties);
+        int i=0;
+        for(String topic: topics){
+            i++;
+            ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties,new String[]{topic} );
 
-        builder.setSpout(SPOUT, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
-                .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-        builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(ecloudMcsAddress),
-                (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT, new ShuffleGrouping());
+            builder.setSpout(SPOUT+i, eCloudSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
+                    .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
+
+        }
+
+        BoltDeclarer firstBoltDeclaration = builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(ecloudMcsAddress),
+                1)
+                .setNumTasks(1);
+
+        for(int j=1;j<=topics.length;j++){
+            firstBoltDeclaration.customGrouping(SPOUT+j, new ShuffleGrouping());
+        }
+
 
         builder.setBolt(LINK_CHECK_BOLT, new LinkCheckBolt(),
                 (getAnInt(LINK_CHECK_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(LINK_CHECK_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
 
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+        BoltDeclarer notificationBoltDeclarer = builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                        parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
                         topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                getAnInt(NOTIFICATION_BOLT_PARALLEL))
+                getAnInt(NOTIFICATION_BOLT_PARALLEL));
+
+        notificationBoltDeclarer
                 .setNumTasks(
-                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-                .fieldsGrouping(SPOUT, NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(PARSE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)));
+        for(int j=1;j<=topics.length;j++) {
+            notificationBoltDeclarer.fieldsGrouping(SPOUT+j, NOTIFICATION_STREAM_NAME,
+                    new Fields(NotificationTuple.taskIdFieldName));
+        }
+
+        notificationBoltDeclarer.fieldsGrouping(PARSE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(LINK_CHECK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
@@ -89,7 +107,7 @@ public class LinkCheckTopology {
                 StormTopology stormTopology = linkCheckTopology.buildTopology(ecloudMcsAddress);
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
-                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+                TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {
                 LOGGER.error("Invalid number of parameters");
             }

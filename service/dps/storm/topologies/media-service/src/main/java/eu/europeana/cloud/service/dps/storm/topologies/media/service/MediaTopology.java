@@ -43,7 +43,7 @@ public class MediaTopology {
     public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties, getTopics(topologyProperties));
 
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);

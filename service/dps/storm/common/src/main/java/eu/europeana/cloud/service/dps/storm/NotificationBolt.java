@@ -82,6 +82,8 @@ public class NotificationBolt extends BaseRichBolt {
         try {
             NotificationTuple notificationTuple = NotificationTuple
                     .fromStormTuple(tuple);
+            String recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
+            LOGGER.info("NotificationBolt executing taskId: {} recordId: {}", notificationTuple.getTaskId(),recordId);
             NotificationCache nCache = cache.get(notificationTuple.getTaskId());
             if (nCache == null) {
                 nCache = new NotificationCache(notificationTuple.getTaskId());

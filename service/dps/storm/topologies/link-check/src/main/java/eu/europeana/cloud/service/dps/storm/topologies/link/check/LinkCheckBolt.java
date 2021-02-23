@@ -49,6 +49,13 @@ public class LinkCheckBolt extends AbstractDpsBolt {
      */
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
+        try {
+            LOGGER.info("Start sleep " + tuple.getFileUrl());
+            Thread.sleep(20000L);
+            LOGGER.info("Stop sleep  " + tuple.getFileUrl());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "",

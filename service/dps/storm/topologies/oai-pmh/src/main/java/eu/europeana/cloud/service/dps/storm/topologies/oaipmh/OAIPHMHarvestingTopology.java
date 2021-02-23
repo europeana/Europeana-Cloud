@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvest
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -46,7 +47,7 @@ public class OAIPHMHarvestingTopology {
         TopologyBuilder builder = new TopologyBuilder();
 
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
-                TopologiesNames.OAI_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+                TopologiesNames.OAI_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE, getTopics(topologyProperties));
 
         String mcsServer = topologyProperties.getProperty(MCS_URL);
         String uisServer = topologyProperties.getProperty(UIS_URL);
@@ -127,7 +128,7 @@ public class OAIPHMHarvestingTopology {
                 Config config = buildConfig(topologyProperties);
 
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
-                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+                TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {
                 LOGGER.error("Invalid number of parameters");
             }

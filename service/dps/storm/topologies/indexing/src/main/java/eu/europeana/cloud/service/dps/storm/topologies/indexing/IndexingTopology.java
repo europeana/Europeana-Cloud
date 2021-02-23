@@ -56,7 +56,7 @@ public class IndexingTopology {
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
                 TopologiesNames.INDEXING_TOPOLOGY,
                 topologyProperties,
-                KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+                KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE, getTopics(topologyProperties));
 
         builder.setSpout(SPOUT, eCloudSpout,
                 getAnInt(KAFKA_SPOUT_PARALLEL))

@@ -48,7 +48,7 @@ public class ValidationTopology {
     public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties, getTopics(topologyProperties));
 
         ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);

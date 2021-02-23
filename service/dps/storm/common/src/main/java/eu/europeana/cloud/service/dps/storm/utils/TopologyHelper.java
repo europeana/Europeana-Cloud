@@ -19,7 +19,7 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 7/15/2016.
  */
 public final class TopologyHelper {
-    public static final String SPOUT = "spout";
+    public static final String SPOUT = "spout-";
     public static final String RETRIEVE_FILE_BOLT = "retrieveFileBolt";
     public static final String NOTIFICATION_BOLT = "notificationBolt";
     public static final String WRITE_RECORD_BOLT = "writeRecordBolt";
@@ -99,30 +99,35 @@ public final class TopologyHelper {
         }
     }
 
-    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties) {
-        return  createECloudSpout(topologyName, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, String[] topics) {
+        return  createECloudSpout(topologyName, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE, topics);
     }
 
-    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
+    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee, String[] topics) {
 
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
                 new KafkaSpoutConfig.Builder<String, DpsRecord>(
-                        topologyProperties.getProperty(BOOTSTRAP_SERVERS), topologyProperties.getProperty(TOPICS).split(","))
+                        topologyProperties.getProperty(BOOTSTRAP_SERVERS), topics)
                         .setProcessingGuarantee(processingGuarantee)
                         .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
                         .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getValue(topologyProperties, MAX_POLL_RECORDS, DEFAULT_MAX_POLL_RECORDS))
                         .setProp(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, getValue(topologyProperties, FETCH_MAX_BYTES, DEFAULT_FETCH_MAX_BYTES))
+                        // .setPollTimeoutMs(20)
                         .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
         return new ECloudSpout(
-                topologyName,
+                topologyName,topics,
                 configBuilder.build(),
                 topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+    }
+
+    public static String[] getTopics(Properties topologyProperties) {
+        return topologyProperties.getProperty(TOPICS).split(",");
     }
 }

@@ -22,7 +22,14 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +43,8 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
     private static final int MAX_RETRIES = 3;
+    private final String topic;
+
 
     private String topologyName;
     private String hosts;
@@ -50,7 +59,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient TasksCache tasksCache;
 
-    public ECloudSpout(String topologyName, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
+    public ECloudSpout(String topologyName, String[] topics, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
@@ -60,6 +69,21 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         this.keyspaceName = keyspaceName;
         this.userName = userName;
         this.password = password;
+        this.topic=topics[0];
+        LOGGER.error("Crated Spout "+kafkaSpoutConfig+"\n"+ topic);
+    }
+
+    private EspoutMXBean createBean() {
+        final EspoutMXBean mbean;
+        try {
+            mbean= new Spout(topic);
+            ManagementFactory.getPlatformMBeanServer().registerMBean(mbean,new ObjectName("Ecloud:type=spout_"+ topic));
+        }catch(NotCompliantMBeanException e) {
+            throw new RuntimeException(e);
+        }catch (InstanceAlreadyExistsException | MalformedObjectNameException | MBeanRegistrationException e) {
+            throw new RuntimeException(e);
+        }
+        return mbean;
     }
 
     @Override
@@ -95,6 +119,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         tasksCache = new TasksCache(cassandraConnectionProvider);
+
+        createBean();
     }
 
     @Override
@@ -144,7 +170,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
             //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
             //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
-            LOGGER.info("Dropping kafka message for task {} because record {} was already processed: ", message.getTaskId(), message.getRecordId());
+            LOGGER.info("Dropping kafka message for task {} because record {} was already processed, messageId {}", message.getTaskId(), message.getRecordId(), messageId);
             ackIgnoredMessage(messageId);
             return Collections.emptyList();
         }
@@ -153,7 +179,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             TaskInfo taskInfo = getTaskInfo(message);
             updateRetryCount(taskInfo, record);
             StormTaskTuple stormTaskTuple = prepareTaskForEmission(taskInfo, message, record);
-            LOGGER.info("Emitting record to the subsequent bolt: {}", message);
+            LOGGER.info("Emitting record to the subsequent bolt: {}, messageId {} ", message, compositeMessageId );
             return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
         }
 
@@ -174,7 +200,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             // but must be acknowledged to not remain in topic and to allow acknowledgement
             // of any following messages.
             ackIgnoredMessage(messageId);
-            LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
+            LOGGER.info("Dropping kafka message because task was dropped: {} recordId: {}, messageId {}", message.getTaskId(), message.getRecordId(),messageId);
             return Collections.emptyList();
         }
 
@@ -251,4 +277,43 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return record;
         }
     }
+
+    private class Spout implements EspoutMXBean {
+
+        private final String topic;
+
+        public Spout(String topic) throws RuntimeException {
+            super();
+            this.topic = topic;
+        }
+
+        @Override
+        public String showInformation() {
+            return "Topic: "+getTopic()+"\n Full info:\n\n"+ getSpoutString();
+        }
+
+        private String getSpoutString() {
+            return ECloudSpout.this.toString();
+        }
+
+        @Override
+        public String getTopic() {
+            return topic;
+        }
+
+        @Override
+        public String showEmitted() {
+            String s = getSpoutString();
+            int index = s.lastIndexOf("emitted=");
+            if(index>-1){
+                return s.substring(index);
+            }else{
+                return "Could not find info in spout string!";
+            }
+
+        }
+
+
+    }
+
 }

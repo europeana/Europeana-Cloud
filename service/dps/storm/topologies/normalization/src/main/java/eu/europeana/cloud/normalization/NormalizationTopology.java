@@ -41,7 +41,7 @@ public class NormalizationTopology {
     public StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties, getTopics(topologyProperties));
 
         ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);

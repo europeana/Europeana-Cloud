@@ -55,7 +55,7 @@ public class XSLTTopology {
         ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
                 TopologiesNames.XSLT_TOPOLOGY,
                 topologyProperties,
-                KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+                KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE, getTopics(topologyProperties));
 
         String mcsServer = topologyProperties.getProperty(MCS_URL);
 

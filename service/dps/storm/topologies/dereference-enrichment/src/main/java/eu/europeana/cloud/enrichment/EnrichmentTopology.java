@@ -42,7 +42,7 @@ public class EnrichmentTopology {
     public StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties);
+        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties, getTopics(topologyProperties));
 
         ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
