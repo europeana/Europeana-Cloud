@@ -59,6 +59,8 @@ public class EcloudSpoutTestingTopology {
                 Config config = buildConfig(topologyProperties);
 
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
+                config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY,"eu.europeana.cloud.service.dps.storm.topologies.oaipmh.FastSleepSpoutWaitStrategy");
+//                config.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 0);
                 new LocalCluster().submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {
                 LOGGER.error("Invalid number of parameters");
