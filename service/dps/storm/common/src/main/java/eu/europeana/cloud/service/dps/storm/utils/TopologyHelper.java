@@ -138,7 +138,8 @@ public final class TopologyHelper {
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getValue(topologyProperties, MAX_POLL_RECORDS, DEFAULT_MAX_POLL_RECORDS))
                         .setProp(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, getValue(topologyProperties, FETCH_MAX_BYTES, DEFAULT_FETCH_MAX_BYTES))
-                        .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
+                        .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST)
+                        .setOffsetCommitPeriodMs(2000);
 
         return new ECloudSpout(
                 topologyName, topic,
@@ -178,7 +179,12 @@ public final class TopologyHelper {
             boltDeclarer.fieldsGrouping(spout, streamName, new Fields(fieldName));
         }
     }
-
+    public static void addSpoutFieldGrouping(BoltDeclarer boltDeclarer, List<String> spoutNames,
+                                               String fieldName) {
+        for (String spout : spoutNames) {
+            boltDeclarer.fieldsGrouping(spout, new Fields(fieldName));
+        }
+    }
     private static String[] getTopics(Properties topologyProperties) {
         return topologyProperties.getProperty(TOPICS).split(",");
     }

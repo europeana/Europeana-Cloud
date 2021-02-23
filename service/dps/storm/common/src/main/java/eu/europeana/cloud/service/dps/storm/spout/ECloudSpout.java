@@ -130,6 +130,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
         @Override
         public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
+
             DpsRecord message = null;
             try {
                 message = readMessageFromTuple(tuple);
@@ -386,6 +387,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         if (eCloudOutputCollector.getPendingCount() < maxTaskPending) {
             super.nextTuple();
         }
-    }
+        }
 
 }
