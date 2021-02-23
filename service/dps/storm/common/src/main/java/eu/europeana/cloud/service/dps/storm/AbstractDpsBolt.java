@@ -70,7 +70,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             }
 
             if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
-                outputCollector.ack(tuple);
+                outputCollector.fail(tuple);
+                LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}", stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
                 return;
             }
 
