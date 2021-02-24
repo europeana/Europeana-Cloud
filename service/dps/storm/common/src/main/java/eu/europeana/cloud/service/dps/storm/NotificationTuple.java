@@ -81,7 +81,7 @@ public class NotificationTuple {
     }
 
 
-    public static NotificationTuple prepareIndexingNotification(long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,
+    public static NotificationTuple prepareIndexingNotification(long taskId, DataSetCleanerParameters dataSetCleanerParameters,
                                                                 String authenticationHeader, String resource, RecordState state, String text,
                                                                 String additionalInformations, String resultResource,
                                                                 long processingStartTime) {
@@ -92,7 +92,6 @@ public class NotificationTuple {
         parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATIONS, additionalInformations);
         parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
         parameters.put(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS, dataSetCleanerParameters);
-        parameters.put(NotificationParameterKeys.DPS_URL, dpsURL);
         parameters.put(NotificationParameterKeys.AUTHORIZATION_HEADER, authenticationHeader);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
         return new NotificationTuple(taskId, InformationTypes.NOTIFICATION, parameters);
@@ -130,5 +129,17 @@ public class NotificationTuple {
 
     public static Fields getFields() {
         return new Fields(taskIdFieldName, informationTypeFieldName, parametersFieldName);
+    }
+
+    public boolean isMarkedAsDeleted() {
+        return "true".equals(parameters.get(PluginParameterKeys.MARKED_AS_DELETED));
+    }
+
+    public void setMarkedAsDeleted(boolean markedAsDeleted) {
+        if(markedAsDeleted){
+            parameters.put(PluginParameterKeys.MARKED_AS_DELETED,"true");
+        }else{
+            parameters.remove(PluginParameterKeys.MARKED_AS_DELETED);
+        }
     }
 }

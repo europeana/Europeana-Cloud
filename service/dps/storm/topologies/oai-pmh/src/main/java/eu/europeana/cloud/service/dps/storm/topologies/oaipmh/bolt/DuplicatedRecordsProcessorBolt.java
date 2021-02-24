@@ -37,6 +37,11 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     }
 
     @Override
+    protected boolean ignoreDeleted() {
+        return false;
+    }
+
+    @Override
     public void prepare() {
         recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
         revisionServiceClient = new RevisionServiceClient(ecloudMcsAddress);
@@ -117,7 +122,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     private Representation extractRepresentationInfoFromTuple(StormTaskTuple tuple) throws MalformedURLException, MCSException {
         Representation representation = new Representation();
         UrlParser parser = new UrlParser(tuple.getParameters().get(PluginParameterKeys.OUTPUT_URL));
-        if (parser.isUrlToRepresentationVersionFile()) {
+        if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
             representation.setCloudId(parser.getPart(UrlPart.RECORDS));
             representation.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
             representation.setVersion(parser.getPart(UrlPart.VERSIONS));

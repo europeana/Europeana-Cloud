@@ -11,8 +11,8 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
+import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
 import org.apache.storm.Config;
-import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
@@ -81,7 +81,9 @@ public class IndexingTopology {
                         getAnInt(CASSANDRA_PORT),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN),
+                        topologyProperties.getProperty(DPS_URL),
+                        topologyProperties.getProperty(INDEXING_TOPOLOGY_NAME,"indexer")),
                 getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS))
@@ -113,7 +115,7 @@ public class IndexingTopology {
 
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
-                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+                TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {
                 LOGGER.error("Invalid number of parameters");
             }

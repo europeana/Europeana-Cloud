@@ -34,6 +34,11 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     }
 
     @Override
+    protected boolean ignoreDeleted() {
+        return false;
+    }
+
+    @Override
     public void prepare() {
         uisClient = new UISClient(ecloudUisAddress);
         super.prepare();

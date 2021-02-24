@@ -50,6 +50,11 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     @Override
+    protected boolean ignoreDeleted() {
+        return false;
+    }
+
+    @Override
     public void prepare() {
         try {
             indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
@@ -85,18 +90,15 @@ public class IndexingBolt extends AbstractDpsBolt {
                 : Arrays.asList(datasetIdsToRedirectFrom.trim().split("\\s*,\\s*"));
         final boolean performRedirects = Boolean
                 .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
-        String dpsURL = indexingProperties.getProperty(PluginParameterKeys.DPS_URL);
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
         try {
-            final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
             recordDate = dateFormat
-                    .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
-            final String document = new String(stormTaskTuple.getFileData());
-            indexerPool
-                    .index(document, recordDate, preserveTimestampsString, datasetIdsToRedirectFromList,
-                            performRedirects);
-            prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate, dpsURL);
+                .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+            if (!stormTaskTuple.isMarkedAsDeleted()) {
+                indexRecord(stormTaskTuple, useAltEnv, database, preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, recordDate);
+            }
+            prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
                     "Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
@@ -111,15 +113,20 @@ public class IndexingBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
+    private void indexRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, boolean preserveTimestampsString, List<String> datasetIdsToRedirectFromList, boolean performRedirects, Date recordDate) throws IndexingException {
+        final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
+
+        final String document = new String(stormTaskTuple.getFileData());
+        indexerPool.index(document, recordDate, preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects);
+    }
+
     private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId,
-                              String database, Date recordDate, String dpsURL) {
+                              String database, Date recordDate) {
         stormTaskTuple.setFileData((byte[]) null);
         DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters(datasetId,
                 Boolean.parseBoolean(useAltEnv), database, recordDate);
         stormTaskTuple.addParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS,
                 new Gson().toJson(dataSetCleanerParameters));
-        stormTaskTuple.addParameter(PluginParameterKeys.DPS_URL, dpsURL);
-
     }
 
     private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {

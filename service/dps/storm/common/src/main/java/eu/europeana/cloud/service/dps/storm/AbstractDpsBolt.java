@@ -55,6 +55,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     public abstract void prepare();
 
+    protected boolean ignoreDeleted(){
+        return true;
+    }
+
     @Override
     public void execute(Tuple tuple) {
         StormTaskTuple stormTaskTuple = null;
@@ -65,10 +69,22 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 cleanInvalidData(stormTaskTuple);
             }
 
-            if (!taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
-                LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
-                execute(tuple, stormTaskTuple);
+            if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId())) {
+                outputCollector.fail(tuple);
+                LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}", stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+                return;
             }
+
+            if(ignoreDeleted() && stormTaskTuple.isMarkedAsDeleted()){
+                LOGGER.debug("Ingornigng and passing further delete record with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+                outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
+                outputCollector.ack(tuple);
+                return;
+            }
+
+            LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+            execute(tuple, stormTaskTuple);
+
         } catch (Exception e) {
             LOGGER.info("AbstractDpsBolt error: {}", e.getMessage(), e);
             if (stormTaskTuple != null) {
@@ -158,10 +174,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
-    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String dpsURL,String authenticationHeader, String resource,
+    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, DataSetCleanerParameters dataSetCleanerParameters, String authenticationHeader, String resource,
                                                       String message, String additionalInformation, String resultResource,
                                                       long processingStartTime) {
-        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, dpsURL,authenticationHeader,
+        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, dataSetCleanerParameters, authenticationHeader,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }

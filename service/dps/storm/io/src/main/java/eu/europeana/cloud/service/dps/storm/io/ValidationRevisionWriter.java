@@ -36,11 +36,11 @@ public class ValidationRevisionWriter extends RevisionWriterBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:"+e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:"+e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:"+e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
     }

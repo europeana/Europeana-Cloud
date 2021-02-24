@@ -15,6 +15,8 @@ public final class TopologyPropertyKeys {
 
     public static final String STORM_ZOOKEEPER_ADDRESS = "STORM_ZOOKEEPER_ADDRESS";
     public static final String MCS_URL = "MCS_URL";
+    public static final String DPS_URL = "DPS_URL";
+    public static final String INDEXING_TOPOLOGY_NAME = "INDEXING_TOPOLOGY_NAME";
     public static final String CASSANDRA_HOSTS = "CASSANDRA_HOSTS";
     public static final String CASSANDRA_PORT = "CASSANDRA_PORT";
     public static final String CASSANDRA_KEYSPACE_NAME = "CASSANDRA_KEYSPACE_NAME";

@@ -80,6 +80,7 @@ public class ParseFileBoltTest {
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
+        stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         setStaticField(ParseFileForMediaBolt.class.getSuperclass().getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
     }
 
@@ -91,7 +92,7 @@ public class ParseFileBoltTest {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
-            verify(outputCollector, Mockito.times(5)).emit(captor.capture()); // 4 hasView, 1 edm:object
+            verify(outputCollector, Mockito.times(5)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object
 
             List<Values> capturedValuesList = captor.getAllValues();
             assertEquals(4, capturedValuesList.size());
@@ -115,7 +116,7 @@ public class ParseFileBoltTest {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(false).thenReturn(true);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
-            verify(outputCollector, Mockito.times(2)).emit(captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
+            verify(outputCollector, Mockito.times(2)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
         }
     }
 
@@ -126,13 +127,13 @@ public class ParseFileBoltTest {
         try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
-            verify(outputCollector, Mockito.times(1)).emit(captor.capture());
+            verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
             Values values = captor.getValue();
             assertNotNull(values);
             System.out.println(values);
             Map<String, String> map = (Map) values.get(4);
             System.out.println(map);
-            assertEquals(2, map.size());
+            assertEquals(3, map.size());
             assertNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
             assertNull(map.get(PluginParameterKeys.RESOURCE_LINK_KEY));
         }
@@ -149,7 +150,7 @@ public class ParseFileBoltTest {
         assertNotNull(values);
         Map<String, String> valueMap = (Map) values.get(2);
         assertNotNull(valueMap);
-        assertEquals(4, valueMap.size());
+        assertEquals(5, valueMap.size());
         assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
         assertEquals(RecordState.ERROR.toString(), valueMap.get("state"));
         assertNull(valueMap.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
@@ -168,11 +169,11 @@ public class ParseFileBoltTest {
             assertNotNull(values);
             Map<String, String> valueMap = (Map) values.get(2);
             assertNotNull(valueMap);
-            assertEquals(4, valueMap.size());
+            assertEquals(5, valueMap.size());
             assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
             assertEquals(RecordState.ERROR.toString(), valueMap.get("state"));
             assertNull(valueMap.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
-            verify(outputCollector, Mockito.times(0)).emit(anyList());
+            verify(outputCollector, Mockito.times(0)).emit(any(Tuple.class), anyList());
         }
 
     }

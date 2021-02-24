@@ -65,7 +65,6 @@ public class IndexingRevisionWriterTest {
         Map<String, String> parameters = (Map<String, String>) list.get(2);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
         assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
-        assertNotNull(parameters.get(NotificationParameterKeys.DPS_URL));
         assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
 
     }
@@ -85,7 +84,6 @@ public class IndexingRevisionWriterTest {
         Map<String, String> parameters = (Map<String, String>) list.get(2);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
         assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
-        assertNotNull(parameters.get(NotificationParameterKeys.DPS_URL));
         assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
     }
 
@@ -112,7 +110,7 @@ public class IndexingRevisionWriterTest {
         Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any())).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any());
+        Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), Mockito.any(List.class));
     }
 
@@ -145,7 +143,6 @@ public class IndexingRevisionWriterTest {
     Map<String, String> prepareTaskParameters() {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS, new Gson().toJson(prepareDataSetCleanerParameters()));
-        parameters.put(PluginParameterKeys.DPS_URL, "DPS_URL");
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;

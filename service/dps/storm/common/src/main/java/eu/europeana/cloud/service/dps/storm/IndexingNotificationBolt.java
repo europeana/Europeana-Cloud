@@ -14,10 +14,14 @@ import java.util.Date;
 public class IndexingNotificationBolt extends NotificationBolt {
     private static final String AUTHORIZATION = "Authorization";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingNotificationBolt.class);
+    private final String dpsServer;
+    private final String indexingTopologyName;
 
     public IndexingNotificationBolt(String hosts, int port, String keyspaceName,
-                                    String userName, String password) {
+                                    String userName, String password, String dpsServer, String indexingTopologyName) {
         super(hosts, port, keyspaceName, userName, password);
+        this.dpsServer = dpsServer;
+        this.indexingTopologyName = indexingTopologyName;
     }
 
     @Override
@@ -26,10 +30,10 @@ public class IndexingNotificationBolt extends NotificationBolt {
         DpsClient dpsClient = null;
         try {
             taskStatusUpdater.endTask(taskId, count, errors, TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), TaskState.REMOVING_FROM_SOLR_AND_MONGO.toString(), new Date());
-            dpsClient = new DpsClient(notificationTuple.getParameter(NotificationParameterKeys.DPS_URL).toString());
+            dpsClient = new DpsClient(dpsServer);
             DataSetCleanerParameters dataSetCleanerParameters = (DataSetCleanerParameters) notificationTuple.getParameter(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS);
             LOGGER.info("DataSet {} will be sent to be cleaned", dataSetCleanerParameters.getDataSetId());
-            dpsClient.cleanMetisIndexingDataset("indexer", taskId, dataSetCleanerParameters,
+            dpsClient.cleanMetisIndexingDataset(indexingTopologyName, taskId, dataSetCleanerParameters,
                     AUTHORIZATION, notificationTuple.getParameter(NotificationParameterKeys.AUTHORIZATION_HEADER).toString());
             LOGGER.info("DataSet {} is sent to be cleaned and the task is finished successfully from within Storm", dataSetCleanerParameters.getDataSetId());
         } catch (Exception e) {

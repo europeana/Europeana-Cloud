@@ -49,8 +49,6 @@ public final class PluginParameterKeys {
     public static final String MESSAGE_PROCESSING_START_TIME_IN_MS = "START_TIME";
 
     public static final String SAMPLE_SIZE  = "SAMPLE_SIZE";
-    public static final String DPS_URL = "DPS_URL";
-
 
     // ---------  IC  -----------
     public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
@@ -101,6 +99,7 @@ public final class PluginParameterKeys {
 
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
     public static final String FILES_ROOT_URL = "FILES_ROOT_URL";
+    public static final String MARKED_AS_DELETED = "DELETED_RECORD";
 
     static {
         //the default value for output mimeType

@@ -72,8 +72,8 @@ public class EnrichmentBoltTest {
         String fileContent = new String(tuple.getFileData());
         when(enrichmentWorker.process(eq(fileContent))).thenReturn("enriched file content");
         enrichmentBolt.execute(anchorTuple, tuple);
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
     }
 
     @Test

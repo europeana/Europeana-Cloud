@@ -11,32 +11,25 @@ import java.util.TimeZone;
 
 /**
  * Created by Tarek on 11/30/2017.
+ * Class uses number of ms from year 1970 as date representation. It is caused by the fact, that this class
+ * is used only in application clients based on Jersey, and these client must conform to date representation that is
+ * used by REST applications based on spring MVC: AAS, UIS, MCS, DPS.
  */
 public class DateAdapter extends XmlAdapter<String, Date> {
-    //This was used based on Metis requirements. ex: 2017-11-23T10:43:26.038Z
-    private static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-    private static final FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("UTC"));
+
     @Override
     public String marshal(Date date) {
         if (date == null) {
             throw new RuntimeException("The revision creation Date shouldn't be null");
         }
-        return FORMATTER.format(date);
+        return String.valueOf(date.getTime());
     }
 
     @Override
-    public Date unmarshal(String stringDate) throws ParseException {
+    public Date unmarshal(String stringDate) {
         if (stringDate == null || stringDate.isEmpty()) {
             return null;
         }
-        try {
-            Date date = GregorianCalendar.getInstance().getTime();  //(Date)FORMATTER.parseObject(stringDate);
-            if(date == null){
-                throw new ParseException("Cannot parse the date. The accepted date format is "+FORMAT, 0);
-            }
-            return date;
-        } catch (ParseException e) {
-            throw new ParseException(e.getMessage() + ". The accepted date format is "+FORMAT, e.getErrorOffset());
-        }
+        return new Date(Long.parseLong(stringDate));
     }
 }

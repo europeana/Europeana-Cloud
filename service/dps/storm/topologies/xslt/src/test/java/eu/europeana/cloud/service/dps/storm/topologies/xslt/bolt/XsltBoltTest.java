@@ -66,7 +66,7 @@ public class XsltBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
         xsltBolt.execute(anchorTuple, tuple);
-        when(outputCollector.emit(anyList())).thenReturn(null);
+        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
@@ -82,6 +82,7 @@ public class XsltBoltTest {
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         URL xsltFileUrl = Resources.getResource(xsltFile);
         parameters.put(PluginParameterKeys.XSLT_URL, xsltFileUrl.toString());
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }
 
@@ -130,7 +131,7 @@ public class XsltBoltTest {
 
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), parameters, new Revision());
         xsltBolt.execute(anchorTuple, tuple);
-        when(outputCollector.emit(anyList())).thenReturn(null);
+        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();

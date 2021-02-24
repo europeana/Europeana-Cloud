@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -49,7 +50,11 @@ public class ValidationRevisionWriterTest {
     public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException, URISyntaxException, MalformedURLException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(validationRevisionWriter);
-        testMock.execute(anchorTuple, new StormTaskTuple());
+        StormTaskTuple tuple = new StormTaskTuple();
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+
+        testMock.execute(anchorTuple, tuple);
+
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString());
         Mockito.verify(outputCollector, Mockito.times(0)).emit(any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
@@ -60,8 +65,10 @@ public class ValidationRevisionWriterTest {
     public void methodForAddingRevisionsShouldBeExecuted() throws MalformedURLException, MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(validationRevisionWriter);
+
         testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString());
+
+        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), Mockito.any(Revision.class),anyString(),any());
         Mockito.verify(outputCollector, Mockito.times(0)).emit(any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 
@@ -81,21 +88,25 @@ public class ValidationRevisionWriterTest {
     @Test
     public void mcsExceptionShouldBeHandledWithRetries() throws MalformedURLException, MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
-        Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString())).thenThrow(MCSException.class);
+        Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class), anyString(), any())).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(validationRevisionWriter);
+
         testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class),anyString(),anyString());
+
+        Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), Mockito.any(Revision.class), anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 
     }
 
     private StormTaskTuple prepareTuple() {
         StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, new HashMap(), new Revision());
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return tuple;
     }
 
     private StormTaskTuple prepareTupleWithMalformedURL() {
         StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "malformed", null, new HashMap(), new Revision());
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return tuple;
     }
 }
