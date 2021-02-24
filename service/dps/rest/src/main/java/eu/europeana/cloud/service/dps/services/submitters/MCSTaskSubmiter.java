@@ -8,7 +8,6 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsRecord;
@@ -24,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -108,7 +106,7 @@ public class MCSTaskSubmiter {
         return count;
     }
 
-    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws Exception {
+    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws InterruptedException, ExecutionException, MCSException {
         int expectedSize = 0;
         for (String dataSetUrl : submitParameters.getTask().getDataEntry(InputDataType.DATASET_URLS)) {
             expectedSize += executeForOneDataSet(dataSetUrl, submitParameters);
@@ -120,7 +118,7 @@ public class MCSTaskSubmiter {
         try (MCSReader reader = createMcsReader(submitParameters)) {
             UrlParser urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
-                throw new RuntimeException("DataSet URL is not formulated correctly: " + dataSetUrl);
+                throw new TaskSubmitException("DataSet URL is not formulated correctly: " + dataSetUrl);
             }
 
             int expectedSize = 0;
@@ -133,7 +131,7 @@ public class MCSTaskSubmiter {
             return expectedSize;
 
         } catch (MalformedURLException e) {
-            throw new RuntimeException("MCSTaskSubmiter error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
+            throw new TaskSubmitException("MCSTaskSubmiter error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
         }
     }
 
@@ -147,7 +145,7 @@ public class MCSTaskSubmiter {
         return expectedSize;
     }
 
-    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws DriverException, InterruptedException, ConcurrentModificationException, ExecutionException, MCSException {
+    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws InterruptedException, ExecutionException, MCSException {
         ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         try {
             DpsTask task = submitParameters.getTask();
@@ -177,7 +175,7 @@ public class MCSTaskSubmiter {
             }
             while ((startFrom != null) && (total < maxRecordsCount));
 
-            if (futures.size() > 0)
+            if (!futures.isEmpty())
                 count += getCountAndWait(futures);
 
             return count;
@@ -232,7 +230,7 @@ public class MCSTaskSubmiter {
 
     private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
         if (representation == null) {
-            throw new RuntimeException("Problem while reading representation - representation is null.");
+            throw new TaskSubmitException("Problem while reading representation - representation is null.");
         }
 
         if(markedAsDeleted){
@@ -315,7 +313,7 @@ public class MCSTaskSubmiter {
                 return revision;
             }
         }
-        throw new RuntimeException("Revision of name " + revisionToBeFound.getRevisionName() + " and timestamp " + revisionToBeFound.getCreationTimeStamp() + " not found for representation " + representation);
+        throw new TaskSubmitException("Revision of name " + revisionToBeFound.getRevisionName() + " and timestamp " + revisionToBeFound.getCreationTimeStamp() + " not found for representation " + representation);
     }
 
     private void checkIfTaskIsKilled(DpsTask task) {

@@ -11,6 +11,9 @@ import java.util.TimeZone;
 
 /**
  * Created by Tarek on 11/30/2017.
+ * Class uses number of ms from year 1970 as date representation. It is caused by the fact, that this class
+ * is used only in application clients based on Jersey, and these client must conform to date representation that is
+ * used by REST applications based on spring MVC: AAS, UIS, MCS, DPS.
  */
 public class DateAdapter extends XmlAdapter<String, Date> {
 
@@ -19,7 +22,7 @@ public class DateAdapter extends XmlAdapter<String, Date> {
         if (date == null) {
             throw new RuntimeException("The revision creation Date shouldn't be null");
         }
-        return ""+date.getTime();
+        return String.valueOf(date.getTime());
     }
 
     @Override

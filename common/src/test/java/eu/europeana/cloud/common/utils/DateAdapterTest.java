@@ -15,8 +15,11 @@ import static org.junit.Assert.assertNull;
  * Created by Tarek on 11/30/2017.
  */
 public class DateAdapterTest {
+
+    //example string representing date that is serialized to xml/json. It is number of ms from 1970
     public static final String DATE_STRING = "1613480338321";
 
+    //DATE reprezented by field DATE_STRING
     public static final Date DATE = new Date(1613480338321L);
 
     private static DateAdapter dateAdapter;

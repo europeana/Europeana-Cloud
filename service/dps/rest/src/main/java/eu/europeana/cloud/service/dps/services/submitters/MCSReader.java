@@ -15,14 +15,11 @@ import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.List;
 
 public class MCSReader implements AutoCloseable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MCSReader.class);
 
     private final DataSetServiceClient dataSetServiceClient;
 
@@ -36,7 +33,7 @@ public class MCSReader implements AutoCloseable {
         fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
     }
 
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, String startFrom) throws DriverException, MCSException {
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, String startFrom) throws MCSException {
         return RetryableMethodExecutor.executeOnRest("Error while getting slice of latest cloud Id from data set.", () -> {
             ResultSlice<CloudIdAndTimestampResponse> resultSlice = dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(datasetName, datasetProvider, revisionProvider, revisionName, representationName, false, startFrom);
             if (resultSlice == null || resultSlice.getResults() == null) {
@@ -49,7 +46,7 @@ public class MCSReader implements AutoCloseable {
 
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
             String representationName,
-            RevisionIdentifier revision, String datasetProvider, String datasetName, String startFrom) throws DriverException, MCSException {
+            RevisionIdentifier revision, String datasetProvider, String datasetName, String startFrom) throws MCSException {
         return RetryableMethodExecutor.executeOnRest("Error while getting Revisions from data set.", () -> {
             ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(
                     datasetProvider,
