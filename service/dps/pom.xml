@@ -27,7 +27,6 @@
         <module>rest-client-java</module>
         <module>utils</module>
         <module>storm/common</module>
-        <module>storm/examples</module>
         <module>storm/io</module>
         <module>storm/topologies/xslt</module>
         <module>storm/topologies/topologies-common-helper-test</module>
