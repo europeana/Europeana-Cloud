@@ -2,9 +2,9 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.oaipmh.Harvester;
-import eu.europeana.cloud.service.dps.oaipmh.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import javax.xml.xpath.XPathExpression;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -32,7 +31,7 @@ public class RecordHarvestingBoltTest  {
     private OutputCollector outputCollector;
 
     @Mock
-    private Harvester harvester;
+    private OaiHarvester harvester;
 
     @InjectMocks
     private RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
@@ -48,7 +47,7 @@ public class RecordHarvestingBoltTest  {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -67,7 +66,7 @@ public class RecordHarvestingBoltTest  {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -88,7 +87,7 @@ public class RecordHarvestingBoltTest  {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("blablaba");
         StormTaskTuple spiedTask = spy(task);
@@ -111,7 +110,7 @@ public class RecordHarvestingBoltTest  {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("true");
         StormTaskTuple spiedTask = spy(task);
@@ -134,7 +133,7 @@ public class RecordHarvestingBoltTest  {
         InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix("true");
         StormTaskTuple spiedTask = spy(task);
@@ -157,7 +156,7 @@ public class RecordHarvestingBoltTest  {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         InputStream fileContentAsStream = getFileContentAsStream("/corruptedEDMRecord.xml");
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenReturn(fileContentAsStream);
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -173,8 +172,7 @@ public class RecordHarvestingBoltTest  {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        when(harvester.harvestRecord(anyString(), anyString(), anyString(), any(XPathExpression.class), any(XPathExpression.class))).thenThrow(new
-                HarvesterException("Some!"));
+        when(harvester.harvestRecord(any(), anyString())).thenThrow(new HarvesterException("Some!"));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -293,4 +291,5 @@ public class RecordHarvestingBoltTest  {
 
     private static InputStream getFileContentAsStream(String name) {
         return Object.class.getResourceAsStream(name);
-    }}
+    }
+}

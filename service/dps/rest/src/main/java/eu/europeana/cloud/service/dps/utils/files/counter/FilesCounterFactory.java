@@ -47,7 +47,7 @@ public class FilesCounterFactory {
     }
 
     private String getTaskType(DpsTask task) {
-        //TODO sholud be done in more error prone way
+        //TODO should be done in more error prone way
         final InputDataType first = task.getInputData().keySet().iterator().next();
         return first.name();
     }
