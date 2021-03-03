@@ -128,6 +128,7 @@
 			<xsl:copy-of select="@*"/>
 			<xsl:apply-templates select="dc:creator"/>
 			<xsl:apply-templates select="edm:aggregatedCHO"/>
+			<xsl:apply-templates select="edm:dataProvider"/>
 			<xsl:apply-templates select="edm:collectionName"/>
 			<xsl:apply-templates select="edm:datasetName"/>
 			<xsl:apply-templates select="edm:country"/>
@@ -136,6 +137,7 @@
 			<xsl:apply-templates select="edm:preview"/>
 			<xsl:apply-templates select="edm:landingPage"/>
 			<xsl:apply-templates select="edm:language"/>
+			<xsl:apply-templates select="edm:provider"/>
 			<xsl:apply-templates select="edm:rights"/>
 			<xsl:apply-templates select="ore:aggregates"/>
 		</xsl:element>
@@ -197,6 +199,7 @@
 			<xsl:apply-templates select="edm:year"/>
 			<xsl:apply-templates select="ore:proxyFor"/>
 			<xsl:apply-templates select="ore:proxyIn"/>
+			<xsl:apply-templates select="ore:lineage"/>
 			<xsl:apply-templates select="edm:type"/>
 			<xsl:apply-templates select="owl:sameAs"/>
 		</xsl:element>
