@@ -15,7 +15,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String STATISTICS_REPORTS_TABLE = "statistics_reports";
     public static final String TASKS_BY_STATE_TABLE = "tasks_by_task_state";
     public static final String PROCESSED_RECORDS_TABLE = "processed_records";
-    public static final String RECORD_PROCESSING_STATE = "record_processing_state";
+    public static final String HARVESTED_RECORD_TABLE = "harvested_record";
 
     //------- BASIC INFO -------
     public static final String BASIC_TASK_ID = "task_id";
@@ -100,5 +100,16 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_START_TIME = "start_time";
     public static final String PROCESSED_RECORDS_INFO_TEXT = "info_text";
     public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
+
+    //------- HARVESTED_RECORD -------
+    public static final String HARVESTED_RECORD_PROVIDER_ID = "provider_id";
+    public static final String HARVESTED_RECORD_DATASET_ID = "dataset_id";
+    public static final String HARVESTED_RECORD_OAI_ID = "oai_id";
+    public static final String HARVESTED_RECORD_OAI_ID_BUCKET_NO = "oai_id_bucket_no";
+    public static final String HARVESTED_RECORD_HARVEST_DATE = "harvest_date";
+    public static final String HARVESTED_RECORD_INDEXING_DATE = "indexing_date";
+
+    public static final String HARVESTED_RECORD_MD5 = "md5";
+    public static final String HARVESTED_RECORD_IGNORED = "ignored";
 
 }
