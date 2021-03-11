@@ -6,6 +6,7 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -87,13 +88,14 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             stormTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));
         } catch (Exception e) {
             LOGGER.error("Exception while reading and parsing file for processing the edm:object resource. The full error is:{} ", ExceptionUtils.getStackTrace(e));
-            buildErrorMessage(exception, "Exception while processing the edm:object resource. The full error is: " + e.getMessage() + " because of: " + e.getCause());
+            emitErrorNotification(
+                    anchorTuple,
+                    stormTaskTuple.getTaskId(),
+                    stormTaskTuple.getFileUrl(),
+                    "Can not retrieve file",
+                    "The cause of the error is:" + e.getCause(),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } finally {
-            if (exception.length() > 0) {
-                stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
-                stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
-            }
-            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             outputCollector.ack(anchorTuple);
         }
         LOGGER.info("Processing edm:object finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
