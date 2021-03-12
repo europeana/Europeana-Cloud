@@ -2,14 +2,16 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
+import com.google.common.hash.Hashing;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import org.apache.commons.io.Charsets;
 
 import java.util.Iterator;
 import java.util.Optional;
 
 public class HarvestedRecordDAO extends CassandraDAO {
 
-    private static final int OAI_ID_BUCKET_COUNT = 32;
+    static final int OAI_ID_BUCKET_COUNT = 64;
     private static HarvestedRecordDAO instance;
     private PreparedStatement insertHarvestedRecord;
     private PreparedStatement findRecord;
@@ -92,7 +94,8 @@ public class HarvestedRecordDAO extends CassandraDAO {
     }
 
     private int oaiIdBucketNo(String oaiId) {
-        return (OAI_ID_BUCKET_COUNT - 1) & oaiId.hashCode();
+        return (OAI_ID_BUCKET_COUNT - 1) &
+                Hashing.murmur3_32().hashString(oaiId, Charsets.UTF_8).asInt();
     }
 
     private class HarvestedRecordIterator implements Iterator<HarvestedRecord> {
