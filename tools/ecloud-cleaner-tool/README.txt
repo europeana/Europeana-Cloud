@@ -48,5 +48,7 @@ Provider-n_id
 1. Example parameteers to remove records data:
         java -jar ecloud-cleaner-tool-2.0-SNAPSHOT-jar-with-dependencies.jar --test-mode yes --only-records yes --url https://test.ecloud.psnc.pl/api --username admin --password ***** --providers-file /path/to/providers/file/file_described_above
 
-2. Example parameteers to remove records data:
+        java -jar ecloud-cleaner-tool-2.0-SNAPSHOT-jar-with-dependencies.jar --test-mode yes --only-records yes --url https://ecloud.psnc.pl/api --username admin --password ***** --records-file /path/to/file/with/records_ids/file_described_above
+
+2. Example parameteers to remove datasets:
         java -jar ecloud-cleaner-tool-2.0-SNAPSHOT-jar-with-dependencies.jar --only-datasets yes --url https://test.ecloud.psnc.pl/api --username metis_test --password ***** --providers-file /path/to/providers/file/file_described_above
