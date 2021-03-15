@@ -20,8 +20,7 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.
@@ -56,12 +55,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
             try (final InputStream record = harvester.harvestRecord(
                    new OaiRepository(endpointLocation, metadataPrefix), recordId)) {
                 stormTaskTuple.setFileData(record);
-
-                if (useHeaderIdentifier(stormTaskTuple))
-                    trimLocalId(stormTaskTuple); //Added for the time of migration - MET-1189
-                else
-                    useEuropeanaId(stormTaskTuple);
-
+                prepareLocalIdentifiers(stormTaskTuple);
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
 
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
@@ -95,26 +89,18 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         LOGGER.info("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
     }
 
-    private void trimLocalId(StormTaskTuple stormTaskTuple) {
-        String europeanaIdPrefix = stormTaskTuple.getParameter(PluginParameterKeys.MIGRATION_IDENTIFIER_PREFIX);
-        String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-        if (europeanaIdPrefix != null && localId.startsWith(europeanaIdPrefix)) {
-            String trimmed = localId.replace(europeanaIdPrefix, "");
-            stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, trimmed);
-        }
-    }
-
-    private void useEuropeanaId(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
+    private void prepareLocalIdentifiers(StormTaskTuple stormTaskTuple) throws EuropeanaIdException{
         String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         String document = new String(stormTaskTuple.getFileData());
         EuropeanaIdCreator europeanaIdCreator = new EuropeanaIdCreator();
         EuropeanaGeneratedIdsMap europeanaIdMap = europeanaIdCreator.constructEuropeanaId(document, datasetId);
         String europeanaId = europeanaIdMap.getEuropeanaGeneratedId();
         String localIdFromProvider = europeanaIdMap.getSourceProvidedChoAbout();
-        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, europeanaId);
-        stormTaskTuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, localIdFromProvider);
+        //
+        stormTaskTuple.getIdentifiersToUse().add(stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
+        stormTaskTuple.getIdentifiersToUse().add(europeanaId);
+        stormTaskTuple.getIdentifiersToUse().add(localIdFromProvider);
     }
-
 
     @Override
     public void prepare() {
@@ -137,11 +123,4 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
     }
 
-    private boolean useHeaderIdentifier(StormTaskTuple stormTaskTuple) {
-        boolean useHeaderIdentifiers = false;
-        if ("true".equals(stormTaskTuple.getParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS))) {
-            useHeaderIdentifiers = true;
-        }
-        return useHeaderIdentifiers;
-    }
 }

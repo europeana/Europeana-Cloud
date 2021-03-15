@@ -12,9 +12,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.*;
 
@@ -41,6 +39,7 @@ public class StormTaskTuple implements Serializable {
     private Revision revisionToBeApplied;
     private OAIPMHHarvestingDetails sourceDetails;
     private int recordAttemptNumber;
+    private List<String> identifiersToUse;
 
     public StormTaskTuple() {
         this(0L, "", null, null, new HashMap<>(), null);
@@ -54,12 +53,13 @@ public class StormTaskTuple implements Serializable {
     public StormTaskTuple(long taskId, String taskName, String fileUrl,
                           byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied,
                           OAIPMHHarvestingDetails sourceDetails) {
-        this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, 0);
+        this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, 0, new ArrayList<>());
     }
 
     public StormTaskTuple(long taskId, String taskName, String fileUrl,
                           byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied,
-                          OAIPMHHarvestingDetails sourceDetails, int recordAttemptNumber) {
+                          OAIPMHHarvestingDetails sourceDetails, int recordAttemptNumber,
+                          List<String> localIdentifiers) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.fileUrl = fileUrl;
@@ -68,6 +68,7 @@ public class StormTaskTuple implements Serializable {
         this.revisionToBeApplied = revisionToBeApplied;
         this.sourceDetails = sourceDetails;
         this.recordAttemptNumber = recordAttemptNumber;
+        this.identifiersToUse = localIdentifiers;
     }
 
     public ByteArrayInputStream getFileByteDataAsStream() {
@@ -121,7 +122,8 @@ public class StormTaskTuple implements Serializable {
                 (HashMap<String, String>)tuple.getValueByField(PARAMETERS_TUPLE_KEY),
                 (Revision) tuple.getValueByField(REVISIONS),
                 (OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST),
-                tuple.getIntegerByField(RECORD_ATTEMPT_NUMBER));
+                tuple.getIntegerByField(RECORD_ATTEMPT_NUMBER),
+                (List<String>)tuple.getValueByField(LOCAL_IDENTIFIERS));
 
     }
 
@@ -135,12 +137,13 @@ public class StormTaskTuple implements Serializable {
                 (Map<String, String>) list.get(4),
                 (Revision) list.get(5),
                 (OAIPMHHarvestingDetails) list.get(6),
-                (Integer) list.get(7));
+                (Integer) list.get(7),
+                (ArrayList<String>)list.get(8));
 
     }
 
     public Values toStormTuple() {
-        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, recordAttemptNumber);
+        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, recordAttemptNumber, identifiersToUse);
     }
 
     public static Fields getFields() {
@@ -152,7 +155,8 @@ public class StormTaskTuple implements Serializable {
                 PARAMETERS_TUPLE_KEY,
                 REVISIONS,
                 SOURCE_TO_HARVEST,
-                RECORD_ATTEMPT_NUMBER);
+                RECORD_ATTEMPT_NUMBER,
+                LOCAL_IDENTIFIERS);
     }
 
     public boolean isMarkedAsDeleted() {
