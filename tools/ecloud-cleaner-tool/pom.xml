@@ -14,7 +14,7 @@
     <parent>
         <artifactId>ecloud-tools</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>3-SNAPSHOT</version>
+        <version>4-SNAPSHOT</version>
     </parent>
 
     <properties>
