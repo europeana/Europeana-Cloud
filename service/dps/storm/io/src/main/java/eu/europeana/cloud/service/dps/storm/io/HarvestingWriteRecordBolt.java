@@ -34,60 +34,14 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     }
 
     @Override
-    protected boolean ignoreDeleted() {
-        return false;
-    }
-
-    @Override
     public void prepare() {
         uisClient = new UISClient(ecloudUisAddress);
         super.prepare();
     }
 
-    private String getCloudId(String authorizationHeader, String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
-        String result;
-        CloudId cloudId;
-        cloudId = getCloudId(providerId, localId, authorizationHeader);
-        if (cloudId != null) {
-            result = cloudId.getId();
-        } else {
-            result = createCloudId(providerId, localId, authorizationHeader);
-        }
-        if (additionalLocalIdentifier != null)
-            attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId, authorizationHeader);
-        return result;
-
-    }
-
-    private boolean attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, String authorizationHeader)
-            throws CloudException {
-        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () -> {
-            try {
-                return uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier, AUTHORIZATION, authorizationHeader);
-            } catch (Exception e) {
-                if (e.getCause() instanceof IdHasBeenMappedException)
-                    return true;
-                throw e;
-            }
-        });
-    }
-
-    private CloudId getCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
-        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_GETTING_CLOUD_ID, () -> {
-            try {
-                return uisClient.getCloudId(providerId, localId, AUTHORIZATION, authenticationHeader);
-            } catch (Exception e) {
-                if (e.getCause() instanceof RecordDoesNotExistException) {
-                    return null;
-                }
-                throw e;
-            }
-        });
-    }
-
-    private String createCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
-        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
-                uisClient.createCloudId(providerId, localId, AUTHORIZATION, authenticationHeader).getId());
+    @Override
+    protected boolean ignoreDeleted() {
+        return false;
     }
 
     @Override
@@ -108,6 +62,52 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         writeParams.setRepresentationName(representationName);
         writeParams.setProviderId(providerId);
         return writeParams;
+    }
+
+    private String getCloudId(String authorizationHeader, String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
+        String result;
+        CloudId cloudId;
+        cloudId = getCloudId(providerId, localId, authorizationHeader);
+        if (cloudId != null) {
+            result = cloudId.getId();
+        } else {
+            result = createCloudId(providerId, localId, authorizationHeader);
+        }
+        if (additionalLocalIdentifier != null)
+            attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId, authorizationHeader);
+        return result;
+
+    }
+
+    private CloudId getCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
+        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_GETTING_CLOUD_ID, () -> {
+            try {
+                return uisClient.getCloudId(providerId, localId, AUTHORIZATION, authenticationHeader);
+            } catch (Exception e) {
+                if (e.getCause() instanceof RecordDoesNotExistException) {
+                    return null;
+                }
+                throw e;
+            }
+        });
+    }
+
+    private String createCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
+        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
+                uisClient.createCloudId(providerId, localId, AUTHORIZATION, authenticationHeader).getId());
+    }
+
+    private boolean attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, String authorizationHeader)
+            throws CloudException {
+        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () -> {
+            try {
+                return uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier, AUTHORIZATION, authorizationHeader);
+            } catch (Exception e) {
+                if (e.getCause() instanceof IdHasBeenMappedException)
+                    return true;
+                throw e;
+            }
+        });
     }
 }
 
