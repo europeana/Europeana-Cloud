@@ -7,7 +7,7 @@ import org.apache.commons.cli.Options;
  * Created by Tarek on 4/16/2019.
  */
 public class CommandLineHelper {
-    private Options options;
+    private final Options options;
 
     public CommandLineHelper() {
 

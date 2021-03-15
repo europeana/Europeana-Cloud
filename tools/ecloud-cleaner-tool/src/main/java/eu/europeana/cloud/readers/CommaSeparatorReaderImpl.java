@@ -14,13 +14,12 @@ import java.util.List;
 public class CommaSeparatorReaderImpl implements TaskIdsReader {
     private static final String LINE_SEPARATOR = ",";
 
-
     @Override
     public List<String> getTaskIds(String filePath) throws IOException {
         List<String> taskIds = new ArrayList<>();
-        String line = "";
+        String line;
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            br.readLine(); // exclude header
+            line = br.readLine(); // exclude header
             while ((line = br.readLine()) != null) {
                 String[] lines = line.split(LINE_SEPARATOR);
                 taskIds.add(lines[0]);

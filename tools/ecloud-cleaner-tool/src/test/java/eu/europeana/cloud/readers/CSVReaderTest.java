@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
  * Created by Tarek on 4/17/2019.
  */
 public class CSVReaderTest {
-    private CommaSeparatorReaderImpl csvReader = new CommaSeparatorReaderImpl();
+    private final CommaSeparatorReaderImpl csvReader = new CommaSeparatorReaderImpl();
 
     @Test
     public void shouldReadAndReturnTaskIdsForCSVFile() throws IOException {

@@ -14,7 +14,8 @@
 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <version.jdk>1.8</version.jdk>
+
+        <version.jdk>11</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
         <version.powermock-mockito>1.5.3</version.powermock-mockito>
@@ -92,11 +93,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+<!--
                     <version>2.5.1</version>
                     <configuration>
                         <source>${version.jdk}</source>
                         <target>${version.jdk}</target>
                     </configuration>
+-->
                 </plugin>
             </plugins>
         </pluginManagement>

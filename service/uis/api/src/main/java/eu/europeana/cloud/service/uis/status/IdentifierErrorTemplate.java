@@ -267,7 +267,31 @@ public enum IdentifierErrorTemplate {
 	public IdHasBeenMappedException getException(ErrorInfo e) {
 	    return new IdHasBeenMappedException(e);
 	}
-    };
+    },
+
+
+	OTHER {
+
+		@Override
+		public ErrorInfo getErrorInfo(String... args) {
+			return new ErrorInfo(
+					"OTHER",
+					String.format(
+							"The supplied %s id for provider %s has already been assigned to the cloud identifier %s",
+							args[1], args[0], args[2]));
+		}
+
+		@Override
+		public Status getHttpCode() {
+			return Status.INTERNAL_SERVER_ERROR;
+		}
+
+		@Override
+		public IdHasBeenMappedException getException(ErrorInfo e) {
+			return new IdHasBeenMappedException(e);
+		}
+	};
+
 
     /**
      * Generate the error message for each case

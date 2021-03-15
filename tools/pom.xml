@@ -15,8 +15,10 @@
     <!-- skipped as those are just helper/tools projects-->
     <sonar.skip>true</sonar.skip>
   </properties>
+
   <modules>
-    <module>resource-migration-tool</module>
+      <module>resource-migration-tool</module>
       <module>ecloud-revision-cleaner-tool</module>
+      <module>ecloud-cleaner-tool</module>
   </modules>
 </project>
