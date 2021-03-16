@@ -2,9 +2,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
-import com.google.common.hash.Hashing;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import org.apache.commons.io.Charsets;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -94,49 +92,29 @@ public class HarvestedRecordDAO extends CassandraDAO {
     }
 
     private int oaiIdBucketNo(String oaiId) {
-        return (OAI_ID_BUCKET_COUNT - 1) &
-                Hashing.murmur3_32().hashString(oaiId, Charsets.UTF_8).asInt();
+        int bucketCount = OAI_ID_BUCKET_COUNT;
+        return BucketUtils.bucketNumber(oaiId, bucketCount);
     }
 
-    private class HarvestedRecordIterator implements Iterator<HarvestedRecord> {
+    private class HarvestedRecordIterator extends BucketRecordIterator<HarvestedRecord> {
         private final String providerId;
         private final String datasetId;
-        private int bucketNo = 0;
-        private Iterator<Row> currentBucketIterator;
 
         public HarvestedRecordIterator(String providerId, String datasetId) {
             this.providerId = providerId;
             this.datasetId = datasetId;
-            queryBucket();
         }
 
         @Override
-        public boolean hasNext() {
-            goToNextBucketIfNeeded();
-            return currentBucketIterator.hasNext();
-        }
-
-        @Override
-        public HarvestedRecord next() {
-            goToNextBucketIfNeeded();
-            return readRecord(currentBucketIterator.next());
-        }
-
-        private void goToNextBucketIfNeeded() {
-            while (!currentBucketIterator.hasNext() && notLastBucket()) {
-                bucketNo++;
-                queryBucket();
-            }
-        }
-
-        private boolean notLastBucket() {
-            return bucketNo < (OAI_ID_BUCKET_COUNT - 1);
-        }
-
-        private void queryBucket() {
-            currentBucketIterator = dbService.getSession().execute(
-                    findAllRecordInDataset.bind(providerId, datasetId, bucketNo))
+        protected Iterator<Row> queryBucket(int bucketNumber) {
+            return dbService.getSession().execute(
+                    findAllRecordInDataset.bind(providerId, datasetId, bucketNumber))
                     .iterator();
+        }
+
+        @Override
+        protected HarvestedRecord convertRowToEntity(Row row) {
+            return readRecord(row);
         }
 
     }
