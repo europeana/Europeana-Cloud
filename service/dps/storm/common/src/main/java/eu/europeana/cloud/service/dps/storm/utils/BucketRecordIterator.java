@@ -3,10 +3,26 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.Row;
 
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 
-public abstract class BucketRecordIterator<T> implements Iterator<T> {
-    private int bucketNo = -1;
+public class BucketRecordIterator<T> implements Iterator<T> {
+
+    private final int bucketCount;
+    private final Function<Row, T> convertMethod;
+    private final IntFunction<Iterator<Row>> bucketQueryMethod;
+
+    private int bucketNumber = -1;
     private Iterator<Row> currentBucketIterator;
+
+    public BucketRecordIterator(int bucketCount,
+                                   IntFunction<Iterator<Row>> bucketQueryMethod,
+                                   RowConverter<T> convertMethod) {
+        this.bucketCount = bucketCount;
+        this.bucketQueryMethod = bucketQueryMethod;
+        this.convertMethod = convertMethod;
+    }
 
     @Override
     public boolean hasNext() {
@@ -21,22 +37,26 @@ public abstract class BucketRecordIterator<T> implements Iterator<T> {
     }
 
     private void goToNextBucketIfNeeded() {
-        if(currentBucketIterator==null){
-            currentBucketIterator=queryBucket(bucketNo);
-        }
-        while ((currentBucketIterator==null) || (!currentBucketIterator.hasNext() && notLastBucket())) {
-            bucketNo++;
-            currentBucketIterator=queryBucket(bucketNo);
+        while ((currentBucketIterator == null) || (!currentBucketIterator.hasNext() && notLastBucket())) {
+            bucketNumber++;
+            currentBucketIterator = queryBucket(bucketNumber);
         }
     }
 
-    protected abstract T convertRowToEntity(Row row);
+    protected T convertRowToEntity(Row row) {
+        return convertMethod.apply(row);
+    }
 
-    protected abstract Iterator<Row> queryBucket(int bucketNumber);
+    protected Iterator<Row> queryBucket(int bucketNumber) {
+        return Objects.requireNonNull(bucketQueryMethod.apply(bucketNumber));
+    }
 
     private boolean notLastBucket() {
-        return bucketNo < (HarvestedRecordDAO.OAI_ID_BUCKET_COUNT - 1);
+        return bucketNumber < (bucketCount - 1);
     }
 
+    public interface RowConverter<R> extends Function<Row,R>{
+
+    }
 
 }

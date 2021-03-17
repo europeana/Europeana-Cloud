@@ -105,7 +105,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String HARVESTED_RECORD_PROVIDER_ID = "provider_id";
     public static final String HARVESTED_RECORD_DATASET_ID = "dataset_id";
     public static final String HARVESTED_RECORD_OAI_ID = "oai_id";
-    public static final String HARVESTED_RECORD_OAI_ID_BUCKET_NO = "oai_id_bucket_no";
+    public static final String HARVESTED_RECORD_BUCKET_NUMBER = "bucket_number";
     public static final String HARVESTED_RECORD_HARVEST_DATE = "harvest_date";
     public static final String HARVESTED_RECORD_INDEXING_DATE = "indexing_date";
 

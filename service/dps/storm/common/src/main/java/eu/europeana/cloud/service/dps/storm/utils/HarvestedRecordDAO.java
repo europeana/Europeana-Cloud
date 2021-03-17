@@ -6,6 +6,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class HarvestedRecordDAO extends CassandraDAO {
 
@@ -32,7 +33,7 @@ public class HarvestedRecordDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE + "("
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID_BUCKET_NO
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE
                 + ") VALUES(?,?,?,?,?);"
@@ -44,7 +45,7 @@ public class HarvestedRecordDAO extends CassandraDAO {
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
-                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID_BUCKET_NO + " = ? "
+                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID + " = ? "
         );
 
@@ -54,7 +55,7 @@ public class HarvestedRecordDAO extends CassandraDAO {
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
-                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID_BUCKET_NO + " = ? "
+                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
         );
 
         findAllRecordInDataset.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -75,9 +76,16 @@ public class HarvestedRecordDAO extends CassandraDAO {
     }
 
     public Iterator<HarvestedRecord> findDatasetRecords(String providerId, String datasetId) {
-        return new HarvestedRecordIterator(providerId, datasetId);
+        return new BucketRecordIterator<>(OAI_ID_BUCKET_COUNT,
+                (bucketNumber -> queryBucket(providerId, datasetId, bucketNumber)),
+                this::readRecord);
     }
 
+    private Iterator<Row> queryBucket(String providerId, String datasetId, Integer bucketNumber) {
+        return dbService.getSession().execute(
+                findAllRecordInDataset.bind(providerId, datasetId, bucketNumber))
+                .iterator();
+    }
 
     private HarvestedRecord readRecord(Row row) {
         return HarvestedRecord.builder()
@@ -92,30 +100,6 @@ public class HarvestedRecordDAO extends CassandraDAO {
     }
 
     private int oaiIdBucketNo(String oaiId) {
-        int bucketCount = OAI_ID_BUCKET_COUNT;
-        return BucketUtils.bucketNumber(oaiId, bucketCount);
-    }
-
-    private class HarvestedRecordIterator extends BucketRecordIterator<HarvestedRecord> {
-        private final String providerId;
-        private final String datasetId;
-
-        public HarvestedRecordIterator(String providerId, String datasetId) {
-            this.providerId = providerId;
-            this.datasetId = datasetId;
-        }
-
-        @Override
-        protected Iterator<Row> queryBucket(int bucketNumber) {
-            return dbService.getSession().execute(
-                    findAllRecordInDataset.bind(providerId, datasetId, bucketNumber))
-                    .iterator();
-        }
-
-        @Override
-        protected HarvestedRecord convertRowToEntity(Row row) {
-            return readRecord(row);
-        }
-
+        return BucketUtils.bucketNumber(oaiId, OAI_ID_BUCKET_COUNT);
     }
 }
