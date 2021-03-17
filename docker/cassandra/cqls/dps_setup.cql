@@ -97,5 +97,6 @@ CREATE TABLE processed_records (
     start_time     timestamp,
     info_text text,
     additional_informations text,
-    PRIMARY KEY(task_id, record_id)
+    bucket_number int,
+    PRIMARY KEY(task_id, record_id, bucket_number)
 );

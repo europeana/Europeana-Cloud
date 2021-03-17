@@ -20,6 +20,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColum
  */
 public class ProcessedRecordsDAO extends CassandraDAO {
     private static final long TIME_TO_LIVE = 2 * 7 * 24 * 60 * 60L;  //two weeks in seconds
+    private static final int BUCKETS_COUNT = 32;
 
     private PreparedStatement insertStatement;
     private PreparedStatement updateRecordStateStatement;
@@ -46,6 +47,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 "("
                 + PROCESSED_RECORDS_TASK_ID + ","
                 + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
                 + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
                 + PROCESSED_RECORDS_DST_IDENTIFIER + ","
                 + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
@@ -53,28 +55,31 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_START_TIME + ","
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                ") VALUES (?,?,?,?,?,?,?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?,?,?,?,?,?,?) USING TTL " + TIME_TO_LIVE);
 
         updateRecordStateStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
                 + PROCESSED_RECORDS_TASK_ID + ","
                 + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
                 + PROCESSED_RECORDS_STATE +
-                ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?) USING TTL " + TIME_TO_LIVE);
 
         updateRecordStartTime = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
                 + PROCESSED_RECORDS_TASK_ID + ","
                 + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
                 + PROCESSED_RECORDS_START_TIME +
-                ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?) USING TTL " + TIME_TO_LIVE);
 
         updateAttemptNumberStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
                 + PROCESSED_RECORDS_TASK_ID + ","
                 + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
                 + PROCESSED_RECORDS_ATTEMPT_NUMBER +
-                ") VALUES (?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?) USING TTL " + TIME_TO_LIVE);
 
         selectByPrimaryKeyStatement = dbService.getSession().prepare("SELECT "
                 + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
@@ -84,14 +89,15 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_START_TIME + ","
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_RECORD_ID + " = ?");
+                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_RECORD_ID + " = ?" + PROCESSED_RECORDS_BUCKET_NUMBER + " = ?");
 
     }
 
     public void insert(long taskId, String recordId, int attemptNumber, String dstResource, String topologyName,
                        String state, String infoText, String additionalInformations)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(insertStatement.bind(taskId, recordId, attemptNumber, dstResource, topologyName,
+        dbService.getSession().execute(insertStatement.bind(taskId, recordId,
+                BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), attemptNumber, dstResource, topologyName,
                 state, Calendar.getInstance().getTime(), infoText, additionalInformations));
     }
 
@@ -104,14 +110,14 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     public void updateProcessedRecordState(long taskId, String recordId, String state) {
         dbService.getSession().execute(
-                updateRecordStateStatement.bind(taskId, recordId, state));
+                updateRecordStateStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), state));
     }
 
     public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)
             throws NoHostAvailableException, QueryExecutionException {
         ProcessedRecord result = null;
 
-        ResultSet rs = dbService.getSession().execute(selectByPrimaryKeyStatement.bind(taskId, recordId));
+        ResultSet rs = dbService.getSession().execute(selectByPrimaryKeyStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT)));
         Row row = rs.one();
         if (row != null) {
             result = ProcessedRecord
@@ -137,11 +143,12 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     public void updateStartTime(long taskId, String recordId, Date startTime) {
         dbService.getSession().execute(
-                updateRecordStartTime.bind(taskId, recordId, startTime));
+                updateRecordStartTime.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), startTime));
     }
 
     public void updateAttempNumber(long taskId, String recordId, int attempNumber) {
         dbService.getSession().execute(
-                updateAttemptNumberStatement.bind(taskId, recordId, attempNumber));
+                updateAttemptNumberStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), attempNumber));
     }
+
 }
