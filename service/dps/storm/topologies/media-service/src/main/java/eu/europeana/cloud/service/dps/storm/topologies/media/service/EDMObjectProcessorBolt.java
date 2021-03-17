@@ -11,6 +11,8 @@ import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
+import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
+import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
@@ -57,39 +59,16 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting edm:object processing");
         long processingStartTime = new Date().getTime();
-        StringBuilder exception = new StringBuilder();
 
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
-            boolean mainThumbnailAvailable = false;
 
             if (edmObjectResourceEntry != null) {
-                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
-                if (resourceExtractionResult != null && resourceExtractionResult.getMetadata() != null) {
-
-                    StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-                    tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
-                    tuple.addParameter(
-                            PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE,
-                            gson.toJson(!resourceExtractionResult.getMetadata().getThumbnailTargetNames().isEmpty()));
-                    // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
-                    //  to collect all the resources instead of just counting them
-                    tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT,
-                            String.valueOf(rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size() + 1));
-
-                    storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
-                    tuple.addParameter(PluginParameterKeys.MAIN_RESOURCE_METADATA_AVAILABLE, "true");
-                    outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
-                    outputCollector.emit(anchorTuple, tuple.toStormTuple());
-                }
+                processResource(anchorTuple, stormTaskTuple, fileContent, edmObjectResourceEntry);
             } else {
-                //no main thumbnail, emit to the parsing bolt only
-                StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-                tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT,
-                        String.valueOf(rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size()));
-                outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+                emitTupleWithoutThumbnail(anchorTuple, stormTaskTuple, fileContent);
             }
         } catch (Exception e) {
             LOGGER.error("Exception while reading and parsing file for processing the edm:object resource. The full error is:{} ", ExceptionUtils.getStackTrace(e));
@@ -104,6 +83,37 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             outputCollector.ack(anchorTuple);
         }
         LOGGER.info("Processing edm:object finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+    }
+
+    private void emitTupleWithoutThumbnail(Tuple anchorTuple, StormTaskTuple stormTaskTuple, byte[] fileContent) throws RdfDeserializationException {
+        //no main thumbnail, emit to the parsing bolt only
+        StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT,
+                String.valueOf(rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size()));
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+    }
+
+    private void processResource(Tuple anchorTuple, StormTaskTuple stormTaskTuple, byte[] fileContent, RdfResourceEntry edmObjectResourceEntry) throws MediaExtractionException, RdfDeserializationException, IOException {
+        boolean mainThumbnailAvailable = false;
+        StringBuilder exception = new StringBuilder();
+        ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
+        if (resourceExtractionResult != null && resourceExtractionResult.getMetadata() != null) {
+
+            StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+            tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+            tuple.addParameter(
+                    PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE,
+                    gson.toJson(!resourceExtractionResult.getMetadata().getThumbnailTargetNames().isEmpty()));
+            // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
+            //  to collect all the resources instead of just counting them
+            tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT,
+                    String.valueOf(rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size() + 1));
+
+            storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+            tuple.addParameter(PluginParameterKeys.MAIN_RESOURCE_METADATA_AVAILABLE, "true");
+            outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
+            outputCollector.emit(anchorTuple, tuple.toStormTuple());
+        }
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
