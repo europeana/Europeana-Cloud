@@ -57,7 +57,6 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                 }
-                LOGGER.info("Resource processing finished in: {}ms", String.valueOf(Calendar.getInstance().getTimeInMillis() - processingStartTime));
             } catch (Exception e) {
                 LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
                 buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
@@ -71,7 +70,9 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 outputCollector.ack(anchorTuple);
             }
         }
-        LOGGER.info("Resource processing finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("Resource processing finished in: {}ms for {}",
+                Calendar.getInstance().getTimeInMillis() - processingStartTime,
+                stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL));
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
