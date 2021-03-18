@@ -4,15 +4,16 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class HarvestedRecordDAO extends CassandraDAO {
 
     static final int OAI_ID_BUCKET_COUNT = 64;
     private static HarvestedRecordDAO instance;
     private PreparedStatement insertHarvestedRecord;
+    private PreparedStatement updateIndexingDate;
     private PreparedStatement findRecord;
     private PreparedStatement findAllRecordInDataset;
 
@@ -41,6 +42,17 @@ public class HarvestedRecordDAO extends CassandraDAO {
 
         insertHarvestedRecord.setConsistencyLevel(dbService.getConsistencyLevel());
 
+        updateIndexingDate = dbService.getSession().prepare("UPDATE "
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE + " = ? "
+                + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID + " = ? "
+        );
+
+        updateIndexingDate.setConsistencyLevel(dbService.getConsistencyLevel());
+
         findRecord = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
@@ -66,6 +78,10 @@ public class HarvestedRecordDAO extends CassandraDAO {
     public void insertHarvestedRecord(HarvestedRecord record) {
         dbService.getSession().execute(insertHarvestedRecord.bind(record.getProviderId(), record.getDatasetId(),
                 oaiIdBucketNo(record.getOaiId()), record.getOaiId(), record.getHarvestDate()));
+    }
+
+    public void updateIndexingDate(String providerId, String datasetId, String oaiId, Date indexingDate) {
+        dbService.getSession().execute(updateIndexingDate.bind(indexingDate, providerId, datasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
     public Optional<HarvestedRecord> findRecord(String providerId, String datasetId, String oaiId) {
