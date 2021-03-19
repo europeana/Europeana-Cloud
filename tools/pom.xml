@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>ecloud-parent</artifactId>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>ecloud-parent</artifactId>
+        <groupId>eu.europeana.cloud</groupId>
+        <version>3</version>
+    </parent>
+
     <groupId>eu.europeana.cloud</groupId>
-    <version>3</version>
-  </parent>
-  <groupId>eu.europeana.cloud</groupId>
-  <artifactId>ecloud-tools</artifactId>
-  <version>3</version>
-  <packaging>pom</packaging>
-  <name>Europeana Cloud: Tools</name>
-  <properties>
-    <!-- skipped as those are just helper/tools projects-->
-    <sonar.skip>true</sonar.skip>
-  </properties>
-  <modules>
-    <module>resource-migration-tool</module>
-    <module>ecloud-revision-cleaner-tool</module>
-    <module>ecloud-db-migrator</module>
-  </modules>
+    <artifactId>ecloud-tools</artifactId>
+    <version>${parent.version}</version>
+    <packaging>pom</packaging>
+    <name>Europeana Cloud: Tools</name>
+
+    <properties>
+        <!-- skipped as those are just helper/tools projects-->
+        <sonar.skip>true</sonar.skip>
+    </properties>
+
+    <modules>
+        <module>resource-migration-tool</module>
+        <module>ecloud-revision-cleaner-tool</module>
+        <module>ecloud-db-migrator</module>
+    </modules>
 </project>
