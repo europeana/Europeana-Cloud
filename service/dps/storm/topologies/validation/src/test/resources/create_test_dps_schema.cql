@@ -107,8 +107,10 @@ create table harvested_record(
     bucket_number int,
     oai_id        varchar,
     harvest_date  timestamp,
-    indexing_date timestamp,
     md5           uuid,
+    indexing_date timestamp,
+    indexed_harvest_date timestamp,
+    indexed_md5           uuid,
     ignored       boolean,
     PRIMARY KEY ((provider_id, dataset_id, bucket_number), oai_id)
 );

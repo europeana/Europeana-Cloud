@@ -12,8 +12,10 @@ public class V10_1__create_table_harvested_record implements JavaMigration {
                 "bucket_number int, \n" +
                 "oai_id varchar,\n" +
                 "harvest_date timestamp,\n" +
-                "indexing_date timestamp,\n" +
                 "md5 uuid, \n" +
+                "indexing_date timestamp,\n" +
+                "indexed_harvest_date timestamp,\n" +
+                "indexed_md5 uuid, \n" +
                 "ignored boolean,\n" +
                 "PRIMARY KEY ((provider_id,dataset_id,oai_id_bucket_no), oai_id));");
     }

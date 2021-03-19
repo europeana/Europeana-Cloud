@@ -13,7 +13,7 @@ public class HarvestedRecordDAO extends CassandraDAO {
     static final int OAI_ID_BUCKET_COUNT = 64;
     private static HarvestedRecordDAO instance;
     private PreparedStatement insertHarvestedRecord;
-    private PreparedStatement updateIndexingDate;
+    private PreparedStatement updateIndexingFields;
     private PreparedStatement findRecord;
     private PreparedStatement findAllRecordInDataset;
 
@@ -37,21 +37,24 @@ public class HarvestedRecordDAO extends CassandraDAO {
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE
-                + ") VALUES(?,?,?,?,?);"
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_MD5
+                + ") VALUES(?,?,?,?,?,?);"
         );
 
         insertHarvestedRecord.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateIndexingDate = dbService.getSession().prepare("UPDATE "
+        updateIndexingFields = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE + " = ? "
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE + " = ? , "
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXED_HARVEST_DATE + " = ? , "
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_IGNORED + " = false "
                 + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID + " = ? "
         );
 
-        updateIndexingDate.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateIndexingFields.setConsistencyLevel(dbService.getConsistencyLevel());
 
         findRecord = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
@@ -77,11 +80,12 @@ public class HarvestedRecordDAO extends CassandraDAO {
 
     public void insertHarvestedRecord(HarvestedRecord record) {
         dbService.getSession().execute(insertHarvestedRecord.bind(record.getProviderId(), record.getDatasetId(),
-                oaiIdBucketNo(record.getOaiId()), record.getOaiId(), record.getHarvestDate()));
+                oaiIdBucketNo(record.getOaiId()), record.getOaiId(), record.getHarvestDate(), record.getMd5()));
     }
 
-    public void updateIndexingDate(String providerId, String datasetId, String oaiId, Date indexingDate) {
-        dbService.getSession().execute(updateIndexingDate.bind(indexingDate, providerId, datasetId, oaiIdBucketNo(oaiId), oaiId));
+    public void updateIndexingFields(String providerId, String datasetId, String oaiId, Date indexingDate, Date indexedHarvestDate) {
+        dbService.getSession().execute(updateIndexingFields.bind(indexingDate, indexedHarvestDate,
+                providerId, datasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
     public Optional<HarvestedRecord> findRecord(String providerId, String datasetId, String oaiId) {

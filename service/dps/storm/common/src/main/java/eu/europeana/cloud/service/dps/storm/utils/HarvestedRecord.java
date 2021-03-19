@@ -15,6 +15,7 @@ public class HarvestedRecord {
     private String oaiId;
     private Date harvestDate;
     private Date indexingDate;
+    private Date indexedHarvestingDate;
     private UUID md5;
     private boolean ignored;
 

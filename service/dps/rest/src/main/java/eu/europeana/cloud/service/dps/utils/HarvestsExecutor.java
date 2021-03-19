@@ -1,8 +1,12 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterException;
@@ -12,6 +16,10 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
+
+import java.net.MalformedURLException;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -35,15 +43,21 @@ public class HarvestsExecutor {
      * Auxiliary object to check 'kill flag' for task
      */
     private final TaskStatusChecker taskStatusChecker;
+    private final HarvestedRecordDAO harvestedRecordDAO;
 
-    public HarvestsExecutor(RecordSubmitService recordSubmitService, TaskStatusChecker taskStatusChecker) {
+    public HarvestsExecutor(RecordSubmitService recordSubmitService, TaskStatusChecker taskStatusChecker, HarvestedRecordDAO harvestedRecordDAO) {
         this.recordSubmitService = recordSubmitService;
         this.taskStatusChecker = taskStatusChecker;
+        this.harvestedRecordDAO = harvestedRecordDAO;
     }
 
     public HarvestResult execute(List<OaiHarvest> harvestsToBeExecuted, SubmitTaskParameters parameters) throws HarvesterException {
+        if(isIncremental(parameters) && parameters.getTaskParameter(PluginParameterKeys.SAMPLE_SIZE)!=null){
+            //TODO impletent support for this or add such condition to TaskValidator
+            throw new IllegalArgumentException("Incremental harvesting cound not set "+PluginParameterKeys.SAMPLE_SIZE);
+        }
         final AtomicInteger resultCounter = new AtomicInteger(0);
-
+        Date harvestDate = new Date();
         for (OaiHarvest harvest : harvestsToBeExecuted) {
             LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvest, parameters.getTask().getTaskId());
             OaiHarvester harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
@@ -57,10 +71,7 @@ public class HarvestsExecutor {
                     taskDropped.set(true);
                     return IterationResult.TERMINATE;
                 }
-                DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
-                if (recordSubmitService.submitRecord(record, parameters)) {
-                    resultCounter.incrementAndGet();
-                }
+                executeRecord(parameters, resultCounter, harvestDate, harvest, oaiHeader);
                 logProgressFor(harvest, parameters.incrementAndGetPerformedRecordCounter());
                 return resultCounter.get() < getMaxRecordsCount(parameters)
                         ? IterationResult.CONTINUE : IterationResult.TERMINATE;
@@ -72,7 +83,72 @@ public class HarvestsExecutor {
             }
             LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
         }
+
+        if (isIncremental(parameters)) {
+            detectDeletedRecords(parameters, resultCounter, harvestDate);
+        }
         return new HarvestResult(resultCounter.get(), TaskState.QUEUED);
+    }
+
+    private void executeRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, Date currentHarvestDate, OaiHarvest harvest, OaiRecordHeader oaiHeader) {
+
+        if(shouldOmmitRecordCauseOfIncreamentalHarvest(parameters, oaiHeader)){
+
+            return;
+        }
+
+        DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
+        if (recordSubmitService.submitRecord(record, parameters)) {
+            resultCounter.incrementAndGet();
+        }
+
+        storeHarvestedRecord(oaiHeader.getOaiIdentifier(), parameters.getTask(), currentHarvestDate);
+    }
+
+    private boolean shouldOmmitRecordCauseOfIncreamentalHarvest(SubmitTaskParameters parameters, OaiRecordHeader oaiHeader) {
+        if (!isIncremental(parameters)) {
+            return false;
+        }
+
+        DataSet dataSet = getSingleDataSet(parameters);
+        Optional<HarvestedRecord> recordInDbOptional = harvestedRecordDAO.findRecord(dataSet.getProviderId(), dataSet.getId(), oaiHeader.getOaiIdentifier());
+        if (recordInDbOptional.isEmpty()) {
+            return false;
+        }
+
+        HarvestedRecord recordInDd = recordInDbOptional.get();
+        return (recordInDd.getIndexingDate() != null && oaiHeader.getDatestamp().isBefore(recordInDd.getIndexedHarvestingDate().toInstant()));
+    }
+
+    private void detectDeletedRecords(SubmitTaskParameters parameters, AtomicInteger resultCounter, Date harvestDate) {
+        DataSet dataSet = getSingleDataSet(parameters);
+        Iterator<HarvestedRecord> it = harvestedRecordDAO.findDatasetRecords(dataSet.getProviderId(), dataSet.getId());
+        while (it.hasNext()) {
+            HarvestedRecord record = it.next();
+            if (record.getHarvestDate().before(harvestDate)) {
+                DpsRecord kafkaRecord = DpsRecord.builder()
+                        .taskId(parameters.getTask().getTaskId())
+                        .recordId(record.getOaiId())
+                        .markedAsDeleted(true)
+                        .build();
+                if (recordSubmitService.submitRecord(kafkaRecord, parameters)) {
+                    resultCounter.incrementAndGet();
+                }
+            }
+        }
+    }
+
+    private DataSet getSingleDataSet(SubmitTaskParameters parameters) {
+        List<DataSet> dataSetList = getDataSetList(parameters.getTask());
+        if (dataSetList.size() != 1) {
+            //TODO it could be checked in TaskValidator
+            throw new IllegalArgumentException("IncrementalHarvesting is supported for one selected dataset!");
+        }
+        return dataSetList.get(0);
+    }
+
+    private boolean isIncremental(SubmitTaskParameters parameters) {
+        return parameters.getTaskParameter(PluginParameterKeys.INCREMENTAL_HARVEST_FROM) != null;
     }
 
     private int getMaxRecordsCount(SubmitTaskParameters parameters) {
@@ -94,4 +170,24 @@ public class HarvestsExecutor {
             LOGGER.info("Identifiers harvesting is progressing for: {}. Current counter: {}", harvest, counter);
         }
     }
+
+    private void storeHarvestedRecord(String oaiId, DpsTask dpsTask, Date harvestDate) {
+        for(DataSet dataset: getDataSetList(dpsTask)) {
+            harvestedRecordDAO.insertHarvestedRecord(HarvestedRecord.builder()
+                    .providerId(dataset.getProviderId())
+                    .datasetId(dataset.getId())
+                    .oaiId(oaiId)
+                    .harvestDate(harvestDate)
+                    .build());
+        }
+    }
+
+    private List<DataSet> getDataSetList(DpsTask dpsTask) {
+        try {
+            return DataSetUrlParser.parseList(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid "+PluginParameterKeys.OUTPUT_DATA_SETS+" param value!",e);
+        }
+    }
+
 }

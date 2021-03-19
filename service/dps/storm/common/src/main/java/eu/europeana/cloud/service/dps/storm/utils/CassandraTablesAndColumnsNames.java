@@ -108,8 +108,10 @@ public class CassandraTablesAndColumnsNames {
     public static final String HARVESTED_RECORD_BUCKET_NUMBER = "bucket_number";
     public static final String HARVESTED_RECORD_HARVEST_DATE = "harvest_date";
     public static final String HARVESTED_RECORD_INDEXING_DATE = "indexing_date";
+    public static final String HARVESTED_RECORD_INDEXED_HARVEST_DATE = "indexed_harvest_date";
 
     public static final String HARVESTED_RECORD_MD5 = "md5";
     public static final String HARVESTED_RECORD_IGNORED = "ignored";
+
 
 }

@@ -2,8 +2,7 @@ package eu.europeana.cloud.service.dps.services.validation;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
@@ -68,7 +67,7 @@ public class TaskSubmissionValidator {
         List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
         for (String dataSetURL : dataSets) {
             try {
-                DataSet dataSet = parseDataSetUrl(dataSetURL);
+                DataSet dataSet = DataSetUrlParser.parse(dataSetURL);
                 dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
                 validateProviderId(task, dataSet.getProviderId());
             } catch (MalformedURLException e) {
@@ -89,18 +88,6 @@ public class TaskSubmissionValidator {
         if (providedProviderId != null && !providedProviderId.equals(providerId))
             throw new DpsTaskValidationException("Validation failed. The provider id: " + providedProviderId
                     + " should be the same provider of the output dataSet: " + providerId);
-    }
-
-    private DataSet parseDataSetUrl(String url) throws MalformedURLException {
-        UrlParser parser = new UrlParser(url);
-        if (parser.isUrlToDataset()) {
-            DataSet dataSet = new DataSet();
-            dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
-            dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
-            return dataSet;
-        }
-        throw new MalformedURLException("The dataSet URL is not formulated correctly");
-
     }
 
     private List<String> readDataSetsList(String listParameter) {
