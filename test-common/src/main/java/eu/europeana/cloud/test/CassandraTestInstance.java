@@ -24,13 +24,25 @@ public final class CassandraTestInstance {
     private static volatile CassandraTestInstance instance;
     private static volatile Map<String, Session> keyspaceSessions =
             Collections.synchronizedMap(new HashMap<>());
+    private static Throwable containerStartException;
+
     private final Cluster cluster;
     private final CassandraContainer container;
+
 
     private CassandraTestInstance() {
         if (instance != null) {
             throw new IllegalStateException("Already initialized.");
         }
+
+        if (containerStartException != null) {
+            //Protection again consumption of all possible system memory!
+            //Without this protection it is possible that CassandraTestInstance constructor would be performed many times
+            //in case of exception while container starts. Such tries could create many Cassandra containers in docker
+            // and consume all the system memory.
+            throw new RuntimeException("Cassandra container is not initialized!", containerStartException);
+        }
+
         try {
             LOGGER.info("Starting Cassandra container in docker");
             container = new CassandraContainer("cassandra:3.11.2");
@@ -40,9 +52,14 @@ public final class CassandraTestInstance {
 
             LOGGER.info("Cassandra container initialized.");
         } catch (Exception e) {
+            containerStartException = e;
             LOGGER.error("Cannot start Cassandra container!", e);
-            throw new RuntimeException("Cannot start embedded Cassandra!", e);
+            throw new RuntimeException(e);
+        } catch (Error e) {
+            containerStartException = e;
+            throw e;
         }
+
     }
 
     public static int getPort() {
