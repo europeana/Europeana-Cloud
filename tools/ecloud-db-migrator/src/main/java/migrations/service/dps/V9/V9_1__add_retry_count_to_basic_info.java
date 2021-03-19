@@ -1,4 +1,4 @@
-package migrations.service.dps.V8;
+package migrations.service.dps.V9;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;

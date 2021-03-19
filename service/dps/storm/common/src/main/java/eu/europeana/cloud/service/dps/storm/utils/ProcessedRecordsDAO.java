@@ -20,7 +20,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColum
  */
 public class ProcessedRecordsDAO extends CassandraDAO {
     private static final long TIME_TO_LIVE = 2 * 7 * 24 * 60 * 60L;  //two weeks in seconds
-    private static final int BUCKETS_COUNT = 32;
+    private static final int BUCKETS_COUNT = 128;
 
     private PreparedStatement insertStatement;
     private PreparedStatement updateRecordStateStatement;

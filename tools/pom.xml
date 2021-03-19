@@ -17,6 +17,7 @@
   </properties>
   <modules>
     <module>resource-migration-tool</module>
-      <module>ecloud-revision-cleaner-tool</module>
+    <module>ecloud-revision-cleaner-tool</module>
+    <module>ecloud-db-migrator</module>
   </modules>
 </project>
