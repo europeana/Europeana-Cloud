@@ -1,6 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
 import com.google.gson.Gson;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -8,21 +18,20 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDat
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
 
 import java.io.Closeable;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.*;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
@@ -41,12 +50,19 @@ public class IndexingBolt extends AbstractDpsBolt {
     private static final int MAX_IDLE_TIME_FOR_INDEXER_IN_SECS = 600;
     private static final int IDLE_TIME_CHECK_INTERVAL_IN_SECS = 60;
     private transient IndexerPoolWrapper indexerPoolWrapper;
+    private final DbConnectionDetails dbConnectionDetails;
 
-    private Properties indexingProperties;
+    private final Properties indexingProperties;
+    private transient HarvestedRecordDAO harvestedRecordDAO;
+    private final String ecloudUisAddress;
+    private transient UISClient uisClient;
 
 
-    public IndexingBolt(Properties indexingProperties) {
+    public IndexingBolt(DbConnectionDetails dbConnectionDetails,
+                        Properties indexingProperties, String ecloudUisAddress) {
+        this.dbConnectionDetails = dbConnectionDetails;
         this.indexingProperties = indexingProperties;
+        this.ecloudUisAddress = ecloudUisAddress;
     }
 
     @Override
@@ -56,13 +72,9 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        try {
-            indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
-                    IDLE_TIME_CHECK_INTERVAL_IN_SECS);
-        } catch (IndexingException | URISyntaxException e) {
-            LOGGER.error("Unable to initialize indexer", e);
-            throw new RuntimeException(e);
-        }
+        prepareDao();
+        prepareUisClient();
+        prepareIndexer();
     }
 
     @Override
@@ -97,6 +109,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                 .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
             if (!stormTaskTuple.isMarkedAsDeleted()) {
                 indexRecord(stormTaskTuple, useAltEnv, database, preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, recordDate);
+                updateRecordHarvestingDates(stormTaskTuple);
             }
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
@@ -111,6 +124,31 @@ public class IndexingBolt extends AbstractDpsBolt {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
         }
         outputCollector.ack(anchorTuple);
+    }
+
+    private void prepareDao() {
+        CassandraConnectionProvider cassandraConnectionProvider =
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+                        dbConnectionDetails.getHosts(),
+                        dbConnectionDetails.getPort(),
+                        dbConnectionDetails.getKeyspaceName(),
+                        dbConnectionDetails.getUserName(),
+                        dbConnectionDetails.getPassword());
+        harvestedRecordDAO = new HarvestedRecordDAO(cassandraConnectionProvider);
+    }
+
+    private void prepareUisClient() {
+        uisClient = new UISClient(ecloudUisAddress);
+    }
+
+    private void prepareIndexer() {
+        try {
+            indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
+                    IDLE_TIME_CHECK_INTERVAL_IN_SECS);
+        } catch (IndexingException | URISyntaxException e) {
+            LOGGER.error("Unable to initialize indexer", e);
+            throw new RuntimeException(e);
+        }
     }
 
     private void indexRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, boolean preserveTimestampsString, List<String> datasetIdsToRedirectFromList, boolean performRedirects, Date recordDate) throws IndexingException {
@@ -134,6 +172,58 @@ public class IndexingBolt extends AbstractDpsBolt {
         emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage,
                 "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e),
                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    }
+
+    private void updateRecordHarvestingDates(StormTaskTuple stormTaskTuple) {
+        try {
+            String cloudIdentifier = extractCloudIdFromUrl(stormTaskTuple.getFileUrl());
+            ResultSlice<CloudId> cloudIds = downloadCloudIdDefinition(cloudIdentifier);
+            String providerId = extractProviderIdFromOutputDataset(stormTaskTuple);
+            String datasetID = extractDataSetNameFromOutputDataset(stormTaskTuple);
+            cloudIds.getResults()
+                    .stream()
+                    .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, providerId, datasetID))
+                    .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, providerId, datasetID));
+        } catch (MalformedURLException | CloudException e) {
+            LOGGER.error("Unable to update record harvesting dates");
+            throw new RuntimeException("Unable to update record harvesting dates");
+        }
+    }
+
+    private String extractDataSetNameFromOutputDataset(StormTaskTuple stormTaskTuple) {
+        try {
+            List<DataSet> dataSets = DataSetUrlParser.parseList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+            return dataSets.get(0).getId();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid " + PluginParameterKeys.OUTPUT_DATA_SETS + " param value!", e);
+        }
+    }
+
+    private String extractProviderIdFromOutputDataset(StormTaskTuple stormTaskTuple) {
+        try {
+            List<DataSet> dataSets = DataSetUrlParser.parseList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+            return dataSets.get(0).getProviderId();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid " + PluginParameterKeys.OUTPUT_DATA_SETS + " param value!", e);
+        }
+    }
+
+    private ResultSlice<CloudId> downloadCloudIdDefinition(String cloudIdentifier) throws CloudException {
+        return uisClient.getRecordId(cloudIdentifier);
+    }
+
+    private String extractCloudIdFromUrl(String fileUrl) throws MalformedURLException {
+        UrlParser parser = new UrlParser(fileUrl);
+        return parser.getPart(UrlPart.RECORDS);
+    }
+
+    private boolean existsOnHarvestedRecordsList(CloudId cloudId, String providerId, String datasetId) {
+        return harvestedRecordDAO.findRecord(providerId, datasetId, cloudId.getLocalId().getRecordId()).isPresent();
+    }
+
+    private void updateRecordIndexingDate(CloudId cloudId, String providerId, String datasetId) {
+        LOGGER.info("Updating Indexing date for cloudId={}, providerId = {} and datasetID={}", cloudId, providerId, datasetId);
+        harvestedRecordDAO.updateIndexingFields(providerId, datasetId, cloudId.getLocalId().getRecordId(), new Date(), new Date());
     }
 
     class IndexerPoolWrapper implements Closeable {

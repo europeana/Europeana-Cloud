@@ -10,7 +10,8 @@ import java.util.Optional;
 
 public class HarvestedRecordDAO extends CassandraDAO {
 
-    static final int OAI_ID_BUCKET_COUNT = 64;
+    private static final int OAI_ID_BUCKET_COUNT = 64;
+    private static final String DB_COMMUNICATION_FAILURE_MESSAGE = "Database communication failure";
     private static HarvestedRecordDAO instance;
     private PreparedStatement insertHarvestedRecord;
     private PreparedStatement updateIndexingFields;
@@ -84,8 +85,8 @@ public class HarvestedRecordDAO extends CassandraDAO {
     }
 
     public void updateIndexingFields(String providerId, String datasetId, String oaiId, Date indexingDate, Date indexedHarvestDate) {
-        dbService.getSession().execute(updateIndexingFields.bind(indexingDate, indexedHarvestDate,
-                providerId, datasetId, oaiIdBucketNo(oaiId), oaiId));
+        RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
+                () -> dbService.getSession().execute(updateIndexingFields.bind(indexingDate, indexedHarvestDate, providerId, datasetId, oaiIdBucketNo(oaiId), oaiId)));
     }
 
     public Optional<HarvestedRecord> findRecord(String providerId, String datasetId, String oaiId) {
