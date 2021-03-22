@@ -10,8 +10,8 @@ public class V10_1__add_buckets_to_processed_records implements JavaMigration {
         session.execute(
                 "CREATE TABLE processed_records (" +
                         "task_id bigint," +
+                        "bucket_number int," +
                         "record_id varchar," +
-                        "buckets_number int," +
                         "attempt_number int," +
                         "dst_identifier varchar," +
                         "topology_name varchar," +
@@ -19,7 +19,7 @@ public class V10_1__add_buckets_to_processed_records implements JavaMigration {
                         "start_time timestamp," +
                         "info_text text," +
                         "additional_informations text," +
-                        "PRIMARY KEY(task_id, record_id, buckets_number)" +
+                        "PRIMARY KEY((task_id, bucket_number), record_id)" +
                         ");"
         );
     }

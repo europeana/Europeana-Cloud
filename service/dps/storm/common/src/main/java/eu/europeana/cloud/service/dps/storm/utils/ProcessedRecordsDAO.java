@@ -89,7 +89,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_START_TIME + ","
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_RECORD_ID + " = ?" + PROCESSED_RECORDS_BUCKET_NUMBER + " = ?");
+                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_RECORD_ID + " = ? AND " + PROCESSED_RECORDS_BUCKET_NUMBER + " = ?");
 
     }
 

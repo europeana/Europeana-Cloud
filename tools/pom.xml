@@ -10,7 +10,6 @@
 
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-tools</artifactId>
-    <version>${parent.version}</version>
     <packaging>pom</packaging>
     <name>Europeana Cloud: Tools</name>
 
