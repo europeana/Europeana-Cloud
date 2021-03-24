@@ -16,6 +16,7 @@ public class HarvestedRecordDAO extends CassandraDAO {
     private PreparedStatement updateIndexingFields;
     private PreparedStatement findRecord;
     private PreparedStatement findAllRecordInDataset;
+    private PreparedStatement deleteRecord;
 
     public static synchronized HarvestedRecordDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -75,6 +76,15 @@ public class HarvestedRecordDAO extends CassandraDAO {
 
         findAllRecordInDataset.setConsistencyLevel(dbService.getConsistencyLevel());
 
+        deleteRecord = dbService.getSession().prepare(
+                "DELETE FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
+                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
+                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID + " = ? "
+        );
+
+        deleteRecord.setConsistencyLevel(dbService.getConsistencyLevel());
 
     }
 
@@ -86,6 +96,11 @@ public class HarvestedRecordDAO extends CassandraDAO {
     public void updateIndexingFields(String providerId, String datasetId, String oaiId, Date indexingDate, Date indexedHarvestDate) {
         dbService.getSession().execute(updateIndexingFields.bind(indexingDate, indexedHarvestDate,
                 providerId, datasetId, oaiIdBucketNo(oaiId), oaiId));
+    }
+
+    public void deleteRecord(String providerId, String datasetId, String oaiId) {
+        dbService.getSession().execute(
+                deleteRecord.bind(providerId, datasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
     public Optional<HarvestedRecord> findRecord(String providerId, String datasetId, String oaiId) {
@@ -113,8 +128,9 @@ public class HarvestedRecordDAO extends CassandraDAO {
                 .datasetId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID))
                 .oaiId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID))
                 .harvestDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE))
-                .indexingDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE))
                 .md5(row.getUUID(CassandraTablesAndColumnsNames.HARVESTED_RECORD_MD5))
+                .indexingDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE))
+                .indexedHarvestingDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXED_HARVEST_DATE))
                 .ignored(row.getBool(CassandraTablesAndColumnsNames.HARVESTED_RECORD_IGNORED))
                 .build();
     }
@@ -122,4 +138,5 @@ public class HarvestedRecordDAO extends CassandraDAO {
     private int oaiIdBucketNo(String oaiId) {
         return BucketUtils.bucketNumber(oaiId, OAI_ID_BUCKET_COUNT);
     }
+
 }

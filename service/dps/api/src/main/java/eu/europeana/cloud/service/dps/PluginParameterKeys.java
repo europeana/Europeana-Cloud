@@ -33,7 +33,7 @@ public final class PluginParameterKeys {
     public static final String PERFORM_REDIRECTS = "PERFORM_REDIRECTS";
     public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
     public static final String RECORD_IDS_TO_DEPUBLISH = "RECORD_IDS_TO_DEPUBLISH";
-    public static final String INCREMENTAL_HARVEST_FROM = "INCREMENTAL_HARVEST_FROM";
+    public static final String INCREMENTAL_HARVEST = "INCREMENTAL_HARVEST";
 
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";

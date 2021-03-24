@@ -57,7 +57,7 @@ public class HarvestsExecutor {
             throw new IllegalArgumentException("Incremental harvesting cound not set "+PluginParameterKeys.SAMPLE_SIZE);
         }
         final AtomicInteger resultCounter = new AtomicInteger(0);
-        Date harvestDate = new Date();
+
         for (OaiHarvest harvest : harvestsToBeExecuted) {
             LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvest, parameters.getTask().getTaskId());
             OaiHarvester harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
@@ -71,7 +71,7 @@ public class HarvestsExecutor {
                     taskDropped.set(true);
                     return IterationResult.TERMINATE;
                 }
-                executeRecord(parameters, resultCounter, harvestDate, harvest, oaiHeader);
+                executeRecord(parameters, resultCounter, harvest, oaiHeader);
                 logProgressFor(harvest, parameters.incrementAndGetPerformedRecordCounter());
                 return resultCounter.get() < getMaxRecordsCount(parameters)
                         ? IterationResult.CONTINUE : IterationResult.TERMINATE;
@@ -85,24 +85,19 @@ public class HarvestsExecutor {
         }
 
         if (isIncremental(parameters)) {
-            detectDeletedRecords(parameters, resultCounter, harvestDate);
+            detectDeletedRecords(parameters, resultCounter);
         }
         return new HarvestResult(resultCounter.get(), TaskState.QUEUED);
     }
 
-    private void executeRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, Date currentHarvestDate, OaiHarvest harvest, OaiRecordHeader oaiHeader) {
-
-        if(shouldOmmitRecordCauseOfIncreamentalHarvest(parameters, oaiHeader)){
-
-            return;
+    private void executeRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, OaiHarvest harvest, OaiRecordHeader oaiHeader) {
+        if (!shouldOmmitRecordCauseOfIncreamentalHarvest(parameters, oaiHeader)) {
+            DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
+            if (recordSubmitService.submitRecord(record, parameters)) {
+                resultCounter.incrementAndGet();
+            }
         }
-
-        DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
-        if (recordSubmitService.submitRecord(record, parameters)) {
-            resultCounter.incrementAndGet();
-        }
-
-        storeHarvestedRecord(oaiHeader.getOaiIdentifier(), parameters.getTask(), currentHarvestDate);
+        storeHarvestedRecord(oaiHeader.getOaiIdentifier(), parameters.getTask(), parameters.getCurrentHarvestDate());
     }
 
     private boolean shouldOmmitRecordCauseOfIncreamentalHarvest(SubmitTaskParameters parameters, OaiRecordHeader oaiHeader) {
@@ -120,12 +115,12 @@ public class HarvestsExecutor {
         return (recordInDd.getIndexingDate() != null && oaiHeader.getDatestamp().isBefore(recordInDd.getIndexedHarvestingDate().toInstant()));
     }
 
-    private void detectDeletedRecords(SubmitTaskParameters parameters, AtomicInteger resultCounter, Date harvestDate) {
+    private void detectDeletedRecords(SubmitTaskParameters parameters, AtomicInteger resultCounter) {
         DataSet dataSet = getSingleDataSet(parameters);
         Iterator<HarvestedRecord> it = harvestedRecordDAO.findDatasetRecords(dataSet.getProviderId(), dataSet.getId());
         while (it.hasNext()) {
             HarvestedRecord record = it.next();
-            if (record.getHarvestDate().before(harvestDate)) {
+            if (record.getHarvestDate().before(parameters.getCurrentHarvestDate())) {
                 DpsRecord kafkaRecord = DpsRecord.builder()
                         .taskId(parameters.getTask().getTaskId())
                         .recordId(record.getOaiId())
@@ -148,7 +143,7 @@ public class HarvestsExecutor {
     }
 
     private boolean isIncremental(SubmitTaskParameters parameters) {
-        return parameters.getTaskParameter(PluginParameterKeys.INCREMENTAL_HARVEST_FROM) != null;
+        return "true".equals(parameters.getTaskParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
     }
 
     private int getMaxRecordsCount(SubmitTaskParameters parameters) {
