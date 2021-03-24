@@ -14,10 +14,11 @@ public class HarvestedRecordDAO extends CassandraDAO {
     private static final String DB_COMMUNICATION_FAILURE_MESSAGE = "Database communication failure";
     private static HarvestedRecordDAO instance;
     private PreparedStatement insertHarvestedRecord;
-    private PreparedStatement updateIndexingFields;
+    private PreparedStatement updateIndexingDate;
     private PreparedStatement findRecord;
     private PreparedStatement findAllRecordInDataset;
     private PreparedStatement deleteRecord;
+    private PreparedStatement updateHarvestDate;
 
     public static synchronized HarvestedRecordDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -37,33 +38,43 @@ public class HarvestedRecordDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_MD5
-                + ") VALUES(?,?,?,?,?,?);"
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE
+                + ") VALUES(?,?,?,?,?,?,?);"
         );
 
         insertHarvestedRecord.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateIndexingFields = dbService.getSession().prepare("UPDATE "
+        updateIndexingDate = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE + " = ? , "
-                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXED_HARVEST_DATE + " = ? , "
-                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_IGNORED + " = false "
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE + " = ? "
                 + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
-                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
 
-        updateIndexingFields.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateIndexingDate.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        updateHarvestDate = dbService.getSession().prepare("UPDATE "
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE + " = ? "
+                + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
+        );
+
+        updateHarvestDate.setConsistencyLevel(dbService.getConsistencyLevel());
 
         findRecord = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
-                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID + " = ? "
+                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
 
         findRecord.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -82,7 +93,7 @@ public class HarvestedRecordDAO extends CassandraDAO {
                         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
-                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID + " = ? "
+                        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
 
         deleteRecord.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -91,12 +102,17 @@ public class HarvestedRecordDAO extends CassandraDAO {
 
     public void insertHarvestedRecord(HarvestedRecord record) {
         dbService.getSession().execute(insertHarvestedRecord.bind(record.getProviderId(), record.getDatasetId(),
-                oaiIdBucketNo(record.getOaiId()), record.getOaiId(), record.getHarvestDate(), record.getMd5()));
+                oaiIdBucketNo(record.getRecordLocalId()), record.getRecordLocalId(), record.getHarvestDate(),
+                record.getMd5(), record.getIndexingDate()));
     }
 
-    public void updateIndexingFields(String providerId, String datasetId, String oaiId, Date indexingDate, Date indexedHarvestDate) {
+    public void updateHarvestDate(String providerId, String datasetId, String oaiId, Date harvestDate) {
+        dbService.getSession().execute(updateHarvestDate.bind(harvestDate, providerId, datasetId, oaiIdBucketNo(oaiId), oaiId));
+    }
+
+    public void updateIndexingDate(String providerId, String datasetId, String oaiId, Date indexingDate) {
         RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(updateIndexingFields.bind(indexingDate, indexedHarvestDate, providerId, datasetId, oaiIdBucketNo(oaiId), oaiId)));
+                () -> dbService.getSession().execute(updateIndexingDate.bind(indexingDate, providerId, datasetId, oaiIdBucketNo(oaiId), oaiId)));
     }
 
     public void deleteRecord(String providerId, String datasetId, String oaiId) {
@@ -127,12 +143,10 @@ public class HarvestedRecordDAO extends CassandraDAO {
         return HarvestedRecord.builder()
                 .providerId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_PROVIDER_ID))
                 .datasetId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_DATASET_ID))
-                .oaiId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_OAI_ID))
+                .recordLocalId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID))
                 .harvestDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE))
                 .md5(row.getUUID(CassandraTablesAndColumnsNames.HARVESTED_RECORD_MD5))
                 .indexingDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE))
-                .indexedHarvestingDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXED_HARVEST_DATE))
-                .ignored(row.getBool(CassandraTablesAndColumnsNames.HARVESTED_RECORD_IGNORED))
                 .build();
     }
 

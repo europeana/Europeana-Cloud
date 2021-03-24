@@ -9,6 +9,9 @@ import java.util.List;
 
 public class DataSetUrlParser {
 
+    private DataSetUrlParser(){
+    }
+
     public static DataSet parse(String url) throws MalformedURLException {
         UrlParser parser = new UrlParser(url);
         if (parser.isUrlToDataset()) {

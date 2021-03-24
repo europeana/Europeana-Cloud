@@ -91,16 +91,23 @@ public class HarvestsExecutor {
     }
 
     private void executeRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, OaiHarvest harvest, OaiRecordHeader oaiHeader) {
-        if (!shouldOmmitRecordCauseOfIncreamentalHarvest(parameters, oaiHeader)) {
-            DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
-            if (recordSubmitService.submitRecord(record, parameters)) {
-                resultCounter.incrementAndGet();
-            }
+        if(oaiHeader.isDeleted()){
+            return;
+        }
+
+        if (shouldOmmitRecordCauseOfIncrementalHarvest(parameters, oaiHeader)) {
+            updateHarvestDate(parameters, oaiHeader);
+            return;
+        }
+
+        DpsRecord record = convertToDpsRecord(oaiHeader, harvest, parameters.getTask());
+        if (recordSubmitService.submitRecord(record, parameters)) {
+            resultCounter.incrementAndGet();
         }
         storeHarvestedRecord(oaiHeader.getOaiIdentifier(), parameters.getTask(), parameters.getCurrentHarvestDate());
     }
 
-    private boolean shouldOmmitRecordCauseOfIncreamentalHarvest(SubmitTaskParameters parameters, OaiRecordHeader oaiHeader) {
+    private boolean shouldOmmitRecordCauseOfIncrementalHarvest(SubmitTaskParameters parameters, OaiRecordHeader oaiHeader) {
         if (!isIncremental(parameters)) {
             return false;
         }
@@ -112,7 +119,7 @@ public class HarvestsExecutor {
         }
 
         HarvestedRecord recordInDd = recordInDbOptional.get();
-        return (recordInDd.getIndexingDate() != null && oaiHeader.getDatestamp().isBefore(recordInDd.getIndexedHarvestingDate().toInstant()));
+        return (recordInDd.getIndexingDate() != null && oaiHeader.getDatestamp().isBefore(recordInDd.getHarvestDate().toInstant()));
     }
 
     private void detectDeletedRecords(SubmitTaskParameters parameters, AtomicInteger resultCounter) {
@@ -121,16 +128,29 @@ public class HarvestsExecutor {
         while (it.hasNext()) {
             HarvestedRecord record = it.next();
             if (record.getHarvestDate().before(parameters.getCurrentHarvestDate())) {
-                DpsRecord kafkaRecord = DpsRecord.builder()
-                        .taskId(parameters.getTask().getTaskId())
-                        .recordId(record.getOaiId())
-                        .markedAsDeleted(true)
-                        .build();
-                if (recordSubmitService.submitRecord(kafkaRecord, parameters)) {
-                    resultCounter.incrementAndGet();
-                }
+                executeDeleteRecord(parameters, resultCounter, record);
             }
         }
+    }
+
+    private void executeDeleteRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, HarvestedRecord record) {
+        if (record.getIndexingDate() != null) {
+            DpsRecord kafkaRecord = DpsRecord.builder()
+                    .taskId(parameters.getTask().getTaskId())
+                    .recordId(record.getRecordLocalId())
+                    .markedAsDeleted(true)
+                    .build();
+            if (recordSubmitService.submitRecord(kafkaRecord, parameters)) {
+                resultCounter.incrementAndGet();
+            }
+        } else {
+            harvestedRecordDAO.deleteRecord(record.getProviderId(), record.getDatasetId(), record.getRecordLocalId());
+        }
+    }
+
+    private void updateHarvestDate(SubmitTaskParameters parameters, OaiRecordHeader oaiHeader) {
+        DataSet dataSet = getSingleDataSet(parameters);
+        harvestedRecordDAO.updateHarvestDate(dataSet.getProviderId(), dataSet.getId(), oaiHeader.getOaiIdentifier(), parameters.getCurrentHarvestDate());
     }
 
     private DataSet getSingleDataSet(SubmitTaskParameters parameters) {
@@ -171,7 +191,7 @@ public class HarvestsExecutor {
             harvestedRecordDAO.insertHarvestedRecord(HarvestedRecord.builder()
                     .providerId(dataset.getProviderId())
                     .datasetId(dataset.getId())
-                    .oaiId(oaiId)
+                    .recordLocalId(oaiId)
                     .harvestDate(harvestDate)
                     .build());
         }

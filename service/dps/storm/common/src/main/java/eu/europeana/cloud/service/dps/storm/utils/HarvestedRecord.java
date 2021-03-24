@@ -12,11 +12,9 @@ public class HarvestedRecord {
 
     private String providerId;
     private String datasetId;
-    private String oaiId;
+    private String recordLocalId;
     private Date harvestDate;
-    private Date indexingDate;
-    private Date indexedHarvestingDate;
     private UUID md5;
-    private boolean ignored;
+    private Date indexingDate;
 
 }

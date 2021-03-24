@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.config.CassandraHarvestExecutorContext;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
@@ -393,6 +392,10 @@ public class HarvestsExecutorTest {
         executeIncrementalHarvest(DATE_OF_INC1);
 
         verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
+
+        executeIncrementalHarvest(DATE_OF_INC2);
+
+        verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
     }
 
     @Test
@@ -402,6 +405,11 @@ public class HarvestsExecutorTest {
         executeIncrementalHarvest(DATE_OF_INC1, new OaiRecordHeader(OAI_ID_1, true, DATE_BEFORE_FULL));
 
         verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
+
+        executeIncrementalHarvest(DATE_OF_INC2, new OaiRecordHeader(OAI_ID_1, true, DATE_BEFORE_FULL));
+
+        verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
+
     }
 
     //XII. Existing Record delete on Inc1 and Create on int2
@@ -414,7 +422,7 @@ public class HarvestsExecutorTest {
         verifyRecordSubmittedToDelete(task.getTaskId(), OAI_ID_1);
         makeRecordsDeletedFromIndex(OAI_ID_1);
 
-        executeIncrementalHarvest(DATE_OF_INC2, new OaiRecordHeader(OAI_ID_1, true, DATE_AFTER_INC1));
+        executeIncrementalHarvest(DATE_OF_INC2, new OaiRecordHeader(OAI_ID_1, false, DATE_AFTER_INC1));
         verifyRecordSubmitted(task.getTaskId(), OAI_ID_1);
     }
 
@@ -475,8 +483,8 @@ public class HarvestsExecutorTest {
     private void makeRecordsIndexed(String... recordIds) {
         //simulate row is indexed
         for (String recordId : recordIds) {
-            HarvestedRecord record = harvestedRecordDAO.findRecord(PROVIDER_ID, DATASET_ID, recordId).orElseThrow();
-            harvestedRecordDAO.updateIndexingFields(PROVIDER_ID, DATASET_ID, recordId, new Date(), record.getHarvestDate());
+            assertFalse(harvestedRecordDAO.findRecord(PROVIDER_ID, DATASET_ID, recordId).isEmpty());
+            harvestedRecordDAO.updateIndexingDate(PROVIDER_ID, DATASET_ID, recordId, new Date());
         }
     }
 

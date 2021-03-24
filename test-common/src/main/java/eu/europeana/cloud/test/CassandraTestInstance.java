@@ -22,7 +22,7 @@ public final class CassandraTestInstance {
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestInstance.class);
 
     private static volatile CassandraTestInstance instance;
-    private static volatile Map<String, Session> keyspaceSessions =
+    private static final Map<String, Session> keyspaceSessions =
             Collections.synchronizedMap(new HashMap<>());
     private static Throwable containerStartException;
 

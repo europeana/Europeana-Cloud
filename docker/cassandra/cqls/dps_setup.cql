@@ -100,16 +100,13 @@ CREATE TABLE processed_records (
     PRIMARY KEY(task_id, record_id)
 );
 
-create table harvested_record (
-    provider_id   varchar,
-    dataset_id    varchar,
-    bucket_number int,
-    oai_id        varchar,
-    harvest_date  timestamp,
-    md5           uuid,
-    indexing_date timestamp,
-    indexed_harvest_date timestamp,
-    indexed_md5           uuid,
-    ignored       boolean,
-    PRIMARY KEY ((provider_id, dataset_id, bucket_number), oai_id)
+create table harvested_records(
+    provider_id     varchar,
+    dataset_id      varchar,
+    bucket_number   int,
+    record_local_id varchar,
+    harvest_date    timestamp,
+    md5             uuid,
+    indexing_date   timestamp,
+    PRIMARY KEY ((provider_id, dataset_id, bucket_number), record_local_id)
 );
