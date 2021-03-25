@@ -113,7 +113,6 @@ public class HarvestsExecutorTest {
     private HarvestedRecordDAO harvestedRecordDAO;
 
     private List<OaiRecordHeader> harvestedHeaders;
-    private final List<OaiHarvest> harvestList = Collections.singletonList(harvest);
 
     public HarvestsExecutorTest() {
         CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL, KEYSPACE);
@@ -461,7 +460,7 @@ public class HarvestsExecutorTest {
     private void executeInitialFullHarvest(OaiRecordHeader... headers) throws HarvesterException {
         harvestedHeaders = Arrays.asList(headers);
         parameters.setCurrentHarvestDate(DATE_OF_FULL);
-        executor.execute(harvestList, parameters);
+        executor.execute(harvest, parameters);
     }
 
     private void executeIncrementalHarvest(Date harvestDate, OaiRecordHeader... headers) throws HarvesterException {
@@ -470,7 +469,7 @@ public class HarvestsExecutorTest {
         task.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
         parameters.setCurrentHarvestDate(harvestDate);
         harvestedHeaders = Arrays.asList(headers);
-        executor.execute(harvestList, parameters);
+        executor.execute(harvest, parameters);
     }
 
 

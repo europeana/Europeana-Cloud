@@ -6,8 +6,6 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @XmlRootElement()
 public class OAIPMHHarvestingDetails implements Serializable {
@@ -16,22 +14,12 @@ public class OAIPMHHarvestingDetails implements Serializable {
     /**
      * Schemas to harvest - optional
      */
-    private Set<String> schemas;
+    private String schema;
 
     /**
-     * Schemas to exclude - optional
+     * Set to harvest - optional
      */
-    private Set<String> excludedSchemas;
-
-    /**
-     * Sets to harvest - optional
-     */
-    private Set<String> sets;
-
-    /**
-     * Sets to exclude - optional
-     */
-    private Set<String> excludedSets;
+    private String set;
 
     /**
      * From date - optional
@@ -53,54 +41,32 @@ public class OAIPMHHarvestingDetails implements Serializable {
     }
 
     public OAIPMHHarvestingDetails(String schema) {
-        this.schemas = new HashSet<>();
-        this.schemas.add(schema);
+        this.schema = schema;
     }
 
-    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> sets, Date dateFrom, Date dateUntil, String granularity) {
-        this.schemas = schemas;
-        this.sets = sets;
+    public OAIPMHHarvestingDetails(String schema, String set, Date dateFrom, Date dateUntil, String granularity) {
+        this.schema = schema;
+        this.set = set;
         this.dateFrom = dateFrom;
         this.dateUntil = dateUntil;
         this.granularity = granularity;
     }
 
-    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> excludedSchemas, Set<String> sets, Set<String> excludeSets, Date dateFrom, Date dateUntil, String granularity) {
-        this(schemas, sets, dateFrom, dateUntil, granularity);
-        this.excludedSchemas = excludedSchemas;
-        this.excludedSets = excludeSets;
-    }
-
     @JsonIgnore
     public String getSchema() {
-        if (schemas == null || schemas.isEmpty()) {
-            return null;
-        }
-        return schemas.iterator().next();
+        return schema;
     }
 
-    public Set<String> getSchemas() {
-        return schemas;
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
-    public Set<String> getExcludedSchemas() {
-        return excludedSchemas;
-    }
-
-    @JsonIgnore
     public String getSet() {
-        if (sets == null || sets.isEmpty()) {
-            return null;
-        }
-        return sets.iterator().next();
+        return set;
     }
 
-    public Set<String> getSets() {
-        return sets;
-    }
-
-    public Set<String> getExcludedSets() {
-        return excludedSets;
+    public void setSet(String set) {
+        this.set = set;
     }
 
     public Date getDateFrom() {
@@ -115,26 +81,12 @@ public class OAIPMHHarvestingDetails implements Serializable {
         return dateUntil;
     }
 
-    public String getGranularity() { return granularity; }
-
     public void setDateUntil(Date dateUntil) {
         this.dateUntil = dateUntil;
     }
 
-    public void setSchemas(Set<String> schemas) {
-        this.schemas = schemas;
-    }
-
-    public void setExcludedSchemas(Set<String> excludedSchemas) {
-        this.excludedSchemas = excludedSchemas;
-    }
-
-    public void setSets(Set<String> sets) {
-        this.sets = sets;
-    }
-
-    public void setExcludedSets(Set<String> excludeSets) {
-        this.excludedSets = excludeSets;
+    public String getGranularity() {
+        return granularity;
     }
 
     public void setGranularity(String granularity) {
@@ -151,26 +103,22 @@ public class OAIPMHHarvestingDetails implements Serializable {
             return false;
         }
         OAIPMHHarvestingDetails that = (OAIPMHHarvestingDetails) o;
-        return Objects.equal(schemas, that.schemas) &&
-                Objects.equal(excludedSchemas, that.excludedSchemas) &&
-                Objects.equal(sets, that.sets) &&
-                Objects.equal(excludedSets, that.excludedSets) &&
+        return Objects.equal(schema, that.schema) &&
+                Objects.equal(set, that.set) &&
                 Objects.equal(dateFrom, that.dateFrom) &&
                 Objects.equal(dateUntil, that.dateUntil);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(schemas, excludedSchemas, sets, excludedSets, dateFrom, dateUntil, granularity);
+        return Objects.hashCode(schema, set, dateFrom, dateUntil, granularity);
     }
 
     @Override
     public String toString() {
         return "OAIPMHHarvestingDetails{" +
-                "schemas=" + schemas +
-                ", excludedSchemas=" + excludedSchemas +
-                ", sets=" + sets +
-                ", excludedSets=" + excludedSets +
+                "schema=" + schema +
+                ", set=" + set +
                 ", dateFrom=" + dateFrom +
                 ", dateUntil=" + dateUntil +
                 ", granularity=" + granularity +

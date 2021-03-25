@@ -275,7 +275,13 @@ public class TopologyTasksResource {
                 submitTaskService.submitTask(parameters);
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();
-            } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
+            } catch(DpsTaskValidationException e) {
+                result = getResponseForException(e, "Task submission failed. Bad request.",
+                        HttpStatus.BAD_REQUEST, parameters);
+                throw e;
+            } catch(AccessDeniedOrTopologyDoesNotExistException e) {
+                result = getResponseForException(e, "Task submission failed. Internal server error.",
+                        HttpStatus.INTERNAL_SERVER_ERROR, parameters);
                 throw e;
             } catch(Exception e) {
                 result = getResponseForException(e, "Task submission failed. Internal server error.",

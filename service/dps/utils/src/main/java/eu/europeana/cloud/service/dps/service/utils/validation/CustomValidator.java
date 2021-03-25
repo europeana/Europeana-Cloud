@@ -67,7 +67,11 @@ class SampleSizeForIncrementalHarvestingValidator extends CustomValidator {
 
     @Override
     public boolean test(DpsTask dpsTask) {
-        return isIncremental(dpsTask) && dpsTask.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null;
+        if (isIncremental(dpsTask)) {
+            return dpsTask.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null;
+        } else {
+            return true;
+        }
     }
 
     private boolean isIncremental(DpsTask dpsTask) {

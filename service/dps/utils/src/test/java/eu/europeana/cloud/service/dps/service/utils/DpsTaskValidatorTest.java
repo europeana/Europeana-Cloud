@@ -365,7 +365,7 @@ public class DpsTaskValidatorTest {
             validator.validate(oaiTopologyIncrementalTaskWithSampleSize);
 
         } catch (Exception e) {
-            Assert.assertTrue(e.getMessage().contains("Incremental harvesting could not set PluginParameterKeys.SAMPLE_SIZE"));
+            Assert.assertTrue(e.getMessage().contains("Incremental harvesting could not set SAMPLE_SIZE"));
 
         }
     }

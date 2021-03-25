@@ -51,38 +51,33 @@ public class HarvestsExecutor {
         this.harvestedRecordDAO = harvestedRecordDAO;
     }
 
-    public HarvestResult execute(List<OaiHarvest> harvestsToBeExecuted, SubmitTaskParameters parameters) throws HarvesterException {
-        if(isIncremental(parameters) && parameters.getTaskParameter(PluginParameterKeys.SAMPLE_SIZE)!=null){
-            //TODO impletent support for this or add such condition to TaskValidator
-            throw new IllegalArgumentException("Incremental harvesting cound not set "+PluginParameterKeys.SAMPLE_SIZE);
-        }
+    public HarvestResult execute(OaiHarvest harvestToBeExecuted, SubmitTaskParameters parameters) throws HarvesterException {
         final AtomicInteger resultCounter = new AtomicInteger(0);
 
-        for (OaiHarvest harvest : harvestsToBeExecuted) {
-            LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvest, parameters.getTask().getTaskId());
-            OaiHarvester harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
-            OaiRecordHeaderIterator headerIterator = harvester.harvestRecordHeaders(harvest);
+        LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvestToBeExecuted, parameters.getTask().getTaskId());
+        OaiHarvester harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
+        OaiRecordHeaderIterator headerIterator = harvester.harvestRecordHeaders(harvestToBeExecuted);
 
-            // *** Main harvesting loop for given task ***
-            final AtomicBoolean taskDropped = new AtomicBoolean(false);
-            headerIterator.forEach(oaiHeader -> {
-                if (taskStatusChecker.hasKillFlag(parameters.getTask().getTaskId())) {
-                    LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvest, parameters.getTask().getTaskId());
-                    taskDropped.set(true);
-                    return IterationResult.TERMINATE;
-                }
-                executeRecord(parameters, resultCounter, harvest, oaiHeader);
-                logProgressFor(harvest, parameters.incrementAndGetPerformedRecordCounter());
-                return resultCounter.get() < getMaxRecordsCount(parameters)
-                        ? IterationResult.CONTINUE : IterationResult.TERMINATE;
-            });
-            if (taskDropped.get()) {
-                return HarvestResult.builder()
-                        .resultCounter(resultCounter.get())
-                        .taskState(TaskState.DROPPED).build();
+        // *** Main harvesting loop for given task ***
+        final AtomicBoolean taskDropped = new AtomicBoolean(false);
+        headerIterator.forEach(oaiHeader -> {
+            if (taskStatusChecker.hasKillFlag(parameters.getTask().getTaskId())) {
+                LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvestToBeExecuted, parameters.getTask().getTaskId());
+                taskDropped.set(true);
+                return IterationResult.TERMINATE;
             }
-            LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvest, resultCounter);
+            executeRecord(parameters, resultCounter, harvestToBeExecuted, oaiHeader);
+            logProgressFor(harvestToBeExecuted, parameters.incrementAndGetPerformedRecordCounter());
+            return resultCounter.get() < getMaxRecordsCount(parameters)
+                    ? IterationResult.CONTINUE : IterationResult.TERMINATE;
+        });
+        if (taskDropped.get()) {
+            return HarvestResult.builder()
+                    .resultCounter(resultCounter.get())
+                    .taskState(TaskState.DROPPED).build();
         }
+        LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvestToBeExecuted, resultCounter);
+
 
         if (isIncremental(parameters)) {
             detectDeletedRecords(parameters, resultCounter);
