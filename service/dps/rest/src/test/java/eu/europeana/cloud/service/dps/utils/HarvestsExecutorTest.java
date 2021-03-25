@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.config.CassandraHarvestExecutorContext;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.test.CassandraTestInstance;
@@ -77,8 +77,7 @@ public class HarvestsExecutorTest {
     private static final String OAI_ID_4 = "http://test.abc/oai/ag50034500000";
 
     public static final String DATASET_URL = "https://xyx.abc/mcs/data-providers/prov/data-sets/dat";
-    public static final String DATASET_ID = "dat";
-    public static final String PROVIDER_ID = "prov";
+    public static final String METIS_DATASET_ID = "114411";
 
     @Rule
     public SpringClassRule springRule = new SpringClassRule();
@@ -110,7 +109,7 @@ public class HarvestsExecutorTest {
     private ProcessedRecordsDAO processedRecordsDAO;
 
     @Autowired
-    private HarvestedRecordDAO harvestedRecordDAO;
+    private HarvestedRecordsDAO harvestedRecordsDAO;
 
     private List<OaiRecordHeader> harvestedHeaders;
 
@@ -476,22 +475,23 @@ public class HarvestsExecutorTest {
     private void createNewTask() {
         task = new DpsTask();
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
+        task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
         parameters = SubmitTaskParameters.builder().task(task).topicName(TOPIC).build();
     }
 
     private void makeRecordsIndexed(String... recordIds) {
         //simulate row is indexed
         for (String recordId : recordIds) {
-            assertFalse(harvestedRecordDAO.findRecord(PROVIDER_ID, DATASET_ID, recordId).isEmpty());
-            harvestedRecordDAO.updateIndexingDate(PROVIDER_ID, DATASET_ID, recordId, new Date());
+            assertFalse(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, recordId).isEmpty());
+            harvestedRecordsDAO.updateIndexingDate(METIS_DATASET_ID, recordId, new Date());
         }
     }
 
     private void makeRecordsDeletedFromIndex(String recordId) {
         //simulate row is deleted from index
-        assertFalse(harvestedRecordDAO.findRecord(PROVIDER_ID, DATASET_ID, recordId).isEmpty());
-        harvestedRecordDAO.deleteRecord(PROVIDER_ID, DATASET_ID, recordId);
-        assertTrue(harvestedRecordDAO.findRecord(PROVIDER_ID, DATASET_ID, recordId).isEmpty());
+        assertFalse(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, recordId).isEmpty());
+        harvestedRecordsDAO.deleteRecord(METIS_DATASET_ID, recordId);
+        assertTrue(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, recordId).isEmpty());
     }
 
 

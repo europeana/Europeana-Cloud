@@ -120,8 +120,8 @@ public class ServiceConfiguration {
 
 
     @Bean
-    public HarvestedRecordDAO harvestedRecordDAO() {
-        return new HarvestedRecordDAO(dpsCassandraProvider());
+    public HarvestedRecordsDAO harvestedRecordsDAO() {
+        return new HarvestedRecordsDAO(dpsCassandraProvider());
     }
 
 

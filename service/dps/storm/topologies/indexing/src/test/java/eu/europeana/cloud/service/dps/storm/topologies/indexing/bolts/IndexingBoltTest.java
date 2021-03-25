@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
@@ -56,7 +56,7 @@ public class IndexingBoltTest {
     private UISClient uisClient;
 
     @Mock
-    private HarvestedRecordDAO harvestedRecordDAO;
+    private HarvestedRecordsDAO harvestedRecordsDAO;
 
     @InjectMocks
     private IndexingBolt indexingBolt = new IndexingBolt(null, indexingProperties, "uisLocation");
@@ -73,7 +73,7 @@ public class IndexingBoltTest {
     public void shouldIndexFileForPreviewEnv() throws Exception {
         //given
         mockUisClient();
-        when(harvestedRecordDAO.findRecord(anyString(),anyString(),anyString())).thenReturn(Optional.of(HarvestedRecord.builder().build()));
+        when(harvestedRecordsDAO.findRecord(anyString(),anyString())).thenReturn(Optional.of(HarvestedRecord.builder().build()));
         Tuple anchorTuple = mock(TupleImpl.class);
         String targetIndexingEnv = "PREVIEW";
         StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
@@ -83,8 +83,8 @@ public class IndexingBoltTest {
         //then
         verify(indexerPool).index(anyString(), any(Date.class), anyBoolean(), any(), anyBoolean());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
-        Mockito.verify(harvestedRecordDAO, Mockito.times(1)).findRecord(anyString(),anyString(),anyString());
-        Mockito.verify(harvestedRecordDAO, Mockito.times(1)).updateIndexingDate(eq("metis_test5"), eq("4979eb22-3824-4f9a-b239-edad6c4b0bb9"), eq("localId"), any(Date.class));
+        Mockito.verify(harvestedRecordsDAO, Mockito.times(1)).findRecord(anyString(),anyString());
+        Mockito.verify(harvestedRecordsDAO, Mockito.times(1)).updateIndexingDate(eq("4979eb22-3824-4f9a-b239-edad6c4b0bb9"), eq("localId"), any(Date.class));
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
@@ -99,7 +99,7 @@ public class IndexingBoltTest {
     public void shouldIndexFilePublishEnv() throws Exception {
         //given
         mockUisClient();
-        when(harvestedRecordDAO.findRecord(anyString(),anyString(),anyString())).thenReturn(Optional.of(HarvestedRecord.builder().build()));
+        when(harvestedRecordsDAO.findRecord(anyString(),anyString())).thenReturn(Optional.of(HarvestedRecord.builder().build()));
         Tuple anchorTuple = mock(TupleImpl.class);
         String targetIndexingEnv = "PUBLISH";
         StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
@@ -109,8 +109,8 @@ public class IndexingBoltTest {
         //then
         verify(indexerPool).index(anyString(), any(Date.class), anyBoolean(), any(), anyBoolean());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
-        Mockito.verify(harvestedRecordDAO, Mockito.times(1)).findRecord(anyString(),anyString(),anyString());
-        Mockito.verify(harvestedRecordDAO, Mockito.times(1)).updateIndexingDate(eq("metis_test5"), eq("4979eb22-3824-4f9a-b239-edad6c4b0bb9"), eq("localId"), any(Date.class));
+        Mockito.verify(harvestedRecordsDAO, Mockito.times(1)).findRecord(anyString(),anyString());
+        Mockito.verify(harvestedRecordsDAO, Mockito.times(1)).updateIndexingDate(eq("4979eb22-3824-4f9a-b239-edad6c4b0bb9"), eq("localId"), any(Date.class));
 
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
@@ -135,8 +135,8 @@ public class IndexingBoltTest {
         verifyNoInteractions(indexerPool);
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         verify(indexerPool,times(0)).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean(), Mockito.anyList(), Mockito.anyBoolean());
-        verify(harvestedRecordDAO, Mockito.times(0)).findRecord(anyString(), anyString(), anyString());
-        verify(harvestedRecordDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), anyString(), any(Date.class));
+        verify(harvestedRecordsDAO, Mockito.times(0)).findRecord(anyString(), anyString());
+        verify(harvestedRecordsDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
@@ -157,8 +157,8 @@ public class IndexingBoltTest {
         indexingBolt.execute(anchorTuple, tuple);
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(String.class), any(Tuple.class), captor.capture());
-        verify(harvestedRecordDAO, Mockito.times(0)).findRecord(anyString(), anyString(), anyString());
-        verify(harvestedRecordDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), anyString(), any(Date.class));
+        verify(harvestedRecordsDAO, Mockito.times(0)).findRecord(anyString(), anyString());
+        verify(harvestedRecordsDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
@@ -176,8 +176,8 @@ public class IndexingBoltTest {
         indexingBolt.execute(anchorTuple, tuple);
         //then
         verify(outputCollector, Mockito.times(1)).emit(any(String.class), any(Tuple.class), captor.capture());
-        verify(harvestedRecordDAO, Mockito.times(0)).findRecord(anyString(), anyString(), anyString());
-        verify(harvestedRecordDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), anyString(), any(Date.class));
+        verify(harvestedRecordsDAO, Mockito.times(0)).findRecord(anyString(), anyString());
+        verify(harvestedRecordsDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
@@ -197,8 +197,8 @@ public class IndexingBoltTest {
         indexingBolt.execute(anchorTuple, tuple);
 
         verify(outputCollector, Mockito.times(1)).emit(any(String.class), any(Tuple.class), captor.capture());
-        verify(harvestedRecordDAO, Mockito.times(0)).findRecord(anyString(), anyString(), anyString());
-        verify(harvestedRecordDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), anyString(), any(Date.class));
+        verify(harvestedRecordsDAO, Mockito.times(0)).findRecord(anyString(), anyString());
+        verify(harvestedRecordsDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 
@@ -217,8 +217,8 @@ public class IndexingBoltTest {
         indexingBolt.execute(anchorTuple, tuple);
 
         verify(outputCollector, Mockito.times(1)).emit(any(String.class), any(Tuple.class), captor.capture());
-        verify(harvestedRecordDAO, Mockito.times(0)).findRecord(anyString(), anyString(), anyString());
-        verify(harvestedRecordDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), anyString(), any(Date.class));
+        verify(harvestedRecordsDAO, Mockito.times(0)).findRecord(anyString(), anyString());
+        verify(harvestedRecordsDAO, Mockito.times(0)).updateIndexingDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
         Map val = (Map) capturedValues.get(2);
 

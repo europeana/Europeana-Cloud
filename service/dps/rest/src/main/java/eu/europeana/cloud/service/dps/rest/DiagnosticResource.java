@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.utils.GhostTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -27,7 +27,7 @@ public class DiagnosticResource {
     private GhostTaskService ghostTaskService;
 
     @Autowired
-    private HarvestedRecordDAO harvestedRecordDAO;
+    private HarvestedRecordsDAO harvestedRecordsDAO;
 
     @GetMapping("/ghostTasks")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -36,16 +36,16 @@ public class DiagnosticResource {
     }
 
 
-    @GetMapping("/harvestedRecords/{providerId}/{datasetId}")
+    @GetMapping("/harvestedRecords/{metisDatasetId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public List<HarvestedRecord> harvestedRecords(@PathVariable String providerId, @PathVariable String datasetId
+    public List<HarvestedRecord> harvestedRecords(@PathVariable String metisDatasetId
             , @RequestParam(defaultValue = "10") int count, @RequestParam(required = false) String oaiId)    {
         if(oaiId!=null) {
-            return Collections.singletonList(harvestedRecordDAO.findRecord(providerId, datasetId,oaiId).orElse(null));
+            return Collections.singletonList(harvestedRecordsDAO.findRecord(metisDatasetId,oaiId).orElse(null));
         }else {
             List<HarvestedRecord> result = new ArrayList<>();
 
-            Iterator<HarvestedRecord> it = harvestedRecordDAO.findDatasetRecords(providerId, datasetId);
+            Iterator<HarvestedRecord> it = harvestedRecordsDAO.findDatasetRecords(metisDatasetId);
             for (int i = 0; i < count && it.hasNext(); i++) {
                 HarvestedRecord record = it.next();
                 result.add(record);

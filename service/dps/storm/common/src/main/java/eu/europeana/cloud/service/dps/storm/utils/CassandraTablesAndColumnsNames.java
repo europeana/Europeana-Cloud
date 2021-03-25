@@ -102,8 +102,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
 
     //------- HARVESTED_RECORD -------
-    public static final String HARVESTED_RECORD_PROVIDER_ID = "provider_id";
-    public static final String HARVESTED_RECORD_DATASET_ID = "dataset_id";
+    public static final String HARVESTED_RECORD_METIS_DATASET_ID = "metis_dataset_id";
     public static final String HARVESTED_RECORD_LOCAL_ID = "record_local_id";
     public static final String HARVESTED_RECORD_BUCKET_NUMBER = "bucket_number";
     public static final String HARVESTED_RECORD_HARVEST_DATE = "harvest_date";
