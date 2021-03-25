@@ -16,7 +16,7 @@
             <artifactId>guava</artifactId>
             <groupId>com.google.guava</groupId>
             <type>jar</type>
-            <version>23.2-jre</version>
+            <version>29.0-jre</version>
         </dependency>
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
