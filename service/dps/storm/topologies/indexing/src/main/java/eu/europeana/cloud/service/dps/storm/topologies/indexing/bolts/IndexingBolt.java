@@ -52,15 +52,15 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private final Properties indexingProperties;
     private transient HarvestedRecordsDAO harvestedRecordsDAO;
-    private final String ecloudUisAddress;
+    private final String uisAddress;
     private transient UISClient uisClient;
 
 
     public IndexingBolt(DbConnectionDetails dbConnectionDetails,
-                        Properties indexingProperties, String ecloudUisAddress) {
+                        Properties indexingProperties, String uisAddress) {
         this.dbConnectionDetails = dbConnectionDetails;
         this.indexingProperties = indexingProperties;
-        this.ecloudUisAddress = ecloudUisAddress;
+        this.uisAddress = uisAddress;
     }
 
     @Override
@@ -136,7 +136,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private void prepareUisClient() {
-        uisClient = new UISClient(ecloudUisAddress);
+        uisClient = new UISClient(uisAddress);
     }
 
     private void prepareIndexer() {
