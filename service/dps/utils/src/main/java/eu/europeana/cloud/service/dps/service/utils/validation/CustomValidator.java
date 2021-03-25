@@ -7,12 +7,12 @@ import java.util.function.Predicate;
 
 import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 
-
 abstract class CustomValidator implements Predicate<DpsTask> {
 
     public String errorMessage() {
         return "[" + this.getClass().getSimpleName() + "]. " + detailedMessage();
     }
+
     public abstract String detailedMessage();
 }
 
@@ -50,5 +50,27 @@ class SingleOutputDatasetValidator extends CustomValidator {
     @Override
     public String detailedMessage() {
         return MESSAGE;
+    }
+}
+
+/**
+ * Verifies if {@link PluginParameterKeys.SAMPLE_SIZE} is not set in case of the incremental harvesting
+ */
+class SampleSizeForIncrementalHarvestingValidator extends CustomValidator {
+
+    private static final String MESSAGE = "Incremental harvesting could not set " + PluginParameterKeys.SAMPLE_SIZE;
+
+    @Override
+    public String detailedMessage() {
+        return MESSAGE;
+    }
+
+    @Override
+    public boolean test(DpsTask dpsTask) {
+        return isIncremental(dpsTask) && dpsTask.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null;
+    }
+
+    private boolean isIncremental(DpsTask dpsTask) {
+        return "true".equals(dpsTask.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
     }
 }

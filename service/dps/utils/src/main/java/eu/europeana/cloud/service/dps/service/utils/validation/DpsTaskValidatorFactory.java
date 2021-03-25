@@ -87,7 +87,8 @@ public class DpsTaskValidatorFactory {
                 .withDataEntry(REPOSITORY_URLS.name(), InputDataValueType.LINK_TO_EXTERNAL_URL)
                 .withOptionalOutputRevision()
                 .withCustomValidator(new SingleRepositoryValidator())
-                .withCustomValidator(new SingleOutputDatasetValidator()));
+                .withCustomValidator(new SingleOutputDatasetValidator())
+                .withCustomValidator(new SampleSizeForIncrementalHarvestingValidator()));
 
         taskValidatorMap.put(HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL, new DpsTaskValidator("RepositoryUrl validator for HTTP Topology")
                 .withParameter(PluginParameterKeys.PROVIDER_ID)

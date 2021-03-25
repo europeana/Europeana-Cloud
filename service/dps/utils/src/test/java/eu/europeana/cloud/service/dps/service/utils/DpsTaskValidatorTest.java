@@ -30,6 +30,8 @@ public class DpsTaskValidatorTest {
     private DpsTask oaiTopologyTaskWithoutOutputDataset;
     private DpsTask oaiTopologyTaskWithTwoRepositories;
     private DpsTask oaiTopologyTaskWithTwoOutputDatasets;
+    private DpsTask oaiTopologyIncrementalTaskWithSampleSize;
+    private DpsTask oaiTopologyIncrementalTaskWithoutSampleSize;
     private DpsTask dpsTaskWithIncorrectRevision_1;
     private DpsTask dpsTaskWithIncorrectRevision_2;
     private DpsTask dpsTaskWithIncorrectRevision_3;
@@ -87,6 +89,19 @@ public class DpsTaskValidatorTest {
         oaiTopologyTaskWithTwoOutputDatasets.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c"));
         oaiTopologyTaskWithTwoOutputDatasets.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt,http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
         oaiTopologyTaskWithTwoOutputDatasets.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
+        //
+        oaiTopologyIncrementalTaskWithSampleSize = new DpsTask();
+        oaiTopologyIncrementalTaskWithSampleSize.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
+        oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
+        oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.SAMPLE_SIZE, "10");
+        oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
+        //
+        oaiTopologyIncrementalTaskWithoutSampleSize = new DpsTask();
+        oaiTopologyIncrementalTaskWithoutSampleSize.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        oaiTopologyIncrementalTaskWithoutSampleSize.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
+        oaiTopologyIncrementalTaskWithoutSampleSize.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
+        oaiTopologyIncrementalTaskWithoutSampleSize.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
 
         //
         dpsTaskWithIncorrectRevision_1 = new DpsTask(TASK_NAME);
@@ -342,6 +357,25 @@ public class DpsTaskValidatorTest {
 
         }
     }
+
+    @Test
+    public void shouldValidateIncrementalTaskForOAITopologyWithSampleSize() {
+        try {
+            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+            validator.validate(oaiTopologyIncrementalTaskWithSampleSize);
+
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Incremental harvesting could not set PluginParameterKeys.SAMPLE_SIZE"));
+
+        }
+    }
+
+    @Test
+    public void shouldValidateIncrementalTaskForOAITopologyWithoutSampleSize() throws DpsTaskValidationException {
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+        validator.validate(oaiTopologyIncrementalTaskWithoutSampleSize);
+    }
+
 
     @Test(expected = DpsTaskValidationException.class)
     @Parameters({"domainbroken/paht",
