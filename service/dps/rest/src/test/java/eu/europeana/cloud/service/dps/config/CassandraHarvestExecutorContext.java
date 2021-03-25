@@ -4,7 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 import static org.mockito.Mockito.mock;
 
 @Configuration
-@Import({HarvestsExecutor.class, RecordSubmitService.class, HarvestedRecordDAO.class, ProcessedRecordsDAO.class,
+@Import({HarvestsExecutor.class, RecordSubmitService.class, HarvestedRecordsDAO.class, ProcessedRecordsDAO.class,
          CassandraTaskInfoDAO.class})
 public class CassandraHarvestExecutorContext {
     protected static final String KEYSPACE = "ecloud_test";

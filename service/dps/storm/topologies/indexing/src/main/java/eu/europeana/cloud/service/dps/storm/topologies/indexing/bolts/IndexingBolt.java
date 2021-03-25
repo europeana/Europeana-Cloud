@@ -6,9 +6,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -19,7 +17,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnv
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingSettings;
@@ -53,7 +51,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     private final DbConnectionDetails dbConnectionDetails;
 
     private final Properties indexingProperties;
-    private transient HarvestedRecordDAO harvestedRecordDAO;
+    private transient HarvestedRecordsDAO harvestedRecordsDAO;
     private final String ecloudUisAddress;
     private transient UISClient uisClient;
 
@@ -134,7 +132,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                         dbConnectionDetails.getKeyspaceName(),
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
-        harvestedRecordDAO = new HarvestedRecordDAO(cassandraConnectionProvider);
+        harvestedRecordsDAO = new HarvestedRecordsDAO(cassandraConnectionProvider);
     }
 
     private void prepareUisClient() {
@@ -178,33 +176,14 @@ public class IndexingBolt extends AbstractDpsBolt {
         try {
             String cloudIdentifier = extractCloudIdFromUrl(stormTaskTuple.getFileUrl());
             ResultSlice<CloudId> cloudIds = downloadCloudIdDefinition(cloudIdentifier);
-            String providerId = extractProviderIdFromOutputDataset(stormTaskTuple);
-            String datasetID = extractDataSetNameFromOutputDataset(stormTaskTuple);
+            String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
             cloudIds.getResults()
                     .stream()
-                    .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, providerId, datasetID))
-                    .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, providerId, datasetID));
+                    .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, metisDatasetId))
+                    .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, metisDatasetId));
         } catch (MalformedURLException | CloudException e) {
             LOGGER.error("Unable to update record harvesting dates");
             throw new RuntimeException("Unable to update record harvesting dates");
-        }
-    }
-
-    private String extractDataSetNameFromOutputDataset(StormTaskTuple stormTaskTuple) {
-        try {
-            List<DataSet> dataSets = DataSetUrlParser.parseList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-            return dataSets.get(0).getId();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid " + PluginParameterKeys.OUTPUT_DATA_SETS + " param value!", e);
-        }
-    }
-
-    private String extractProviderIdFromOutputDataset(StormTaskTuple stormTaskTuple) {
-        try {
-            List<DataSet> dataSets = DataSetUrlParser.parseList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-            return dataSets.get(0).getProviderId();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid " + PluginParameterKeys.OUTPUT_DATA_SETS + " param value!", e);
         }
     }
 
@@ -217,13 +196,13 @@ public class IndexingBolt extends AbstractDpsBolt {
         return parser.getPart(UrlPart.RECORDS);
     }
 
-    private boolean existsOnHarvestedRecordsList(CloudId cloudId, String providerId, String datasetId) {
-        return harvestedRecordDAO.findRecord(providerId, datasetId, cloudId.getLocalId().getRecordId()).isPresent();
+    private boolean existsOnHarvestedRecordsList(CloudId cloudId, String metisDatasetId) {
+        return harvestedRecordsDAO.findRecord(metisDatasetId, cloudId.getLocalId().getRecordId()).isPresent();
     }
 
-    private void updateRecordIndexingDate(CloudId cloudId, String providerId, String datasetId) {
-        LOGGER.info("Updating Indexing date for cloudId={}, providerId = {} and datasetID={}", cloudId, providerId, datasetId);
-        harvestedRecordDAO.updateIndexingDate(providerId, datasetId, cloudId.getLocalId().getRecordId(), new Date());
+    private void updateRecordIndexingDate(CloudId cloudId, String metisDatasetId) {
+        LOGGER.info("Updating Indexing date for cloudId={}, metisDatasetId = {}", cloudId, metisDatasetId);
+        harvestedRecordsDAO.updateIndexingDate(metisDatasetId, cloudId.getLocalId().getRecordId(), new Date());
     }
 
     class IndexerPoolWrapper implements Closeable {

@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.DataSet;
+import com.google.common.collect.Iterators;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterException;
@@ -17,11 +16,11 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 
-import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -43,18 +42,18 @@ public class HarvestsExecutor {
      * Auxiliary object to check 'kill flag' for task
      */
     private final TaskStatusChecker taskStatusChecker;
-    private final HarvestedRecordDAO harvestedRecordDAO;
+    private final HarvestedRecordsDAO harvestedRecordsDAO;
 
-    public HarvestsExecutor(RecordSubmitService recordSubmitService, TaskStatusChecker taskStatusChecker, HarvestedRecordDAO harvestedRecordDAO) {
+    public HarvestsExecutor(RecordSubmitService recordSubmitService, TaskStatusChecker taskStatusChecker, HarvestedRecordsDAO harvestedRecordsDAO) {
         this.recordSubmitService = recordSubmitService;
         this.taskStatusChecker = taskStatusChecker;
-        this.harvestedRecordDAO = harvestedRecordDAO;
+        this.harvestedRecordsDAO = harvestedRecordsDAO;
     }
 
     public HarvestResult execute(List<OaiHarvest> harvestsToBeExecuted, SubmitTaskParameters parameters) throws HarvesterException {
-        if(isIncremental(parameters) && parameters.getTaskParameter(PluginParameterKeys.SAMPLE_SIZE)!=null){
+        if (isIncremental(parameters) && parameters.getTaskParameter(PluginParameterKeys.SAMPLE_SIZE) != null) {
             //TODO impletent support for this or add such condition to TaskValidator
-            throw new IllegalArgumentException("Incremental harvesting cound not set "+PluginParameterKeys.SAMPLE_SIZE);
+            throw new IllegalArgumentException("Incremental harvesting cound not set " + PluginParameterKeys.SAMPLE_SIZE);
         }
         final AtomicInteger resultCounter = new AtomicInteger(0);
 
@@ -85,13 +84,13 @@ public class HarvestsExecutor {
         }
 
         if (isIncremental(parameters)) {
-            detectDeletedRecords(parameters, resultCounter);
+            emitDeletedRecords(parameters, resultCounter);
         }
         return new HarvestResult(resultCounter.get(), TaskState.QUEUED);
     }
 
     private void executeRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, OaiHarvest harvest, OaiRecordHeader oaiHeader) {
-        if(oaiHeader.isDeleted()){
+        if (oaiHeader.isDeleted()) {
             return;
         }
 
@@ -112,28 +111,28 @@ public class HarvestsExecutor {
             return false;
         }
 
-        DataSet dataSet = getSingleDataSet(parameters);
-        Optional<HarvestedRecord> recordInDbOptional = harvestedRecordDAO.findRecord(dataSet.getProviderId(), dataSet.getId(), oaiHeader.getOaiIdentifier());
-        if (recordInDbOptional.isEmpty()) {
+        String metisDatasetId = parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID);
+        Optional<HarvestedRecord> recordInDb = harvestedRecordsDAO.findRecord(metisDatasetId, oaiHeader.getOaiIdentifier());
+        if (recordInDb.isEmpty()) {
             return false;
         }
 
-        HarvestedRecord recordInDd = recordInDbOptional.get();
-        return (recordInDd.getIndexingDate() != null && oaiHeader.getDatestamp().isBefore(recordInDd.getHarvestDate().toInstant()));
+        return isHeaderVersionAlreadyIndexed(oaiHeader, recordInDb.get());
     }
 
-    private void detectDeletedRecords(SubmitTaskParameters parameters, AtomicInteger resultCounter) {
-        DataSet dataSet = getSingleDataSet(parameters);
-        Iterator<HarvestedRecord> it = harvestedRecordDAO.findDatasetRecords(dataSet.getProviderId(), dataSet.getId());
+    private boolean isHeaderVersionAlreadyIndexed(OaiRecordHeader oaiHeader, HarvestedRecord recordInDd) {
+        return recordInDd.getIndexingDate() != null && oaiHeader.getDatestamp().isBefore(recordInDd.getHarvestDate().toInstant());
+    }
+
+    private void emitDeletedRecords(SubmitTaskParameters parameters, AtomicInteger resultCounter) {
+        Iterator<HarvestedRecord> it = fetchDeletedRecords(parameters);
         while (it.hasNext()) {
             HarvestedRecord record = it.next();
-            if (record.getHarvestDate().before(parameters.getCurrentHarvestDate())) {
-                executeDeleteRecord(parameters, resultCounter, record);
-            }
+            emitDeletedRecord(parameters, resultCounter, record);
         }
     }
 
-    private void executeDeleteRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, HarvestedRecord record) {
+    private void emitDeletedRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, HarvestedRecord record) {
         if (record.getIndexingDate() != null) {
             DpsRecord kafkaRecord = DpsRecord.builder()
                     .taskId(parameters.getTask().getTaskId())
@@ -144,22 +143,20 @@ public class HarvestsExecutor {
                 resultCounter.incrementAndGet();
             }
         } else {
-            harvestedRecordDAO.deleteRecord(record.getProviderId(), record.getDatasetId(), record.getRecordLocalId());
+            harvestedRecordsDAO.deleteRecord(record.getMetisDatasetId(), record.getRecordLocalId());
         }
+    }
+
+    private Iterator<HarvestedRecord> fetchDeletedRecords(SubmitTaskParameters parameters) {
+        return Iterators.filter(
+                harvestedRecordsDAO.findDatasetRecords(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID))
+                , record -> record.getHarvestDate().before(parameters.getCurrentHarvestDate())
+        );
     }
 
     private void updateHarvestDate(SubmitTaskParameters parameters, OaiRecordHeader oaiHeader) {
-        DataSet dataSet = getSingleDataSet(parameters);
-        harvestedRecordDAO.updateHarvestDate(dataSet.getProviderId(), dataSet.getId(), oaiHeader.getOaiIdentifier(), parameters.getCurrentHarvestDate());
-    }
-
-    private DataSet getSingleDataSet(SubmitTaskParameters parameters) {
-        List<DataSet> dataSetList = getDataSetList(parameters.getTask());
-        if (dataSetList.size() != 1) {
-            //TODO it could be checked in TaskValidator
-            throw new IllegalArgumentException("IncrementalHarvesting is supported for one selected dataset!");
-        }
-        return dataSetList.get(0);
+        String metisDatasetId = parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID);
+        harvestedRecordsDAO.updateHarvestDate(metisDatasetId, oaiHeader.getOaiIdentifier(), parameters.getCurrentHarvestDate());
     }
 
     private boolean isIncremental(SubmitTaskParameters parameters) {
@@ -187,22 +184,12 @@ public class HarvestsExecutor {
     }
 
     private void storeHarvestedRecord(String oaiId, DpsTask dpsTask, Date harvestDate) {
-        for(DataSet dataset: getDataSetList(dpsTask)) {
-            harvestedRecordDAO.insertHarvestedRecord(HarvestedRecord.builder()
-                    .providerId(dataset.getProviderId())
-                    .datasetId(dataset.getId())
-                    .recordLocalId(oaiId)
-                    .harvestDate(harvestDate)
-                    .build());
-        }
-    }
-
-    private List<DataSet> getDataSetList(DpsTask dpsTask) {
-        try {
-            return DataSetUrlParser.parseList(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid "+PluginParameterKeys.OUTPUT_DATA_SETS+" param value!",e);
-        }
+        String metisDatasetId = dpsTask.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+        harvestedRecordsDAO.insertHarvestedRecord(HarvestedRecord.builder()
+                .metisDatasetId(metisDatasetId)
+                .recordLocalId(oaiId)
+                .harvestDate(harvestDate)
+                .build());
     }
 
 }
