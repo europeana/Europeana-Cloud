@@ -89,6 +89,7 @@ CREATE TABLE tasks_by_task_state(
 
 CREATE TABLE processed_records (
     task_id bigint,
+    bucket_number int,
     record_id varchar,
     attempt_number int,
     dst_identifier varchar,
@@ -97,5 +98,5 @@ CREATE TABLE processed_records (
     start_time     timestamp,
     info_text text,
     additional_informations text,
-    PRIMARY KEY(task_id, record_id)
+    PRIMARY KEY((task_id, bucket_number), record_id)
 );

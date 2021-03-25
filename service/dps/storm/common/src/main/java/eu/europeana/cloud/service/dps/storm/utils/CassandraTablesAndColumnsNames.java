@@ -100,5 +100,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_START_TIME = "start_time";
     public static final String PROCESSED_RECORDS_INFO_TEXT = "info_text";
     public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
+    public static final String PROCESSED_RECORDS_BUCKET_NUMBER = "bucket_number";
 
+    private CassandraTablesAndColumnsNames() {}
 }
