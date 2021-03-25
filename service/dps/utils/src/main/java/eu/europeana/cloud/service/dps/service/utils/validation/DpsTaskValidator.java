@@ -16,8 +16,9 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataV
 public class DpsTaskValidator {
 
 
-    private List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
-    private String validatorName;
+    private final List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
+    private final List<CustomValidator> customValidators = new ArrayList<>();
+    private final String validatorName;
     private boolean revisionMustExist = false;
 
     public DpsTaskValidator() {
@@ -38,16 +39,12 @@ public class DpsTaskValidator {
 
     }
 
-    public String getValidatorName() {
-        return validatorName;
-    }
-
     /**
      * Will check if dps task contains parameter with selected name and selected value
      *
-     * @param parameterName
-     * @param parameterValue
-     * @return
+     * @param parameterName parameter with this name will be validated
+     * @param parameterValue parameter with the provided name will be validated against this value
+     * @return currently constructed validator
      */
     public DpsTaskValidator withParameter(String parameterName, String parameterValue) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -65,7 +62,7 @@ public class DpsTaskValidator {
      *
      * @param paramName     parameter name
      * @param allowedValues list of allowed values
-     * @return
+     * @return currently constructed validator
      */
     public DpsTaskValidator withParameter(String paramName, List allowedValues) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -81,8 +78,8 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains parameter with selected name and no value
      *
-     * @param parameterName
-     * @return
+     * @param parameterName parameter with this name will be validated
+     * @return currently constructed validator
      */
     public DpsTaskValidator withEmptyParameter(String parameterName) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -98,8 +95,8 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains input data with selected name (value of this input data will not be validated)
      *
-     * @param inputDataName
-     * @return
+     * @param inputDataName name for the INPUT_DATA that will be validated
+     * @return currently constructed validator
      */
     public DpsTaskValidator withDataEntry(String inputDataName) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -113,9 +110,9 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains input data with selected name and selected value
      *
-     * @param entryName
-     * @param entryValue
-     * @return
+     * @param entryName name for the INPUT_DATA that will be validated
+     * @param entryValue value for the INPUT_DATA that will be validated
+     * @return currently constructed validator
      */
     public DpsTaskValidator withDataEntry(String entryName, Object entryValue) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -130,9 +127,9 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains input data with selected name and selected content type
      *
-     * @param entryName
+     * @param entryName name for the INPUT_DATA that will be validated
      * @param contentType content type of input data entry (can be file url, dataset url, ...)
-     * @return
+     * @return currently constructed validator
      */
     public DpsTaskValidator withDataEntry(String entryName, InputDataValueType contentType) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -148,8 +145,8 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains selected name
      *
-     * @param taskName
-     * @return
+     * @param taskName name of the task that will be compared with the name of the validated task
+     * @return currently constructed validator
      */
     public DpsTaskValidator withName(String taskName) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -164,7 +161,7 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains any name
      *
-     * @return
+     * @return currently constructed validator
      */
     public DpsTaskValidator withAnyName() {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -177,8 +174,8 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains selected task id
      *
-     * @param taskId
-     * @return
+     * @param taskId task identifier that will be compared with the identifier of the validated task
+     * @return currently constructed validator
      */
     public DpsTaskValidator withId(long taskId) {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -193,7 +190,7 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains any task id
      *
-     * @return
+     * @return currently constructed validator
      */
     public DpsTaskValidator withAnyId() {
         DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
@@ -207,7 +204,7 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains any task id
      *
-     * @return
+     * @return currently constructed validator
      */
     public DpsTaskValidator withAnyOutputRevision() {
         revisionMustExist = true;
@@ -226,6 +223,11 @@ public class DpsTaskValidator {
         return this;
     }
 
+    public DpsTaskValidator withCustomValidator(CustomValidator validator){
+        customValidators.add(validator);
+        return this;
+    }
+
     public void validate(DpsTask task) throws DpsTaskValidationException {
         for (DpsTaskConstraint re : dpsTaskConstraints) {
             DpsTaskFieldType fieldType = re.getFieldType();
@@ -239,6 +241,11 @@ public class DpsTaskValidator {
                 validateId(task, re);
             } else if (fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)) {
                 validateOutputRevision(task, revisionMustExist);
+            }
+        }
+        for (CustomValidator customValidator : customValidators) {
+            if(!customValidator.test(task)){
+                throw new DpsTaskValidationException("Dps Task doesn't meet the requirements of the custom validator. " + customValidator.errorMessage());
             }
         }
     }
@@ -396,10 +403,10 @@ public class DpsTaskValidator {
  * Holds the definition of single constraint that should be fullfiled by dpsTask
  */
 class DpsTaskConstraint {
-    private DpsTaskFieldType fieldType;
-    private Object expectedValue;
-    private InputDataValueType expectedValueType;
-    private String expectedName;
+    private final DpsTaskFieldType fieldType;
+    private final Object expectedValue;
+    private final InputDataValueType expectedValueType;
+    private final String expectedName;
 
     private DpsTaskConstraint(Builder builder) {
         this.fieldType = builder.fieldType;

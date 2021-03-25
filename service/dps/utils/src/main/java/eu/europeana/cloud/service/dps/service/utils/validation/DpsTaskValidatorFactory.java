@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +15,7 @@ public class DpsTaskValidatorFactory {
             new DpsTaskValidator()
                     .withParameter(
                             "parameterNameThatWillNeverHappen",
-                            Arrays.asList("parameterValueThatWillNeverHappen"));
+                            Collections.singletonList("parameterValueThatWillNeverHappen"));
 
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
@@ -85,7 +85,9 @@ public class DpsTaskValidatorFactory {
         taskValidatorMap.put(OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL, new DpsTaskValidator("RepositoryUrl validator for OAI-PMH Topology")
                 .withParameter(PluginParameterKeys.PROVIDER_ID)
                 .withDataEntry(REPOSITORY_URLS.name(), InputDataValueType.LINK_TO_EXTERNAL_URL)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new SingleRepositoryValidator())
+                .withCustomValidator(new SingleOutputDatasetValidator()));
 
         taskValidatorMap.put(HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL, new DpsTaskValidator("RepositoryUrl validator for HTTP Topology")
                 .withParameter(PluginParameterKeys.PROVIDER_ID)

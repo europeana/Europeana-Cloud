@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.*;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +17,8 @@ import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(JUnitParamsRunner.class)
 public class DpsTaskValidatorTest {
@@ -23,6 +26,10 @@ public class DpsTaskValidatorTest {
 
     private DpsTask dpsTask;
     private DpsTask icTopologyTask;
+    private DpsTask oaiTopologyTask;
+    private DpsTask oaiTopologyTaskWithoutOutputDataset;
+    private DpsTask oaiTopologyTaskWithTwoRepositories;
+    private DpsTask oaiTopologyTaskWithTwoOutputDatasets;
     private DpsTask dpsTaskWithIncorrectRevision_1;
     private DpsTask dpsTaskWithIncorrectRevision_2;
     private DpsTask dpsTaskWithIncorrectRevision_3;
@@ -62,6 +69,25 @@ public class DpsTaskValidatorTest {
         icTopologyTask.addDataEntry(FILE_URLS, Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
         icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
+        //
+        oaiTopologyTask = new DpsTask();
+        oaiTopologyTask.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        oaiTopologyTask.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
+        oaiTopologyTask.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
+        //
+        oaiTopologyTaskWithoutOutputDataset = new DpsTask();
+        oaiTopologyTaskWithoutOutputDataset.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        oaiTopologyTaskWithoutOutputDataset.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
+        //
+        oaiTopologyTaskWithTwoRepositories = new DpsTask();
+        oaiTopologyTaskWithTwoRepositories.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        oaiTopologyTaskWithTwoRepositories.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
+        //
+        oaiTopologyTaskWithTwoOutputDatasets = new DpsTask();
+        oaiTopologyTaskWithTwoOutputDatasets.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c"));
+        oaiTopologyTaskWithTwoOutputDatasets.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt,http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
+        oaiTopologyTaskWithTwoOutputDatasets.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
+
         //
         dpsTaskWithIncorrectRevision_1 = new DpsTask(TASK_NAME);
         Revision r1 = new Revision();
@@ -274,6 +300,47 @@ public class DpsTaskValidatorTest {
                 .withParameter("OUTPUT_MIME_TYPE")
                 .withParameter("SAMPLE_PARAMETER")
                 .validate(icTopologyTask);
+    }
+
+    @Test
+    public void shouldValidateTaskForOAITopology() throws DpsTaskValidationException {
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+        validator.validate(oaiTopologyTask);
+    }
+
+    @Test
+    public void shouldValidateTaskForOAITopologyWithMoreThanOneRepositoryUrl() throws DpsTaskValidationException {
+        try {
+            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+            validator.validate(oaiTopologyTaskWithTwoRepositories);
+
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("There is more than one repository in input parameters."));
+        }
+    }
+
+    @Test
+    public void shouldValidateTaskForOAITopologyWithMoreThanOneOutputDataset() {
+        try {
+            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+            validator.validate(oaiTopologyTaskWithTwoOutputDatasets);
+
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("There should be exactly one output dataset."));
+
+        }
+    }
+
+    @Test
+    public void shouldValidateTaskForOAITopologyWithZeroOutputDatasets() {
+        try {
+            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+            validator.validate(oaiTopologyTaskWithoutOutputDataset);
+
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("There should be exactly one output dataset."));
+
+        }
     }
 
     @Test(expected = DpsTaskValidationException.class)
