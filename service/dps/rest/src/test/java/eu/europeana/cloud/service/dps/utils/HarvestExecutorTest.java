@@ -52,7 +52,7 @@ public class HarvestExecutorTest {
     @Autowired
     private ProcessedRecordsDAO processedRecordsDAO;
 
-    private List<OaiHarvest> harvestList;
+    private OaiHarvest harvest;
 
     private final static String[][] DATA = new String[][]{
             {"http://islandskort.is/oai", "edm", ""},
@@ -66,11 +66,9 @@ public class HarvestExecutorTest {
         String schema = DATA[CASE][1];
         String set = DATA[CASE][2];
 
-        OaiHarvest harvest = new OaiHarvest(endPoint, schema,
+        harvest = new OaiHarvest(endPoint, schema,
                 set != null && set.isEmpty() ? null : set);
 
-        harvestList = new ArrayList<>();
-        harvestList.add(HARVESTS_INDEX, harvest);
         when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.empty());
     }
 
@@ -81,7 +79,7 @@ public class HarvestExecutorTest {
 
         when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(true);
 
-        HarvestResult harvestResult = harvestsExecutor.execute(harvestList,
+        HarvestResult harvestResult = harvestsExecutor.execute(harvest,
                 SubmitTaskParameters.builder()
                         .task(dpsTask)
                         .topicName(TOPIC_NAME)
@@ -100,17 +98,17 @@ public class HarvestExecutorTest {
         when(taskStatusChecker.hasKillFlag(TASK_ID)).thenReturn(false);
 
         HarvestsExecutor spiedHarvestsExecutor = spy(harvestsExecutor);
-        int count = spiedHarvestsExecutor.execute(harvestList,
+        int count = spiedHarvestsExecutor.execute(harvest,
                 SubmitTaskParameters.builder()
                         .task(dpsTask)
                         .topicName(TOPIC_NAME)
                         .topologyName(OAI_TOPOLOGY_NAME)
                         .build()).getResultCounter();
 
-        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OaiRecordHeader.class), eq(harvestList.get(HARVESTS_INDEX)), eq(dpsTask));
+        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).convertToDpsRecord(Matchers.any(OaiRecordHeader.class), eq(harvest), eq(dpsTask));
         Mockito.verify(recordSubmitService, Mockito.times(count)).submitRecord(Matchers.any(DpsRecord.class), Matchers.any(String.class));
         Mockito.verify(processedRecordsDAO,Mockito.times(count)).insert(anyLong() ,anyString(), eq(0), anyString(),
                 eq(OAI_TOPOLOGY_NAME), eq(RecordState.QUEUED.toString()), anyString(), anyString());
-        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).logProgressFor(eq(harvestList.get(HARVESTS_INDEX)), Mockito.anyInt());
+        Mockito.verify(spiedHarvestsExecutor, Mockito.times(count)).logProgressFor(harvest, Mockito.anyInt());
     }
 }
