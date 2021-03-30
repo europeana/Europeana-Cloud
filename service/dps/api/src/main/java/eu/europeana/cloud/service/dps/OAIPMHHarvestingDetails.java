@@ -52,7 +52,6 @@ public class OAIPMHHarvestingDetails implements Serializable {
         this.granularity = granularity;
     }
 
-    @JsonIgnore
     public String getSchema() {
         return schema;
     }

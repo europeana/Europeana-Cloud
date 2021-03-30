@@ -17,8 +17,6 @@ import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(JUnitParamsRunner.class)
 public class DpsTaskValidatorTest {
