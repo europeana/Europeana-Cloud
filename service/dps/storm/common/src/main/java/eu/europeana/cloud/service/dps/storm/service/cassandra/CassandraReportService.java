@@ -95,7 +95,7 @@ public class CassandraReportService implements TaskExecutionReportService {
     @Override
     public List<SubTaskInfo> getDetailedTaskReport(String taskId, int from, int to) {
         List<SubTaskInfo> result = new ArrayList<>();
-        for (int i = CassandraSubTaskInfoDAO.bucketNumber(from); i < CassandraSubTaskInfoDAO.bucketNumber(to); i++) {
+        for (int i = CassandraSubTaskInfoDAO.bucketNumber(to); i >= CassandraSubTaskInfoDAO.bucketNumber(from); i--) {
             Statement selectFromNotification = QueryBuilder.select()
                     .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
                     .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.parseLong(taskId)))

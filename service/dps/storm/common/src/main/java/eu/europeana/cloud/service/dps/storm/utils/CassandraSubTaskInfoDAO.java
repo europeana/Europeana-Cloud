@@ -17,6 +17,7 @@ import java.time.Duration;
 public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     private static final long TIME_TO_LIVE = Duration.ofDays(14).toSeconds();
+    public static final int BUCKET_SIZE = 10000;
 
     private PreparedStatement subtaskInsertStatement;
     private PreparedStatement processedFilesCountStatement;
@@ -76,12 +77,13 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     public int getProcessedFilesCount(long taskId) {
         int bucketNumber = 0;
         int filesCount = 0;
-        Row row = null;
+        Row row;
         do {
             ResultSet rs = dbService.getSession().execute(processedFilesCountStatement.bind(taskId, bucketNumber));
             row = rs.one();
             if (row != null) {
                 filesCount = row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM);
+                bucketNumber++;
             }
         } while (row != null);
 
@@ -96,7 +98,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     }
 
     public static int bucketNumber(int resourceNum) {
-        return resourceNum / 10000;
+        return resourceNum / BUCKET_SIZE;
     }
 
 }

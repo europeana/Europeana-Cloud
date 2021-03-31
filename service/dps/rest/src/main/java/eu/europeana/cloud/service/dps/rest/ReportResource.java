@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
