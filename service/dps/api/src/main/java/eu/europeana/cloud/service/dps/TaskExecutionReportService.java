@@ -21,15 +21,9 @@ public interface TaskExecutionReportService {
     TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
 
     /**
-     * @return Info messages for the specified task between chunks
+     * @return Info messages for the specified task for given resourceNum range
      */
-    List<SubTaskInfo> getDetailedTaskReportBetweenChunks(String taskId, int from, int to);
-
-
-    /**
-     * @return Info messages for the specified task between chunks
-     */
-    List<SubTaskInfo> getDetailedTaskReportByPage(String taskId, int pageNo, int pageLen);
+    List<SubTaskInfo> getDetailedTaskReport(String taskId, int from, int to);
 
     /**
      * Retrieve all errors that occurred for the given task

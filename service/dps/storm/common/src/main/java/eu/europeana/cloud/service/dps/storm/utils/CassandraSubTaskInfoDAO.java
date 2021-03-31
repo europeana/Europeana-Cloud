@@ -6,12 +6,8 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.time.Duration;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.SubTaskInfo} DAO
@@ -19,7 +15,9 @@ import java.util.List;
  * @author akrystian
  */
 public class CassandraSubTaskInfoDAO extends CassandraDAO {
-    private PreparedStatement subtaskSearchStatement;
+
+    private static final long TIME_TO_LIVE = Duration.ofDays(14).toSeconds();
+
     private PreparedStatement subtaskInsertStatement;
     private PreparedStatement processedFilesCountStatement;
     private PreparedStatement removeNotificationsByTaskId;
@@ -43,66 +41,62 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     @Override
     void prepareStatements() {
         subtaskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + "("
-                + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
+                + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
+                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER
+                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_STATE
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
-                + ") VALUES (?,?,?,?,?,?,?,?)");
+                + ") VALUES (?,?,?,?,?,?,?,?,?) USING TTL "+ TIME_TO_LIVE);
         subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        subtaskSearchStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?");
-        subtaskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
         processedFilesCountStatement = dbService.getSession().prepare(
                 "SELECT resource_num FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
                         " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
+                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?" +
                         " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1");
         processedFilesCountStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        removeNotificationsByTaskId = dbService.getSession().prepare("delete from " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?");
+        removeNotificationsByTaskId = dbService.getSession().prepare(
+                "delete from " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
+                        " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
+                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?");
 
     }
 
     public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(subtaskInsertStatement.bind(resourceNum, taskId, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
-    }
-
-    public List<SubTaskInfo> searchById(long taskId)
-            throws NoHostAvailableException, QueryExecutionException {
-        ResultSet rs = dbService.getSession().execute(subtaskSearchStatement.bind(taskId));
-        List<SubTaskInfo> result = new ArrayList<>();
-        for (Row row : rs.all()) {
-            result.add(new SubTaskInfo(
-                    row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
-                    RecordState.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS),
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE)
-            ));
-        }
-        return result;
+        dbService.getSession().execute(subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
     }
 
     public int getProcessedFilesCount(long taskId) {
-        ResultSet rs = dbService.getSession().execute(processedFilesCountStatement.bind(taskId));
-        Iterator<Row> iterator = rs.iterator();
-        if(iterator.hasNext()){
-            Row row = iterator.next();
-            return row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM);
-        }else{
-            return 0;
-        }
+        int bucketNumber = 0;
+        int filesCount = 0;
+        Row row = null;
+        do {
+            ResultSet rs = dbService.getSession().execute(processedFilesCountStatement.bind(taskId, bucketNumber));
+            row = rs.one();
+            if (row != null) {
+                filesCount = row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM);
+            }
+        } while (row != null);
+
+        return filesCount;
     }
 
     public void removeNotifications(long taskId) {
-        dbService.getSession().execute(removeNotificationsByTaskId.bind(taskId));
+        int lastBucket = bucketNumber(getProcessedFilesCount(taskId) - 1);
+        for (int i = lastBucket; i >= 0; i--) {
+            dbService.getSession().execute(removeNotificationsByTaskId.bind(taskId, i));
+        }
+    }
+
+    public static int bucketNumber(int resourceNum) {
+        return resourceNum / 10000;
     }
 
 }

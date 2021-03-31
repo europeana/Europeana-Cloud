@@ -74,13 +74,7 @@ public class ReportResource {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
 
-        List<SubTaskInfo> result = null;
-        if(!topologyName.equals(TopologiesNames.OAI_TOPOLOGY)) {
-            result = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
-        } else {
-            result = reportService.getDetailedTaskReportByPage(taskId, from, to);
-        }
-        return result;
+        return reportService.getDetailedTaskReport(taskId, from, to);
     }
 
 
