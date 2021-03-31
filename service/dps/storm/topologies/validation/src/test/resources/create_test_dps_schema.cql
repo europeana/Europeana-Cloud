@@ -101,3 +101,13 @@ CREATE TABLE processed_records (
     additional_informations text,
     PRIMARY KEY((task_id, bucket_number), record_id)
 );
+
+create table harvested_records(
+    metis_dataset_id varchar,
+    bucket_number    int,
+    record_local_id  varchar,
+    harvest_date     timestamp,
+    md5              uuid,
+    indexing_date    timestamp,
+    PRIMARY KEY ((metis_dataset_id, bucket_number), record_local_id)
+);

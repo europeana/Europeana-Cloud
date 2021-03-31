@@ -34,7 +34,6 @@ public final class PluginParameterKeys {
     public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
     public static final String RECORD_IDS_TO_DEPUBLISH = "RECORD_IDS_TO_DEPUBLISH";
 
-
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String CLOUD_ID = "CLOUD_ID";

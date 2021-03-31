@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -79,14 +80,11 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     private void addRecordToDataset(StormTaskTuple stormTaskTuple, String authorizationHeader, String resultUrl) throws MalformedURLException, MCSException {
-        List<String> datasets = readDataSetsList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-        if (datasets != null) {
-            LOGGER.info("Data-sets that will be affected: {}", datasets);
-            for (String datasetLocation : datasets) {
-                Representation resultRepresentation = parseResultUrl(resultUrl);
-                DataSet dataSet = parseDataSetURl(datasetLocation);
-                assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
-            }
+        List<DataSet> datasets = DataSetUrlParser.parseList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+        LOGGER.info("Data-sets that will be affected: {}", datasets);
+        for (DataSet dataSet : datasets) {
+            Representation resultRepresentation = parseResultUrl(resultUrl);
+            assignRepresentationToDataSet(dataSet, resultRepresentation, authorizationHeader);
         }
     }
 
@@ -103,12 +101,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     }
 
-    private List<String> readDataSetsList(String listParameter) {
-        if (listParameter == null) {
-            return null;
-        }
-        return Arrays.asList(listParameter.split(","));
-    }
+
 
     private Representation parseResultUrl(String url) throws MalformedURLException {
         UrlParser parser = new UrlParser(url);
@@ -120,18 +113,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             return rep;
         }
         throw new MalformedURLException("The resulted output URL is not formulated correctly");
-    }
-
-    private DataSet parseDataSetURl(String url) throws MalformedURLException {
-        UrlParser parser = new UrlParser(url);
-        if (parser.isUrlToDataset()) {
-            DataSet dataSet = new DataSet();
-            dataSet.setId(parser.getPart(UrlPart.DATA_SETS));
-            dataSet.setProviderId(parser.getPart(UrlPart.DATA_PROVIDERS));
-            return dataSet;
-        }
-        throw new MalformedURLException("The dataSet URL is not formulated correctly");
-
     }
 
 }

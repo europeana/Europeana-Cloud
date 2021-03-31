@@ -75,7 +75,7 @@ public class HarvestingWriteRecordBoltTest {
         when(outputCollector.emit(anyList())).thenReturn(null);
         MockitoAnnotations.initMocks(this);
         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
-        oaipmhHarvestingDetails.setSchemas(new HashSet<String>(Arrays.asList(SOURCE + REPRESENTATION_NAME)));
+        oaipmhHarvestingDetails.setSchema(SOURCE + REPRESENTATION_NAME);
     }
 
     private StormTaskTuple getStormTaskTuple() throws Exception {
