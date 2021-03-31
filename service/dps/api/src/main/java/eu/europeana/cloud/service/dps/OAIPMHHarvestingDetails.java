@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
 import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;

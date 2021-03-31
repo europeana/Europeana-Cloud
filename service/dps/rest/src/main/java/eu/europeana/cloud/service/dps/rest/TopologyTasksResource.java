@@ -256,7 +256,7 @@ public class TopologyTasksResource {
         ResponseEntity<Void> result;
 
         if (task != null) {
-            LOGGER.info(!restart ? "Submitting task" : "Restarting task");
+            LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
             String taskJSON = new ObjectMapper().writeValueAsString(task);
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()

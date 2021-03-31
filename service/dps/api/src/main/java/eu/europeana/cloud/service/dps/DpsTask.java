@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.*;
 
 @XmlRootElement()
+@ToString
 public class DpsTask implements Serializable {
     private static final long serialVersionUID = 1L;
 

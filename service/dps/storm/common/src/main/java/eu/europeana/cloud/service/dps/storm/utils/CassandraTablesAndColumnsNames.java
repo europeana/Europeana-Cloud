@@ -101,8 +101,6 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_INFO_TEXT = "info_text";
     public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
     public static final String PROCESSED_RECORDS_BUCKET_NUMBER = "bucket_number";
-
-    private CassandraTablesAndColumnsNames() {}
     //------- HARVESTED_RECORD -------
     public static final String HARVESTED_RECORD_METIS_DATASET_ID = "metis_dataset_id";
     public static final String HARVESTED_RECORD_LOCAL_ID = "record_local_id";
@@ -111,6 +109,8 @@ public class CassandraTablesAndColumnsNames {
     public static final String HARVESTED_RECORD_MD5 = "md5";
     public static final String HARVESTED_RECORD_INDEXING_DATE = "indexing_date";
 
+    private CassandraTablesAndColumnsNames() {
+    }
 
 
 }
