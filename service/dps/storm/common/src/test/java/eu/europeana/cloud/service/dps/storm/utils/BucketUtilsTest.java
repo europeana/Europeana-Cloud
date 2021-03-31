@@ -15,7 +15,9 @@ import static org.junit.Assert.assertFalse;
 public class BucketUtilsTest {
 
     @Test
-    public void testHashFuctionUnchanged() throws IOException {
+    //WARNING This hash function is used as partition key in Cassandra, so after any change in method behaviour data in
+    // Cassandra would be corrupted.
+    public void shouldHashFunctionBeUnchanged() throws IOException {
         List<String> strings = Resources.readLines(Resources.getResource("random_strings.txt"), Charsets.UTF_8);
         List<String> hashes = Resources.readLines(Resources.getResource("string_hashcodes.txt"), Charsets.UTF_8);
 

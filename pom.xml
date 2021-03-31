@@ -137,7 +137,9 @@
         <version.spring-framework>3.2.9.RELEASE</version.spring-framework>
         <version.servlet>2.5</version.servlet>
         <version.junitparams>1.0.6</version.junitparams>
-        <!-- After changing version should be tested class: eu.europeana.cloud.service.dps.storm.utils.BucketUtils-->
+        <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
+            to avoid data corruption in Cassandra.
+            Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
         <version.commonscodec>1.15</version.commonscodec>
         <version.commonio>2.4</version.commonio>
         <version.uuid>3.5</version.uuid>

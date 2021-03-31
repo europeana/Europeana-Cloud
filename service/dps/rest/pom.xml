@@ -185,6 +185,15 @@
 
     <dependencies>
         <dependency>
+            <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
+                to avoid data corruption in Cassandra.
+                Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${version.commonscodec}</version>
+        </dependency>
+
+        <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <version>2.0.1.Final</version>
