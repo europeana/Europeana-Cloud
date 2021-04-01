@@ -113,6 +113,14 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             tuple.addParameter(PluginParameterKeys.MAIN_RESOURCE_METADATA_AVAILABLE, "true");
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
             outputCollector.emit(anchorTuple, tuple.toStormTuple());
+        } else {
+            emitErrorNotification(
+                    anchorTuple,
+                    stormTaskTuple.getTaskId(),
+                    stormTaskTuple.getFileUrl(),
+                    "There is no resource extraction result",
+                    "",
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
     }
 
