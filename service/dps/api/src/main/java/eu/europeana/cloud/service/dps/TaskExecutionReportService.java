@@ -16,7 +16,7 @@ public interface TaskExecutionReportService {
     /**
      * @return Amount of records that have been processed
      * by the last bolt of a topology.
-     * @throws AccessDeniedOrObjectDoesNotExistException
+     * @throws AccessDeniedOrObjectDoesNotExistException thrown when given task does not exist
      */
     TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
 
@@ -30,7 +30,7 @@ public interface TaskExecutionReportService {
      *
      * @param task task identifier
      * @return task error info object
-     * @throws AccessDeniedOrObjectDoesNotExistException
+     * @throws AccessDeniedOrObjectDoesNotExistException thrown when given task does not exist
      */
     TaskErrorsInfo getGeneralTaskErrorReport(String task, int idsCount) throws AccessDeniedOrObjectDoesNotExistException;
 
@@ -46,9 +46,8 @@ public interface TaskExecutionReportService {
     /**
      * check if a Task belong to specific topology
      * @param taskId task identifier
-     * @param taskId task identifier
 
-     * @throws AccessDeniedOrObjectDoesNotExistException
+     * @throws AccessDeniedOrObjectDoesNotExistException thrown when given task does not exist
      */
 
     void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException;
