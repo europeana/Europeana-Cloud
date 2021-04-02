@@ -118,7 +118,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         testedBolt.execute(tuple);
 
         TaskInfo taskProgress = cassandraReportService.getTaskProgress(String.valueOf(taskId));
-        List<SubTaskInfo> notifications = cassandraReportService.getDetailedTaskReportBetweenChunks("" + taskId, 0, 100);
+        List<SubTaskInfo> notifications = cassandraReportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
         assertEquals(taskProgress.getProcessedElementCount(), 1);
     }

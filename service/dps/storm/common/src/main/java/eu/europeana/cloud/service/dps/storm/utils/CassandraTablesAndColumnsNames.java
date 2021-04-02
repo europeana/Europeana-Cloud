@@ -33,6 +33,7 @@ public class CassandraTablesAndColumnsNames {
 
     //------- NOTIFICATION -------
     public static final String NOTIFICATION_TASK_ID = "task_id";
+    public static final String NOTIFICATION_BUCKET_NUMBER = "bucket_number";
     public static final String NOTIFICATION_RESOURCE_NUM = "resource_num";
     public static final String NOTIFICATION_TOPOLOGY_NAME = "topology_name";
     public static final String NOTIFICATION_RESOURCE = "resource";

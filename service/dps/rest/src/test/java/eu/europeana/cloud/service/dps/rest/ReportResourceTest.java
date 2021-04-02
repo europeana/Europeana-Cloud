@@ -73,7 +73,7 @@ public class ReportResourceTest extends AbstractResourceTest {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
-        when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
+        when(reportService.getDetailedTaskReport(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
 
         ResultActions response = mockMvc.perform(get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
 
@@ -85,7 +85,7 @@ public class ReportResourceTest extends AbstractResourceTest {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
-        when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
+        when(reportService.getDetailedTaskReport(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
 
         ResultActions response = mockMvc.perform(
                 get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -97,7 +97,7 @@ public class ReportResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
-        when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
+        when(reportService.getDetailedTaskReport(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         ResultActions response = mockMvc.perform(get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("from", "120").queryParam("to", "150"));
