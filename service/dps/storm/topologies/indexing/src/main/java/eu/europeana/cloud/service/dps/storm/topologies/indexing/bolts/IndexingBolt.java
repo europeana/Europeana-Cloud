@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
+import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
 
@@ -105,8 +106,10 @@ public class IndexingBolt extends AbstractDpsBolt {
         try {
             recordDate = dateFormat
                 .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+            final IndexingProperties properties = new IndexingProperties(recordDate,
+                    preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
             if (!stormTaskTuple.isMarkedAsDeleted()) {
-                indexRecord(stormTaskTuple, useAltEnv, database, preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, recordDate);
+                indexRecord(stormTaskTuple, useAltEnv, database, properties);
                 updateRecordHarvestingDates(stormTaskTuple);
             }
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
@@ -149,11 +152,11 @@ public class IndexingBolt extends AbstractDpsBolt {
         }
     }
 
-    private void indexRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, boolean preserveTimestampsString, List<String> datasetIdsToRedirectFromList, boolean performRedirects, Date recordDate) throws IndexingException {
+    private void indexRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, IndexingProperties properties) throws IndexingException {
         final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
 
         final String document = new String(stormTaskTuple.getFileData());
-        indexerPool.index(document, recordDate, preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects);
+        indexerPool.index(document, properties);
     }
 
     private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId,
