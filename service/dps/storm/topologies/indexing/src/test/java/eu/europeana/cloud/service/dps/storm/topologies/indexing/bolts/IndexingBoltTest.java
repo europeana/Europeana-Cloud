@@ -81,7 +81,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any(Date.class), anyBoolean(), any(), anyBoolean());
+        verify(indexerPool).index(anyString(), any());
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).updateIndexingDate(eq("exampleDS_ID"), eq("localId"), any(Date.class));
@@ -107,7 +107,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any(Date.class), anyBoolean(), any(), anyBoolean());
+        verify(indexerPool).index(anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).updateIndexingDate(eq("exampleDS_ID"), eq("localId"), any(Date.class));
@@ -134,7 +134,7 @@ public class IndexingBoltTest {
 
         verifyNoInteractions(indexerPool);
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
-        verify(indexerPool, never()).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean(), Mockito.anyList(), Mockito.anyBoolean());
+        verify(indexerPool, never()).index(Mockito.anyString(), Mockito.any());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updateIndexingDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
@@ -258,8 +258,7 @@ public class IndexingBoltTest {
     private void mockIndexerFactoryFor(Class clazz) throws IndexingException {
         when(indexerPoolWrapper.getIndexerPool(Mockito.any(), Mockito.any())).thenReturn(indexerPool);
         if (clazz != null) {
-            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean(), Mockito.anyList(), Mockito.anyBoolean());
-            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any(Date.class), Mockito.anyBoolean(), isNull(), Mockito.anyBoolean());
+            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any());
         }
     }
 }
