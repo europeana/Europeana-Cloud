@@ -8,7 +8,6 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
@@ -17,10 +16,7 @@ import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProv
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.LoggingFilter;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -59,11 +55,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LoggingFilter());
-    }
-
-    @Bean
-    public ServiceExceptionTranslator serviceExceptionTranslator() {
-        return new ServiceExceptionTranslator();
     }
 
     @Bean
