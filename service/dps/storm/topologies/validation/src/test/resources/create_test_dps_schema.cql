@@ -17,16 +17,17 @@ CREATE TABLE basic_info (
 );
 
 
-CREATE TABLE notifications (
-    resource_num int,
+CREATE TABLE notifications(
     task_id bigint,
+    bucket_number int,
+    resource_num int,
     topology_name varchar,
     resource varchar,
     state varchar,
     info_text text,
     additional_informations text,
     result_resource varchar,
-    PRIMARY KEY(task_id,resource_num)
+    PRIMARY KEY((task_id,bucket_number),resource_num)
 ) WITH CLUSTERING ORDER BY (resource_num DESC);
 
 
@@ -90,6 +91,7 @@ CREATE TABLE tasks_by_task_state(
 
 CREATE TABLE processed_records (
     task_id bigint,
+    bucket_number int,
     record_id varchar,
     attempt_number int,
     dst_identifier varchar,
@@ -98,5 +100,15 @@ CREATE TABLE processed_records (
     start_time     timestamp,
     info_text text,
     additional_informations text,
-    PRIMARY KEY(task_id, record_id)
+    PRIMARY KEY((task_id, bucket_number), record_id)
+);
+
+create table harvested_records(
+    metis_dataset_id varchar,
+    bucket_number    int,
+    record_local_id  varchar,
+    harvest_date     timestamp,
+    md5              uuid,
+    indexing_date    timestamp,
+    PRIMARY KEY ((metis_dataset_id, bucket_number), record_local_id)
 );

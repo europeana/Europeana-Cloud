@@ -39,7 +39,7 @@ import static java.lang.Integer.parseInt;
  */
 public class XSLTTopology {
 
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);

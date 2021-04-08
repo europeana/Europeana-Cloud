@@ -13,9 +13,9 @@ public class RemoverImpl implements Remover {
 
     static final Logger LOGGER = Logger.getLogger(RemoverImpl.class);
 
-    private CassandraSubTaskInfoDAO subTaskInfoDAO;
-    private CassandraTaskErrorsDAO taskErrorDAO;
-    private CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
+    private final CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private final CassandraTaskErrorsDAO taskErrorDAO;
+    private final CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
 
     private static final int DEFAULT_RETRIES = 5;
     private static final int SLEEP_TIME = 3000;

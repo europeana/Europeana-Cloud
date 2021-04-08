@@ -19,6 +19,14 @@
 
     <dependencies>
         <dependency>
+            <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
+                to avoid data corruption in Cassandra.
+                Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${version.commonscodec}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <version>${version.spring-framework}</version>
@@ -241,7 +249,6 @@
             </exclusions>
 
         </dependency>
-
     </dependencies>
 
 

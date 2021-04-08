@@ -6,11 +6,12 @@
     <parent>
         <artifactId>ecloud-tools</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>4-SNAPSHOT</version>
     </parent>
+
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-db-migrator</artifactId>
-    <version>0.1-SNAPSHOT</version>
+
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -21,12 +22,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>${version.slf4j}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.21</version>
+            <version>${version.slf4j}</version>
         </dependency>
         <dependency>
             <groupId>commons-cli</groupId>
@@ -36,22 +37,22 @@
         <dependency>
             <groupId>com.eaio.uuid</groupId>
             <artifactId>uuid</artifactId>
-            <version>3.2</version>
+            <version>${version.uuid}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-common</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

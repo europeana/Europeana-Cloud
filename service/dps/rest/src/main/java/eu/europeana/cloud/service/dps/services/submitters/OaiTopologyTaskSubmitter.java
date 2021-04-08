@@ -15,8 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class OaiTopologyTaskSubmitter implements TaskSubmitter {
 
@@ -41,7 +39,8 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
 
-        List<OaiHarvest> harvestsToByExecuted = new DpsTaskToOaiHarvestConverter().from(parameters.getTask());
+        LOGGER.info("Starting OAI harvesting for: {}", parameters);
+        OaiHarvest harvestToByExecuted = new DpsTaskToOaiHarvestConverter().from(parameters.getTask());
         int expectedCount = getFilesCountInsideTask(parameters);
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
@@ -60,7 +59,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
 
         try {
             HarvestResult harvesterResult;
-            harvesterResult = harvestsExecutor.execute(harvestsToByExecuted, parameters);
+            harvesterResult = harvestsExecutor.execute(harvestToByExecuted, parameters);
             updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
         } catch (HarvesterException e) {
             throw new TaskSubmissionException("Unable to submit task properly", e);

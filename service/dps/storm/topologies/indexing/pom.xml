@@ -12,6 +12,14 @@
     <name>ecloud-service-dps-storm-topologies-indexing</name>
 
     <dependencies>
+        <dependency>
+            <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
+                to avoid data corruption in Cassandra.
+                Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${version.commonscodec}</version>
+        </dependency>
 
         <dependency>
             <groupId>io.netty</groupId>
@@ -30,7 +38,6 @@
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
-
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

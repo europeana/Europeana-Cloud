@@ -612,8 +612,7 @@ public class UISClient {
      * @return A CloudException that wraps the original exception
      */
     public CloudException generateException(ErrorInfo e) {
-        IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e
-                .getErrorCode());
+        IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
         LOGGER.error(e.getDetails());
         return new CloudException(e.getErrorCode(), error.getException(e));
     }
