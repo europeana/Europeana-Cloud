@@ -375,6 +375,19 @@ public class HarvestsExecutorTest {
         verifyRecordSubmittedToDelete(task.getTaskId(), OAI_ID_1);
     }
 
+    @Test
+    public void shouldDeleteRecordThatWasModifiedInIncrementalHarvest1ButNotIndexedAfterThenAndMarkedAsDeletedInIncrementalHarvest2()
+            throws HarvesterException {
+        executeInitialFullHarvest(new OaiRecordHeader(OAI_ID_1, false, DATE_BEFORE_FULL));
+        makeRecordsIndexed(OAI_ID_1);
+
+        executeIncrementalHarvest(DATE_OF_INC1, new OaiRecordHeader(OAI_ID_1, false, DATE_AFTER_FULL));
+
+        executeIncrementalHarvest(DATE_OF_INC2, new OaiRecordHeader(OAI_ID_1, true, DATE_AFTER_FULL));
+
+        verifyRecordSubmittedToDelete(task.getTaskId(), OAI_ID_1);
+    }
+
     //X. Delete of nonexistent old record (not in harvested record)
     @Test
     public void shouldIgnoreRecordThatIsMarkedAsDeletedButIsNotInSystem() throws HarvesterException {
@@ -384,29 +397,29 @@ public class HarvestsExecutorTest {
     }
     //XI. Delete record that is not indexed
     @Test
-    public void shouldIgnoreRecordThatIsNotOnHarvestedListButIsNotIndexed() throws HarvesterException {
+    public void shouldPassRecordThatIsNotOnHarvestedListButIsNotIndexed() throws HarvesterException {
         executeInitialFullHarvest(new OaiRecordHeader(OAI_ID_1, false, DATE_BEFORE_FULL));
 
         executeIncrementalHarvest(DATE_OF_INC1);
 
-        verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
+        verifyRecordSubmittedToDelete(task.getTaskId(), OAI_ID_1);
 
         executeIncrementalHarvest(DATE_OF_INC2);
 
-        verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
+        verifyRecordSubmittedToDelete(task.getTaskId(), OAI_ID_1);
     }
 
     @Test
-    public void shouldIgnoreRecordThatIsMarkedAsDeletedButIsNotIndexed() throws HarvesterException {
+    public void shouldPassRecordThatIsMarkedAsDeletedButIsNotIndexed() throws HarvesterException {
         executeInitialFullHarvest(new OaiRecordHeader(OAI_ID_1, false, DATE_BEFORE_FULL));
 
         executeIncrementalHarvest(DATE_OF_INC1, new OaiRecordHeader(OAI_ID_1, true, DATE_BEFORE_FULL));
 
-        verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
+        verifyRecordSubmittedToDelete(task.getTaskId(), OAI_ID_1);
 
         executeIncrementalHarvest(DATE_OF_INC2, new OaiRecordHeader(OAI_ID_1, true, DATE_BEFORE_FULL));
 
-        verifyRecordNotSubmitted(task.getTaskId(), OAI_ID_1);
+        verifyRecordSubmittedToDelete(task.getTaskId(), OAI_ID_1);
 
     }
 
