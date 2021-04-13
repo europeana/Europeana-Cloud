@@ -128,17 +128,13 @@ public class HarvestsExecutor {
     }
 
     private void emitDeletedRecord(SubmitTaskParameters parameters, AtomicInteger resultCounter, HarvestedRecord record) {
-        if (record.getIndexingDate() != null) {
-            DpsRecord kafkaRecord = DpsRecord.builder()
-                    .taskId(parameters.getTask().getTaskId())
-                    .recordId(record.getRecordLocalId())
-                    .markedAsDeleted(true)
-                    .build();
-            if (recordSubmitService.submitRecord(kafkaRecord, parameters)) {
-                resultCounter.incrementAndGet();
-            }
-        } else {
-            harvestedRecordsDAO.deleteRecord(record.getMetisDatasetId(), record.getRecordLocalId());
+        DpsRecord kafkaRecord = DpsRecord.builder()
+                .taskId(parameters.getTask().getTaskId())
+                .recordId(record.getRecordLocalId())
+                .markedAsDeleted(true)
+                .build();
+        if (recordSubmitService.submitRecord(kafkaRecord, parameters)) {
+            resultCounter.incrementAndGet();
         }
     }
 
