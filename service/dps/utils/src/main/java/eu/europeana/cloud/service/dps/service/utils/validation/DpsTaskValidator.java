@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.net.MalformedURLException;
