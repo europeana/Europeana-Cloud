@@ -35,12 +35,12 @@ import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
-public class MCSTaskSubmiter {
+public class MCSTaskSubmitter {
 
     private static final int INTERNAL_THREADS_NUMBER = 10;
     private static final int MAX_BATCH_SIZE = 100;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MCSTaskSubmiter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MCSTaskSubmitter.class);
 
     private final TaskStatusChecker taskStatusChecker;
 
@@ -50,7 +50,7 @@ public class MCSTaskSubmiter {
 
     private final String mcsClientURL;
 
-    public MCSTaskSubmiter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordSubmitService recordSubmitService, String mcsClientURL) {
+    public MCSTaskSubmitter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordSubmitService recordSubmitService, String mcsClientURL) {
         this.taskStatusChecker = taskStatusChecker;
         this.taskStatusUpdater = taskStatusUpdater;
         this.recordSubmitService = recordSubmitService;
@@ -85,7 +85,7 @@ public class MCSTaskSubmiter {
         } catch (SubmitingTaskWasKilled e) {
             LOGGER.warn(e.getMessage(), e);
         } catch (Exception e) {
-            LOGGER.error("MCSTaskSubmiter error for taskId={}", task.getTaskId(), e);
+            LOGGER.error("MCSTaskSubmitter error for taskId={}", task.getTaskId(), e);
             taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because " + e.getMessage());
         }
     }
@@ -131,7 +131,7 @@ public class MCSTaskSubmiter {
             return expectedSize;
 
         } catch (MalformedURLException e) {
-            throw new TaskSubmitException("MCSTaskSubmiter error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
+            throw new TaskSubmitException("MCSTaskSubmitter error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
         }
     }
 
