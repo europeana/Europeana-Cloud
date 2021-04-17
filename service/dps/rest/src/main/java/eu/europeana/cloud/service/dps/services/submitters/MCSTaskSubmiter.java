@@ -185,19 +185,11 @@ public class MCSTaskSubmiter {
     }
 
     private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, SubmitTaskParameters submitTaskParameters, MCSReader reader) throws MCSException {
-        if (submitTaskParameters.getInputRevision().getCreationTimeStamp() != null) {
-            ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(
-                    submitTaskParameters.getRepresentationName(),
-                    submitTaskParameters.getInputRevision(),
-                    datasetProvider, datasetName, startFrom);
-            return toCloudAndTimestampResponse(chunk, submitTaskParameters.getInputRevision().getCreationTimeStamp());
-        } else {
-            return reader.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(
-                    submitTaskParameters.getRepresentationName(),
-                    submitTaskParameters.getInputRevision().getRevisionName(),
-                    submitTaskParameters.getInputRevision().getRevisionProviderId(),
-                    datasetName, datasetProvider, startFrom);
-        }
+        ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(
+                submitTaskParameters.getRepresentationName(),
+                submitTaskParameters.getInputRevision(),
+                datasetProvider, datasetName, startFrom);
+        return toCloudAndTimestampResponse(chunk, submitTaskParameters.getInputRevision().getCreationTimeStamp());
     }
 
     private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
@@ -274,8 +266,12 @@ public class MCSTaskSubmiter {
 
     private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
         DpsTask task = submitParameters.getTask();
-        DpsRecord record = DpsRecord.builder().taskId(task.getTaskId()).metadataPrefix(submitParameters.getSchemaName())
-                .recordId(fileUrl).markedAsDeleted(markedAsDeleted).build();
+        DpsRecord record = DpsRecord.builder()
+                .taskId(task.getTaskId())
+                .metadataPrefix(submitParameters.getSchemaName())
+                .recordId(fileUrl)
+                .markedAsDeleted(markedAsDeleted)
+                .build();
 
         boolean increaseCounter = recordSubmitService.submitRecord(record, submitParameters);
         logProgress(submitParameters, submitParameters.incrementAndGetPerformedRecordCounter());
