@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
 		<artifactId>ecloud-parent</artifactId>
-		<version>4-SNAPSHOT</version>
+		<version>4</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>ecloud-service-uis</artifactId>
