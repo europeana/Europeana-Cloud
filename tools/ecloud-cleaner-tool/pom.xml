@@ -13,7 +13,7 @@
     <parent>
         <artifactId>ecloud-tools</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>4</version>
+        <version>5-SNAPSHOT</version>
     </parent>
 
     <properties>

@@ -4,12 +4,12 @@
     <parent>
         <artifactId>ecloud-parent</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-    <version>4</version>
+    <version>5-SNAPSHOT</version>
   </parent>
 
   <groupId>eu.europeana.cloud</groupId>
   <artifactId>ecloud-tools</artifactId>
-  <version>4</version>
+  <version>5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Europeana Cloud: Tools</name>
 
