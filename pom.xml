@@ -174,7 +174,7 @@
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
         <version.jacoco>0.8.1</version.jacoco>
-        <version.metis>4-SNAPSHOT</version.metis>
+        <version.metis>4</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <version.guava>24.1.1-jre</version.guava>
         <version.lombok>1.18.10</version.lombok>
