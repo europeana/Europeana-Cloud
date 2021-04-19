@@ -1,5 +1,13 @@
 # Change Log
 
+## [v4](https://github.com/europeana/Europeana-Cloud/tree/v4) (2021-04-19)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v3...v4)
+
+**Merged pull requests:**
+
+- MET-3497: Accommodate changes in indexing library. [\#314](https://github.com/europeana/Europeana-Cloud/pull/314) ([jochen-vermeulen](https://github.com/jochen-vermeulen))
+- applicationName added to the Mongo client [\#311](https://github.com/europeana/Europeana-Cloud/pull/311) ([pWoz](https://github.com/pWoz))
+
 ## [v3](https://github.com/europeana/Europeana-Cloud/tree/v3) (2021-01-27)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v2...v3)
 
@@ -320,6 +328,7 @@
 
 - Met 165 [\#82](https://github.com/europeana/Europeana-Cloud/pull/82) ([helinek](https://github.com/helinek))
 - Ecl 1190 bucketing on provider record [\#81](https://github.com/europeana/Europeana-Cloud/pull/81) ([helinek](https://github.com/helinek))
+- Ecl 1201 [\#80](https://github.com/europeana/Europeana-Cloud/pull/80) ([helinek](https://github.com/helinek))
 - Ecl 1205 [\#79](https://github.com/europeana/Europeana-Cloud/pull/79) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1126 oai harvesting topology [\#77](https://github.com/europeana/Europeana-Cloud/pull/77) ([akrystian](https://github.com/akrystian))
 
@@ -331,7 +340,6 @@
 
 **Merged pull requests:**
 
-- Ecl 1201 [\#80](https://github.com/europeana/Europeana-Cloud/pull/80) ([helinek](https://github.com/helinek))
 - Ecl 1188 [\#78](https://github.com/europeana/Europeana-Cloud/pull/78) ([tarekkh](https://github.com/tarekkh))
 - ECL-1185: creating new record corrected together with test for it [\#74](https://github.com/europeana/Europeana-Cloud/pull/74) ([helinek](https://github.com/helinek))
 - Ecl 1129 [\#73](https://github.com/europeana/Europeana-Cloud/pull/73) ([tarekkh](https://github.com/tarekkh))
@@ -387,6 +395,7 @@
 **Merged pull requests:**
 
 - Ecl 1028,q 6 b [\#44](https://github.com/europeana/Europeana-Cloud/pull/44) ([tarekkh](https://github.com/tarekkh))
+- Ecl 960 query no 9 [\#33](https://github.com/europeana/Europeana-Cloud/pull/33) ([pWoz](https://github.com/pWoz))
 
 ## [v0.5.1](https://github.com/europeana/Europeana-Cloud/tree/v0.5.1) (2017-01-17)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/test_env_23_09_2016...v0.5.1)
@@ -400,7 +409,6 @@
 - Ecl 1028 [\#38](https://github.com/europeana/Europeana-Cloud/pull/38) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1000 [\#36](https://github.com/europeana/Europeana-Cloud/pull/36) ([tarekkh](https://github.com/tarekkh))
 - ECL-1027: changes supporting jpg to jp2000 conversion using external … [\#35](https://github.com/europeana/Europeana-Cloud/pull/35) ([olanowak](https://github.com/olanowak))
-- Ecl 960 query no 9 [\#33](https://github.com/europeana/Europeana-Cloud/pull/33) ([pWoz](https://github.com/pWoz))
 - Ecl 957 partitions [\#32](https://github.com/europeana/Europeana-Cloud/pull/32) ([helinek](https://github.com/helinek))
 - ECL-1018, Cannot retrieve progress or notification [\#31](https://github.com/europeana/Europeana-Cloud/pull/31) ([tarekkh](https://github.com/tarekkh))
 - ECL-1011,add jmeter test cases [\#29](https://github.com/europeana/Europeana-Cloud/pull/29) ([tarekkh](https://github.com/tarekkh))
