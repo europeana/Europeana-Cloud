@@ -33,17 +33,6 @@ public class MCSReader implements AutoCloseable {
         fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
     }
 
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, String startFrom) throws MCSException {
-        return RetryableMethodExecutor.executeOnRest("Error while getting slice of latest cloud Id from data set.", () -> {
-            ResultSlice<CloudIdAndTimestampResponse> resultSlice = dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(datasetName, datasetProvider, revisionProvider, revisionName, representationName, false, startFrom);
-            if (resultSlice == null || resultSlice.getResults() == null) {
-                throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
-            }
-            return resultSlice;
-        });
-    }
-
-
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
             String representationName,
             RevisionIdentifier revision, String datasetProvider, String datasetName, String startFrom) throws MCSException {
