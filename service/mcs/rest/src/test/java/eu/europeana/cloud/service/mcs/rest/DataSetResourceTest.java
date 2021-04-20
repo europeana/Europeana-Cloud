@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_LATELY_REVISIONED_VERSION;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.junit.Assert.assertEquals;
@@ -137,51 +136,6 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         }
         assertEquals(r1_2, r1FromDataset);
         assertEquals(r2_1, r2FromDataset);
-    }
-
-    @Test
-    public void shouldReturnErrorForMissingParameters() throws Exception {
-        String dataSetId = "dataset";
-
-        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION,dataProvider.getId(), dataSetId))
-                .andExpect(status().isBadRequest());
-        //
-        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId).queryParam(CLOUD_ID,"sampleCloudID"))
-                .andExpect(status().isBadRequest());
-        //
-        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId).queryParam(REPRESENTATION_NAME,"sampleRepName"))
-                .andExpect(status().isBadRequest());
-        //
-        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION , dataProvider.getId(), dataSetId).queryParam(REVISION_NAME,"sampleRevisionName"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void shouldReturnPropperVersionValue() throws Exception {
-        Mockito.doReturn("sample").when(dataSetService).getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        String dataSetId = "dataset";
-
-        ResultActions response = mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId)
-                .queryParam(CLOUD_ID, "sampleCloudID")
-                .queryParam(REPRESENTATION_NAME, "sampleRepName")
-                .queryParam(REVISION_NAME, "sampleRevisionName")
-                .queryParam(REVISION_PROVIDER_ID, "samplerevProvider"))
-                .andExpect(status().isOk());
-        assertEquals("sample",responseContentAsString(response));
-    }
-
-    @Test
-    public void shouldReturnNoContent() throws Exception {
-        Mockito.doReturn(null).when(dataSetService)
-                .getLatestVersionForGivenRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        String dataSetId = "dataset";
-
-        mockMvc.perform(get(DATA_SET_LATELY_REVISIONED_VERSION, dataProvider.getId(), dataSetId)
-                .queryParam(CLOUD_ID, "sampleCloudID")
-                .queryParam(REPRESENTATION_NAME, "sampleRepName")
-                .queryParam(REVISION_NAME, "sampleRevisionName")
-                .queryParam(REVISION_PROVIDER_ID, "samplerevProvider"))
-                .andExpect(status().isNoContent());
     }
 
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)

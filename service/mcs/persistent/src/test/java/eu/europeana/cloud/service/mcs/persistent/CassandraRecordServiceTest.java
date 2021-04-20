@@ -362,26 +362,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertNotNull(responseResultSlice.getResults());
         assertEquals(responseResultSlice.getResults().size(), 1);
 
-        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(ds.getId(), ds.getProviderId(), REVISION_NAME, REVISION_PROVIDER, representationName, null, null, 100);
-        assertNotNull(cloudIdAndTimestampResponseResultSlice.getResults());
-        assertEquals(cloudIdAndTimestampResponseResultSlice.getResults().size(), 1);
-
-        String version = cassandraDataSetService.getLatestVersionForGivenRevision(ds.getId(), ds.getProviderId(), cloudId, representationName, REVISION_NAME, REVISION_PROVIDER);
-        assertNotNull(version);
-        assertEquals(version, r.getVersion());
-
         ResultSlice<CloudVersionRevisionResponse> cloudVersionRevisionResponseResultSlice = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds.getId(), ds.getProviderId(), representationName, new Date(0), null, 100);
         assertNotNull(cloudVersionRevisionResponseResultSlice.getResults());
         assertEquals(cloudVersionRevisionResponseResultSlice.getResults().size(), 1);
 
         cassandraRecordService.deleteRecord(cloudId);
-
-        cloudIdAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(ds.getId(), ds.getProviderId(), REVISION_NAME, REVISION_PROVIDER, representationName, null, null, 100);
-        assertNotNull(cloudIdAndTimestampResponseResultSlice.getResults());
-        assertEquals(cloudIdAndTimestampResponseResultSlice.getResults().size(), 0);
-
-        version = cassandraDataSetService.getLatestVersionForGivenRevision(ds.getId(), ds.getProviderId(), cloudId, representationName, REVISION_NAME, REVISION_PROVIDER);
-        assertNull(version);
 
         responseResultSlice = cassandraDataSetService.getDataSetsRevisions(ds.getProviderId(), ds.getId(), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, null, 100);
         assertNotNull(responseResultSlice.getResults());

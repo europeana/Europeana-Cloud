@@ -879,26 +879,4 @@ public class DataSetServiceClientTest {
         assertTrue(cid.isPublished());
     }
 
-    @Betamax(tape = "dataSets_shouldRetrieveLatelyTaggedRecordsVersion")
-    @Test
-    public void shouldReturnSpecificVersion()
-            throws MCSException {
-
-
-        String providerId = "provider";
-        String dataSetId = "dataset";
-        String cloudId = "cloudId";
-        String representationName = "representation";
-        String revisionName = "revision";
-        String revisionProviderId = "revisionProvider";
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        //when
-        String version = instance.getLatelyTaggedRecords(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
-        //then
-        assertNotNull(version);
-        assertEquals(version, "ef240330-f783-11e6-a0f6-1c6f653f9042");
-
-    }
-
 }

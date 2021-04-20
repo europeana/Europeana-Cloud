@@ -697,50 +697,6 @@ public class DataSetServiceClient extends MCSClient {
         return resultList;
     }
 
-    /**
-     * Gives the versionId of specified representation that has the newest revision (by revision timestamp) with given name.
-     *
-     * @param dataSetId          dataset identifier
-     * @param providerId         dataset owner
-     * @param cloudId            representation cloud identifier
-     * @param representationName representation name
-     * @param revisionName       revision name
-     * @param revisionProviderId revision owner
-     * @return version identifier of representation
-     * @throws DataSetNotExistsException
-     */
-    public String getLatelyTaggedRecords(
-            String dataSetId, String providerId, String cloudId, String representationName,
-            String revisionName, String revisionProviderId) throws MCSException {
-
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_LATELY_REVISIONED_VERSION)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId)
-                .queryParam(CLOUD_ID, cloudId)
-                .queryParam(REPRESENTATION_NAME, representationName)
-                .queryParam(REVISION_NAME, revisionName)
-                .queryParam(REVISION_PROVIDER_ID, revisionProviderId);
-
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(String.class);
-            } else if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-                return null;
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
-    }
-
     public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
     }

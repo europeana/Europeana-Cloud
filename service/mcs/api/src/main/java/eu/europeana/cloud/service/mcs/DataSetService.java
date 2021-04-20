@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs;
 
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -174,26 +173,6 @@ public interface DataSetService {
 
 
     /**
-     * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision.
-     * This list will contain one row per revision per cloudId;
-     *
-     * @param dataSetId               data set identifier
-     * @param providerId              provider identifier
-     * @param representationName      representation name
-     * @param revisionName            revision name
-     * @param revisionProvider        revision provider
-     * @param startFrom               cloudId to start from
-     * @param isDeleted               is marked deleted
-     * @param numberOfElementsPerPage number of elements in a slice
-     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
-     * This list will contain one row per revision per cloudId ;
-     * @throws ProviderNotExistsException
-     * @throws DataSetNotExistsException
-     */
-    ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, Boolean isDeleted, int numberOfElementsPerPage)
-            throws ProviderNotExistsException, DataSetNotExistsException;
-
-    /**
      * Remove a revision
      *
      * @param cloudId            cloud Id
@@ -220,30 +199,6 @@ public interface DataSetService {
      */
     void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException;
-
-    /**
-     * Gives versionId of specified record (cloudId with representation name) that has latest revision
-     *
-     * @param dataSetId          dataset identifier
-     * @param providerId         dataset owner
-     * @param cloudId            representation cloud identifier
-     * @param representationName representation name
-     * @param revisionName       revision name
-     * @param revisionProviderId revision owner
-     * @return
-     * @throws DataSetNotExistsException
-     */
-    String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String representationName, String revisionName, String revisionProviderId) throws DataSetNotExistsException;
-
-
-    /**
-     * Adds revision as a latest revision for given representation and dataset
-     *
-     * @param dataSet
-     * @param representation
-     * @param revision
-     */
-    void addLatestRevisionForGivenVersionInDataset(DataSet dataSet, Representation representation, Revision revision);
 
     /**
      * Inserts information to the table used to search for cloud ids assigned to a dataset having specific representation, revisions with published tag and update timestamp bigger that specified.
