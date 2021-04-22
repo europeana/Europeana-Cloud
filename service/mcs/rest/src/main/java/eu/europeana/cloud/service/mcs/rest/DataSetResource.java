@@ -3,17 +3,13 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.RepresentationNames;
-import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,7 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REPRESENTATIONS_NAMES;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
 
 /**
  * Resource to manage data sets.
@@ -138,27 +135,4 @@ public class DataSetResource {
         representationNames.setNames(dataSetService.getAllDataSetRepresentationsNames(providerId, dataSetId));
         return representationNames;
     }
-
-    @GetMapping(value = DATA_SET_BY_REPRESENTATION,
-            produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @ResponseBody
-    public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId,
-            @PathVariable String representationName,
-            @RequestParam String creationDateFrom,
-            @RequestParam String tag,
-            @RequestParam(required = false) String startFrom) throws ProviderNotExistsException, DataSetNotExistsException {
-
-        Tags tags = Tags.valueOf(tag.toUpperCase());
-        DateTime utc = new DateTime(creationDateFrom, DateTimeZone.UTC);
-
-        if (Tags.PUBLISHED.equals(tags)) {
-            return dataSetService.getDataSetCloudIdsByRepresentationPublished(dataSetId, providerId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
-        }
-        throw new IllegalArgumentException("Only PUBLISHED tag is supported for this request.");
-    }
-
-
-
 }

@@ -205,19 +205,4 @@ public class DataSetServiceClientITest {
 
         assertNotNull(result);
     }
-
-    @Test
-    public void getDataSetCloudIdsByRepresentation() throws MCSException {
-        String providerId = "metis_acceptance";
-        String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
-        String representationName = "metadataRecord";
-        String dateFrom = "2000-01-01T00:00:00.000Z";
-        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-
-        List<CloudVersionRevisionResponse> result = mcsClient.getDataSetCloudIdsByRepresentation(dataSetId, providerId,
-                representationName, dateFrom, "published");
-
-        assertNotNull(result);
-    }
-
 }

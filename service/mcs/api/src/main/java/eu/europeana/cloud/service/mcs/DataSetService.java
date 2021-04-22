@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -25,8 +24,8 @@ public interface DataSetService {
      *
      * @param providerId     provider's (owner of data set) id.
      * @param dataSetId      data set id
-     * @param thresholdParam if null - will return first result slice. Result slices contain token for next pages, which should be
-     *                       provided in this parameter.
+     * @param thresholdParam if null - will return first result slice. Result slices contain token for next pages,
+     *                       which should be provided in this parameter.
      * @param limit          max number of results in one slice.
      * @return list of representations as a result slice.
      * @throws DataSetNotExistsException dataset not exists.
@@ -46,8 +45,9 @@ public interface DataSetService {
      * @param schema     schema name of representation
      * @param version    version of representatnion (if null, the latest persistent version is assigned to a data set)
      * @throws DataSetNotExistsException        if such data set not exists
-     * @throws RepresentationNotExistsException if such representation does not exist. May be also thrown if version is not provided and no
-     *                                          persistent representation version exist for specified schema and record.
+     * @throws RepresentationNotExistsException if such representation does not exist. May be also thrown if version
+     *                                          is not provided and no persistent representation version exist
+     *                                          for specified schema and record.
      */
     void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException;
@@ -96,10 +96,10 @@ public interface DataSetService {
     /**
      * Returns all data sets for particular data provider (in slices).
      *
-     * @param providerId         provider id.
-     * @param thresholdDatasetId if null - will return first result slice. Result slices contain token for next pages, which should be
-     *                           provided in this parameter.
-     * @param limit              max number of results in one slice.
+     * @param providerId        provider id.
+     * @param thresholdDatasetId if null - will return first result slice. Result slices contain token for next pages,
+     *                          which should be provided in this parameter.
+     * @param limit             max number of results in one slice.
      * @return list of data sets as a result slice.
      */
     ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit);
@@ -121,7 +121,8 @@ public interface DataSetService {
      * @param dataSetId  dataSet id
      * @return list of all representations names that are stored in given dataSet
      */
-    Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws ProviderNotExistsException, DataSetNotExistsException;
+    Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId)
+                                    throws ProviderNotExistsException, DataSetNotExistsException;
 
     /**
      * Lists all cloudId that are included in given dataSet for given revisionId and representationName.
@@ -132,12 +133,14 @@ public interface DataSetService {
      * @param revisionName       revision name
      * @param revisionTimestamp  revision timestamp
      * @param representationName representation name
-     * @param startFrom          if null - will return first result slice. Result slices contain token for next pages, which should be
-     *                           provided in this parameter.
+     * @param startFrom          if null - will return first result slice. Result slices contain token for next pages,
+     *                           which should be provided in this parameter.
      * @param limit              max number of results in one slice.
      * @return list of cloudIds and tags in given dataSet for given revisionId and representationName.
      */
-    ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
+    ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId,
+                                                        String revisionName, Date revisionTimestamp,
+                                                        String representationName, String startFrom, int limit)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
 
@@ -151,25 +154,8 @@ public interface DataSetService {
      * @param cloudId            cloud id
      * @throws ProviderNotExistsException
      */
-    void addDataSetsRevisions(String providerId, String dataSetId, Revision revision, String representationName, String cloudId) throws ProviderNotExistsException;
-
-
-    /**
-     * Lists all cloud identifiers that belong to data set from the specified provider and have revision timestamp bigger than the specified date and tag as specified.
-     *
-     * @param dataSetId               data set identifier
-     * @param providerId              provider identifier
-     * @param representationName      representation name
-     * @param dateFrom                date of latest revision
-     * @param startFrom               cloudId to start from
-     * @param numberOfElementsPerPage number of elements in a slice
-     * @return list of cloud identifiers in the provider's data set having revision date bigger than the specified and specified tag
-     * @throws ProviderNotExistsException
-     * @throws DataSetNotExistsException
-     * @throws RepresentationNotExistsException
-     */
-    ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationPublished(String dataSetId, String providerId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
-            throws ProviderNotExistsException, DataSetNotExistsException;
+    void addDataSetsRevisions(String providerId, String dataSetId, Revision revision,
+                              String representationName, String cloudId) throws ProviderNotExistsException;
 
 
     /**
@@ -184,8 +170,8 @@ public interface DataSetService {
      * @throws ProviderNotExistsException
      * @throws RepresentationNotExistsException
      */
-    void deleteRevision(String cloudId, String representationName, String version, String revisionName, String revisionProviderId, Date revisionTimestamp)
-            throws RepresentationNotExistsException;
+    void deleteRevision(String cloudId, String representationName, String version, String revisionName,
+                        String revisionProviderId, Date revisionTimestamp) throws RepresentationNotExistsException;
 
 
     /**
@@ -198,18 +184,5 @@ public interface DataSetService {
      * @throws RepresentationNotExistsException
      */
     void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
-            throws RepresentationNotExistsException;
-
-    /**
-     * Inserts information to the table used to search for cloud ids assigned to a dataset having specific representation, revisions with published tag and update timestamp bigger that specified.
-     * Data sets identifiers and their providers which are needed for every inserted row are determined from assignment between versions and data sets.
-     *
-     * @param globalId cloud identifier
-     * @param schema   representation name
-     * @param version  version identifier
-     * @param revision revision object containing necessary info (name, timestamp, tags)
-     * @throws RepresentationNotExistsException
-     */
-    void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException;
 }

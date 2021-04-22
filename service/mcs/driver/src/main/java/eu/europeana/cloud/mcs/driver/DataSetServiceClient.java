@@ -1,11 +1,9 @@
 package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
@@ -616,84 +614,6 @@ public class DataSetServiceClient extends MCSClient {
             
         } while (resultSlice.getNextSlice() != null);
         
-        return resultList;
-    }
-
-
-    /**
-     * Returns chunk of cloud identifiers list of specified provider in specified data set having specific representation name
-     * and published revision created after the specified date.
-     * <p/>
-     * This method returns the chunk specified by <code>startFrom</code>
-     * parameter. If parameter is <code>null</code>, the first chunk is
-     * returned. You can use {@link ResultSlice#getNextSlice()} of returned
-     * result to obtain <code>startFrom</code> value to get the next chunk, etc;
-     * if
-     * {@link eu.europeana.cloud.common.response.ResultSlice#getNextSlice()}<code>==null</code>
-     * in returned result it means it is the last slice.
-     * <p/>
-     *
-     * @param dataSetId          data set identifier (required)
-     * @param providerId         provider identifier (required)
-     * @param representationName name of the representation (required)
-     * @param dateFrom           starting date (required)
-     * @param tag                tag of revision, must be published, other are not supported yet (required)
-     * @param startFrom          code pointing to the requested result slice (if equal to
-     *                           null, first slice is returned)
-     * @return chunk of cloud identifiers list of specified provider in specified data set having specific representation name
-     * and published revision created after the specified date
-     * @throws MCSException on unexpected situations
-     */
-    public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationChunk(String dataSetId, String providerId, String representationName, String dateFrom, String tag, String startFrom)
-            throws MCSException {
-
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_BY_REPRESENTATION)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .queryParam(ParamConstants.F_DATE_FROM, dateFrom)
-                .queryParam(ParamConstants.F_TAG, tag);
-
-        if (startFrom != null) {
-            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
-        }
-
-        return prepareResultSliceResponse(target);
-
-    }
-
-    /**
-     * Lists all cloud identifiers from data provider's data set having representation name and published revision added after specified date.
-     * <p/>
-     *
-     * @param dataSetId          data set identifier (required)
-     * @param providerId         provider identifier (required)
-     * @param representationName name of the representation (required)
-     * @param dateFrom           starting date (required)
-     * @param tag                tag of revision, must be published, other are not supported yet (required)
-     * @return list of all data sets of specified provider (empty if provider
-     * does not exist)
-     * @throws MCSException on unexpected situations
-     */
-    public List<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(String dataSetId, String providerId, 
-                                           String representationName, String dateFrom, String tag) throws MCSException {
-
-        List<CloudVersionRevisionResponse> resultList = new ArrayList<>();
-        ResultSlice resultSlice;
-        String startFrom = null;
-
-        do {
-            resultSlice = getDataSetCloudIdsByRepresentationChunk(dataSetId, providerId, representationName, dateFrom, tag, startFrom);
-            if (resultSlice == null || resultSlice.getResults() == null) {
-                throw new DriverException("Getting cloud identifiers from data set: result chunk obtained but is empty.");
-            }
-            resultList.addAll(resultSlice.getResults());
-            startFrom = resultSlice.getNextSlice();
-
-        } while (resultSlice.getNextSlice() != null);
-
         return resultList;
     }
 

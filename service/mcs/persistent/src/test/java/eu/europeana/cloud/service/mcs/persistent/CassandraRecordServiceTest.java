@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.RevisionUtils;
@@ -360,21 +359,13 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         ResultSlice<CloudTagsResponse> responseResultSlice = cassandraDataSetService.getDataSetsRevisions(ds.getProviderId(), ds.getId(), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, null, 100);
         assertNotNull(responseResultSlice.getResults());
-        assertEquals(responseResultSlice.getResults().size(), 1);
-
-        ResultSlice<CloudVersionRevisionResponse> cloudVersionRevisionResponseResultSlice = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds.getId(), ds.getProviderId(), representationName, new Date(0), null, 100);
-        assertNotNull(cloudVersionRevisionResponseResultSlice.getResults());
-        assertEquals(cloudVersionRevisionResponseResultSlice.getResults().size(), 1);
+        assertEquals(1, responseResultSlice.getResults().size());
 
         cassandraRecordService.deleteRecord(cloudId);
 
         responseResultSlice = cassandraDataSetService.getDataSetsRevisions(ds.getProviderId(), ds.getId(), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, null, 100);
         assertNotNull(responseResultSlice.getResults());
-        assertEquals(responseResultSlice.getResults().size(), 0);
-
-        cloudVersionRevisionResponseResultSlice = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds.getId(), ds.getProviderId(), representationName, new Date(0), null, 100);
-        assertNotNull(cloudVersionRevisionResponseResultSlice.getResults());
-        assertEquals(cloudVersionRevisionResponseResultSlice.getResults().size(), 0);
+        assertEquals(0, responseResultSlice.getResults().size());
     }
 
 
@@ -450,10 +441,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldDeletePersistentRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
-        Representation r = insertDummyPersistentRepresentation("globalId",
-                "dc", PROVIDER_1_ID);
-        cassandraRecordService.deleteRepresentation(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion());
+        Representation r = insertDummyPersistentRepresentation("globalId", "dc", PROVIDER_1_ID);
+        cassandraRecordService.deleteRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
+
+        assertTrue(true);
     }
 
     @Test(expected = CannotModifyPersistentRepresentationException.class)
@@ -613,7 +604,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         }
     }
 
-
     @Test
     public void addRevision() throws Exception {
         makeUISSuccess();
@@ -629,7 +619,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 r.getRepresentationName(), r.getVersion());
         assertNotNull(r.getRevisions());
         assertFalse(r.getRevisions().isEmpty());
-        assertEquals(r.getRevisions().size(), 1);
+        assertEquals(1, r.getRevisions().size());
 
     }
 
@@ -650,7 +640,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 r.getRepresentationName(), r.getVersion());
         assertNotNull(r.getRevisions());
         assertFalse(r.getRevisions().isEmpty());
-        assertEquals(r.getRevisions().size(), 1);
+        assertEquals(1, r.getRevisions().size());
 
     }
 

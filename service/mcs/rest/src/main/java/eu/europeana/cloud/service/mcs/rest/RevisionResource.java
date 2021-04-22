@@ -68,10 +68,11 @@ public class RevisionResource {
             @PathVariable final String version,
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
-            @PathVariable String tag) throws RepresentationNotExistsException,
-                                                RevisionIsNotValidException, ProviderNotExistsException {
+            @PathVariable String tag) throws RepresentationNotExistsException, RevisionIsNotValidException {
 
-        ParamUtil.validate("tag", tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+        ParamUtil.validate("tag", tag,
+                Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+
         Revision revision = new Revision(revisionName, revisionProviderId);
         setRevisionTags(revision, new HashSet<>(Arrays.asList(tag)));
         addRevision(cloudId, representationName, version, revision);
@@ -100,7 +101,7 @@ public class RevisionResource {
             @PathVariable final String cloudId,
             @PathVariable final String representationName,
             @PathVariable final String version,
-            @RequestBody Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
+            @RequestBody Revision revision) throws RevisionIsNotValidException, RepresentationNotExistsException {
 
         addRevision(cloudId, representationName, version, revision);
 
@@ -138,7 +139,7 @@ public class RevisionResource {
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
             @RequestParam(defaultValue = "") Set<String> tags ) throws RepresentationNotExistsException,
-                                                        RevisionIsNotValidException, ProviderNotExistsException {
+                                                        RevisionIsNotValidException {
 
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
         Revision revision = new Revision(revisionName, revisionProviderId);
@@ -180,11 +181,14 @@ public class RevisionResource {
         dataSetService.deleteRevision(cloudId, representationName, version, revisionName, revisionProviderId, timestamp.toDate());
     }
 
-    private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
+    private void addRevision(String globalId, String schema, String version, Revision revision)
+            throws RevisionIsNotValidException, RepresentationNotExistsException {
+
         recordService.addRevision(globalId, schema, version, revision);
-        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
         // insert information in extra table
-        recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(), revision.getRevisionName(), version, revision.getCreationTimeStamp());
+        recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(),
+                revision.getRevisionName(), version, revision.getCreationTimeStamp());
+
         dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
     }
 
