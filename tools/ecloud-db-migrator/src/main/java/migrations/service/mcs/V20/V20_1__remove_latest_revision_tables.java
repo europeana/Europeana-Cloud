@@ -11,6 +11,7 @@ public class V20_1__remove_latest_revision_tables implements JavaMigration {
         session.execute("DROP TABLE latest_dataset_representation_revision_buckets;");
         session.execute("DROP TABLE latest_dataset_representation_revision_v1;");
         session.execute("DROP TABLE latest_revisions_for_dataset_assignment;");
+        session.execute("DROP TABLE provider_dataset_representation;");
     }
 
 }
