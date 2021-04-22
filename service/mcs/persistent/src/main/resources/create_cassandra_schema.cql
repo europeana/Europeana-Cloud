@@ -88,7 +88,6 @@ CREATE TABLE data_set_assignments_by_revision_id_buckets (
       PRIMARY KEY (object_id, bucket_id)
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
 
-
 CREATE TABLE datasets_buckets (
     provider_id varchar,
     dataset_id varchar,
@@ -96,21 +95,6 @@ CREATE TABLE datasets_buckets (
     rows_count counter,
     PRIMARY KEY (provider_id, dataset_id, bucket_id)
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset';
-
-CREATE TABLE provider_dataset_representation (
-    provider_id varchar,
-    dataset_id varchar,
-    bucket_id timeuuid,
-    cloud_id varchar,
-    representation_id varchar,
-    version_id timeuuid,
-    revision_id varchar,
-    revision_timestamp timestamp,
-    acceptance boolean,
-    published boolean,
-    mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id, bucket_id), representation_id, revision_timestamp, cloud_id)
-)WITH comment='Retrieve cloud Ids based on the revision_timestamp that is greater from a specific value. Used for full and incremental updates';
 
 CREATE TABLE files_content (
     fileName varchar,
