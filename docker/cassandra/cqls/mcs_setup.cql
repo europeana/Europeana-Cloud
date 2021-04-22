@@ -84,58 +84,7 @@ CREATE TABLE datasets_buckets (
     PRIMARY KEY (provider_id, dataset_id, bucket_id)
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset.';
 
-CREATE TABLE latest_provider_dataset_representation_revision (
-    provider_id varchar,
-    dataset_id varchar,
-    cloud_id varchar,
-    representation_id varchar,
-    revision_timestamp timestamp,
-    revision_name varchar,
-    revision_provider varchar,
-    version_id timeuuid,
-    acceptance boolean,
-    published boolean,
-    mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id),representation_id,revision_name,revision_provider,mark_deleted,cloud_id)
-);
-
-CREATE TABLE latest_dataset_representation_revision_v1 (
-    provider_id varchar,
-    dataset_id varchar,
-    bucket_id timeuuid,
-    cloud_id varchar,
-    representation_id varchar,
-    revision_timestamp timestamp,
-    revision_name varchar,
-    revision_provider varchar,
-    version_id timeuuid,
-    acceptance boolean,
-    published boolean,
-    mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id, bucket_id),representation_id, revision_name, revision_provider, mark_deleted, cloud_id)
-);
-
-CREATE TABLE latest_dataset_representation_revision_buckets (
-    object_id varchar,
-    bucket_id timeuuid,
-    rows_count counter,
-    PRIMARY KEY (object_id, bucket_id)
-) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
-
-
-CREATE TABLE latest_revisions_for_dataset_assignment (
-       provider_id varchar,
-       dataset_id varchar,
-       representation_id varchar,
-       revision_name varchar,
-       revision_provider_id varchar,
-       revision_timestamp timestamp,
-       cloud_id varchar,
-       version_id timeuuid,
-       PRIMARY KEY ((provider_id, dataset_id, representation_id, cloud_id, revision_name, revision_provider_id))
-)WITH comment='Stores information about representation version that has latest revision';
-
-CREATE TABLE representation_revisions (
+REATE TABLE representation_revisions (
        cloud_id varchar,
        representation_id varchar,
        version_id timeuuid,
