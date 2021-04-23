@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -156,17 +155,17 @@ public class MCSTaskSubmitter {
             int total = 0;
             do {
                 checkIfTaskIsKilled(task);
-                ResultSlice<CloudIdAndTimestampResponse> slice = getCloudIdsChunk(datasetName, datasetProvider, startFrom, submitParameters, reader);
-                List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = slice.getResults();
+                ResultSlice<CloudTagsResponse> slice = getCloudIdsChunk(datasetName, datasetProvider, startFrom, submitParameters, reader);
+                List<CloudTagsResponse> cloudTagsResponseList = slice.getResults();
 
                 int maxRecordsLeft = maxRecordsCount - total;
-                if (cloudIdAndTimestampResponseList.size() > maxRecordsLeft) {
-                    cloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList.subList(0, maxRecordsLeft);
+                if (cloudTagsResponseList.size() > maxRecordsLeft) {
+                    cloudTagsResponseList = cloudTagsResponseList.subList(0, maxRecordsLeft);
                 }
-                total += cloudIdAndTimestampResponseList.size();
+                total += cloudTagsResponseList.size();
 
-                final List<CloudIdAndTimestampResponse> finalCloudIdAndTimestampResponseList = cloudIdAndTimestampResponseList;
-                futures.add(executor.submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudIdAndTimestampResponseList, submitParameters, reader)));
+                final List<CloudTagsResponse> finalCloudTagsResponseList = cloudTagsResponseList;
+                futures.add(executor.submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudTagsResponseList, submitParameters, reader)));
 
                 if (futures.size() >= INTERNAL_THREADS_NUMBER * MAX_BATCH_SIZE) {
                     count += getCountAndWait(futures);
@@ -184,34 +183,34 @@ public class MCSTaskSubmitter {
         }
     }
 
-    private ResultSlice<CloudIdAndTimestampResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, SubmitTaskParameters submitTaskParameters, MCSReader reader) throws MCSException {
-        ResultSlice<CloudTagsResponse> chunk = reader.getDataSetRevisionsChunk(
+    private ResultSlice<CloudTagsResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, SubmitTaskParameters submitTaskParameters, MCSReader reader) throws MCSException {
+        return reader.getDataSetRevisionsChunk(
                 submitTaskParameters.getRepresentationName(),
                 submitTaskParameters.getInputRevision(),
                 datasetProvider, datasetName, startFrom);
-        return toCloudAndTimestampResponse(chunk, submitTaskParameters.getInputRevision().getCreationTimeStamp());
     }
 
-    private Integer executeGettingFileUrlsForCloudIdList(List<CloudIdAndTimestampResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
+    private Integer executeGettingFileUrlsForCloudIdList(List<CloudTagsResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
         int count = 0;
         checkIfTaskIsKilled(submitParameters.getTask());
-        for (CloudIdAndTimestampResponse response : responseList) {
+        for (CloudTagsResponse response : responseList) {
             count += executeGettingFileUrlsForOneCloudId(response, submitParameters, reader);
         }
 
         return count;
     }
 
-    private int executeGettingFileUrlsForOneCloudId(CloudIdAndTimestampResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
+    private int executeGettingFileUrlsForOneCloudId(CloudTagsResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
 
         int count = 0;
         List<Representation> representations = reader.getRepresentationsByRevision(
                 submitParameters.getRepresentationName(),
                 submitParameters.getInputRevision().getRevisionName(),
                 submitParameters.getInputRevision().getRevisionProviderId(),
-                response.getRevisionTimestamp(), response.getCloudId());
+                submitParameters.getInputRevision().getCreationTimeStamp(),
+                response.getCloudId());
         for (Representation representation : representations) {
-            RevisionIdentifier inputRevision = submitParameters.getInputRevision().withCreationTimeStamp(response.getRevisionTimestamp());
+            RevisionIdentifier inputRevision = submitParameters.getInputRevision().withCreationTimeStamp(submitParameters.getInputRevision().getCreationTimeStamp());
             count += submitRecordsForRepresentation(representation, submitParameters,
                     isMarkedAsDeleted(
                             representation,
@@ -254,14 +253,6 @@ public class MCSTaskSubmitter {
         }
 
         return count;
-    }
-
-    private ResultSlice<CloudIdAndTimestampResponse> toCloudAndTimestampResponse(ResultSlice<CloudTagsResponse> chunk, Date revisionTimestamp) {
-        return new ResultSlice<>(chunk.getNextSlice(),
-                chunk.getResults()
-                        .stream()
-                        .map(response -> new CloudIdAndTimestampResponse(response.getCloudId(), revisionTimestamp))
-                        .collect(Collectors.toList()));
     }
 
     private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
