@@ -86,14 +86,7 @@ public class CassandraDataSetService implements DataSetService {
                     rep.getVersion());
             dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
 
-            Map<String, Revision> latestRevisions = new HashMap<>();
-
             for (Revision revision : rep.getRevisions()) {
-                String revisionKey = revision.getRevisionName() + "_" + revision.getRevisionProviderId();
-                Revision currentRevision = latestRevisions.get(revisionKey);
-                if (currentRevision == null || revision.getCreationTimeStamp().getTime() > currentRevision.getCreationTimeStamp().getTime()) {
-                    latestRevisions.put(revisionKey, revision);
-                }
                 dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision,
                         schema, recordId);
             }
@@ -247,19 +240,6 @@ public class CassandraDataSetService implements DataSetService {
         }
 
         return result;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public void addDataSetsRevisions(String providerId, String dataSetId, Revision revision,
-                                     String representationName, String cloudId)
-            throws ProviderNotExistsException {
-        if (uis.getProvider(providerId) == null) {
-            throw new ProviderNotExistsException();
-        }
-        dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision, representationName, cloudId);
     }
 
     @Override

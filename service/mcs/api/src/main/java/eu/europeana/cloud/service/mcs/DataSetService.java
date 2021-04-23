@@ -145,20 +145,6 @@ public interface DataSetService {
 
 
     /**
-     * Add information in additional table containing data sets cloud ids and revisions
-     *
-     * @param providerId         data provider id
-     * @param dataSetId          dataset id
-     * @param revision           revision object
-     * @param representationName representation name
-     * @param cloudId            cloud id
-     * @throws ProviderNotExistsException
-     */
-    void addDataSetsRevisions(String providerId, String dataSetId, Revision revision,
-                              String representationName, String cloudId) throws ProviderNotExistsException;
-
-
-    /**
      * Remove a revision
      *
      * @param cloudId            cloud Id
