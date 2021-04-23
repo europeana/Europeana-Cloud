@@ -259,7 +259,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
         dataSetService.createDataSet(providerId, datasetId, "");
         dataSetService.addAssignment(providerId, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, rep.getRepresentationName(), rep.getCloudId());
+        recordService.addRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revision);
 
         mockMvc.perform(delete(removeRevisionWebTarget)
                 .queryParam(F_REVISION_TIMESTAMP, revisionTimeStamp)).andExpect(status().isNoContent());
