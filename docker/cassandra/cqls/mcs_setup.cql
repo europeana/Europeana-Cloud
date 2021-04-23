@@ -84,7 +84,7 @@ CREATE TABLE datasets_buckets (
     PRIMARY KEY (provider_id, dataset_id, bucket_id)
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset.';
 
-REATE TABLE representation_revisions (
+CREATE TABLE representation_revisions (
        cloud_id varchar,
        representation_id varchar,
        version_id timeuuid,
