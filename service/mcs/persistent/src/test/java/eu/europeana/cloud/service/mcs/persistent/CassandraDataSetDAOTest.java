@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.DataSetRepresentationForLatestRevision;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Bucket;
@@ -245,78 +244,6 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         //then
         List<Properties> cloudIds = dataSetDAO.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REP_NAME_1, null, 3);
         assertThat(cloudIds.size(), is(0));
-    }
-
-    @Test
-    public void shouldAddLatestRevisionForRepresentation(){
-        //given
-        DataSet dataSet = new DataSet();
-        dataSet.setId("sampleDataSetID");
-        dataSet.setProviderId("sampleProvider");
-        Representation representation = new Representation();
-        representation.setCloudId("sampleCloudID");
-        representation.setRepresentationName("sampleRepresentationName");
-        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae3");
-
-        Revision revision = new Revision();
-        revision.setRevisionProviderId("sampleProvider");
-        revision.setRevisionName("sampleRevision");
-        //when
-        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
-        //then
-        DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet, representation, revision);
-        Assert.assertNotNull(result);
-        Assert.assertTrue(result.getRepresentation().getCloudId().equals("sampleCloudID"));
-        Assert.assertTrue(result.getRepresentation().getRepresentationName().equals("sampleRepresentationName"));
-        Assert.assertTrue(result.getRepresentation().getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae3"));
-        Assert.assertTrue(result.getRevision().getRevisionProviderId().equals("sampleProvider"));
-        Assert.assertTrue(result.getRevision().getRevisionName().equals("sampleRevision"));
-    }
-
-
-    @Test
-    public void shouldRemoveLatestRevisionForRepresentation(){
-        //given
-        DataSet dataSet = new DataSet();
-        dataSet.setId("sampleDataSetID");
-        dataSet.setProviderId("sampleProvider");
-        Representation representation = new Representation();
-        representation.setCloudId("sampleCloudID");
-        representation.setRepresentationName("sampleRepresentationName");
-        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae3");
-
-        Revision revision = new Revision();
-        revision.setRevisionProviderId("sampleProvider");
-        revision.setRevisionName("sampleRevision");
-        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
-        //when
-        dataSetDAO.removeLatestRevisionForDatasetAssignment(dataSet, representation, revision);
-        //then
-        DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet,representation,revision);
-        Assert.assertNull(result);
-    }
-
-    @Test
-    public void shouldUpdateLatestRevisionForRepresentation(){
-        //given
-        DataSet dataSet = new DataSet();
-        dataSet.setId("sampleDataSetID");
-        dataSet.setProviderId("sampleProvider");
-        Representation representation = new Representation();
-        representation.setCloudId("sampleCloudID");
-        representation.setRepresentationName("sampleRepresentationName");
-        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae3");
-
-        Revision revision = new Revision();
-        revision.setRevisionProviderId("sampleProvider");
-        revision.setRevisionName("sampleRevision");
-        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
-        //when
-        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae4");
-        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
-        //then
-        DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet, representation, revision);
-        Assert.assertTrue(result.getRepresentation().getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae4"));
     }
 
     @Test

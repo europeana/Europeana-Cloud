@@ -27,7 +27,7 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
     private TaskStatusUpdater taskStatusUpdater;
 
     @Autowired
-    private MCSTaskSubmiter mcsTaskSubmiter;
+    private MCSTaskSubmitter mcsTaskSubmitter;
 
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
@@ -44,7 +44,7 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
         parameters.setExpectedSize(expectedCount);
         taskStatusUpdater.insertTask(parameters);
 
-        mcsTaskSubmiter.execute(parameters);
+        mcsTaskSubmitter.execute(parameters);
     }
 
     private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {

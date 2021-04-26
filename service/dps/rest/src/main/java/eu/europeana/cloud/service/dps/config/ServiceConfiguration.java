@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
-import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmiter;
+import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
@@ -181,16 +181,16 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public MCSTaskSubmiter mcsTaskSubmiter() {
+    public MCSTaskSubmitter mcsTaskSubmitter() {
         String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
-        return new MCSTaskSubmiter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation);
+        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation);
     }
 
     @Bean
     public FileURLCreator fileURLCreator(){
         String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
         if(machineLocation == null) {
-            throw new RuntimeException(String.format("Propery '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
+            throw new RuntimeException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
         }
         return new FileURLCreator(machineLocation);
     }

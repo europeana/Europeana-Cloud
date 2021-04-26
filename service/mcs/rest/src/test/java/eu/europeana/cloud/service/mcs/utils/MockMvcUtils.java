@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -79,11 +78,6 @@ public class MockMvcUtils {
 
     public static ResultSlice<CloudTagsResponse> responseContentAsCloudTagResultSlice(ResultActions response) throws IOException {
         return responseContent(response, new TypeReference<ResultSlice<CloudTagsResponse>>() {
-        });
-    }
-
-    public static ResultSlice<CloudIdAndTimestampResponse> responseContentAsCloudIdAndTimestampResultSlice(ResultActions response) throws IOException {
-        return responseContent(response, new TypeReference<ResultSlice<CloudIdAndTimestampResponse>>() {
         });
     }
 

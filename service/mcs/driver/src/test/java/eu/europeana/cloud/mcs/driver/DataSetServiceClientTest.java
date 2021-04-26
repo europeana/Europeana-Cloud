@@ -70,7 +70,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, startFrom);
         assertNotNull(result.getResults());
-        assertEquals(result.getResults().size(), 0);
+        assertEquals(0, result.getResults().size());
     }
 
     @Betamax(tape = "dataSets_shouldReturnAllDataSets")
@@ -95,7 +95,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         List<DataSet> result = instance.getDataSetsForProvider(providerId);
         assertNotNull(result);
-        assertEquals(result.size(), 0);
+        assertEquals(0, result.size());
     }
 
     //to test it you can turn off Cassandra
@@ -417,7 +417,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, null);
 
-        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId), 1);
+        assertEquals(1, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId));
     }
 
     //should not complain about assigning the same representation version again
@@ -445,7 +445,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId1);
-        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId1), 1);
+        assertEquals(1, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId1));
 
     }
 
@@ -464,7 +464,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId2);
-        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId2), 1);
+        assertEquals(1, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId2));
 
     }
 
@@ -526,7 +526,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
-        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
+        assertEquals(0, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null));
     }
 
     //should not complain about unassigning not assigned representation
@@ -541,7 +541,7 @@ public class DataSetServiceClientTest {
         String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
+        assertEquals(0, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null));
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
@@ -558,7 +558,7 @@ public class DataSetServiceClientTest {
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
-        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
+        assertEquals(0, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null));
 
     }
 
@@ -576,6 +576,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
+        assertTrue(true);
     }
 
     @Betamax(tape = "dataSets_shouldThrowDriverExceptionForUnassingRepresentation")
@@ -637,7 +638,7 @@ public class DataSetServiceClientTest {
 
         DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
         assertNotNull(iterator);
-        assertEquals(iterator.hasNext(), false);
+        assertEquals(false, iterator.hasNext());
 
     }
 
@@ -769,55 +770,6 @@ public class DataSetServiceClientTest {
         iterator.next();
     }
 
-    @Betamax(tape = "dataSets_shouldRetrieveDataSetCloudIdsByRepresentationFirstChunk")
-    @Test
-    public void shouldRetrieveDataSetCloudIdsByRepresentationFirstChunk()
-            throws MCSException {
-        String providerId = "provider";
-        String dataSet = "dataset";
-        String representationName = "representation";
-        String dateFrom = "2016-08-21T11:08:28.059";
-
-        //the tape was recorded when the result chunk was 100
-        int resultSize = 5;
-        String startFrom = "005a00100015000870726f76696465720000076461746173657400003d000e726570726573656e746174696f6e00000800000156b1580d280000087265766973696f6e000007636c6f75645f350000097075626c6973686564007ffffffa76a6db9eb099834f7db2bad6a99690e10003";
-
-        DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
-        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", null);
-
-        assertNotNull(result.getResults());
-        assertEquals(result.getResults().size(), resultSize);
-        assertEquals(result.getNextSlice(), startFrom);
-    }
-
-    @Betamax(tape = "dataSets_shouldRetrieveDataSetCloudIdsByRepresentationAllChunks")
-    @Test
-    public void shouldRetrieveDataSetCloudIdsByRepresentationAllChunks()
-            throws MCSException {
-        String providerId = "provider";
-        String dataSet = "dataset";
-        String representationName = "representation";
-        String dateFrom = "2016-08-21T11:08:28.059";
-
-        //the tape was recorded when the result chunk was 100
-        int resultSize = 5;
-        String startFrom = null;
-
-        DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
-        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
-
-        while (result.getNextSlice() != null) {
-            assertNotNull(result.getResults());
-            assertEquals(result.getResults().size(), resultSize);
-            startFrom = result.getNextSlice();
-            result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
-        }
-
-        // this is the last chunk
-        assertNotNull(result.getResults());
-        assertTrue(result.getResults().size() <= resultSize);
-    }
-
     @Betamax(tape = "dataSets_shouldRetrieveCloudIdsForSpecificRevision")
     @Test
     public void shouldRetrieveCloudIdsForSpecificRevision()
@@ -877,28 +829,6 @@ public class DataSetServiceClientTest {
         assertFalse(cid.isAcceptance());
         assertFalse(cid.isDeleted());
         assertTrue(cid.isPublished());
-    }
-
-    @Betamax(tape = "dataSets_shouldRetrieveLatelyTaggedRecordsVersion")
-    @Test
-    public void shouldReturnSpecificVersion()
-            throws MCSException {
-
-
-        String providerId = "provider";
-        String dataSetId = "dataset";
-        String cloudId = "cloudId";
-        String representationName = "representation";
-        String revisionName = "revision";
-        String revisionProviderId = "revisionProvider";
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        //when
-        String version = instance.getLatelyTaggedRecords(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
-        //then
-        assertNotNull(version);
-        assertEquals(version, "ef240330-f783-11e6-a0f6-1c6f653f9042");
-
     }
 
 }

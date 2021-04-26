@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,26 +62,30 @@ public class DpsTaskValidatorFactory {
         taskValidatorMap.put(XSLT_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for XSLT Topology")
                 .withParameter(PluginParameterKeys.XSLT_URL)
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS, new DpsTaskValidator("DataSet validator for XSLT Topology")
                 .withParameter(PluginParameterKeys.XSLT_URL)
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(IC_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for IC Topology")
                 .withParameter(PluginParameterKeys.MIME_TYPE)
                 .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(IC_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for IC Topology")
                 .withParameter(PluginParameterKeys.MIME_TYPE)
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL, new DpsTaskValidator("RepositoryUrl validator for OAI-PMH Topology")
                 .withParameter(PluginParameterKeys.PROVIDER_ID)
@@ -98,55 +103,63 @@ public class DpsTaskValidatorFactory {
         taskValidatorMap.put(VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Validation Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
                 .withAnyOutputRevision()
-                .withParameter(PluginParameterKeys.SCHEMA_NAME));
+                .withParameter(PluginParameterKeys.SCHEMA_NAME)
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS, new DpsTaskValidator("DataSet validator for Validation Topology")
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withAnyOutputRevision()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
-                .withParameter(PluginParameterKeys.SCHEMA_NAME));
-
+                .withParameter(PluginParameterKeys.SCHEMA_NAME)
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Normalization Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Normalization Topology")
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withOptionalOutputRevision()
-                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
-
+                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Enrichment Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS, new DpsTaskValidator("DataSet validator for Enrichment Topology")
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withOptionalOutputRevision()
-                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
+                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Indexing Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
                 .withOptionalOutputRevision()
                 .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
-                .withParameter(PluginParameterKeys.METIS_DATASET_ID));
+                .withParameter(PluginParameterKeys.METIS_DATASET_ID)
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Indexing Topology")
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withOptionalOutputRevision()
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
                 .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
-                .withParameter(PluginParameterKeys.METIS_DATASET_ID));
+                .withParameter(PluginParameterKeys.METIS_DATASET_ID)
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Link checking Topology")
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(LINK_CHECKING_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Link checking Topology")
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                 .withOptionalOutputRevision()
-                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET));
+                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(DEPUBLICATION_TASK_FOR_DATASET, new DpsTaskValidator("Task validator for Depublication Topology with dataset id")
                 .withDataEntry(null, NO_DATA)
@@ -159,12 +172,14 @@ public class DpsTaskValidatorFactory {
         taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Media Topology")
                 .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
                 .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Media Topology")
                 .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
-                .withOptionalOutputRevision());
+                .withOptionalOutputRevision()
+                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         return taskValidatorMap;
     }

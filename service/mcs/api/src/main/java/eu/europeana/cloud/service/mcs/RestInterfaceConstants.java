@@ -17,15 +17,6 @@ public class RestInterfaceConstants {
     public static final String DATA_SET_REPRESENTATIONS_NAMES =
             "/data-providers/{providerId}/data-sets/{dataSetId}/representationsNames";
 
-    public static final String DATA_SET_BY_REPRESENTATION =
-            "/data-providers/{providerId}/data-sets/{dataSetId}/representations/{representationName}";
-
-    public static final String DATA_SET_BY_REPRESENTATION_REVISION =
-            "/data-providers/{providerId}/data-sets/{dataSetId}/revision/{revisionName}/revisionProvider/{revisionProvider}/representations/{representationName}";
-
-    public static final String DATA_SET_LATELY_REVISIONED_VERSION =
-            "/data-providers/{providerId}/data-sets/{dataSetId}/latelyRevisionedVersion";
-
     //DataSetRevisionsResource
     public static final String DATA_SET_REVISIONS_RESOURCE =
             "/data-providers/{providerId}/data-sets/{dataSetId}/representations/{representationName}/revisions/{revisionName}/revisionProvider/{revisionProviderId}";
