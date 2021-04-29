@@ -1,0 +1,42 @@
+1. Add remi repository to Centos7/YUM feature on server machine
+
+    $ mkdir tmp/im7
+    $ cd tmp/im7
+    $ wget http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+    $ sudo rpm -Uvh remi-release-7.rpm
+
+Enable remi repository in config file
+
+    $ sudo vi /etc/yum.repos.d/remi.repo
+
+Edit and set first "enable" filed from "0" to "1"
+
+2. Check if valid version of ImageMagic is available
+
+    $ sudo yum list | grep Image
+
+Now expected version is 7.0.11 for ImageMagick7.x86_64 package
+If version is less than above clean yum cache
+
+    $ sudo yum clean all
+    $ rm -rf /var/cache/yum
+
+then check list again
+
+3. Install libs and packages for ImageMagick7:
+
+    $ sudo yum install ImageMagick7-libs.x86_64
+    $ sudo yum install ImageMagick7.x86_64
+
+4. Check if IM was installed
+
+    $ /usr/bin/magick -version
+
+5. Remove old ImageMagick version installed in /usr/local/bin
+
+    $ cd ~/ImageMagick-7.0.1-10
+    $ sudo make uninstall
+
+6. Check if on valid version of IM is installed one (to clean $PATH cache re-login)
+
+    $ magick -version

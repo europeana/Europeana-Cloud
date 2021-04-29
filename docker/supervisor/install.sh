@@ -20,14 +20,6 @@ cd tiff-4.0.6
 make
 make install
 cd ..
-wget http://www.imagemagick.org/download/releases/ImageMagick-7.0.1-10.tar.xz
-tar -xf ImageMagick-7.0.1-10.tar.xz
-rm ImageMagick-7.0.1-10.tar.xz
-cd ImageMagick-7.0.1-10
-./configure  --disable-static --with-modules --without-perl  --disable-shared --with-jpeg --with-png --with-tiff --without-magick-plus-plus --with-quantum-depth=8 --disable-openmp
-make
-make install
-cd  ..
 
 wget https://www.ffmpeg.org/releases/ffmpeg-3.4.2.tar.xz
 tar -xf ffmpeg-3.4.2.tar.xz
@@ -54,3 +46,4 @@ ranlib /usr/local/lib/libjpeg.a
 #to have it configured after restart: create /etc/ld.so.conf.d/imagemagick.conf file (with root) and put /usr/local/lib into it. Then run ldconfig and reboot
 ldconfig /usr/local/lib
 
+echo "How to install ImageMagick see to file ImageMagick_install.txt"
