@@ -93,7 +93,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
-        processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
+        processedRecordsDAO = RetryableMethodExecutor.createRetryProxy(ProcessedRecordsDAO.getInstance(cassandraConnectionProvider));
+
         tasksCache = new TasksCache(cassandraConnectionProvider);
     }
 

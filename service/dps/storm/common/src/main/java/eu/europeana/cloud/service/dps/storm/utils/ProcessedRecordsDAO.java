@@ -30,6 +30,10 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     private static ProcessedRecordsDAO instance = null;
 
+    public ProcessedRecordsDAO(){
+
+    }
+
     public static synchronized ProcessedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
             instance = new ProcessedRecordsDAO(cassandra);

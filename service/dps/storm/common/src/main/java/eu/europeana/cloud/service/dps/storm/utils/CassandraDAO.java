@@ -13,6 +13,9 @@ public abstract class CassandraDAO {
 
     abstract void prepareStatements();
 
+    protected CassandraDAO(){
+    }
+
     public CassandraDAO(CassandraConnectionProvider dbService) {
         this.keyspaceName = dbService.getKeyspaceName();
         this.dbService = dbService;

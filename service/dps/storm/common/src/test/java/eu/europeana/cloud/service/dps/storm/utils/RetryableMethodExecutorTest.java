@@ -1,8 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
@@ -20,6 +22,8 @@ public class RetryableMethodExecutorTest {
     String RESULT = "result";
     String ERROR_MESSAGE = "Test method thrown intentional exception!";
 
+    @Spy
+    public TestDaoWithRetry testDao=new TestDaoWithRetry();
 
     @Mock
     RetryableMethodExecutor.GenericCallable<String, IOException> call;
@@ -63,5 +67,42 @@ public class RetryableMethodExecutorTest {
 
         verify(call, times(4)).call();
     }
+
+    @Test
+    public void shouldRetryOnErrorMethodWithRetryAnnotationWhenExecutedByProxy()  {
+
+        TestDaoWithRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao);
+        try {
+            retryableDao.retryableMethod();
+            fail();
+        }catch(TestDaoExpection e){
+        }
+
+        verify(testDao,times(4)).retryableMethod();
+    }
+
+    @Test
+    public void shouldNoRetryMethodWithRetryAnnotationWhenExecutedByProxyWhenNoErrors()  {
+
+        TestDaoWithRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao);
+        retryableDao.noErrorMethod();
+
+        verify(testDao,times(1)).noErrorMethod();
+    }
+
+    @Test
+    public void shouldNoRetryOnErrorMethodWithoutRetryAnnotationWhenExecutedByProxy()  {
+
+        TestDaoWithRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao);
+        try {
+            retryableDao.noRetryableMethod();
+            fail();
+        }catch(TestDaoExpection e){
+        }
+
+        verify(testDao,times(1)).noRetryableMethod();
+    }
+
+
 
 }

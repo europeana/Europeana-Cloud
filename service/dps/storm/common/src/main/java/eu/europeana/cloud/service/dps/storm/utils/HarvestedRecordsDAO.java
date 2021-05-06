@@ -19,6 +19,9 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     private PreparedStatement deleteRecord;
     private PreparedStatement updateHarvestDate;
 
+    public HarvestedRecordsDAO(){
+    }
+
     public HarvestedRecordsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }

@@ -1,7 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.management.DescriptorKey;
+import java.lang.reflect.Method;
 
 public class RetryableMethodExecutor {
     private final static Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
@@ -36,7 +41,7 @@ public class RetryableMethodExecutor {
         return execute(errorMessage, DEFAULT_REST_RETRIES, SLEEP_TIME, callable);
     }
 
-    public static <V, E extends Exception> V execute(String errorMessage, int retryCount, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
+    public static <V, E extends Throwable> V execute(String errorMessage, int retryCount, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
         while (true) {
             try {
                 return callable.call();
@@ -60,11 +65,46 @@ public class RetryableMethodExecutor {
         }
     }
 
+    public static <T> T createRetryProxy(T target) {
+        Enhancer enhancer = new Enhancer();
+        enhancer.setClassLoader(target.getClass().getClassLoader());
+        enhancer.setSuperclass(target.getClass());
+        enhancer.setCallback((MethodInterceptor) (obj, method, args, methodProxy) -> {
+                    return retryFromAnnotation(target, method, args);
+                }
+        );
+
+        return (T) enhancer.create();
+    }
+
+    private static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
+        //TODO this is now based on example annotation, should be replaced by custom annotation
+        DescriptorKey retryAnnotation = method.getAnnotation(DescriptorKey.class);
+        if (retryAnnotation != null) {
+            String errorMessage = retryAnnotation.value();
+            int retryCount = 3;
+            int sleepTimeBetweenRetriesMs = 2000;
+            return execute(errorMessage, retryCount, sleepTimeBetweenRetriesMs, () ->
+                    invokeWithThrowingOriginalException(target, method, args));
+        } else {
+            return invokeWithThrowingOriginalException(target, method, args);
+        }
+    }
+
+    private static <T> Object invokeWithThrowingOriginalException(T target, Method method, Object[] args) throws Throwable {
+        try {
+            return method.invoke(target, args);
+        } catch (ReflectiveOperationException e) {
+            throw e.getCause();
+        }
+    }
+
+
     public interface GenericRunnable<E extends Exception> {
         void run() throws E;
     }
 
-    public interface GenericCallable<V, E extends Exception> {
+    public interface GenericCallable<V, E extends Throwable> {
         V call() throws E;
     }
 }
