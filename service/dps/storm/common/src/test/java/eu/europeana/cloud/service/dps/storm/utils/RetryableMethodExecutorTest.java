@@ -78,7 +78,7 @@ public class RetryableMethodExecutorTest {
         }catch(TestDaoExpection e){
         }
 
-        verify(testDao,times(4)).retryableMethod();
+        verify(testDao,times(3)).retryableMethod();
     }
 
     @Test

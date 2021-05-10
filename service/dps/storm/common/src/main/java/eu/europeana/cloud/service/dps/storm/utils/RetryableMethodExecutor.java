@@ -1,12 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import eu.europeana.cloud.common.annotations.Retryable;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.DescriptorKey;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class RetryableMethodExecutor {
     private final static Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
@@ -50,7 +51,7 @@ public class RetryableMethodExecutor {
                     LOGGER.warn(errorMessage + " Retries Left {} ", retryCount, e);
                     waitForSpecificTime(sleepTimeBetweenRetriesMs);
                 } else {
-                    LOGGER.error(errorMessage);
+                    LOGGER.error(errorMessage, e);
                     throw (E) e;
                 }
             }
@@ -78,13 +79,10 @@ public class RetryableMethodExecutor {
     }
 
     private static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
-        //TODO this is now based on example annotation, should be replaced by custom annotation
-        DescriptorKey retryAnnotation = method.getAnnotation(DescriptorKey.class);
+        Retryable retryAnnotation = method.getAnnotation(Retryable.class);
         if (retryAnnotation != null) {
-            String errorMessage = retryAnnotation.value();
-            int retryCount = 3;
-            int sleepTimeBetweenRetriesMs = 2000;
-            return execute(errorMessage, retryCount, sleepTimeBetweenRetriesMs, () ->
+            String errorMessage = "Error while invoking method "+method+" with args "+ Arrays.toString(args);
+            return execute(errorMessage, retryAnnotation.maxAttempts(), retryAnnotation.delay(), () ->
                     invokeWithThrowingOriginalException(target, method, args));
         } else {
             return invokeWithThrowingOriginalException(target, method, args);
