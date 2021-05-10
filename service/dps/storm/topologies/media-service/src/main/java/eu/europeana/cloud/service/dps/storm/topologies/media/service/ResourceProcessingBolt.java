@@ -45,31 +45,30 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         LOGGER.info("Starting resource processing");
         long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
-        if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
+        try {
+            RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
+            if(rdfResourceEntry == null){
+                return;
+            }
+            ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
+            if (resourceExtractionResult != null) {
+                if (resourceExtractionResult.getMetadata() != null)
+                    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
+            buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
+        } finally {
+            stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
+            if (exception.length() > 0) {
+                stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
+                stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+            }
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             outputCollector.ack(anchorTuple);
-        } else {
-            try {
-                RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
-                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
-                if (resourceExtractionResult != null) {
-                    if (resourceExtractionResult.getMetadata() != null)
-                        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
-                    storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
-                }
-            } catch (Exception e) {
-                LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
-                buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
-            } finally {
-                stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
-                if (exception.length() > 0) {
-                    stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
-                    stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
-                }
-                outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-                outputCollector.ack(anchorTuple);
-            }
         }
+
         LOGGER.info("Resource processing finished in: {}ms for {}",
                 Calendar.getInstance().getTimeInMillis() - processingStartTime,
                 stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL));

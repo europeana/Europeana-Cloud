@@ -44,7 +44,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     public static final int SLEEP_TIME = 5000;
 
-    protected static volatile TaskStatusChecker taskStatusChecker;
+    protected transient TaskStatusChecker taskStatusChecker;
 
     protected transient Map<?,?> stormConfig;
     protected transient TopologyContext topologyContext;

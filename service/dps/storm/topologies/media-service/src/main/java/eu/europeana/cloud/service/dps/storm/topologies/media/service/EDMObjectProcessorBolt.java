@@ -6,10 +6,12 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
+import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
@@ -57,13 +59,18 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
         long processingStartTime = new Date().getTime();
         StringBuilder exception = new StringBuilder();
 
+        int resourcesToBeProcessed = 0;
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
             boolean mainThumbnailAvailable = false;
+            // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
+            //  to collect all the resources instead of just counting them
+            resourcesToBeProcessed = rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size();
 
             if (edmObjectResourceEntry != null) {
+                resourcesToBeProcessed++;
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
                 if (resourceExtractionResult != null) {
                     StormTaskTuple tuple = null;
@@ -71,28 +78,39 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                         tuple = new Cloner().deepClone(stormTaskTuple);
                         tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
                         mainThumbnailAvailable = !resourceExtractionResult.getMetadata().getThumbnailTargetNames().isEmpty();
-                        // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
-                        //  to collect all the resources instead of just counting them
-                        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT,
-                                String.valueOf(rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size() + 1));
+                        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
                     }
 
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                     if (tuple != null) {
                         outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
-                        stormTaskTuple.addParameter(PluginParameterKeys.MAIN_RESOURCE_METADATA_AVAILABLE,"true");
                     }
                 }
             }
             stormTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));
+        } catch (RdfDeserializationException e) {
+            LOGGER.error("Unable to deserialize the file it will be dropped. The full error is:{} ", ExceptionUtils.getStackTrace(e));
+            emitErrorNotification(
+                    anchorTuple,
+                    stormTaskTuple.getTaskId(),
+                    stormTaskTuple.getFileUrl(),
+                    "Unable to deserialize the file",
+                    "The cause of the error is:" + e.getCause(),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (Exception e) {
             LOGGER.error("Exception while reading and parsing file for processing the edm:object resource. The full error is:{} ", ExceptionUtils.getStackTrace(e));
+            StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+            tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
             buildErrorMessage(exception, "Exception while processing the edm:object resource. The full error is: " + e.getMessage() + " because of: " + e.getCause());
+            tuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
+            tuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+            outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
         } finally {
             if (exception.length() > 0) {
                 stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                 stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
             }
+            stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             outputCollector.ack(anchorTuple);
         }
