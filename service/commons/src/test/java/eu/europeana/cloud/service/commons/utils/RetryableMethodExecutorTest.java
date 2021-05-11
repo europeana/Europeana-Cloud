@@ -54,7 +54,7 @@ public class RetryableMethodExecutorTest {
     }
 
     @Test
-    public void shouldCallBeInvoked4TimesWhenInvokedExecuteWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
+    public void shouldCallBeInvoked3TimesWhenInvokedExecuteWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
         Mockito.when(call.call()).thenThrow(IOException.class);
 
 
@@ -64,7 +64,7 @@ public class RetryableMethodExecutorTest {
             e.printStackTrace();
         }
 
-        Mockito.verify(call, Mockito.times(4)).call();
+        Mockito.verify(call, Mockito.times(3)).call();
     }
 
     @Test
