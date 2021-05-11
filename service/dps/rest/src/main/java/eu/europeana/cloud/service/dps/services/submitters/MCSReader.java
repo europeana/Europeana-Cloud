@@ -10,8 +10,8 @@ import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
-import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 

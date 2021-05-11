@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import java.util.Date;
 import java.util.Iterator;

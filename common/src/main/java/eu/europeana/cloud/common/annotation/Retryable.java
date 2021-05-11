@@ -1,4 +1,4 @@
-package eu.europeana.cloud.common.annotations;
+package eu.europeana.cloud.common.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,4 +21,10 @@ public @interface Retryable {
      * @return Number of milliseconds
      */
     int delay() default 10*1000;
+
+    /**
+     *
+     * @return
+     */
+    String errorMessage() default "";
 }

@@ -1,9 +1,11 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.commons.utils;
 
 
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -30,7 +32,7 @@ public class RetryableMethodExecutorTest {
 
     @Test
     public void shouldReturnValidResultWhenExecuteAndCallNoThrowsExceptions() throws Exception {
-        when(call.call()).thenReturn(RESULT);
+        Mockito.when(call.call()).thenReturn(RESULT);
 
         String result = RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
 
@@ -39,24 +41,24 @@ public class RetryableMethodExecutorTest {
 
     @Test
     public void shouldCallBeInvokedOnceWhenInvokedExecuteAndCallNoThrowsExceptions() throws Exception {
-        when(call.call()).thenReturn(RESULT);
+        Mockito.when(call.call()).thenReturn(RESULT);
 
         RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
 
-        verify(call).call();
+        Mockito.verify(call).call();
     }
 
 
     @Test(expected = IOException.class)
     public void shouldCatchExceptionWhenInvokedExecuteAndCallAlwaysThrowsExceptions() throws Exception {
-        when(call.call()).thenThrow(IOException.class);
+        Mockito.when(call.call()).thenThrow(IOException.class);
 
         RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
     }
 
     @Test
     public void shouldCallBeInvoked4TimesWhenInvokedExecuteWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
-        when(call.call()).thenThrow(IOException.class);
+        Mockito.when(call.call()).thenThrow(IOException.class);
 
 
         try {
@@ -65,7 +67,7 @@ public class RetryableMethodExecutorTest {
             e.printStackTrace();
         }
 
-        verify(call, times(4)).call();
+        Mockito.verify(call, Mockito.times(4)).call();
     }
 
     @Test
@@ -78,7 +80,7 @@ public class RetryableMethodExecutorTest {
         }catch(TestDaoExpection e){
         }
 
-        verify(testDao,times(4)).retryableMethod();
+        Mockito.verify(testDao, Mockito.times(4)).retryableMethod();
     }
 
     @Test
@@ -87,7 +89,7 @@ public class RetryableMethodExecutorTest {
         TestDaoWithRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao);
         retryableDao.noErrorMethod();
 
-        verify(testDao,times(1)).noErrorMethod();
+        Mockito.verify(testDao, Mockito.times(1)).noErrorMethod();
     }
 
     @Test
@@ -100,7 +102,7 @@ public class RetryableMethodExecutorTest {
         }catch(TestDaoExpection e){
         }
 
-        verify(testDao,times(1)).noRetryableMethod();
+        Mockito.verify(testDao, Mockito.times(1)).noRetryableMethod();
     }
 
 

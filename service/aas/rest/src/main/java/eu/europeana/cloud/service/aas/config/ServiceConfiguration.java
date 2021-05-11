@@ -2,9 +2,11 @@ package eu.europeana.cloud.service.aas.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.LoggingFilter;
+import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.env.Environment;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -15,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableWebMvc
 @ComponentScan("eu.europeana.cloud.service.aas")
+@EnableAspectJAutoProxy
 public class ServiceConfiguration implements WebMvcConfigurer {
 
     public static final String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
@@ -50,4 +53,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         return new MethodValidationPostProcessor();
     }
 
+    @Bean
+    public RetryAspect retryAspect() {
+        return new RetryAspect();
+    }
 }

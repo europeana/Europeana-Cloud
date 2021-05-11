@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.config;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
+import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
@@ -30,6 +31,7 @@ import java.util.Map;
 @EnableWebMvc
 @PropertySource("classpath:mcs.properties")
 @ComponentScan("eu.europeana.cloud.service.mcs.rest")
+@EnableAspectJAutoProxy
 public class ServiceConfiguration implements WebMvcConfigurer {
     private static final String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
     private static final String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
@@ -143,4 +145,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         return multipartResolver;
     }
 
+    @Bean
+    public RetryAspect retryAspect() {
+        return new RetryAspect();
+    }
 }

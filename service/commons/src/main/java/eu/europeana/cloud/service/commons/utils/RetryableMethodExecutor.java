@@ -1,12 +1,13 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.commons.utils;
 
+import eu.europeana.cloud.common.annotation.Retryable;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.DescriptorKey;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class RetryableMethodExecutor {
     private final static Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
@@ -77,20 +78,20 @@ public class RetryableMethodExecutor {
         return (T) enhancer.create();
     }
 
-    private static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
-        //TODO this is now based on example annotation, should be replaced by custom annotation
-        DescriptorKey retryAnnotation = method.getAnnotation(DescriptorKey.class);
+    static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
+        Retryable retryAnnotation = method.getAnnotation(Retryable.class);
         if (retryAnnotation != null) {
-            String errorMessage = retryAnnotation.value();
-            int retryCount = 3;
-            int sleepTimeBetweenRetriesMs = 2000;
-            return execute(errorMessage, retryCount, sleepTimeBetweenRetriesMs, () ->
-                    invokeWithThrowingOriginalException(target, method, args));
+            String errorMessage = retryAnnotation.errorMessage().isEmpty() ?
+                    String.format("Error while invoking method '%s' with args: %s", method, Arrays.toString(args)) :
+                    retryAnnotation.errorMessage();
+
+            return execute(errorMessage, retryAnnotation.maxAttempts(), retryAnnotation.delay(),
+                    () -> invokeWithThrowingOriginalException(target, method, args)
+            );
         } else {
             return invokeWithThrowingOriginalException(target, method, args);
         }
     }
-
     private static <T> Object invokeWithThrowingOriginalException(T target, Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);

@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

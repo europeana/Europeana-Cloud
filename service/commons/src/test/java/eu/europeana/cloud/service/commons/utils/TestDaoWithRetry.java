@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.commons.utils;
 
 import javax.management.DescriptorKey;
 
