@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class RetryableMethodExecutor {
-    private final static Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
     private static final int DEFAULT_DB_RETRIES = 3;
 
@@ -70,9 +70,8 @@ public class RetryableMethodExecutor {
         Enhancer enhancer = new Enhancer();
         enhancer.setClassLoader(target.getClass().getClassLoader());
         enhancer.setSuperclass(target.getClass());
-        enhancer.setCallback((MethodInterceptor) (obj, method, args, methodProxy) -> {
-                    return retryFromAnnotation(target, method, args);
-                }
+        enhancer.setCallback(
+                (MethodInterceptor) (obj, method, args, methodProxy) -> retryFromAnnotation(target, method, args)
         );
 
         return (T) enhancer.create();
@@ -92,6 +91,7 @@ public class RetryableMethodExecutor {
             return invokeWithThrowingOriginalException(target, method, args);
         }
     }
+
     private static <T> Object invokeWithThrowingOriginalException(T target, Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);
