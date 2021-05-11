@@ -1,10 +1,10 @@
 package eu.europeana.cloud.service.commons.utils;
 
-import javax.management.DescriptorKey;
+import eu.europeana.cloud.common.annotation.Retryable;
 
 public class TestDaoWithRetry {
 
-    @DescriptorKey("Testing error method")
+    @Retryable(delay = 100, maxAttempts = 2)
     public void retryableMethod() throws TestDaoExpection {
         throw new TestDaoExpection();
     }
@@ -13,7 +13,7 @@ public class TestDaoWithRetry {
         throw new TestDaoExpection();
     }
 
-    @DescriptorKey("Testing error method")
+    @Retryable(delay = 100, maxAttempts = 2)
     public void noErrorMethod() throws TestDaoExpection {
     }
 
