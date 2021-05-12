@@ -1,20 +1,17 @@
 package eu.europeana.cloud.service.commons.utils;
 
 
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RetryableMethodExecutorTest {
@@ -57,7 +54,7 @@ public class RetryableMethodExecutorTest {
     }
 
     @Test
-    public void shouldCallBeInvoked4TimesWhenInvokedExecuteWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
+    public void shouldCallBeInvoked3TimesWhenInvokedExecuteWith3RetriesAndCallAlwaysThrowsExceptions() throws Exception {
         Mockito.when(call.call()).thenThrow(IOException.class);
 
 
@@ -67,7 +64,7 @@ public class RetryableMethodExecutorTest {
             e.printStackTrace();
         }
 
-        Mockito.verify(call, Mockito.times(4)).call();
+        Mockito.verify(call, Mockito.times(3)).call();
     }
 
     @Test
@@ -80,7 +77,7 @@ public class RetryableMethodExecutorTest {
         }catch(TestDaoExpection e){
         }
 
-        Mockito.verify(testDao, Mockito.times(4)).retryableMethod();
+        Mockito.verify(testDao, Mockito.times(3)).retryableMethod();
     }
 
     @Test
@@ -104,7 +101,4 @@ public class RetryableMethodExecutorTest {
 
         Mockito.verify(testDao, Mockito.times(1)).noRetryableMethod();
     }
-
-
-
 }

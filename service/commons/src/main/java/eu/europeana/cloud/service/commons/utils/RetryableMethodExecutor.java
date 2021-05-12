@@ -10,11 +10,11 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class RetryableMethodExecutor {
-    private final static Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
-    private static final int DEFAULT_DB_RETRIES = 3;
+    private static final int DEFAULT_DB_RETRIES = 4;
 
-    private static final int DEFAULT_REST_RETRIES = 7;
+    private static final int DEFAULT_REST_RETRIES = 8;
 
     private static final int SLEEP_TIME = 5000;
 
@@ -42,13 +42,13 @@ public class RetryableMethodExecutor {
         return execute(errorMessage, DEFAULT_REST_RETRIES, SLEEP_TIME, callable);
     }
 
-    public static <V, E extends Throwable> V execute(String errorMessage, int retryCount, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
+    public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
         while (true) {
             try {
                 return callable.call();
             } catch (Exception e) {
-                if (retryCount-- > 0) {
-                    LOGGER.warn(errorMessage + " Retries Left {} ", retryCount, e);
+                if (--maxAttempts > 0) {
+                    LOGGER.warn(errorMessage + " Retries Left {} ", maxAttempts, e);
                     waitForSpecificTime(sleepTimeBetweenRetriesMs);
                 } else {
                     LOGGER.error(errorMessage);
@@ -58,7 +58,7 @@ public class RetryableMethodExecutor {
         }
     }
 
-    public static void waitForSpecificTime(int milliSecond) {
+    private static void waitForSpecificTime(int milliSecond) {
         try {
             Thread.sleep(milliSecond);
         } catch (InterruptedException e) {
@@ -70,9 +70,8 @@ public class RetryableMethodExecutor {
         Enhancer enhancer = new Enhancer();
         enhancer.setClassLoader(target.getClass().getClassLoader());
         enhancer.setSuperclass(target.getClass());
-        enhancer.setCallback((MethodInterceptor) (obj, method, args, methodProxy) -> {
-                    return retryFromAnnotation(target, method, args);
-                }
+        enhancer.setCallback(
+                (MethodInterceptor) (obj, method, args, methodProxy) -> retryFromAnnotation(target, method, args)
         );
 
         return (T) enhancer.create();
@@ -88,6 +87,7 @@ public class RetryableMethodExecutor {
             return invokeWithThrowingOriginalException(target, method, args);
         }
     }
+
     private static <T> Object invokeWithThrowingOriginalException(T target, Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);
