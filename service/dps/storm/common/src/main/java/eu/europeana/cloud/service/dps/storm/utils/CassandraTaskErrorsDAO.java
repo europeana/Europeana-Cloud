@@ -3,12 +3,12 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.google.common.collect.Iterators;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.ErrorDetails;
-import eu.europeana.cloud.common.model.dps.TaskErrorInfo;
-import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
+import eu.europeana.cloud.common.annotation.Retryable;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import java.util.*;
 
@@ -103,6 +103,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param taskId    task identifier
      * @param errorType type of error
      */
+    @Retryable
     public void updateErrorCounter(long taskId, String errorType) {
         dbService.getSession().execute(updateErrorCounterStatement.bind(taskId, UUID.fromString(errorType)));
     }
@@ -115,6 +116,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param errorMessage error message
      * @param resource     resource identifier
      */
+    @Retryable
     public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
         dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource, additionalInformations));
     }
@@ -125,6 +127,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param taskId task identifier
      * @return number of all errors for the task
      */
+    @Retryable
     public int getErrorCount(long taskId) {
         ResultSet rs = dbService.getSession().execute(selectErrorCountsStatement.bind(taskId));
         int count = 0;
@@ -136,27 +139,16 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         }
         return count;
     }
-    public Map<String, String> getMessagesUuids(long taskId) {
-        List<TaskErrorInfo> errors = new ArrayList<>();
-        TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
-        ResultSet rs = dbService.getSession().execute(selectErrorsStatement.bind(taskId));
-
-        Map<String, String> errorMessageToUuidMap = new HashMap<>();
-
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-
-            String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString();
-            Optional<String> message = getErrorMessage(taskId, errorType);
-            if(message.isPresent()) {
-                errorMessageToUuidMap.put(message.get(),errorType);
-            }
-        }
-        return errorMessageToUuidMap;
+    @Retryable
+    public Iterator<String> getMessagesUuids(long taskId) {
+        return Iterators.transform(
+                dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
+                row -> row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString());
     }
 
-    private Optional<String> getErrorMessage(long taskId, String errorType)  {
+    @Retryable
+    public Optional<String> getErrorMessage(long taskId, String errorType)  {
         ResultSet rs = dbService.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType)));
         if (!rs.iterator().hasNext()) {
             return Optional.empty();
@@ -166,6 +158,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         return Optional.of(message);
     }
 
+    @Retryable
     public void removeErrors(long taskId) {
         ResultSet rs = dbService.getSession().execute(selectErrorTypeStatement.bind(taskId));
 

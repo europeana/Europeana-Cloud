@@ -171,7 +171,7 @@ public class ServiceConfiguration {
 
     @Bean
     public TaskStatusSynchronizer taskStatusSynchronizer() {
-        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO());
+        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO(), taskStatusUpdater());
     }
 
     @Bean

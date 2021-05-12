@@ -6,8 +6,10 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -97,6 +99,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     }
 
+    @Retryable
     public void insert(long taskId, String recordId, int attemptNumber, String dstResource, String topologyName,
                        String state, String infoText, String additionalInformations)
             throws NoHostAvailableException, QueryExecutionException {
@@ -105,6 +108,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 state, Calendar.getInstance().getTime(), infoText, additionalInformations));
     }
 
+    @Retryable
     public void insert(ProcessedRecord record)
             throws NoHostAvailableException, QueryExecutionException {
         insert(record.getTaskId(), record.getRecordId(), record.getAttemptNumber(), record.getDstIdentifier(),
@@ -112,11 +116,13 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 record.getAdditionalInformations());
     }
 
+    @Retryable
     public void updateProcessedRecordState(long taskId, String recordId, String state) {
         dbService.getSession().execute(
                 updateRecordStateStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), state));
     }
 
+    @Retryable
     public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)
             throws NoHostAvailableException, QueryExecutionException {
         ProcessedRecord result = null;
@@ -141,15 +147,13 @@ public class ProcessedRecordsDAO extends CassandraDAO {
         return Optional.ofNullable(result);
     }
 
-    public int getAttemptNumber(long taskId, String recordId) {
-        return selectByPrimaryKey(taskId, recordId).map(ProcessedRecord::getAttemptNumber).orElse(0);
-    }
-
+    @Retryable
     public void updateStartTime(long taskId, String recordId, Date startTime) {
         dbService.getSession().execute(
                 updateRecordStartTime.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), startTime));
     }
 
+    @Retryable
     public void updateAttempNumber(long taskId, String recordId, int attempNumber) {
         dbService.getSession().execute(
                 updateAttemptNumberStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), attempNumber));

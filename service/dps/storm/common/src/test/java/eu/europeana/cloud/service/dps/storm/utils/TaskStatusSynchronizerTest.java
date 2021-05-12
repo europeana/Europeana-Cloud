@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
@@ -37,6 +38,10 @@ public class TaskStatusSynchronizerTest {
     @Mock
     private TasksByStateDAO tasksByStateDAO;
 
+    @Mock
+    private TaskStatusUpdater taskStatusUpdater;
+
+
     @InjectMocks
     private TaskStatusSynchronizer synchronizer;
 
@@ -52,7 +57,7 @@ public class TaskStatusSynchronizerTest {
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
-        verify(tasksByStateDAO).updateTask(eq(TOPOLOGY_NAME), eq(1L), eq(TaskState.QUEUED.toString()), eq(TaskState.PROCESSED.toString()));
+        verify(taskStatusUpdater).updateTask(eq(TOPOLOGY_NAME), eq(1L), eq(TaskState.QUEUED.toString()), eq(TaskState.PROCESSED.toString()));
     }
 
     @Test
@@ -62,7 +67,7 @@ public class TaskStatusSynchronizerTest {
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
-        verify(tasksByStateDAO, never()).updateTask(any(), anyLong(), any(), any());
+        verify(taskStatusUpdater, never()).updateTask(any(), anyLong(), any(), any());
     }
 
 
@@ -73,7 +78,7 @@ public class TaskStatusSynchronizerTest {
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
         verify(taskInfoDAO, never()).findByIds(eq(Collections.singleton(1L)));
-        verify(tasksByStateDAO, never()).updateTask(any(), anyLong(), any(), any());
+        verify(taskStatusUpdater, never()).updateTask(any(), anyLong(), any(), any());
     }
 
     private static TaskInfo createTaskTopicInfo(Long id, TaskState state, String topic) {

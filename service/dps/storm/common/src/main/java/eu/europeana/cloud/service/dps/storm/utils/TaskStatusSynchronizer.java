@@ -10,13 +10,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TaskStatusSynchronizer {
-    private CassandraTaskInfoDAO taskInfoDAO;
+    private final TaskStatusUpdater taskStatusUpdater;
+    private final CassandraTaskInfoDAO taskInfoDAO;
 
-    private TasksByStateDAO tasksByStateDAO;
+    private final TasksByStateDAO tasksByStateDAO;
 
-    public TaskStatusSynchronizer(CassandraTaskInfoDAO taskInfoDAO, TasksByStateDAO tasksByStateDAO) {
+    public TaskStatusSynchronizer(CassandraTaskInfoDAO taskInfoDAO, TasksByStateDAO tasksByStateDAO,
+                                  TaskStatusUpdater taskStatusUpdater) {
         this.taskInfoDAO = taskInfoDAO;
         this.tasksByStateDAO = tasksByStateDAO;
+        this.taskStatusUpdater = taskStatusUpdater;
     }
 
     public void synchronizeTasksByTaskStateFromBasicInfo(String topologyName, Collection<String> availableTopics) {
@@ -26,7 +29,7 @@ public class TaskStatusSynchronizer {
         List<TaskInfo> tasksFromBasicInfoTable = taskInfoDAO.findByIds(tasksFromTaskByTaskStateTableMap.keySet());
         List<TaskInfo> tasksToCorrect = tasksFromBasicInfoTable.stream().filter(this::isFinished).collect(Collectors.toList());
         for (TaskInfo task : tasksToCorrect) {
-            tasksByStateDAO.updateTask(topologyName, task.getId(), tasksFromTaskByTaskStateTableMap.get(task.getId()).getState().toString(), task.getState().toString());
+            taskStatusUpdater.updateTask(topologyName, task.getId(), tasksFromTaskByTaskStateTableMap.get(task.getId()).getState().toString(), task.getState().toString());
         }
     }
 
