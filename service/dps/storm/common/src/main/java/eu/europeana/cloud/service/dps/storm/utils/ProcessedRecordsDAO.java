@@ -36,7 +36,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     public static synchronized ProcessedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new ProcessedRecordsDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new ProcessedRecordsDAO(cassandra));
         }
         return instance;
     }

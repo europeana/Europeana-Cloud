@@ -25,7 +25,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
 
     public static synchronized CassandraAttributeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraAttributeStatisticsDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraAttributeStatisticsDAO(cassandra));
         }
         return instance;
     }
@@ -35,6 +35,9 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      */
     public CassandraAttributeStatisticsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public CassandraAttributeStatisticsDAO() {
     }
 
     @Override
@@ -146,7 +149,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     }
 
 
-    public void removeAttributeStatistics(long taskId, String nodeXpath, String nodeValue)  {
+    public void removeAttributeStatistics(long taskId, String nodeXpath, String nodeValue) {
         BoundStatement bs = deleteAttributesStatement.bind(taskId, nodeXpath, nodeValue);
         dbService.getSession().execute(bs);
     }

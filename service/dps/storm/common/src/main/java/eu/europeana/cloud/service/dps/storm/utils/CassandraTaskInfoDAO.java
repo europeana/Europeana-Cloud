@@ -36,7 +36,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public static synchronized CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraTaskInfoDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskInfoDAO(cassandra));
         }
         return instance;
     }
@@ -46,6 +46,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
      */
     public CassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public CassandraTaskInfoDAO() {
     }
 
     @Override

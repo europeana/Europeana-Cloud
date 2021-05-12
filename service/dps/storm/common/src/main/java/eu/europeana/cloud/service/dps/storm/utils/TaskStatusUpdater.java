@@ -40,7 +40,7 @@ public class TaskStatusUpdater {
         if (instance == null) {
             instance = new TaskStatusUpdater(
                     CassandraTaskInfoDAO.getInstance(cassandra),
-                    new TasksByStateDAO(cassandra),
+                    RetryableMethodExecutor.createRetryProxy(new TasksByStateDAO(cassandra)),
                     "");
         }
         return instance;

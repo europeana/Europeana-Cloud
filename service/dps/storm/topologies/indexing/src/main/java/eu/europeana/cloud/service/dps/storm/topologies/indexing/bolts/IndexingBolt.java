@@ -18,6 +18,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingProperties;
@@ -135,7 +136,8 @@ public class IndexingBolt extends AbstractDpsBolt {
                         dbConnectionDetails.getKeyspaceName(),
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
-        harvestedRecordsDAO = new HarvestedRecordsDAO(cassandraConnectionProvider);
+        harvestedRecordsDAO = RetryableMethodExecutor.createRetryProxy(
+                new HarvestedRecordsDAO(cassandraConnectionProvider));
     }
 
     private void prepareUisClient() {

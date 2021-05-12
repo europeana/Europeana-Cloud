@@ -33,7 +33,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
 
     public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraTaskErrorsDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskErrorsDAO(cassandra));
 
         }
         return instance;
@@ -45,6 +45,9 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      */
     private CassandraTaskErrorsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public CassandraTaskErrorsDAO() {
     }
 
     @Override

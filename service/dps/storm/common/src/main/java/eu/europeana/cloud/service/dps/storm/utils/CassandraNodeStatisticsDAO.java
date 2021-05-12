@@ -51,7 +51,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     public static synchronized CassandraNodeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraNodeStatisticsDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraNodeStatisticsDAO(cassandra));
         }
         return instance;
     }
@@ -62,6 +62,9 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
     public CassandraNodeStatisticsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
         cassandraAttributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(dbService);
+    }
+
+    public CassandraNodeStatisticsDAO() {
     }
 
     @Override
