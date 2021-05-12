@@ -5,6 +5,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import org.slf4j.Logger;
@@ -17,9 +18,11 @@ import java.util.*;
 /**
  * Data provider repository using Cassandra nosql database.
  */
+@Retryable
 public class CassandraDataProviderDAO {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataProviderDAO.class);
+
     private final CassandraConnectionProvider dbService;
     private PreparedStatement createDataProviderStatement;
     private PreparedStatement updateDataProviderStatement;
@@ -35,84 +38,6 @@ public class CassandraDataProviderDAO {
     public CassandraDataProviderDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
         prepareStatements();
-    }
-
-    /**
-     * Returns a sublist of providers, starting from specified provider id.
-     *
-     * @param thresholdProviderId first id of provider. If null, will return beginning of the list of all providers.
-     * @param limit               max size of returned list.
-     * @return a sublist of all providers.
-     */
-    public List<DataProvider> getProviders(String thresholdProviderId, int limit) {
-        String provId = thresholdProviderId;
-        if (provId == null) {
-            provId = "";
-        }
-        BoundStatement boundStatement = getAllProvidersStatement.bind(provId, limit);
-        ResultSet rs = dbService.getSession().execute(boundStatement);
-        List<DataProvider> dataProviders = new ArrayList<>();
-        for (Row row : rs) {
-            dataProviders.add(map(row));
-        }
-        return dataProviders;
-    }
-
-    /**
-     * Returns data provider with specified id.
-     *
-     * @param providerId id of provider.
-     * @return data provider
-     */
-    public DataProvider getProvider(String providerId) {
-        BoundStatement boundStatement = getProviderStatement.bind(providerId);
-        ResultSet rs = dbService.getSession().execute(boundStatement); //NOSONAR
-        Row result = rs.one();
-        if (result == null) {
-            return null;
-        } else {
-            return map(result);
-        }
-    }
-
-    /**
-     * Deletes provider with specified id.
-     *
-     * @param providerId id of provider.
-     */
-    public void deleteProvider(String providerId) {
-        BoundStatement boundStatement = deleteProviderStatement.bind(providerId);
-        dbService.getSession().execute(boundStatement);
-    }
-
-    /**
-     * Creates new data-provider with specified id and properties. Newly created provider is 'active' by default.
-     *
-     * @param providerId provider id
-     * @param properties administrative properties of data provider
-     * @return created data provider object
-     */
-    public DataProvider createDataProvider(String providerId, DataProviderProperties properties) {
-        int partitionKey = providerId.hashCode();
-        BoundStatement boundStatement = createDataProviderStatement.bind(providerId, propertiesToMap(properties), new Date(), partitionKey);
-        dbService.getSession().execute(boundStatement);
-        DataProvider dp = new DataProvider();
-        dp.setId(providerId);
-        dp.setPartitionKey(partitionKey);
-        dp.setProperties(properties);
-        return dp;
-    }
-
-    /**
-     * Updates data provider in DB (properties and 'active' flag)
-     *
-     * @param dataProvider data provider object
-     * @return updated data provider
-     */
-    public DataProvider updateDataProvider(DataProvider dataProvider) {
-        BoundStatement boundStatement = updateDataProviderStatement.bind(dataProvider.isActive(), propertiesToMap(dataProvider.getProperties()), dataProvider.getId());
-        dbService.getSession().execute(boundStatement);
-        return dataProvider;
     }
 
     private void prepareStatements() {
@@ -137,6 +62,89 @@ public class CassandraDataProviderDAO {
         getAllProvidersStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
+    /**
+     * Returns a sublist of providers, starting from specified provider id.
+     *
+     * @param thresholdProviderId first id of provider. If null, will return beginning of the list of all providers.
+     * @param limit               max size of returned list.
+     * @return a sublist of all providers.
+     */
+    @Retryable
+    public List<DataProvider> getProviders(String thresholdProviderId, int limit) {
+        String provId = thresholdProviderId;
+        if (provId == null) {
+            provId = "";
+        }
+        BoundStatement boundStatement = getAllProvidersStatement.bind(provId, limit);
+        ResultSet rs = dbService.getSession().execute(boundStatement);
+        List<DataProvider> dataProviders = new ArrayList<>();
+        for (Row row : rs) {
+            dataProviders.add(map(row));
+        }
+        return dataProviders;
+    }
+
+    /**
+     * Returns data provider with specified id.
+     *
+     * @param providerId id of provider.
+     * @return data provider
+     */
+    @Retryable
+    public DataProvider getProvider(String providerId) {
+        BoundStatement boundStatement = getProviderStatement.bind(providerId);
+        ResultSet rs = dbService.getSession().execute(boundStatement); //NOSONAR
+        Row result = rs.one();
+        if (result == null) {
+            return null;
+        } else {
+            return map(result);
+        }
+    }
+
+    /**
+     * Deletes provider with specified id.
+     *
+     * @param providerId id of provider.
+     */
+    @Retryable
+    public void deleteProvider(String providerId) {
+        BoundStatement boundStatement = deleteProviderStatement.bind(providerId);
+        dbService.getSession().execute(boundStatement);
+    }
+
+    /**
+     * Creates new data-provider with specified id and properties. Newly created provider is 'active' by default.
+     *
+     * @param providerId provider id
+     * @param properties administrative properties of data provider
+     * @return created data provider object
+     */
+    @Retryable
+    public DataProvider createDataProvider(String providerId, DataProviderProperties properties) {
+        int partitionKey = providerId.hashCode();
+        BoundStatement boundStatement = createDataProviderStatement.bind(providerId, propertiesToMap(properties), new Date(), partitionKey);
+        dbService.getSession().execute(boundStatement);
+        DataProvider dp = new DataProvider();
+        dp.setId(providerId);
+        dp.setPartitionKey(partitionKey);
+        dp.setProperties(properties);
+        return dp;
+    }
+
+    /**
+     * Updates data provider in DB (properties and 'active' flag)
+     *
+     * @param dataProvider data provider object
+     * @return updated data provider
+     */
+    @Retryable
+    public DataProvider updateDataProvider(DataProvider dataProvider) {
+        BoundStatement boundStatement = updateDataProviderStatement.bind(dataProvider.isActive(), propertiesToMap(dataProvider.getProperties()), dataProvider.getId());
+        dbService.getSession().execute(boundStatement);
+        return dataProvider;
+    }
+
     private DataProvider map(Row row) {
         DataProvider provider = new DataProvider();
         String providerId = row.getString("provider_id");
@@ -150,7 +158,6 @@ public class CassandraDataProviderDAO {
         provider.setActive(row.getBool("active"));
         return provider;
     }
-
 
     private Map<String, String> propertiesToMap(DataProviderProperties properties) {
         Map<String, String> map = new HashMap<>();
@@ -170,7 +177,6 @@ public class CassandraDataProviderDAO {
         }
         return map;
     }
-
 
     private DataProviderProperties mapToProperties(Map<String, String> map) {
         DataProviderProperties properties = new DataProviderProperties();
