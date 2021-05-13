@@ -30,17 +30,18 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER
                 + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_MD5
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE
-                + ") VALUES(?,?,?,?,?,?);"
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE
+                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5
+                + ") VALUES(?,?,?,?,?,?,?);"
         );
 
         insertHarvestedRecord.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateIndexingDate = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_INDEXING_DATE + " = ? "
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = ? "
                 + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
@@ -50,7 +51,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
         updateHarvestDate = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_HARVEST_DATE + " = ? "
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE + " = ? "
                 + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
@@ -86,11 +87,11 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
     }
 
-    public void insertHarvestedRecord(HarvestedRecord record) {
+    public void insertHarvestedRecord(HarvestedRecord harvestedRecord) {
         RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(insertHarvestedRecord.bind(record.getMetisDatasetId(),
-                        oaiIdBucketNo(record.getRecordLocalId()), record.getRecordLocalId(), record.getHarvestDate(),
-                        record.getMd5(), record.getIndexingDate())));
+                () -> dbService.getSession().execute(insertHarvestedRecord.bind(harvestedRecord.getMetisDatasetId(),
+                        oaiIdBucketNo(harvestedRecord.getRecordLocalId()), harvestedRecord.getRecordLocalId(), harvestedRecord.getLatestHarvestDate(),
+                        harvestedRecord.getLatestHarvestMd5(), harvestedRecord.getPublishedHarvestDate(), harvestedRecord.getPublishedHarvestMd5())));
     }
 
     public void updateHarvestDate(String metisDatasetId, String oaiId, Date harvestDate) {
@@ -109,10 +110,10 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                         deleteRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId)));
     }
 
-    public Optional<HarvestedRecord> findRecord(String metisDatasetId, String oaiId) {
+    public Optional<HarvestedRecord> findRecord(String metisDatasetId, String recordId) {
         return RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
                 () -> Optional.ofNullable(dbService.getSession().execute(
-                        findRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId))
+                        findRecord.bind(metisDatasetId, oaiIdBucketNo(recordId), recordId))
                         .one())
                         .map(HarvestedRecord::from));
     }
