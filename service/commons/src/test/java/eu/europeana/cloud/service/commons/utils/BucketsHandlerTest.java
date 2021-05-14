@@ -70,9 +70,9 @@ public class BucketsHandlerTest extends CassandraTestBase {
         //when
         List<Bucket> buckets = bucketsHandler.getAllBuckets(BUCKETS_TABLE_NAME, firstBucket.getObjectId());
         //then
-        Assert.assertTrue(buckets.size() == 2);
+        Assert.assertEquals(2, buckets.size());
         for (Bucket bucket : buckets) {
-            Assert.assertTrue(bucket.getRowsCount() == 1);
+            Assert.assertEquals(1, bucket.getRowsCount());
         }
     }
 
@@ -88,8 +88,8 @@ public class BucketsHandlerTest extends CassandraTestBase {
         //when
         Bucket bucket = bucketsHandler.getNextBucket(BUCKETS_TABLE_NAME, firstBucket.getObjectId(), firstBucket);
         //then
-        Assert.assertTrue(bucket.getRowsCount() == 1);
-        Assert.assertTrue(bucket.getBucketId().equals(secondBucket.getBucketId()));
+        Assert.assertEquals(1, bucket.getRowsCount());
+        Assert.assertEquals(secondBucket.getBucketId(), bucket.getBucketId());
     }
 
     @Test
@@ -113,16 +113,16 @@ public class BucketsHandlerTest extends CassandraTestBase {
         bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, firstBucket);
         bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, secondBucket);
         //when
-        Bucket bucket_1 = bucketsHandler.getNextBucket(BUCKETS_TABLE_NAME, firstBucket.getObjectId());
-        Bucket bucket_2 = bucketsHandler.getNextBucket(BUCKETS_TABLE_NAME, secondBucket.getObjectId());
+        Bucket bucket1 = bucketsHandler.getNextBucket(BUCKETS_TABLE_NAME, firstBucket.getObjectId());
+        Bucket bucket2 = bucketsHandler.getNextBucket(BUCKETS_TABLE_NAME, secondBucket.getObjectId());
         //then
-        Assert.assertTrue(bucket_1.getObjectId().equals(firstBucket.getObjectId()));
-        Assert.assertTrue(bucket_1.getRowsCount() == firstBucket.getRowsCount());
-        Assert.assertTrue(bucket_1.getBucketId().equals(firstBucket.getBucketId()));
+        Assert.assertEquals(firstBucket.getObjectId(), bucket1.getObjectId());
+        Assert.assertEquals(firstBucket.getRowsCount(), bucket1.getRowsCount());
+        Assert.assertEquals(firstBucket.getBucketId(), bucket1.getBucketId());
         //
-        Assert.assertTrue(bucket_2.getObjectId().equals(secondBucket.getObjectId()));
-        Assert.assertTrue(bucket_2.getRowsCount() == secondBucket.getRowsCount());
-        Assert.assertTrue(bucket_2.getBucketId().equals(secondBucket.getBucketId()));
+        Assert.assertEquals(secondBucket.getObjectId(), bucket2.getObjectId());
+        Assert.assertEquals(secondBucket.getRowsCount(), bucket2.getRowsCount());
+        Assert.assertEquals(secondBucket.getBucketId(), bucket2.getBucketId());
     }
 
     @Test
@@ -137,22 +137,22 @@ public class BucketsHandlerTest extends CassandraTestBase {
         //then
         ResultSet rs = dbService.getSession().execute("SELECT * FROM " + BUCKETS_TABLE_NAME + " WHERE object_id='" + firstBucket.getObjectId() + "' AND bucket_id=" + java.util.UUID.fromString(firstBucket.getBucketId()));
         List<Row> rows = rs.all();
-        Assert.assertTrue(rows.size() == 0);
+        Assert.assertEquals(0, rows.size());
         //
         rs = dbService.getSession().execute("SELECT * FROM " + BUCKETS_TABLE_NAME + " WHERE object_id='" + secondBucket.getObjectId() + "' AND bucket_id=" + java.util.UUID.fromString(secondBucket.getBucketId()));
         rows = rs.all();
-        Assert.assertTrue(rows.size() == 1);
-        Assert.assertTrue(rows.get(0).getString(BucketsHandler.OBJECT_ID_COLUMN_NAME).equals(secondBucket.getObjectId()));
-        Assert.assertTrue(rows.get(0).getUUID(BucketsHandler.BUCKET_ID_COLUMN_NAME).toString().equals(secondBucket.getBucketId()));
-        Assert.assertTrue(rows.get(0).getLong(BucketsHandler.ROWS_COUNT_COLUMN_NAME) == secondBucket.getRowsCount());
+        Assert.assertEquals(1, rows.size());
+        Assert.assertEquals(secondBucket.getObjectId(), rows.get(0).getString(BucketsHandler.OBJECT_ID_COLUMN_NAME));
+        Assert.assertEquals(secondBucket.getBucketId(), rows.get(0).getUUID(BucketsHandler.BUCKET_ID_COLUMN_NAME).toString());
+        Assert.assertEquals(secondBucket.getRowsCount(), rows.get(0).getLong(BucketsHandler.ROWS_COUNT_COLUMN_NAME));
     }
 
     private void assertResults(Bucket bucket, int rowsCount) {
         ResultSet rs = dbService.getSession().execute("SELECT * FROM " + BUCKETS_TABLE_NAME + " WHERE object_id='" + bucket.getObjectId() + "' AND bucket_id=" + java.util.UUID.fromString(bucket.getBucketId()));
         List<Row> rows = rs.all();
-        Assert.assertTrue(rows.size() == 1);
-        Assert.assertTrue(rows.get(0).getString("object_id").equals(bucket.getObjectId()));
-        Assert.assertTrue(rows.get(0).getUUID("bucket_id").equals(java.util.UUID.fromString(bucket.getBucketId())));
-        Assert.assertTrue(rows.get(0).getLong("rows_count") == rowsCount);
+        Assert.assertEquals(1, rows.size());
+        Assert.assertEquals(bucket.getObjectId(), rows.get(0).getString("object_id"));
+        Assert.assertEquals(java.util.UUID.fromString(bucket.getBucketId()), rows.get(0).getUUID("bucket_id"));
+        Assert.assertEquals(rowsCount, rows.get(0).getLong("rows_count"));
     }
 }
