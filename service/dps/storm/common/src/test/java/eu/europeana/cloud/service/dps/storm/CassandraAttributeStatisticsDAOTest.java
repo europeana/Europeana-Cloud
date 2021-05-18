@@ -43,7 +43,7 @@ public class CassandraAttributeStatisticsDAOTest extends CassandraTestBase {
         attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
 
         // then
-        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE);
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE,2);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (AttributeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));
@@ -60,7 +60,7 @@ public class CassandraAttributeStatisticsDAOTest extends CassandraTestBase {
         attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
 
         // then
-        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE);
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE,2);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (AttributeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));

@@ -1,11 +1,12 @@
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.service.cassandra;
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraStatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Assert;
@@ -14,7 +15,7 @@ import org.junit.Test;
 
 import java.util.*;
 
-public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
+public class CassandraValidationStatisticsService2Test extends CassandraTestBase {
     private static final long TASK_ID = 1;
 
     private static final String ROOT_XPATH = "/root";
@@ -41,11 +42,15 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
 
     private static final long OCCURRENCE = 1;
 
-    private CassandraNodeStatisticsDAO nodeStatisticsDAO;
+    private CassandraValidationStatisticsService validationStatisticsService;
+
+    private CassandraStatisticsReportDAO cassandraStatisticsReportDAO;
 
     @Before
     public void setUp() {
-        nodeStatisticsDAO = CassandraNodeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", ""));
+        CassandraConnectionProvider cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
+        cassandraStatisticsReportDAO = CassandraStatisticsReportDAO.getInstance(cassandra);
+        validationStatisticsService = CassandraValidationStatisticsService.getInstance(cassandra);
     }
 
     @Test
@@ -54,10 +59,10 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(null);
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID);
+        List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (NodeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));
@@ -70,11 +75,11 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(null);
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID);
+        List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (NodeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));
@@ -90,10 +95,10 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID);
+        List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (NodeStatistics stats : retrieved) {
             Assert.assertTrue(toStore.contains(stats));
@@ -135,10 +140,10 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        Assert.assertFalse(nodeStatisticsDAO.isReportStored(TASK_ID));
+        Assert.assertFalse(cassandraStatisticsReportDAO.isReportStored(TASK_ID));
     }
 
     @Test
@@ -148,11 +153,11 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
 
         // when
-        nodeStatisticsDAO.storeStatisticsReport(TASK_ID, report);
+        validationStatisticsService.storeStatisticsReport(TASK_ID, report);
 
 
         // then
-        Assert.assertTrue(nodeStatisticsDAO.isReportStored(TASK_ID));
+        Assert.assertTrue(cassandraStatisticsReportDAO.isReportStored(TASK_ID));
     }
 
     @Test
@@ -162,10 +167,10 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
 
         // when
-        nodeStatisticsDAO.storeStatisticsReport(TASK_ID, report);
+        validationStatisticsService.storeStatisticsReport(TASK_ID, report);
 
         // then
-        StatisticsReport reportRetrieved = nodeStatisticsDAO.getStatisticsReport(TASK_ID);
+        StatisticsReport reportRetrieved = cassandraStatisticsReportDAO.getStatisticsReport(TASK_ID);
         Assert.assertEquals(report, reportRetrieved);
     }
 
@@ -176,10 +181,10 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        List<NodeReport> nodeReportList = nodeStatisticsDAO.getElementReport(TASK_ID, NODE_1_XPATH);
+        List<NodeReport> nodeReportList = validationStatisticsService.getElementReport(TASK_ID, NODE_1_XPATH);
         Assert.assertNotNull(nodeReportList);
         Assert.assertEquals(2, nodeReportList.size());
         List<String> expectedValues = Arrays.asList(NODE_VALUE_1, NODE_VALUE_2);
