@@ -5,6 +5,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
@@ -21,6 +22,7 @@ import java.util.List;
  *
  * @author Yorgos.Mamakis@ kb.nl
  */
+@Retryable
 public class CassandraCloudIdDAO {
 
     private final String hostList;
@@ -46,6 +48,37 @@ public class CassandraCloudIdDAO {
         prepareStatements();
     }
 
+    private void prepareStatements() {
+        insertIfNoExistsStatement = dbService
+                .getSession()
+                .prepare("INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?) IF NOT EXISTS");
+
+        insertStatement = dbService
+                .getSession()
+                .prepare("INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?)");
+        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        searchStatementNonActive = dbService.getSession().prepare("SELECT * FROM Cloud_Id WHERE cloud_id=?");
+        searchStatementNonActive.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        deleteStatement = dbService
+                .getSession()
+                .prepare("Delete from Cloud_Id WHERE cloud_Id=? AND provider_id=? AND record_id=?");
+        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+    }
+
+    public String getHostList() {
+        return hostList;
+    }
+
+    public String getKeyspace() {
+        return keyspaceName;
+    }
+
+    public String getPort() {
+        return this.port;
+    }
+
     public List<CloudId> searchById(String... args)
             throws DatabaseConnectionException, CloudIdDoesNotExistException {
         try {
@@ -55,6 +88,7 @@ public class CassandraCloudIdDAO {
                         IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
                         IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(args[0])));
             }
+
             List<CloudId> cloudIds = new ArrayList<>();
             for (Row row : rs.all()) {
                 CloudId cId = new CloudId();
@@ -143,39 +177,4 @@ public class CassandraCloudIdDAO {
                                             e.getMessage())));
         }
     }
-
-    public String getHostList() {
-        return hostList;
-    }
-
-    public String getKeyspace() {
-        return keyspaceName;
-    }
-
-    public String getPort() {
-        return this.port;
-    }
-
-    private void prepareStatements() {
-        insertIfNoExistsStatement = dbService
-                .getSession()
-                .prepare(
-                        "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?) IF NOT EXISTS");
-        insertStatement = dbService
-                .getSession()
-                .prepare(
-                        "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?)");
-        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchStatementNonActive = dbService.getSession().prepare(
-                "SELECT * FROM Cloud_Id WHERE cloud_id=?");
-        searchStatementNonActive.setConsistencyLevel(dbService
-                .getConsistencyLevel());
-
-        deleteStatement = dbService
-                .getSession()
-                .prepare(
-                        "Delete from Cloud_Id WHERE cloud_Id=? AND provider_id=? AND record_id=?");
-        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-    }
-
 }

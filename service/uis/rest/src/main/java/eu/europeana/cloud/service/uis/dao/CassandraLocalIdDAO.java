@@ -5,6 +5,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
@@ -25,6 +26,7 @@ import java.util.UUID;
  *
  * @author Yorgos.Mamakis@ kb.nl
  */
+@Retryable
 public class CassandraLocalIdDAO {
 
     private static final String PROVIDER_RECORD_ID_BUCKETS_TABLE = "provider_record_id_buckets";
@@ -34,6 +36,7 @@ public class CassandraLocalIdDAO {
     private PreparedStatement searchByProviderStatement;
     private PreparedStatement searchByRecordIdStatement;
     private PreparedStatement searchByProviderPaginatedStatement;
+
     @Autowired
     private BucketsHandler bucketsHandler;
 
@@ -45,6 +48,28 @@ public class CassandraLocalIdDAO {
     public CassandraLocalIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
         prepareStatements();
+    }
+
+    private void prepareStatements() {
+        insertStatement = dbService.getSession().prepare(
+                "INSERT INTO Provider_Record_Id(provider_id,bucket_id, record_id,cloud_id) VALUES(?,?,?,?)");
+        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        deleteStatement = dbService.getSession().prepare(
+                "DELETE FROM Provider_Record_Id WHERE provider_id= ? AND bucket_id = ? AND record_Id= ?");
+        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        searchByProviderStatement = dbService.getSession().prepare(
+                "SELECT * FROM Provider_Record_Id WHERE provider_id = ? AND bucket_id = ?");
+        searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        searchByRecordIdStatement = dbService.getSession().prepare(
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id=?");
+        searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        searchByProviderPaginatedStatement = dbService.getSession().prepare(
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id>=? LIMIT ?");
+        searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public List<CloudId> searchById(String... args) throws DatabaseConnectionException {
@@ -142,24 +167,6 @@ public class CassandraLocalIdDAO {
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
         }
-    }
-
-    private void prepareStatements() {
-        insertStatement = dbService.getSession().prepare(
-                "INSERT INTO Provider_Record_Id(provider_id,bucket_id, record_id,cloud_id) VALUES(?,?,?,?)");
-        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        deleteStatement = dbService.getSession().prepare(
-                "DELETE FROM Provider_Record_Id WHERE provider_id= ? AND bucket_id = ? AND record_Id= ?");
-        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchByProviderStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id = ? AND bucket_id = ?");
-        searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchByRecordIdStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id=?");
-        searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchByProviderPaginatedStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id>=? LIMIT ?");
-        searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     private List<CloudId> createCloudIdsFromRs(ResultSet rs) {

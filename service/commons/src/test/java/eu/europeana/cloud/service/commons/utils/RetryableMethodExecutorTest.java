@@ -74,7 +74,7 @@ public class RetryableMethodExecutorTest {
         try {
             retryableDao.retryableMethod();
             fail();
-        }catch(TestDaoExpection e){
+        }catch(TestRuntimeExpection e){
         }
 
         Mockito.verify(testDao, Mockito.times(3)).retryableMethod();
@@ -96,7 +96,7 @@ public class RetryableMethodExecutorTest {
         try {
             retryableDao.noRetryableMethod();
             fail();
-        }catch(TestDaoExpection e){
+        }catch(TestRuntimeExpection e){
         }
 
         Mockito.verify(testDao, Mockito.times(1)).noRetryableMethod();

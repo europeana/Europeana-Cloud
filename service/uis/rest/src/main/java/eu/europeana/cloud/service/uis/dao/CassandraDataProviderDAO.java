@@ -5,6 +5,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import org.slf4j.Logger;
@@ -17,9 +18,11 @@ import java.util.*;
 /**
  * Data provider repository using Cassandra nosql database.
  */
+@Retryable
 public class CassandraDataProviderDAO {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataProviderDAO.class);
+
     private final CassandraConnectionProvider dbService;
     private PreparedStatement createDataProviderStatement;
     private PreparedStatement updateDataProviderStatement;
@@ -35,6 +38,28 @@ public class CassandraDataProviderDAO {
     public CassandraDataProviderDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
         prepareStatements();
+    }
+
+    private void prepareStatements() {
+        createDataProviderStatement = dbService.getSession().prepare(
+                "INSERT INTO data_providers(provider_id, active, properties, creation_date, partition_key) VALUES (?,true,?,?,?);");
+        createDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        updateDataProviderStatement = dbService.getSession().prepare(
+                "UPDATE data_providers SET active=?, properties=? where provider_id = ?;");
+        updateDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        getProviderStatement = dbService.getSession().prepare(
+                "SELECT provider_id, partition_key, active, properties FROM data_providers WHERE provider_id = ?;");
+        getProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        deleteProviderStatement = dbService.getSession().prepare(
+                "DELETE FROM data_providers WHERE provider_id = ?;");
+        deleteProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        getAllProvidersStatement = dbService.getSession().prepare(
+                "SELECT provider_id, active, partition_key, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
+        getAllProvidersStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**
@@ -115,28 +140,6 @@ public class CassandraDataProviderDAO {
         return dataProvider;
     }
 
-    private void prepareStatements() {
-        createDataProviderStatement = dbService.getSession().prepare(
-                "INSERT INTO data_providers(provider_id, active, properties, creation_date, partition_key) VALUES (?,true,?,?,?);");
-        createDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-        updateDataProviderStatement = dbService.getSession().prepare(
-                "UPDATE data_providers SET active=?, properties=? where provider_id = ?;");
-        updateDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-        getProviderStatement = dbService.getSession().prepare(
-                "SELECT provider_id, partition_key, active, properties FROM data_providers WHERE provider_id = ?;");
-        getProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-        deleteProviderStatement = dbService.getSession().prepare(
-                "DELETE FROM data_providers WHERE provider_id = ?;");
-        deleteProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-        getAllProvidersStatement = dbService.getSession().prepare(
-                "SELECT provider_id, active, partition_key, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
-        getAllProvidersStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-    }
-
     private DataProvider map(Row row) {
         DataProvider provider = new DataProvider();
         String providerId = row.getString("provider_id");
@@ -150,7 +153,6 @@ public class CassandraDataProviderDAO {
         provider.setActive(row.getBool("active"));
         return provider;
     }
-
 
     private Map<String, String> propertiesToMap(DataProviderProperties properties) {
         Map<String, String> map = new HashMap<>();
@@ -170,7 +172,6 @@ public class CassandraDataProviderDAO {
         }
         return map;
     }
-
 
     private DataProviderProperties mapToProperties(Map<String, String> map) {
         DataProviderProperties properties = new DataProviderProperties();

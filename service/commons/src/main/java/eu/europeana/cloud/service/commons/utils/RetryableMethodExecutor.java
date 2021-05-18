@@ -72,11 +72,7 @@ public class RetryableMethodExecutor {
     static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
         Retryable retryAnnotation = method.getAnnotation(Retryable.class);
         if (retryAnnotation != null) {
-            String errorMessage = retryAnnotation.errorMessage().isEmpty() ?
-                    String.format("Error while invoking method '%s' with args: %s", method, Arrays.toString(args)) :
-                    retryAnnotation.errorMessage();
-
-            return execute(errorMessage, retryAnnotation.maxAttempts(), retryAnnotation.delay(),
+            return execute(createMessage(method,args), retryAnnotation.maxAttempts(), retryAnnotation.delay(),
                     () -> invokeWithThrowingOriginalException(target, method, args)
             );
         } else {
@@ -92,6 +88,15 @@ public class RetryableMethodExecutor {
         }
     }
 
+    public static String createMessage(Method method, Object[] args) {
+        String result;
+        if(!method.getAnnotation(Retryable.class).errorMessage().isEmpty()) {
+            result = method.getAnnotation(Retryable.class).errorMessage();
+        } else {
+            result = String.format("Error while invoking method '%s' with args: %s", method, Arrays.toString(args));
+        }
+        return result;
+    }
 
     public interface GenericRunnable<E extends Exception> {
         void run() throws E;
