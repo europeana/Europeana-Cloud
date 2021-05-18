@@ -3,12 +3,15 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.GeneralStatistics;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 public class CassandraGeneralStatisticsDAO extends CassandraDAO {
     private static CassandraGeneralStatisticsDAO instance = null;
@@ -17,8 +20,6 @@ public class CassandraGeneralStatisticsDAO extends CassandraDAO {
     private PreparedStatement removeGeneralStatisticsStatement;
     private PreparedStatement searchGeneralStatistcsByTaskIdStatement;
     private PreparedStatement searchByParentStatement;
-    private PreparedStatement searchByNodeStatement;
-
 
     public static synchronized CassandraGeneralStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -59,13 +60,6 @@ public class CassandraGeneralStatisticsDAO extends CassandraDAO {
                 " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH + " = ?");
         searchByParentStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-        searchByNodeStatement = dbService.getSession().prepare("SELECT *" +
-                " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH + " = ?");
-        searchByNodeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**
@@ -74,14 +68,17 @@ public class CassandraGeneralStatisticsDAO extends CassandraDAO {
      * @param taskId         task identifier
      * @param nodeStatistics node statistics object with all the necessary information
      */
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateGeneralStatistics(long taskId, NodeStatistics nodeStatistics) {
         dbService.getSession().execute(updateStatement.bind(taskId, nodeStatistics.getParentXpath(), nodeStatistics.getXpath()));
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeGeneralStatistics(long taskId) {
         dbService.getSession().execute(removeGeneralStatisticsStatement.bind(taskId));
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public List<GeneralStatistics> searchGeneralStatistics(long taskId) {
         return dbService.getSession().execute(searchGeneralStatistcsByTaskIdStatement.bind(taskId)).all().stream().map(this::createGeneralStatistics).collect(Collectors.toList());
     }

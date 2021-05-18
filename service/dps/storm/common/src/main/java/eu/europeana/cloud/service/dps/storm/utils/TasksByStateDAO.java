@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
 public class TasksByStateDAO extends CassandraDAO {
@@ -68,23 +69,23 @@ public class TasksByStateDAO extends CassandraDAO {
 
 
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insert(String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
         dbService.getSession().execute(insertStatement.bind(state, topologyName, taskId, applicationId, topicName, startTime));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void delete(String state, String topologyName, long taskId) {
         dbService.getSession().execute(deleteStatement.bind(state, topologyName, taskId));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Optional<Row> findTask(String topologyName, long taskId, String oldState) {
         return Optional.ofNullable(
                 dbService.getSession().execute(findTask.bind(oldState, topologyName, taskId)).one());
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public List<TaskInfo> findTasksInGivenState(List<TaskState> taskStates) {
 
         List<String> taskStatesNames = taskStates
@@ -97,13 +98,13 @@ public class TasksByStateDAO extends CassandraDAO {
         return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Set<String> listAllInUseTopicsFor(String topologyName) {
         return listAllActiveTasksInTopology(topologyName).stream().map(TaskInfo::getTopicName).filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public List<TaskInfo> listAllActiveTasksInTopology(String topologyName) {
         ResultSet rs =
                 dbService.getSession().execute(

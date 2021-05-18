@@ -15,6 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
 /**
@@ -99,7 +100,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insert(long taskId, String recordId, int attemptNumber, String dstResource, String topologyName,
                        String state, String infoText, String additionalInformations)
             throws NoHostAvailableException, QueryExecutionException {
@@ -108,7 +109,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 state, Calendar.getInstance().getTime(), infoText, additionalInformations));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insert(ProcessedRecord record)
             throws NoHostAvailableException, QueryExecutionException {
         insert(record.getTaskId(), record.getRecordId(), record.getAttemptNumber(), record.getDstIdentifier(),
@@ -116,13 +117,13 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 record.getAdditionalInformations());
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateProcessedRecordState(long taskId, String recordId, String state) {
         dbService.getSession().execute(
                 updateRecordStateStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), state));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)
             throws NoHostAvailableException, QueryExecutionException {
         ProcessedRecord result = null;
@@ -147,13 +148,13 @@ public class ProcessedRecordsDAO extends CassandraDAO {
         return Optional.ofNullable(result);
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateStartTime(long taskId, String recordId, Date startTime) {
         dbService.getSession().execute(
                 updateRecordStartTime.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), startTime));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateAttempNumber(long taskId, String recordId, int attempNumber) {
         dbService.getSession().execute(
                 updateAttemptNumberStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), attempNumber));

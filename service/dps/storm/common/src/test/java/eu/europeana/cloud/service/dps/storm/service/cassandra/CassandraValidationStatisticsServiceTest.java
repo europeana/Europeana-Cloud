@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraStatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
@@ -46,17 +47,24 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
 
     private static final String ATTRIBUTE_2_VALUE = "value2";
 
+    private static final String NODE_1_VALUE = "value1";
+
+    private static final String ATTRIBUTE_2_NAME = "attribute2";
+
     private static final long OCCURRENCE = 1;
 
     private CassandraValidationStatisticsService validationStatisticsService;
 
     private CassandraStatisticsReportDAO cassandraStatisticsReportDAO;
 
+    private CassandraAttributeStatisticsDAO attributeStatisticsDAO;
+
     @Before
     public void setUp() {
         CassandraConnectionProvider cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
         cassandraStatisticsReportDAO = CassandraStatisticsReportDAO.getInstance(cassandra);
         validationStatisticsService = CassandraValidationStatisticsService.getInstance(cassandra);
+        attributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(cassandra);
     }
 
     @Test
@@ -268,4 +276,46 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
         return nodeStatistics;
     }
 
+    @Test
+    public void testShouldProperlyStoreAttributeStatistics() {
+        // given
+        Set<AttributeStatistics> toStore = prepareAttributeStatistics();
+
+        // when
+        validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
+
+        // then
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE,2);
+        Assert.assertEquals(retrieved.size(), toStore.size());
+        for (AttributeStatistics stats : toStore) {
+            Assert.assertTrue(retrieved.contains(stats));
+        }
+    }
+
+    @Test
+    public void testShouldProperlyUpdateAttributeStatistics() {
+        // given
+        Set<AttributeStatistics> toStore = prepareAttributeStatistics();
+
+        // when
+        validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
+        validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
+
+        // then
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE,2);
+        Assert.assertEquals(retrieved.size(), toStore.size());
+        for (AttributeStatistics stats : toStore) {
+            Assert.assertTrue(retrieved.contains(stats));
+        }
+        for (AttributeStatistics stats : retrieved) {
+            Assert.assertEquals(2, stats.getOccurrence());
+        }
+    }
+
+    private Set<AttributeStatistics> prepareAttributeStatistics() {
+        Set<AttributeStatistics> statistics = new HashSet<>();
+        statistics.add(new AttributeStatistics(ATTRIBUTE_1_NAME, ATTRIBUTE_1_VALUE));
+        statistics.add(new AttributeStatistics(ATTRIBUTE_2_NAME, ATTRIBUTE_2_VALUE));
+        return statistics;
+    }
 }

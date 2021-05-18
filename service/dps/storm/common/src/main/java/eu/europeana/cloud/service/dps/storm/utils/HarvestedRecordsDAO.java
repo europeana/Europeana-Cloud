@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
+
 public class HarvestedRecordsDAO extends CassandraDAO {
 
     private static final int MAX_NUMBER_OF_BUCKETS = 64;
@@ -91,29 +93,29 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insertHarvestedRecord(HarvestedRecord record) {
         dbService.getSession().execute(insertHarvestedRecord.bind(record.getMetisDatasetId(),
                         oaiIdBucketNo(record.getRecordLocalId()), record.getRecordLocalId(), record.getHarvestDate(),
                 record.getMd5(), record.getIndexingDate()));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateHarvestDate(String metisDatasetId, String oaiId, Date harvestDate) {
         dbService.getSession().execute(updateHarvestDate.bind(harvestDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateIndexingDate(String metisDatasetId, String oaiId, Date indexingDate) {
         dbService.getSession().execute(updateIndexingDate.bind(indexingDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void deleteRecord(String metisDatasetId, String oaiId) {
         dbService.getSession().execute(deleteRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Optional<HarvestedRecord> findRecord(String metisDatasetId, String oaiId) {
         return Optional.ofNullable(dbService.getSession().execute(
                         findRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId))

@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,11 +27,15 @@ public class TaskStatusSynchronizer {
         List<TaskInfo> tasksFromTaskByTaskStateTableList = tasksByStateDAO.listAllActiveTasksInTopology(topologyName);
         Map<Long, TaskInfo> tasksFromTaskByTaskStateTableMap = tasksFromTaskByTaskStateTableList.stream().filter(info -> availableTopics.contains(info.getTopicName()))
                 .collect(Collectors.toMap(TaskInfo::getId, Function.identity()));
-        List<TaskInfo> tasksFromBasicInfoTable = taskInfoDAO.findByIds(tasksFromTaskByTaskStateTableMap.keySet());
+        List<TaskInfo> tasksFromBasicInfoTable = findByIds(tasksFromTaskByTaskStateTableMap.keySet());
         List<TaskInfo> tasksToCorrect = tasksFromBasicInfoTable.stream().filter(this::isFinished).collect(Collectors.toList());
         for (TaskInfo task : tasksToCorrect) {
             taskStatusUpdater.updateTask(topologyName, task.getId(), tasksFromTaskByTaskStateTableMap.get(task.getId()).getState().toString(), task.getState().toString());
         }
+    }
+
+    private List<TaskInfo> findByIds(Collection<Long> taskIds) {
+        return taskIds.stream().map(taskInfoDAO::findById).flatMap(Optional::stream).collect(Collectors.toList());
     }
 
     private boolean isFinished(TaskInfo info) {

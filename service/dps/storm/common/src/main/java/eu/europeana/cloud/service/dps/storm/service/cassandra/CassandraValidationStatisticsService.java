@@ -15,12 +15,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class CassandraValidationStatisticsService implements ValidationStatisticsReportService {
 
     public static final int ELEMENTS_SAMPLE_MAX_SIZE = 100;
     public static final int ATTRIBUTES_SAMPLE_MAX_SIZE = 25;
+    public static final int ATTRIBUTES_MAX_ALLOWED_VALUES = 15;
     private static CassandraValidationStatisticsService instance;
 
     private CassandraGeneralStatisticsDAO cassandraGeneralStatisticsDAO;
@@ -107,11 +109,28 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
             cassandraNodeStatisticsDAO.updateNodeStatistics(taskId, nodeStatistics);
         }
         if (nodeStatistics.hasAttributes()) {
-            cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeStatistics.getXpath(), nodeStatistics.getValue(), nodeStatistics.getAttributesStatistics());
+            insertAttributeStatistics(taskId, nodeStatistics.getXpath(), nodeStatistics.getValue(), nodeStatistics.getAttributesStatistics());
         }
     }
 
-
+    /**
+     * Inserts the statistics for all the attributes in the given list.
+     *
+     * @param taskId     task identifier
+     * @param attributes list of attribute statistics
+     */
+    public void insertAttributeStatistics(long taskId, String nodeXpath, String nodeValue, Set<AttributeStatistics> attributes) {
+        for (AttributeStatistics attributeStatistics : attributes) {
+            long distinctValuesCount = cassandraAttributeStatisticsDAO.getAttributeDistinctValues(taskId, nodeXpath, nodeValue, attributeStatistics.getName());
+            if (distinctValuesCount >= ATTRIBUTES_MAX_ALLOWED_VALUES) {
+                long currentCount = cassandraAttributeStatisticsDAO.getSpecificAttributeValueCount(taskId, nodeXpath, nodeValue, attributeStatistics.getName(), attributeStatistics.getValue());
+                if (currentCount > 0)
+                    cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
+            } else {
+                cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
+            }
+        }
+    }
 
     /**
      * Get all statistics for the specified task

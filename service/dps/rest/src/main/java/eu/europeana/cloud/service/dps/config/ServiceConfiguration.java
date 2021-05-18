@@ -126,7 +126,7 @@ public class ServiceConfiguration {
 
     @Bean
     public CassandraTaskErrorsDAO taskErrorDAO() {
-        return CassandraTaskErrorsDAO.getInstance(dpsCassandraProvider());
+        return new CassandraTaskErrorsDAO(dpsCassandraProvider());
     }
 
     @Bean

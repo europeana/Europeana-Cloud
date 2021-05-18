@@ -9,6 +9,8 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import java.time.Duration;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
+
 /**
  * The {@link eu.europeana.cloud.common.model.dps.SubTaskInfo} DAO
  *
@@ -72,12 +74,12 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource) {
         dbService.getSession().execute(subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public int getProcessedFilesCount(long taskId) {
         int bucketNumber = 0;
         int filesCount = 0;
@@ -94,7 +96,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
         return filesCount;
     }
 
-    @Retryable
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeNotifications(long taskId) {
         int lastBucket = bucketNumber(getProcessedFilesCount(taskId) - 1);
         for (int i = lastBucket; i >= 0; i--) {

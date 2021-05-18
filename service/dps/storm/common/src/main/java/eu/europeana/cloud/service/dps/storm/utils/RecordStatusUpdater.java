@@ -14,7 +14,6 @@ public class RecordStatusUpdater {
         this.subTaskInfoDAO = subTaskInfoDAO;
     }
 
-    @Retryable
     public void addSuccessfullyProcessedRecord(int resourceNum,
                                                long taskId,
                                                String topologyName,
@@ -26,7 +25,6 @@ public class RecordStatusUpdater {
                 resource, RecordState.SUCCESS.name(), null, null, null);
     }
 
-    @Retryable
     public void addWronglyProcessedRecord(int resourceNum, long taskId, String topologyName, String resource,
                                           String info, String additionalInfo) {
                 subTaskInfoDAO.insert(
