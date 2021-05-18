@@ -3,6 +3,7 @@ package eu.europeana.cloud.persisted;
 import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.apache.log4j.Logger;
 
@@ -15,7 +16,7 @@ public class RemoverImpl implements Remover {
 
     private final CassandraSubTaskInfoDAO subTaskInfoDAO;
     private final CassandraTaskErrorsDAO taskErrorDAO;
-    private final CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
+    private final CassandraValidationStatisticsService statisticsService;
 
     private static final int DEFAULT_RETRIES = 5;
     private static final int SLEEP_TIME = 3000;
@@ -26,13 +27,13 @@ public class RemoverImpl implements Remover {
                 userName, password);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
-        cassandraNodeStatisticsDAO = CassandraNodeStatisticsDAO.getInstance(cassandraConnectionProvider);
+        statisticsService = CassandraValidationStatisticsService.getInstance(cassandraConnectionProvider);
     }
 
-    RemoverImpl(CassandraSubTaskInfoDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO, CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO) {
+    RemoverImpl(CassandraSubTaskInfoDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO, CassandraValidationStatisticsService statisticsService) {
         this.subTaskInfoDAO = subTaskInfoDAO;
         this.taskErrorDAO = taskErrorDAO;
-        this.cassandraNodeStatisticsDAO = cassandraNodeStatisticsDAO;
+        this.statisticsService = statisticsService;
     }
 
 
@@ -81,7 +82,7 @@ public class RemoverImpl implements Remover {
         int retries = DEFAULT_RETRIES;
         while (true) {
             try {
-                cassandraNodeStatisticsDAO.removeStatistics(taskId);
+                statisticsService.removeStatistics(taskId);
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {

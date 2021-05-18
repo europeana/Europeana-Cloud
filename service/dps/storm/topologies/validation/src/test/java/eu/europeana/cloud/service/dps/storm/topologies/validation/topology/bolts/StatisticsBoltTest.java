@@ -7,9 +7,9 @@ import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.task.OutputCollector;
@@ -37,7 +37,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
 
     private static final String TASK_NAME = "task1";
 
-    private CassandraNodeStatisticsDAO statisticsDAO;
+    private CassandraValidationStatisticsService statisticsService;
 
 
     @Mock(name = "outputCollector")
@@ -54,7 +54,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         statisticsBolt.prepare();
-        statisticsDAO = CassandraNodeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", ""));
+        statisticsService = CassandraValidationStatisticsService.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", ""));
 
     }
 
@@ -97,7 +97,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
     }
 
     private void assertDataStoring(List<NodeStatistics> generated, List<NodeStatistics> generated2) {
-        List<NodeStatistics> statistics = statisticsDAO.getNodeStatistics(TASK_ID);
+        List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
 
         Assert.assertEquals(statistics.size(), generated.size());
         for (NodeStatistics stats : statistics) {
@@ -138,7 +138,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
     }
 
     private void assertDataStoring(List<NodeStatistics> generated) {
-        List<NodeStatistics> statistics = statisticsDAO.getNodeStatistics(TASK_ID);
+        List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
         Assert.assertEquals(statistics.size(), generated.size());
         Assert.assertTrue(statistics.containsAll(generated));
     }

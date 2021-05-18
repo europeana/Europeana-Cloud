@@ -84,6 +84,10 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                         .withStatus(200)
                         .withFixedDelay(2000)
                         .withBodyFile("test_schema.zip")));
+        wireMockRule.stubFor(get(urlEqualTo("/edm_sorter.xsl"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBodyFile("edm_sorter.xsl")));
 
     }
 
