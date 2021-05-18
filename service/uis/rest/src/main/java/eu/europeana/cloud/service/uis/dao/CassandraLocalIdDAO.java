@@ -72,7 +72,6 @@ public class CassandraLocalIdDAO {
         searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    @Retryable
     public List<CloudId> searchById(String... args) throws DatabaseConnectionException {
         try {
             ResultSet rs = null;
@@ -104,7 +103,6 @@ public class CassandraLocalIdDAO {
      * @param providerId The provider Identifier
      * @return A list of CloudId objects
      */
-    @Retryable
     public List<CloudId> searchByIdWithPagination(String start, int end, String providerId) {
         List<CloudId> result = new ArrayList<>();
 
@@ -120,7 +118,6 @@ public class CassandraLocalIdDAO {
         return result;
     }
 
-    @Retryable
     public List<CloudId> insert(String... args) throws DatabaseConnectionException {
         try {
             Bucket bucket = bucketsHandler.getCurrentBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
@@ -146,7 +143,6 @@ public class CassandraLocalIdDAO {
         return cIds;
     }
 
-    @Retryable
     public void delete(String providerId, String recordId) throws DatabaseConnectionException {
         try {
             ResultSet rs = null;

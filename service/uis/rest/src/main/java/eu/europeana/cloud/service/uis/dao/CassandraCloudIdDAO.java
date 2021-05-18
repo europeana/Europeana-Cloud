@@ -79,7 +79,6 @@ public class CassandraCloudIdDAO {
         return this.port;
     }
 
-    @Retryable
     public List<CloudId> searchById(String... args)
             throws DatabaseConnectionException, CloudIdDoesNotExistException {
         try {
@@ -116,7 +115,6 @@ public class CassandraCloudIdDAO {
      * @param args The cloudId to search on
      * @return A list of cloudIds
      */
-    @Retryable
     public List<CloudId> searchAll(String args) {
         ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args));
         List<Row> results = rs.all();
@@ -133,7 +131,6 @@ public class CassandraCloudIdDAO {
         return cloudIds;
     }
 
-    @Retryable
     public List<CloudId> insert(boolean insertOnlyIfNoExist, String... args)
             throws DatabaseConnectionException, CloudIdAlreadyExistException {
         ResultSet rs = null;
@@ -166,7 +163,6 @@ public class CassandraCloudIdDAO {
         return cIds;
     }
 
-    @Retryable
     public void delete(String... args) throws DatabaseConnectionException {
         try {
             dbService.getSession().execute(

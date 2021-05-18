@@ -69,7 +69,6 @@ public class CassandraDataProviderDAO {
      * @param limit               max size of returned list.
      * @return a sublist of all providers.
      */
-    @Retryable
     public List<DataProvider> getProviders(String thresholdProviderId, int limit) {
         String provId = thresholdProviderId;
         if (provId == null) {
@@ -90,7 +89,6 @@ public class CassandraDataProviderDAO {
      * @param providerId id of provider.
      * @return data provider
      */
-    @Retryable
     public DataProvider getProvider(String providerId) {
         BoundStatement boundStatement = getProviderStatement.bind(providerId);
         ResultSet rs = dbService.getSession().execute(boundStatement); //NOSONAR
@@ -107,7 +105,6 @@ public class CassandraDataProviderDAO {
      *
      * @param providerId id of provider.
      */
-    @Retryable
     public void deleteProvider(String providerId) {
         BoundStatement boundStatement = deleteProviderStatement.bind(providerId);
         dbService.getSession().execute(boundStatement);
@@ -120,7 +117,6 @@ public class CassandraDataProviderDAO {
      * @param properties administrative properties of data provider
      * @return created data provider object
      */
-    @Retryable
     public DataProvider createDataProvider(String providerId, DataProviderProperties properties) {
         int partitionKey = providerId.hashCode();
         BoundStatement boundStatement = createDataProviderStatement.bind(providerId, propertiesToMap(properties), new Date(), partitionKey);
@@ -138,7 +134,6 @@ public class CassandraDataProviderDAO {
      * @param dataProvider data provider object
      * @return updated data provider
      */
-    @Retryable
     public DataProvider updateDataProvider(DataProvider dataProvider) {
         BoundStatement boundStatement = updateDataProviderStatement.bind(dataProvider.isActive(), propertiesToMap(dataProvider.getProperties()), dataProvider.getId());
         dbService.getSession().execute(boundStatement);

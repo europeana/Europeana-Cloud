@@ -13,34 +13,44 @@ import java.lang.reflect.Method;
 
 @Aspect
 public class RetryAspect {
-    private final static Logger LOGGER = LoggerFactory.getLogger(RetryAspect.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RetryAspect.class);
 
     @Pointcut("@within(eu.europeana.cloud.common.annotation.Retryable)")
-    public void pointcutTypeWithRetryableAnn(){}
+    public void pointcutTypeWithRetryableAnn(){
+        //Dummy method for defining cut point for AOP (see annotation above)
+    }
 
     @Pointcut("@annotation(eu.europeana.cloud.common.annotation.Retryable)")
-    public void pointcutMethodWithRetryableAnn(){}
+    public void pointcutMethodWithRetryableAnn(){
+        //Dummy method for defining cut point for AOP (see annotation above)
+    }
 
     @Pointcut("execution(* *(..))")
-    public void pointcutExecuteAnyMethod(){}
+    public void pointcutExecuteAnyMethod(){
+        //Dummy method for defining cut point for AOP (see annotation above)
+    }
 
-    @Pointcut("pointcutTypeWithRetryableAnn() && pointcutMethodWithRetryableAnn() && pointcutExecuteAnyMethod()")
-    public void pointcut(){}
+    @Pointcut("pointcutExecuteAnyMethod() && (pointcutTypeWithRetryableAnn() || pointcutMethodWithRetryableAnn())")
+    public void pointcut(){
+        //Dummy method for defining cut point for AOP (see annotation above)
+    }
 
     @Around("pointcut()")
     public Object retry(ProceedingJoinPoint proceedingJoinPoint) {
         Method method = ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
         Retryable retryAnnotation = method.getAnnotation(Retryable.class);
 
+        if(retryAnnotation == null) {
+            retryAnnotation = proceedingJoinPoint.getTarget().getClass().getAnnotation(Retryable.class);
+        }
+
         Object result = null;
         try {
             result = RetryableMethodExecutor.execute(retryAnnotation.errorMessage(),
-                    retryAnnotation.maxAttempts(), retryAnnotation.delay(), () -> proceedingJoinPoint.proceed());
+                    retryAnnotation.maxAttempts(), retryAnnotation.delay(), proceedingJoinPoint::proceed);
         }catch (Throwable t) {
             LOGGER.warn(RetryableMethodExecutor.createMessage(method, proceedingJoinPoint.getArgs()), t);
         }
         return result;
     }
-
-
 }
