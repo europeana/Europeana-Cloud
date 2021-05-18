@@ -19,7 +19,7 @@ import java.util.List;
 @Service
 public class CassandraValidationStatisticsService implements ValidationStatisticsReportService {
 
-    public static final int ELEMETNS_SAMPLE_MAX_SIZE = 100;
+    public static final int ELEMENTS_SAMPLE_MAX_SIZE = 100;
     public static final int ATTRIBUTES_SAMPLE_MAX_SIZE = 25;
     private static CassandraValidationStatisticsService instance;
 
@@ -73,7 +73,7 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
     @Override
     public List<NodeReport> getElementReport(long taskId, String nodeXpath) {
         List<NodeReport> result = new ArrayList<>();
-        for(NodeStatistics nodeStatistics:cassandraNodeStatisticsDAO.retrieveNodeStatistics(taskId, null, nodeXpath, ELEMETNS_SAMPLE_MAX_SIZE)){
+        for(NodeStatistics nodeStatistics:cassandraNodeStatisticsDAO.getNodeStatistics(taskId, null, nodeXpath, ELEMENTS_SAMPLE_MAX_SIZE)){
             String elementValue = nodeStatistics.getValue();
             List<AttributeStatistics> attributeStatistics = new ArrayList<>(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath, elementValue, ATTRIBUTES_SAMPLE_MAX_SIZE ));
             NodeReport nodeValues = new NodeReport(elementValue, nodeStatistics.getOccurrence(), attributeStatistics);
@@ -88,7 +88,6 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      * @param taskId task identifier
      * @param nodes  list of node statistics objects
      */
-    //TODO move
     public void insertNodeStatistics(long taskId, List<NodeStatistics> nodes) {
         for (NodeStatistics nodeStatistics : nodes) {
             insertNodeStatistics(taskId, nodeStatistics);
@@ -101,8 +100,7 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      * @param taskId         task identifier
      * @param nodeStatistics node statistics to insert
      */
-    //TODO move
-    public void insertNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
+    private void insertNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
         cassandraGeneralStatisticsDAO.updateGeneralStatistics(taskId, nodeStatistics);
         // store node statistics only for nodes with values, occurrence of the node itself will be taken from the general statistics
         if (nodeStatistics.getValue() != null) {
@@ -121,12 +119,11 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      * @param taskId task identifier
      * @return list of all node statistics
      */
-    //TODO move to service
     public List<NodeStatistics> getNodeStatistics(long taskId) {
         List<NodeStatistics> result = new ArrayList<>();
 
         for (GeneralStatistics generalStatistics : cassandraGeneralStatisticsDAO.searchGeneralStatistics(taskId)) {
-            List<NodeStatistics> nodeStatistics = retrieveNodeStatisticsFull(taskId, generalStatistics.getParentXpath(), generalStatistics.getNodeXpath());
+            List<NodeStatistics> nodeStatistics = getNodeStatistics(taskId, generalStatistics.getParentXpath(), generalStatistics.getNodeXpath());
             if (nodeStatistics.isEmpty()) {
                 // this case happens when there is a node without a value but it may contain attributes
                 NodeStatistics node = new NodeStatistics(generalStatistics.getParentXpath(), generalStatistics.getNodeXpath(), "", generalStatistics.getOccurrence());
@@ -138,38 +135,11 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
     }
 
 
-    //TODO move to service
-    public List<NodeStatistics> retrieveNodeStatisticsFull(long taskId, String parentXpath, String nodeXpath) {
-        List<NodeStatistics> nodeStatisticsList = cassandraNodeStatisticsDAO.retrieveNodeStatistics(taskId, parentXpath, nodeXpath, 2);
+    private List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
+        List<NodeStatistics> nodeStatisticsList = cassandraNodeStatisticsDAO.getNodeStatistics(taskId, parentXpath, nodeXpath, 2);
         nodeStatisticsList.forEach(nodeStatistics->nodeStatistics.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath, nodeStatistics.getValue(), 2)));
         return nodeStatisticsList;
     }
-
-
-
-    /**
-     * Retrieve the list of node statistics according to the given filters. When nodeXpath is null then all
-     * node statistics that have the given parentXpath will be returned. If parentXpath is null then all root
-     * node statistics will be returned. If you want to get all nodes for the whole task you should use another
-     * method which takes as input just the task identifier.
-     *
-     * @param taskId      task identifier
-     * @param parentXpath xpath of the parent
-     * @param nodeXpath   xpath of the node
-     * @return list of node statistics
-     */
-    //TODO move to service
-    public List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
-        List<NodeStatistics> result = new ArrayList<>();
-
-        for(GeneralStatistics generalStastistics:cassandraGeneralStatisticsDAO.searchGeneralStatistics(taskId, parentXpath, nodeXpath)){
-            result.addAll(retrieveNodeStatisticsFull(taskId,
-                    generalStastistics.getParentXpath(),generalStastistics.getNodeXpath()));
-        }
-        return result;
-    }
-
-
 
     /**
      * Store the StatisticsReport object in the database.
@@ -177,36 +147,29 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      * @param taskId task identifier
      * @param report report object to store
      */
-    //TODO move to service
-    public void storeStatisticsReport(long taskId, StatisticsReport report) {
+    void storeStatisticsReport(long taskId, StatisticsReport report) {
         if (cassandraStatisticsReportDAO.isReportStored(taskId)) {
             return;
         }
         cassandraStatisticsReportDAO.storeReport(taskId, report);
     }
 
-
-
-
-    //TODO move to service
     public void removeStatistics(long taskId) {
-        removeGeneralStatisticsFull(taskId);
+        removeGeneralStatistics(taskId);
         cassandraStatisticsReportDAO.removeStatisticsReport(taskId);
     }
 
 
-    //TODO move to service
-    public void removeGeneralStatisticsFull(long taskId) {
+    private void removeGeneralStatistics(long taskId) {
 
         for (GeneralStatistics s:cassandraGeneralStatisticsDAO.searchGeneralStatistics(taskId)) {
-            removeNodeStatisticsFull(taskId, s.getNodeXpath());
+            removeNodeStatistics(taskId, s.getNodeXpath());
         }
-        cassandraGeneralStatisticsDAO.removeGeneralStatistics2(taskId);
+        cassandraGeneralStatisticsDAO.removeGeneralStatistics(taskId);
     }
 
+    private void removeNodeStatistics(long taskId, String nodeXpath) {
 
-    //TODO move to service
-    public void removeNodeStatisticsFull(long taskId, String nodeXpath) {
         for(String value:cassandraNodeStatisticsDAO.searchNodeStatisticsValues(taskId,nodeXpath)){
             cassandraAttributeStatisticsDAO.removeAttributeStatistics(taskId, nodeXpath, value);
         }

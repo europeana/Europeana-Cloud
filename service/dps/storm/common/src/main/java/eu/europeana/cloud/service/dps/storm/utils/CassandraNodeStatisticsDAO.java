@@ -1,14 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
@@ -18,7 +17,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     private PreparedStatement searchNodesStatementAll;
 
-    private PreparedStatement deleteNodesStatistcsStatement;
+    private PreparedStatement deleteNodesStatisticsStatement;
 
     private static CassandraNodeStatisticsDAO instance = null;
 
@@ -49,8 +48,6 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         updateNodeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
-
-
         searchNodesStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
@@ -64,15 +61,15 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
         searchNodesStatementAll.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        deleteNodesStatistcsStatement = dbService.getSession().prepare("DELETE " +
+        deleteNodesStatisticsStatement = dbService.getSession().prepare("DELETE " +
                 " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
-        deleteNodesStatistcsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
+        deleteNodesStatisticsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
     }
+
     /**
      * Update counter in the node statistics table
      *
@@ -80,37 +77,30 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      * @param nodeStatistics node statistics object to store / update
      */
     public void updateNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
-        dbService.getSession().execute(updateNodeStatement.bind(nodeStatistics.getOccurrence(), taskId, nodeStatistics.getXpath(), nodeStatistics.getValue()));
+        dbService.getSession().execute(updateNodeStatement.bind(
+                nodeStatistics.getOccurrence(), taskId, nodeStatistics.getXpath(), nodeStatistics.getValue()));
     }
 
     public List<String> searchNodeStatisticsValues(long taskId, String nodeXpath) {
-        List<String> result = new ArrayList<>();
-        ResultSet rs = dbService.getSession().execute(searchNodesStatementAll.bind(taskId, nodeXpath));
-
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-            result.add(row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE));
-        }
-        return result;
+        return dbService.getSession().execute(searchNodesStatementAll.bind(taskId, nodeXpath)).all().stream()
+                .map(row -> row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE))
+                .collect(Collectors.toList());
     }
 
     public void removeNodeStatistics(long taskId, String nodeXpath) {
-        dbService.getSession().execute(deleteNodesStatistcsStatement.bind(taskId, nodeXpath));
+        dbService.getSession().execute(deleteNodesStatisticsStatement.bind(taskId, nodeXpath));
     }
 
-    public List<NodeStatistics> retrieveNodeStatistics(long taskId, String parentXpath, String nodeXpath, int limit) {
-        List<NodeStatistics> result = new ArrayList<>();
-        ResultSet rs = dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath, limit));
+    public List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath, int limit) {
+        return dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath, limit)).all().stream()
+                .map(row -> createNodeStatistics(parentXpath, nodeXpath, row))
+                .collect(Collectors.toList());
+    }
 
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-
-            NodeStatistics nodeStatistics = new NodeStatistics(parentXpath, nodeXpath,
-                    row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE),
-                    row.getLong(CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE));
-            result.add(nodeStatistics);
-        }
-        return result;
+    private NodeStatistics createNodeStatistics(String parentXpath, String nodeXpath, Row row) {
+        return new NodeStatistics(parentXpath, nodeXpath,
+                row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE),
+                row.getLong(CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE));
     }
 
 }

@@ -20,7 +20,6 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
     private PreparedStatement checkStatisticsReportStatement;
 
 
-
     public static synchronized CassandraStatisticsReportDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
             instance = RetryableMethodExecutor.createRetryProxy(new CassandraStatisticsReportDAO(cassandra));
@@ -41,17 +40,6 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
     @Override
     void prepareStatements() {
 
-        getStatisticsReportStatement = dbService.getSession().prepare("SELECT blobastext(" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
-                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
-        getStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-
-        removeStatisticsReportStatement = dbService.getSession().prepare("DELETE " +
-                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
-        removeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         storeStatisticsReportStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " (" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + "," +
                 CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
@@ -62,35 +50,18 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
                 " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
         checkStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-	}
 
-    //TODO to reports dao
-    public  void removeStatisticsReport(long taskId) {
-        dbService.getSession().execute(removeStatisticsReportStatement.bind(taskId));
+        getStatisticsReportStatement = dbService.getSession().prepare("SELECT blobastext(" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
+                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        getStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        removeStatisticsReportStatement = dbService.getSession().prepare("DELETE " +
+                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        removeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
-
-
-    /**
-     * Return statistics report from the database. When not present null will be returned.
-     *
-     * @param taskId task identifier
-     * @return statistics report object
-     */
-    //TODO move to statistics report
-    public StatisticsReport getStatisticsReport(long taskId) {
-        BoundStatement bs = getStatisticsReportStatement.bind(taskId);
-        ResultSet rs = dbService.getSession().execute(bs);
-
-        if (rs.iterator().hasNext()) {
-            Row row = rs.one();
-
-            String report = row.getString(0);
-            return gson.fromJson(report, StatisticsReport.class);
-        }
-        return null;
-    }
-
-
 
     public void storeReport(long taskId, StatisticsReport report) {
         String reportSerialized = gson.toJson(report);
@@ -106,11 +77,35 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
      * @param taskId task identifier
      * @return true when a row for the given task identifier is in the table
      */
-    //TODO move to report dao
     public boolean isReportStored(long taskId) {
         BoundStatement bs = checkStatisticsReportStatement.bind(taskId);
         ResultSet rs = dbService.getSession().execute(bs);
 
         return rs.iterator().hasNext();
     }
+
+    /**
+     * Return statistics report from the database. When not present null will be returned.
+     *
+     * @param taskId task identifier
+     * @return statistics report object
+     */
+    public StatisticsReport getStatisticsReport(long taskId) {
+        BoundStatement bs = getStatisticsReportStatement.bind(taskId);
+        ResultSet rs = dbService.getSession().execute(bs);
+
+        if (rs.iterator().hasNext()) {
+            Row row = rs.one();
+
+            String report = row.getString(0);
+            return gson.fromJson(report, StatisticsReport.class);
+        }
+        return null;
+    }
+
+
+    public void removeStatisticsReport(long taskId) {
+        dbService.getSession().execute(removeStatisticsReportStatement.bind(taskId));
+    }
+
 }
