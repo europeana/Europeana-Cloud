@@ -3,11 +3,14 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 public class HarvestedRecordsDAO extends CassandraDAO {
 
@@ -90,35 +93,34 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insertHarvestedRecord(HarvestedRecord record) {
-        RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(insertHarvestedRecord.bind(record.getMetisDatasetId(),
+        dbService.getSession().execute(insertHarvestedRecord.bind(record.getMetisDatasetId(),
                         oaiIdBucketNo(record.getRecordLocalId()), record.getRecordLocalId(), record.getHarvestDate(),
-                        record.getMd5(), record.getIndexingDate())));
+                record.getMd5(), record.getIndexingDate()));
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateHarvestDate(String metisDatasetId, String oaiId, Date harvestDate) {
-        RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(updateHarvestDate.bind(harvestDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId)));
+        dbService.getSession().execute(updateHarvestDate.bind(harvestDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateIndexingDate(String metisDatasetId, String oaiId, Date indexingDate) {
-        RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(updateIndexingDate.bind(indexingDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId)));
+        dbService.getSession().execute(updateIndexingDate.bind(indexingDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void deleteRecord(String metisDatasetId, String oaiId) {
-        RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(
-                        deleteRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId)));
+        dbService.getSession().execute(deleteRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId));
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Optional<HarvestedRecord> findRecord(String metisDatasetId, String oaiId) {
-        return RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> Optional.ofNullable(dbService.getSession().execute(
+        return Optional.ofNullable(dbService.getSession().execute(
                         findRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId))
                         .one())
-                        .map(HarvestedRecord::from));
+                .map(HarvestedRecord::from);
     }
 
     public Iterator<HarvestedRecord> findDatasetRecords(String metisDatasetId) {

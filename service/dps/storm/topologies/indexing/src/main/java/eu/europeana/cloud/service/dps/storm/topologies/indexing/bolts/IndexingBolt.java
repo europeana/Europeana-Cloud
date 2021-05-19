@@ -9,6 +9,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -135,7 +136,8 @@ public class IndexingBolt extends AbstractDpsBolt {
                         dbConnectionDetails.getKeyspaceName(),
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
-        harvestedRecordsDAO = new HarvestedRecordsDAO(cassandraConnectionProvider);
+        harvestedRecordsDAO = RetryableMethodExecutor.createRetryProxy(
+                new HarvestedRecordsDAO(cassandraConnectionProvider));
     }
 
     private void prepareUisClient() {

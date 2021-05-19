@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -184,13 +185,11 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void updateErrorCounter(long taskId, String errorType) {
-        RetryableMethodExecutor.executeOnDb("Error while updating Error counter", () ->
-                taskErrorDAO.updateErrorCounter(taskId, errorType));
+        taskErrorDAO.updateErrorCounter(taskId, errorType);
     }
 
     private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
-        RetryableMethodExecutor.executeOnDb("Error while inserting Error to cassandra", () ->
-                taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation));
+        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
     }
 
     private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
@@ -215,8 +214,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void updateTask(long taskId, String state, String info, Date startDate) {
-        RetryableMethodExecutor.executeOnDb("Error while Updating the task info", () ->
-                taskStatusUpdater.updateTask(taskId, info, state, startDate));
+        taskStatusUpdater.updateTask(taskId, info, state, startDate);
     }
 
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
@@ -264,7 +262,7 @@ public class NotificationBolt extends BaseRichBolt {
             processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
             if (processed > 0) {
                 errors = taskInfoDAO.findById(taskId).get().getErrors();
-                errorTypes = taskErrorDAO.getMessagesUuids(taskId);
+                errorTypes = getMessagesUuidsMap(taskId);
                 LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}", taskId, processed, errors, errorTypes);
             }
         }
@@ -284,6 +282,19 @@ public class NotificationBolt extends BaseRichBolt {
             return errors;
         }
 
+        private Map<String, String> getMessagesUuidsMap(long taskId) {
+            Map<String, String> errorMessageToUuidMap = new HashMap<>();
+            Iterator<String> it = taskErrorDAO.getMessagesUuids(taskId);
+            while (it.hasNext()) {
+                String errorType = it.next();
+                Optional<String> message = taskErrorDAO.getErrorMessage(taskId, errorType);
+                if (message.isPresent()) {
+                    errorMessageToUuidMap.put(message.get(), errorType);
+                }
+            }
+            return errorMessageToUuidMap;
+        }
+
         public String getErrorType(String infoText) {
             return errorTypes.computeIfAbsent(infoText,
                     key -> new com.eaio.uuid.UUID().toString());
@@ -295,7 +306,6 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        RetryableMethodExecutor.executeOnDb("Error while inserting detailed record information to cassandra", () ->
-                subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource));
+        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
 }

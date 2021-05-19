@@ -126,7 +126,7 @@ public class ServiceConfiguration {
 
     @Bean
     public CassandraTaskErrorsDAO taskErrorDAO() {
-        return CassandraTaskErrorsDAO.getInstance(dpsCassandraProvider());
+        return new CassandraTaskErrorsDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -136,7 +136,16 @@ public class ServiceConfiguration {
 
     @Bean
     public CassandraValidationStatisticsService validationStatisticsService() {
-        return new CassandraValidationStatisticsService();
+        return new CassandraValidationStatisticsService(
+                cassandraGeneralStatisticsDAO(),
+                cassandraNodeStatisticsDAO(),
+                cassandraAttributeStatisticsDAO(),
+                cassandraStatisticsReportDAO());
+    }
+
+    @Bean
+    public CassandraGeneralStatisticsDAO cassandraGeneralStatisticsDAO() {
+        return new CassandraGeneralStatisticsDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -147,6 +156,11 @@ public class ServiceConfiguration {
     @Bean
     public CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO() {
         return new CassandraAttributeStatisticsDAO(dpsCassandraProvider());
+    }
+
+    @Bean
+    public CassandraStatisticsReportDAO cassandraStatisticsReportDAO() {
+        return new CassandraStatisticsReportDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -171,7 +185,7 @@ public class ServiceConfiguration {
 
     @Bean
     public TaskStatusSynchronizer taskStatusSynchronizer() {
-        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO());
+        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO(), taskStatusUpdater());
     }
 
     @Bean

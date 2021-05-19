@@ -18,14 +18,6 @@ public class RetryableMethodExecutor {
 
     private static final int SLEEP_TIME = 5000;
 
-    public static <E extends Exception> void executeOnDb(String errorMessage, GenericRunnable<E> runnable) throws E {
-        RetryableMethodExecutor.execute(errorMessage, DEFAULT_DB_RETRIES, SLEEP_TIME, () -> {
-                    runnable.run();
-                    return null;
-                }
-        );
-    }
-
     public static <V, E extends Exception> V executeOnDb(String errorMessage, GenericCallable<V, E> callable) throws E {
         return execute(errorMessage, DEFAULT_DB_RETRIES, SLEEP_TIME, callable);
     }

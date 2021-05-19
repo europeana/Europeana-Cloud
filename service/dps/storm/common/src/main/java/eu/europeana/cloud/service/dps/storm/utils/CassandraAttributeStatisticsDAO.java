@@ -5,13 +5,16 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 public class CassandraAttributeStatisticsDAO extends CassandraDAO {
-    public static final int MAX_ALLOWED_VALUES = 15;
     private static CassandraAttributeStatisticsDAO instance = null;
 
     private PreparedStatement updateAttributeStatement;
@@ -25,7 +28,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
 
     public static synchronized CassandraAttributeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraAttributeStatisticsDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraAttributeStatisticsDAO(cassandra));
         }
         return instance;
     }
@@ -35,6 +38,9 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      */
     public CassandraAttributeStatisticsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public CassandraAttributeStatisticsDAO() {
     }
 
     @Override
@@ -51,9 +57,8 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
         selectAttributesStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? LIMIT 2");
+                "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? LIMIT ?");
         selectAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
 
         deleteAttributesStatement = dbService.getSession().prepare("DELETE FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
@@ -79,31 +84,16 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
         countSpecificAttributeValue.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    /**
-     * Inserts the statistics for all the attributes in the given list.
-     *
-     * @param taskId     task identifier
-     * @param attributes list of attribute statistics
-     */
-    public void insertAttributeStatistics(long taskId, String nodeXpath, String nodeValue, Set<AttributeStatistics> attributes) {
-        for (AttributeStatistics attributeStatistics : attributes) {
-            long distinctValuesCount = getAttributeDistinctValues(taskId, nodeXpath, nodeValue, attributeStatistics.getName());
-            if (distinctValuesCount >= MAX_ALLOWED_VALUES) {
-                long currentCount = getSpecificAttributeValueCount(taskId, nodeXpath, nodeValue, attributeStatistics.getName(), attributeStatistics.getValue());
-                if (currentCount > 0)
-                    insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
-            } else {
-                insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
-            }
-        }
-    }
 
-    private long getAttributeDistinctValues(long taskId, String nodePath, String nodeValue, String attributeName) {
+
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
+    public long getAttributeDistinctValues(long taskId, String nodePath, String nodeValue, String attributeName) {
         ResultSet rs = dbService.getSession().execute(countDistinctAttributeValues.bind(taskId, nodePath, nodeValue, attributeName));
         return rs.one().getLong(0);
     }
 
-    private long getSpecificAttributeValueCount(long taskId, String nodePath, String nodeValue, String attributeName, String attributeValue) {
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
+    public long getSpecificAttributeValueCount(long taskId, String nodePath, String nodeValue, String attributeName, String attributeValue) {
         ResultSet rs = dbService.getSession().execute(countSpecificAttributeValue.bind(taskId, nodePath, nodeValue, attributeName, attributeValue));
         return rs.one().getLong(0);
     }
@@ -114,6 +104,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param taskId              task identifier
      * @param attributeStatistics attribute statistics to insert
      */
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insertAttributeStatistics(long taskId, String nodeXpath, String nodeValue, AttributeStatistics attributeStatistics) {
         dbService.getSession().execute(updateAttributeStatement.bind(attributeStatistics.getOccurrence(),
                 taskId,
@@ -130,24 +121,23 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param nodeXpath node xpath that contains returned attributes
      * @return list of attribute statistics objects
      */
-    public Set<AttributeStatistics> getAttributeStatistics(long taskId, String nodeXpath, String nodeValue) {
-        BoundStatement bs = selectAttributesStatement.bind(taskId, nodeXpath, nodeValue);
-        ResultSet rs = dbService.getSession().execute(bs);
-        Set<AttributeStatistics> result = new HashSet<>();
-
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-            result.add(new AttributeStatistics(row.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME),
-                    row.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_VALUE),
-                    row.getLong(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE)));
-        }
-
-        return result;
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
+    public Set<AttributeStatistics> getAttributeStatistics(long taskId, String nodeXpath, String nodeValue, int limit) {
+        return dbService.getSession().execute(selectAttributesStatement.bind(taskId, nodeXpath, nodeValue, limit))
+                .all().stream().map(this::createAttributeStatistics).collect(Collectors.toSet());
     }
 
+    private AttributeStatistics createAttributeStatistics(Row row) {
+        return new AttributeStatistics(row.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME),
+                row.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_VALUE),
+                row.getLong(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE));
+    }
 
-    public void removeAttributeStatistics(long taskId, String nodeXpath, String nodeValue)  {
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
+    public void removeAttributeStatistics(long taskId, String nodeXpath, String nodeValue) {
         BoundStatement bs = deleteAttributesStatement.bind(taskId, nodeXpath, nodeValue);
         dbService.getSession().execute(bs);
     }
+
+
 }
