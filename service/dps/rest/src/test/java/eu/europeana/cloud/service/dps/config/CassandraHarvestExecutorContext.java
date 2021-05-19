@@ -16,8 +16,7 @@ import org.springframework.context.annotation.Import;
 import static org.mockito.Mockito.mock;
 
 @Configuration
-@Import({HarvestsExecutor.class, RecordSubmitService.class, HarvestedRecordsDAO.class, ProcessedRecordsDAO.class,
-         CassandraTaskInfoDAO.class})
+@Import({HarvestsExecutor.class, RecordSubmitService.class})
 public class CassandraHarvestExecutorContext {
     protected static final String KEYSPACE = "ecloud_test";
     public static final String HOST = "localhost";
@@ -37,6 +36,21 @@ public class CassandraHarvestExecutorContext {
     @Bean
     public TaskStatusChecker taskStatusChecker(CassandraTaskInfoDAO cassandraTaskInfoDAO) {
         return new TaskStatusChecker(cassandraTaskInfoDAO);
+    }
+
+    @Bean
+    public CassandraTaskInfoDAO cassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
+        return new CassandraTaskInfoDAO(dbService);
+    }
+
+    @Bean
+    public ProcessedRecordsDAO processedRecordsDAO(CassandraConnectionProvider dbService) {
+        return new ProcessedRecordsDAO(dbService);
+    }
+
+    @Bean
+    public HarvestedRecordsDAO harvestedRecordsDAO(CassandraConnectionProvider dbService) {
+        return new HarvestedRecordsDAO(dbService);
     }
 
 }
