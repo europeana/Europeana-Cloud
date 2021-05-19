@@ -103,25 +103,10 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         return new DynamicContentProxy(params);
     }
 
-/*
-    @Bean
-    public CassandraContentDAO cassandraContentDAO() {
-        return new CassandraContentDAO();
-    }
-*/
-
     @Bean
     public ContentDAO cassandraContentDAO() {
         return new CassandraContentDAO();
     }
-
-
-/*
-    @Bean
-    public SwiftContentDAO swiftContentDAO() {
-        return new SwiftContentDAO();
-    }
-*/
 
     @Bean
     public ContentDAO swiftContentDAO() {
