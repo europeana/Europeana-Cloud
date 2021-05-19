@@ -8,7 +8,7 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
-import eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
 import org.springframework.context.annotation.Bean;
@@ -52,8 +52,8 @@ public class BasicResourceTestContext {
     }
 
     @Bean
-    public DynamicContentDAO dynamicContentDAO() {
-        return mock(DynamicContentDAO.class);
+    public DynamicContentProxy dynamicContentProxy() {
+        return mock(DynamicContentProxy.class);
     }
 
     @Bean

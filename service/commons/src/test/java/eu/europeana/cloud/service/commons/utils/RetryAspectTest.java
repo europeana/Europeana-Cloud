@@ -1,32 +1,21 @@
 package eu.europeana.cloud.service.commons.utils;
 
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
-import static org.hamcrest.Matchers.*;
 
-
-import java.util.HashMap;
-import java.util.Map;
-
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class RetryAspectTest {
 
-    private AspectTestInterface aspectTestTarget;
-    private AspectTestInterface aspectTestProxy;
+    private AspectedTest1Impl aspectTestTarget;
+    private AspectedTest1Interface aspectTestProxy;
 
     @Before
     public void prepareTests() {
-        Map<String, Integer> failAttemptsCounter = new HashMap<>();
-        failAttemptsCounter.put("testMethod01", 2);  // testMethod01 should have two (2) failed attempts
-        failAttemptsCounter.put("testMethod02", 4);  // testMethod02 should have four (4) failed attempts
-        failAttemptsCounter.put("testMethod03", 1);  // testMethod03 should have one (1) failed attempts
-        //failAttemptsCounter.put("testMethod04", 3);  // testMethod04 should have three (3) failed attempts - THIS IS DEFAULT
-
-
-        aspectTestTarget = spy(new AspectTestImpl(failAttemptsCounter));
+        aspectTestTarget = spy(new AspectedTest1Impl());
 
         AspectJProxyFactory factory = new AspectJProxyFactory(aspectTestTarget);
         RetryAspect aspect = new RetryAspect();
@@ -37,8 +26,8 @@ public class RetryAspectTest {
 
     @Test
     public void shouldCallThreeTimesAspectedMethodWithSuccess() {
-        String result = aspectTestProxy.testMethod01("test 01", 1);
-        verify(aspectTestTarget, times(3)).testMethod01("test 01", 1);
+        String result = aspectTestProxy.testMethod01_fails_2("test 01", 1);
+        verify(aspectTestTarget, times(3)).testMethod01_fails_2("test 01", 1);
 
         assertTrue(result.startsWith("test 01"));
         assertTrue(result.endsWith("1"));
@@ -46,22 +35,39 @@ public class RetryAspectTest {
 
     @Test
     public void shouldCallThreeTimesAspectedMethodWithoutSuccess() {
-        aspectTestProxy.testMethod02("s1", "s2");
-        verify(aspectTestTarget, times(3)).testMethod02("s1", "s2");
+        aspectTestProxy.testMethod02_fails_4("s1", "s2");
+        verify(aspectTestTarget, times(3)).testMethod02_fails_4("s1", "s2");
     }
 
     @Test
     public void shouldCallTwoTimesOneFailLongDelayAspectedMethodWithSuccess() {
-        String result = aspectTestProxy.testMethod03();
-        verify(aspectTestTarget, times(2)).testMethod03();
+        String result = aspectTestProxy.testMethod03_fails_1();
+        verify(aspectTestTarget, times(2)).testMethod03_fails_1();
         assertThat("Success call. Non null result", result, equalTo("SUCCESS"));
     }
 
     @Test
     public void shouldCallTwoTimesThreeFailAspectedMethodWithoutSuccess() {
-        String result = aspectTestProxy.testMethod04();
-        verify(aspectTestTarget, times(2)).testMethod04();
+        String result = aspectTestProxy.testMethod04_fails_3();
+        verify(aspectTestTarget, times(2)).testMethod04_fails_3();
         assertNull("Expected that call fails. Null result", result);
     }
+
+    @Test
+    public void shouldCallThreeTimesOnlyForAnnotatedMethodWithoutSuccess() {
+        //prepare test
+        AspectedTest2Impl aspectTestTarget = spy(new AspectedTest2Impl());
+
+        AspectJProxyFactory factory = new AspectJProxyFactory(aspectTestTarget);
+        RetryAspect aspect = new RetryAspect();
+        factory.addAspect(aspect);
+
+        AspectedTest2Interface aspectTestProxy = factory.getProxy();
+
+        //do test
+        aspectTestProxy.testMethod05_fails_3(anyString(), anyInt());
+        verify(aspectTestTarget, times(3)).testMethod05_fails_3(anyString(), anyInt());
+    }
+
 
 }

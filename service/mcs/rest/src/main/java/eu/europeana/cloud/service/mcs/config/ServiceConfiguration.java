@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
-import eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
@@ -94,22 +94,22 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public DynamicContentDAO dynamicContentDAO() {
+    public DynamicContentProxy dynamicContentProxy() {
         Map<Storage, ContentDAO> params = new HashMap<>();
 
         params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
         params.put(Storage.DATA_BASE, cassandraContentDAO());
 
-        return new DynamicContentDAO(params);
+        return new DynamicContentProxy(params);
     }
 
     @Bean
-    public CassandraContentDAO cassandraContentDAO() {
+    public ContentDAO cassandraContentDAO() {
         return new CassandraContentDAO();
     }
 
     @Bean
-    public SwiftContentDAO swiftContentDAO() {
+    public ContentDAO swiftContentDAO() {
         return new SwiftContentDAO();
     }
 
