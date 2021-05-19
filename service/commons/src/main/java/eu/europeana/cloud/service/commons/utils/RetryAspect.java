@@ -41,6 +41,16 @@ public class RetryAspect {
         Retryable retryAnnotation = method.getAnnotation(Retryable.class);
 
         if(retryAnnotation == null) {
+            //check case if object is behind interface but annotation was written for method implementation not for method in interface
+            try {
+                method = proceedingJoinPoint.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
+                retryAnnotation = method.getAnnotation(Retryable.class);
+            } catch(NoSuchMethodException nsme) {
+                //skip exception, if no method use previous one and look for annotation in class/type
+            }
+        }
+
+        if(retryAnnotation == null) {
             retryAnnotation = proceedingJoinPoint.getTarget().getClass().getAnnotation(Retryable.class);
         }
 
@@ -49,7 +59,7 @@ public class RetryAspect {
             result = RetryableMethodExecutor.execute(retryAnnotation.errorMessage(),
                     retryAnnotation.maxAttempts(), retryAnnotation.delay(), proceedingJoinPoint::proceed);
         }catch (Throwable t) {
-            LOGGER.warn(RetryableMethodExecutor.createMessage(method, proceedingJoinPoint.getArgs()), t);
+            LOGGER.warn(RetryableMethodExecutor.createMessage(method, retryAnnotation, proceedingJoinPoint.getArgs()), t);
         }
         return result;
     }

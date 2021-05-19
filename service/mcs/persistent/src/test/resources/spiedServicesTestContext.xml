@@ -26,7 +26,7 @@
     <bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
 
     <bean id="dynamicContentDAO"
-          class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO">
+          class="eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy">
         <constructor-arg>
             <map key-type="eu.europeana.cloud.service.mcs.Storage">
                 <entry key="OBJECT_STORAGE"  value-ref="swiftContentDAO"/>

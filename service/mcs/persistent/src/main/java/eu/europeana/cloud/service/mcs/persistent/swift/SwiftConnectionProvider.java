@@ -24,10 +24,4 @@ public interface SwiftConnectionProvider {
      */
     void closeConnections();
 
-
-    /**
-     * Reconnect connection.
-     */
-    void reconnectConnections();
-
 }
