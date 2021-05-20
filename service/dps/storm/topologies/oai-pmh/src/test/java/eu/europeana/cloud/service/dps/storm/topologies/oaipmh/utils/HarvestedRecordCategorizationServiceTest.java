@@ -70,15 +70,10 @@ public class HarvestedRecordCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).insertHarvestedRecord(
-                argThat(samePropertyValuesAs(
-                        HarvestedRecord.builder()
-                                .metisDatasetId("exampleDatasetId")
-                                .recordLocalId("exampleRecordId")
-                                .latestHarvestDate(Date.from(dateOfHarvesting))
-                                .publishedHarvestDate(Date.from(dateOfHarvesting.minus(1, ChronoUnit.DAYS)))
-                                .build()
-                )));
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
+                eq("exampleDatasetId"),
+                eq("exampleRecordId"),
+                any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -107,15 +102,11 @@ public class HarvestedRecordCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).insertHarvestedRecord(
-                argThat(samePropertyValuesAs(
-                        HarvestedRecord.builder()
-                                .metisDatasetId("exampleDatasetId")
-                                .recordLocalId("exampleRecordId")
-                                .latestHarvestDate(Date.from(dateOfHarvesting))
-                                .publishedHarvestDate(Date.from(dateOfHarvesting))
-                                .build()
-                )));
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
+                eq("exampleDatasetId"),
+                eq("exampleRecordId"),
+                any()
+        );
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -144,17 +135,12 @@ public class HarvestedRecordCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).insertHarvestedRecord(
-                argThat(samePropertyValuesAs(
-                        HarvestedRecord.builder()
-                                .metisDatasetId("exampleDatasetId")
-                                .recordLocalId("exampleRecordId")
-                                .latestHarvestDate(dateOfHarvesting)
-                                .publishedHarvestDate(Date.from(dateOfHarvesting.toInstant().plus(3, ChronoUnit.DAYS)))
-                                .build()
-                )));
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
+                eq("exampleRecordId"),
+                any());
         assertTrue(categorizationResult.shouldBeDropped());
     }
+
     @Test
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfEqualsRecordDatestampAndPublishedHarvestDate() {
         //given
@@ -180,15 +166,11 @@ public class HarvestedRecordCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).insertHarvestedRecord(
-                argThat(samePropertyValuesAs(
-                        HarvestedRecord.builder()
-                                .metisDatasetId("exampleDatasetId")
-                                .recordLocalId("exampleRecordId")
-                                .latestHarvestDate(dateOfHarvesting)
-                                .publishedHarvestDate(dateOfHarvesting)
-                                .build()
-                )));
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
+                eq("exampleDatasetId"),
+                eq("exampleRecordId"),
+                any()
+        );
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 }

@@ -29,7 +29,6 @@ public class HarvestedRecordCategorizationService {
             return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
         } else {
             updateRecordLatestHarvestDate(harvestedRecord.get(), categorizationParameters.getCurrentHarvestDate());
-            updateRecordDefinitionInDB(harvestedRecord.get());
             if (recordDateStampOlderThanPublishedVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())) {
                 return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
             }
@@ -58,19 +57,16 @@ public class HarvestedRecordCategorizationService {
 
     private void updateRecordLatestHarvestDate(HarvestedRecord harvestedRecord, Instant currentHarvestDate) {
         harvestedRecord.setLatestHarvestDate(Date.from(currentHarvestDate));
+        harvestedRecordsDAO.updateLatestHarvestDate(
+                harvestedRecord.getMetisDatasetId(),
+                harvestedRecord.getRecordLocalId(),
+                harvestedRecord.getLatestHarvestDate());
     }
 
     private boolean recordDateStampOlderThanPublishedVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
         return harvestedRecord.getPublishedHarvestDate() == null
                 ||
         recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPublishedHarvestDate().toInstant());
-    }
-
-    private void updateRecordDefinitionInDB(HarvestedRecord harvestedRecord) {
-        harvestedRecordsDAO.updateLatestHarvestDate(
-                harvestedRecord.getMetisDatasetId(),
-                harvestedRecord.getRecordLocalId(),
-                harvestedRecord.getLatestHarvestDate());
     }
 
     private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
