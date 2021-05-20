@@ -17,7 +17,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     private PreparedStatement findRecord;
     private PreparedStatement findAllRecordInDataset;
     private PreparedStatement deleteRecord;
-    private PreparedStatement updateHarvestDate;
+    private PreparedStatement updateLatestHarvestDate;
 
     public HarvestedRecordsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
@@ -49,7 +49,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
         updateIndexingDate.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateHarvestDate = dbService.getSession().prepare("UPDATE "
+        updateLatestHarvestDate = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                 + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE + " = ? "
                 + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
@@ -57,7 +57,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
 
-        updateHarvestDate.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateLatestHarvestDate.setConsistencyLevel(dbService.getConsistencyLevel());
 
         findRecord = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
@@ -90,30 +90,30 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     public void insertHarvestedRecord(HarvestedRecord harvestedRecord) {
         RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
                 () -> dbService.getSession().execute(insertHarvestedRecord.bind(harvestedRecord.getMetisDatasetId(),
-                        oaiIdBucketNo(harvestedRecord.getRecordLocalId()), harvestedRecord.getRecordLocalId(), harvestedRecord.getLatestHarvestDate(),
+                        bucketNoFor(harvestedRecord.getRecordLocalId()), harvestedRecord.getRecordLocalId(), harvestedRecord.getLatestHarvestDate(),
                         harvestedRecord.getLatestHarvestMd5(), harvestedRecord.getPublishedHarvestDate(), harvestedRecord.getPublishedHarvestMd5())));
     }
 
-    public void updateHarvestDate(String metisDatasetId, String oaiId, Date harvestDate) {
+    public void updateLatestHarvestDate(String metisDatasetId, String recordId, Date harvestDate) {
         RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(updateHarvestDate.bind(harvestDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId)));
+                () -> dbService.getSession().execute(updateLatestHarvestDate.bind(harvestDate, metisDatasetId, bucketNoFor(recordId), recordId)));
     }
 
-    public void updateIndexingDate(String metisDatasetId, String oaiId, Date indexingDate) {
+    public void updateIndexingDate(String metisDatasetId, String recordId, Date indexingDate) {
         RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
-                () -> dbService.getSession().execute(updateIndexingDate.bind(indexingDate, metisDatasetId, oaiIdBucketNo(oaiId), oaiId)));
+                () -> dbService.getSession().execute(updateIndexingDate.bind(indexingDate, metisDatasetId, bucketNoFor(recordId), recordId)));
     }
 
-    public void deleteRecord(String metisDatasetId, String oaiId) {
+    public void deleteRecord(String metisDatasetId, String recordId) {
         RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
                 () -> dbService.getSession().execute(
-                        deleteRecord.bind(metisDatasetId, oaiIdBucketNo(oaiId), oaiId)));
+                        deleteRecord.bind(metisDatasetId, bucketNoFor(recordId), recordId)));
     }
 
     public Optional<HarvestedRecord> findRecord(String metisDatasetId, String recordId) {
         return RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
                 () -> Optional.ofNullable(dbService.getSession().execute(
-                        findRecord.bind(metisDatasetId, oaiIdBucketNo(recordId), recordId))
+                        findRecord.bind(metisDatasetId, bucketNoFor(recordId), recordId))
                         .one())
                         .map(HarvestedRecord::from));
     }
@@ -132,8 +132,8 @@ public class HarvestedRecordsDAO extends CassandraDAO {
         );
     }
 
-    private int oaiIdBucketNo(String oaiId) {
-        return BucketUtils.bucketNumber(oaiId, MAX_NUMBER_OF_BUCKETS);
+    private int bucketNoFor(String recordId) {
+        return BucketUtils.bucketNumber(recordId, MAX_NUMBER_OF_BUCKETS);
     }
 
 }

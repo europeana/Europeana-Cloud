@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
 
@@ -13,6 +14,7 @@ import java.util.Optional;
  */
 public class HarvestedRecordCategorizationService {
 
+    private static final int DATE_BUFFER_IN_MINUTES = 60 * 24 * 2;
     private final HarvestedRecordsDAO harvestedRecordsDAO;
 
     public HarvestedRecordCategorizationService(HarvestedRecordsDAO harvestedRecordsDAO) {
@@ -59,14 +61,16 @@ public class HarvestedRecordCategorizationService {
     }
 
     private boolean recordDateStampOlderThanPublishedVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
-
         return harvestedRecord.getPublishedHarvestDate() == null
                 ||
-                harvestedRecord.getPublishedHarvestDate().toInstant().isBefore(recordDateStamp);
+        recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPublishedHarvestDate().toInstant());
     }
 
     private void updateRecordDefinitionInDB(HarvestedRecord harvestedRecord) {
-        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
+        harvestedRecordsDAO.updateLatestHarvestDate(
+                harvestedRecord.getMetisDatasetId(),
+                harvestedRecord.getRecordLocalId(),
+                harvestedRecord.getLatestHarvestDate());
     }
 
     private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
