@@ -33,7 +33,7 @@ public class RetryAspectTest {
         assertTrue(result.endsWith("1"));
     }
 
-    @Test
+    @Test(expected = TestRuntimeExpection.class)
     public void shouldCallThreeTimesAspectedMethodWithoutSuccess() {
         aspectTestProxy.testMethod02_fails_4("s1", "s2");
         verify(aspectTestTarget, times(3)).testMethod02_fails_4("s1", "s2");
@@ -46,14 +46,14 @@ public class RetryAspectTest {
         assertThat("Success call. Non null result", result, equalTo("SUCCESS"));
     }
 
-    @Test
+    @Test(expected = TestRuntimeExpection.class)
     public void shouldCallTwoTimesThreeFailAspectedMethodWithoutSuccess() {
         String result = aspectTestProxy.testMethod04_fails_3();
         verify(aspectTestTarget, times(2)).testMethod04_fails_3();
         assertNull("Expected that call fails. Null result", result);
     }
 
-    @Test
+    @Test(expected = TestRuntimeExpection.class)
     public void shouldCallThreeTimesOnlyForAnnotatedMethodWithoutSuccess() {
         //prepare test
         AspectedTest2Impl aspectTestTarget = spy(new AspectedTest2Impl());
