@@ -36,10 +36,13 @@ public class RetryAspect {
     }
 
     @Around("pointcut()")
-    public Object retry(ProceedingJoinPoint proceedingJoinPoint) {
+    public Object retry(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         Method method = ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
+
+        //Get annotation from method
         Retryable retryAnnotation = method.getAnnotation(Retryable.class);
 
+        //If no annotation, check, maybe it is interfaced method
         if(retryAnnotation == null) {
             //check case if object is behind interface but annotation was written for method implementation not for method in interface
             try {
@@ -50,17 +53,15 @@ public class RetryAspect {
             }
         }
 
+        //If no annotation, get it from target type
         if(retryAnnotation == null) {
             retryAnnotation = proceedingJoinPoint.getTarget().getClass().getAnnotation(Retryable.class);
         }
 
-        Object result = null;
-        try {
-            result = RetryableMethodExecutor.execute(retryAnnotation.errorMessage(),
-                    retryAnnotation.maxAttempts(), retryAnnotation.delay(), proceedingJoinPoint::proceed);
-        }catch (Throwable t) {
-            LOGGER.warn(RetryableMethodExecutor.createMessage(method, retryAnnotation, proceedingJoinPoint.getArgs()), t);
-        }
-        return result;
+        String errorMessage =
+                RetryableMethodExecutor.createMessage(method, retryAnnotation, proceedingJoinPoint.getArgs());
+
+        return RetryableMethodExecutor.execute(errorMessage,
+                retryAnnotation.maxAttempts(), retryAnnotation.delay(), proceedingJoinPoint::proceed);
     }
 }
