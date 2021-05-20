@@ -187,8 +187,8 @@ public class IndexingBolt extends AbstractDpsBolt {
                     .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, metisDatasetId))
                     .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, metisDatasetId));
         } catch (MalformedURLException | CloudException e) {
-            LOGGER.error("Unable to update record harvesting dates");
-            throw new RuntimeException("Unable to update record harvesting dates");
+            LOGGER.error("Unable to update record harvesting dates", e);
+            throw new RuntimeException("Unable to update record harvesting dates", e);
         }
     }
 
