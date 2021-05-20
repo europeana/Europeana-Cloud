@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
@@ -23,14 +24,14 @@ public class HarvestedRecordCategorizationService {
         if (harvestedRecord.isEmpty()) {
             var newHarvestedRecord = prepareHarvestedRecordDefinition(categorizationParameters);
             addRecordDefinitionToDB(newHarvestedRecord);
-            return categorizeRecordAsReadyForProcessing();
+            return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
         } else {
             updateRecordLatestHarvestDate(harvestedRecord.get(), categorizationParameters.getCurrentHarvestDate());
             updateRecordDefinitionInDB(harvestedRecord.get());
             if (recordDateStampOlderThanPublishedVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())) {
-                return categorizeRecordAsReadyForProcessing();
+                return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
             }
-            return categorizeRecordAsNotReadyForProcessing();
+            return categorizeRecordAsNotReadyForProcessing(categorizationParameters, harvestedRecord);
         }
     }
 
@@ -45,7 +46,7 @@ public class HarvestedRecordCategorizationService {
                 .builder()
                 .metisDatasetId(categorizationParameters.getDatasetId())
                 .recordLocalId(categorizationParameters.getRecordId())
-                .latestHarvestDate(categorizationParameters.getCurrentHarvestDate())
+                .latestHarvestDate(Date.from(categorizationParameters.getCurrentHarvestDate()))
                 .build();
     }
 
@@ -53,23 +54,36 @@ public class HarvestedRecordCategorizationService {
         harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
 
-    private void updateRecordLatestHarvestDate(HarvestedRecord harvestedRecord, Date currentHarvestDate) {
-        harvestedRecord.setLatestHarvestDate(currentHarvestDate);
+    private void updateRecordLatestHarvestDate(HarvestedRecord harvestedRecord, Instant currentHarvestDate) {
+        harvestedRecord.setLatestHarvestDate(Date.from(currentHarvestDate));
     }
 
-    private boolean recordDateStampOlderThanPublishedVersion(Date recordDateStamp, HarvestedRecord harvestedRecord) {
-        return harvestedRecord.getPublishedHarvestDate() == null || harvestedRecord.getPublishedHarvestDate().before(recordDateStamp);
+    private boolean recordDateStampOlderThanPublishedVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
+
+        return harvestedRecord.getPublishedHarvestDate() == null
+                ||
+                harvestedRecord.getPublishedHarvestDate().toInstant().isBefore(recordDateStamp);
     }
 
     private void updateRecordDefinitionInDB(HarvestedRecord harvestedRecord) {
         harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
 
-    private CategorizationResult categorizeRecordAsReadyForProcessing() {
-        return CategorizationResult.builder().toBeProcessed(true).build();
+    private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
+        return CategorizationResult
+                .builder()
+                .category(CategorizationResult.Category.ELIGIBLE_FOR_PROCESSING)
+                .categorizationParameters(categorizationParameters)
+                .harvestedRecord(harvestedRecord.orElse(null))
+                .build();
     }
 
-    private CategorizationResult categorizeRecordAsNotReadyForProcessing() {
-        return CategorizationResult.builder().toBeProcessed(false).build();
+    private CategorizationResult categorizeRecordAsNotReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
+        return CategorizationResult
+                .builder()
+                .category(CategorizationResult.Category.ALREADY_PROCESSED)
+                .categorizationParameters(categorizationParameters)
+                .harvestedRecord(harvestedRecord.orElse(null))
+                .build();
     }
 }

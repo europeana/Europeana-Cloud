@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
@@ -22,14 +23,14 @@ public class HarvestedRecordCategorizationServiceTest {
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
         HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
 
-        Date data = new Date();
+        Instant now = Instant.now();
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
                 CategorizationParameters.builder()
                         .datasetId("exampleDatasetId")
                         .recordId("exampleRecordId")
-                        .recordDateStamp(data)
-                        .currentHarvestDate(data)
+                        .recordDateStamp(now)
+                        .currentHarvestDate(now)
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
@@ -38,7 +39,7 @@ public class HarvestedRecordCategorizationServiceTest {
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
-                                .latestHarvestDate(data)
+                                .latestHarvestDate(Date.from(now))
                                 .build()
                 )));
         assertTrue(categorizationResult.shouldBeProcessed());
@@ -48,13 +49,13 @@ public class HarvestedRecordCategorizationServiceTest {
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfExistingDefinitionInDBAndNewHarvestedRecord() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
-        Date dateOfHarvesting = new Date();
+        Instant dateOfHarvesting = Instant.now();
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
-                                .publishedHarvestDate(Date.from(dateOfHarvesting.toInstant().minus(1, ChronoUnit.DAYS)))
+                                .publishedHarvestDate(Date.from(dateOfHarvesting.minus(1, ChronoUnit.DAYS)))
                                 .build()
                 ));
         HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
@@ -74,8 +75,8 @@ public class HarvestedRecordCategorizationServiceTest {
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
-                                .latestHarvestDate(dateOfHarvesting)
-                                .publishedHarvestDate(Date.from(dateOfHarvesting.toInstant().minus(1, ChronoUnit.DAYS)))
+                                .latestHarvestDate(Date.from(dateOfHarvesting))
+                                .publishedHarvestDate(Date.from(dateOfHarvesting.minus(1, ChronoUnit.DAYS)))
                                 .build()
                 )));
         assertTrue(categorizationResult.shouldBeProcessed());
@@ -101,8 +102,8 @@ public class HarvestedRecordCategorizationServiceTest {
                 CategorizationParameters.builder()
                         .datasetId("exampleDatasetId")
                         .recordId("exampleRecordId")
-                        .recordDateStamp(dateOfHarvesting)
-                        .currentHarvestDate(dateOfHarvesting)
+                        .recordDateStamp(dateOfHarvesting.toInstant())
+                        .currentHarvestDate(dateOfHarvesting.toInstant())
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
@@ -137,8 +138,8 @@ public class HarvestedRecordCategorizationServiceTest {
                 CategorizationParameters.builder()
                         .datasetId("exampleDatasetId")
                         .recordId("exampleRecordId")
-                        .recordDateStamp(dateOfHarvesting)
-                        .currentHarvestDate(dateOfHarvesting)
+                        .recordDateStamp(dateOfHarvesting.toInstant())
+                        .currentHarvestDate(dateOfHarvesting.toInstant())
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
