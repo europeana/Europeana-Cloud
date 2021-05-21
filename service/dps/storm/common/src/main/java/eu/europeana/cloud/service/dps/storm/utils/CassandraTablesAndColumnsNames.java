@@ -15,7 +15,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String STATISTICS_REPORTS_TABLE = "statistics_reports";
     public static final String TASKS_BY_STATE_TABLE = "tasks_by_task_state";
     public static final String PROCESSED_RECORDS_TABLE = "processed_records";
-    public static final String HARVESTED_RECORD_TABLE = "harvested_records_temp";
+    public static final String HARVESTED_RECORD_TABLE = "harvested_records";
 
     //------- BASIC INFO -------
     public static final String BASIC_TASK_ID = "task_id";

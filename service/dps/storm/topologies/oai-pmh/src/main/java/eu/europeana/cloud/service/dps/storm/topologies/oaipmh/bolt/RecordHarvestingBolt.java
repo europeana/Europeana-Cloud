@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.DateFormatter;
+import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -63,7 +62,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     trimLocalId(stormTaskTuple); //Added for the time of migration - MET-1189
                 else
                     useEuropeanaId(stormTaskTuple);
-                addRecordTimestampToMessage(stormTaskTuple, oaiRecord);
+                addRecordTimestampToTuple(stormTaskTuple, oaiRecord);
 
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
 
@@ -92,8 +91,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
-    private void addRecordTimestampToMessage(StormTaskTuple stormTaskTuple, OaiRecord oaiRecord) {
-        stormTaskTuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, DateFormatter.format(oaiRecord.getHeader().getDatestamp()));
+    private void addRecordTimestampToTuple(StormTaskTuple stormTaskTuple, OaiRecord oaiRecord) {
+        stormTaskTuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, DateHelper.format(oaiRecord.getHeader().getDatestamp()));
     }
 
     @Override

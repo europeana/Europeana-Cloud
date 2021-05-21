@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils.HarvestedRecordCategorizationService;
-import eu.europeana.cloud.service.dps.storm.utils.DateFormatter;
+import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
@@ -67,8 +67,8 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
         return CategorizationParameters.builder()
                 .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
                 .recordId(tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER))
-                .recordDateStamp(DateFormatter.parse(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP)))
-                .currentHarvestDate(DateFormatter.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
+                .recordDateStamp(DateHelper.parse(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP)))
+                .currentHarvestDate(DateHelper.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
                 .build();
     }
 
