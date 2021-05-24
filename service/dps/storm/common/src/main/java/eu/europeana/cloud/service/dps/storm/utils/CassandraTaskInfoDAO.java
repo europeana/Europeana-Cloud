@@ -21,10 +21,10 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
  *
  * @author akrystian
  */
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskSearchStatement;
     private PreparedStatement taskInsertStatement;
-    private PreparedStatement taskInsertUpdateStateStatement;
     private PreparedStatement updateExpectedSize;
     private PreparedStatement updateTask;
     private PreparedStatement endTask;
@@ -50,6 +50,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     public CassandraTaskInfoDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -81,15 +82,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        taskInsertUpdateStateStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
-                "(" + CassandraTablesAndColumnsNames.BASIC_TASK_ID + ","
-                + CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME + ","
-                + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + ","
-                + CassandraTablesAndColumnsNames.STATE + ","
-                + CassandraTablesAndColumnsNames.INFO +
-                ") VALUES (?,?,?,?,?)");
-        taskInsertUpdateStateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         finishTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         finishTask.setConsistencyLevel(dbService.getConsistencyLevel());
 
@@ -100,7 +92,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Optional<TaskInfo> findById(long taskId)
             throws NoHostAvailableException, QueryExecutionException {
         return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
@@ -130,60 +121,49 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, 0, state, info, sentTime, startTime, finishTime, errors, taskInformations));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateTask(long taskId, String info, String state, Date startDate)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateTask.bind(String.valueOf(state), startDate, info, taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void setTaskCompletelyProcessed(long taskId, String info)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(finishTask.bind(TaskState.PROCESSED.toString(), info, new Date(), taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void setTaskDropped(long taskId, String info)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(finishTask.bind(String.valueOf(TaskState.DROPPED), info, new Date(), taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void setUpdateExpectedSize(long taskId, int expectedSize)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateExpectedSize.bind(expectedSize, taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void endTask(long taskId, int processeFilesCount, int errors, String info, String state, Date finishDate)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(endTask.bind(processeFilesCount, errors, String.valueOf(state), finishDate, info, taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateProcessedFiles.bind(processedFilesCount, errors, taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateRetryCount(long taskId, int retryCount)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateRetryCount.bind(retryCount, taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateStatusExpectedSize(long taskId, String state, int expectedSize)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateStatusExpectedSizeStatement.bind(String.valueOf(state), expectedSize, taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public boolean hasKillFlag(long taskId) throws TaskInfoDoesNotExistException {
         String state = getTaskStatus(taskId);
-        if (state.equals(String.valueOf(TaskState.DROPPED)))
-            return true;
-        return false;
+        return state.equals(String.valueOf(TaskState.DROPPED));
     }
 
     private String getTaskStatus(long taskId) throws TaskInfoDoesNotExistException {
@@ -191,7 +171,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 .orElseThrow(TaskInfoDoesNotExistException::new);
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Optional<String> findTaskStatus(long taskId) {
         return findById(taskId)
                 .map(row -> row.getState().toString());

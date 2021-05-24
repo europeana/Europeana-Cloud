@@ -4,9 +4,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +24,8 @@ import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColum
 public class TaskStatusUpdater {
 
 
-    public TaskStatusUpdater(CassandraTaskInfoDAO taskInfoDAO, TasksByStateDAO tasksByStateDAO, String applicationIdentifier) {
+    public TaskStatusUpdater(CassandraTaskInfoDAO taskInfoDAO, TasksByStateDAO tasksByStateDAO,
+                             String applicationIdentifier) {
         this.taskInfoDAO = taskInfoDAO;
         this.tasksByStateDAO = tasksByStateDAO;
         this.applicationIdentifier = applicationIdentifier;
@@ -36,17 +35,17 @@ public class TaskStatusUpdater {
 
     private static TaskStatusUpdater instance;
 
-    private CassandraTaskInfoDAO taskInfoDAO;
+    private final CassandraTaskInfoDAO taskInfoDAO;
 
-    private TasksByStateDAO tasksByStateDAO;
+    private final TasksByStateDAO tasksByStateDAO;
 
-    private String applicationIdentifier;
+    private final String applicationIdentifier;
 
     public static synchronized TaskStatusUpdater getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
             instance = new TaskStatusUpdater(
                     CassandraTaskInfoDAO.getInstance(cassandra),
-                    RetryableMethodExecutor.createRetryProxy(new TasksByStateDAO(cassandra)),
+                    TasksByStateDAO.getInstance(cassandra),
                     "");
         }
         return instance;
@@ -56,8 +55,11 @@ public class TaskStatusUpdater {
         long taskId = parameters.getTask().getTaskId();
         String topologyName = parameters.getTopologyName();
         String state = parameters.getStatus().toString();
-        insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier, parameters.getTopicName(), new Date());
-        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state, parameters.getInfo(), parameters.getSentTime(), parameters.getStartTime(), null, 0, parameters.getTaskJSON());
+        insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier,
+                parameters.getTopicName(), new Date());
+        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state,
+                parameters.getInfo(), parameters.getSentTime(), parameters.getStartTime(), null, 0,
+                parameters.getTaskJSON());
     }
 
     public void updateTask(long taskId, String info, String state, Date startDate)
@@ -78,15 +80,10 @@ public class TaskStatusUpdater {
         taskInfoDAO.setTaskDropped(taskId, info);
     }
 
-    public void setUpdateExpectedSize(long taskId, int expectedSize)
-            throws NoHostAvailableException, QueryExecutionException {
-        taskInfoDAO.setUpdateExpectedSize(taskId, expectedSize);
-    }
-
-    public void endTask(long taskId, int processeFilesCount, int errors, String info, String state, Date finishDate)
+    public void endTask(long taskId, int processedFilesCount, int errors, String info, String state, Date finishDate)
             throws NoHostAvailableException, QueryExecutionException {
         updateTasksByTaskStateTable(taskId, state);
-        taskInfoDAO.endTask(taskId, processeFilesCount, errors, info, state, finishDate);
+        taskInfoDAO.endTask(taskId, processedFilesCount, errors, info, state, finishDate);
     }
 
     public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
@@ -106,10 +103,8 @@ public class TaskStatusUpdater {
     }
 
     private void updateTasksByTaskStateTable(long taskId, String newState) {
-        Optional<TaskInfo> oldTask = taskInfoDAO.findById(taskId);
-        if (oldTask.isPresent()) {
-            updateTask(oldTask.get().getTopologyName(), taskId, oldTask.get().getState().toString(), newState);
-        }
+        taskInfoDAO.findById(taskId).ifPresent(taskInfo ->
+                updateTask(taskInfo.getTopologyName(), taskId, taskInfo.getState().toString(), newState));
     }
 
     public void updateTask(String topologyName, long taskId, String oldState, String newState) {
@@ -128,12 +123,13 @@ public class TaskStatusUpdater {
             startTime = oldTask.getTimestamp(TASKS_BY_STATE_START_TIME);
         }
 
-        insert(Optional.ofNullable(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
+        insert(Optional.of(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
-    private void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
+    private void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId,
+                        String topicName, Date startTime)
             throws NoHostAvailableException, QueryExecutionException {
-        if (oldState.isPresent() && !oldState.equals(state)) {
+        if (oldState.isPresent() && !oldState.get().equals(state)) {
             tasksByStateDAO.delete(oldState.get(), topologyName, taskId);
         }
         tasksByStateDAO.insert(state, topologyName, taskId, applicationId, topicName, startTime);

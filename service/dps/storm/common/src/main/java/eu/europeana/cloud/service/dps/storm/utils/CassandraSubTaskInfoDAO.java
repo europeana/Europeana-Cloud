@@ -16,6 +16,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
  *
  * @author akrystian
  */
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     private static final long TIME_TO_LIVE = Duration.ofDays(14).toSeconds();
@@ -42,6 +43,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     }
 
     public CassandraSubTaskInfoDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -74,12 +76,10 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource) {
         dbService.getSession().execute(subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public int getProcessedFilesCount(long taskId) {
         int bucketNumber = 0;
         int filesCount = 0;
@@ -96,7 +96,6 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
         return filesCount;
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeNotifications(long taskId) {
         int lastBucket = bucketNumber(getProcessedFilesCount(taskId) - 1);
         for (int i = lastBucket; i >= 0; i--) {

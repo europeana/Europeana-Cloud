@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     private static CassandraAttributeStatisticsDAO instance = null;
 
@@ -41,6 +42,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     }
 
     public CassandraAttributeStatisticsDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -86,13 +88,12 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
 
 
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
+
     public long getAttributeDistinctValues(long taskId, String nodePath, String nodeValue, String attributeName) {
         ResultSet rs = dbService.getSession().execute(countDistinctAttributeValues.bind(taskId, nodePath, nodeValue, attributeName));
         return rs.one().getLong(0);
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public long getSpecificAttributeValueCount(long taskId, String nodePath, String nodeValue, String attributeName, String attributeValue) {
         ResultSet rs = dbService.getSession().execute(countSpecificAttributeValue.bind(taskId, nodePath, nodeValue, attributeName, attributeValue));
         return rs.one().getLong(0);
@@ -104,7 +105,6 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param taskId              task identifier
      * @param attributeStatistics attribute statistics to insert
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insertAttributeStatistics(long taskId, String nodeXpath, String nodeValue, AttributeStatistics attributeStatistics) {
         dbService.getSession().execute(updateAttributeStatement.bind(attributeStatistics.getOccurrence(),
                 taskId,
@@ -121,7 +121,6 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param nodeXpath node xpath that contains returned attributes
      * @return list of attribute statistics objects
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Set<AttributeStatistics> getAttributeStatistics(long taskId, String nodeXpath, String nodeValue, int limit) {
         return dbService.getSession().execute(selectAttributesStatement.bind(taskId, nodeXpath, nodeValue, limit))
                 .all().stream().map(this::createAttributeStatistics).collect(Collectors.toSet());
@@ -133,7 +132,6 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
                 row.getLong(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeAttributeStatistics(long taskId, String nodeXpath, String nodeValue) {
         BoundStatement bs = deleteAttributesStatement.bind(taskId, nodeXpath, nodeValue);
         dbService.getSession().execute(bs);

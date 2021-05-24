@@ -19,6 +19,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
  *
  * @author akrystian
  */
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraTaskErrorsDAO extends CassandraDAO {
     private PreparedStatement insertErrorStatement;
     private PreparedStatement updateErrorCounterStatement;
@@ -50,6 +51,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     }
 
     public CassandraTaskErrorsDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -105,7 +107,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param taskId    task identifier
      * @param errorType type of error
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateErrorCounter(long taskId, String errorType) {
         dbService.getSession().execute(updateErrorCounterStatement.bind(taskId, UUID.fromString(errorType)));
     }
@@ -118,7 +119,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param errorMessage error message
      * @param resource     resource identifier
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
         dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource, additionalInformations));
     }
@@ -129,7 +129,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param taskId task identifier
      * @return number of all errors for the task
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public int getErrorCount(long taskId) {
         ResultSet rs = dbService.getSession().execute(selectErrorCountsStatement.bind(taskId));
         int count = 0;
@@ -142,14 +141,12 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         return count;
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Iterator<String> getMessagesUuids(long taskId) {
         return Iterators.transform(
                 dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
                 row -> row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString());
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public Optional<String> getErrorMessage(long taskId, String errorType)  {
         ResultSet rs = dbService.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType)));
         if (!rs.iterator().hasNext()) {
@@ -160,7 +157,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         return Optional.of(message);
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeErrors(long taskId) {
         ResultSet rs = dbService.getSession().execute(selectErrorTypeStatement.bind(taskId));
 

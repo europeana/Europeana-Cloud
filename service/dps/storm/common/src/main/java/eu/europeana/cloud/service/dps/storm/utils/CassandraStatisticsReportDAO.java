@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraStatisticsReportDAO extends CassandraDAO {
     private static CassandraStatisticsReportDAO instance = null;
 
@@ -38,6 +39,7 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
     }
 
     public CassandraStatisticsReportDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -66,7 +68,6 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
         removeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void storeReport(long taskId, StatisticsReport report) {
         String reportSerialized = gson.toJson(report);
         if (reportSerialized != null) {
@@ -81,7 +82,6 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
      * @param taskId task identifier
      * @return true when a row for the given task identifier is in the table
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public boolean isReportStored(long taskId) {
         BoundStatement bs = checkStatisticsReportStatement.bind(taskId);
         ResultSet rs = dbService.getSession().execute(bs);
@@ -95,7 +95,6 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
      * @param taskId task identifier
      * @return statistics report object
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public StatisticsReport getStatisticsReport(long taskId) {
         BoundStatement bs = getStatisticsReportStatement.bind(taskId);
         ResultSet rs = dbService.getSession().execute(bs);
@@ -109,7 +108,6 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
         return null;
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeStatisticsReport(long taskId) {
         dbService.getSession().execute(removeStatisticsReportStatement.bind(taskId));
     }

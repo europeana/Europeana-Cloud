@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraGeneralStatisticsDAO extends CassandraDAO {
     private static CassandraGeneralStatisticsDAO instance = null;
 
     private PreparedStatement updateStatement;
     private PreparedStatement removeGeneralStatisticsStatement;
     private PreparedStatement searchGeneralStatistcsByTaskIdStatement;
-    private PreparedStatement searchByParentStatement;
 
     public static synchronized CassandraGeneralStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -33,6 +33,7 @@ public class CassandraGeneralStatisticsDAO extends CassandraDAO {
     }
 
     public CassandraGeneralStatisticsDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -53,13 +54,6 @@ public class CassandraGeneralStatisticsDAO extends CassandraDAO {
                 " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?");
         searchGeneralStatistcsByTaskIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-
-        searchByParentStatement = dbService.getSession().prepare("SELECT *" +
-                " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH + " = ?");
-        searchByParentStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**
@@ -68,17 +62,14 @@ public class CassandraGeneralStatisticsDAO extends CassandraDAO {
      * @param taskId         task identifier
      * @param nodeStatistics node statistics object with all the necessary information
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateGeneralStatistics(long taskId, NodeStatistics nodeStatistics) {
         dbService.getSession().execute(updateStatement.bind(taskId, nodeStatistics.getParentXpath(), nodeStatistics.getXpath()));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeGeneralStatistics(long taskId) {
         dbService.getSession().execute(removeGeneralStatisticsStatement.bind(taskId));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public List<GeneralStatistics> searchGeneralStatistics(long taskId) {
         return dbService.getSession().execute(searchGeneralStatistcsByTaskIdStatement.bind(taskId)).all().stream().map(this::createGeneralStatistics).collect(Collectors.toList());
     }

@@ -137,7 +137,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
         harvestedRecordsDAO = RetryableMethodExecutor.createRetryProxy(
-                new HarvestedRecordsDAO(cassandraConnectionProvider));
+                HarvestedRecordsDAO.getInstance(cassandraConnectionProvider));
     }
 
     private void prepareUisClient() {
@@ -150,7 +150,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                     IDLE_TIME_CHECK_INTERVAL_IN_SECS);
         } catch (IndexingException | URISyntaxException e) {
             LOGGER.error("Unable to initialize indexer", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Unable to initialize indexer", e);
         }
     }
 

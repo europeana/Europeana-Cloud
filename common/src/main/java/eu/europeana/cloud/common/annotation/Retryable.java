@@ -8,6 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Retryable {
+
+    int DEFAULT_DELAY_BETWEEN_ATTEMPTS = 10 * 1000;
+
     /**
      * Maximum number of attempts while retry mechanism works
      * Default value is set to 3
@@ -20,7 +23,7 @@ public @interface Retryable {
      * Default value is set to 10[s]= 10*1000[ms]
      * @return Number of milliseconds
      */
-    int delay() default 10*1000;
+    int delay() default DEFAULT_DELAY_BETWEEN_ATTEMPTS;
 
     /**
      *
