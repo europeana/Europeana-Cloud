@@ -3,8 +3,9 @@ package eu.europeana.cloud.persisted;
 import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
-import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import org.apache.log4j.Logger;
 
 /**
@@ -16,7 +17,7 @@ public class RemoverImpl implements Remover {
 
     private final CassandraSubTaskInfoDAO subTaskInfoDAO;
     private final CassandraTaskErrorsDAO taskErrorDAO;
-    private final CassandraValidationStatisticsService statisticsService;
+    private final ValidationStatisticsServiceImpl statisticsService;
 
     private static final int DEFAULT_RETRIES = 5;
     private static final int SLEEP_TIME = 3000;
@@ -27,10 +28,10 @@ public class RemoverImpl implements Remover {
                 userName, password);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
-        statisticsService = CassandraValidationStatisticsService.getInstance(cassandraConnectionProvider);
+        statisticsService = ValidationStatisticsServiceImpl.getInstance(cassandraConnectionProvider);
     }
 
-    RemoverImpl(CassandraSubTaskInfoDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO, CassandraValidationStatisticsService statisticsService) {
+    RemoverImpl(CassandraSubTaskInfoDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO, ValidationStatisticsServiceImpl statisticsService) {
         this.subTaskInfoDAO = subTaskInfoDAO;
         this.taskErrorDAO = taskErrorDAO;
         this.statisticsService = statisticsService;

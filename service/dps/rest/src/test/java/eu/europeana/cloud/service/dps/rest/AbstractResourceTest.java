@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
+import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -21,7 +21,7 @@ public class AbstractResourceTest {
 
     /* Beans (or mocked beans) */
     protected TopologyManager topologyManager;
-    protected ValidationStatisticsReportService validationStatisticsService;
+    protected ValidationStatisticsService validationStatisticsService;
 
     /* Main mock for testing MVC in Spring */
     protected MockMvc mockMvc;
@@ -36,7 +36,7 @@ public class AbstractResourceTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 
         topologyManager = applicationContext.getBean(TopologyManager.class);
-        validationStatisticsService = applicationContext.getBean(CassandraValidationStatisticsService.class);
+        validationStatisticsService = applicationContext.getBean(ValidationStatisticsServiceImpl.class);
 
         reset(
                 topologyManager,

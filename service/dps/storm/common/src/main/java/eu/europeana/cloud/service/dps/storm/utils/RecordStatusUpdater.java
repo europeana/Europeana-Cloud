@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 
 /**
  * Component responsible for modifying 'Notifications' table

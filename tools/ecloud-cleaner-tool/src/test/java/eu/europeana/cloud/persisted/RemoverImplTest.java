@@ -1,8 +1,8 @@
 package eu.europeana.cloud.persisted;
 
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -26,7 +26,7 @@ public class RemoverImplTest {
 
 
     @Mock(name = "cassandraNodeStatisticsDAO")
-    private CassandraValidationStatisticsService statisticsService;
+    private ValidationStatisticsServiceImpl statisticsService;
 
     private RemoverImpl removerImpl;
 

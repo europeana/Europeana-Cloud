@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
@@ -9,12 +9,13 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
-public class CassandraStatisticsReportDAO extends CassandraDAO {
-    private static CassandraStatisticsReportDAO instance = null;
+public class StatisticsReportDAO extends CassandraDAO {
+    private static StatisticsReportDAO instance = null;
 
     private final Gson gson = new Gson();
 
@@ -24,9 +25,9 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
     private PreparedStatement checkStatisticsReportStatement;
 
 
-    public static synchronized CassandraStatisticsReportDAO getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized StatisticsReportDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new CassandraStatisticsReportDAO(cassandra));
+            instance = RetryableMethodExecutor.createRetryProxy(new StatisticsReportDAO(cassandra));
         }
         return instance;
     }
@@ -34,11 +35,11 @@ public class CassandraStatisticsReportDAO extends CassandraDAO {
     /**
      * @param dbService The service exposing the connection and session
      */
-    public CassandraStatisticsReportDAO(CassandraConnectionProvider dbService) {
+    public StatisticsReportDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
 
-    public CassandraStatisticsReportDAO() {
+    public StatisticsReportDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 

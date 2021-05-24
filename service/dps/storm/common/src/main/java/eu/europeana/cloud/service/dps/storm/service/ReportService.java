@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.service;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -7,7 +7,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.*;
@@ -17,7 +17,7 @@ import java.util.*;
  *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class CassandraReportService implements TaskExecutionReportService {
+public class ReportService implements TaskExecutionReportService {
     private CassandraConnectionProvider cassandra;
 
     private static final int FETCH_ONE = 1;
@@ -37,7 +37,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @param userName     Cassandra username
      * @param password     Cassandra password
      */
-    public CassandraReportService(String hosts, int port, String keyspaceName, String userName, String password) {
+    public ReportService(String hosts, int port, String keyspaceName, String userName, String password) {
         cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
         prepareStatements();
     }

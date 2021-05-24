@@ -8,8 +8,18 @@ import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
@@ -58,8 +68,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraReportService taskReportService() {
-        return new CassandraReportService(
+    public ReportService taskReportService() {
+        return new ReportService(
                 environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
                 environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
                 environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
@@ -135,8 +145,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraValidationStatisticsService validationStatisticsService() {
-        return new CassandraValidationStatisticsService(
+    public ValidationStatisticsServiceImpl validationStatisticsService() {
+        return new ValidationStatisticsServiceImpl(
                 cassandraGeneralStatisticsDAO(),
                 cassandraNodeStatisticsDAO(),
                 cassandraAttributeStatisticsDAO(),
@@ -144,8 +154,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraGeneralStatisticsDAO cassandraGeneralStatisticsDAO() {
-        return new CassandraGeneralStatisticsDAO(dpsCassandraProvider());
+    public GeneralStatisticsDAO cassandraGeneralStatisticsDAO() {
+        return new GeneralStatisticsDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -159,8 +169,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraStatisticsReportDAO cassandraStatisticsReportDAO() {
-        return new CassandraStatisticsReportDAO(dpsCassandraProvider());
+    public StatisticsReportDAO cassandraStatisticsReportDAO() {
+        return new StatisticsReportDAO(dpsCassandraProvider());
     }
 
     @Bean

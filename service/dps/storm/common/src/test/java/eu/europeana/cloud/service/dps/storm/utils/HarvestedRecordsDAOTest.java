@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.google.common.collect.Streams;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Before;
 import org.junit.Test;
