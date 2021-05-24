@@ -40,7 +40,7 @@ public class CassandraContentDAO implements ContentDAO {
 
     private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
     private static final String MSG_FILE_ALREADY_EXISTS = "File %s already exists";
-    public static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
+    private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
 
     @Autowired
     @Qualifier("dbService")
