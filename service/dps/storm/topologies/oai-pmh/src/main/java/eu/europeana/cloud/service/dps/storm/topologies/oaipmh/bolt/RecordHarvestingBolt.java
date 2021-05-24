@@ -54,7 +54,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
             LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
             try (final InputStream record = harvester.harvestRecord(
-                   new OaiRepository(endpointLocation, metadataPrefix), recordId)) {
+                   new OaiRepository(endpointLocation, metadataPrefix), recordId).getRecord()) {
                 stormTaskTuple.setFileData(record);
 
                 if (useHeaderIdentifier(stormTaskTuple))
