@@ -5,6 +5,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -17,6 +19,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -34,7 +38,11 @@ public class RecordHarvestingBoltTest  {
     private OaiHarvester harvester;
 
     @InjectMocks
-    private RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
+    private final RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
+
+    private static InputStream getFileContentAsStream(String name) {
+        return RecordHarvestingBoltTest.class.getResourceAsStream(name);
+    }
 
     @Before
     public void init() {
@@ -46,8 +54,8 @@ public class RecordHarvestingBoltTest  {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
+        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -65,8 +73,8 @@ public class RecordHarvestingBoltTest  {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
+        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -81,13 +89,25 @@ public class RecordHarvestingBoltTest  {
         assertEquals("/2020739_Ag_EU_CARARE_2Cultur/object_DCU_24927017", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
+    private Supplier<byte[]> fileContent(String fileName){
+        InputStream fileContentAsStream = getFileContentAsStream(fileName);
+        return () -> {
+            try {
+                return fileContentAsStream.readAllBytes();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        };
+    }
+
     @Test
     public void shouldHarvestRecordInEDMAndNotUseHeaderIdentifierIfParameterIsDifferentThanTrue() throws IOException, HarvesterException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
+        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("blablaba");
         StormTaskTuple spiedTask = spy(task);
@@ -109,8 +129,8 @@ public class RecordHarvestingBoltTest  {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
+        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("true");
         StormTaskTuple spiedTask = spy(task);
@@ -130,10 +150,10 @@ public class RecordHarvestingBoltTest  {
     @Test
     public void shouldHarvestRecordInEDMAndUseHeaderIdentifierAndTrimItIfSpecifiedInTaskParameters() throws IOException, HarvesterException {
         //given
-        InputStream fileContentAsStream = getFileContentAsStream("/sampleEDMRecord.xml");
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
+        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
 
         StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix("true");
         StormTaskTuple spiedTask = spy(task);
@@ -155,8 +175,8 @@ public class RecordHarvestingBoltTest  {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        InputStream fileContentAsStream = getFileContentAsStream("/corruptedEDMRecord.xml");
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(fileContentAsStream);
+        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/corruptedEDMRecord.xml"));
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
 
@@ -240,6 +260,7 @@ public class RecordHarvestingBoltTest  {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
+        task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
         task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
         task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
         task.addParameter(PluginParameterKeys.METIS_DATASET_ID, "2020739_Ag_EU_CARARE_2Culture");
@@ -249,6 +270,7 @@ public class RecordHarvestingBoltTest  {
     private StormTaskTuple taskWithoutResourceUrl() {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
+        task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
         task.setSourceDetails(details);
         return task;
     }
@@ -260,6 +282,7 @@ public class RecordHarvestingBoltTest  {
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
         task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
+        task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
         return task;
     }
 
@@ -268,6 +291,7 @@ public class RecordHarvestingBoltTest  {
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
         task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
+        task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
         task.setSourceDetails(details);
         return task;
     }
@@ -276,8 +300,8 @@ public class RecordHarvestingBoltTest  {
      * Checks if emit to standard stream occured
      */
     private void verifySuccessfulEmit() {
-        verify(outputCollector, times(1)).emit(Mockito.anyList());
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.any(Tuple.class), Mockito.anyList());
     }
 
     /**
@@ -285,11 +309,7 @@ public class RecordHarvestingBoltTest  {
      */
     private void verifyErrorEmit() {
 
-        verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(outputCollector, times(0)).emit(Mockito.anyList());
-    }
-
-    private static InputStream getFileContentAsStream(String name) {
-        return Object.class.getResourceAsStream(name);
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(Mockito.any(Tuple.class), Mockito.anyList());
     }
 }
