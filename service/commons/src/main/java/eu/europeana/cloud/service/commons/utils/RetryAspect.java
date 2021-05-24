@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;
 
@@ -25,12 +26,7 @@ public class RetryAspect {
         //Dummy method for defining cut point for AOP (see annotation above)
     }
 
-    @Pointcut("execution(* *(..))")
-    public void pointcutExecuteAnyMethod(){
-        //Dummy method for defining cut point for AOP (see annotation above)
-    }
-
-    @Pointcut("pointcutExecuteAnyMethod() && (pointcutTypeWithRetryableAnn() || pointcutMethodWithRetryableAnn())")
+    @Pointcut("pointcutTypeWithRetryableAnn() || pointcutMethodWithRetryableAnn()")
     public void pointcut(){
         //Dummy method for defining cut point for AOP (see annotation above)
     }
@@ -39,29 +35,28 @@ public class RetryAspect {
     public Object retry(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         Method method = ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
 
-        //Get annotation from method
-        Retryable retryAnnotation = method.getAnnotation(Retryable.class);
+        LOGGER.debug("Retry aspect called for '{}'", method);
 
-        //If no annotation, check, maybe it is interfaced method
-        if(retryAnnotation == null) {
-            //check case if object is behind interface but annotation was written for method implementation not for method in interface
-            try {
-                method = proceedingJoinPoint.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
-                retryAnnotation = method.getAnnotation(Retryable.class);
-            } catch(NoSuchMethodException nsme) {
-                //skip exception, if no method use previous one and look for annotation in class/type
-            }
-        }
-
-        //If no annotation, get it from target type
-        if(retryAnnotation == null) {
-            retryAnnotation = proceedingJoinPoint.getTarget().getClass().getAnnotation(Retryable.class);
-        }
+        Retryable retryAnnotation = getAnnotationForMethodOrClass(proceedingJoinPoint);
 
         String errorMessage =
                 RetryableMethodExecutor.createMessage(method, retryAnnotation, proceedingJoinPoint.getArgs());
 
         return RetryableMethodExecutor.execute(errorMessage,
                 retryAnnotation.maxAttempts(), retryAnnotation.delay(), proceedingJoinPoint::proceed);
+    }
+
+    private Retryable getAnnotationForMethodOrClass(ProceedingJoinPoint proceedingJoinPoint) {
+        Method method = ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
+
+        //Get annotation from method (directly or from interface)
+        Retryable retryAnnotation = AnnotationUtils.findAnnotation(method, Retryable.class);
+
+        //If no annotation, get it from target type
+        if(retryAnnotation == null) {
+            retryAnnotation = proceedingJoinPoint.getTarget().getClass().getAnnotation(Retryable.class);
+        }
+
+        return retryAnnotation;
     }
 }
