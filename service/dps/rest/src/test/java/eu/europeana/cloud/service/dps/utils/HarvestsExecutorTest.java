@@ -58,7 +58,8 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 @RunWith(PowerMockRunner.class)
 @ContextConfiguration(classes = {CassandraHarvestExecutorContext.class})
 @PrepareForTest({HarvesterFactory.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "org.apache.commons.codec.digest.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "org.apache.commons.codec.digest.*",
+        "eu.europeana.cloud.test.CassandraTestInstance"})
 public class HarvestsExecutorTest {
 
     private static final String TOPIC = "topic_1";
