@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;

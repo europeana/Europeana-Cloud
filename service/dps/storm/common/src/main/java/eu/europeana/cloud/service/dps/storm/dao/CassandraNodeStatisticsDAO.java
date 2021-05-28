@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
@@ -6,12 +6,14 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     private PreparedStatement updateNodeStatement;
@@ -39,6 +41,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
     }
 
     public CassandraNodeStatisticsDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -79,25 +82,21 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      * @param taskId         task identifier
      * @param nodeStatistics node statistics object to store / update
      */
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updateNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
         dbService.getSession().execute(updateNodeStatement.bind(
                 nodeStatistics.getOccurrence(), taskId, nodeStatistics.getXpath(), nodeStatistics.getValue()));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public List<String> searchNodeStatisticsValues(long taskId, String nodeXpath) {
         return dbService.getSession().execute(searchNodesStatementAll.bind(taskId, nodeXpath)).all().stream()
                 .map(row -> row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE))
                 .collect(Collectors.toList());
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void removeNodeStatistics(long taskId, String nodeXpath) {
         dbService.getSession().execute(deleteNodesStatisticsStatement.bind(taskId, nodeXpath));
     }
 
-    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath, int limit) {
         return dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath, limit)).all().stream()
                 .map(row -> createNodeStatistics(parentXpath, nodeXpath, row))

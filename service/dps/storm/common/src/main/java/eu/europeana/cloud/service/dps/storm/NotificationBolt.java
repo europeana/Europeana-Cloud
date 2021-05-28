@@ -8,9 +8,12 @@ import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
@@ -142,8 +145,8 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
         String recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
-        Optional<ProcessedRecord> record = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
-        if (record.isEmpty() || !isFinished(record.get())) {
+        Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
+        if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
             notifyTask(notificationTuple, nCache, taskId);
             storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
@@ -247,13 +250,13 @@ public class NotificationBolt extends BaseRichBolt {
         return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
     }
 
-    private boolean isFinished(ProcessedRecord record) {
-        return record.getState() == RecordState.SUCCESS || record.getState() == RecordState.ERROR;
+    private boolean isFinished(ProcessedRecord theRecord) {
+        return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
     }
 
     protected class NotificationCache {
 
-        int processed = 0;
+        int processed;
         int errors = 0;
 
         Map<String, String> errorTypes = new HashMap<>();
@@ -261,8 +264,8 @@ public class NotificationBolt extends BaseRichBolt {
         NotificationCache(long taskId) {
             processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
             if (processed > 0) {
-                errors = taskInfoDAO.findById(taskId).get().getErrors();
-                errorTypes = getMessagesUuidsMap(taskId);
+                errors = taskInfoDAO.findById(taskId).orElseThrow().getErrors();
+                errorTypes = getMessagesUUIDsMap(taskId);
                 LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}", taskId, processed, errors, errorTypes);
             }
         }
@@ -282,7 +285,7 @@ public class NotificationBolt extends BaseRichBolt {
             return errors;
         }
 
-        private Map<String, String> getMessagesUuidsMap(long taskId) {
+        private Map<String, String> getMessagesUUIDsMap(long taskId) {
             Map<String, String> errorMessageToUuidMap = new HashMap<>();
             Iterator<String> it = taskErrorDAO.getMessagesUuids(taskId);
             while (it.hasNext()) {

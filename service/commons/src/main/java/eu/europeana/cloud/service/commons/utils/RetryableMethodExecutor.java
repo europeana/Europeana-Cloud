@@ -12,18 +12,12 @@ import java.util.Arrays;
 public class RetryableMethodExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
-    private static final int DEFAULT_DB_RETRIES = 4;
+    public static final int DEFAULT_REST_ATTEMPTS = 8;
 
-    private static final int DEFAULT_REST_RETRIES = 8;
-
-    private static final int SLEEP_TIME = 5000;
-
-    public static <V, E extends Exception> V executeOnDb(String errorMessage, GenericCallable<V, E> callable) throws E {
-        return execute(errorMessage, DEFAULT_DB_RETRIES, SLEEP_TIME, callable);
-    }
+    public static final int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
 
     public static <E extends Exception> void executeOnRest(String errorMessage, GenericRunnable<E> runnable) throws E {
-        RetryableMethodExecutor.execute(errorMessage, DEFAULT_REST_RETRIES, SLEEP_TIME, () -> {
+        RetryableMethodExecutor.execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, () -> {
                     runnable.run();
                     return null;
                 }
@@ -31,7 +25,7 @@ public class RetryableMethodExecutor {
     }
 
     public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
-        return execute(errorMessage, DEFAULT_REST_RETRIES, SLEEP_TIME, callable);
+        return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
     }
 
     public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {

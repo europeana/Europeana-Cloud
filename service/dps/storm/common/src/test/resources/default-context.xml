@@ -14,9 +14,9 @@
             base-package="eu.europeana.cloud.service.dps.storm"/>
 
     <bean id="cassandraStatisticsService"
-          class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService">
+          class="eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl">
     </bean>
 
     <mockito:mock id="cassandraNodeStatisticsDAO"
-                  class="eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO"/>
+                  class="eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO"/>
 </beans>

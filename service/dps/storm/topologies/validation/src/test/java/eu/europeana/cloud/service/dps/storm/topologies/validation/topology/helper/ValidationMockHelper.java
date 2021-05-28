@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.help
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.helper.TopologyTestHelper;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 

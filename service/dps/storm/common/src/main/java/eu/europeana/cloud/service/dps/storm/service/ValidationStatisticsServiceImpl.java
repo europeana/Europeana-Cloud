@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.service;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
@@ -6,11 +6,11 @@ import eu.europeana.cloud.common.model.dps.GeneralStatistics;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
-import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraGeneralStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraStatisticsReportDAO;
+import eu.europeana.cloud.service.dps.ValidationStatisticsService;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,38 +18,38 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class CassandraValidationStatisticsService implements ValidationStatisticsReportService {
+public class ValidationStatisticsServiceImpl implements ValidationStatisticsService {
 
     public static final int ELEMENTS_SAMPLE_MAX_SIZE = 100;
     public static final int ATTRIBUTES_SAMPLE_MAX_SIZE = 25;
     public static final int ATTRIBUTES_MAX_ALLOWED_VALUES = 15;
-    private static CassandraValidationStatisticsService instance;
+    private static ValidationStatisticsServiceImpl instance;
 
-    private CassandraGeneralStatisticsDAO cassandraGeneralStatisticsDAO;
+    private GeneralStatisticsDAO generalStatisticsDAO;
     private CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
     private CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO;
-    private CassandraStatisticsReportDAO cassandraStatisticsReportDAO;
+    private StatisticsReportDAO statisticsReportDAO;
 
-    public static synchronized CassandraValidationStatisticsService getInstance(CassandraConnectionProvider cassandra) {
+    public static synchronized ValidationStatisticsServiceImpl getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraValidationStatisticsService(
-                    CassandraGeneralStatisticsDAO.getInstance(cassandra),
+            instance = new ValidationStatisticsServiceImpl(
+                    GeneralStatisticsDAO.getInstance(cassandra),
                     CassandraNodeStatisticsDAO.getInstance(cassandra),
                     CassandraAttributeStatisticsDAO.getInstance(cassandra),
-                    CassandraStatisticsReportDAO.getInstance(cassandra)
+                    StatisticsReportDAO.getInstance(cassandra)
             );
         }
         return instance;
     }
 
-    public CassandraValidationStatisticsService() {
+    public ValidationStatisticsServiceImpl() {
     }
 
-    public CassandraValidationStatisticsService(CassandraGeneralStatisticsDAO cassandraGeneralStatisticsDAO, CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO, CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO, CassandraStatisticsReportDAO cassandraStatisticsReportDAO) {
-        this.cassandraGeneralStatisticsDAO = cassandraGeneralStatisticsDAO;
+    public ValidationStatisticsServiceImpl(GeneralStatisticsDAO generalStatisticsDAO, CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO, CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO, StatisticsReportDAO statisticsReportDAO) {
+        this.generalStatisticsDAO = generalStatisticsDAO;
         this.cassandraNodeStatisticsDAO = cassandraNodeStatisticsDAO;
         this.cassandraAttributeStatisticsDAO = cassandraAttributeStatisticsDAO;
-        this.cassandraStatisticsReportDAO = cassandraStatisticsReportDAO;
+        this.statisticsReportDAO = statisticsReportDAO;
     }
 
     /**
@@ -59,7 +59,7 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      */
     @Override
     public StatisticsReport getTaskStatisticsReport(long taskId) {
-        StatisticsReport report = cassandraStatisticsReportDAO.getStatisticsReport(taskId);
+        StatisticsReport report = statisticsReportDAO.getStatisticsReport(taskId);
 
         if (report == null) {
             List<NodeStatistics> nodeStatistics = getNodeStatistics(taskId);
@@ -103,7 +103,7 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      * @param nodeStatistics node statistics to insert
      */
     private void insertNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
-        cassandraGeneralStatisticsDAO.updateGeneralStatistics(taskId, nodeStatistics);
+        generalStatisticsDAO.updateGeneralStatistics(taskId, nodeStatistics);
         // store node statistics only for nodes with values, occurrence of the node itself will be taken from the general statistics
         if (nodeStatistics.getValue() != null) {
             cassandraNodeStatisticsDAO.updateNodeStatistics(taskId, nodeStatistics);
@@ -141,7 +141,7 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
     public List<NodeStatistics> getNodeStatistics(long taskId) {
         List<NodeStatistics> result = new ArrayList<>();
 
-        for (GeneralStatistics generalStatistics : cassandraGeneralStatisticsDAO.searchGeneralStatistics(taskId)) {
+        for (GeneralStatistics generalStatistics : generalStatisticsDAO.searchGeneralStatistics(taskId)) {
             List<NodeStatistics> nodeStatistics = getNodeStatistics(taskId, generalStatistics.getParentXpath(), generalStatistics.getNodeXpath());
             if (nodeStatistics.isEmpty()) {
                 // this case happens when there is a node without a value but it may contain attributes
@@ -167,24 +167,24 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      * @param report report object to store
      */
     void storeStatisticsReport(long taskId, StatisticsReport report) {
-        if (cassandraStatisticsReportDAO.isReportStored(taskId)) {
+        if (statisticsReportDAO.isReportStored(taskId)) {
             return;
         }
-        cassandraStatisticsReportDAO.storeReport(taskId, report);
+        statisticsReportDAO.storeReport(taskId, report);
     }
 
     public void removeStatistics(long taskId) {
         removeGeneralStatistics(taskId);
-        cassandraStatisticsReportDAO.removeStatisticsReport(taskId);
+        statisticsReportDAO.removeStatisticsReport(taskId);
     }
 
 
     private void removeGeneralStatistics(long taskId) {
 
-        for (GeneralStatistics s:cassandraGeneralStatisticsDAO.searchGeneralStatistics(taskId)) {
+        for (GeneralStatistics s: generalStatisticsDAO.searchGeneralStatistics(taskId)) {
             removeNodeStatistics(taskId, s.getNodeXpath());
         }
-        cassandraGeneralStatisticsDAO.removeGeneralStatistics(taskId);
+        generalStatisticsDAO.removeGeneralStatistics(taskId);
     }
 
     private void removeNodeStatistics(long taskId, String nodeXpath) {

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

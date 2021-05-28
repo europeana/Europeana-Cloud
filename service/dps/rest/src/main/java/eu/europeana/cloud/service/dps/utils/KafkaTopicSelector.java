@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;

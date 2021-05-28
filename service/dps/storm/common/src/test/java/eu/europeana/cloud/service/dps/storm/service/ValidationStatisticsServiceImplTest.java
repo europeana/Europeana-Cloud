@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.service;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
@@ -6,8 +6,8 @@ import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraStatisticsReportDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Assert;
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-public class CassandraValidationStatisticsServiceTest extends CassandraTestBase {
+public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
     private static final long TASK_ID = 1;
 
     private static final String ROOT_XPATH = "/root";
@@ -53,17 +53,17 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
 
     private static final long OCCURRENCE = 1;
 
-    private CassandraValidationStatisticsService validationStatisticsService;
+    private ValidationStatisticsServiceImpl validationStatisticsService;
 
-    private CassandraStatisticsReportDAO cassandraStatisticsReportDAO;
+    private StatisticsReportDAO statisticsReportDAO;
 
     private CassandraAttributeStatisticsDAO attributeStatisticsDAO;
 
     @Before
     public void setUp() {
         CassandraConnectionProvider cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
-        cassandraStatisticsReportDAO = CassandraStatisticsReportDAO.getInstance(cassandra);
-        validationStatisticsService = CassandraValidationStatisticsService.getInstance(cassandra);
+        statisticsReportDAO = StatisticsReportDAO.getInstance(cassandra);
+        validationStatisticsService = ValidationStatisticsServiceImpl.getInstance(cassandra);
         attributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(cassandra);
     }
 
@@ -157,7 +157,7 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
         validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        Assert.assertFalse(cassandraStatisticsReportDAO.isReportStored(TASK_ID));
+        Assert.assertFalse(statisticsReportDAO.isReportStored(TASK_ID));
     }
 
     @Test
@@ -171,7 +171,7 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
 
 
         // then
-        Assert.assertTrue(cassandraStatisticsReportDAO.isReportStored(TASK_ID));
+        Assert.assertTrue(statisticsReportDAO.isReportStored(TASK_ID));
     }
 
     @Test
@@ -184,7 +184,7 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
         validationStatisticsService.storeStatisticsReport(TASK_ID, report);
 
         // then
-        StatisticsReport reportRetrieved = cassandraStatisticsReportDAO.getStatisticsReport(TASK_ID);
+        StatisticsReport reportRetrieved = statisticsReportDAO.getStatisticsReport(TASK_ID);
         Assert.assertEquals(report, reportRetrieved);
     }
 
@@ -219,7 +219,7 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
         StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
 
         // then
-        assertNotNull(cassandraStatisticsReportDAO.getStatisticsReport(TASK_ID));
+        assertNotNull(statisticsReportDAO.getStatisticsReport(TASK_ID));
         assertEquals(TASK_ID, actual.getTaskId());
         assertThat(actual.getNodeStatistics().size(), is(2));
         assertEquals(stats, actual.getNodeStatistics());
@@ -236,7 +236,7 @@ public class CassandraValidationStatisticsServiceTest extends CassandraTestBase 
         actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
 
         // then
-        assertNotNull(cassandraStatisticsReportDAO.getStatisticsReport(TASK_ID));
+        assertNotNull(statisticsReportDAO.getStatisticsReport(TASK_ID));
         assertEquals(TASK_ID, actual.getTaskId());
         assertThat(actual.getNodeStatistics().size(), is(2));
         assertEquals(stats, actual.getNodeStatistics());

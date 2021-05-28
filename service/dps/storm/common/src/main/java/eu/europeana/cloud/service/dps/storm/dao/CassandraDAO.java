@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 

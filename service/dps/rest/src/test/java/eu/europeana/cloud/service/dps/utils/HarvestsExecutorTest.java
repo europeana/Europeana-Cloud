@@ -7,8 +7,8 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.config.CassandraHarvestExecutorContext;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.metis.harvesting.HarvesterException;
@@ -35,7 +35,6 @@ import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +58,8 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 @RunWith(PowerMockRunner.class)
 @ContextConfiguration(classes = {CassandraHarvestExecutorContext.class})
 @PrepareForTest({HarvesterFactory.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "org.apache.commons.codec.digest.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "org.apache.commons.codec.digest.*",
+        "eu.europeana.cloud.test.CassandraTestInstance"})
 public class HarvestsExecutorTest {
 
     private static final String TOPIC = "topic_1";

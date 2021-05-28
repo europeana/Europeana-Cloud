@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.utils.GhostTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;

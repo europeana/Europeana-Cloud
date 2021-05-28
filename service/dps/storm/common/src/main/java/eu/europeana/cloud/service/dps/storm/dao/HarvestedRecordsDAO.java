@@ -1,21 +1,27 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.utils.BucketRecordIterator;
+import eu.europeana.cloud.service.dps.storm.utils.BucketUtils;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
 
+import static eu.europeana.cloud.common.annotation.Retryable.*;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 public class HarvestedRecordsDAO extends CassandraDAO {
 
     private static final int MAX_NUMBER_OF_BUCKETS = 64;
     private static final String DB_COMMUNICATION_FAILURE_MESSAGE = "Database communication failure";
+    private static HarvestedRecordsDAO instance;
     private PreparedStatement insertHarvestedRecord;
     private PreparedStatement updateIndexingDate;
     private PreparedStatement findRecord;
@@ -23,7 +29,15 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     private PreparedStatement deleteRecord;
     private PreparedStatement updateHarvestDate;
 
+    public static synchronized HarvestedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new HarvestedRecordsDAO(cassandra));
+        }
+        return instance;
+    }
+
     public HarvestedRecordsDAO(){
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     public HarvestedRecordsDAO(CassandraConnectionProvider dbService) {
@@ -94,10 +108,10 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     }
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
-    public void insertHarvestedRecord(HarvestedRecord record) {
-        dbService.getSession().execute(insertHarvestedRecord.bind(record.getMetisDatasetId(),
-                        oaiIdBucketNo(record.getRecordLocalId()), record.getRecordLocalId(), record.getHarvestDate(),
-                record.getMd5(), record.getIndexingDate()));
+    public void insertHarvestedRecord(HarvestedRecord theRecord) {
+        dbService.getSession().execute(insertHarvestedRecord.bind(theRecord.getMetisDatasetId(),
+                        oaiIdBucketNo(theRecord.getRecordLocalId()), theRecord.getRecordLocalId(), theRecord.getHarvestDate(),
+                theRecord.getMd5(), theRecord.getIndexingDate()));
     }
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
@@ -130,7 +144,9 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     }
 
     private Iterator<Row> queryBucket(String metisDatasetId, Integer bucketNumber) {
-        return RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
+        return RetryableMethodExecutor.execute(DB_COMMUNICATION_FAILURE_MESSAGE,
+                DPS_DEFAULT_MAX_ATTEMPTS,
+                DEFAULT_DELAY_BETWEEN_ATTEMPTS,
                 () -> dbService.getSession().execute(
                         findAllRecordInDataset.bind(metisDatasetId, bucketNumber))
                         .iterator()
