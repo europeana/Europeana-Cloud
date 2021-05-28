@@ -7,13 +7,13 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -50,12 +50,15 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
 
     private SimpleDateFormat dateFormat;
 
+    private CassandraDataSetDAO dataSetDAO;
+
     @Before
     public void mockUp() {
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         dataSetWebTarget = DataSetRevisionsResource.class.getAnnotation(RequestMapping.class).value()[0];
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        dataSetDAO = applicationContext.getBean(CassandraDataSetDAO.class);
     }
 
     @After
@@ -76,7 +79,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
         dataSetService.createDataSet(providerId, datasetId, "");
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
 
         // when
         ResultActions response = mockMvc.perform(
@@ -108,7 +111,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
         dataSetService.createDataSet(providerId, datasetId, "");
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
 
         // when
         ResultActions response = mockMvc.perform(
@@ -164,10 +167,9 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
         Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
         dataSetService.createDataSet(providerId, datasetId, "");
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId2);
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId3);
-
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2);
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3);
         // when
         ResultActions response = mockMvc.perform(
                 get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId).
@@ -199,9 +201,9 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
         String cloudId = "cloudId";
         String cloudId2 = "cloudId2";
         String cloudId3 = "cloudId3";
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId2);
-        dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId3);
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2);
+        dataSetDAO.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3);
 
         // when get first page (set page size to 1)
         ResultActions response = mockMvc.perform(

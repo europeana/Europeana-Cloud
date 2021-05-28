@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.test;
 
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -35,25 +34,6 @@ public class TestHelper {
         }
         return cloudTagsResponseList;
     }
-
-    public final List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date) {
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>(2);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse2 = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID2, date);
-        cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
-        cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse2);
-        return cloudIdAndTimestampResponseList;
-    }
-
-    public final List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList(Date date, int n) {
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>(n);
-        for (int i = 0; i < n; i++) {
-            CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
-            cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
-        }
-        return cloudIdAndTimestampResponseList;
-    }
-
 
     public final Representation prepareRepresentation(String cloudId, String representationName, String version, String fileUrl,
                                                       String dataProvider, boolean persistent, Date creationDate) throws URISyntaxException {

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.mcs.driver;
 
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -205,36 +204,4 @@ public class DataSetServiceClientITest {
 
         assertNotNull(result);
     }
-
-    @Test
-    public void getLatestDataSetCloudIdByRepresentationAndRevision() throws MCSException {
-        String providerId = "metis_acceptance";
-        String dataSetId = "218068ec-aad2-4bd3-9421-9bfcefe92e2a";
-        String representationName = "metadataRecord";
-        String revisionName = "TRANSFORMATION";
-        String revisionProviderId = "metis_acceptance";
-
-        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-
-        List<CloudIdAndTimestampResponse> result = mcsClient.getLatestDataSetCloudIdByRepresentationAndRevision(
-                dataSetId, providerId, revisionProviderId, revisionName, representationName, null);
-
-        assertNotNull(result);
-    }
-
-
-    @Test
-    public void getDataSetCloudIdsByRepresentation() throws MCSException {
-        String providerId = "metis_acceptance";
-        String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
-        String representationName = "metadataRecord";
-        String dateFrom = "2000-01-01T00:00:00.000Z";
-        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-
-        List<CloudVersionRevisionResponse> result = mcsClient.getDataSetCloudIdsByRepresentation(dataSetId, providerId,
-                representationName, dateFrom, "published");
-
-        assertNotNull(result);
-    }
-
 }

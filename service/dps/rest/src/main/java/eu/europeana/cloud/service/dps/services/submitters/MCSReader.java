@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -32,17 +31,6 @@ public class MCSReader implements AutoCloseable {
         recordServiceClient = new RecordServiceClient(mcsClientURL, authorizationHeader);
         fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
     }
-
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider, String startFrom) throws MCSException {
-        return RetryableMethodExecutor.executeOnRest("Error while getting slice of latest cloud Id from data set.", () -> {
-            ResultSlice<CloudIdAndTimestampResponse> resultSlice = dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevisionChunk(datasetName, datasetProvider, revisionProvider, revisionName, representationName, false, startFrom);
-            if (resultSlice == null || resultSlice.getResults() == null) {
-                throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
-            }
-            return resultSlice;
-        });
-    }
-
 
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
             String representationName,
