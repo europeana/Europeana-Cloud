@@ -41,8 +41,8 @@ public class DPSClientTestIT {
         task.addParameter("PROVIDER_ID", "metis_test5");
         task.addParameter("USE_DEFAULT_IDENTIFIERS", "true");
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
-        details.setSchemas(Collections.singleton("edm"));
-        details.setSets(Collections.singleton("ZFMK"));
+        details.setSchema("edm");
+        details.setSet("ZFMK");
         task.setHarvestingDetails(details);
         long id = client.submitTask(task, "oai_topology");
         assertTrue(id != 0);

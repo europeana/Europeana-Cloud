@@ -1,3 +1,5 @@
+CREATE KEYSPACE IF NOT EXISTS junit_aas WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+
 USE junit_aas;
 
 CREATE TABLE users(username varchar, password varchar, roles set<text>, PRIMARY KEY (username));

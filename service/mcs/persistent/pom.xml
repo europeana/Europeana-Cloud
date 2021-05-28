@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>3</version>
+        <version>4</version>
     </parent>
 
     <artifactId>ecloud-service-mcs-persistent</artifactId>
@@ -176,6 +176,13 @@
             <artifactId>springockito</artifactId>
             <version>1.0.8</version>
             <scope>test</scope>
+            <exclusions>
+                <!--without jcl - because we use log4j through slf4j -->
+                <exclusion>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>net.jpountz.lz4</groupId>
@@ -188,6 +195,12 @@
             <artifactId>servlet-api</artifactId>
             <version>${version.servlet}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.3.3</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 	

@@ -69,7 +69,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
 
         ArrayList<File> files = new ArrayList<>(1);
         files.add(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-                "2013-01-01", 12345L, URI.create("http://localhost:80/records/" + globalId
+                "2013-01-01", 12345L, URI.create("http://localhost/records/" + globalId
                         + "/representations/" + schema + "/versions/" + version + "/files/1.xml")));
 
         expected.setFiles(files);

@@ -8,8 +8,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -21,7 +19,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:/default-context.xml"})
+@ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraUserDAOTest extends CassandraTestBase {
     private static final String ROLE_USER = "ROLE_USER";
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
@@ -41,12 +39,6 @@ public class CassandraUserDAOTest extends CassandraTestBase {
      */
     @Before
     public void prepare() {
-        @SuppressWarnings("resource")
-        ApplicationContext context = new ClassPathXmlApplicationContext(
-                "default-context.xml");
-
-        provider = (CassandraConnectionProvider) context.getBean("provider");
-        dao = (CassandraUserDAO) context.getBean("dao");
         initUsers();
     }
 
@@ -58,7 +50,6 @@ public class CassandraUserDAOTest extends CassandraTestBase {
         getSession().execute("INSERT INTO users (username, password, roles) VALUES('admin', 'admin', {'ROLE_ADMIN'});" +
                 "\n");
     }
-
 
     @Test
     public void testUserWithRoles() throws Exception {

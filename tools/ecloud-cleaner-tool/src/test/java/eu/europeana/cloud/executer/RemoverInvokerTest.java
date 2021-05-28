@@ -23,9 +23,8 @@ public class RemoverInvokerTest {
     @Mock(name = "remover")
     private Remover remover;
 
-
     @InjectMocks
-    private RemoverInvoker removerInvoker = new RemoverInvoker(remover);
+    private RemoverInvoker removerInvoker;
 
     private static final long TASK_ID = 1234;
 

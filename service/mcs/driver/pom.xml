@@ -4,10 +4,10 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>3</version>
+        <version>4</version>
     </parent>
     <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
-    <version>3</version>
+    <version>4</version>
     <name>Europeana Cloud: Metadata and Content Service Java Client</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -15,6 +15,19 @@
         <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
     </properties>
     <dependencies>
+        <dependency>
+            <artifactId>jaxb-api</artifactId>
+            <groupId>javax.xml.bind</groupId>
+            <version>2.3.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-io</artifactId>

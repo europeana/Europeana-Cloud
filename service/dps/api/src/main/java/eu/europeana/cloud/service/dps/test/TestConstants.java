@@ -23,6 +23,14 @@ public class TestConstants {
             + SOURCE + REPRESENTATION_NAME + "/versions/"
             + SOURCE + VERSION + "/files/"
             + SOURCE + FILE;
+
+    public static final String SOURCE_VERSION_URL_CLOUD_ID2 = "http://localhost:8080/mcs/records/"
+            + SOURCE + CLOUD_ID2 + "/representations/"
+            + SOURCE + REPRESENTATION_NAME + "/versions/"
+            + SOURCE + VERSION + "/files/"
+            + SOURCE + FILE;
+
+
     public static final String SOURCE_VERSION_URL_FILE2 = "http://localhost:8080/mcs/records/"
             + SOURCE + CLOUD_ID + "/representations/"
             + SOURCE + REPRESENTATION_NAME + "/versions/"

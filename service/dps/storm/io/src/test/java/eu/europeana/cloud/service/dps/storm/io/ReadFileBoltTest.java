@@ -64,23 +64,24 @@ public class ReadFileBoltTest {
     }
 
     @Test
-    public void shouldRetry3TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
+    public void shouldRetry7TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
         //given
         doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
-        verifyMethodExecutionNumber(4, 1, FILE_URL);
+        verifyMethodExecutionNumber(8, 1, FILE_URL);
     }
 
     @Test
-    public void shouldRetry3TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
+    public void shouldRetry7TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
         //given
         doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
-        verifyMethodExecutionNumber(4, 1, FILE_URL);
+        verifyMethodExecutionNumber(8, 1, FILE_URL);
     }
 
     private StormTaskTuple prepareTuple() {
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER);
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
+        stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return stormTaskTuple;
     }
 

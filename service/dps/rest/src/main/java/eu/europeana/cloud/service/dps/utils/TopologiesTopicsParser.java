@@ -1,10 +1,13 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 
 public class TopologiesTopicsParser {
-
-    private static final String INPUT_VALUE_REGEX = "(\\w+:(\\w*,?)+;?)+";
+    private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesTopicsParser.class);
+    private static final String INPUT_VALUE_REGEX = "(\\w+:([\\w\\-]*,?)+;?)+";
 
     public Map<String, List<String>> parse(String topicsList) {
         if (isInputValid(topicsList)) {

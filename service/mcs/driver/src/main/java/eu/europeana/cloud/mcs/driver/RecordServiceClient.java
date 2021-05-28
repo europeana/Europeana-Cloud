@@ -243,7 +243,8 @@ public class RecordServiceClient extends MCSClient {
      *                                    Service
      * @throws MCSException               on unexpected situations
      */
-    public URI createRepresentation(String cloudId, String representationName, String providerId) throws MCSException {
+    public URI createRepresentation(String cloudId, String representationName, String providerId,
+                                    String key, String value) throws MCSException {
 
         WebTarget target = client
                 .target(baseUrl)
@@ -253,9 +254,15 @@ public class RecordServiceClient extends MCSClient {
         Builder request = target.request();
         Form form = new Form();
         form.param(PROVIDER_ID, providerId);
-
+        if (key != null) {
+            request.header(key, value);
+        }
         Response response = null;
         return handleRepresentationResponse(form, request, response);
+    }
+
+    public URI createRepresentation(String cloudId, String representationName, String providerId) throws MCSException {
+        return createRepresentation(cloudId, representationName, providerId, (String) null, (String) null);
     }
 
     /**
@@ -699,8 +706,6 @@ public class RecordServiceClient extends MCSClient {
             closeResponse(response);
         }
     }
-
-
 
     /**
      * Returns representation in specified version.

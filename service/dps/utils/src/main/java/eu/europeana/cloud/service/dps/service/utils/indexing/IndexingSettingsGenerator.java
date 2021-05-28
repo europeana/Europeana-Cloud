@@ -27,6 +27,7 @@ public class IndexingSettingsGenerator {
     public static final String MONGO_SECRET = "mongo.password";
     public static final String MONGO_USE_SSL = "mongo.useSSL";
     public static final String MONGO_READ_PREFERENCE = "mongo.readPreference";
+    public static final String MONGO_APPLICATION_NAME = "mongo.applicationName";
     public static final String MONGO_AUTH_DB = "mongo.authDB";
     //
     public static final String SOLR_INSTANCES = "solr.instances";
@@ -37,8 +38,8 @@ public class IndexingSettingsGenerator {
     public static final String ZOOKEEPER_DEFAULT_COLLECTION = "zookeeper.defaultCollection";
     public static final String DELIMITER = ".";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingSettingsGenerator.class);
-    private Properties properties;
-    private TargetIndexingEnvironment environmentPrefix;
+    private final Properties properties;
+    private final TargetIndexingEnvironment environmentPrefix;
 
     public IndexingSettingsGenerator(TargetIndexingEnvironment environment, Properties properties) {
         this.environmentPrefix = environment;
@@ -122,6 +123,7 @@ public class IndexingSettingsGenerator {
         }
         indexingSettings
                 .setMongoReadPreference(properties.getProperty(prefix + DELIMITER + MONGO_READ_PREFERENCE));
+        indexingSettings.setMongoApplicationName(properties.getProperty(prefix + DELIMITER + MONGO_APPLICATION_NAME));
 
     }
 

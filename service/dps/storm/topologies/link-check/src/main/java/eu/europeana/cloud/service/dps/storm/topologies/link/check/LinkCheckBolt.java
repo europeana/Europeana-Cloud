@@ -28,6 +28,10 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 
     private transient LinkChecker linkChecker;
 
+    @Override
+    protected boolean ignoreDeleted() {
+        return false;
+    }
 
     @Override
     public void prepare() {
@@ -49,6 +53,13 @@ public class LinkCheckBolt extends AbstractDpsBolt {
      */
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
+        if(tuple.isMarkedAsDeleted()){
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "Record deleted - no links were checked.", "",
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+            outputCollector.ack(anchorTuple);
+            return;
+        }
+
         ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
         if (!hasLinksForCheck(resourceInfo)) {
             emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(), "", "The EDM file has no resources", "",

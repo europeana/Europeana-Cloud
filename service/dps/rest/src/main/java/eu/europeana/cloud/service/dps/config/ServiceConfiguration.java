@@ -118,6 +118,13 @@ public class ServiceConfiguration {
         return new CassandraTaskInfoDAO(dpsCassandraProvider());
     }
 
+
+    @Bean
+    public HarvestedRecordsDAO harvestedRecordsDAO() {
+        return new HarvestedRecordsDAO(dpsCassandraProvider());
+    }
+
+
     @Bean
     public CassandraTaskErrorsDAO taskErrorDAO() {
         return CassandraTaskErrorsDAO.getInstance(dpsCassandraProvider());

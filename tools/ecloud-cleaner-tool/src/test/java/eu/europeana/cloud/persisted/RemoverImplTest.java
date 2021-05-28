@@ -29,15 +29,14 @@ public class RemoverImplTest {
     @Mock(name = "cassandraNodeStatisticsDAO")
     private CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
 
+    private RemoverImpl removerImpl;
 
-    @InjectMocks
-    private RemoverImpl removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, cassandraNodeStatisticsDAO);
-
-    private static long TASK_ID = 1234;
+    private static final long TASK_ID = 1234;
 
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
+        removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, cassandraNodeStatisticsDAO);
     }
 
     @Test

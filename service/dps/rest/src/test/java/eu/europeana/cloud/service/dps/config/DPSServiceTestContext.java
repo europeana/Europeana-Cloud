@@ -11,15 +11,10 @@ import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.submitters.DepublicationTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -174,6 +169,16 @@ public class DPSServiceTestContext {
     @Bean
     public DatasetDepublisher datasetDepublisher(){
         return Mockito.mock(DatasetDepublisher.class);
+    }
+
+    @Bean
+    public TaskStatusSynchronizer taskStatusSynchronizer(){
+        return Mockito.mock(TaskStatusSynchronizer.class);
+    }
+
+    @Bean
+    public RecordSubmitService recordSubmitService(){
+        return Mockito.mock(RecordSubmitService.class);
     }
 
 }

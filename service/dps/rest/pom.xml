@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>3</version>
+        <version>4</version>
     </parent>
 
 
@@ -185,6 +185,15 @@
 
     <dependencies>
         <dependency>
+            <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
+                to avoid data corruption in Cassandra.
+                Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${version.commonscodec}</version>
+        </dependency>
+
+        <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <version>2.0.1.Final</version>
@@ -227,9 +236,15 @@
         </dependency>
 
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-oaipmh</artifactId>
-            <version>${project.version}</version>
+            <groupId>eu.europeana.metis</groupId>
+            <artifactId>metis-harvesting</artifactId>
+            <version>${version.metis}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -290,20 +305,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>zt-zip</artifactId>
-            <version>1.12</version>
-            <type>jar</type>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.rauschig/jarchivelib -->
-        <dependency>
-            <groupId>org.rauschig</groupId>
-            <artifactId>jarchivelib</artifactId>
-            <version>0.7.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <version>${version.spring-framework}</version>
@@ -325,7 +326,6 @@
         </dependency>
 
         <!--Jersey -->
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -396,6 +396,10 @@
                     <groupId>org.springframework</groupId>
                 </exclusion>
                 <exclusion>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.mockito</groupId>
                     <artifactId>mockito-all</artifactId>
                 </exclusion>
@@ -412,11 +416,6 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <version>1.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.dspace</groupId>
-            <artifactId>xoai-service-provider</artifactId>
-            <version>4.2.0</version>
         </dependency>
 
         <dependency>

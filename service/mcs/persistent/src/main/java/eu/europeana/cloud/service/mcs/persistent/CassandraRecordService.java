@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.common.utils.RevisionUtils;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -39,7 +40,7 @@ public class CassandraRecordService implements RecordService {
 
 
     @Autowired
-    private CassandraDataSetService dataSetService;
+    private DataSetService dataSetService;
 
     @Autowired
     private CassandraDataSetDAO dataSetDAO;

@@ -10,7 +10,7 @@
 
     <bean id="mutableAclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
         <constructor-arg ref="aclRepository" />
-        <constructor-arg name="aclCache">
+        <constructor-arg>
             <null />
         </constructor-arg>
         <constructor-arg ref="permissionGrantingStrategy" />
@@ -19,17 +19,18 @@
     </bean>
 
     <bean id="aclRepository"
-          class="eu.europeana.aas.acl.repository.CassandraAclRepository">
-        <constructor-arg ref="provider" />
-        <constructor-arg name="initSchema" value="true" />
+          class="eu.europeana.aas.acl.repository.CassandraAclRepository" autowire="byType">
+        <constructor-arg value="#{provider.session}" />
+        <constructor-arg value="#{provider.keyspaceName}" />
+        <constructor-arg value="true" />
     </bean>
 
     <bean id="provider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="hosts" value="localhost" />
-        <constructor-arg name="port" value="19142" />
-        <constructor-arg name="keyspaceName" value="test_keyspace" />
-        <constructor-arg name="userName" value="" />
-        <constructor-arg name="password" value="" />
+        <constructor-arg type="java.lang.String" value="localhost" />
+        <constructor-arg value="#{ T(eu.europeana.cloud.test.CassandraTestInstance).getPort() }" />
+        <constructor-arg value="test_keyspace" />
+        <constructor-arg value="" />
+        <constructor-arg value="" />
     </bean>
 
     <bean id="permissionGrantingStrategy"

@@ -55,6 +55,11 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 				LOGGER.info("The EDM file has no resource Links ");
                 outputCollector.emit(anchorTuple, tuple.toStormTuple());
 			} else {
+				LOGGER.info("Found {} resources for {}", rdfResourceEntries.size(), stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+				rdfResourceEntries
+						.stream()
+						.map(RdfResourceEntry::getResourceUrl)
+						.forEach(LOGGER::info);
 				for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
 					if (AbstractDpsBolt.taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
 						break;

@@ -11,11 +11,11 @@
 
     <!--connection provider - with options the same as in embedded cassandra-->
     <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="hosts" value="localhost" />
-        <constructor-arg name="port" value="19142" />
-        <constructor-arg name="keyspaceName" value="ecloud_test" />
-        <constructor-arg name="userName" value="" />
-        <constructor-arg name="password" value="" />
+        <constructor-arg index="0" value="localhost" />
+        <constructor-arg index="1" value="#{ T(eu.europeana.cloud.test.CassandraTestInstance).getPort() }" />
+        <constructor-arg index="2" value="junit_mcs" />
+        <constructor-arg index="3" value="" />
+        <constructor-arg index="4" value="" />
     </bean>
 
     <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>

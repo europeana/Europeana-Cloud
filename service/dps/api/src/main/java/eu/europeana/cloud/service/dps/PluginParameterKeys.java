@@ -34,7 +34,6 @@ public final class PluginParameterKeys {
     public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
     public static final String RECORD_IDS_TO_DEPUBLISH = "RECORD_IDS_TO_DEPUBLISH";
 
-
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String CLOUD_ID = "CLOUD_ID";
@@ -49,8 +48,6 @@ public final class PluginParameterKeys {
     public static final String MESSAGE_PROCESSING_START_TIME_IN_MS = "START_TIME";
 
     public static final String SAMPLE_SIZE  = "SAMPLE_SIZE";
-    public static final String DPS_URL = "DPS_URL";
-
 
     // ---------  IC  -----------
     public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
@@ -82,6 +79,7 @@ public final class PluginParameterKeys {
     public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
     public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
     public static final String USE_DEFAULT_IDENTIFIERS = "USE_DEFAULT_IDENTIFIERS";
+    public static final String INCREMENTAL_HARVEST = "INCREMENTAL_HARVEST";
 
     // -----------MIGRATION----------
     public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";
@@ -101,6 +99,7 @@ public final class PluginParameterKeys {
 
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
     public static final String FILES_ROOT_URL = "FILES_ROOT_URL";
+    public static final String MARKED_AS_DELETED = "DELETED_RECORD";
 
     static {
         //the default value for output mimeType

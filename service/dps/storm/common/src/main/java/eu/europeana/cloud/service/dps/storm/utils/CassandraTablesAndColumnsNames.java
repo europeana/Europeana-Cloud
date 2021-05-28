@@ -15,7 +15,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String STATISTICS_REPORTS_TABLE = "statistics_reports";
     public static final String TASKS_BY_STATE_TABLE = "tasks_by_task_state";
     public static final String PROCESSED_RECORDS_TABLE = "processed_records";
-    public static final String RECORD_PROCESSING_STATE = "record_processing_state";
+    public static final String HARVESTED_RECORD_TABLE = "harvested_records";
 
     //------- BASIC INFO -------
     public static final String BASIC_TASK_ID = "task_id";
@@ -33,6 +33,7 @@ public class CassandraTablesAndColumnsNames {
 
     //------- NOTIFICATION -------
     public static final String NOTIFICATION_TASK_ID = "task_id";
+    public static final String NOTIFICATION_BUCKET_NUMBER = "bucket_number";
     public static final String NOTIFICATION_RESOURCE_NUM = "resource_num";
     public static final String NOTIFICATION_TOPOLOGY_NAME = "topology_name";
     public static final String NOTIFICATION_RESOURCE = "resource";
@@ -100,5 +101,17 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_START_TIME = "start_time";
     public static final String PROCESSED_RECORDS_INFO_TEXT = "info_text";
     public static final String PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS = "additional_informations";
+    public static final String PROCESSED_RECORDS_BUCKET_NUMBER = "bucket_number";
+    //------- HARVESTED_RECORD -------
+    public static final String HARVESTED_RECORD_METIS_DATASET_ID = "metis_dataset_id";
+    public static final String HARVESTED_RECORD_LOCAL_ID = "record_local_id";
+    public static final String HARVESTED_RECORD_BUCKET_NUMBER = "bucket_number";
+    public static final String HARVESTED_RECORD_HARVEST_DATE = "harvest_date";
+    public static final String HARVESTED_RECORD_MD5 = "md5";
+    public static final String HARVESTED_RECORD_INDEXING_DATE = "indexing_date";
+
+    private CassandraTablesAndColumnsNames() {
+    }
+
 
 }

@@ -34,6 +34,11 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     }
 
     @Override
+    protected boolean ignoreDeleted() {
+        return false;
+    }
+
+    @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         addRevisionAndEmit(anchorTuple, stormTaskTuple);
         outputCollector.ack(anchorTuple);
@@ -41,18 +46,27 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("{} executed", getClass().getSimpleName());
+        String resourceURL = getResourceUrl(stormTaskTuple);
         try {
-            addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
+            addRevisionToSpecificResource(stormTaskTuple, resourceURL);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
-            LOGGER.error("URL is malformed: {} ", stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause(),
+            LOGGER.error("URL is malformed: {} ", resourceURL);
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), null, e.getMessage(), "The cause of the error is:" + e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
+    }
+
+    private String getResourceUrl(StormTaskTuple stormTaskTuple) {
+        String resourceURL = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
+        if (resourceURL == null) {
+            resourceURL = stormTaskTuple.getFileUrl();
+        }
+        return resourceURL;
     }
 
     protected void addRevisionToSpecificResource(StormTaskTuple stormTaskTuple, String affectedResourceURL) throws MalformedURLException, MCSException {
@@ -62,6 +76,12 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             Revision revisionToBeApplied = stormTaskTuple.getRevisionToBeApplied();
             if (revisionToBeApplied.getCreationTimeStamp() == null)
                 revisionToBeApplied.setCreationTimeStamp(new Date());
+
+            if (stormTaskTuple.isMarkedAsDeleted()) {
+                revisionToBeApplied = new Revision(revisionToBeApplied);
+                revisionToBeApplied.setDeleted(true);
+            }
+
             addRevision(urlParser, revisionToBeApplied,stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
         } else {
             LOGGER.info("Revisions list is empty");

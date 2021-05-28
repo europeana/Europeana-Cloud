@@ -256,7 +256,7 @@ public class TopologyTasksResource {
         ResponseEntity<Void> result;
 
         if (task != null) {
-            LOGGER.info(!restart ? "Submitting task" : "Restarting task");
+            LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
             String taskJSON = new ObjectMapper().writeValueAsString(task);
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
@@ -276,9 +276,10 @@ public class TopologyTasksResource {
                 URI responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();
             } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
+                taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), e.getMessage());
                 throw e;
             } catch(Exception e) {
-                result = getResponseForException(e, "Task submission failed. Internal server error.",
+                result = handleFailedSubmission(e, "Task submission failed. Internal server error.",
                         HttpStatus.INTERNAL_SERVER_ERROR, parameters);
             }
         } else {
@@ -290,12 +291,11 @@ public class TopologyTasksResource {
     }
 
 
-    private ResponseEntity<Void> getResponseForException(Exception exception, String loggedMessage, HttpStatus httpStatus,
-                                                         SubmitTaskParameters parameters) {
+    private ResponseEntity<Void> handleFailedSubmission(Exception exception, String loggedMessage, HttpStatus httpStatus,
+                                                        SubmitTaskParameters parameters) {
         LOGGER.error(loggedMessage);
-        ResponseEntity<Void> response = ResponseEntity.status(httpStatus).build();
         taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), exception.getMessage());
-        return response;
+        return ResponseEntity.status(httpStatus).build();
     }
 
     private URI buildTaskURI(StringBuffer base, DpsTask task) throws URISyntaxException {

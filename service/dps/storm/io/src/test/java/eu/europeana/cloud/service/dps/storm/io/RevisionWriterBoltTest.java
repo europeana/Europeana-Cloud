@@ -11,6 +11,8 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -22,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
@@ -36,6 +39,9 @@ public class RevisionWriterBoltTest {
 
     @InjectMocks
     private RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt("http://sample.ecloud.com/");
+
+    @Captor
+    private ArgumentCaptor<Revision> captor;
 
     @Before
     public void init() {
@@ -62,6 +68,21 @@ public class RevisionWriterBoltTest {
     }
 
     @Test
+    public void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MalformedURLException, MCSException {
+        Tuple anchorTuple = mock(TupleImpl.class);
+        RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
+        StormTaskTuple stormTaskTuple = prepareTuple();
+        stormTaskTuple.setMarkedAsDeleted(true);
+
+        testMock.execute(anchorTuple, stormTaskTuple);
+
+        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), captor.capture(), any(), any());
+        assertTrue( captor.getValue().isDeleted());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), Mockito.any(List.class));
+
+    }
+
+    @Test
     public void malformedUrlExceptionShouldBeHandled() throws MalformedURLException, MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
@@ -76,7 +97,7 @@ public class RevisionWriterBoltTest {
         Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), any(Revision.class), any(), any())).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(4)).addRevision(any(), any(), any(), any(Revision.class),any(),any());
+        Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), any(Revision.class),any(),any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 
     }

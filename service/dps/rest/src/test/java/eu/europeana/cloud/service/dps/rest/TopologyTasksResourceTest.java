@@ -39,6 +39,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -491,9 +492,9 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         DpsTask task = getDpsTaskWithRepositoryURL(OAI_PMH_REPOSITORY_END_POINT);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
-        harvestingDetails.setSchemas(Collections.singleton("oai_dc"));
+        harvestingDetails.setSchema("oai_dc");
         task.setHarvestingDetails(harvestingDetails);
-        when(harvestsExecutor.execute(anyListOf(Harvest.class), any(SubmitTaskParameters.class))).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
+        when(harvestsExecutor.execute(any(OaiHarvest.class), any(SubmitTaskParameters.class))).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
         ResultActions response = sendTask(task, OAI_TOPOLOGY);
@@ -501,7 +502,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep( 1000);
-        verify(harvestsExecutor).execute(anyListOf(Harvest.class), any(SubmitTaskParameters.class));
+        verify(harvestsExecutor).execute(any(OaiHarvest.class), any(SubmitTaskParameters.class));
         verifyZeroInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
     }

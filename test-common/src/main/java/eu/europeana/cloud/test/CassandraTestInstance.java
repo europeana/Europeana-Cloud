@@ -2,14 +2,15 @@ package eu.europeana.cloud.test;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.DriverException;
-import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.datastax.driver.core.policies.RetryPolicy;
-import org.cassandraunit.CQLDataLoader;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.CassandraContainer;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,43 +18,52 @@ import java.util.Map;
 import static java.lang.Thread.sleep;
 
 public final class CassandraTestInstance {
-    private static final int PORT = 9142;
-    private static final String CASSANDRA_CONFIG_FILE = "eu-cassandra.yaml";
-    private static final long CASSANDRA_STARTUP_TIMEOUT = 3 * 60 * 1000L; //3 minutes
-    private static final int CONNECT_TIMEOUT_MILLIS = 100000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestInstance.class);
 
     private static volatile CassandraTestInstance instance;
-    private static volatile Map<String, Session> keyspaceSessions =
-            Collections.synchronizedMap(new HashMap<String, Session>());
+    private static final Map<String, Session> keyspaceSessions =
+            Collections.synchronizedMap(new HashMap<>());
+    private static Throwable containerStartException;
+
     private final Cluster cluster;
+    private final CassandraContainer container;
+
 
     private CassandraTestInstance() {
         if (instance != null) {
             throw new IllegalStateException("Already initialized.");
         }
-        try {
-            LOGGER.info("Starting embedded Cassandra");
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_STARTUP_TIMEOUT);
-            cluster = buildClusterWithConsistencyLevel(ConsistencyLevel.ALL);
-            LOGGER.info("embedded Cassandra initialized.");
-        } catch (Exception e) {
-            LOGGER.error("Cannot start embedded Cassandra!", e);
-            EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-            throw new RuntimeException("Cannot start embedded Cassandra!", e);
+
+        if (containerStartException != null) {
+            //Protection again consumption of all possible system memory!
+            //Without this protection it is possible that CassandraTestInstance constructor would be performed many times
+            //in case of exception while container starts. Such tries could create many Cassandra containers in docker
+            // and consume all the system memory.
+            throw new RuntimeException("Cassandra container is not initialized!", containerStartException);
         }
+
+        try {
+            LOGGER.info("Starting Cassandra container in docker");
+            container = new CassandraContainer("cassandra:3.11.2");
+            container.setStartupAttempts(1);
+            container.start();
+            cluster = container.getCluster();
+
+            LOGGER.info("Cassandra container initialized.");
+        } catch (Exception e) {
+            containerStartException = e;
+            LOGGER.error("Cannot start Cassandra container!", e);
+            throw new RuntimeException(e);
+        } catch (Error e) {
+            containerStartException = e;
+            throw e;
+        }
+
     }
 
-    private Cluster buildClusterWithConsistencyLevel(ConsistencyLevel level) {
-        QueryOptions queryOptions = new QueryOptions().setConsistencyLevel(level);
-        SocketOptions socketOptions = new SocketOptions().setConnectTimeoutMillis(CONNECT_TIMEOUT_MILLIS);
-        return Cluster.builder().addContactPoints("localhost").withPort(CassandraTestInstance.PORT)
-                .withProtocolVersion(ProtocolVersion.V3)
-                .withQueryOptions(queryOptions)
-                .withSocketOptions(socketOptions)
-                .withRetryPolicy(new LoggingRetryPolicy(new TestRetryPolicy(20, 20, 20, 1000)))
-                .withTimestampGenerator(new AtomicMonotonicTimestampGenerator()).build();
+    public static int getPort() {
+        return instance.container.getMappedPort(9042);
     }
 
     /**
@@ -163,22 +173,24 @@ public final class CassandraTestInstance {
      */
     public synchronized void clean() {
         keyspaceSessions.clear();
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 
     private void initKeyspace(String keyspaceSchemaCql, String keyspace) {
         LOGGER.info("Initializing embedded Cassandra keyspace {} ...", keyspace);
-        applyCQL(keyspaceSchemaCql, keyspace);
+        applyCQL(keyspaceSchemaCql);
         Session session = cluster.connect(keyspace);
         keyspaceSessions.put(keyspace, session);
         LOGGER.info("embedded Cassandra keyspace {} initialized.", keyspace);
     }
 
-    private void applyCQL(String keyspaceSchemaCql, String keyspace) {
-        Session tempSession = cluster.newSession();
-        CQLDataLoader dataLoader = new CQLDataLoader(tempSession);
-        dataLoader.load(new ClassPathCQLDataSet(keyspaceSchemaCql, keyspace));
-        tempSession.close();
+    private void applyCQL(String keyspaceSchemaCql) {
+        try (Session tempSession = cluster.newSession()) {
+            String[] statements = StringUtils.split(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(keyspaceSchemaCql)), ";");
+            Arrays.stream(statements).map(statement -> StringUtils.normalizeSpace(statement) + ";").forEach(tempSession::execute);
+        } catch (IOException e) {
+            LOGGER.error("Unable to load data to Cassandra", e);
+            throw new RuntimeException("Unable to load data to Cassandra");
+        }
     }
 
 

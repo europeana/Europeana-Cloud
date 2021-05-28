@@ -8,11 +8,8 @@ import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.apache.storm.Config;
-import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
@@ -33,8 +30,8 @@ public class IndexingTopology {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingTopology.class);
 
-    private static Properties topologyProperties = new Properties();
-    private static Properties indexingProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
+    private static final Properties indexingProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "indexing-topology-config.properties";
     private static final String INDEXING_PROPERTIES_FILE = "indexing.properties";
     public static final String SUCCESS_MESSAGE = "Record is indexed correctly";
@@ -67,7 +64,10 @@ public class IndexingTopology {
                 .setNumTasks(getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(SPOUT, new ShuffleGrouping());
 
-        builder.setBolt(INDEXING_BOLT, new IndexingBolt(indexingProperties),
+        builder.setBolt(INDEXING_BOLT, new IndexingBolt(
+                        prepareConnectionDetails(),
+                        indexingProperties,
+                        topologyProperties.getProperty(UIS_URL)),
                 getAnInt(INDEXING_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(INDEXING_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
@@ -81,7 +81,9 @@ public class IndexingTopology {
                         getAnInt(CASSANDRA_PORT),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN),
+                        topologyProperties.getProperty(DPS_URL),
+                        topologyProperties.getProperty(INDEXING_TOPOLOGY_NAME,"indexer")),
                 getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS))
@@ -95,6 +97,16 @@ public class IndexingTopology {
                         new Fields(NotificationTuple.taskIdFieldName));
 
         return builder.createTopology();
+    }
+
+    private DbConnectionDetails prepareConnectionDetails() {
+        return DbConnectionDetails.builder()
+                .hosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
+                .port(getAnInt(CASSANDRA_PORT))
+                .keyspaceName(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
+                .userName(topologyProperties.getProperty(CASSANDRA_USERNAME))
+                .password(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
+                .build();
     }
 
     public static void main(String[] args) {
@@ -113,7 +125,7 @@ public class IndexingTopology {
 
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
-                StormSubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+                TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
             } else {
                 LOGGER.error("Invalid number of parameters");
             }

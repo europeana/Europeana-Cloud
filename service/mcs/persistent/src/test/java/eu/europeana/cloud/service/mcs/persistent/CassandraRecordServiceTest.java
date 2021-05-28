@@ -70,11 +70,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertThat(rFetched, is(r));
     }
 
-    @Test(expected = RecordNotExistsException.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldThrowExpWhileCreatingRepresentationIfNoRecordInUis()
             throws Exception {
 
-        makeUISThrowRecordNotExist();
+        makeUISThrowIllegalStateException();
         mockUISProvider1Success();
         cassandraRecordService.createRepresentation("globalId", "dc",
                 PROVIDER_1_ID);
@@ -90,10 +90,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 PROVIDER_1_ID);
     }
 
-    @Test(expected = RecordNotExistsException.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldThrowExpWhileGettingRecordIfNoRecordInUis()
             throws Exception {
-        makeUISThrowRecordNotExist();
+        makeUISThrowIllegalStateException();
         cassandraRecordService.getRecord("globalId");
     }
 
@@ -104,10 +104,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.getRecord("globalId");
     }
 
-    @Test(expected = RecordNotExistsException.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldThrowExpWhileDeletingRecordIfNoRecordInUis()
             throws Exception {
-        makeUISThrowRecordNotExist();
+        makeUISThrowIllegalStateException();
         cassandraRecordService.deleteRecord("globalId");
     }
 
@@ -803,12 +803,12 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 .existsCloudId(Mockito.anyString());
     }
 
-    private void makeUISThrowRecordNotExist() throws RecordNotExistsException {
-        Mockito.doThrow(RecordNotExistsException.class).when(uisHandler)
+    private void makeUISThrowIllegalStateException()  {
+        Mockito.doThrow(IllegalStateException.class).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
     }
 
-    private void makeUISThrowSystemException() throws RecordNotExistsException {
+    private void makeUISThrowSystemException() {
         Mockito.doThrow(SystemException.class).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
     }
