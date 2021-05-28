@@ -7,8 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
 @RunWith(SpringRunner.class)
@@ -43,7 +42,8 @@ public class RetryAspectSpringTest {
 
     @Test
     public void shoudCall3TimesWithLongDelay() {
-        Mockito.doThrow(TestRuntimeExpection.class)
+        doNothing()
+                .doThrow(TestRuntimeExpection.class)
                 .doThrow(TestRuntimeExpection.class)
                 .when(aspectedTest)
                 .test_delay_2000();
