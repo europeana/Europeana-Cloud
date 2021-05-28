@@ -33,24 +33,35 @@ public class RetryAspect {
 
     @Around("pointcut()")
     public Object retry(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
-        Method method = ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
-
-        LOGGER.debug("Retry aspect called for '{}'", method);
+        LOGGER.debug("Retry aspect called for '{}'", getMethod(proceedingJoinPoint));
 
         Retryable retryAnnotation = getAnnotationForMethodOrClass(proceedingJoinPoint);
 
         String errorMessage =
-                RetryableMethodExecutor.createMessage(method, retryAnnotation, proceedingJoinPoint.getArgs());
+                RetryableMethodExecutor.createMessage(getMethod(proceedingJoinPoint), retryAnnotation, proceedingJoinPoint.getArgs());
 
         return RetryableMethodExecutor.execute(errorMessage,
                 retryAnnotation.maxAttempts(), retryAnnotation.delay(), proceedingJoinPoint::proceed);
     }
 
-    private Retryable getAnnotationForMethodOrClass(ProceedingJoinPoint proceedingJoinPoint) {
-        Method method = ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
+    private Method getMethod(ProceedingJoinPoint proceedingJoinPoint) {
+        return ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
+    }
 
+    private Retryable getAnnotationForMethodOrClass(ProceedingJoinPoint proceedingJoinPoint) {
         //Get annotation from method (directly or from interface)
-        Retryable retryAnnotation = AnnotationUtils.findAnnotation(method, Retryable.class);
+        Retryable retryAnnotation = AnnotationUtils.findAnnotation(getMethod(proceedingJoinPoint), Retryable.class);
+
+        //If we got interface, but
+        if(retryAnnotation == null) {
+            try {
+                Method m = proceedingJoinPoint.getTarget().getClass().getMethod(
+                        getMethod(proceedingJoinPoint).getName(), getMethod(proceedingJoinPoint).getParameterTypes());
+                retryAnnotation = m.getAnnotation(Retryable.class);
+            }catch(NoSuchMethodException nsm) {
+                //Skip the exception. Case impossible
+            }
+        }
 
         //If no annotation, get it from target type
         if(retryAnnotation == null) {
