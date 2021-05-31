@@ -9,8 +9,6 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
@@ -79,17 +77,14 @@ public class CassandraCloudIdDAO {
         return this.port;
     }
 
-    public List<CloudId> searchById(String... args)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException {
+    public List<CloudId> searchById(String... args) throws DatabaseConnectionException {
         try {
             ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args[0]));
+            List<CloudId> cloudIds = new ArrayList<>();
             if (!rs.iterator().hasNext()) {
-                throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
-                        IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(args[0])));
+                return cloudIds;
             }
 
-            List<CloudId> cloudIds = new ArrayList<>();
             for (Row row : rs.all()) {
                 CloudId cId = new CloudId();
                 cId.setId(args[0]);
@@ -131,17 +126,15 @@ public class CassandraCloudIdDAO {
         return cloudIds;
     }
 
-    public List<CloudId> insert(boolean insertOnlyIfNoExist, String... args)
-            throws DatabaseConnectionException, CloudIdAlreadyExistException {
-        ResultSet rs = null;
+    public List<CloudId> insert(boolean insertOnlyIfNoExist, String... args) throws DatabaseConnectionException {
+        List<CloudId> result = new ArrayList<>();
+
         try {
             if (insertOnlyIfNoExist) {
-                rs = dbService.getSession().execute(insertIfNoExistsStatement.bind(args[0], args[1], args[2]));
+                ResultSet rs = dbService.getSession().execute(insertIfNoExistsStatement.bind(args[0], args[1], args[2]));
                 Row row = rs.one();
                 if (!row.getBool("[applied]")) {
-                    throw new CloudIdAlreadyExistException(new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getHttpCode(),
-                            IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(args[0])));
+                    return result;
                 }
             } else {
                 dbService.getSession().execute(insertStatement.bind(args[0], args[1], args[2]));
@@ -158,23 +151,19 @@ public class CassandraCloudIdDAO {
         lId.setRecordId(args[2]);
         cId.setLocalId(lId);
         cId.setId(args[0]);
-        List<CloudId> cIds = new ArrayList<>();
-        cIds.add(cId);
-        return cIds;
+        result.add(cId);
+        return result;
     }
 
     public void delete(String... args) throws DatabaseConnectionException {
         try {
-            dbService.getSession().execute(
-                    deleteStatement.bind(args[0], args[1], args[2]));
+            dbService.getSession().execute(deleteStatement.bind(args[0], args[1], args[2]));
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(
                     new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(hostList, port,
-                                            e.getMessage())));
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port,e.getMessage()))
+            );
         }
     }
 }

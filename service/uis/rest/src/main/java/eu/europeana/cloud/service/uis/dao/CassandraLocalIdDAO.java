@@ -26,7 +26,6 @@ import java.util.UUID;
  *
  * @author Yorgos.Mamakis@ kb.nl
  */
-@Retryable
 public class CassandraLocalIdDAO {
 
     private static final String PROVIDER_RECORD_ID_BUCKETS_TABLE = "provider_record_id_buckets";
@@ -72,6 +71,7 @@ public class CassandraLocalIdDAO {
         searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
+    @Retryable
     public List<CloudId> searchById(String... args) throws DatabaseConnectionException {
         try {
             ResultSet rs = null;
@@ -103,12 +103,15 @@ public class CassandraLocalIdDAO {
      * @param providerId The provider Identifier
      * @return A list of CloudId objects
      */
+    @Retryable
     public List<CloudId> searchByIdWithPagination(String start, int end, String providerId) {
         List<CloudId> result = new ArrayList<>();
 
         Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId);
         while (bucket != null) {
-            ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(providerId, UUID.fromString(bucket.getBucketId()), start, end));
+            ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(
+                    providerId, UUID.fromString(bucket.getBucketId()), start, end));
+
             result.addAll(createCloudIdsFromRs(rs));
             if (result.size() >= end) {
                 break;
@@ -130,7 +133,9 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+                            dbService.getHosts(), dbService.getPort(), e.getMessage())
+            ));
         }
         List<CloudId> cIds = new ArrayList<>();
         CloudId cId = new CloudId();
@@ -145,14 +150,16 @@ public class CassandraLocalIdDAO {
 
     public void delete(String providerId, String recordId) throws DatabaseConnectionException {
         try {
-            ResultSet rs = null;
-
             Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId);
             while (bucket != null) {
 
-                rs = dbService.getSession().execute(searchByRecordIdStatement.bind(providerId, UUID.fromString(bucket.getBucketId()), recordId));
+                ResultSet rs = dbService.getSession().execute(searchByRecordIdStatement.bind(
+                        providerId, UUID.fromString(bucket.getBucketId()), recordId));
+
                 if (rs.getAvailableWithoutFetching() == 1) {
-                    dbService.getSession().execute(deleteStatement.bind(providerId, UUID.fromString(bucket.getBucketId()), recordId));
+                    dbService.getSession().execute(deleteStatement.bind(
+                            providerId, UUID.fromString(bucket.getBucketId()), recordId));
+
                     if (bucket.getRowsCount() == 1) {
                         bucketsHandler.removeBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);
                     } else {
@@ -165,7 +172,9 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+                            dbService.getHosts(), dbService.getPort(), e.getMessage())
+            ));
         }
     }
 

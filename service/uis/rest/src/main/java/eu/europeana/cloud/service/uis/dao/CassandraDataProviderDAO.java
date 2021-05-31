@@ -135,7 +135,8 @@ public class CassandraDataProviderDAO {
      * @return updated data provider
      */
     public DataProvider updateDataProvider(DataProvider dataProvider) {
-        BoundStatement boundStatement = updateDataProviderStatement.bind(dataProvider.isActive(), propertiesToMap(dataProvider.getProperties()), dataProvider.getId());
+        BoundStatement boundStatement = updateDataProviderStatement.bind(
+                dataProvider.isActive(), propertiesToMap(dataProvider.getProperties()), dataProvider.getId());
         dbService.getSession().execute(boundStatement);
         return dataProvider;
     }

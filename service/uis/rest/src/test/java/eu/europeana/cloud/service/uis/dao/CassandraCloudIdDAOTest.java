@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.dao;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.uis.TestAAConfiguration;
 import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
@@ -26,28 +27,28 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
     @Autowired
     private CassandraDataProviderDAO dataProviderDao;
 
-    @Test(expected = CloudIdAlreadyExistException.class)
-    public void insert_tryInsertTheSameContentTwice_ThrowsCloudIdAlreadyExistException()
-            throws Exception {
+    @Test
+    public void insert_tryInsertTheSameContentTwice_ThrowsCloudIdAlreadyExistException() throws Exception {
         // given
         final String providerId = "providerId";
         final String recordId = "recordId";
         final String id = "id";
+
         service.insert(true, id, providerId, recordId);
         // when
-        service.insert(true, id, providerId, recordId);
+        int n = service.insert(true, id, providerId, recordId).size();
         // then
+        assertEquals(0, n);
         assertEquals(1, service.searchById(id).size());
     }
 
-    @Test(expected = CloudIdDoesNotExistException.class)
+    @Test
     public void deleteCloudIdShouldRemoveCloudId() throws Exception {
         // given
         final String providerId = "providerId";
         final String recordId = "recordId";
         final String id = "id";
-        dataProviderDao.createDataProvider(providerId,
-                new DataProviderProperties());
+        dataProviderDao.createDataProvider(providerId, new DataProviderProperties());
         localIdDao.insert(id, providerId, recordId);
 
         final int size = service.insert(false, id, providerId, recordId).size();
