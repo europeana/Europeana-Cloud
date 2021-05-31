@@ -7,12 +7,11 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.google.common.collect.ImmutableSet;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.SpringUser;
 import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
 import eu.europeana.cloud.service.aas.authentication.status.IdentifierErrorTemplate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +25,7 @@ import java.util.Set;
  *
  * @author emmanouil.koufakis@theeuropeanlibrary.org
  */
+@Retryable
 public class CassandraUserDAO {
 
     private static final Log LOGGER = LogFactory.getLog(CassandraUserDAO.class);
@@ -56,19 +56,13 @@ public class CassandraUserDAO {
     }
 
     public SpringUser getUser(final String username)
-            throws DatabaseConnectionException, UserDoesNotExistException {
+            throws DatabaseConnectionException {
         try {
             BoundStatement boundStatement = selectUserStatement.bind(username);
             ResultSet rs = provider.getSession().execute(boundStatement);
             Row result = rs.one();
             if (result == null) {
-                throw new UserDoesNotExistException(
-                        new IdentifierErrorInfo(
-                                IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                        .getHttpCode(),
-                                IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                        .getErrorInfo(username)));
-
+                return null;
             }
             return mapUser(result);
         } catch (NoHostAvailableException e) {
@@ -82,20 +76,12 @@ public class CassandraUserDAO {
         }
     }
 
-    public void createUser(final User user) throws DatabaseConnectionException,
-            UserExistsException {
+    public void createUser(final User user) throws DatabaseConnectionException {
 
         try {
-            if (userAlreadyExistsInDB(user.getUsername())) {
-                throw new UserExistsException(new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.USER_EXISTS.getHttpCode(),
-                        IdentifierErrorTemplate.USER_EXISTS.getErrorInfo(user
-                                .getUsername())));
-            } else {
-                BoundStatement boundStatement = createUserStatement.bind(
-                        user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
-                provider.getSession().execute(boundStatement);
-            }
+            BoundStatement boundStatement = createUserStatement.bind(
+                    user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
+            provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(
                     new IdentifierErrorInfo(
@@ -107,31 +93,7 @@ public class CassandraUserDAO {
         }
     }
 
-    public void updateUser(final User user) throws DatabaseConnectionException,
-            UserDoesNotExistException {
-        try {
-            BoundStatement boundStatement = selectUserStatement.bind(user
-                    .getUsername());
-            ResultSet rs = provider.getSession().execute(boundStatement);
-            Row result = rs.one();
-            if (result == null) {
-                throw new UserDoesNotExistException(
-                        new IdentifierErrorInfo(
-                                IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                        .getHttpCode(),
-                                IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                        .getErrorInfo(user.getUsername())));
-
-            }
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(provider.getHosts(),
-                                            provider.getPort(), e.getMessage())));
-        }
+    public void updateUser(final User user) throws DatabaseConnectionException {
 
         try {
             BoundStatement boundStatement = updateUserStatement.bind(
@@ -149,29 +111,7 @@ public class CassandraUserDAO {
     }
 
     public void deleteUser(final String username)
-            throws DatabaseConnectionException, UserDoesNotExistException {
-        try {
-            BoundStatement boundStatement = selectUserStatement.bind(username);
-            ResultSet rs = provider.getSession().execute(boundStatement);
-            Row result = rs.one();
-            if (result == null) {
-                throw new UserDoesNotExistException(
-                        new IdentifierErrorInfo(
-                                IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                        .getHttpCode(),
-                                IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                        .getErrorInfo(username)));
-
-            }
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(provider.getHosts(),
-                                            provider.getPort(), e.getMessage())));
-        }
+            throws DatabaseConnectionException {
 
         try {
             BoundStatement boundStatement = deleteUserStatement.bind(username);
@@ -214,16 +154,5 @@ public class CassandraUserDAO {
         final Set<String> roles = row.getSet("roles", String.class);
         SpringUser user = new SpringUser(username, password, roles);
         return user;
-    }
-
-    private boolean userAlreadyExistsInDB(String userName) {
-        BoundStatement boundStatement = selectUserStatement.bind(userName);
-        ResultSet rs = provider.getSession().execute(boundStatement);
-        Row result = rs.one();
-        if (result != null) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }
