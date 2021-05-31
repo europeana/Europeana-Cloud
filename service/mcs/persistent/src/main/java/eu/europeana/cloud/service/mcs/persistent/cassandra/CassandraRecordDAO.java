@@ -327,19 +327,17 @@ public class CassandraRecordDAO {
      */
     public Representation getLatestPersistentRepresentation(String cloudId, String schema) {
 
-        List<Representation> allRepresentations;
-        try {
-            allRepresentations = this.listRepresentationVersions(cloudId, schema);
+        List<Representation> allRepresentations = this.listRepresentationVersions(cloudId, schema);
+
+        if(allRepresentations != null) {
             for (Representation r : allRepresentations) {
                 if (r.isPersistent()) {
                     r.setFiles(getFilesForRepresentation(cloudId, schema, r.getVersion()));
                     return r;
                 }
             }
-        } catch (RepresentationNotExistsException ex) {
-            // don't rethrow, just return null
-            return null;
         }
+
         return null;
     }
 
@@ -460,15 +458,16 @@ public class CassandraRecordDAO {
      * @throws RepresentationNotExistsException when there is no representation matching requested parameters
      */
     public List<Representation> listRepresentationVersions(String cloudId, String schema)
-            throws NoHostAvailableException, QueryExecutionException, RepresentationNotExistsException {
+            throws NoHostAvailableException, QueryExecutionException {
 
         BoundStatement boundStatement = listRepresentationVersionsStatement.bind(cloudId, schema);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-        List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
+
         if (rs.isExhausted()) {
-            throw new RepresentationNotExistsException();
+            return null;
         }
+        List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
         mapResultSetToRepresentationList(rs, result);
         return result;
     }

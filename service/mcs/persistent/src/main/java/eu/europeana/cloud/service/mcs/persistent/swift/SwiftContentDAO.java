@@ -26,7 +26,6 @@ import java.security.NoSuchAlgorithmException;
  * Provides DAO operations for Openstack Swift.
  */
 @Repository
-@Retryable
 public class SwiftContentDAO implements ContentDAO {
 
     private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";

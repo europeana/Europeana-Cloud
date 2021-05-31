@@ -35,7 +35,6 @@ import java.util.Arrays;
  * @author krystian.
  */
 @Repository
-@Retryable
 public class CassandraContentDAO implements ContentDAO {
 
     private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
@@ -69,7 +68,6 @@ public class CassandraContentDAO implements ContentDAO {
      * @inheritDoc
      */
     @Override
-    //@Retryable
     public void copyContent(String sourceObjectId, String trgObjectId)
             throws FileNotExistsException, FileAlreadyExistsException, IOException {
 
@@ -86,6 +84,7 @@ public class CassandraContentDAO implements ContentDAO {
      * @inheritDoc
      */
     @Override
+    @Retryable
     public void deleteContent(String fileName) throws FileNotExistsException {
         ResultSet rs = executeQueryWithLogger(deleteStatement.bind(fileName));
         if (!rs.wasApplied()) {
@@ -97,6 +96,7 @@ public class CassandraContentDAO implements ContentDAO {
      * @inheritDoc
      */
     @Override
+    @Retryable
     public void getContent(String fileName, long start, long end, OutputStream result)
             throws IOException, FileNotExistsException {
 
@@ -121,6 +121,7 @@ public class CassandraContentDAO implements ContentDAO {
      * @inheritDoc
      */
     @Override
+    @Retryable
     public PutResult putContent(String fileName, InputStream data) throws IOException {
         CountingInputStream countingInputStream = new CountingInputStream(data);
         DigestInputStream md5DigestInputStream = prepareMd5DigestStream(countingInputStream);

@@ -23,12 +23,10 @@ import static org.apache.commons.lang.Validate.notEmpty;
  *
  * @author krystian.
  */
-@Repository
 public class DynamicContentProxy {
 
     private final Map<Storage, ContentDAO> contentDAOs = new EnumMap<>(Storage.class);
 
-    @Autowired
     public DynamicContentProxy(Map<Storage, ContentDAO> contentDAOs) {
         notEmpty(contentDAOs);
         this.contentDAOs.putAll(contentDAOs);

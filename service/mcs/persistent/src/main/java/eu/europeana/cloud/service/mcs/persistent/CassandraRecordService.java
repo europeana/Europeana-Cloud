@@ -73,8 +73,8 @@ public class CassandraRecordService implements RecordService {
      * @inheritDoc
      */
     @Override
-    public void deleteRecord(String cloudId)
-            throws RecordNotExistsException, RepresentationNotExistsException {
+    public void deleteRecord(String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
+
         if (uis.existsCloudId(cloudId)) {
             List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(cloudId);
             if (allRecordRepresentationsInAllVersions.isEmpty()) {
@@ -96,6 +96,7 @@ public class CassandraRecordService implements RecordService {
     }
 
     private void removeFilesFromRepresentationVersion(String cloudId, Representation repVersion) {
+
         for (File f : repVersion.getFiles()) {
             try {
                 contentDAO.deleteContent(FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
@@ -112,10 +113,12 @@ public class CassandraRecordService implements RecordService {
      * @inheritDoc
      */
     @Override
-    public void deleteRepresentation(String globalId, String schema)
-            throws RepresentationNotExistsException {
+    public void deleteRepresentation(String globalId, String schema) throws RepresentationNotExistsException {
 
         List<Representation> listRepresentations = recordDAO.listRepresentationVersions(globalId, schema);
+        if(listRepresentations == null) {
+            throw new RepresentationNotExistsException();
+        }
 
         sortByProviderId(listRepresentations);
 
@@ -253,7 +256,12 @@ public class CassandraRecordService implements RecordService {
     @Override
     public List<Representation> listRepresentationVersions(String globalId, String schema)
             throws RepresentationNotExistsException {
-        return recordDAO.listRepresentationVersions(globalId, schema);
+
+        List<Representation> result = recordDAO.listRepresentationVersions(globalId, schema);
+        if(result == null) {
+            throw new RepresentationNotExistsException();
+        }
+        return result;
     }
 
 

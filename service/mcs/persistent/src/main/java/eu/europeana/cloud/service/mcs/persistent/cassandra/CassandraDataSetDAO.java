@@ -26,7 +26,6 @@ import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUti
  * Data set repository that uses Cassandra nosql database.
  */
 @Repository
-@Retryable
 public class CassandraDataSetDAO {
 
     // separator between provider id and dataset id in serialized compund
@@ -283,6 +282,7 @@ public class CassandraDataSetDAO {
      * @param limit      maximum size of returned list
      * @return
      */
+    @Retryable
     public List<Properties> listDataSet(String providerId, String dataSetId, String nextToken, int limit)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -410,6 +410,7 @@ public class CassandraDataSetDAO {
      * @param version  representation version (might be null)
      * @return list of data set ids
      */
+    @Retryable
     public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -436,6 +437,7 @@ public class CassandraDataSetDAO {
      * @param version  representation version
      * @return list of data set ids
      */
+    @Retryable
     public Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId, String version)
             throws NoHostAvailableException, QueryExecutionException, RepresentationNotExistsException {
 
@@ -455,6 +457,7 @@ public class CassandraDataSetDAO {
      * @param dataSetId  data set id
      * @return data set
      */
+    @Retryable
     public DataSet getDataSet(String providerId, String dataSetId) throws NoHostAvailableException, QueryExecutionException {
 
         BoundStatement boundStatement = getDataSetStatement.bind(providerId, dataSetId);
@@ -501,6 +504,7 @@ public class CassandraDataSetDAO {
         }
     }
 
+    @Retryable
     private void removeAssignmentByRepresentation(String providerDataSetId, String cloudId, String schema, String versionId) {
         BoundStatement boundStatement = removeAssignmentByRepresentationsStatement.bind(
                 cloudId, schema, UUID.fromString(versionId), providerDataSetId);
@@ -518,6 +522,7 @@ public class CassandraDataSetDAO {
      * @param creationTime creation date
      * @return created (or updated) data set.
      */
+    @Retryable
     public DataSet createDataSet(String providerId, String dataSetId, String description, Date creationTime)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -540,6 +545,7 @@ public class CassandraDataSetDAO {
      * @param limit              max size of returned data set list.
      * @return list of data sets.
      */
+    @Retryable
     public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -567,6 +573,7 @@ public class CassandraDataSetDAO {
      * @param providerId data set owner's (provider's) id
      * @param dataSetId  data set id
      */
+    @Retryable
     public void deleteDataSet(String providerId, String dataSetId) throws NoHostAvailableException, QueryExecutionException {
 
         removeAllDataSetBuckets(providerId, dataSetId);
@@ -594,8 +601,8 @@ public class CassandraDataSetDAO {
         return result;
     }
 
+    @Retryable
     public Set<String> getAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
-
         BoundStatement boundStatement = getDataSetsRepresentationsNamesListStatement.bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -607,6 +614,7 @@ public class CassandraDataSetDAO {
         }
     }
 
+    @Retryable
     public void addDataSetsRepresentationName(String providerId, String dataSetId, String representationName) {
         Set<String> sample = new HashSet<>();
         sample.add(representationName);
@@ -615,6 +623,7 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
+    @Retryable
     public void removeRepresentationNameForDataSet(String representationName, String providerId, String dataSetId) {
         Set<String> sample = new HashSet<>();
         sample.add(representationName);
@@ -623,12 +632,14 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
+    @Retryable
     public void removeAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
         BoundStatement boundStatement = removeDataSetsAllRepresentationsNamesStatement.bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
+    @Retryable
     public boolean hasMoreRepresentations(String providerId, String datasetId, String representationName) {
         String providerDatasetId = providerId + CDSID_SEPARATOR + datasetId;
 
@@ -686,6 +697,7 @@ public class CassandraDataSetDAO {
         }
     }
 
+    @Retryable
     public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId,
                                                  String revisionName, Date revisionTimestamp, String representationName,
                                                  String nextToken, int limit) {
@@ -860,6 +872,7 @@ public class CassandraDataSetDAO {
         return new com.eaio.uuid.UUID().toString();
     }
 
+    @Retryable
     public Bucket getCurrentDataSetAssignmentBucket(String providerId, String datasetId) {
         return bucketsHandler.getCurrentBucket(
                 DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, createProviderDataSetId(providerId, datasetId));
