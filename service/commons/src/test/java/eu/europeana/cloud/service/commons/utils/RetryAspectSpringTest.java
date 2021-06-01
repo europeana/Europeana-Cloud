@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.commons.utils;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -7,6 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Calendar;
+
+import static org.apache.commons.lang3.Validate.matchesPattern;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
@@ -16,40 +21,45 @@ public class RetryAspectSpringTest {
     @Autowired
     private AspectedTestSpringCtx aspectedTest;
 
-    @Test
-    public void shoudCall3Times() {
-        String s = Mockito
-                .doThrow(TestRuntimeExpection.class)
-                .doThrow(TestRuntimeExpection.class)
-                .doReturn("data")
-                .when(aspectedTest)
-                .test_default("some_data");
+    @Before
+    public void resetData() {
+        aspectedTest.resetAttempts();
+    }
 
-       verify(aspectedTest/*, times(3)*/).test_default("some_data");
+    @Test
+    public void shoudCallDefault3Times() {
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        String result = aspectedTest.test_default("Text to process");
+        long endTime = Calendar.getInstance().getTimeInMillis();
+
+        assertTrue(result.contains("Text to process"));
+        assertTrue(endTime - startTime >= 2*1000);
+    }
+
+    @Test
+    public void shoudCall10Times() {
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        aspectedTest.test_delay_500_10();
+        long endTime = Calendar.getInstance().getTimeInMillis();
+
+        assertTrue(endTime - startTime >= 9*500);
     }
 
     @Test(expected = TestRuntimeExpection.class)
-    public void shoudCall3TimesAndFail() {
-        String s = Mockito
-                .doThrow(TestRuntimeExpection.class)
-                .doThrow(TestRuntimeExpection.class)
-                .doThrow(TestRuntimeExpection.class)
-                .when(aspectedTest)
-                .test_default("some_data");
+    public void shoudCall6TimesAndFail(){
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        aspectedTest.test_delay_2000_6();
+        long endTime = Calendar.getInstance().getTimeInMillis();
 
-        verify(aspectedTest/*, times(3)*/).test_default("some_data");
+        assertTrue(endTime - startTime >= 5*2000);
     }
 
     @Test
-    public void shoudCall3TimesWithLongDelay() {
-        doNothing()
-                .doThrow(TestRuntimeExpection.class)
-                .doThrow(TestRuntimeExpection.class)
-                .when(aspectedTest)
-                .test_delay_2000();
+    public void shoudCall4Times() {
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        aspectedTest.test_delay_3000_4();
+        long endTime = Calendar.getInstance().getTimeInMillis();
 
-        verify(aspectedTest/*, times(3)*/).test_delay_2000();
+        assertTrue(endTime - startTime >= 3*3000);
     }
-
-
 }

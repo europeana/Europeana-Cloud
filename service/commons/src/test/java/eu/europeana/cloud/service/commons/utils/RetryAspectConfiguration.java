@@ -16,6 +16,6 @@ public class RetryAspectConfiguration {
 
     @Bean
     public AspectedTestSpringCtx aspectedTest() {
-        return Mockito.spy(new AspectedTestSpringCtxImpl()) ;
+        return new AspectedTestSpringCtxImpl();
     }
 }
