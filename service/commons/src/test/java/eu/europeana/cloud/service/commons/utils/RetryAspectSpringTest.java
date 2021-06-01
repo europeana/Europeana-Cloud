@@ -3,16 +3,13 @@ package eu.europeana.cloud.service.commons.utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Calendar;
 
-import static org.apache.commons.lang3.Validate.matchesPattern;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertTrue;
 
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
 @RunWith(SpringRunner.class)
