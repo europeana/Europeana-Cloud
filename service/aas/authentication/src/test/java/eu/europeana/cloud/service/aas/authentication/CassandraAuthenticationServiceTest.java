@@ -76,4 +76,19 @@ public class CassandraAuthenticationServiceTest extends CassandraTestBase {
     public void testDeleteUserException() throws Exception {
         service.deleteUser("test4");
     }
+
+    @Test(expected = UserDoesNotExistException.class)
+    public void shouldThrowExceptionInCaseOfUpdatingNonExistingUser() throws Exception{
+        service.updateUser(new SpringUser("user1","password1"));
+    }
+
+    @Test
+    public void shouldCorrectlyUpdateUser() throws Exception {
+        service.createUser(new SpringUser("test3", "test3"));
+        service.updateUser(new SpringUser("test3", "test4"));
+        User user = service.getUser("test3");
+        assertEquals("test4", user.getPassword());
+    }
+
+
 }

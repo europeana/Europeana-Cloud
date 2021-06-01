@@ -16,7 +16,7 @@ public class TestContextConfiguration {
 
     @Bean
     public CassandraAuthenticationService cassandraAuthenticationService(){
-        return new CassandraAuthenticationService();
+        return new CassandraAuthenticationService(cassandraUserDAO());
     }
 
     @Bean
