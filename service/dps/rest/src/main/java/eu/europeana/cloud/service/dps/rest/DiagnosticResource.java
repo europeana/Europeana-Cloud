@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.services.task.postprocessors.PostProcessingService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.utils.GhostTaskService;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -28,6 +31,9 @@ public class DiagnosticResource {
 
     @Autowired
     private HarvestedRecordsDAO harvestedRecordsDAO;
+
+    @Autowired
+    private PostProcessingService postProcessingService;
 
     @GetMapping("/ghostTasks")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -54,5 +60,11 @@ public class DiagnosticResource {
         }
     }
 
+
+    @GetMapping("/postProcess/{taskId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public void postProcess(long taskId) {
+        postProcessingService.executePostprocess(taskId);
+    }
 
 }

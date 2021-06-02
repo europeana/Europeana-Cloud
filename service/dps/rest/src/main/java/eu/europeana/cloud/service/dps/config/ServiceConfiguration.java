@@ -1,12 +1,16 @@
 package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.task.postprocessors.DeletedRecordsForIncrementalHarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
@@ -71,11 +75,6 @@ public class ServiceConfiguration {
     @Bean
     public TopologyManager topologyManger() {
         return new TopologyManager(environment.getProperty(JNDI_KEY_TOPOLOGY_NAMELIST));
-    }
-
-    @Bean
-    public DataSetServiceClient dataSetServiceClient() {
-        return new DataSetServiceClient(environment.getProperty(JNDI_KEY_MCS_LOCATION));
     }
 
     @Bean
@@ -182,8 +181,7 @@ public class ServiceConfiguration {
 
     @Bean
     public MCSTaskSubmitter mcsTaskSubmitter() {
-        String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
-        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation);
+        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation());
     }
 
     @Bean
@@ -195,4 +193,37 @@ public class ServiceConfiguration {
         return new FileURLCreator(machineLocation);
     }
 
+    @Bean
+    public DeletedRecordsForIncrementalHarvestingPostProcessor deletedRecordsForIncrementalHarvestingPostProcessor(){
+        return new DeletedRecordsForIncrementalHarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
+                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater());
+    }
+
+    @Bean
+    public UISClient uisClient() {
+        return new UISClient(uisLocation());
+    }
+
+    @Bean
+    public DataSetServiceClient dataSetServiceClient() {
+        return new DataSetServiceClient(mcsLocation());
+    }
+
+    @Bean
+    public RecordServiceClient recordServiceClient() {
+        return new RecordServiceClient(mcsLocation());
+    }
+
+    @Bean
+    public RevisionServiceClient revisionServiceClient() {
+        return new RevisionServiceClient(mcsLocation());
+    }
+
+    private String mcsLocation() {
+        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
+    }
+
+    private String uisLocation() {
+        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
+    }
 }

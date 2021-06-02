@@ -18,8 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.List;
+
+import static eu.europeana.cloud.service.commons.urls.RepresentationParser.parseResultUrl;
 
 /**
  *
@@ -103,16 +104,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
 
 
-    private Representation parseResultUrl(String url) throws MalformedURLException {
-        UrlParser parser = new UrlParser(url);
-        if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
-            Representation rep = new Representation();
-            rep.setCloudId(parser.getPart(UrlPart.RECORDS));
-            rep.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
-            rep.setVersion(parser.getPart(UrlPart.VERSIONS));
-            return rep;
-        }
-        throw new MalformedURLException("The resulted output URL is not formulated correctly");
-    }
+
 
 }

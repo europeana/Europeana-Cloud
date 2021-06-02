@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.OAINotificationBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingAddToDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
@@ -89,7 +89,7 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(DUPLICATES_DETECTOR_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+        builder.setBolt(NOTIFICATION_BOLT, new OAINotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),

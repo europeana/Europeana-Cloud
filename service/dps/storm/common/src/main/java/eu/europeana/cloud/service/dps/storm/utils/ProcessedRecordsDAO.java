@@ -108,9 +108,9 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 record.getAdditionalInformations());
     }
 
-    public void updateProcessedRecordState(long taskId, String recordId, String state) {
+    public void updateProcessedRecordState(long taskId, String recordId, RecordState state) {
         dbService.getSession().execute(
-                updateRecordStateStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), state));
+                updateRecordStateStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), state.toString()));
     }
 
     public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)

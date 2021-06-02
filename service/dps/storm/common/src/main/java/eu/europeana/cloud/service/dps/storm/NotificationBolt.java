@@ -145,7 +145,7 @@ public class NotificationBolt extends BaseRichBolt {
             notifyTask(notificationTuple, nCache, taskId);
             storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
-            processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState.toString());
+            processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState);
         }
     }
 
