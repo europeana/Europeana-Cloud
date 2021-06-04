@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.utils.files.counter;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.springframework.stereotype.Component;
 

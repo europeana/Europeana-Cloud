@@ -2,10 +2,11 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.google.common.collect.Streams;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -32,7 +33,8 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
     @Before
     public void setup() {
         CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
-        dao = new HarvestedRecordsDAO(db);
+        HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
+        dao = RetryableMethodExecutor.createRetryProxy(rawDao);
     }
 
     @Test

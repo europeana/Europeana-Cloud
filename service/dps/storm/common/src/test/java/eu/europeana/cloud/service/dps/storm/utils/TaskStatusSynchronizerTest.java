@@ -2,6 +2,8 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -11,6 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -37,6 +40,10 @@ public class TaskStatusSynchronizerTest {
     @Mock
     private TasksByStateDAO tasksByStateDAO;
 
+    @Mock
+    private TaskStatusUpdater taskStatusUpdater;
+
+
     @InjectMocks
     private TaskStatusSynchronizer synchronizer;
 
@@ -48,21 +55,21 @@ public class TaskStatusSynchronizerTest {
     @Test
     public void synchronizedShouldRepairInconsistentData() {
         when(tasksByStateDAO.listAllActiveTasksInTopology(eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
-        when(taskInfoDAO.findByIds(eq(Collections.singleton(1L)))).thenReturn(Collections.singletonList(INFO_1_OF_UNSYNCED));
+        when(taskInfoDAO.findById(eq(1L))).thenReturn(Optional.of(INFO_1_OF_UNSYNCED));
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
-        verify(tasksByStateDAO).updateTask(eq(TOPOLOGY_NAME), eq(1L), eq(TaskState.QUEUED.toString()), eq(TaskState.PROCESSED.toString()));
+        verify(taskStatusUpdater).updateTask(eq(TOPOLOGY_NAME), eq(1L), eq(TaskState.QUEUED.toString()), eq(TaskState.PROCESSED.toString()));
     }
 
     @Test
     public void synchronizedShouldNotTouchTasksWithConsistentData() {
         when(tasksByStateDAO.listAllActiveTasksInTopology(eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
-        when(taskInfoDAO.findByIds(eq(Collections.singleton(1L)))).thenReturn(Collections.singletonList(INFO_1));
+        when(taskInfoDAO.findById(eq(1L))).thenReturn(Optional.of(INFO_1));
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
-        verify(tasksByStateDAO, never()).updateTask(any(), anyLong(), any(), any());
+        verify(taskStatusUpdater, never()).updateTask(any(), anyLong(), any(), any());
     }
 
 
@@ -72,8 +79,8 @@ public class TaskStatusSynchronizerTest {
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
-        verify(taskInfoDAO, never()).findByIds(eq(Collections.singleton(1L)));
-        verify(tasksByStateDAO, never()).updateTask(any(), anyLong(), any(), any());
+        verify(taskInfoDAO, never()).findById(eq(1L));
+        verify(taskStatusUpdater, never()).updateTask(any(), anyLong(), any(), any());
     }
 
     private static TaskInfo createTaskTopicInfo(Long id, TaskState state, String topic) {

@@ -3,11 +3,12 @@ package eu.europeana.cloud.service.mcs.config;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
+import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
-import eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
@@ -30,6 +31,7 @@ import java.util.Map;
 @EnableWebMvc
 @PropertySource("classpath:mcs.properties")
 @ComponentScan("eu.europeana.cloud.service.mcs.rest")
+@EnableAspectJAutoProxy
 public class ServiceConfiguration implements WebMvcConfigurer {
     private static final String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
     private static final String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
@@ -92,22 +94,22 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public DynamicContentDAO dynamicContentDAO() {
+    public DynamicContentProxy dynamicContentProxy() {
         Map<Storage, ContentDAO> params = new HashMap<>();
 
         params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
         params.put(Storage.DATA_BASE, cassandraContentDAO());
 
-        return new DynamicContentDAO(params);
+        return new DynamicContentProxy(params);
     }
 
     @Bean
-    public CassandraContentDAO cassandraContentDAO() {
+    public ContentDAO cassandraContentDAO() {
         return new CassandraContentDAO();
     }
 
     @Bean
-    public SwiftContentDAO swiftContentDAO() {
+    public ContentDAO swiftContentDAO() {
         return new SwiftContentDAO();
     }
 
@@ -143,4 +145,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         return multipartResolver;
     }
 
+    @Bean
+    public RetryAspect retryAspect() {
+        return new RetryAspect();
+    }
 }

@@ -134,7 +134,10 @@
         <version.jersey>2.23.1</version.jersey>
         <version.org.glassfish.jersey.test-framework>2.23.1</version.org.glassfish.jersey.test-framework>
         <version.slf4j>1.7.12</version.slf4j>
+<!--
         <version.spring-framework>3.2.9.RELEASE</version.spring-framework>
+-->
+        <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
         <version.servlet>2.5</version.servlet>
         <version.junitparams>1.0.6</version.junitparams>
         <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
@@ -179,6 +182,7 @@
         <version.guava>24.1.1-jre</version.guava>
         <version.lombok>1.18.10</version.lombok>
         <version.commons-collections>3.2.2</version.commons-collections>
+        <version.cglib>3.3.0</version.cglib>
 
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>

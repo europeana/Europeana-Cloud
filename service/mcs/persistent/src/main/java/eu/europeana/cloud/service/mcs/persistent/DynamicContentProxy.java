@@ -23,19 +23,18 @@ import static org.apache.commons.lang.Validate.notEmpty;
  *
  * @author krystian.
  */
-@Repository
-public class DynamicContentDAO {
+public class DynamicContentProxy {
 
-    private final Map<Storage,ContentDAO> contentDAOs = new EnumMap<>(Storage.class);
+    private final Map<Storage, ContentDAO> contentDAOs = new EnumMap<>(Storage.class);
 
-    @Autowired
-    public DynamicContentDAO(Map<Storage,ContentDAO> contentDAOs) {
+    public DynamicContentProxy(Map<Storage, ContentDAO> contentDAOs) {
         notEmpty(contentDAOs);
         this.contentDAOs.putAll(contentDAOs);
     }
 
-    public void copyContent(String sourceObjectId, String trgObjectId, Storage stored) throws
-            FileNotExistsException, FileAlreadyExistsException, IOException {
+    public void copyContent(String sourceObjectId, String trgObjectId, Storage stored)
+            throws FileNotExistsException, FileAlreadyExistsException, IOException {
+
         getContentDAO(stored).copyContent(sourceObjectId,trgObjectId);
     }
 
@@ -44,8 +43,9 @@ public class DynamicContentDAO {
         getContentDAO(stored).deleteContent(fileName);
     }
 
-    public void getContent(String fileName, long start, long end, OutputStream os, Storage stored) throws
-            IOException, FileNotExistsException {
+    public void getContent(String fileName, long start, long end, OutputStream os, Storage stored)
+            throws IOException, FileNotExistsException {
+
         getContentDAO(stored).getContent(fileName,start,end,os);
     }
 
@@ -56,8 +56,7 @@ public class DynamicContentDAO {
     private ContentDAO getContentDAO(final Storage storage) {
         ContentDAO dao = contentDAOs.get(storage);
         if (dao == null) {
-            throw new ContentDaoNotFoundException(
-                    "Specified storage \"" + storage + "\" has not been defined in " + this + "!");
+            throw new ContentDaoNotFoundException("Specified storage \"" + storage + "\" has not been defined in " + this + "!");
         }
         return dao;
     }

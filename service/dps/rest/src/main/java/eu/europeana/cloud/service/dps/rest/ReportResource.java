@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
-import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
+import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -40,7 +40,7 @@ public class ReportResource {
     private TaskExecutionReportService reportService;
 
     @Autowired
-    private ValidationStatisticsReportService validationStatisticsService;
+    private ValidationStatisticsService validationStatisticsService;
 
     /**
      * Retrieves a detailed report for the specified task.It will return info about

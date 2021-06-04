@@ -1,10 +1,10 @@
-package eu.europeana.cloud.service.dps.storm.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.service;
 
 import com.google.common.collect.Lists;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Before;
@@ -18,18 +18,18 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 
 
-public class CassandraReportServiceTest extends CassandraTestBase {
+public class ReportServiceTest extends CassandraTestBase {
 
     private static final long TASK_ID_LONG = 111;
     private static final String TASK_ID = String.valueOf(TASK_ID_LONG);
     private static final String TOPOLOGY_NAME = "some_topology";
-    private CassandraReportService service;
+    private ReportService service;
     private CassandraSubTaskInfoDAO subtaskInfoDao;
 
     @Before
     public void setup() {
         CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
-        service = new CassandraReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
+        service = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
         subtaskInfoDao = CassandraSubTaskInfoDAO.getInstance(db);
     }
 

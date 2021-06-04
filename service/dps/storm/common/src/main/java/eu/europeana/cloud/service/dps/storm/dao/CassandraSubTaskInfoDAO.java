@@ -1,17 +1,23 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.time.Duration;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.SubTaskInfo} DAO
  *
  * @author akrystian
  */
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     private static final long TIME_TO_LIVE = Duration.ofDays(14).toSeconds();
@@ -25,7 +31,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     public static synchronized CassandraSubTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraSubTaskInfoDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraSubTaskInfoDAO(cassandra));
         }
         return instance;
     }
@@ -35,6 +41,10 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
      */
     public CassandraSubTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public CassandraSubTaskInfoDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override

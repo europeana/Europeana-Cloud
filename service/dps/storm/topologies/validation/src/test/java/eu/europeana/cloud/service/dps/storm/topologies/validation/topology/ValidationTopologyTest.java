@@ -7,6 +7,10 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
@@ -84,6 +88,10 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                         .withStatus(200)
                         .withFixedDelay(2000)
                         .withBodyFile("test_schema.zip")));
+        wireMockRule.stubFor(get(urlEqualTo("/edm_sorter.xsl"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBodyFile("edm_sorter.xsl")));
 
     }
 

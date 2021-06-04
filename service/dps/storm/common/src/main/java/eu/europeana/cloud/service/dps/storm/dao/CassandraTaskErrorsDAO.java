@@ -1,22 +1,26 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.google.common.collect.Iterators;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.ErrorDetails;
-import eu.europeana.cloud.common.model.dps.TaskErrorInfo;
-import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
+import eu.europeana.cloud.common.annotation.Retryable;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.*;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 /**
  * The {@link TaskInfo} DAO
  *
  * @author akrystian
  */
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraTaskErrorsDAO extends CassandraDAO {
     private PreparedStatement insertErrorStatement;
     private PreparedStatement updateErrorCounterStatement;
@@ -33,7 +37,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
 
     public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraTaskErrorsDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskErrorsDAO(cassandra));
 
         }
         return instance;
@@ -43,8 +47,12 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     /**
      * @param dbService The service exposing the connection and session
      */
-    private CassandraTaskErrorsDAO(CassandraConnectionProvider dbService) {
+    public CassandraTaskErrorsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public CassandraTaskErrorsDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -133,27 +141,14 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         }
         return count;
     }
-    public Map<String, String> getMessagesUuids(long taskId) {
-        List<TaskErrorInfo> errors = new ArrayList<>();
-        TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
-        ResultSet rs = dbService.getSession().execute(selectErrorsStatement.bind(taskId));
-
-        Map<String, String> errorMessageToUuidMap = new HashMap<>();
-
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-
-            String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString();
-            Optional<String> message = getErrorMessage(taskId, errorType);
-            if(message.isPresent()) {
-                errorMessageToUuidMap.put(message.get(),errorType);
-            }
-        }
-        return errorMessageToUuidMap;
+    public Iterator<String> getMessagesUuids(long taskId) {
+        return Iterators.transform(
+                dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
+                row -> row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString());
     }
 
-    private Optional<String> getErrorMessage(long taskId, String errorType)  {
+    public Optional<String> getErrorMessage(long taskId, String errorType)  {
         ResultSet rs = dbService.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType)));
         if (!rs.iterator().hasNext()) {
             return Optional.empty();

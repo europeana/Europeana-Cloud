@@ -17,12 +17,12 @@ import static org.mockito.Mockito.verify;
 /**
  * @author krystian.
  */
-public class DynamicContentDAOTest {
+public class DynamicContentProxyTest {
 
     @Test(expected = ContentDaoNotFoundException.class)
     public void shouldThrowExceptionOnNonExistingDAO() throws FileNotExistsException {
         //given
-        final DynamicContentDAO instance = new DynamicContentDAO(prepareDAOMap(
+        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(
                 mock(SwiftContentDAO.class)
         ));
 
@@ -34,7 +34,7 @@ public class DynamicContentDAOTest {
     public void shouldProperlySelectDataBaseDeleteContent() throws FileNotExistsException {
         //given
         SwiftContentDAO daoMock = mock(SwiftContentDAO.class);
-        final DynamicContentDAO instance = new DynamicContentDAO(prepareDAOMap(daoMock));
+        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
 
         //when
         instance.deleteContent("exampleFileName",Storage.OBJECT_STORAGE);

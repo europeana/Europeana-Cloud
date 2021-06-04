@@ -1,13 +1,13 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import org.apache.commons.lang3.EnumUtils;
 
 import java.util.Arrays;
@@ -18,17 +18,31 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class TasksByStateDAO extends CassandraDAO {
+    private static TasksByStateDAO instance;
     private PreparedStatement insertStatement;
     private PreparedStatement deleteStatement;
     private PreparedStatement findTasksInGivenState;
     private PreparedStatement listAllInUseTopicsForTopology;
     private PreparedStatement findTask;
 
+    public static synchronized TasksByStateDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new TasksByStateDAO(cassandra));
+        }
+        return instance;
+    }
+
     public TasksByStateDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public TasksByStateDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -64,34 +78,19 @@ public class TasksByStateDAO extends CassandraDAO {
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?");
     }
 
-    public void insert(Optional<String> oldState, String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime)
-            throws NoHostAvailableException, QueryExecutionException {
-        if (oldState.isPresent() && !oldState.equals(state)) {
-            delete(oldState.get(), topologyName, taskId);
-        }
+
+
+    public void insert(String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
         dbService.getSession().execute(insertStatement.bind(state, topologyName, taskId, applicationId, topicName, startTime));
     }
 
-    private void delete(String state, String topologyName, long taskId) {
+    public void delete(String state, String topologyName, long taskId) {
         dbService.getSession().execute(deleteStatement.bind(state, topologyName, taskId));
     }
 
-    public void updateTask(String topologyName, long taskId, String oldState, String newState) {
-        if (oldState.equals(newState)) {
-            return;
-        }
-
-        Row oldTask = dbService.getSession().execute(findTask.bind(oldState, topologyName, taskId)).one();
-        String applicationId = "";
-        String topicName = "";
-        Date startTime = null;
-        if (oldTask != null) {
-            applicationId = oldTask.getString(TASKS_BY_STATE_APP_ID_COL_NAME);
-            topicName = oldTask.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME);
-            startTime = oldTask.getTimestamp(TASKS_BY_STATE_START_TIME);
-        }
-
-        insert(Optional.ofNullable(oldState), newState, topologyName, taskId, applicationId, topicName, startTime);
+    public Optional<Row> findTask(String topologyName, long taskId, String oldState) {
+        return Optional.ofNullable(
+                dbService.getSession().execute(findTask.bind(oldState, topologyName, taskId)).one());
     }
 
     public List<TaskInfo> findTasksInGivenState(List<TaskState> taskStates) {

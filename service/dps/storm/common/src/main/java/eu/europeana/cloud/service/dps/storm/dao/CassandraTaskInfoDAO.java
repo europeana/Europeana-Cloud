@@ -1,29 +1,31 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.TaskInfo} DAO
  *
  * @author akrystian
  */
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskSearchStatement;
     private PreparedStatement taskInsertStatement;
-    private PreparedStatement taskInsertUpdateStateStatement;
     private PreparedStatement updateExpectedSize;
     private PreparedStatement updateTask;
     private PreparedStatement endTask;
@@ -36,7 +38,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public static synchronized CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraTaskInfoDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskInfoDAO(cassandra));
         }
         return instance;
     }
@@ -46,6 +48,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
      */
     public CassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
+    }
+
+    public CassandraTaskInfoDAO() {
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
     @Override
@@ -77,15 +83,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        taskInsertUpdateStateStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
-                "(" + CassandraTablesAndColumnsNames.BASIC_TASK_ID + ","
-                + CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME + ","
-                + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + ","
-                + CassandraTablesAndColumnsNames.STATE + ","
-                + CassandraTablesAndColumnsNames.INFO +
-                ") VALUES (?,?,?,?,?)");
-        taskInsertUpdateStateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         finishTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         finishTask.setConsistencyLevel(dbService.getConsistencyLevel());
 
@@ -99,10 +96,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     public Optional<TaskInfo> findById(long taskId)
             throws NoHostAvailableException, QueryExecutionException {
         return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
-    }
-
-    public List<TaskInfo> findByIds(Collection<Long> taskIds) {
-        return taskIds.stream().map(this::findById).flatMap(Optional::stream).collect(Collectors.toList());
     }
 
     private TaskInfo createTaskInfo(Row row) {
@@ -123,6 +116,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         return task;
     }
 
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS, errorMessage = "Error while inserting task")
     public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, String state, String info, Date sentTime, Date startTime, Date finishTime, int errors, String taskInformations)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, 0, state, info, sentTime, startTime, finishTime, errors, taskInformations));
@@ -168,12 +162,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updateStatusExpectedSizeStatement.bind(String.valueOf(state), expectedSize, taskId));
     }
 
-
     public boolean hasKillFlag(long taskId) throws TaskInfoDoesNotExistException {
         String state = getTaskStatus(taskId);
-        if (state.equals(String.valueOf(TaskState.DROPPED)))
-            return true;
-        return false;
+        return state.equals(String.valueOf(TaskState.DROPPED));
     }
 
     private String getTaskStatus(long taskId) throws TaskInfoDoesNotExistException {

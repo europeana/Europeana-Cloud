@@ -9,6 +9,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -17,7 +18,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnv
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingProperties;
@@ -135,7 +136,8 @@ public class IndexingBolt extends AbstractDpsBolt {
                         dbConnectionDetails.getKeyspaceName(),
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
-        harvestedRecordsDAO = new HarvestedRecordsDAO(cassandraConnectionProvider);
+        harvestedRecordsDAO = RetryableMethodExecutor.createRetryProxy(
+                HarvestedRecordsDAO.getInstance(cassandraConnectionProvider));
     }
 
     private void prepareUisClient() {
@@ -148,7 +150,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                     IDLE_TIME_CHECK_INTERVAL_IN_SECS);
         } catch (IndexingException | URISyntaxException e) {
             LOGGER.error("Unable to initialize indexer", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Unable to initialize indexer", e);
         }
     }
 
@@ -185,8 +187,8 @@ public class IndexingBolt extends AbstractDpsBolt {
                     .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, metisDatasetId))
                     .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, metisDatasetId));
         } catch (MalformedURLException | CloudException e) {
-            LOGGER.error("Unable to update record harvesting dates");
-            throw new RuntimeException("Unable to update record harvesting dates");
+            LOGGER.error("Unable to update record harvesting dates", e);
+            throw new RuntimeException("Unable to update record harvesting dates", e);
         }
     }
 

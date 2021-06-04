@@ -1,11 +1,10 @@
 package eu.europeana.cloud.persisted;
 
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -27,7 +26,7 @@ public class RemoverImplTest {
 
 
     @Mock(name = "cassandraNodeStatisticsDAO")
-    private CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
+    private ValidationStatisticsServiceImpl statisticsService;
 
     private RemoverImpl removerImpl;
 
@@ -36,7 +35,7 @@ public class RemoverImplTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
-        removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, cassandraNodeStatisticsDAO);
+        removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, statisticsService);
     }
 
     @Test
@@ -70,15 +69,15 @@ public class RemoverImplTest {
 
     @Test
     public void shouldSuccessfullyRemoveStatistics() {
-        doNothing().when(cassandraNodeStatisticsDAO).removeStatistics(eq(TASK_ID));
+        doNothing().when(statisticsService).removeStatistics(eq(TASK_ID));
         removerImpl.removeStatistics(TASK_ID);
-        verify(cassandraNodeStatisticsDAO, times(1)).removeStatistics((eq(TASK_ID)));
+        verify(statisticsService, times(1)).removeStatistics((eq(TASK_ID)));
     }
 
     @Test(expected = Exception.class)
     public void shouldRetry5TimesBeforeFailingWhileRemovingStatistics() {
-        doThrow(Exception.class).when(cassandraNodeStatisticsDAO).removeStatistics(eq(TASK_ID));
+        doThrow(Exception.class).when(statisticsService).removeStatistics(eq(TASK_ID));
         removerImpl.removeStatistics(TASK_ID);
-        verify(cassandraNodeStatisticsDAO, times(6)).removeStatistics((eq(TASK_ID)));
+        verify(statisticsService, times(6)).removeStatistics((eq(TASK_ID)));
     }
 }

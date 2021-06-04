@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.config;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
+import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.rest.TopologiesResource;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
@@ -17,13 +17,13 @@ import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidato
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.utils.UnfinishedTasksExecutor;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.dps.rest.TopologyTasksResource;
@@ -80,13 +80,13 @@ public class AbstractSecurityTestContext {
     }
 
     @Bean
-    public CassandraReportService dpsReportService(){
-        return Mockito.mock(CassandraReportService.class);
+    public ReportService dpsReportService(){
+        return Mockito.mock(ReportService.class);
     }
 
     @Bean
-    public ValidationStatisticsReportService statisticsService(){
-        return Mockito.mock(ValidationStatisticsReportService.class);
+    public ValidationStatisticsService statisticsService(){
+        return Mockito.mock(ValidationStatisticsService.class);
     }
 
     @Bean

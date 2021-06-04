@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -6,18 +6,24 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.utils.BucketUtils;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
 /**
  * DAO for processing data in  {@link CassandraTablesAndColumnsNames#PROCESSED_RECORDS_TOPOLOGY_NAME}
  */
+@Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class ProcessedRecordsDAO extends CassandraDAO {
     private static final long TIME_TO_LIVE = 2 * 7 * 24 * 60 * 60L;  //two weeks in seconds
     private static final int BUCKETS_COUNT = 128;
@@ -30,9 +36,13 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     private static ProcessedRecordsDAO instance = null;
 
+    public ProcessedRecordsDAO(){
+        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
+    }
+
     public static synchronized ProcessedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new ProcessedRecordsDAO(cassandra);
+            instance = RetryableMethodExecutor.createRetryProxy(new ProcessedRecordsDAO(cassandra));
         }
         return instance;
     }
@@ -101,11 +111,11 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 state, Calendar.getInstance().getTime(), infoText, additionalInformations));
     }
 
-    public void insert(ProcessedRecord record)
+    public void insert(ProcessedRecord theRecord)
             throws NoHostAvailableException, QueryExecutionException {
-        insert(record.getTaskId(), record.getRecordId(), record.getAttemptNumber(), record.getDstIdentifier(),
-                record.getTopologyName(), record.getState().toString(), record.getInfoText(),
-                record.getAdditionalInformations());
+        insert(theRecord.getTaskId(), theRecord.getRecordId(), theRecord.getAttemptNumber(), theRecord.getDstIdentifier(),
+                theRecord.getTopologyName(), theRecord.getState().toString(), theRecord.getInfoText(),
+                theRecord.getAdditionalInformations());
     }
 
     public void updateProcessedRecordState(long taskId, String recordId, String state) {
@@ -135,10 +145,6 @@ public class ProcessedRecordsDAO extends CassandraDAO {
         }
 
         return Optional.ofNullable(result);
-    }
-
-    public int getAttemptNumber(long taskId, String recordId) {
-        return selectByPrimaryKey(taskId, recordId).map(ProcessedRecord::getAttemptNumber).orElse(0);
     }
 
     public void updateStartTime(long taskId, String recordId, Date startTime) {

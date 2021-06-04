@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
@@ -12,6 +12,9 @@ public abstract class CassandraDAO {
     protected CassandraConnectionProvider dbService;
 
     abstract void prepareStatements();
+
+    protected CassandraDAO(){
+    }
 
     public CassandraDAO(CassandraConnectionProvider dbService) {
         this.keyspaceName = dbService.getKeyspaceName();

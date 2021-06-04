@@ -2,21 +2,29 @@ package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
@@ -28,6 +36,7 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @EnableWebMvc
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
+@EnableAspectJAutoProxy
 public class ServiceConfiguration {
 
     private final Environment environment;
@@ -59,8 +68,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraReportService taskReportService() {
-        return new CassandraReportService(
+    public ReportService taskReportService() {
+        return new ReportService(
                 environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
                 environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
                 environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
@@ -127,7 +136,7 @@ public class ServiceConfiguration {
 
     @Bean
     public CassandraTaskErrorsDAO taskErrorDAO() {
-        return CassandraTaskErrorsDAO.getInstance(dpsCassandraProvider());
+        return new CassandraTaskErrorsDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -136,8 +145,17 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public CassandraValidationStatisticsService validationStatisticsService() {
-        return new CassandraValidationStatisticsService();
+    public ValidationStatisticsServiceImpl validationStatisticsService() {
+        return new ValidationStatisticsServiceImpl(
+                cassandraGeneralStatisticsDAO(),
+                cassandraNodeStatisticsDAO(),
+                cassandraAttributeStatisticsDAO(),
+                cassandraStatisticsReportDAO());
+    }
+
+    @Bean
+    public GeneralStatisticsDAO cassandraGeneralStatisticsDAO() {
+        return new GeneralStatisticsDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -148,6 +166,11 @@ public class ServiceConfiguration {
     @Bean
     public CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO() {
         return new CassandraAttributeStatisticsDAO(dpsCassandraProvider());
+    }
+
+    @Bean
+    public StatisticsReportDAO cassandraStatisticsReportDAO() {
+        return new StatisticsReportDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -172,7 +195,7 @@ public class ServiceConfiguration {
 
     @Bean
     public TaskStatusSynchronizer taskStatusSynchronizer() {
-        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO());
+        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO(), taskStatusUpdater());
     }
 
     @Bean
@@ -195,4 +218,8 @@ public class ServiceConfiguration {
         return new FileURLCreator(machineLocation);
     }
 
+    @Bean
+    public RetryAspect retryAspect() {
+        return new RetryAspect();
+    }
 }
