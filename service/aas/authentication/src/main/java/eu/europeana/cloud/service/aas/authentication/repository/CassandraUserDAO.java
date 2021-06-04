@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.aas.authentication.repository;
 
-import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.google.common.collect.ImmutableSet;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
@@ -33,10 +31,9 @@ public class CassandraUserDAO {
      * Default roles for all users of ecloud (that don't have admin, or other
      * superpowers)
      */
-    private static Set<String> DEFAULT_USER_ROLES = ImmutableSet
-            .of("ROLE_USER");
+    private static final Set<String> DEFAULT_USER_ROLES = Set.of("ROLE_USER");
     @Qualifier("dbService")
-    private CassandraConnectionProvider provider;
+    private final CassandraConnectionProvider provider;
     private PreparedStatement selectUserStatement;
     private PreparedStatement createUserStatement;
     private PreparedStatement updateUserStatement;
@@ -53,78 +50,6 @@ public class CassandraUserDAO {
         this.provider = provider;
         prepareStatements();
         LOGGER.info("CassandraUserDAO started successfully.");
-    }
-
-    public SpringUser getUser(final String username)
-            throws DatabaseConnectionException {
-        try {
-            BoundStatement boundStatement = selectUserStatement.bind(username);
-            ResultSet rs = provider.getSession().execute(boundStatement);
-            Row result = rs.one();
-            if (result == null) {
-                return null;
-            }
-            return mapUser(result);
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(provider.getHosts(),
-                                            provider.getPort(), e.getMessage())));
-        }
-    }
-
-    public void createUser(final User user) throws DatabaseConnectionException {
-
-        try {
-            BoundStatement boundStatement = createUserStatement.bind(
-                    user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
-            provider.getSession().execute(boundStatement);
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(provider.getHosts(),
-                                            provider.getPort(), e.getMessage())));
-        }
-    }
-
-    public void updateUser(final User user) throws DatabaseConnectionException {
-
-        try {
-            BoundStatement boundStatement = updateUserStatement.bind(
-                    user.getPassword(), user.getUsername());
-            provider.getSession().execute(boundStatement);
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(provider.getHosts(),
-                                            provider.getPort(), e.getMessage())));
-        }
-    }
-
-    public void deleteUser(final String username)
-            throws DatabaseConnectionException {
-
-        try {
-            BoundStatement boundStatement = deleteUserStatement.bind(username);
-            provider.getSession().execute(boundStatement);
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(provider.getHosts(),
-                                            provider.getPort(), e.getMessage())));
-        }
     }
 
     private void prepareStatements() {
@@ -147,12 +72,83 @@ public class CassandraUserDAO {
         deleteUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
     }
 
+    public SpringUser getUser(final String username)
+            throws DatabaseConnectionException {
+        try {
+            var boundStatement = selectUserStatement.bind(username);
+            ResultSet rs = provider.getSession().execute(boundStatement);
+            Row result = rs.one();
+            if (result == null) {
+                return null;
+            }
+            return mapUser(result);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(
+                    new IdentifierErrorInfo(
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getHttpCode(),
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getErrorInfo(provider.getHosts(),
+                                            provider.getPort(), e.getMessage())));
+        }
+    }
+
+    public void createUser(final User user) throws DatabaseConnectionException {
+
+        try {
+            var boundStatement = createUserStatement.bind(
+                    user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
+            provider.getSession().execute(boundStatement);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(
+                    new IdentifierErrorInfo(
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getHttpCode(),
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getErrorInfo(provider.getHosts(),
+                                            provider.getPort(), e.getMessage())));
+        }
+    }
+
+    public void updateUser(final User user) throws DatabaseConnectionException {
+
+        try {
+            var boundStatement = updateUserStatement.bind(
+                    user.getPassword(), user.getUsername());
+            provider.getSession().execute(boundStatement);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(
+                    new IdentifierErrorInfo(
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getHttpCode(),
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getErrorInfo(provider.getHosts(),
+                                            provider.getPort(), e.getMessage())));
+        }
+    }
+
+    public void deleteUser(final String username)
+            throws DatabaseConnectionException {
+
+        try {
+            var boundStatement = deleteUserStatement.bind(username);
+            provider.getSession().execute(boundStatement);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(
+                    new IdentifierErrorInfo(
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getHttpCode(),
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getErrorInfo(provider.getHosts(),
+                                            provider.getPort(), e.getMessage())));
+        }
+    }
+
     private SpringUser mapUser(final Row row) {
 
-        final String username = row.getString("username");
-        final String password = row.getString("password");
+        final var username = row.getString("username");
+        final var password = row.getString("password");
         final Set<String> roles = row.getSet("roles", String.class);
-        SpringUser user = new SpringUser(username, password, roles);
-        return user;
+        return new SpringUser(username, password, roles);
     }
 }
