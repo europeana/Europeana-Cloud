@@ -81,9 +81,6 @@ public final class PluginParameterKeys {
     public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
     public static final String USE_DEFAULT_IDENTIFIERS = "USE_DEFAULT_IDENTIFIERS";
 
-    // -----------MIGRATION----------
-    public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";
-
     //Media
     public static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
     public static final String RESOURCE_URL="RESOURCE_URL";

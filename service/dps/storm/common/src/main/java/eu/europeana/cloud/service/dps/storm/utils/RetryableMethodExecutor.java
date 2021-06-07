@@ -42,7 +42,7 @@ public class RetryableMethodExecutor {
                 return callable.call();
             } catch (Exception e) {
                 if (retryCount-- > 0) {
-                    LOGGER.warn(errorMessage + " Retries Left {} ", retryCount, e);
+                    LOGGER.warn("{} Retries Left {} ", errorMessage, retryCount, e);
                     waitForSpecificTime(sleepTimeBetweenRetriesMs);
                 } else {
                     LOGGER.error(errorMessage);
