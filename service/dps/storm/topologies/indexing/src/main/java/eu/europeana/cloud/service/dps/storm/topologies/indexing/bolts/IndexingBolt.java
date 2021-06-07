@@ -136,8 +136,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                         dbConnectionDetails.getKeyspaceName(),
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
-        harvestedRecordsDAO = RetryableMethodExecutor.createRetryProxy(
-                HarvestedRecordsDAO.getInstance(cassandraConnectionProvider));
+        harvestedRecordsDAO = HarvestedRecordsDAO.getInstance(cassandraConnectionProvider);
     }
 
     private void prepareUisClient() {
