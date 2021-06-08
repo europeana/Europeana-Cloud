@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
 
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import org.junit.Test;
 import org.mockito.Mockito;
 

@@ -2,7 +2,7 @@ package eu.europeana.cloud.tools;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

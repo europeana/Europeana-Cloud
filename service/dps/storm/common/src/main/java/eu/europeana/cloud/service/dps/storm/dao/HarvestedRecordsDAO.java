@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
 
-import static eu.europeana.cloud.common.annotation.Retryable.*;
+import static eu.europeana.cloud.common.annotation.Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 public class HarvestedRecordsDAO extends CassandraDAO {
@@ -145,7 +145,9 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     }
 
     private Iterator<Row> queryBucket(String metisDatasetId, Integer bucketNumber) {
-        return RetryableMethodExecutor.executeOnDb(DB_COMMUNICATION_FAILURE_MESSAGE,
+        return RetryableMethodExecutor.execute(DB_COMMUNICATION_FAILURE_MESSAGE,
+                DPS_DEFAULT_MAX_ATTEMPTS,
+                DEFAULT_DELAY_BETWEEN_ATTEMPTS,
                 () -> dbService.getSession().execute(
                         findAllRecordInDataset.bind(metisDatasetId, bucketNumber))
                         .iterator()

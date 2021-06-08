@@ -32,7 +32,6 @@ import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
