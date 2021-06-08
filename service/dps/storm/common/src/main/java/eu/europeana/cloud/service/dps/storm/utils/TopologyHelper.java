@@ -33,6 +33,7 @@ public final class TopologyHelper {
     public static final String ENRICHMENT_BOLT = "enrichmentBolt";
     public static final String NORMALIZATION_BOLT = "normalizationBolt";
     public static final String RECORD_HARVESTING_BOLT = "recordHarvestingBolt";
+    public static final String RECORD_CATEGORIZATION_BOLT = "recordCategorizationBolt";
     public static final String PARSE_FILE_BOLT = "ParseFileBolt";
     public static final String EDM_ENRICHMENT_BOLT = "EDMEnrichmentBolt";
     public static final String EDM_OBJECT_PROCESSOR_BOLT = "EDMObjectProcessorBolt";

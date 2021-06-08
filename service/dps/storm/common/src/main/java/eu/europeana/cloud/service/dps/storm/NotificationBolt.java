@@ -124,10 +124,6 @@ public class NotificationBolt extends BaseRichBolt {
         //last bolt in all topologies, nothing to declare
     }
 
-    public void clearCache() {
-        cache.clear();
-    }
-
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         switch (notificationTuple.getInformationType()) {
             case UPDATE_TASK:
@@ -150,7 +146,7 @@ public class NotificationBolt extends BaseRichBolt {
             notifyTask(notificationTuple, nCache, taskId);
             storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
-            processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState.toString());
+            processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState);
         }
     }
 

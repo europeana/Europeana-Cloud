@@ -104,11 +104,12 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_BUCKET_NUMBER = "bucket_number";
     //------- HARVESTED_RECORD -------
     public static final String HARVESTED_RECORD_METIS_DATASET_ID = "metis_dataset_id";
-    public static final String HARVESTED_RECORD_LOCAL_ID = "record_local_id";
     public static final String HARVESTED_RECORD_BUCKET_NUMBER = "bucket_number";
-    public static final String HARVESTED_RECORD_HARVEST_DATE = "harvest_date";
-    public static final String HARVESTED_RECORD_MD5 = "md5";
-    public static final String HARVESTED_RECORD_INDEXING_DATE = "indexing_date";
+    public static final String HARVESTED_RECORD_LOCAL_ID = "record_local_id";
+    public static final String HARVESTED_RECORD_LATEST_HARVEST_DATE = "latest_harvest_date";
+    public static final String HARVESTED_RECORD_LATEST_HARVEST_MD5 = "latest_harvest_md5";
+    public static final String HARVESTED_RECORD_PUBLISHED_HARVEST_DATE = "published_harvest_date";
+    public static final String HARVESTED_RECORD_PUBLISHED_HARVEST_MD5 = "published_harvest_md5";
 
     private CassandraTablesAndColumnsNames() {
     }

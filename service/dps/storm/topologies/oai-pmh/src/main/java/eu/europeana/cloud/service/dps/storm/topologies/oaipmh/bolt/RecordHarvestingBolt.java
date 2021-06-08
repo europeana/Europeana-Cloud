@@ -3,10 +3,12 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
+import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
@@ -16,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -53,14 +54,15 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         String metadataPrefix = readMetadataPrefix(stormTaskTuple);
         if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
             LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
-            try (final InputStream record = harvester.harvestRecord(
-                   new OaiRepository(endpointLocation, metadataPrefix), recordId).getRecord()) {
-                stormTaskTuple.setFileData(record);
+            try {
+                OaiRecord oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
+                stormTaskTuple.setFileData(oaiRecord.getRecord());
 
                 if (useHeaderIdentifier(stormTaskTuple))
                     trimLocalId(stormTaskTuple); //Added for the time of migration - MET-1189
                 else
                     useEuropeanaId(stormTaskTuple);
+                addRecordTimestampToTuple(stormTaskTuple, oaiRecord);
 
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
 
@@ -87,6 +89,10 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         }
         LOGGER.info("Harvesting finished in: {}ms for {}", Calendar.getInstance().getTimeInMillis() - harvestingStartTime, stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         outputCollector.ack(anchorTuple);
+    }
+
+    private void addRecordTimestampToTuple(StormTaskTuple stormTaskTuple, OaiRecord oaiRecord) {
+        stormTaskTuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, DateHelper.format(oaiRecord.getHeader().getDatestamp()));
     }
 
     @Override

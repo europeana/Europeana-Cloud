@@ -1,6 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 
@@ -15,5 +19,13 @@ public class DateHelper {
                 .map(Instant::parse)
                 .map(Date::from)
                 .orElse(null);
+    }
+
+    public static String format(Instant date) {
+        return DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.from(ZoneOffset.UTC)).format(date);
+    }
+
+    public static Instant parse(String date) {
+        return ZonedDateTime.parse(date).toInstant();
     }
 }

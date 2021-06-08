@@ -212,6 +212,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             //
             stormTaskTuple.addParameter(CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
             stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
+            stormTaskTuple.addParameter(HARVEST_DATE, DateHelper.format(taskInfo.getSentDate().toInstant()));
             stormTaskTuple.addParameter(MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
 
             List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);

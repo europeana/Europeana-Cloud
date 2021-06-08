@@ -80,6 +80,8 @@ public final class PluginParameterKeys {
     public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
     public static final String USE_DEFAULT_IDENTIFIERS = "USE_DEFAULT_IDENTIFIERS";
     public static final String INCREMENTAL_HARVEST = "INCREMENTAL_HARVEST";
+    public static final String HARVEST_DATE = "HARVEST_DATE";
+    public static final String RECORD_DATESTAMP = "RECORD_DATESTAMP";
 
     // -----------MIGRATION----------
     public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";

@@ -5,8 +5,6 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -20,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import static eu.europeana.cloud.service.commons.urls.RepresentationParser.parseResultUrl;
+
 /**
  *
  */
@@ -27,7 +27,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
 
-    private String ecloudMcsAddress;
+    private final String ecloudMcsAddress;
     private transient DataSetServiceClient dataSetServiceClient;
 
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
@@ -102,16 +102,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
 
 
-    private Representation parseResultUrl(String url) throws MalformedURLException {
-        UrlParser parser = new UrlParser(url);
-        if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
-            Representation rep = new Representation();
-            rep.setCloudId(parser.getPart(UrlPart.RECORDS));
-            rep.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
-            rep.setVersion(parser.getPart(UrlPart.VERSIONS));
-            return rep;
-        }
-        throw new MalformedURLException("The resulted output URL is not formulated correctly");
-    }
+
 
 }

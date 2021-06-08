@@ -40,9 +40,9 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
     @Test
     public void shouldFindInsertedRecords() {
         dao.insertHarvestedRecord(builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(OAI_ID_1)
-                .harvestDate(HARVESTED_DATE).build());
+                .latestHarvestDate(HARVESTED_DATE).build());
         dao.insertHarvestedRecord(builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(OAI_ID_2)
-                .harvestDate(HARVESTED_DATE).indexingDate(INDEXING_DATE).md5(MD5).build());
+                .latestHarvestDate(HARVESTED_DATE).publishedHarvestDate(INDEXING_DATE).latestHarvestMd5(MD5).publishedHarvestMd5(MD5).build());
 
 
         HarvestedRecord record1 = dao.findRecord(METIS_DATASET_ID, OAI_ID_1).orElseThrow();
@@ -51,15 +51,17 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
 
         assertEquals(METIS_DATASET_ID, record1.getMetisDatasetId());
         assertEquals(OAI_ID_1, record1.getRecordLocalId());
-        assertEquals(HARVESTED_DATE, record1.getHarvestDate());
-        assertNull(record1.getIndexingDate());
-        assertNull(record1.getMd5());
+        assertEquals(HARVESTED_DATE, record1.getLatestHarvestDate());
+        assertNull(record1.getPublishedHarvestDate());
+        assertNull(record1.getLatestHarvestMd5());
+        assertNull(record1.getPublishedHarvestMd5());
 
         assertEquals(METIS_DATASET_ID, record2.getMetisDatasetId());
         assertEquals(OAI_ID_2, record2.getRecordLocalId());
-        assertEquals(HARVESTED_DATE, record2.getHarvestDate());
-        assertEquals(INDEXING_DATE, record2.getIndexingDate());
-        assertEquals(MD5, record2.getMd5());
+        assertEquals(HARVESTED_DATE, record2.getLatestHarvestDate());
+        assertEquals(INDEXING_DATE, record2.getPublishedHarvestDate());
+        assertEquals(MD5, record2.getLatestHarvestMd5());
+        assertEquals(MD5, record2.getPublishedHarvestMd5());
 
     }
 
@@ -73,8 +75,8 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
 
     @Test
     public void shouldIterateThrowDatasetRecords() {
-        dao.insertHarvestedRecord(builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(OAI_ID_1).harvestDate(HARVESTED_DATE).build());
-        dao.insertHarvestedRecord(builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(OAI_ID_2).harvestDate(HARVESTED_DATE).build());
+        dao.insertHarvestedRecord(builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(OAI_ID_1).latestHarvestDate(HARVESTED_DATE).build());
+        dao.insertHarvestedRecord(builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(OAI_ID_2).latestHarvestDate(HARVESTED_DATE).build());
 
         Iterator<HarvestedRecord> iterator = dao.findDatasetRecords(METIS_DATASET_ID);
 

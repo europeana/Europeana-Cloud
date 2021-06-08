@@ -1,16 +1,18 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.OAINotificationBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingAddToDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.HarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
@@ -62,10 +64,15 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(SPOUT, new ShuffleGrouping());
 
+        builder.setBolt(RECORD_CATEGORIZATION_BOLT, new HarvestedRecordCategorizationBolt(prepareConnectionDetails()),
+                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
+
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
+                .customGrouping(RECORD_CATEGORIZATION_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
@@ -82,7 +89,7 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(DUPLICATES_DETECTOR_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+        builder.setBolt(NOTIFICATION_BOLT, new OAINotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
@@ -93,6 +100,8 @@ public class OAIPHMHarvestingTopology {
                 .fieldsGrouping(SPOUT, NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(RECORD_CATEGORIZATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
@@ -112,6 +121,16 @@ public class OAIPHMHarvestingTopology {
 
     private static int getAnInt(String parseTasksBoltParallel) {
         return parseInt(topologyProperties.getProperty(parseTasksBoltParallel));
+    }
+
+    private DbConnectionDetails prepareConnectionDetails() {
+        return DbConnectionDetails.builder()
+                .hosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
+                .port(getAnInt(CASSANDRA_PORT))
+                .keyspaceName(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
+                .userName(topologyProperties.getProperty(CASSANDRA_USERNAME))
+                .password(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
+                .build();
     }
 
     public static void main(String[] args) {

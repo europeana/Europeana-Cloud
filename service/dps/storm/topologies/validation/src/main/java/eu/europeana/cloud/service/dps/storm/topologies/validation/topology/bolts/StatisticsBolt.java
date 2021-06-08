@@ -85,7 +85,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
 
     private void markRecordStatsAsCalculated(StormTaskTuple stormTaskTuple) {
         if (!statsAlreadyCalculated(stormTaskTuple)) {
-            processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED.toString());
+            processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED);
         }
     }
 }

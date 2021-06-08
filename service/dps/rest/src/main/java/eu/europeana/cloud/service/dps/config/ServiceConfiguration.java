@@ -1,13 +1,17 @@
 package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.task.postprocessors.HarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -23,6 +27,7 @@ import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceI
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -80,11 +85,6 @@ public class ServiceConfiguration {
     @Bean
     public TopologyManager topologyManger() {
         return new TopologyManager(environment.getProperty(JNDI_KEY_TOPOLOGY_NAMELIST));
-    }
-
-    @Bean
-    public DataSetServiceClient dataSetServiceClient() {
-        return new DataSetServiceClient(environment.getProperty(JNDI_KEY_MCS_LOCATION));
     }
 
     @Bean
@@ -205,19 +205,51 @@ public class ServiceConfiguration {
 
     @Bean
     public MCSTaskSubmitter mcsTaskSubmitter() {
-        String mcsLocation=environment.getProperty(JNDI_KEY_MCS_LOCATION);
-        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation);
+        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation());
     }
 
     @Bean
     public FileURLCreator fileURLCreator(){
         String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
         if(machineLocation == null) {
-            throw new RuntimeException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
+            throw new BeanCreationException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
         }
         return new FileURLCreator(machineLocation);
     }
 
+    @Bean
+    public HarvestingPostProcessor harvestingPostProcessor(){
+        return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
+                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater());
+    }
+
+    @Bean
+    public UISClient uisClient() {
+        return new UISClient(uisLocation());
+    }
+
+    @Bean
+    public DataSetServiceClient dataSetServiceClient() {
+        return new DataSetServiceClient(mcsLocation());
+    }
+
+    @Bean
+    public RecordServiceClient recordServiceClient() {
+        return new RecordServiceClient(mcsLocation());
+    }
+
+    @Bean
+    public RevisionServiceClient revisionServiceClient() {
+        return new RevisionServiceClient(mcsLocation());
+    }
+
+    private String mcsLocation() {
+        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
+    }
+
+    private String uisLocation() {
+        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
+    }
     @Bean
     public RetryAspect retryAspect() {
         return new RetryAspect();

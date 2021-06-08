@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
  * Tests for {@link RecordHarvestingBolt}
  */
 
-public class RecordHarvestingBoltTest  {
+public class RecordHarvestingBoltTest {
     @Mock
     private OutputCollector outputCollector;
 
@@ -66,7 +66,6 @@ public class RecordHarvestingBoltTest  {
         verifySuccessfulEmit();
         verify(spiedTask).setFileData(Mockito.any(InputStream.class));
     }
-
 
     @Test
     public void shouldHarvestRecordInEDMAndExtractIdentifiers() throws IOException, HarvesterException {
@@ -123,7 +122,6 @@ public class RecordHarvestingBoltTest  {
         assertEquals("/2020739_Ag_EU_CARARE_2Cultur/object_DCU_24927017", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
-
     @Test
     public void shouldHarvestRecordInEDMAndUseHeaderIdentifierIfSpecifiedInTaskParameters() throws IOException, HarvesterException {
         //given
@@ -142,10 +140,9 @@ public class RecordHarvestingBoltTest  {
         verifySuccessfulEmit();
 
         verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertNull( spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+        assertNull(spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
         assertEquals("http://data.europeana.eu/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
-
 
     @Test
     public void shouldHarvestRecordInEDMAndUseHeaderIdentifierAndTrimItIfSpecifiedInTaskParameters() throws IOException, HarvesterException {
@@ -168,7 +165,6 @@ public class RecordHarvestingBoltTest  {
         assertNull(spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
         assertEquals("/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
-
 
     @Test
     public void shouldEmitErrorOnHarvestingExceptionWhenCannotExctractEuropeanaIdFromEDM() throws HarvesterException {
@@ -274,7 +270,6 @@ public class RecordHarvestingBoltTest  {
         task.setSourceDetails(details);
         return task;
     }
-
 
     private StormTaskTuple taskWithoutRecordId() {
         StormTaskTuple task = new StormTaskTuple();
