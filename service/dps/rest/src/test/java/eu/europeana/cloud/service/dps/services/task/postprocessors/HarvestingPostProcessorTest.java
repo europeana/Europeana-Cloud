@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DeletedRecordsForIncrementalHarvestingPostProcessorTest {
+public class HarvestingPostProcessorTest {
 
     private static final long TASK_ID = 1000;
     private static final String METIS_DATASET_ID = "111";
@@ -86,7 +86,7 @@ public class DeletedRecordsForIncrementalHarvestingPostProcessorTest {
     private TaskStatusUpdater taskStatusUpdater;
 
     @InjectMocks
-    private DeletedRecordsForIncrementalHarvestingPostProcessor service;
+    private HarvestingPostProcessor service;
 
     @Before
     public void before() throws CloudException, MCSException, URISyntaxException {

@@ -10,12 +10,13 @@ import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.services.task.postprocessors.DeletedRecordsForIncrementalHarvestingPostProcessor;
+import eu.europeana.cloud.service.dps.services.task.postprocessors.HarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.*;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -188,14 +189,14 @@ public class ServiceConfiguration {
     public FileURLCreator fileURLCreator(){
         String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
         if(machineLocation == null) {
-            throw new RuntimeException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
+            throw new BeanCreationException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
         }
         return new FileURLCreator(machineLocation);
     }
 
     @Bean
-    public DeletedRecordsForIncrementalHarvestingPostProcessor deletedRecordsForIncrementalHarvestingPostProcessor(){
-        return new DeletedRecordsForIncrementalHarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
+    public HarvestingPostProcessor harvestingPostProcessor(){
+        return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
                 recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater());
     }
 

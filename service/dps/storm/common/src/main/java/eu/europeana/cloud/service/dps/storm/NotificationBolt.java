@@ -119,10 +119,6 @@ public class NotificationBolt extends BaseRichBolt {
         //last bolt in all topologies, nothing to declare
     }
 
-    public void clearCache() {
-        cache.clear();
-    }
-
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         switch (notificationTuple.getInformationType()) {
             case UPDATE_TASK:
@@ -140,8 +136,8 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
         String recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
-        Optional<ProcessedRecord> record = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
-        if (record.isEmpty() || !isFinished(record.get())) {
+        Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
+        if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
             notifyTask(notificationTuple, nCache, taskId);
             storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
@@ -248,13 +244,13 @@ public class NotificationBolt extends BaseRichBolt {
         return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
     }
 
-    private boolean isFinished(ProcessedRecord record) {
-        return record.getState() == RecordState.SUCCESS || record.getState() == RecordState.ERROR;
+    private boolean isFinished(ProcessedRecord theRecord) {
+        return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
     }
 
     protected class NotificationCache {
 
-        int processed = 0;
+        int processed;
         int errors = 0;
 
         Map<String, String> errorTypes = new HashMap<>();
@@ -262,7 +258,7 @@ public class NotificationBolt extends BaseRichBolt {
         NotificationCache(long taskId) {
             processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
             if (processed > 0) {
-                errors = taskInfoDAO.findById(taskId).get().getErrors();
+                errors = taskInfoDAO.findById(taskId).orElseThrow().getErrors();
                 errorTypes = taskErrorDAO.getMessagesUuids(taskId);
                 LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}", taskId, processed, errors, errorTypes);
             }

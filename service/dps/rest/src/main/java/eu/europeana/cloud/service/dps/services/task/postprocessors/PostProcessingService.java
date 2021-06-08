@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class PostProcessingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PostProcessingService.class);
+    public static final String SCHEDULE_CRON_RULE = "15,45 * * * * *";
 
     @Autowired
     private CassandraTaskInfoDAO taskInfoDAO;
@@ -35,36 +36,35 @@ public class PostProcessingService {
     private String applicationIdentifier;
 
     @Autowired
-    private DeletedRecordsForIncrementalHarvestingPostProcessor taskPostprocessor;
+    private HarvestingPostProcessor taskPostProcessor;
 
-
-    @Scheduled(cron = "15,45 * * * * *")
-    public void go() {
-        findTasksForPostprocess().forEach(this::executePostprocess);
+    @Scheduled(cron = SCHEDULE_CRON_RULE)
+    public void execute() {
+        findTasks().forEach(this::executeOneTask);
     }
 
-    private List<Long> findTasksForPostprocess() {
-        LOGGER.info("Checking for tasks to postprocess...");
+    public void executeOneTask(long taskId) {
+        try {
+            taskPostProcessor.execute(loadTask(taskId));
+            LOGGER.info("Successfully post processed task id={}", taskId);
+        } catch (Exception e) {
+            LOGGER.error("Could not post process task id={}", taskId, e);
+        }
+    }
+
+    private List<Long> findTasks() {
+        LOGGER.info("Checking for tasks to post process...");
         List<Long> tasks = tasksByStateDAO.findTasksInGivenState(Collections.singletonList(TaskState.POST_PROCESSING))
                 .stream()
                 .filter(task -> applicationIdentifier.equals(task.getOwnerId())).map(TaskInfo::getId)
                 .collect(Collectors.toList());
 
         if (tasks.isEmpty()) {
-            LOGGER.info("There are no tasks to postprocess on this machine.");
+            LOGGER.info("There are no tasks to post process on this machine.");
         } else {
-            LOGGER.info("Found {} tasks to postprocess ids: {}", tasks.size(), tasks);
+            LOGGER.info("Found {} tasks to post process ids: {}", tasks.size(), tasks);
         }
         return tasks;
-    }
-
-    public void executePostprocess(long taskId) {
-        try {
-            taskPostprocessor.execute(loadTask(taskId));
-            LOGGER.info("Successfully postprocessed task id={}", taskId);
-        } catch (Exception e) {
-            LOGGER.error("Could not postprocess task id={}", taskId, e);
-        }
     }
 
     private DpsTask loadTask(long taskId) throws IOException, TaskInfoDoesNotExistException {

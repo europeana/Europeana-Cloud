@@ -101,11 +101,11 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 state, Calendar.getInstance().getTime(), infoText, additionalInformations));
     }
 
-    public void insert(ProcessedRecord record)
+    public void insert(ProcessedRecord theRecord)
             throws NoHostAvailableException, QueryExecutionException {
-        insert(record.getTaskId(), record.getRecordId(), record.getAttemptNumber(), record.getDstIdentifier(),
-                record.getTopologyName(), record.getState().toString(), record.getInfoText(),
-                record.getAdditionalInformations());
+        insert(theRecord.getTaskId(), theRecord.getRecordId(), theRecord.getAttemptNumber(), theRecord.getDstIdentifier(),
+                theRecord.getTopologyName(), theRecord.getState().toString(), theRecord.getInfoText(),
+                theRecord.getAdditionalInformations());
     }
 
     public void updateProcessedRecordState(long taskId, String recordId, RecordState state) {

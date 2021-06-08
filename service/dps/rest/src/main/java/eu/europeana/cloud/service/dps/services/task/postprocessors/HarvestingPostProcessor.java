@@ -34,9 +34,9 @@ import java.util.List;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Service
-public class DeletedRecordsForIncrementalHarvestingPostProcessor implements TaskPostprocessor {
+public class HarvestingPostProcessor implements TaskPostProcessor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeletedRecordsForIncrementalHarvestingPostProcessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingPostProcessor.class);
 
     private final HarvestedRecordsDAO harvestedRecordsDAO;
 
@@ -52,13 +52,13 @@ public class DeletedRecordsForIncrementalHarvestingPostProcessor implements Task
 
     private final TaskStatusUpdater taskStatusUpdater;
 
-    public DeletedRecordsForIncrementalHarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
-                                                               ProcessedRecordsDAO processedRecordsDAO,
-                                                               RecordServiceClient recordServiceClient,
-                                                               RevisionServiceClient revisionServiceClient,
-                                                               UISClient uisClient,
-                                                               DataSetServiceClient dataSetServiceClient,
-                                                               TaskStatusUpdater taskStatusUpdater) {
+    public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
+                                   ProcessedRecordsDAO processedRecordsDAO,
+                                   RecordServiceClient recordServiceClient,
+                                   RevisionServiceClient revisionServiceClient,
+                                   UISClient uisClient,
+                                   DataSetServiceClient dataSetServiceClient,
+                                   TaskStatusUpdater taskStatusUpdater) {
         this.harvestedRecordsDAO = harvestedRecordsDAO;
         this.processedRecordsDAO = processedRecordsDAO;
         this.recordServiceClient = recordServiceClient;
@@ -73,7 +73,7 @@ public class DeletedRecordsForIncrementalHarvestingPostProcessor implements Task
         /* Plan:
         1. Iterate over oll records from table harvested_records where latest_harvest_date<task_execution_date
         2. For each europeana_id:
-            - find clouud_id
+            - find cloud_id
             - create representation version
             - add revision (taken from task definition (output_revision))
             - add created representation version to dataset (dataset taken from task definition (output dataset))
@@ -105,12 +105,11 @@ public class DeletedRecordsForIncrementalHarvestingPostProcessor implements Task
             assignRepresentationToDatasets(dpsTask, representation);
 
         } catch (CloudException | MCSException | MalformedURLException e) {
-            throw new RuntimeException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
+            throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
                     + " to task result revision! taskId=" + dpsTask.getTaskId(), e);
         }
 
     }
-
 
     private Iterator<HarvestedRecord> fetchDeletedRecords(DpsTask task) {
         Date harvestDate = DateHelper.parseISODate(task.getParameter(PluginParameterKeys.HARVEST_DATE));

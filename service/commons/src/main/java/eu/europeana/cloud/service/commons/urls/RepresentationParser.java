@@ -7,6 +7,9 @@ import java.net.URI;
 
 public class RepresentationParser {
 
+    private RepresentationParser() {
+    }
+
     public static Representation parseResultUrl(String url) throws MalformedURLException {
         UrlParser parser = new UrlParser(url);
         if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {

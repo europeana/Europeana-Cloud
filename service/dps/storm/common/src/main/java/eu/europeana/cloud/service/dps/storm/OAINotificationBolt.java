@@ -9,7 +9,7 @@ import java.util.Date;
 /**
  * This is just temporary class that has exactly same behaviour like @{@link NotificationBolt}.
  * Only one difference is that this @{@link OAINotificationBolt} will set result state of OAI task as POST_PROCESSING.
- * Eventually such a task will be postprocessed on DPS application.
+ * Eventually such a task will be post processed on DPS application.
  */
 public class OAINotificationBolt extends NotificationBolt {
 
@@ -32,7 +32,7 @@ public class OAINotificationBolt extends NotificationBolt {
     @Override
     protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
         taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Postprocessing", String.valueOf(TaskState.POST_PROCESSING), new Date());
-        LOGGER.info("Task id={} finished topology stage with {} records processed and {} errors. Now it is waiting for postprocessing ",
+        LOGGER.info("Task id={} finished topology stage with {} records processed and {} errors. Now it is waiting for post processing ",
                 notificationTuple.getTaskId(), count, errors);
     }
 

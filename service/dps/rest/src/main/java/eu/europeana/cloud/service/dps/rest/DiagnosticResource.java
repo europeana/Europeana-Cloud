@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.services.task.postprocessors.PostProcessingService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecordsDAO;
@@ -11,11 +10,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -53,18 +52,18 @@ public class DiagnosticResource {
 
             Iterator<HarvestedRecord> it = harvestedRecordsDAO.findDatasetRecords(metisDatasetId);
             for (int i = 0; i < count && it.hasNext(); i++) {
-                HarvestedRecord record = it.next();
-                result.add(record);
+                HarvestedRecord theRecord = it.next();
+                result.add(theRecord);
             }
             return result;
         }
     }
 
 
-    @GetMapping("/postProcess/{taskId}")
+    @PostMapping("/postProcess/{taskId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void postProcess(long taskId) {
-        postProcessingService.executePostprocess(taskId);
+        postProcessingService.executeOneTask(taskId);
     }
 
 }

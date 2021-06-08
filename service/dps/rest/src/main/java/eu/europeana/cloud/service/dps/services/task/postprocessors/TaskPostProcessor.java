@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 /**
  *
  */
-public interface TaskPostprocessor {
+public interface TaskPostProcessor {
 
     /**
      * Executes post processing activity for the provided task
