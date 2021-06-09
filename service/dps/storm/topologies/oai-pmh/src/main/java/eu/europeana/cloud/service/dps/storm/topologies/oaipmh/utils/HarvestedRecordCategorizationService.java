@@ -29,7 +29,10 @@ public class HarvestedRecordCategorizationService {
             return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
         } else {
             updateRecordLatestHarvestDate(harvestedRecord.get(), categorizationParameters.getCurrentHarvestDate());
-            if (recordDateStampOlderThanPublishedVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())) {
+            if (categorizationParameters.isFullHarvest()
+                    || recordDateStampOlderThanPreviewVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())
+                    || recordDateStampOlderThanPublishedVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())
+                    ) {
                 return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
             }
             return categorizeRecordAsNotReadyForProcessing(categorizationParameters, harvestedRecord);
@@ -63,11 +66,18 @@ public class HarvestedRecordCategorizationService {
                 harvestedRecord.getLatestHarvestDate());
     }
 
+    private boolean recordDateStampOlderThanPreviewVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
+        return harvestedRecord.getPreviewHarvestDate() == null
+                ||
+        recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPreviewHarvestDate().toInstant());
+    }
+
     private boolean recordDateStampOlderThanPublishedVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
         return harvestedRecord.getPublishedHarvestDate() == null
                 ||
-        recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPublishedHarvestDate().toInstant());
+                recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPublishedHarvestDate().toInstant());
     }
+
 
     private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
         return CategorizationResult
