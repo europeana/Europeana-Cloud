@@ -33,19 +33,16 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple t) {
         var categorizationParameters = prepareCategorizationParameters(t);
         LOGGER.info("Starting categorization for {}", categorizationParameters);
-        if (isIncrementalHarvesting(t)) {
-            var categorizationResult = categorizeRecord(categorizationParameters);
-            if (categorizationResult.shouldBeProcessed()) {
-                LOGGER.info("Further processing will take place for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
-                pushRecordToNextBolt(anchorTuple, t);
-            } else {
-                LOGGER.info("Further processing will be stopped for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
-                ignoreRecordAsNotChanged(anchorTuple, t, categorizationResult);
-            }
-        } else {
-            LOGGER.info("Categorization process will not be started for {}. It is not incremental processing", categorizationParameters);
+
+        var categorizationResult = categorizeRecord(categorizationParameters);
+        if (categorizationResult.shouldBeProcessed()) {
+            LOGGER.info("Further processing will take place for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
             pushRecordToNextBolt(anchorTuple, t);
+        } else {
+            LOGGER.info("Further processing will be stopped for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
+            ignoreRecordAsNotChanged(anchorTuple, t, categorizationResult);
         }
+
         outputCollector.ack(anchorTuple);
     }
 
@@ -65,6 +62,7 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
     private CategorizationParameters prepareCategorizationParameters(StormTaskTuple tuple){
 
         return CategorizationParameters.builder()
+                .fullHarvest(!isIncrementalHarvesting(tuple))
                 .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
                 .recordId(tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER))
                 .recordDateStamp(DateHelper.parse(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP)))
