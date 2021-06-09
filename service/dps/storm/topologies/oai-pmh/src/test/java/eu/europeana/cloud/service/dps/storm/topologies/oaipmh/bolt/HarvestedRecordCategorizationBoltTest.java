@@ -46,6 +46,11 @@ public class HarvestedRecordCategorizationBoltTest {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareNonIncrementalTuple();
+        when(harvestedRecordCategorizationService.categorize(any())).thenReturn(
+                CategorizationResult
+                        .builder()
+                        .category(CategorizationResult.Category.ELIGIBLE_FOR_PROCESSING)
+                        .build());
         //when
         harvestedRecordCategorizationBolt.execute(anchorTuple, tuple);
         //then
@@ -60,6 +65,11 @@ public class HarvestedRecordCategorizationBoltTest {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareTupleWithoutIncrementalParameter();
+        when(harvestedRecordCategorizationService.categorize(any())).thenReturn(
+                CategorizationResult
+                        .builder()
+                        .category(CategorizationResult.Category.ELIGIBLE_FOR_PROCESSING)
+                        .build());
         //when
         harvestedRecordCategorizationBolt.execute(anchorTuple, tuple);
         //then
@@ -105,7 +115,6 @@ public class HarvestedRecordCategorizationBoltTest {
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
         verify(outputCollector, never()).emit(any(Tuple.class), anyList());
     }
-
 
     private StormTaskTuple prepareNonIncrementalTuple() {
         StormTaskTuple tuple = new StormTaskTuple();
