@@ -15,6 +15,8 @@ public class HarvestedRecord {
     private String recordLocalId;
     private Date latestHarvestDate;
     private UUID latestHarvestMd5;
+    private Date previewHarvestDate;
+    private UUID previewHarvestMd5;
     private Date publishedHarvestDate;
     private UUID publishedHarvestMd5;
 
@@ -24,6 +26,8 @@ public class HarvestedRecord {
                 .recordLocalId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID))
                 .latestHarvestDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE))
                 .latestHarvestMd5(row.getUUID(CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5))
+                .previewHarvestDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE))
+                .previewHarvestMd5(row.getUUID(CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_MD5))
                 .publishedHarvestDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE))
                 .publishedHarvestMd5(row.getUUID(CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5))
                 .build();

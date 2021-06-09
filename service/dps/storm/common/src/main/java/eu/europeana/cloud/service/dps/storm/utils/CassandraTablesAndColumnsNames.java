@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-/**
- * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
- */
 public class CassandraTablesAndColumnsNames {
     //------- TABLES -------
     public static final String BASIC_INFO_TABLE = "basic_info";
@@ -110,9 +107,9 @@ public class CassandraTablesAndColumnsNames {
     public static final String HARVESTED_RECORD_LATEST_HARVEST_MD5 = "latest_harvest_md5";
     public static final String HARVESTED_RECORD_PUBLISHED_HARVEST_DATE = "published_harvest_date";
     public static final String HARVESTED_RECORD_PUBLISHED_HARVEST_MD5 = "published_harvest_md5";
+    public static final String HARVESTED_RECORD_PREVIEW_HARVEST_DATE = "preview_harvest_date";
+    public static final String HARVESTED_RECORD_PREVIEW_HARVEST_MD5 = "preview_harvest_md5";
 
     private CassandraTablesAndColumnsNames() {
     }
-
-
 }

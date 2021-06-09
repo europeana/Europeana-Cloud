@@ -9,7 +9,6 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -17,13 +16,18 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDat
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
+import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.net.MalformedURLException;
@@ -32,11 +36,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.storm.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -148,8 +147,9 @@ public class IndexingBolt extends AbstractDpsBolt {
             indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
                     IDLE_TIME_CHECK_INTERVAL_IN_SECS);
         } catch (IndexingException | URISyntaxException e) {
-            LOGGER.error("Unable to initialize indexer", e);
-            throw new RuntimeException("Unable to initialize indexer", e);
+            String message = "Unable to initialize indexer";
+            LOGGER.error(message, e);
+            throw new TopologyGeneralException(message, e);
         }
     }
 
@@ -186,8 +186,9 @@ public class IndexingBolt extends AbstractDpsBolt {
                     .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, metisDatasetId))
                     .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, metisDatasetId));
         } catch (MalformedURLException | CloudException e) {
-            LOGGER.error("Unable to update record harvesting dates", e);
-            throw new RuntimeException("Unable to update record harvesting dates", e);
+            String message = "Unable to update record harvesting dates";
+            LOGGER.error(message, e);
+            throw new TopologyGeneralException(message, e);
         }
     }
 
@@ -206,7 +207,7 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private void updateRecordIndexingDate(CloudId cloudId, String metisDatasetId) {
         LOGGER.info("Updating Indexing date for cloudId={}, metisDatasetId = {}", cloudId, metisDatasetId);
-        harvestedRecordsDAO.updateIndexingDate(metisDatasetId, cloudId.getLocalId().getRecordId(), new Date());
+        harvestedRecordsDAO.updatePublishingDate(metisDatasetId, cloudId.getLocalId().getRecordId(), new Date());
     }
 
     class IndexerPoolWrapper implements Closeable {
@@ -294,7 +295,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                     return indexerPoolForPublishDbInDefaultEnv;
                 }
             }
-            throw new RuntimeException("Specified environment and/or database is not recognized");
+            throw new TopologyGeneralException("Specified environment and/or database is not recognized");
         }
     }
 }
