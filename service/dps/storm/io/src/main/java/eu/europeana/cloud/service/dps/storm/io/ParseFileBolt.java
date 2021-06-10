@@ -61,9 +61,9 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 						.map(RdfResourceEntry::getResourceUrl)
 						.forEach(LOGGER::info);
 				for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
-					if (AbstractDpsBolt.taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+					if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
 						break;
-					StormTaskTuple tuple = createStormTuple(stormTaskTuple, rdfResourceEntry, linksCount);
+					StormTaskTuple tuple = createStormTuple(stormTaskTuple, rdfResourceEntry, Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)));
 					outputCollector.emit(anchorTuple, tuple.toStormTuple());
 				}
 			}

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" xmlns:doap="http://usefulinc.com/ns/doap#" xmlns:odrl="http://www.w3.org/ns/odrl/2/" xmlns:cc="http://creativecommons.org/ns#" xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:svcs="http://rdfs.org/sioc/services#" xmlns:oa="http://www.w3.org/ns/oa#" xmlns:dqv="http://www.w3.org/ns/dqv#">
+    <edm:ProvidedCHO rdf:about="/58/_kmo_av_sid_45017"/>
+    <edm:TimeSpan rdf:about="http://semium.org/time/2016">
+        <skos:prefLabel xml:lang="def">2016</skos:prefLabel>
+        <dcterms:isPartOf rdf:resource="http://semium.org/time/20xx_1_third"></dcterms:isPartOf>
+        <edm:begin xml:lang="def">Fri Jan 01 01:00:00 CET 2016</edm:begin>
+        <edm:end xml:lang="def">Sat Dec 31 01:00:00 CET 2016</edm:end>
+    </edm:TimeSpan>
+    <edm:TimeSpan rdf:about="http://semium.org/time/20xx_1_third">
+        <skos:prefLabel xml:lang="ru">Начало 21-го века</skos:prefLabel>
+        <skos:prefLabel xml:lang="en">Early 21st century</skos:prefLabel>
+        <dcterms:isPartOf rdf:resource="http://data.europeana.eu/timespan/21"></dcterms:isPartOf>
+        <edm:begin xml:lang="def">Mon Jan 01 01:00:00 CET 2001</edm:begin>
+        <edm:end xml:lang="def">Sat Dec 31 01:00:00 CET 2033</edm:end>
+    </edm:TimeSpan>
+    <edm:TimeSpan rdf:about="http://data.europeana.eu/timespan/21">
+        <skos:prefLabel xml:lang="de">21. Jahrhundert</skos:prefLabel>
+        <skos:prefLabel xml:lang="fi">2000-luku</skos:prefLabel>
+        <skos:prefLabel xml:lang="ru">XXI век</skos:prefLabel>
+        <skos:prefLabel xml:lang="pt">século XXI</skos:prefLabel>
+        <skos:prefLabel xml:lang="bg">21 век</skos:prefLabel>
+        <skos:prefLabel xml:lang="lt">XXI amžius</skos:prefLabel>
+        <skos:prefLabel xml:lang="lv">21. gadsimts</skos:prefLabel>
+        <skos:prefLabel xml:lang="hr">21. stoljeće</skos:prefLabel>
+        <skos:prefLabel xml:lang="fr">XXIe siècle</skos:prefLabel>
+        <skos:prefLabel xml:lang="hu">21. század</skos:prefLabel>
+        <skos:prefLabel xml:lang="sk">21. storočie</skos:prefLabel>
+        <skos:prefLabel xml:lang="sl">21. stoletje</skos:prefLabel>
+        <skos:prefLabel xml:lang="ga">21ú haois</skos:prefLabel>
+        <skos:prefLabel xml:lang="ca">segle XXI</skos:prefLabel>
+        <skos:prefLabel xml:lang="sv">2000-talet</skos:prefLabel>
+        <skos:prefLabel xml:lang="el">21ος αιώνας</skos:prefLabel>
+        <skos:prefLabel xml:lang="en">21st century</skos:prefLabel>
+        <skos:prefLabel xml:lang="it">XXI secolo</skos:prefLabel>
+        <skos:prefLabel xml:lang="es">siglo XXI</skos:prefLabel>
+        <skos:prefLabel xml:lang="et">21. sajand</skos:prefLabel>
+        <skos:prefLabel xml:lang="cs">21. století</skos:prefLabel>
+        <skos:prefLabel xml:lang="pl">XXI wiek</skos:prefLabel>
+        <skos:prefLabel xml:lang="ro">Secolul al XXI-lea</skos:prefLabel>
+        <skos:prefLabel xml:lang="da">21. århundrede</skos:prefLabel>
+        <skos:prefLabel xml:lang="nl">21e eeuw</skos:prefLabel>
+        <skos:altLabel xml:lang="de">22. Jhd.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jh.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Hektode</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jhrh.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jahrh.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Zentennium</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jhdt.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Centennium</skos:altLabel>
+        <skos:altLabel xml:lang="ru">21 век</skos:altLabel>
+        <skos:altLabel xml:lang="sv">2000-talet (århundrade)</skos:altLabel>
+        <skos:altLabel xml:lang="sv">21:a århundradet</skos:altLabel>
+        <skos:altLabel xml:lang="sv">2000-talet (sekel)</skos:altLabel>
+        <skos:altLabel xml:lang="sv">2000-tal</skos:altLabel>
+        <skos:altLabel xml:lang="sv">21:a seklet</skos:altLabel>
+        <skos:altLabel xml:lang="en">twenty-first century</skos:altLabel>
+        <skos:altLabel xml:lang="en">21st-century</skos:altLabel>
+        <skos:altLabel xml:lang="it">21° secolo</skos:altLabel>
+        <skos:altLabel xml:lang="it">Secolo XXI</skos:altLabel>
+        <skos:altLabel xml:lang="it">XXI Secolo</skos:altLabel>
+        <skos:altLabel xml:lang="it">Ventunesimo secolo</skos:altLabel>
+        <skos:altLabel xml:lang="it">Duemila</skos:altLabel>
+        <skos:altLabel xml:lang="fr">21e siècle</skos:altLabel>
+        <dcterms:isPartOf rdf:resource="http://semium.org/time/AD2xxx"></dcterms:isPartOf>
+        <edm:begin xml:lang="def">2001-01-01</edm:begin>
+        <edm:end xml:lang="def">2100-12-31</edm:end>
+        <edm:isNextInSequence rdf:resource="http://data.europeana.eu/timespan/20"/>
+        <owl:sameAs rdf:resource="http://semium.org/time/20xx"/>
+        <owl:sameAs rdf:resource="http://www.wikidata.org/entity/Q6939"/>
+        <owl:sameAs rdf:resource="http://babelnet.org/rdf/s01157225n"/>
+        <owl:sameAs rdf:resource="http://id.nlm.nih.gov/mesh/D049674"/>
+        <owl:sameAs rdf:resource="http://vocab.getty.edu/aat/300404515"/>
+        <owl:sameAs rdf:resource="http://id.loc.gov/authorities/names/sh85139024"/>
+        <owl:sameAs rdf:resource="http://id.loc.gov/authorities/names/sh2002012478"/>
+        <skos:hiddenLabel xml:lang="def">21??</skos:hiddenLabel>
+        <skos:hiddenLabel xml:lang="def">21..</skos:hiddenLabel>
+        <skos:hiddenLabel xml:lang="def">21e</skos:hiddenLabel>
+    </edm:TimeSpan>
+    <ore:Aggregation rdf:about="/aggregation/provider/58/_kmo_av_sid_45017">
+        <edm:aggregatedCHO rdf:resource="/58/_kmo_av_sid_45017"/>
+        <edm:dataProvider>TIB - German National Library of Science and Technology</edm:dataProvider>
+        <edm:isShownBy rdf:resource="https://tib.flowcenter.de/mfc/medialink/24/de528c7625ffad24e73396e1ff0fed5ea7b9c8ecb645de9fdfaefcc308a9f6427a/2016_phy_Kurt_Wuethrich_1080p.mp4"/>
+        <edm:object rdf:resource="https://av.tib.eu/thumbnail/45017"/>
+        <edm:provider>TIB - German National Library of Science and Technology</edm:provider>
+        <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nc-nd/4.0/"/>
+    </ore:Aggregation>
+    <ore:Proxy rdf:about="/proxy/europeana/58/_kmo_av_sid_45017">
+        <dc:identifier>_kmo_av_sid_45017</dc:identifier>
+        <dcterms:issued rdf:resource="http://semium.org/time/2016"></dcterms:issued>
+        <dcterms:issued rdf:resource="http://semium.org/time/20xx_1_third"></dcterms:issued>
+        <dcterms:issued rdf:resource="http://data.europeana.eu/timespan/21"></dcterms:issued>
+        <edm:europeanaProxy>true</edm:europeanaProxy>
+        <edm:year>2016</edm:year>
+        <ore:proxyFor rdf:resource="/58/_kmo_av_sid_45017"/>
+        <ore:proxyIn rdf:resource="/aggregation/europeana/58/_kmo_av_sid_45017"/>
+        <ore:lineage rdf:resource="/proxy/provider/58/_kmo_av_sid_45017"/>
+    </ore:Proxy>
+    <ore:Proxy rdf:about="/proxy/provider/58/_kmo_av_sid_45017">
+        <dc:creator>Wüthrich, Kurt</dc:creator>
+        <dc:format>mp4</dc:format>
+        <dc:identifier>https://doi.org/10.5446/45017</dc:identifier>
+        <dc:publisher>Lindau Nobel Laureate Meetings</dc:publisher>
+        <dc:rights>http://creativecommons.org/licenses/by-nc-nd/4.0/</dc:rights>
+        <dc:subject>Chemistry</dc:subject>
+        <dc:title xml:lang="en">NMR in Physics, Structural Biology and Medical Diagnosis</dc:title>
+        <dc:type>Audiovisual</dc:type>
+        <dcterms:extent>00:27:23:14</dcterms:extent>
+        <dcterms:isPartOf>Europeana XX: Century of Change</dcterms:isPartOf>
+        <dcterms:issued>2016</dcterms:issued>
+        <edm:europeanaProxy>false</edm:europeanaProxy>
+        <ore:proxyFor rdf:resource="/58/_kmo_av_sid_45017"/>
+        <ore:proxyIn rdf:resource="/aggregation/provider/58/_kmo_av_sid_45017"/>
+        <edm:type>VIDEO</edm:type>
+    </ore:Proxy>
+    <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/58/_kmo_av_sid_45017">
+        <edm:aggregatedCHO rdf:resource="/58/_kmo_av_sid_45017"/>
+        <edm:dataProvider xml:lang="en">Europeana Foundation</edm:dataProvider>
+        <edm:provider xml:lang="en">Europeana Foundation</edm:provider>
+        <edm:datasetName>58_test_mediaWeb</edm:datasetName>
+        <edm:country>France</edm:country>
+        <edm:language>fr</edm:language>
+        <edm:completeness>6</edm:completeness>
+    </edm:EuropeanaAggregation>
+</rdf:RDF>

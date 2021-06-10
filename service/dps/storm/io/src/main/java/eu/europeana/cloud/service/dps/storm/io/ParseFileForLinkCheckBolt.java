@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
@@ -18,6 +19,7 @@ public class ParseFileForLinkCheckBolt extends ParseFileBolt {
 
     @Override
     protected int getLinksCount(StormTaskTuple tuple, int resourcesCount) {
+        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesCount));
         return resourcesCount;
     }
 }
