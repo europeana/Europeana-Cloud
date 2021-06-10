@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#" 
+    xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" 
+    xmlns:xalan="http://xml.apache.org/xalan" 
+    xmlns:edm="http://www.europeana.eu/schemas/edm/" 
+    xmlns:foaf="http://xmlns.com/foaf/0.1/" 
+    xmlns:odrl="http://www.w3.org/ns/odrl/2/" 
+    xmlns:ore="http://www.openarchives.org/ore/terms/" 
+    xmlns:adms="http://www.w3.org/ns/adms#" 
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:cc="http://creativecommons.org/ns#" 
+    xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" 
+    xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#" 
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/" 
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" 
+    xmlns:dcat="http://www.w3.org/ns/dcat#" 
+    xmlns:skos="http://www.w3.org/2004/02/skos/core#">
+<edm:ProvidedCHO rdf:about="LIT_280_001">
+    <dc:creator xml:lang="en">Unknown</dc:creator>
+    <dc:description xml:lang="li">Pranciškus Smuglevičius – žymiausias Lietuvos klasicizmo dailininkas, pirmasis Vilniaus universitete įsteigtos Piešimo ir tapybos katedros vadovas, savo kūryba ir pedagogine veikla padaręs didelę įtaką Lietuvos profesionaliosios dailės raidai. Tapydamas paveikslus antikiniais siužetais P. Smuglevičius įkvėpimo sėmėsi iš antikos autorių (Herodoto, Plutarcho, Homero, Vergilijaus) veikalų. Jis savo vaizduojamiems siužetams suteikdavo  moralizuojančią potekstę. Paveiksle „Persų pasiuntiniai pas Etiopų karalių“ pavaizduotas persų karaliaus Kambizo (mirė 522 m. pr. Kr.), sumaniusio karo žygį prieš Etiopiją, žvalgus, atvykusius pas etiopų karalių su dovanomis: purpurine mantija, auksiniu vėriniu ir sage, alebastro dėžute su balzamu ir vyno amforomis. Etiopų karalius, perpratęs jų klastą, pasiuntiniams įteikia lanką, liepdamas persų karaliui perduoti, kad jis pataria tik tada žygiuoti su kariuomene prieš etiopus, kai persai įstengs įtempti tokio dydžio lankus. Kol to nebus, tegul persai dėkoja dievams, kad jie Etiopijos sūnums neįdiegė minties prie savosios žemės prisijungti svetimas. P. Smuglevičiaus kompozicijoje lanką regime jau persų pasiuntinio rankoje. Etiopų karalius, nežiūrėdamas į prie jo kojų sukrautas dovanas, valdingu mostu varo svečius lauk. Rytietiški veikėjų apdarai, egzotiški tipažai, prabangios dovanos kuria spalvingą, barokiškai turtingą reginį. Skitų pasiuntinių priėmimo scenoje Pranciškus Smuglevičius pavaizdavo persų karaliaus Darijaus I (550-486 m. pr. Kr.) nesėkmingo žygio į skitų žemes epizodą. Pas Darijų atvykęs skitų šauklys karaliui įteikia paukštį, pelę, varlę ir penkias strėlės, liepdamas patiems persams išsiaiškinti dovanų prasmę. Soste sėdintis karalius susimąstęs žvelgia į dovanas. Nemažiau intensyviai mąsto už karaliaus susibūrę dvariškiai. Darijaus nuomone, dovanos reiškia, kad skitai pasiduoda persams su žeme ir vandeniu. Visiškai kitokią nuomonę išsakė Gobrijas, vienas iš septynių vyrų, nuvertusių magą. Pasak jo, dovanos skelbia: „O, persai! Jeigu jūs kaip paukščiai nenuskrisite į padanges arba kaip pelės nesulysite į žemę, arba kaip varlės nesušoksite į vandenį, tai negrįšite namo, nes jus pervers šitos strėlės”. Kaip ir paveiksle „Persų pasiuntiniai pas Etiopų karalių“, Pranciškus Smuglevičius čia per analogiją išreiškia tautų teisę į nepriklausomybę bei kovą už ją. Dailininkas su malonumu vartoja vėlyvojo baroko efektus: rytietišką spalvingumą, turtingas egzotiškos aprangos, kilimų ir draperijų, šarvų ir ginklų faktūras. Paveikslai „Persų pasiuntiniai pas Etiopų karalių“ ir „Skitų pasiuntiniai pas Persų karalių Darijų“ kelia tautų teisės į nepriklausomybę bei kovos už laisvę temas. Jos buvo itin aktualios tieks P. Smuglevičiaus gyvenimo laikotarpiu, kai Rusija, Prūsija ir Austrija pasidalijo Abiejų Tautų Respubliką (bendrą Lietuvos ir Lenkijos valstybę), tiek ir vėlesniais metais. </dc:description>
+    <dc:description xml:lang="en">It is one of the oldest easel paintings in Lithuania, closely linked to Vytautas, the Grand Duke of Lithuania (reigning 1401-1430), and early Christianisation in Lithuania. Up until nowadays this image is considered to be miraculous and is an object of devotion not only for Catholic and Orthodox Christians, but also for local Muslims. Numerous ex-votos (gratitude gifts from pilgrims) displayed around the painting testifies such devotion.  Regarding the origin of the painting there are many legends but very little historical evidence to justify the stories. For example, an inscription on the back of the painting from the early 18th century states that it was given as a gift to Vytautas, the Grand Duke of Lithuania, on the occasion of his Baptism in 1386 by the Byzantine Emperor Manuel II Palaiologos (1350-1425). Inscription also states that this is the icon Nikopoia (Greek for “She who brings Victory”), which helped the Emperor John II Komnenos (1087-1143) to break through the Persian siege and successfully return to Constantinople. However, this inscription most likely was made shortly before 1718, when the image was adorned with crowns sent by Pope Clement XI from Rome and granted the title “Intercessor of Sick”. The painting of Trakai Mother of God stands out because of a unique combination of Byzantine, Medieval and Baroque styles. Research performed during the restoration of the painting shows that the oldest layer of paint contains a Late Gothic style full-figure image of the Blessed Virgin Mary. Originally the Mother of God was portrayed with her hair uncovered except for a transparent veil and perhaps wearing a crown of roses. However, at the start of the 17th century the painting seemed disproportionately large for a new central altar being installed in the Church. As a result the lower-part of the painting was trimmed. At the same time the background was engraved and gilded anew and the figure of Mary was repainted with Byzantine characteristics. Head and brow of the Mother of God were now covered not with a veil, but with heavy folds of cape. The image, as seen by pilgrims today, shows the Mother of God in the Hodegetria icon style. She is seated and looking towards the viewer. Christ the Child wearing a purple tunic sits on her right knee. He holds a book in his right hand and with his left hand reaches out to three roses with three blossoms each, held by the Mother of God. These roses symbolize the mysteries of the Rosary. There is a Greek cross painted on the forehead area of the cape and a star on the left shoulder. In Marian icons stars on the forehead and shoulder indicate the Virgin’s chastity. The painting is characterized, on the one hand, by the Byzantine iconographic scheme that seems to set its figures apart from earthly reality. At the same time, it also shows traits of Western European painting tradition during the late Middle Ages. In particular, broad clothing that conceals the figure under its folds and an idealized face that recalls the 15th century “completely beautiful” images of Mary (Tota Pulchra). Finally, the image of Trakai’ Mother of God is covered in gilded silver plate dating 1723-1724 made by Johann Friedrich Schömnick. The heads of Mary and Child are covered with the early 18th century crowns. </dc:description>
+    <dc:language>English</dc:language>
+    <dc:language>Lietuvių</dc:language>
+    <dc:relation rdf:resource="http://www.wikidata.org/entity/Q21755439"/>
+    <dc:source xml:lang="en">Lithuanian Art Museum</dc:source>
+    <dc:subject rdf:resource="http://iconclass.org/11FF4222"/>
+    <dc:title xml:lang="en">The Mother of God of Trakai</dc:title>
+    <dc:type rdf:resource="http://vocab.getty.edu/aat/300033799"/>
+    <dc:type rdf:resource="http://vocab.getty.edu/aat/300248179"/>
+    <dcterms:alternative xml:lang="en">Our Lady of Trakai</dcterms:alternative>
+    <dcterms:created xml:lang="en">the second half of the 15th century - the first half of the 16th century</dcterms:created>
+    <dcterms:extent>127,7 cm x 110,3 cm</dcterms:extent>
+    <dcterms:medium rdf:resource="http://vocab.getty.edu/aat/300178684"/>
+    <dcterms:temporal xml:lang="en">1450-1550</dcterms:temporal>
+    <edm:currentLocation rdf:resource="#LIT_place1"/>
+    <edm:type>IMAGE</edm:type>
+</edm:ProvidedCHO>
+<edm:WebResource rdf:about="https://www.dropbox.com/s/z0a3yiali3xssnt/Lithuania_1s_Unknown_The_Mother_of_God_of_Trakai_Our_Lady_of_Trakai.jpg?raw=1">
+        <edm:rights rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+</edm:WebResource>
+<ore:Aggregation rdf:about="LIT_280_001#aggregation">
+        <edm:aggregatedCHO rdf:resource="LIT_280_001#aggregation"/>
+        <edm:dataProvider>Church of the Visitation of the Blessed Virgin Mary</edm:dataProvider>
+        <edm:isShownBy rdf:resource="https://www.dropbox.com/s/z0a3yiali3xssnt/Lithuania_1s_Unknown_The_Mother_of_God_of_Trakai_Our_Lady_of_Trakai.jpg?raw=1"/>
+        <edm:object rdf:resource="https://www.dropbox.com/s/z0a3yiali3xssnt/Lithuania_1s_Unknown_The_Mother_of_God_of_Trakai_Our_Lady_of_Trakai.jpg?raw=1"/>
+        <edm:provider>Europeana 280</edm:provider>
+        <edm:rights rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+</ore:Aggregation>
+<edm:Place rdf:about="#LIT_place1">
+        <wgs84_pos:lat>54.642099</wgs84_pos:lat>
+        <wgs84_pos:long>24.934129</wgs84_pos:long>
+        <skos:prefLabel xml:lang="li">Traku Svc. Mergeles Marijos apsilankymo baznycia</skos:prefLabel>
+        <skos:altLabel xml:lang="en">Church of the Visitation of the Blessed Virgin Mary</skos:altLabel>
+</edm:Place>
+</rdf:RDF>
