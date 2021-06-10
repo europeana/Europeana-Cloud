@@ -14,6 +14,7 @@ import java.time.Instant;
 @ToString
 public class CategorizationParameters {
 
+    private final boolean fullHarvest;
     private final String datasetId;
     private final String recordId;
     private final Instant recordDateStamp;
