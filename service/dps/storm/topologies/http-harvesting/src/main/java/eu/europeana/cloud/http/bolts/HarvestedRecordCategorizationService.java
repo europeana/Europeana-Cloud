@@ -1,12 +1,11 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
+package eu.europeana.cloud.http.bolts;
 
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
 
@@ -16,7 +15,6 @@ import java.util.Optional;
  */
 public class HarvestedRecordCategorizationService {
 
-    private static final int DATE_BUFFER_IN_MINUTES = 60 * 24 * 2;
     private final HarvestedRecordsDAO harvestedRecordsDAO;
 
     public HarvestedRecordCategorizationService(HarvestedRecordsDAO harvestedRecordsDAO) {
@@ -28,16 +26,16 @@ public class HarvestedRecordCategorizationService {
         if (harvestedRecord.isEmpty()) {
             var newHarvestedRecord = prepareHarvestedRecordDefinition(categorizationParameters);
             addRecordDefinitionToDB(newHarvestedRecord);
-            return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
+            return categorizeRecordAsReadyForProcessing(categorizationParameters, null);
         } else {
             updateRecordLatestHarvestDate(harvestedRecord.get(), categorizationParameters.getCurrentHarvestDate());
             if (categorizationParameters.isFullHarvest()
-                    || recordDateStampOlderThanPreviewVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())
-                    || recordDateStampOlderThanPublishedVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())
-                    ) {
-                return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
+                    || hashesMismatchForPreviewEnv(harvestedRecord.get(), categorizationParameters)
+                    || hashesMismatchForPublishEnv(harvestedRecord.get(), categorizationParameters)) {
+                return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord.get());
+            } else {
+                return categorizeRecordAsNotReadyForProcessing(categorizationParameters, harvestedRecord.get());
             }
-            return categorizeRecordAsNotReadyForProcessing(categorizationParameters, harvestedRecord);
         }
     }
 
@@ -53,6 +51,7 @@ public class HarvestedRecordCategorizationService {
                 .metisDatasetId(categorizationParameters.getDatasetId())
                 .recordLocalId(categorizationParameters.getRecordId())
                 .latestHarvestDate(Date.from(categorizationParameters.getCurrentHarvestDate()))
+                .latestHarvestMd5(categorizationParameters.getRecordMd5())
                 .build();
     }
 
@@ -68,34 +67,38 @@ public class HarvestedRecordCategorizationService {
                 harvestedRecord.getLatestHarvestDate());
     }
 
-    private boolean recordDateStampOlderThanPreviewVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
-        return harvestedRecord.getPreviewHarvestDate() == null
-                ||
-        recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPreviewHarvestDate().toInstant());
+    private boolean hashesMismatchForPreviewEnv(HarvestedRecord harvestedRecord, CategorizationParameters categorizationParameters) {
+        if (harvestedRecord.getPreviewHarvestMd5() != null) {
+            return !categorizationParameters.getRecordMd5().equals(harvestedRecord.getPreviewHarvestMd5());
+        } else {
+            return true;
+        }
     }
 
-    private boolean recordDateStampOlderThanPublishedVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
-        return harvestedRecord.getPublishedHarvestDate() == null
-                ||
-                recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPublishedHarvestDate().toInstant());
+    private boolean hashesMismatchForPublishEnv(HarvestedRecord harvestedRecord, CategorizationParameters categorizationParameters) {
+        if (harvestedRecord.getPreviewHarvestMd5() != null) {
+            return !categorizationParameters.getRecordMd5().equals(harvestedRecord.getPublishedHarvestMd5());
+        } else {
+            return true;
+        }
+
     }
 
-
-    private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
+    private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, HarvestedRecord harvestedRecord) {
         return CategorizationResult
                 .builder()
                 .category(CategorizationResult.Category.ELIGIBLE_FOR_PROCESSING)
                 .categorizationParameters(categorizationParameters)
-                .harvestedRecord(harvestedRecord.orElse(null))
+                .harvestedRecord(harvestedRecord)
                 .build();
     }
 
-    private CategorizationResult categorizeRecordAsNotReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
+    private CategorizationResult categorizeRecordAsNotReadyForProcessing(CategorizationParameters categorizationParameters, HarvestedRecord harvestedRecord) {
         return CategorizationResult
                 .builder()
                 .category(CategorizationResult.Category.ALREADY_PROCESSED)
                 .categorizationParameters(categorizationParameters)
-                .harvestedRecord(harvestedRecord.orElse(null))
+                .harvestedRecord(harvestedRecord)
                 .build();
     }
 }

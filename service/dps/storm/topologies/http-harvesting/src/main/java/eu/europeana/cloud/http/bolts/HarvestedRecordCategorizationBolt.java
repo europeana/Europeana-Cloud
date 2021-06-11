@@ -1,23 +1,20 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
+package eu.europeana.cloud.http.bolts;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.service.commons.md5.FileMd5GenerationService;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
-import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Bolt that will categorize record in the incremental harvesting if it should be processed or not
- */
 public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestedRecordCategorizationBolt.class);
@@ -33,7 +30,7 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple t) {
         var categorizationParameters = prepareCategorizationParameters(t);
         LOGGER.info("Starting categorization for {}", categorizationParameters);
-
+        //
         var categorizationResult = categorizeRecord(categorizationParameters);
         if (categorizationResult.shouldBeProcessed()) {
             LOGGER.info("Further processing will take place for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
@@ -42,7 +39,6 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
             LOGGER.info("Further processing will be stopped for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
             ignoreRecordAsNotChanged(anchorTuple, t, categorizationResult);
         }
-
         outputCollector.ack(anchorTuple);
     }
 
@@ -60,12 +56,11 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
     }
 
     private CategorizationParameters prepareCategorizationParameters(StormTaskTuple tuple){
-
         return CategorizationParameters.builder()
                 .fullHarvest(!isIncrementalHarvesting(tuple))
                 .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
                 .recordId(tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER))
-                .recordDateStamp(DateHelper.parse(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP)))
+                .recordMd5(FileMd5GenerationService.generate(tuple.getFileData()))
                 .currentHarvestDate(DateHelper.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
                 .build();
     }

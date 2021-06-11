@@ -62,11 +62,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>${version.commonscodec}</version>
-        </dependency>
-        <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
             <version>${version.junitparams}</version>
