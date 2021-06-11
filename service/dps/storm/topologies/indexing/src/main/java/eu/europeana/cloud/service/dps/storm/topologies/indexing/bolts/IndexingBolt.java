@@ -207,7 +207,7 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private void updateRecordIndexingDate(CloudId cloudId, String metisDatasetId) {
         LOGGER.info("Updating Indexing date for cloudId={}, metisDatasetId = {}", cloudId, metisDatasetId);
-        harvestedRecordsDAO.updatePublishingDate(metisDatasetId, cloudId.getLocalId().getRecordId(), new Date());
+        harvestedRecordsDAO.updatePublishedHarvestDate(metisDatasetId, cloudId.getLocalId().getRecordId(), new Date());
     }
 
     class IndexerPoolWrapper implements Closeable {

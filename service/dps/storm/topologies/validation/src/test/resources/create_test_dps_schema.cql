@@ -109,6 +109,8 @@ create table harvested_records(
     record_local_id  varchar,
     latest_harvest_date timestamp,
     latest_harvest_md5 uuid,
+    preview_harvest_date timestamp,
+    preview_harvest_md5 uuid,
     published_harvest_date timestamp,
     published_harvest_md5 uuid,
     PRIMARY KEY ((metis_dataset_id, bucket_number), record_local_id)

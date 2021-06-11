@@ -44,8 +44,8 @@ public class FileMd5GenerationServiceTest {
 
     @Test
     public void shouldGenerateDifferentMd5ForDifferentFiles() throws URISyntaxException, IOException {
-        UUID record1_1 = FileMd5GenerationService.generate(Paths.get(ClassLoader.getSystemResource("Lithuania_1_1.xml").toURI()));
         UUID record1 = FileMd5GenerationService.generate(Paths.get(ClassLoader.getSystemResource("Lithuania_1.xml").toURI()));
+        UUID record1_1 = FileMd5GenerationService.generate(Paths.get(ClassLoader.getSystemResource("Lithuania_1_1.xml").toURI()));
         UUID record2 = FileMd5GenerationService.generate(Paths.get(ClassLoader.getSystemResource("Lithuania_2.xml").toURI()));
         UUID record3 = FileMd5GenerationService.generate(Paths.get(ClassLoader.getSystemResource("Lithuania_3.xml").toURI()));
         UUID record4 = FileMd5GenerationService.generate(Paths.get(ClassLoader.getSystemResource("Lithuania_4.xml").toURI()));
