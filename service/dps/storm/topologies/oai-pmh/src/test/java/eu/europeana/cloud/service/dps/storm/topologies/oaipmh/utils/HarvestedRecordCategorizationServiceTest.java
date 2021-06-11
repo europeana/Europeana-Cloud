@@ -55,6 +55,8 @@ public class HarvestedRecordCategorizationServiceTest {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 
+        Instant previewHarvestDate =
+                LocalDateTime.of(1990,1,30,10,16).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
                 LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
         Instant publishedHarvestDate =
@@ -65,6 +67,7 @@ public class HarvestedRecordCategorizationServiceTest {
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
+                                .previewHarvestDate(Date.from(previewHarvestDate))
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
@@ -91,6 +94,8 @@ public class HarvestedRecordCategorizationServiceTest {
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfRecordThatIsNotChangedButFallsIntoBuffer() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
+        Instant previewHarvestDate =
+                LocalDateTime.of(1990,1,30,10,15).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
                 LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
         Instant recordDateStamp =
@@ -102,6 +107,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
                                 .publishedHarvestDate(Date.from(dateOfHarvesting))
+                                .previewHarvestDate(Date.from(previewHarvestDate))
                                 .build()
                 ));
         HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
@@ -131,7 +137,7 @@ public class HarvestedRecordCategorizationServiceTest {
 //        Date dateOfHarvesting = new Date();
         Instant recordDateStamp =
                 LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
-        Instant publishedHarvestDate =
+        Instant previousHarvestDate =
                 LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
                 LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
@@ -140,7 +146,8 @@ public class HarvestedRecordCategorizationServiceTest {
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
-                                .publishedHarvestDate(Date.from(publishedHarvestDate))
+                                .previewHarvestDate(Date.from(previousHarvestDate))
+                                .publishedHarvestDate(Date.from(previousHarvestDate))
                                 .build()
                 ));
         HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
@@ -162,11 +169,94 @@ public class HarvestedRecordCategorizationServiceTest {
     }
 
     @Test
+    //This could only occur when record was deleted in source, published on preview but not on publish and later recreated
+    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfPreviewDateIsNull() {
+        //given
+        HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
+//        Date dateOfHarvesting = new Date();
+        Instant recordDateStamp =
+                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
+        Instant publishedHarvestDate =
+                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+        Instant dateOfHarvesting =
+                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+        when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
+                Optional.of(
+                        HarvestedRecord.builder()
+                                .metisDatasetId("exampleDatasetId")
+                                .recordLocalId("exampleRecordId")
+                                .previewHarvestDate(null)
+                                .publishedHarvestDate(Date.from(publishedHarvestDate))
+                                .build()
+                ));
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+
+        //when
+        CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
+                CategorizationParameters.builder()
+                        .datasetId("exampleDatasetId")
+                        .recordId("exampleRecordId")
+                        .recordDateStamp(recordDateStamp)
+                        .currentHarvestDate(dateOfHarvesting)
+                        .build());
+        //then
+        verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
+                eq("exampleRecordId"),
+                any());
+        assertTrue(categorizationResult.shouldBeProcessed());
+    }
+
+    @Test
+    //It could only occur when source decrease would record Datestamp
+    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfPreviewDateIsOld() {
+        //given
+        HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
+        Instant recordDateStamp =
+                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
+        Instant previewHarvestDate =
+                LocalDateTime.of(1990,1,11,10,16).toInstant(ZoneOffset.UTC);
+        Instant publishedHarvestDate =
+                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+        Instant dateOfHarvesting =
+                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+        when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
+                Optional.of(
+                        HarvestedRecord.builder()
+                                .metisDatasetId("exampleDatasetId")
+                                .recordLocalId("exampleRecordId")
+                                .previewHarvestDate(Date.from(previewHarvestDate))
+                                .publishedHarvestDate(Date.from(publishedHarvestDate))
+                                .build()
+                ));
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+
+        //when
+        CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
+                CategorizationParameters.builder()
+                        .datasetId("exampleDatasetId")
+                        .recordId("exampleRecordId")
+                        .recordDateStamp(recordDateStamp)
+                        .currentHarvestDate(dateOfHarvesting)
+                        .build());
+        //then
+        verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
+                eq("exampleRecordId"),
+                any());
+        assertTrue(categorizationResult.shouldBeProcessed());
+    }
+
+
+
+    @Test
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfEqualsRecordDatestampAndPublishedHarvestDate() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
         Instant recordDateStamp =
                 LocalDateTime.of(1990,1,18,10,15).toInstant(ZoneOffset.UTC);
+        Instant previewHarvestDate =
+                LocalDateTime.of(1990,1,30,10,16).toInstant(ZoneOffset.UTC);
         Instant publishedHarvestDate =
                 LocalDateTime.of(1990,1,18,10,15).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
@@ -176,6 +266,7 @@ public class HarvestedRecordCategorizationServiceTest {
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
+                                .previewHarvestDate(Date.from(previewHarvestDate))
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
@@ -198,4 +289,43 @@ public class HarvestedRecordCategorizationServiceTest {
         );
         assertTrue(categorizationResult.shouldBeProcessed());
     }
+
+    @Test
+    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfExistingDefinitionInDBAndOldRecordButFullHarvest() {
+        //given
+        HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
+        Instant recordDateStamp =
+                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
+        Instant previousHarvestDate =
+                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+        Instant dateOfHarvesting =
+                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+        when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
+                Optional.of(
+                        HarvestedRecord.builder()
+                                .metisDatasetId("exampleDatasetId")
+                                .recordLocalId("exampleRecordId")
+                                .previewHarvestDate(Date.from(previousHarvestDate))
+                                .publishedHarvestDate(Date.from(previousHarvestDate))
+                                .build()
+                ));
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+
+        //when
+        CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
+                CategorizationParameters.builder()
+                        .datasetId("exampleDatasetId")
+                        .recordId("exampleRecordId")
+                        .recordDateStamp(recordDateStamp)
+                        .currentHarvestDate(dateOfHarvesting)
+                        .fullHarvest(true)
+                        .build());
+        //then
+        verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
+                eq("exampleRecordId"),
+                any());
+        assertTrue(categorizationResult.shouldBeProcessed());
+    }
+
 }
