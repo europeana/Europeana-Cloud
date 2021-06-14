@@ -41,7 +41,7 @@ public class FileMd5GenerationService {
         return UUID.nameUUIDFromBytes(fileBytes);
     }
 
-    public static UUID md5HexToUUID(byte[] md5digest) {
+    public static UUID md5ToUUID(byte[] md5digest) {
         if(md5digest == null) {
             throw new NullPointerException("md5digest cannot be null");
         } else if(md5digest.length != 16) {
@@ -70,7 +70,7 @@ public class FileMd5GenerationService {
         return new UUID(msb, lsb);
     }
 
-    public static UUID md5HexToUUID(String md5digestInHex) {
+    public static UUID md5ToUUID(String md5digestInHex) {
         if(md5digestInHex == null) {
             throw new NullPointerException("md5digestInHex cannot be null");
         } else if(md5digestInHex.length() != 16*2) {
@@ -85,7 +85,7 @@ public class FileMd5GenerationService {
             md5digest[index] = (byte)Integer.parseInt(md5digestInHex.substring(2*index, 2*index+2), 16);
         }
 
-        return md5HexToUUID(md5digest);
+        return md5ToUUID(md5digest);
     }
 
 }

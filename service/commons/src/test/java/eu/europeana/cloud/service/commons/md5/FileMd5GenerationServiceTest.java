@@ -121,27 +121,27 @@ public class FileMd5GenerationServiceTest {
 
     @Test(expected = NullPointerException.class)
     public void shouldDetectNullForBytes() {
-        FileMd5GenerationService.md5HexToUUID((byte[])null);
+        FileMd5GenerationService.md5ToUUID((byte[])null);
     }
 
     @Test(expected = NullPointerException.class)
     public void shouldDetectNullForString() {
-        FileMd5GenerationService.md5HexToUUID((String)null);
+        FileMd5GenerationService.md5ToUUID((String)null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldDetectBadLengthOfArray() {
-        FileMd5GenerationService.md5HexToUUID(new byte[10]);
+        FileMd5GenerationService.md5ToUUID(new byte[10]);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldDetectBadLengthOfString() {
-        FileMd5GenerationService.md5HexToUUID(new String(new byte[8]));
+        FileMd5GenerationService.md5ToUUID(new String(new byte[8]));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldDetectNotValidHexString() {
-        FileMd5GenerationService.md5HexToUUID("000102030405060708090a0b0c0d0eZZ");
+        FileMd5GenerationService.md5ToUUID("000102030405060708090a0b0c0d0eZZ");
     }
 
 
@@ -149,7 +149,7 @@ public class FileMd5GenerationServiceTest {
         Path pathToFile = Paths.get(ClassLoader.getSystemResource(filename).toURI());
 
         byte[] md5 = FileMd5GenerationService.generate(pathToFile);
-        UUID uuidConvertedFromMd5 = FileMd5GenerationService.md5HexToUUID(md5);
+        UUID uuidConvertedFromMd5 = FileMd5GenerationService.md5ToUUID(md5);
 
         UUID uuidDirect = FileMd5GenerationService.generateUUID(pathToFile);
 
@@ -160,7 +160,7 @@ public class FileMd5GenerationServiceTest {
         byte[] fileData = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource(filename).toURI()));
 
         byte[] md5 = FileMd5GenerationService.generate(fileData);
-        UUID uuidConvertedFromMd5 = FileMd5GenerationService.md5HexToUUID(md5);
+        UUID uuidConvertedFromMd5 = FileMd5GenerationService.md5ToUUID(md5);
 
         UUID uuidDirect = FileMd5GenerationService.generateUUID(fileData);
 
@@ -182,7 +182,7 @@ public class FileMd5GenerationServiceTest {
         String md5Hex = org.apache.commons.codec.digest.DigestUtils.md5Hex(Files.newInputStream(pathToFile));
         UUID md5UUIDFromDefaultJava = FileMd5GenerationService.generateUUID(Files.readAllBytes(pathToFile));
 
-        assertEquals(FileMd5GenerationService.md5HexToUUID(md5Hex), md5UUIDFromDefaultJava);
+        assertEquals(FileMd5GenerationService.md5ToUUID(md5Hex), md5UUIDFromDefaultJava);
     }
 
 }

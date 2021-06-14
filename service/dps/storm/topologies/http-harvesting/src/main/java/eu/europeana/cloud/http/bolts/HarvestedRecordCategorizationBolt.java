@@ -60,7 +60,7 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
                 .fullHarvest(!isIncrementalHarvesting(tuple))
                 .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
                 .recordId(tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER))
-                .recordMd5(FileMd5GenerationService.generate(tuple.getFileData()))
+                .recordMd5(FileMd5GenerationService.generateUUID(tuple.getFileData()))
                 .currentHarvestDate(DateHelper.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
                 .build();
     }
