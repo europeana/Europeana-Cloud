@@ -1,5 +1,6 @@
 package eu.europeana.cloud.http;
 
+import eu.europeana.cloud.http.bolts.HarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
@@ -10,6 +11,7 @@ import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
@@ -61,10 +63,15 @@ public class HTTPHarvestingTopology {
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(SPOUT, new ShuffleGrouping());
 
+        builder.setBolt(RECORD_CATEGORIZATION_BOLT, new HarvestedRecordCategorizationBolt(prepareConnectionDetails()),
+                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
+                .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
+                .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
+
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
                 (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
+                .customGrouping(RECORD_CATEGORIZATION_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
                 (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
@@ -91,6 +98,8 @@ public class HTTPHarvestingTopology {
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(RECORD_CATEGORIZATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
@@ -108,6 +117,16 @@ public class HTTPHarvestingTopology {
 
     public static Properties getProperties() {
         return topologyProperties;
+    }
+
+    private DbConnectionDetails prepareConnectionDetails() {
+        return DbConnectionDetails.builder()
+                .hosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
+                .port(getAnInt(CASSANDRA_PORT))
+                .keyspaceName(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
+                .userName(topologyProperties.getProperty(CASSANDRA_USERNAME))
+                .password(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
+                .build();
     }
 
     public static void main(String[] args) {

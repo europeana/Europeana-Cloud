@@ -10,7 +10,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * Generates md5/md5 based UUId utilities for generation and conversion
+ * Generates md5 hash from the provided file.
+ * Result is in HEX.
  */
 public class FileMd5GenerationService {
 
