@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.task.postprocessors.HarvestingPostProcessor;
+import eu.europeana.cloud.service.dps.services.task.postprocessors.PostProcessingService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -250,8 +251,14 @@ public class ServiceConfiguration {
     private String uisLocation() {
         return environment.getProperty(JNDI_KEY_UIS_LOCATION);
     }
+
     @Bean
     public RetryAspect retryAspect() {
         return new RetryAspect();
+    }
+
+    @Bean
+    public PostProcessingService postProcessingService() {
+        return new PostProcessingService(taskInfoDAO(), tasksByStateDAO(), applicationIdentifier(), harvestingPostProcessor());
     }
 }

@@ -31,7 +31,8 @@ public class OAINotificationBolt extends NotificationBolt {
 
     @Override
     protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Postprocessing", String.valueOf(TaskState.POST_PROCESSING), new Date());
+        taskStatusUpdater.updateState(notificationTuple.getTaskId(), TaskState.READY_FOR_POST_PROCESSING,
+                "Ready for post processing after topology stage is finished");
         LOGGER.info("Task id={} finished topology stage with {} records processed and {} errors. Now it is waiting for post processing ",
                 notificationTuple.getTaskId(), count, errors);
     }

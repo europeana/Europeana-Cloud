@@ -93,6 +93,12 @@ public class TaskStatusUpdater {
         taskInfoDAO.setUpdateProcessedFiles(taskId, processedFilesCount, errors);
     }
 
+    public void updateState(long taskId, TaskState state, String info)
+            throws NoHostAvailableException, QueryExecutionException {
+        updateTasksByTaskStateTable(taskId, state.toString());
+        taskInfoDAO.updateState(taskId, state, info);
+    }
+
     public void updateRetryCount(long taskId, int retryCount) {
         taskInfoDAO.updateRetryCount(taskId, retryCount);
     }
