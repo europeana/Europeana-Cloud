@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -125,11 +126,15 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insertHarvestedRecord(HarvestedRecord harvestedRecord) {
-        dbService.getSession().execute(insertHarvestedRecordStatement.bind(harvestedRecord.getMetisDatasetId(),
+        dbService.getSession().execute(createInsertStatement(harvestedRecord));
+    }
+
+    public BoundStatement createInsertStatement(HarvestedRecord harvestedRecord) {
+        return insertHarvestedRecordStatement.bind(harvestedRecord.getMetisDatasetId(),
                 bucketNoFor(harvestedRecord.getRecordLocalId()), harvestedRecord.getRecordLocalId(),
                 harvestedRecord.getLatestHarvestDate(), harvestedRecord.getLatestHarvestMd5(),
                 harvestedRecord.getPreviewHarvestDate(), harvestedRecord.getPreviewHarvestMd5(),
-                harvestedRecord.getPublishedHarvestDate(), harvestedRecord.getPublishedHarvestMd5()));
+                harvestedRecord.getPublishedHarvestDate(), harvestedRecord.getPublishedHarvestMd5());
     }
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)

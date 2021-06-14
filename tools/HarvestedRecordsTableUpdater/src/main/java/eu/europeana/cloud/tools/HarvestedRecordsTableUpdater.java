@@ -1,5 +1,6 @@
 package eu.europeana.cloud.tools;
 
+import com.datastax.driver.core.BatchStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
@@ -13,8 +14,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- *  Script that will insert all relevant rows to the harvested_records table.
- *  Parameters has to be provided to this script in the following order:<br/>
+ * Script that will insert all relevant rows to the harvested_records table.
+ * Parameters has to be provided to this script in the following order:<br/>
  *
  * <b>file_location db_location db_port keyspace_name db_user_name db_password</b>
  */
@@ -23,6 +24,7 @@ public class HarvestedRecordsTableUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestedRecordsTableUpdater.class);
 
     private static final String LINE_SEPARATOR = ",";
+    private static final int BATCH_SIZE = 10000;
 
     public static void main(String[] args) throws IOException {
         validateArgs(args);
@@ -43,15 +45,31 @@ public class HarvestedRecordsTableUpdater {
                 userName,
                 password);
         var dao = new HarvestedRecordsDAO(dbConnectionProvider);
-        LOGGER.info("Inserting records");
-        records.forEach(harvestedRecord -> {
-            dao.insertHarvestedRecord(harvestedRecord);
-            LOGGER.info("Record inserted: {}",harvestedRecord);
-        });
+        insertRecords(records, dbConnectionProvider, dao);
         dbConnectionProvider.closeConnections();
     }
 
-    private static void validateArgs(String[] args){
+    private static void insertRecords(List<HarvestedRecord> records, CassandraConnectionProvider dbConnectionProvider, HarvestedRecordsDAO dao) {
+        LOGGER.info("Inserting records");
+        BatchStatement batch = new BatchStatement(BatchStatement.Type.UNLOGGED);
+        records.forEach(harvestedRecord -> {
+            batch.add(dao.createInsertStatement(harvestedRecord));
+            LOGGER.info("Record inserted to batch: {}", harvestedRecord);
+            if (batch.size() >= BATCH_SIZE) {
+                dbConnectionProvider.getSession().execute(batch);
+                LOGGER.info("Batch saved size: {}", BATCH_SIZE);
+                batch.clear();
+            }
+
+
+        });
+        if (batch.size() > 0) {
+            dbConnectionProvider.getSession().execute(batch);
+            LOGGER.info("Last Batch saved size: {}", batch.size());
+        }
+    }
+
+    private static void validateArgs(String[] args) {
         if (args.length != 6)
             throw new RuntimeException("Arguments are not valid");
     }
@@ -67,6 +85,8 @@ public class HarvestedRecordsTableUpdater {
                         .metisDatasetId(lines[0])
                         .recordLocalId(lines[1])
                         .publishedHarvestDate(new Date(Instant.parse(lines[2]).toEpochMilli()))
+                        .previewHarvestDate(new Date(Instant.parse(lines[3]).toEpochMilli()))
+                        .latestHarvestDate(new Date(Instant.parse(lines[4]).toEpochMilli()))
                         .build();
                 records.add(record);
             }
