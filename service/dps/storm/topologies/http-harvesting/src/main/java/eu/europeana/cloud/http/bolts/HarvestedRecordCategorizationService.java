@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service responsible for categorization of the records in the incremental harvesting.
@@ -29,6 +30,7 @@ public class HarvestedRecordCategorizationService {
             return categorizeRecordAsReadyForProcessing(categorizationParameters, null);
         } else {
             updateRecordLatestHarvestDate(harvestedRecord.get(), categorizationParameters.getCurrentHarvestDate());
+            updateRecordLatestMd5(harvestedRecord.get(), categorizationParameters.getRecordMd5());
             if (categorizationParameters.isFullHarvest()
                     || hashesMismatchForPreviewEnv(harvestedRecord.get(), categorizationParameters)
                     || hashesMismatchForPublishEnv(harvestedRecord.get(), categorizationParameters)) {
@@ -65,6 +67,13 @@ public class HarvestedRecordCategorizationService {
                 harvestedRecord.getMetisDatasetId(),
                 harvestedRecord.getRecordLocalId(),
                 harvestedRecord.getLatestHarvestDate());
+    }
+
+    private void updateRecordLatestMd5(HarvestedRecord harvestedRecord, UUID currentRecordMd5) {
+        harvestedRecordsDAO.updateLatestHarvestMd5(
+                harvestedRecord.getMetisDatasetId(),
+                harvestedRecord.getRecordLocalId(),
+                currentRecordMd5);
     }
 
     private boolean hashesMismatchForPreviewEnv(HarvestedRecord harvestedRecord, CategorizationParameters categorizationParameters) {

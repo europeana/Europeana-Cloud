@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.UUID;
 
 import static eu.europeana.cloud.common.annotation.Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
@@ -25,6 +26,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     private PreparedStatement insertHarvestedRecordStatement;
 
     private PreparedStatement updateLatestHarvestDateStatement;
+    private PreparedStatement updateLatestHarvestMd5Statement;
     private PreparedStatement updatePreviewHarvestDateStatement;
     private PreparedStatement updatePublishedHarvestDateStatement;
 
@@ -74,6 +76,18 @@ public class HarvestedRecordsDAO extends CassandraDAO {
         );
 
         updateLatestHarvestDateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        updateLatestHarvestMd5Statement = dbService.getSession().prepare("UPDATE "
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5 + " = ? "
+                + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
+        );
+
+        updateLatestHarvestMd5Statement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
 
         updatePreviewHarvestDateStatement = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
@@ -136,6 +150,12 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     public void updateLatestHarvestDate(String metisDatasetId, String recordId, Date harvestDate) {
         dbService.getSession().execute(updateLatestHarvestDateStatement.bind(harvestDate, metisDatasetId, bucketNoFor(recordId), recordId));
     }
+
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
+    public void updateLatestHarvestMd5(String metisDatasetId, String recordId, UUID harvestMd5) {
+        dbService.getSession().execute(updateLatestHarvestMd5Statement.bind(harvestMd5, metisDatasetId, bucketNoFor(recordId), recordId));
+    }
+
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void updatePreviewHarvestDate(String metisDatasetId, String recordId, Date indexingDate) {
