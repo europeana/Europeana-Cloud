@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 public abstract class HarvestedRecordCategorizationService {
 
