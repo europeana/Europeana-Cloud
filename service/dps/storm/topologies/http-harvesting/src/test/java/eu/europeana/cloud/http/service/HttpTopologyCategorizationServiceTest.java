@@ -1,8 +1,9 @@
-package eu.europeana.cloud.http.bolts;
+package eu.europeana.cloud.http.service;
 
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
+import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -15,18 +16,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
-public class HarvestedRecordCategorizationServiceTest {
+public class HttpTopologyCategorizationServiceTest {
 
     @Test
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfNoDefinitionInDB() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         Instant dateOfHarvesting =
                 LocalDateTime.of(1990,1,19,10,15).toInstant(ZoneOffset.UTC);
@@ -70,7 +74,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -106,7 +110,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -142,7 +146,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -176,7 +180,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(

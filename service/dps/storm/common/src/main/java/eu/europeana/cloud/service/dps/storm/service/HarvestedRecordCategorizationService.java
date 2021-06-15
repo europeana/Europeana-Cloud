@@ -1,25 +1,19 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
+package eu.europeana.cloud.service.dps.storm.service;
 
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
 
-/**
- * Service responsible for categorization of the records in the incremental harvesting.
- * Decision will be taken based on the record identifier (usually rdf:about) and record datestamp (taken from the oai).
- */
-public class HarvestedRecordCategorizationService {
+public abstract class HarvestedRecordCategorizationService {
 
-    private static final int DATE_BUFFER_IN_MINUTES = 60 * 24 * 2;
     private final HarvestedRecordsDAO harvestedRecordsDAO;
 
-    public HarvestedRecordCategorizationService(HarvestedRecordsDAO harvestedRecordsDAO) {
+    protected HarvestedRecordCategorizationService(HarvestedRecordsDAO harvestedRecordsDAO) {
         this.harvestedRecordsDAO = harvestedRecordsDAO;
     }
 
@@ -28,18 +22,19 @@ public class HarvestedRecordCategorizationService {
         if (harvestedRecord.isEmpty()) {
             var newHarvestedRecord = prepareHarvestedRecordDefinition(categorizationParameters);
             addRecordDefinitionToDB(newHarvestedRecord);
-            return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
+            return categorizeRecordAsReadyForProcessing(categorizationParameters, null);
         } else {
             updateRecordLatestHarvestDate(harvestedRecord.get(), categorizationParameters.getCurrentHarvestDate());
-            if (categorizationParameters.isFullHarvest()
-                    || recordDateStampOlderThanPreviewVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())
-                    || recordDateStampOlderThanPublishedVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord.get())
-                    ) {
-                return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord);
+            updateRecordLatestMd5(harvestedRecord.get(), categorizationParameters.getRecordMd5());
+            if (isRecordEligibleForProcessing(harvestedRecord.get(), categorizationParameters)) {
+                return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord.get());
+            } else {
+                return categorizeRecordAsNotReadyForProcessing(categorizationParameters, harvestedRecord.get());
             }
-            return categorizeRecordAsNotReadyForProcessing(categorizationParameters, harvestedRecord);
         }
     }
+
+    protected abstract boolean isRecordEligibleForProcessing(HarvestedRecord harvestedRecord, CategorizationParameters categorizationParameters);
 
     private Optional<HarvestedRecord> readRecordFromDB(CategorizationParameters categorizationParameters) {
         return harvestedRecordsDAO.findRecord(
@@ -53,6 +48,7 @@ public class HarvestedRecordCategorizationService {
                 .metisDatasetId(categorizationParameters.getDatasetId())
                 .recordLocalId(categorizationParameters.getRecordId())
                 .latestHarvestDate(Date.from(categorizationParameters.getCurrentHarvestDate()))
+                .latestHarvestMd5(categorizationParameters.getRecordMd5())
                 .build();
     }
 
@@ -68,34 +64,28 @@ public class HarvestedRecordCategorizationService {
                 harvestedRecord.getLatestHarvestDate());
     }
 
-    private boolean recordDateStampOlderThanPreviewVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
-        return harvestedRecord.getPreviewHarvestDate() == null
-                ||
-        recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPreviewHarvestDate().toInstant());
+    private void updateRecordLatestMd5(HarvestedRecord harvestedRecord, UUID currentRecordMd5) {
+        harvestedRecordsDAO.updateLatestHarvestMd5(
+                harvestedRecord.getMetisDatasetId(),
+                harvestedRecord.getRecordLocalId(),
+                currentRecordMd5);
     }
 
-    private boolean recordDateStampOlderThanPublishedVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
-        return harvestedRecord.getPublishedHarvestDate() == null
-                ||
-                recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPublishedHarvestDate().toInstant());
-    }
-
-
-    private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
+    private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, HarvestedRecord harvestedRecord) {
         return CategorizationResult
                 .builder()
                 .category(CategorizationResult.Category.ELIGIBLE_FOR_PROCESSING)
                 .categorizationParameters(categorizationParameters)
-                .harvestedRecord(harvestedRecord.orElse(null))
+                .harvestedRecord(harvestedRecord)
                 .build();
     }
 
-    private CategorizationResult categorizeRecordAsNotReadyForProcessing(CategorizationParameters categorizationParameters, Optional<HarvestedRecord> harvestedRecord) {
+    private CategorizationResult categorizeRecordAsNotReadyForProcessing(CategorizationParameters categorizationParameters, HarvestedRecord harvestedRecord) {
         return CategorizationResult
                 .builder()
                 .category(CategorizationResult.Category.ALREADY_PROCESSED)
                 .categorizationParameters(categorizationParameters)
-                .harvestedRecord(harvestedRecord.orElse(null))
+                .harvestedRecord(harvestedRecord)
                 .build();
     }
 }

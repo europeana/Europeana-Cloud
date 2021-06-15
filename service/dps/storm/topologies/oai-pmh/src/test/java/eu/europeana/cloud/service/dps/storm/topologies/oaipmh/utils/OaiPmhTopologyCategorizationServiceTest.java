@@ -1,9 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
 
+
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
+import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -15,16 +17,19 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
-public class HarvestedRecordCategorizationServiceTest {
+public class OaiPmhTopologyCategorizationServiceTest {
 
     @Test
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfNoDefinitionInDB() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         Instant recordDateStamp =
                 LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
@@ -73,7 +78,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -112,7 +117,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .previewHarvestDate(Date.from(previewHarvestDate))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -152,7 +157,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(previousHarvestDate))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -191,7 +196,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -231,7 +236,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -272,7 +277,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -311,7 +316,7 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(previousHarvestDate))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -329,5 +334,4 @@ public class HarvestedRecordCategorizationServiceTest {
                 any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
-
 }
