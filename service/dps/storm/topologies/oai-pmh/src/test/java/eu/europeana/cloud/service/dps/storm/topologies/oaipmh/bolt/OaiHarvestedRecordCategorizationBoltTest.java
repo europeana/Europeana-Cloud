@@ -1,4 +1,5 @@
-package eu.europeana.cloud.http.bolts;
+package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
+
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -6,6 +7,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.FileUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -17,12 +19,15 @@ import org.mockito.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class HarvestedRecordCategorizationBoltTest {
+public class OaiHarvestedRecordCategorizationBoltTest {
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
@@ -32,10 +37,10 @@ public class HarvestedRecordCategorizationBoltTest {
     private OutputCollector outputCollector;
 
     @InjectMocks
-    private HarvestedRecordCategorizationBolt harvestedRecordCategorizationBolt = new HarvestedRecordCategorizationBolt(null);
+    private OaiHarvestedRecordCategorizationBolt harvestedRecordCategorizationBolt = new OaiHarvestedRecordCategorizationBolt(null);
 
     @Before
-    public void init() {
+    public void init() throws IllegalAccessException, MCSException, URISyntaxException {
         MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
     }
 
@@ -91,7 +96,7 @@ public class HarvestedRecordCategorizationBoltTest {
     }
 
     @Test
-    public void shouldCategorizeMessageAsAlreadyProcessed() throws IOException {
+    public void shouldCategorizeMessageAlreadyProcessed() throws IOException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = prepareTupleWithIncrementalParameter();
@@ -112,32 +117,31 @@ public class HarvestedRecordCategorizationBoltTest {
         verify(outputCollector, never()).emit(any(Tuple.class), anyList());
     }
 
-
     private StormTaskTuple prepareNonIncrementalTuple() throws IOException {
         StormTaskTuple tuple = new StormTaskTuple();
         tuple.setTaskId(1);
-        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
         tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "false");
         tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
         tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
+        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
         return tuple;
     }
 
     private StormTaskTuple prepareTupleWithoutIncrementalParameter() throws IOException {
         StormTaskTuple tuple = new StormTaskTuple();
-        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
         tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
         tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
+        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
         return tuple;
     }
 
     private StormTaskTuple prepareTupleWithIncrementalParameter() throws IOException {
         StormTaskTuple tuple = new StormTaskTuple();
-        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
         tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
         tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "10");
         tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
         tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
+        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
 
         return tuple;
     }

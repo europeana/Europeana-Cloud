@@ -1,6 +1,6 @@
 package eu.europeana.cloud.http;
 
-import eu.europeana.cloud.http.bolts.HarvestedRecordCategorizationBolt;
+import eu.europeana.cloud.http.bolts.HttpHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
@@ -63,7 +63,7 @@ public class HTTPHarvestingTopology {
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(SPOUT, new ShuffleGrouping());
 
-        builder.setBolt(RECORD_CATEGORIZATION_BOLT, new HarvestedRecordCategorizationBolt(prepareConnectionDetails()),
+        builder.setBolt(RECORD_CATEGORIZATION_BOLT, new HttpHarvestedRecordCategorizationBolt(prepareConnectionDetails()),
                 (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());

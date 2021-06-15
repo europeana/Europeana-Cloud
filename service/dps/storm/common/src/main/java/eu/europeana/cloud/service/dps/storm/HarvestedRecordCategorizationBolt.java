@@ -1,32 +1,21 @@
-package eu.europeana.cloud.http.bolts;
+package eu.europeana.cloud.service.dps.storm;
 
-import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.http.service.HttpTopologyCategorizationService;
 import eu.europeana.cloud.service.commons.md5.FileMd5GenerationService;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
-import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
+public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestedRecordCategorizationBolt.class);
 
-    private final DbConnectionDetails dbConnectionDetails;
-    private transient HarvestedRecordCategorizationService harvestedRecordCategorizationService;
-
-    public HarvestedRecordCategorizationBolt(DbConnectionDetails dbConnectionDetails) {
-        this.dbConnectionDetails = dbConnectionDetails;
-    }
+    protected transient HarvestedRecordCategorizationService harvestedRecordCategorizationService;
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple t) {
@@ -42,19 +31,6 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
             ignoreRecordAsNotChanged(anchorTuple, t, categorizationResult);
         }
         outputCollector.ack(anchorTuple);
-    }
-
-    @Override
-    public void prepare() {
-        var cassandraConnectionProvider =
-                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
-                        dbConnectionDetails.getHosts(),
-                        dbConnectionDetails.getPort(),
-                        dbConnectionDetails.getKeyspaceName(),
-                        dbConnectionDetails.getUserName(),
-                        dbConnectionDetails.getPassword());
-
-        harvestedRecordCategorizationService = new HttpTopologyCategorizationService(new HarvestedRecordsDAO(cassandraConnectionProvider));
     }
 
     private CategorizationParameters prepareCategorizationParameters(StormTaskTuple tuple){
