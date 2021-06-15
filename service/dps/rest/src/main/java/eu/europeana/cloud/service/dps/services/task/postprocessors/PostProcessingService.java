@@ -43,7 +43,8 @@ public class PostProcessingService {
     }
 
     @Scheduled(cron = SCHEDULE_CRON_RULE)
-    public void execute() throws InterruptedException {
+    public void execute() {
+        LOGGER.info("Checking for tasks to post process");
         findTasks(IN_POST_PROCESSING).forEach(this::executeOneTask);
         findTasks(READY_FOR_POST_PROCESSING).forEach(this::executeOneTask);
     }
@@ -58,14 +59,14 @@ public class PostProcessingService {
     }
 
     private List<Long> findTasks(TaskState state) {
-        LOGGER.info("Checking for tasks to post process...");
+        LOGGER.info("Finding tasks in {} state...", state);
         List<Long> tasks = tasksByStateDAO.findTasksInGivenState(Collections.singletonList(state))
                 .stream()
                 .filter(task -> applicationIdentifier.equals(task.getOwnerId())).map(TaskInfo::getId)
                 .collect(Collectors.toList());
 
         if (tasks.isEmpty()) {
-            LOGGER.info("There are no tasks to post process on this machine.");
+            LOGGER.info("There are no tasks in {} state on this machine.", state);
         } else {
             LOGGER.info("Found {} tasks to post process ids: {}", tasks.size(), tasks);
         }
