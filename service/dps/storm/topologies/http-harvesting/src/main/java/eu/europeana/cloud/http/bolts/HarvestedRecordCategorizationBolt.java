@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
+import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
+import eu.europeana.cloud.service.dps.storm.service.HttpTopologyCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
@@ -52,7 +54,7 @@ public class HarvestedRecordCategorizationBolt extends AbstractDpsBolt {
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
 
-        harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(new HarvestedRecordsDAO(cassandraConnectionProvider));
+        harvestedRecordCategorizationService = new HttpTopologyCategorizationService(new HarvestedRecordsDAO(cassandraConnectionProvider));
     }
 
     private CategorizationParameters prepareCategorizationParameters(StormTaskTuple tuple){

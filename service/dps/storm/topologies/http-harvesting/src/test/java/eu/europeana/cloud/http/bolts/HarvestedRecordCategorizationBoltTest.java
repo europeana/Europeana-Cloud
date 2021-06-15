@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
+import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import org.apache.commons.io.FileUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
