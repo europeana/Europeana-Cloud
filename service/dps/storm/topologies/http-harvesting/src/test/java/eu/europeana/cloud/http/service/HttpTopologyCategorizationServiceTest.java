@@ -1,8 +1,9 @@
-package eu.europeana.cloud.service.dps.storm.service;
+package eu.europeana.cloud.http.service;
 
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
+import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import org.junit.Test;
 import org.mockito.Mockito;

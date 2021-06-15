@@ -1,6 +1,7 @@
 package eu.europeana.cloud.http.bolts;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.http.service.HttpTopologyCategorizationService;
 import eu.europeana.cloud.service.commons.md5.FileMd5GenerationService;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -9,7 +10,6 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
-import eu.europeana.cloud.service.dps.storm.service.HttpTopologyCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;

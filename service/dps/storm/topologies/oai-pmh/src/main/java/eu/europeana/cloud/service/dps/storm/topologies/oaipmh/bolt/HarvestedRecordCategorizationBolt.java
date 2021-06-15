@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
-import eu.europeana.cloud.service.dps.storm.service.OaiPmhTopologyCategorizationService;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils.OaiPmhTopologyCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;

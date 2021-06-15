@@ -1,7 +1,8 @@
-package eu.europeana.cloud.service.dps.storm.service;
+package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
 
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
+import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 
 import java.time.Instant;
