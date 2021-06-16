@@ -33,7 +33,7 @@ public class HttpTopologyCategorizationServiceTest {
         HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,19,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 19, 10, 15).toInstant(ZoneOffset.UTC);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -63,7 +63,7 @@ public class HttpTopologyCategorizationServiceTest {
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
 
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
@@ -86,10 +86,8 @@ public class HttpTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -99,7 +97,7 @@ public class HttpTopologyCategorizationServiceTest {
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
 
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
@@ -122,10 +120,8 @@ public class HttpTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -135,7 +131,7 @@ public class HttpTopologyCategorizationServiceTest {
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
 
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
@@ -158,10 +154,8 @@ public class HttpTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -170,7 +164,7 @@ public class HttpTopologyCategorizationServiceTest {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 25, 10, 15).toInstant(ZoneOffset.UTC);
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
@@ -192,9 +186,8 @@ public class HttpTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeDropped());
     }
 }

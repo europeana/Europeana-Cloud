@@ -26,7 +26,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     private PreparedStatement insertHarvestedRecordStatement;
 
     private PreparedStatement updateLatestHarvestDateStatement;
-    private PreparedStatement updateLatestHarvestMd5Statement;
+    private PreparedStatement updateLatestHarvestDateAndMd5Statement;
     private PreparedStatement updatePreviewHarvestDateStatement;
     private PreparedStatement updatePublishedHarvestDateStatement;
 
@@ -41,7 +41,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
         return instance;
     }
 
-    public HarvestedRecordsDAO(){
+    public HarvestedRecordsDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
 
@@ -77,16 +77,16 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
         updateLatestHarvestDateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateLatestHarvestMd5Statement = dbService.getSession().prepare("UPDATE "
+        updateLatestHarvestDateAndMd5Statement = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5 + " = ? "
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE + " = ? ,"
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5 + " = ? "
                 + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
 
-        updateLatestHarvestMd5Statement.setConsistencyLevel(dbService.getConsistencyLevel());
-
+        updateLatestHarvestDateAndMd5Statement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
         updatePreviewHarvestDateStatement = dbService.getSession().prepare("UPDATE "
@@ -152,8 +152,8 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     }
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
-    public void updateLatestHarvestMd5(String metisDatasetId, String recordId, UUID harvestMd5) {
-        dbService.getSession().execute(updateLatestHarvestMd5Statement.bind(harvestMd5, metisDatasetId, bucketNoFor(recordId), recordId));
+    public void updateLatestHarvestDateAndMd5(String metisDatasetId, String recordId, Date harvestDate, UUID harvestMd5) {
+        dbService.getSession().execute(updateLatestHarvestDateAndMd5Statement.bind(harvestDate, harvestMd5, metisDatasetId, bucketNoFor(recordId), recordId));
     }
 
 

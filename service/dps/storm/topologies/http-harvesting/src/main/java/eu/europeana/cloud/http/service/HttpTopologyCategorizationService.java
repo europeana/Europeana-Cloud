@@ -28,7 +28,7 @@ public class HttpTopologyCategorizationService extends HarvestedRecordCategoriza
     }
 
     private boolean hashesMismatchForPublishEnv(HarvestedRecord harvestedRecord, CategorizationParameters categorizationParameters) {
-        if (harvestedRecord.getPreviewHarvestMd5() != null) {
+        if (harvestedRecord.getPublishedHarvestMd5() != null) {
             return !categorizationParameters.getRecordMd5().equals(harvestedRecord.getPublishedHarvestMd5());
         } else {
             return true;

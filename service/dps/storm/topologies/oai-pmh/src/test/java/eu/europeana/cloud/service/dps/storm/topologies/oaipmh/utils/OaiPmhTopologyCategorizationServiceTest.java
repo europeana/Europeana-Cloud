@@ -29,12 +29,12 @@ public class OaiPmhTopologyCategorizationServiceTest {
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfNoDefinitionInDB() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
-        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         Instant recordDateStamp =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,19,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 19, 10, 15).toInstant(ZoneOffset.UTC);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -63,11 +63,11 @@ public class OaiPmhTopologyCategorizationServiceTest {
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 
         Instant previewHarvestDate =
-                LocalDateTime.of(1990,1,30,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 30, 10, 16).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
         Instant publishedHarvestDate =
-                LocalDateTime.of(1990,1,19,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 19, 10, 15).toInstant(ZoneOffset.UTC);
 
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
@@ -78,7 +78,7 @@ public class OaiPmhTopologyCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -90,10 +90,8 @@ public class OaiPmhTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -102,11 +100,11 @@ public class OaiPmhTopologyCategorizationServiceTest {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
         Instant previewHarvestDate =
-                LocalDateTime.of(1990,1,30,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 30, 10, 15).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
         Instant recordDateStamp =
-                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 18, 10, 16).toInstant(ZoneOffset.UTC);
 
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
@@ -117,7 +115,7 @@ public class OaiPmhTopologyCategorizationServiceTest {
                                 .previewHarvestDate(Date.from(previewHarvestDate))
                                 .build()
                 ));
-        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -129,11 +127,8 @@ public class OaiPmhTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any()
-        );
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -143,11 +138,11 @@ public class OaiPmhTopologyCategorizationServiceTest {
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 //        Date dateOfHarvesting = new Date();
         Instant recordDateStamp =
-                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 10, 10, 15).toInstant(ZoneOffset.UTC);
         Instant previousHarvestDate =
-                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 18, 10, 16).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 25, 10, 15).toInstant(ZoneOffset.UTC);
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
@@ -157,7 +152,7 @@ public class OaiPmhTopologyCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(previousHarvestDate))
                                 .build()
                 ));
-        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -169,9 +164,8 @@ public class OaiPmhTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeDropped());
     }
 
@@ -182,11 +176,11 @@ public class OaiPmhTopologyCategorizationServiceTest {
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 //        Date dateOfHarvesting = new Date();
         Instant recordDateStamp =
-                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 10, 10, 15).toInstant(ZoneOffset.UTC);
         Instant publishedHarvestDate =
-                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 18, 10, 16).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 25, 10, 15).toInstant(ZoneOffset.UTC);
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
@@ -196,7 +190,7 @@ public class OaiPmhTopologyCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -208,9 +202,8 @@ public class OaiPmhTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -220,13 +213,13 @@ public class OaiPmhTopologyCategorizationServiceTest {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
         Instant recordDateStamp =
-                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 10, 10, 15).toInstant(ZoneOffset.UTC);
         Instant previewHarvestDate =
-                LocalDateTime.of(1990,1,11,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 11, 10, 16).toInstant(ZoneOffset.UTC);
         Instant publishedHarvestDate =
-                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 18, 10, 16).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 25, 10, 15).toInstant(ZoneOffset.UTC);
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
@@ -236,7 +229,7 @@ public class OaiPmhTopologyCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -248,12 +241,10 @@ public class OaiPmhTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
-
 
 
     @Test
@@ -261,13 +252,13 @@ public class OaiPmhTopologyCategorizationServiceTest {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
         Instant recordDateStamp =
-                LocalDateTime.of(1990,1,18,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 18, 10, 15).toInstant(ZoneOffset.UTC);
         Instant previewHarvestDate =
-                LocalDateTime.of(1990,1,30,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 30, 10, 16).toInstant(ZoneOffset.UTC);
         Instant publishedHarvestDate =
-                LocalDateTime.of(1990,1,18,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 18, 10, 15).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 25, 10, 15).toInstant(ZoneOffset.UTC);
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
@@ -277,7 +268,7 @@ public class OaiPmhTopologyCategorizationServiceTest {
                                 .publishedHarvestDate(Date.from(publishedHarvestDate))
                                 .build()
                 ));
-        eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
@@ -289,11 +280,7 @@ public class OaiPmhTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any()
-        );
+        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
@@ -302,11 +289,11 @@ public class OaiPmhTopologyCategorizationServiceTest {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
         Instant recordDateStamp =
-                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 10, 10, 15).toInstant(ZoneOffset.UTC);
         Instant previousHarvestDate =
-                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 18, 10, 16).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 25, 10, 15).toInstant(ZoneOffset.UTC);
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
@@ -329,9 +316,8 @@ public class OaiPmhTopologyCategorizationServiceTest {
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 }

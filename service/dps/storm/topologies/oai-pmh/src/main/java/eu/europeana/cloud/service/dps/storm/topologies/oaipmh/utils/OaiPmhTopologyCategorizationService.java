@@ -19,17 +19,17 @@ public class OaiPmhTopologyCategorizationService extends HarvestedRecordCategori
     @Override
     protected boolean isRecordEligibleForProcessing(HarvestedRecord harvestedRecord, CategorizationParameters categorizationParameters) {
         return categorizationParameters.isFullHarvest()
-                || recordDateStampOlderThanPreviewVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord)
-                || recordDateStampOlderThanPublishedVersion(categorizationParameters.getRecordDateStamp(), harvestedRecord);
+                || previewVersionIsOlderThanRecordDateStamp(categorizationParameters.getRecordDateStamp(), harvestedRecord)
+                || publishedVersionIsOlderThanRecordDateStamp(categorizationParameters.getRecordDateStamp(), harvestedRecord);
     }
 
-    private boolean recordDateStampOlderThanPreviewVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
+    private boolean previewVersionIsOlderThanRecordDateStamp(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
         return harvestedRecord.getPreviewHarvestDate() == null
                 ||
                 recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPreviewHarvestDate().toInstant());
     }
 
-    private boolean recordDateStampOlderThanPublishedVersion(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
+    private boolean publishedVersionIsOlderThanRecordDateStamp(Instant recordDateStamp, HarvestedRecord harvestedRecord) {
         return harvestedRecord.getPublishedHarvestDate() == null
                 ||
                 recordDateStamp.plus(DATE_BUFFER_IN_MINUTES, ChronoUnit.MINUTES).isAfter(harvestedRecord.getPublishedHarvestDate().toInstant());

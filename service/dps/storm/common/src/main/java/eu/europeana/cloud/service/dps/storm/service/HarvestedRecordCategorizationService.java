@@ -5,10 +5,8 @@ import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
-import java.util.UUID;
 
 public abstract class HarvestedRecordCategorizationService {
 
@@ -25,8 +23,7 @@ public abstract class HarvestedRecordCategorizationService {
             addRecordDefinitionToDB(newHarvestedRecord);
             return categorizeRecordAsReadyForProcessing(categorizationParameters, null);
         } else {
-            updateRecordLatestHarvestDate(harvestedRecord.get(), categorizationParameters.getCurrentHarvestDate());
-            updateRecordLatestMd5(harvestedRecord.get(), categorizationParameters.getRecordMd5());
+            updateRecordLatestHarvestDateAndMd5(harvestedRecord.get(), categorizationParameters);
             if (isRecordEligibleForProcessing(harvestedRecord.get(), categorizationParameters)) {
                 return categorizeRecordAsReadyForProcessing(categorizationParameters, harvestedRecord.get());
             } else {
@@ -57,19 +54,12 @@ public abstract class HarvestedRecordCategorizationService {
         harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
 
-    private void updateRecordLatestHarvestDate(HarvestedRecord harvestedRecord, Instant currentHarvestDate) {
-        harvestedRecord.setLatestHarvestDate(Date.from(currentHarvestDate));
-        harvestedRecordsDAO.updateLatestHarvestDate(
+    private void updateRecordLatestHarvestDateAndMd5(HarvestedRecord harvestedRecord, CategorizationParameters categorizationParameters) {
+        harvestedRecordsDAO.updateLatestHarvestDateAndMd5(
                 harvestedRecord.getMetisDatasetId(),
                 harvestedRecord.getRecordLocalId(),
-                harvestedRecord.getLatestHarvestDate());
-    }
-
-    private void updateRecordLatestMd5(HarvestedRecord harvestedRecord, UUID currentRecordMd5) {
-        harvestedRecordsDAO.updateLatestHarvestMd5(
-                harvestedRecord.getMetisDatasetId(),
-                harvestedRecord.getRecordLocalId(),
-                currentRecordMd5);
+                Date.from(categorizationParameters.getCurrentHarvestDate()),
+                categorizationParameters.getRecordMd5());
     }
 
     private CategorizationResult categorizeRecordAsReadyForProcessing(CategorizationParameters categorizationParameters, HarvestedRecord harvestedRecord) {

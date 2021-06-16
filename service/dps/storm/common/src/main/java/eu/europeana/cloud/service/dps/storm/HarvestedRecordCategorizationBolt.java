@@ -40,6 +40,9 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
                 .recordId(tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER))
                 .recordMd5(FileMd5GenerationService.generateUUID(tuple.getFileData()))
                 .currentHarvestDate(DateHelper.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
+                .recordDateStamp(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP) != null ?
+                        DateHelper.parse(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP))
+                        : null)
                 .build();
     }
 
