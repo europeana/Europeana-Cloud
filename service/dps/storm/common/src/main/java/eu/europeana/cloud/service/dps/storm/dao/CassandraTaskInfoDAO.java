@@ -33,6 +33,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement updateRetryCount;
     private PreparedStatement finishTask;
     private PreparedStatement updateStatusExpectedSizeStatement;
+    private PreparedStatement updateStateStatement;
 
     private static CassandraTaskInfoDAO instance = null;
 
@@ -91,6 +92,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
         updateStatusExpectedSizeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + " = ?  WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        updateStateStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.INFO + " = ?  WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateStateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public Optional<TaskInfo> findById(long taskId)
@@ -160,6 +164,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     public void updateStatusExpectedSize(long taskId, String state, int expectedSize)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateStatusExpectedSizeStatement.bind(String.valueOf(state), expectedSize, taskId));
+    }
+
+    public void updateState(long taskId, TaskState state, String info) {
+        dbService.getSession().execute(updateStateStatement.bind(String.valueOf(state), info, taskId));
     }
 
     public boolean hasKillFlag(long taskId) throws TaskInfoDoesNotExistException {

@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -79,6 +80,8 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
             - add created representation version to dataset (dataset taken from task definition (output dataset))
         3. Change task status to PROCESSED;
          */
+        taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+                "Postprocessing - adding removed records to result revision.");
         Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
         while (it.hasNext()) {
             HarvestedRecord harvestedRecord = it.next();

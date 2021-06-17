@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
+package eu.europeana.cloud.service.dps.storm.incremental;
 
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class CategorizationResult{
+public class CategorizationResult {
     private final Category category;
     private final CategorizationParameters categorizationParameters;
     private final HarvestedRecord harvestedRecord;

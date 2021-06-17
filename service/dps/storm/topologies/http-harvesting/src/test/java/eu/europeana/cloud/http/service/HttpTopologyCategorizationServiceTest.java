@@ -1,7 +1,10 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.utils;
+package eu.europeana.cloud.http.service;
 
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
+import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
+import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -10,31 +13,34 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
-public class HarvestedRecordCategorizationServiceTest {
+public class HttpTopologyCategorizationServiceTest {
 
     @Test
     public void shouldCategorizeRecordAsReadyForProcessingInCaseOfNoDefinitionInDB() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
-        Instant recordDateStamp =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,19,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 19, 10, 15).toInstant(ZoneOffset.UTC);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
                 CategorizationParameters.builder()
                         .datasetId("exampleDatasetId")
                         .recordId("exampleRecordId")
-                        .recordDateStamp(recordDateStamp)
+                        .recordMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                         .currentHarvestDate(dateOfHarvesting)
                         .build());
         //then
@@ -45,157 +51,143 @@ public class HarvestedRecordCategorizationServiceTest {
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
                                 .latestHarvestDate(Date.from(dateOfHarvesting))
+                                .latestHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 )));
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
     @Test
-    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfExistingDefinitionInDBAndNewHarvestedRecord() {
+    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfExistingDefinitionInDBAndMd5ThatDiffersFromPreviewAndPublish() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
 
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
-        Instant publishedHarvestDate =
-                LocalDateTime.of(1990,1,19,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
 
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
-                                .publishedHarvestDate(Date.from(publishedHarvestDate))
+                                .previewHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
+                                .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
                 CategorizationParameters.builder()
                         .datasetId("exampleDatasetId")
                         .recordId("exampleRecordId")
-                        .recordDateStamp(dateOfHarvesting)
+                        .recordMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc91"))
                         .currentHarvestDate(dateOfHarvesting)
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
     @Test
-    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfRecordThatIsNotChangedButFallsIntoBuffer() {
+    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfExistingDefinitionInDBAndMd5ThatDiffersFromPreview() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
+
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,20,10,15).toInstant(ZoneOffset.UTC);
-        Instant recordDateStamp =
-                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
 
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
-                                .publishedHarvestDate(Date.from(dateOfHarvesting))
+                                .previewHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc91"))
+                                .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
                 CategorizationParameters.builder()
                         .datasetId("exampleDatasetId")
                         .recordId("exampleRecordId")
-                        .recordDateStamp(recordDateStamp)
+                        .recordMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                         .currentHarvestDate(dateOfHarvesting)
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any()
-        );
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeProcessed());
     }
 
     @Test
-    public void shouldCategorizeRecordAsNotReadyForProcessingInCaseOfExistingDefinitionInDBAndOldRecord() {
+    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfExistingDefinitionInDBAndMd5ThatDiffersFromPublish() {
         //given
         HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
-//        Date dateOfHarvesting = new Date();
-        Instant recordDateStamp =
-                LocalDateTime.of(1990,1,10,10,15).toInstant(ZoneOffset.UTC);
-        Instant publishedHarvestDate =
-                LocalDateTime.of(1990,1,18,10,16).toInstant(ZoneOffset.UTC);
+
         Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
+                LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC);
+
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
                 Optional.of(
                         HarvestedRecord.builder()
                                 .metisDatasetId("exampleDatasetId")
                                 .recordLocalId("exampleRecordId")
-                                .publishedHarvestDate(Date.from(publishedHarvestDate))
+                                .previewHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc91"))
+                                .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .build()
                 ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
 
         //when
         CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
                 CategorizationParameters.builder()
                         .datasetId("exampleDatasetId")
                         .recordId("exampleRecordId")
-                        .recordDateStamp(recordDateStamp)
+                        .recordMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc91"))
                         .currentHarvestDate(dateOfHarvesting)
                         .build());
         //then
         verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any());
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
+        assertTrue(categorizationResult.shouldBeProcessed());
+    }
+
+    @Test
+    public void shouldCategorizeRecordAsNotReadyForProcessingInCaseOfExistingDefinitionInDBAndMd5SameAsForPublishAndPreview() {
+        //given
+        HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
+        Instant dateOfHarvesting =
+                LocalDateTime.of(1990, 1, 25, 10, 15).toInstant(ZoneOffset.UTC);
+        when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
+                Optional.of(
+                        HarvestedRecord.builder()
+                                .metisDatasetId("exampleDatasetId")
+                                .recordLocalId("exampleRecordId")
+                                .previewHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
+                                .publishedHarvestMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
+                                .build()
+                ));
+        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HttpTopologyCategorizationService(harvestedRecordsDAO);
+
+        //when
+        CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
+                CategorizationParameters.builder()
+                        .datasetId("exampleDatasetId")
+                        .recordId("exampleRecordId")
+                        .recordMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
+                        .currentHarvestDate(dateOfHarvesting)
+                        .build());
+        //then
+        verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+        verify(harvestedRecordsDAO, times(1))
+                .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
         assertTrue(categorizationResult.shouldBeDropped());
-    }
-
-    @Test
-    public void shouldCategorizeRecordAsReadyForProcessingInCaseOfEqualsRecordDatestampAndPublishedHarvestDate() {
-        //given
-        HarvestedRecordsDAO harvestedRecordsDAO = Mockito.mock(HarvestedRecordsDAO.class);
-        Instant recordDateStamp =
-                LocalDateTime.of(1990,1,18,10,15).toInstant(ZoneOffset.UTC);
-        Instant publishedHarvestDate =
-                LocalDateTime.of(1990,1,18,10,15).toInstant(ZoneOffset.UTC);
-        Instant dateOfHarvesting =
-                LocalDateTime.of(1990,1,25,10,15).toInstant(ZoneOffset.UTC);
-        when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(
-                Optional.of(
-                        HarvestedRecord.builder()
-                                .metisDatasetId("exampleDatasetId")
-                                .recordLocalId("exampleRecordId")
-                                .publishedHarvestDate(Date.from(publishedHarvestDate))
-                                .build()
-                ));
-        HarvestedRecordCategorizationService harvestedRecordCategorizationService = new HarvestedRecordCategorizationService(harvestedRecordsDAO);
-
-        //when
-        CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
-                CategorizationParameters.builder()
-                        .datasetId("exampleDatasetId")
-                        .recordId("exampleRecordId")
-                        .recordDateStamp(recordDateStamp)
-                        .currentHarvestDate(dateOfHarvesting)
-                        .build());
-        //then
-        verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
-        verify(harvestedRecordsDAO, times(1)).updateLatestHarvestDate(
-                eq("exampleDatasetId"),
-                eq("exampleRecordId"),
-                any()
-        );
-        assertTrue(categorizationResult.shouldBeProcessed());
     }
 }
