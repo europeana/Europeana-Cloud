@@ -13,7 +13,7 @@
 
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
-        <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
+        <version.spring-framework>5.2.4.RELEASE</version.spring-framework>
         <version.spring-security>5.2.2.RELEASE</version.spring-security>
     </properties>
 
