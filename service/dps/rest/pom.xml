@@ -15,7 +15,7 @@
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
         <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
-        <spring-security.version>5.2.2.RELEASE</spring-security.version>
+        <version.spring-security>5.2.2.RELEASE</version.spring-security>
     </properties>
 
     <profiles>
@@ -206,17 +206,17 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-taglibs</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -473,7 +473,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
             <scope>test</scope>
             <exclusions>
                 <!--without jcl - because we use log4j through slf4j -->
