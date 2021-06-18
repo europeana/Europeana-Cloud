@@ -12,6 +12,12 @@
 
     <name>Europeana Cloud: Services Commons</name>
 
+    <properties>
+        <main.directory>${project.parent.basedir}</main.directory>
+        <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
+        <version.spring-security>5.2.2.RELEASE</version.spring-security>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>log4j</groupId>
@@ -42,7 +48,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
