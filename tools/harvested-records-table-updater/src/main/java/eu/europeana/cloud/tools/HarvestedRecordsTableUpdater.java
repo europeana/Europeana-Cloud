@@ -13,6 +13,7 @@ import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -26,14 +27,15 @@ public class HarvestedRecordsTableUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestedRecordsTableUpdater.class);
 
     /**
+     * "metis_dataset_id","record_id","latest_harvest_revision_timestamp","preview_harvest_revision_timestamp","published_harvest_revision_timestamp"
      * Possible lines covered by regular expression below
-     * <DSID>,<RECID>,<T1>,<T2>,<T3>?
+     * <DSID>,<RECID>,<TLATEST>,<TPREVIEW>,<TPUBLISHED>?
      * "54","/54/item_5P7CNXVXZYWHHFO24XPSAJDQSA5DKLWP","1618222127555","1618222127555","1618222127555"
      * "54","/54/item_C5JL4OPQ2XBFG22HKLRNWLHLZIGBH3RR","1618222127555","1618222127555",
      * 54,/54/item_W2I5JU3M3EXM3HR6VV3YBH45SOEBMH2M,1618222127555,1618222127555,1618222127555
      * 54,/54/item_W7UDO6XLGZ73D2DYDT73P4AE4Y33HKBX,1618222127555,1618222127555,
      */
-    private static final String LINE_PATTERN_REGEXP = "\\\"?(?<DSID>.+?)\\\"?,\\\"?(?<RECID>.+?)\\\"?,\\\"?(?<T1>\\d+?)\\\"?,\\\"?(?<T2>\\d+?)\\\"?,(\\\"?(?<T3>\\d+?)\\\"?)?";
+    private static final String LINE_PATTERN_REGEXP = "\\\"?(?<DSID>.+?)\\\"?,\\\"?(?<RECID>.+?)\\\"?,\\\"?(?<TLATEST>\\d+?)\\\"?,\\\"?(?<TPREVIEW>\\d+?)\\\"?,(\\\"?(?<TPUBLISHED>\\d+?)\\\"?)?";
     private static final Pattern LINE_PATTERN = Pattern.compile(LINE_PATTERN_REGEXP);
 
     private static final int BATCH_SIZE = 10000;
@@ -75,7 +77,7 @@ public class HarvestedRecordsTableUpdater {
         LOGGER.info("Processing '{}' file", filename);
 
         var recordsList = new ArrayList<HarvestedRecord>();
-        var batachCounter = 1;
+        var batchNumber = 1;
 
         try (var lineNumberReader = new LineNumberReader(new FileReader(filename))) {
             var line = "";
@@ -83,40 +85,43 @@ public class HarvestedRecordsTableUpdater {
 
                 var lineMatcher = LINE_PATTERN.matcher(line);
                 if(lineMatcher.matches()) {
-                    var aRecord = HarvestedRecord.builder()
-                            .metisDatasetId(lineMatcher.group("DSID"))
-                            .recordLocalId(lineMatcher.group("RECID"))
-                            .publishedHarvestDate(new Date(Long.parseLong(lineMatcher.group("T1"))))
-                            .previewHarvestDate(new Date(Long.parseLong(lineMatcher.group("T2"))))
-                            .latestHarvestDate(lineMatcher.group("T3") != null ?
-                                            new Date(Long.parseLong(lineMatcher.group("T3"))) : null)
-                            .build();
-                    recordsList.add(aRecord);
+                    recordsList.add(createRecord(lineMatcher));
 
                     if(recordsList.size() >= BATCH_SIZE) {
-                        insertRecordsBatch(recordsList, batachCounter);
+                        insertRecordsBatch(recordsList, batchNumber);
                         recordsList.clear();
-                        batachCounter++;
+                        batchNumber++;
                     }
                 } else {
                     LOGGER.warn("Non-data line in given file: |{}|", line);
                 }
             }
 
-            insertRecordsBatch(recordsList, batachCounter);
+            insertRecordsBatch(recordsList, batchNumber);
         }
     }
 
-    private void insertRecordsBatch(List<HarvestedRecord> records, int batchCounter) {
-        LOGGER.info("Inserting {} records to batch number {} ...", records.size(), batchCounter);
+    private HarvestedRecord createRecord(Matcher lineMatcher) {
+        return HarvestedRecord.builder()
+                .metisDatasetId(lineMatcher.group("DSID"))
+                .recordLocalId(lineMatcher.group("RECID"))
+                .latestHarvestDate(new Date(Long.parseLong(lineMatcher.group("TLATEST"))))
+                .previewHarvestDate(new Date(Long.parseLong(lineMatcher.group("TPREVIEW"))))
+                .publishedHarvestDate(lineMatcher.group("TPUBLISHED") != null ?
+                        new Date(Long.parseLong(lineMatcher.group("TPUBLISHED"))) : null)
+                .build();
+    }
+
+    private void insertRecordsBatch(List<HarvestedRecord> recordsList, int batchNumber) {
+        LOGGER.info("Inserting {} records to batch number {} ...", recordsList.size(), batchNumber);
         var batch = new BatchStatement(BatchStatement.Type.UNLOGGED);
-        records.forEach(harvestedRecord -> {
+        recordsList.forEach(harvestedRecord -> {
             batch.add(harvestedRecordsDAO.insertBindParameters(harvestedRecord));
             LOGGER.debug("Record inserted to batch: {}", harvestedRecord);
         });
 
         dbConnectionProvider.getSession().execute(batch);
-        LOGGER.info("Batch {} saved. Batch size: {}", batchCounter, batch.size());
+        LOGGER.info("Batch {} saved. Batch size: {}", batchNumber, batch.size());
         batch.clear();
     }
 }
