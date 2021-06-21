@@ -126,10 +126,10 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void insertHarvestedRecord(HarvestedRecord harvestedRecord) {
-        dbService.getSession().execute(insertBindParameters(harvestedRecord));
+        dbService.getSession().execute(prepareInsertStatement(harvestedRecord));
     }
 
-    public BoundStatement insertBindParameters(HarvestedRecord harvestedRecord) {
+    public BoundStatement prepareInsertStatement(HarvestedRecord harvestedRecord) {
         return insertHarvestedRecordStatement.bind(harvestedRecord.getMetisDatasetId(),
                 bucketNoFor(harvestedRecord.getRecordLocalId()), harvestedRecord.getRecordLocalId(),
                 harvestedRecord.getLatestHarvestDate(), harvestedRecord.getLatestHarvestMd5(),

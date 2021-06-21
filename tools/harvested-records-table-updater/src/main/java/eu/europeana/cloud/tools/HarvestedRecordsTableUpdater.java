@@ -29,13 +29,13 @@ public class HarvestedRecordsTableUpdater {
     /**
      * "metis_dataset_id","record_id","latest_harvest_revision_timestamp","preview_harvest_revision_timestamp","published_harvest_revision_timestamp"
      * Possible lines covered by regular expression below
-     * <DSID>,<RECID>,<TLATEST>,<TPREVIEW>,<TPUBLISHED>?
+     * <DSID>,<RECID>,<TLATEST>,<TPREVIEW>,<TPUBLISHED>
      * "54","/54/item_5P7CNXVXZYWHHFO24XPSAJDQSA5DKLWP","1618222127555","1618222127555","1618222127555"
      * "54","/54/item_C5JL4OPQ2XBFG22HKLRNWLHLZIGBH3RR","1618222127555","1618222127555",
      * 54,/54/item_W2I5JU3M3EXM3HR6VV3YBH45SOEBMH2M,1618222127555,1618222127555,1618222127555
      * 54,/54/item_W7UDO6XLGZ73D2DYDT73P4AE4Y33HKBX,1618222127555,1618222127555,
      */
-    private static final String LINE_PATTERN_REGEXP = "\\\"?(?<DSID>.+?)\\\"?,\\\"?(?<RECID>.+?)\\\"?,\\\"?(?<TLATEST>\\d+?)\\\"?,\\\"?(?<TPREVIEW>\\d+?)\\\"?,(\\\"?(?<TPUBLISHED>\\d+?)\\\"?)?";
+    private static final String LINE_PATTERN_REGEXP = "\\\"?(?<DSID>.+?)\\\"?,\\\"?(?<RECID>.+?)\\\"?,\\\"?(?<TLATEST>\\d+)\\\"?,\\\"?(?<TPREVIEW>\\d+)\\\"?,\\\"?(?<TPUBLISHED>\\d*)\\\"?";
     private static final Pattern LINE_PATTERN = Pattern.compile(LINE_PATTERN_REGEXP);
 
     private static final int BATCH_SIZE = 10000;
@@ -107,8 +107,8 @@ public class HarvestedRecordsTableUpdater {
                 .recordLocalId(lineMatcher.group("RECID"))
                 .latestHarvestDate(new Date(Long.parseLong(lineMatcher.group("TLATEST"))))
                 .previewHarvestDate(new Date(Long.parseLong(lineMatcher.group("TPREVIEW"))))
-                .publishedHarvestDate(lineMatcher.group("TPUBLISHED") != null ?
-                        new Date(Long.parseLong(lineMatcher.group("TPUBLISHED"))) : null)
+                .publishedHarvestDate(lineMatcher.group("TPUBLISHED").isEmpty() ? null :
+                        new Date(Long.parseLong(lineMatcher.group("TPUBLISHED"))))
                 .build();
     }
 
@@ -116,7 +116,7 @@ public class HarvestedRecordsTableUpdater {
         LOGGER.info("Inserting {} records to batch number {} ...", recordsList.size(), batchNumber);
         var batch = new BatchStatement(BatchStatement.Type.UNLOGGED);
         recordsList.forEach(harvestedRecord -> {
-            batch.add(harvestedRecordsDAO.insertBindParameters(harvestedRecord));
+            batch.add(harvestedRecordsDAO.prepareInsertStatement(harvestedRecord));
             LOGGER.debug("Record inserted to batch: {}", harvestedRecord);
         });
 
