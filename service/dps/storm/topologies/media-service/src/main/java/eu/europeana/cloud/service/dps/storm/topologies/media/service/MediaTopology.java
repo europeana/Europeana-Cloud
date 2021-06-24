@@ -100,21 +100,21 @@ public class MediaTopology {
                 .setNumTasks(
                         (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(SPOUT, NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(EDM_OBJECT_PROCESSOR_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(PARSE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(RESOURCE_PROCESSING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(EDM_ENRICHMENT_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName));
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
 
         return builder.createTopology();
     }

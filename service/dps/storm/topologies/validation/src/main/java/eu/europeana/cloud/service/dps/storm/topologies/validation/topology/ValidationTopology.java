@@ -94,15 +94,15 @@ public class ValidationTopology {
                 .setNumTasks(
                         (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(SPOUT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                 .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName));
+                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
         return builder.createTopology();
     }
 

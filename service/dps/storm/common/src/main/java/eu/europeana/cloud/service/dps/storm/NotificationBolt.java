@@ -75,13 +75,6 @@ public class NotificationBolt extends BaseRichBolt {
 
     }
 
-    private static Date prepareDate(Object dateObject) {
-        Date date = null;
-        if (dateObject instanceof Date)
-            return (Date) dateObject;
-        return date;
-    }
-
     @Override
     public void execute(Tuple tuple) {
         try {
@@ -126,9 +119,6 @@ public class NotificationBolt extends BaseRichBolt {
 
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         switch (notificationTuple.getInformationType()) {
-            case UPDATE_TASK:
-                updateTask(notificationTuple.getTaskId(), notificationTuple.getParameters());
-                break;
             case NOTIFICATION:
                 storeNotificationInfo(notificationTuple, nCache);
                 break;
@@ -204,18 +194,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-    private void updateTask(long taskId, Map<String, Object> parameters) {
-        Validate.notNull(parameters);
-        String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
-        String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
-        Date startDate = prepareDate(parameters.get(NotificationParameterKeys.START_TIME));
-        updateTask(taskId, state, info, startDate);
-    }
-
-    private void updateTask(long taskId, String state, String info, Date startDate) {
-        taskStatusUpdater.updateTask(taskId, info, state, startDate);
-    }
-
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
         long taskId = notificationTuple.getTaskId();
         TaskInfo task = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
@@ -287,9 +265,7 @@ public class NotificationBolt extends BaseRichBolt {
             while (it.hasNext()) {
                 String errorType = it.next();
                 Optional<String> message = taskErrorDAO.getErrorMessage(taskId, errorType);
-                if (message.isPresent()) {
-                    errorMessageToUuidMap.put(message.get(), errorType);
-                }
+                message.ifPresent(s -> errorMessageToUuidMap.put(s, errorType));
             }
             return errorMessageToUuidMap;
         }
