@@ -149,33 +149,6 @@ public class DpsClient {
         }
     }
 
-
-    /**
-     * clean METIS indexing dataset.
-     */
-    public void cleanMetisIndexingDataset(String topologyName, long taskId,
-                                          DataSetCleanerParameters dataSetCleanerParameters) throws DpsException {
-
-        Response resp = null;
-        try {
-            resp = client.target(dpsUrl)
-                    .path(TASK_CLEAN_DATASET_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId)
-                    .request()
-                    .post(Entity.json(dataSetCleanerParameters));
-
-            if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
-                LOGGER.error("Cleaning a dataset was not successful");
-                throw handleException(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
-
-    }
-
-
     /**
      * clean METIS indexing dataset.
      */
