@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.services.task.postprocessors;
+package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import com.google.common.collect.Iterators;
 import eu.europeana.cloud.client.uis.rest.CloudException;
@@ -71,8 +71,8 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
 
     @Override
     public void execute(DpsTask dpsTask) {
-        /* Plan:
-        1. Iterate over oll records from table harvested_records where latest_harvest_date<task_execution_date
+        /** Plan:
+        1. Iterate over oll records from table harvested_records where latest_harvest_date < task_execution_date
         2. For each europeana_id:
             - find cloud_id
             - create representation version

@@ -10,12 +10,9 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import org.apache.commons.lang3.EnumUtils;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
@@ -24,11 +21,13 @@ import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColum
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class TasksByStateDAO extends CassandraDAO {
     private static TasksByStateDAO instance;
+
     private PreparedStatement insertStatement;
     private PreparedStatement deleteStatement;
-    private PreparedStatement findTasksInGivenState;
-    private PreparedStatement listAllInUseTopicsForTopology;
-    private PreparedStatement findTask;
+    private PreparedStatement findTasksByStateStatement;
+    private PreparedStatement findTasksByStateAndTopologyStatement;
+    private PreparedStatement findTaskByStateAndTopologyStatement;
+    private PreparedStatement findTaskStatement;
 
     public static synchronized TasksByStateDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -62,20 +61,28 @@ public class TasksByStateDAO extends CassandraDAO {
                 " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
                 " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?");
 
-        findTask = dbService.getSession().prepare(
+        findTaskStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE +
                         " WHERE " + STATE + " = ?" +
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
                         " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?");
 
 
-        findTasksInGivenState = dbService.getSession().prepare(
+        findTasksByStateStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + STATE + " IN ?");
 
-        listAllInUseTopicsForTopology = dbService.getSession().prepare(
+
+        findTasksByStateAndTopologyStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE +
                         " WHERE " + STATE + " IN ?" +
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?");
+
+        findTaskByStateAndTopologyStatement = dbService.getSession().prepare(
+                "SELECT * FROM " + TASKS_BY_STATE_TABLE +
+                        " WHERE " + STATE + " IN ?" +
+                        " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
+                        " LIMIT 1");
+
     }
 
 
@@ -90,34 +97,32 @@ public class TasksByStateDAO extends CassandraDAO {
 
     public Optional<Row> findTask(String topologyName, long taskId, String oldState) {
         return Optional.ofNullable(
-                dbService.getSession().execute(findTask.bind(oldState, topologyName, taskId)).one());
+                dbService.getSession().execute(findTaskStatement.bind(oldState, topologyName, taskId)).one());
     }
 
-    public List<TaskInfo> findTasksInGivenState(List<TaskState> taskStates) {
+    public List<TaskInfo> findTasksByState(List<TaskState> taskStates) {
 
         List<String> taskStatesNames = taskStates
                 .stream()
                 .map(Enum::toString)
                 .collect(Collectors.toList());
 
-        ResultSet rs = dbService.getSession().execute(findTasksInGivenState.bind(taskStatesNames));
+        ResultSet rs = dbService.getSession().execute(findTasksByStateStatement.bind(taskStatesNames));
 
         return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
     }
 
-    public Set<String> listAllInUseTopicsFor(String topologyName) {
-        return listAllActiveTasksInTopology(topologyName).stream().map(TaskInfo::getTopicName).filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+    public List<TaskInfo> findTasksByStateAndTopology(List<TaskState> taskStates, String topologyName) {
+        ResultSet rs = dbService.getSession().execute(
+                        findTasksByStateAndTopologyStatement.bind(taskStates, topologyName));
+        return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
     }
 
-    public List<TaskInfo> listAllActiveTasksInTopology(String topologyName) {
-        ResultSet rs =
+    public Optional<TaskInfo> findTaskByStateAndTopology(List<TaskState> taskStates, String topologyName) {
+        return Optional.ofNullable(
                 dbService.getSession().execute(
-                        listAllInUseTopicsForTopology.bind(
-                                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION.toString()
-                                        , TaskState.QUEUED.toString()), topologyName));
-
-        return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
+                        findTaskByStateAndTopologyStatement.bind(taskStates, topologyName)).one())
+                .map(this::createTaskInfo);
     }
 
 

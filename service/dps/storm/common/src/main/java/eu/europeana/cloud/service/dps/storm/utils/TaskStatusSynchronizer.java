@@ -5,10 +5,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,7 +23,8 @@ public class TaskStatusSynchronizer {
     }
 
     public void synchronizeTasksByTaskStateFromBasicInfo(String topologyName, Collection<String> availableTopics) {
-        List<TaskInfo> tasksFromTaskByTaskStateTableList = tasksByStateDAO.listAllActiveTasksInTopology(topologyName);
+        List<TaskInfo> tasksFromTaskByTaskStateTableList = tasksByStateDAO.findTasksByStateAndTopology(
+                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED), topologyName);
         Map<Long, TaskInfo> tasksFromTaskByTaskStateTableMap = tasksFromTaskByTaskStateTableList.stream().filter(info -> availableTopics.contains(info.getTopicName()))
                 .collect(Collectors.toMap(TaskInfo::getId, Function.identity()));
         List<TaskInfo> tasksFromBasicInfoTable = findByIds(tasksFromTaskByTaskStateTableMap.keySet());

@@ -65,7 +65,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksReturnsTaskIfItIsOldSentAndNoStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(eq(ACTIVE_TASK_STATES)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NO_STARTED_TASK_INFO_1));
 
@@ -74,7 +74,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksReturnsTaskIfItIsOldSentAndOldStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(eq(ACTIVE_TASK_STATES)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_OLD_STARTED_TASK_INFO_1));
 
@@ -83,7 +83,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatNewlySentAndNewStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(eq(ACTIVE_TASK_STATES)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NEWLY_STARTED_TASK_INFO_1));
 
@@ -92,7 +92,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatOldSentButNewStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(eq(ACTIVE_TASK_STATES)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(NEWLY_SENT_NEWLY_STARTED_TASK_INFO_1));
 
@@ -101,7 +101,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatNewlySentAndNotStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(eq(ACTIVE_TASK_STATES)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(NEWLY_SENT_NO_STARTED_TASK_INFO_1));
 
@@ -110,7 +110,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatNotReserveTopicBelongingToTopology() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(eq(ACTIVE_TASK_STATES)))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1_UNKNONW_TOPIC));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NO_STARTED_TASK_INFO_1));
 

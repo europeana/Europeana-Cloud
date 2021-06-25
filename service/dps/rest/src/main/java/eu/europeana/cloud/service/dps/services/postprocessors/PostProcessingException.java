@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.services.task.postprocessors;
+package eu.europeana.cloud.service.dps.services.postprocessors;
 
 public class PostProcessingException extends RuntimeException{
 
