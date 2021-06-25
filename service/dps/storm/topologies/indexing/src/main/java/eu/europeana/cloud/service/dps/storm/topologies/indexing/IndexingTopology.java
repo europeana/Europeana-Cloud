@@ -81,9 +81,7 @@ public class IndexingTopology {
                         getAnInt(CASSANDRA_PORT),
                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN),
-                        topologyProperties.getProperty(DPS_URL),
-                        topologyProperties.getProperty(INDEXING_TOPOLOGY_NAME,"indexer")),
+                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                 getAnInt(NOTIFICATION_BOLT_PARALLEL))
                 .setNumTasks(
                         getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS))
