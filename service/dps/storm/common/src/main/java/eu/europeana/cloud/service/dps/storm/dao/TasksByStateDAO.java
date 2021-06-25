@@ -101,33 +101,32 @@ public class TasksByStateDAO extends CassandraDAO {
     }
 
     public List<TaskInfo> findTasksByState(List<TaskState> taskStates) {
-
-        List<String> taskStatesNames = taskStates
-                .stream()
-                .map(Enum::toString)
-                .collect(Collectors.toList());
-
-        ResultSet rs = dbService.getSession().execute(findTasksByStateStatement.bind(taskStatesNames));
+        ResultSet rs = dbService.getSession().execute(findTasksByStateStatement.bind(
+                taskStates.stream().map(Enum::toString).collect(Collectors.toList())
+        ));
 
         return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
     }
 
     public List<TaskInfo> findTasksByStateAndTopology(List<TaskState> taskStates, String topologyName) {
         ResultSet rs = dbService.getSession().execute(
-                        findTasksByStateAndTopologyStatement.bind(taskStates, topologyName));
+                        findTasksByStateAndTopologyStatement.bind(
+                                taskStates.stream().map(Enum::toString).collect(Collectors.toList()), topologyName));
+
         return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
     }
 
     public Optional<TaskInfo> findTaskByStateAndTopology(List<TaskState> taskStates, String topologyName) {
         return Optional.ofNullable(
                 dbService.getSession().execute(
-                        findTaskByStateAndTopologyStatement.bind(taskStates, topologyName)).one())
+                        findTaskByStateAndTopologyStatement.bind(
+                                taskStates.stream().map(Enum::toString).collect(Collectors.toList()), topologyName)).one())
                 .map(this::createTaskInfo);
     }
 
 
     private TaskInfo createTaskInfo(Row row) {
-        TaskInfo taskInfo = new TaskInfo();
+        var taskInfo = new TaskInfo();
         taskInfo.setId(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME));
         taskInfo.setState(EnumUtils.getEnum(TaskState.class, row.getString(TASKS_BY_STATE_STATE_COL_NAME)));
         taskInfo.setTopologyName(row.getString(TASKS_BY_STATE_TOPOLOGY_NAME));
