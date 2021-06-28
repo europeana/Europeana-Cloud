@@ -1,12 +1,12 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.datastax.driver.core.utils.UUIDs;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 
-import org.apache.cassandra.utils.UUIDGen;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -282,7 +282,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
             representation.setCloudId("cloud_id_" + i);
             representation.setDataProvider(dataSet.getProviderId());
             representation.setRepresentationName("representation_" + i);
-            representation.setVersion(UUIDGen.getTimeUUID(new java.util.Date().getTime()).toString());
+            representation.setVersion(UUIDs.timeBased().toString());
             dataSetDAO.addAssignment(dataSet.getProviderId(), dataSet.getId(), representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
             assigned.add(representation);
         }
