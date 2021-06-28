@@ -107,7 +107,7 @@ public class IndexingBolt extends AbstractDpsBolt {
                     preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
             if (!stormTaskTuple.isMarkedAsDeleted()) {
                 String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-                String europeanaId = europeanaIdFinder.findForFileUrl(stormTaskTuple.getFileUrl(), metisDatasetId);
+                String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
                 indexRecord(stormTaskTuple, useAltEnv, database, properties);
                 findAndUpdateHarvestedRecord(stormTaskTuple, europeanaId);
             }

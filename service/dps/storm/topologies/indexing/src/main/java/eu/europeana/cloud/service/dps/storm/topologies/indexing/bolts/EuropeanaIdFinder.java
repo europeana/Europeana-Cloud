@@ -28,7 +28,6 @@ public class EuropeanaIdFinder {
         return findForCloudId(metisDatasetId, extractCloudIdFromUrl(fileUrl));
     }
 
-
     public String findForCloudId(String metisDatasetId, String cloudId) throws CloudException {
         List<String> cloudIdList = findLocalIdsInUIS(cloudId);
 
@@ -60,7 +59,6 @@ public class EuropeanaIdFinder {
 
         throw new TopologyGeneralException("Could not resolve unambiguous EuropeanaId for cloudId: " + cloudId);
     }
-
 
     private boolean isEuropeanaId(String metisDatasetId, String id) {
         return id.startsWith(europeanaPrefix(metisDatasetId));
