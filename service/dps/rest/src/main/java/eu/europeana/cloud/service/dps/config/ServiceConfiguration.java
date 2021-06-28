@@ -228,7 +228,7 @@ public class ServiceConfiguration {
 
     @Bean
     public IndexingPostProcessor indexingPostProcessor(){
-        return new IndexingPostProcessor(new DatasetCleanerService());
+        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO());
     }
 
     @Bean
