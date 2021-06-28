@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.services.task.postprocessors;
+package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;

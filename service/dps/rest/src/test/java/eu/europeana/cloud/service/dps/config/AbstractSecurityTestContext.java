@@ -13,7 +13,7 @@ import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSub
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
-import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
+import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;

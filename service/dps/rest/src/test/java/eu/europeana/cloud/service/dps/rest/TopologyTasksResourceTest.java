@@ -27,7 +27,7 @@ import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitt
 import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
-import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
+import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;

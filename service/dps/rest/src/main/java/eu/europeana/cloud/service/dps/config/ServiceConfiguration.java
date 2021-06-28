@@ -11,8 +11,10 @@ import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.services.task.postprocessors.HarvestingPostProcessor;
-import eu.europeana.cloud.service.dps.services.task.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
+import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -116,7 +118,7 @@ public class ServiceConfiguration {
 
     @Bean
     public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean result = new MethodInvokingFactoryBean();
+        var result = new MethodInvokingFactoryBean();
         result.setTargetClass(SecurityContextHolder.class);
         result.setTargetMethod("setStrategyName");
         result.setArguments("MODE_INHERITABLETHREADLOCAL");
@@ -225,6 +227,11 @@ public class ServiceConfiguration {
     }
 
     @Bean
+    public IndexingPostProcessor indexingPostProcessor(){
+        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO());
+    }
+
+    @Bean
     public UISClient uisClient() {
         return new UISClient(uisLocation());
     }
@@ -259,6 +266,6 @@ public class ServiceConfiguration {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(taskInfoDAO(), tasksByStateDAO(), applicationIdentifier(), harvestingPostProcessor());
+        return new PostProcessingService(taskInfoDAO(), tasksByStateDAO(), harvestingPostProcessor(), indexingPostProcessor());
     }
 }
