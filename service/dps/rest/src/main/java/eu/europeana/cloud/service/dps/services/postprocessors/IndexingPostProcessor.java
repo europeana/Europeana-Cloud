@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDat
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,12 +19,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.StreamSupport;
 
 public class IndexingPostProcessor implements TaskPostProcessor {
 
-    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
+
+    private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
+
+    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
     private final TaskStatusUpdater taskStatusUpdater;
     private final HarvestedRecordsDAO harvestedRecordsDAO;
 
@@ -49,6 +55,10 @@ public class IndexingPostProcessor implements TaskPostProcessor {
             LOGGER.error("Dataset was not removed correctly. ", e);
             taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), e.getMessage());
         }
+    }
+
+    public Set<String> getProcessedTopologies() {
+        return PROCESSED_TOPOLOGIES;
     }
 
     private DataSetCleanerParameters prepareParameters(DpsTask dpsTask) throws ParseException {
