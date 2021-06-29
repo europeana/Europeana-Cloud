@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -221,6 +222,11 @@ public class ServiceConfiguration {
     }
 
     @Bean
+    public PostProcessorFactory postProcessorFactory() {
+        return new PostProcessorFactory(indexingPostProcessor(), harvestingPostProcessor());
+    }
+
+    @Bean
     public HarvestingPostProcessor harvestingPostProcessor(){
         return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
                 recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater());
@@ -266,6 +272,6 @@ public class ServiceConfiguration {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(taskInfoDAO(), tasksByStateDAO(), harvestingPostProcessor(), indexingPostProcessor());
+        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), tasksByStateDAO());
     }
 }

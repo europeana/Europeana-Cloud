@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.utils.GhostTaskService;
@@ -32,6 +33,9 @@ public class DiagnosticResource {
     private HarvestedRecordsDAO harvestedRecordsDAO;
 
     @Autowired
+    private CassandraTaskInfoDAO taskInfoDAO;
+
+    @Autowired
     private PostProcessingService postProcessingService;
 
     @GetMapping("/ghostTasks")
@@ -60,10 +64,10 @@ public class DiagnosticResource {
     }
 
 
-    @PostMapping("/postProcess/{taskId}/topology/{topologyName}")
+    @PostMapping("/postProcess/{taskId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public void postProcess(long taskId, String topologyName) {
-        postProcessingService.executeOneTask(taskId, topologyName);
+    public void postProcess(long taskId) {
+        taskInfoDAO.findById(taskId).ifPresent(postProcessingService::postProcess);
     }
 
 }

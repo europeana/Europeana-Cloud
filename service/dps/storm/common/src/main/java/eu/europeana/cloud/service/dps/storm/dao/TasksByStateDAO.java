@@ -26,6 +26,7 @@ public class TasksByStateDAO extends CassandraDAO {
     private PreparedStatement findTasksByStateStatement;
     private PreparedStatement findTasksByStateAndTopologyStatement;
     private PreparedStatement findTaskByStateAndTopologyStatement;
+    private PreparedStatement findTaskByStateStatement;
     private PreparedStatement findTaskStatement;
 
     public static synchronized TasksByStateDAO getInstance(CassandraConnectionProvider cassandra) {
@@ -76,6 +77,10 @@ public class TasksByStateDAO extends CassandraDAO {
                         " WHERE " + STATE + " IN ?" +
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?");
 
+        findTaskByStateStatement = dbService.getSession().prepare(
+                String.format("select * from %s where %s in ? limit 1", TASKS_BY_STATE_TABLE, STATE)
+        );
+
         findTaskByStateAndTopologyStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE +
                         " WHERE " + STATE + " IN ?" +
@@ -114,6 +119,15 @@ public class TasksByStateDAO extends CassandraDAO {
                 )
         );
         return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
+    }
+
+    public Optional<TaskInfo> findTaskByState(List<TaskState> taskStates) {
+        var rs = dbService.getSession().execute(
+                findTaskByStateStatement.bind(
+                        taskStates.stream().map(Enum::toString).collect(Collectors.toList())
+                )
+        );
+        return Optional.ofNullable(rs.one()).map(this::createTaskInfo);
     }
 
     public Optional<TaskInfo> findTaskByStateAndTopology(List<TaskState> taskStates, String topologyName) {
