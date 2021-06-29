@@ -105,12 +105,16 @@ public class IndexingBolt extends AbstractDpsBolt {
                     .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
             final IndexingProperties properties = new IndexingProperties(recordDate,
                     preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
+
+            String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+            String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
             if (!stormTaskTuple.isMarkedAsDeleted()) {
-                String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-                String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
                 indexRecord(stormTaskTuple, useAltEnv, database, properties);
-                findAndUpdateHarvestedRecord(stormTaskTuple, europeanaId);
+            } else{
+                //TODO execute delete on Metis - need metis API update: MET-3731
             }
+            findAndUpdateHarvestedRecord(stormTaskTuple, europeanaId);
+
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
@@ -187,12 +191,15 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private void updateHarvestedRecord(HarvestedRecord harvestedRecord, StormTaskTuple stormTaskTuple) {
+        Date latestHarvestDate = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestDate();
+        UUID latestHarvestMd5 = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestMd5();
+
         if (isPublishEnvironment(stormTaskTuple)) {
-            harvestedRecord.setPublishedHarvestDate(harvestedRecord.getLatestHarvestDate());
-            harvestedRecord.setPublishedHarvestMd5(harvestedRecord.getLatestHarvestMd5());
+            harvestedRecord.setPublishedHarvestDate(latestHarvestDate);
+            harvestedRecord.setPublishedHarvestMd5(latestHarvestMd5);
         } else {
-            harvestedRecord.setPreviewHarvestDate(harvestedRecord.getLatestHarvestDate());
-            harvestedRecord.setPreviewHarvestMd5(harvestedRecord.getLatestHarvestMd5());
+            harvestedRecord.setPreviewHarvestDate(latestHarvestDate);
+            harvestedRecord.setPreviewHarvestMd5(latestHarvestMd5);
         }
 
         LOGGER.info("Updating harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
