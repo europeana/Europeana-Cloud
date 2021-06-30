@@ -4,10 +4,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.ProcessedRecord;
-import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -51,7 +48,7 @@ public class NotificationBolt extends BaseRichBolt {
     protected String topologyName;
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
-    private transient CassandraTaskInfoDAO taskInfoDAO;
+    protected transient CassandraTaskInfoDAO taskInfoDAO;
     private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
 
@@ -118,13 +115,12 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
-        switch (notificationTuple.getInformationType()) {
-            case NOTIFICATION:
-                storeNotificationInfo(notificationTuple, nCache);
-                break;
-            default:
-                //nothing to do
-                break;
+        if (notificationTuple.getInformationType() == InformationTypes.NOTIFICATION) {
+            storeNotificationInfo(notificationTuple, nCache);
+        } else {
+            LOGGER.warn("Nothing to do for taskId={}. InformationType={} is not supported. ",
+                    notificationTuple.getTaskId(),
+                    notificationTuple.getInformationType());
         }
     }
 
