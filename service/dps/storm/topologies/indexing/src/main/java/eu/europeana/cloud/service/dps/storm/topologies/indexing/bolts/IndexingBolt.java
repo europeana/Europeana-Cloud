@@ -111,7 +111,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             if (!stormTaskTuple.isMarkedAsDeleted()) {
                 indexRecord(stormTaskTuple, useAltEnv, database, properties);
             } else{
-                //TODO execute delete on Metis - need metis API update: MET-3731
+                removeIndexedRecord(stormTaskTuple, useAltEnv, database, europeanaId);
             }
             findAndUpdateHarvestedRecord(stormTaskTuple, europeanaId);
 
@@ -128,6 +128,12 @@ public class IndexingBolt extends AbstractDpsBolt {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
         }
         outputCollector.ack(anchorTuple);
+    }
+
+    private void removeIndexedRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, String europeanaId) throws IndexingException {
+        LOGGER.info("Removing indexed record europeanaId: {}, database: {} useAltEnv: {}, taskId: {}, recordId: {}",
+                europeanaId, database, useAltEnv, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        indexerPoolWrapper.getIndexerPool(useAltEnv, database).remove(europeanaId);
     }
 
     private void prepareDao() {
