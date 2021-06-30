@@ -5,6 +5,7 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -20,9 +21,11 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -130,9 +133,9 @@ public class NotificationBolt extends BaseRichBolt {
         Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
         if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
             notifyTask(notificationTuple, nCache, taskId);
-            storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
             processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState);
+            storeFinishState(notificationTuple);
         }
     }
 
@@ -273,7 +276,40 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+        try {
+            if (needsPostProcessing(notificationTuple)) {
+                setTaskStatusToReadyForPostprocessing(notificationTuple, errors, count);
+            } else {
+                setTaskProcessed(notificationTuple, errors, count);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Unable to end the task. id: {} ", notificationTuple.getTaskId(), e);
+            taskInfoDAO.setTaskDropped(notificationTuple.getTaskId(), "Unable to end the task");
+        }
+    }
+
+    protected boolean needsPostProcessing(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
+        return false;
+    }
+
+    private void setTaskProcessed(NotificationTuple notificationTuple, int errors, int count) {
+        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed",
+                String.valueOf(TaskState.PROCESSED), new Date());
+        LOGGER.info("Task id={} completely processed, with {} records and {} errors.", notificationTuple.getTaskId(),
+                count, errors);
+    }
+
+    private void setTaskStatusToReadyForPostprocessing(NotificationTuple notificationTuple, int errors, int count) {
+        taskStatusUpdater.updateState(notificationTuple.getTaskId(), TaskState.READY_FOR_POST_PROCESSING,
+                "Ready for post processing after topology stage is finished");
+        LOGGER.info("Task id={} finished topology stage with {} records processed and {} errors. Now it is waiting for post processing ",
+                notificationTuple.getTaskId(), count, errors);
+    }
+
+    protected DpsTask loadDpsTask(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
+        Optional<TaskInfo> taskInfo = taskInfoDAO.findById(tuple.getTaskId());
+        String taskDefinition = taskInfo.orElseThrow(TaskInfoDoesNotExistException::new).getTaskDefinition();
+        return new ObjectMapper().readValue(taskDefinition, DpsTask.class);
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
