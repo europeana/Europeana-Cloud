@@ -30,7 +30,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.*;
 
-import static eu.europeana.cloud.service.dps.storm.utils.DateHelper.parseISODate;
+import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;

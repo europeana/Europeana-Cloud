@@ -2,9 +2,13 @@ package eu.europeana.cloud.service.dps;
 
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import lombok.ToString;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -56,8 +60,8 @@ public class DpsTask implements Serializable {
 
         this.taskName = taskName;
 
-        inputData = new HashMap();
-        parameters = new HashMap();
+        inputData = new EnumMap<>(InputDataType.class);
+        parameters = new HashMap<>();
 
         taskId = UUID.randomUUID().getMostSignificantBits();
 
@@ -150,7 +154,7 @@ public class DpsTask implements Serializable {
         if (!(o instanceof DpsTask)) {
             return false;
         }
-        DpsTask dpsTask = (DpsTask) o;
+        var dpsTask = (DpsTask) o;
         return taskId == dpsTask.taskId &&
                 com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
                 Objects.equal(parameters, dpsTask.parameters) &&
@@ -160,6 +164,15 @@ public class DpsTask implements Serializable {
                 Objects.equal(endTime, dpsTask.endTime) &&
                 Objects.equal(taskName, dpsTask.taskName) &&
                 Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
+    }
+
+    public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws IOException {
+        var dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
+
+        //TODO remove this code if tasks in DB will have proper parameters
+        dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentDate()));
+
+        return dpsTask;
     }
 
     @Override

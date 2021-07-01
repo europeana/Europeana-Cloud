@@ -219,11 +219,11 @@ public class ServiceConfiguration {
         Map<String, TaskPostProcessor> postProcessors = new HashMap<>();
 
         TaskPostProcessor harvestingPostProcessor = harvestingPostProcessor();
-        harvestingPostProcessor.getProcessedTopologies().iterator().forEachRemaining(
+        harvestingPostProcessor.getProcessedTopologies().forEach(
                 topologyName -> postProcessors.put(topologyName, harvestingPostProcessor));
 
         TaskPostProcessor indexingPostProcessor = indexingPostProcessor();
-        harvestingPostProcessor.getProcessedTopologies().iterator().forEachRemaining(
+        indexingPostProcessor.getProcessedTopologies().forEach(
                 topologyName -> postProcessors.put(topologyName, indexingPostProcessor));
 
         return new PostProcessorFactory(postProcessors);

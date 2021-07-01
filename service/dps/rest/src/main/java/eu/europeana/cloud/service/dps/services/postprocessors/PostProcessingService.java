@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,8 +25,8 @@ public class PostProcessingService {
 
     public static final String SCHEDULE_CRON_RULE = "15,45 * * * * *";
 
-    public static final String MESSAGE_SUCCESSFULLY_POST_PROCESSED = "Successfully post processed task with id={}";
-    public static final String MESSAGE_FAILED_POST_PROCESSED = "Could not post process task with id={}";
+    private static final String MESSAGE_SUCCESSFULLY_POST_PROCESSED = "Successfully post processed task with id={}";
+    private static final String MESSAGE_FAILED_POST_PROCESSED = "Could not post process task with id={}";
 
     private CassandraTaskInfoDAO taskInfoDAO;
 
@@ -41,7 +40,6 @@ public class PostProcessingService {
                                  TasksByStateDAO tasksByStateDAO) {
 
         this.postProcessorFactory = postProcessorFactory;
-
         this.taskInfoDAO = taskInfoDAO;
         this.tasksByStateDAO = tasksByStateDAO;
         LOGGER.info("Created post processing service");
@@ -53,13 +51,14 @@ public class PostProcessingService {
     }
 
     public void postProcess(TaskByTaskState taskByTaskState) {
-        try {
-            var dpsTask = loadTask(taskByTaskState.getId());
-            postProcessorFactory.getPostProcessor(taskByTaskState).execute(dpsTask);
-            LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
-        } catch (IOException | TaskInfoDoesNotExistException e) {
-            LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), e);
-        }
+        postProcessorFactory.getPostProcessor(taskByTaskState).ifPresent(taskPostProcessor -> {
+            try {
+                taskPostProcessor.execute(loadTask(taskByTaskState.getId()));
+                LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
+            } catch (IOException | TaskInfoDoesNotExistException exception) {
+                LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
+            }
+        });
     }
 
     private Optional<TaskByTaskState> findTask(List<TaskState> state) {
@@ -75,19 +74,8 @@ public class PostProcessingService {
         return result;
     }
 
-    ///!!! TODO Wyjaśnic parametr PluginParameterKeys.HARVEST_DATE
-/*
-    private DpsTask loadTask(long taskId) throws IOException, TaskInfoDoesNotExistException {
+    public DpsTask loadTask(long taskId) throws IOException, TaskInfoDoesNotExistException {
         var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        var dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
-        dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentDate()));
-        return dpsTask;
+        return DpsTask.fromTaskInfo(taskInfo);
     }
-*/
-
-    private DpsTask loadTask(long taskId) throws IOException, TaskInfoDoesNotExistException {
-        var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        return new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
-    }
-
 }

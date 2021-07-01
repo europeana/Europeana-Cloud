@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static eu.europeana.cloud.service.dps.storm.utils.DateHelper.parseISODate;
+import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 
 /**
  * Set of parameters to submit task to

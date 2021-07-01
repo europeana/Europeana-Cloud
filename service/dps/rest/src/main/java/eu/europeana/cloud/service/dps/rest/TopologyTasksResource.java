@@ -148,8 +148,8 @@ public class TopologyTasksResource {
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        TaskInfo taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
+        var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
+        var task = DpsTask.fromTaskInfo(taskInfo);
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
     }
 
@@ -258,7 +258,7 @@ public class TopologyTasksResource {
         if (task != null) {
             LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-            String taskJSON = new ObjectMapper().writeValueAsString(task);
+            var taskJSON = new ObjectMapper().writeValueAsString(task);
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                     .sentTime(new Date())
                     .startTime(new Date())
@@ -273,7 +273,7 @@ public class TopologyTasksResource {
                 taskSubmissionValidator.validateTaskSubmission(parameters);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                 submitTaskService.submitTask(parameters);
-                URI responseURI  = buildTaskURI(request.getRequestURL(), task);
+                var responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();
             } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
                 taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), e.getMessage());

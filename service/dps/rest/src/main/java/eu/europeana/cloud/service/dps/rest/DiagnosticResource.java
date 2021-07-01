@@ -67,15 +67,15 @@ public class DiagnosticResource {
         }
     }
 
-
     @PostMapping("/postProcess/{taskId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public void postProcess(long taskId) {
-        taskInfoDAO.findById(taskId).ifPresent(taskInfo -> callPostProcess(taskInfo));
+    public void postProcess(@PathVariable long taskId) {
+        taskInfoDAO.findById(taskId).ifPresent(this::callPostProcess);
     }
 
     private void callPostProcess(TaskInfo taskInfo) {
-        //tasksByStateDAO.findTask(taskInfo.getState().toString(), taskInfo.getTopologyName(), taskInfo.getId()).ifPresent(row -> );
+        tasksByStateDAO.findTask(taskInfo.getState(), taskInfo.getTopologyName(), taskInfo.getId())
+                .ifPresent(taskByTaskState -> postProcessingService.postProcess(taskByTaskState) );
     }
 
 }
