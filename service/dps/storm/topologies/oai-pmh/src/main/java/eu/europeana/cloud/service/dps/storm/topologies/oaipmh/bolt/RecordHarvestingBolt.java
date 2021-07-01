@@ -1,16 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
-import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import org.apache.storm.tuple.Tuple;
@@ -55,7 +54,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
             LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
             try {
-                OaiRecord oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
+                var oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
                 stormTaskTuple.setFileData(oaiRecord.getRecord());
 
                 if (useHeaderIdentifier(stormTaskTuple))
@@ -111,12 +110,12 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     }
 
     private void useEuropeanaId(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
-        String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-        String document = new String(stormTaskTuple.getFileData());
-        EuropeanaIdCreator europeanaIdCreator = new EuropeanaIdCreator();
-        EuropeanaGeneratedIdsMap europeanaIdMap = europeanaIdCreator.constructEuropeanaId(document, datasetId);
-        String europeanaId = europeanaIdMap.getEuropeanaGeneratedId();
-        String localIdFromProvider = europeanaIdMap.getSourceProvidedChoAbout();
+        var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+        var document = new String(stormTaskTuple.getFileData());
+        var europeanaIdCreator = new EuropeanaIdCreator();
+        var europeanaIdMap = europeanaIdCreator.constructEuropeanaId(document, datasetId);
+        var europeanaId = europeanaIdMap.getEuropeanaGeneratedId();
+        var localIdFromProvider = europeanaIdMap.getSourceProvidedChoAbout();
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, europeanaId);
         stormTaskTuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, localIdFromProvider);
     }
@@ -144,7 +143,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     }
 
     private boolean useHeaderIdentifier(StormTaskTuple stormTaskTuple) {
-        boolean useHeaderIdentifiers = false;
+        var useHeaderIdentifiers = false;
         if ("true".equals(stormTaskTuple.getParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS))) {
             useHeaderIdentifiers = true;
         }
