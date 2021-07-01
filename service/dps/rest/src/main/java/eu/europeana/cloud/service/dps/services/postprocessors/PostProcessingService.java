@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
-import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
@@ -52,19 +52,19 @@ public class PostProcessingService {
         findTask(Arrays.asList(IN_POST_PROCESSING, READY_FOR_POST_PROCESSING)).ifPresent(this::postProcess);
     }
 
-    public void postProcess(TaskInfo taskInfo) {
+    public void postProcess(TaskByTaskState taskByTaskState) {
         try {
-            var dpsTask = loadTask(taskInfo.getId());
-            postProcessorFactory.getPostProcessor(taskInfo).execute(dpsTask);
-            LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskInfo.getId());
+            var dpsTask = loadTask(taskByTaskState.getId());
+            postProcessorFactory.getPostProcessor(taskByTaskState).execute(dpsTask);
+            LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
         } catch (IOException | TaskInfoDoesNotExistException e) {
-            LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskInfo.getId(), e);
+            LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), e);
         }
     }
 
-    private Optional<TaskInfo> findTask(List<TaskState> state) {
+    private Optional<TaskByTaskState> findTask(List<TaskState> state) {
         LOGGER.info("Finding tasks in {} state...", state);
-        Optional<TaskInfo> result = tasksByStateDAO.findTaskByState(state);
+        Optional<TaskByTaskState> result = tasksByStateDAO.findTaskByState(state);
 
         if (result.isPresent()) {
             LOGGER.info("Found task to post process with id= {}", result.get());

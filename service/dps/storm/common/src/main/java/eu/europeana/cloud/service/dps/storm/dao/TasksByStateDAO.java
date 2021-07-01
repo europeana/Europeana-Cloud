@@ -4,7 +4,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import org.apache.commons.lang3.EnumUtils;
@@ -89,65 +89,66 @@ public class TasksByStateDAO extends CassandraDAO {
 
     }
 
-    public void insert(String state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
-        dbService.getSession().execute(insertStatement.bind(state, topologyName, taskId, applicationId, topicName, startTime));
+    public void insert(TaskState state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
+        dbService.getSession().execute(insertStatement.bind(state.toString(), topologyName, taskId, applicationId, topicName, startTime));
     }
 
-    public void delete(String state, String topologyName, long taskId) {
-        dbService.getSession().execute(deleteStatement.bind(state, topologyName, taskId));
+    public void delete(TaskState state, String topologyName, long taskId) {
+        dbService.getSession().execute(deleteStatement.bind(state.toString(), topologyName, taskId));
     }
 
-    public Optional<Row> findTask(String topologyName, long taskId, String oldState) {
+    public Optional<TaskByTaskState> findTask(TaskState state, String topologyName, long taskId) {
         var rs = dbService.getSession().execute(
-                findTaskStatement.bind(oldState, topologyName, taskId)
+                findTaskStatement.bind(state.toString(), topologyName, taskId)
         );
-        return Optional.ofNullable(rs.one());
+        return Optional.ofNullable(rs.one()).map(this::createTaskByTaskState);
     }
 
-    public List<TaskInfo> findTasksByState(List<TaskState> taskStates) {
+    public List<TaskByTaskState> findTasksByState(List<TaskState> taskStates) {
         var rs = dbService.getSession().execute(
                 findTasksByStateStatement.bind(taskStates.stream().map(Enum::toString).collect(Collectors.toList())
         ));
-        return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
+        return rs.all().stream().map(this::createTaskByTaskState).collect(Collectors.toList());
     }
 
-    public List<TaskInfo> findTasksByStateAndTopology(List<TaskState> taskStates, String topologyName) {
+    public List<TaskByTaskState> findTasksByStateAndTopology(List<TaskState> taskStates, String topologyName) {
         var rs = dbService.getSession().execute(
                 findTasksByStateAndTopologyStatement.bind(
                         taskStates.stream().map(Enum::toString).collect(Collectors.toList()),
                         topologyName
                 )
         );
-        return rs.all().stream().map(this::createTaskInfo).collect(Collectors.toList());
+        return rs.all().stream().map(this::createTaskByTaskState).collect(Collectors.toList());
     }
 
-    public Optional<TaskInfo> findTaskByState(List<TaskState> taskStates) {
+    public Optional<TaskByTaskState> findTaskByState(List<TaskState> taskStates) {
         var rs = dbService.getSession().execute(
                 findTaskByStateStatement.bind(
                         taskStates.stream().map(Enum::toString).collect(Collectors.toList())
                 )
         );
-        return Optional.ofNullable(rs.one()).map(this::createTaskInfo);
+        return Optional.ofNullable(rs.one()).map(this::createTaskByTaskState);
     }
 
-    public Optional<TaskInfo> findTaskByStateAndTopology(List<TaskState> taskStates, String topologyName) {
+    public Optional<TaskByTaskState> findTaskByStateAndTopology(List<TaskState> taskStates, String topologyName) {
         var rs = dbService.getSession().execute(
                 findTaskByStateAndTopologyStatement.bind(
                         taskStates.stream().map(Enum::toString).collect(Collectors.toList()),
                         topologyName
                 )
         );
-        return Optional.ofNullable(rs.one()).map(this::createTaskInfo);
+        return Optional.ofNullable(rs.one()).map(this::createTaskByTaskState);
     }
 
 
-    private TaskInfo createTaskInfo(Row row) {
-        var taskInfo = new TaskInfo();
-        taskInfo.setId(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME));
-        taskInfo.setState(EnumUtils.getEnum(TaskState.class, row.getString(TASKS_BY_STATE_STATE_COL_NAME)));
-        taskInfo.setTopologyName(row.getString(TASKS_BY_STATE_TOPOLOGY_NAME));
-        taskInfo.setTopicName(row.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME));
-        taskInfo.setOwnerId(row.getString(TASKS_BY_STATE_APP_ID_COL_NAME));
-        return taskInfo;
+    private TaskByTaskState createTaskByTaskState(Row row) {
+        return  TaskByTaskState.builder()
+                .state(EnumUtils.getEnum(TaskState.class, row.getString(TASKS_BY_STATE_STATE_COL_NAME)))
+                .topologyName(row.getString(TASKS_BY_STATE_TOPOLOGY_NAME))
+                .id(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME))
+                .applicationId(row.getString(TASKS_BY_STATE_APP_ID_COL_NAME))
+                .startTime(row.getTimestamp(TASKS_BY_STATE_START_TIME))
+                .topicName(row.getString(TASKS_BY_STATE_TOPIC_NAME_COL_NAME))
+                .build();
     }
 }

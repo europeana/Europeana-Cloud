@@ -14,12 +14,13 @@ import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
-import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class HttpTopologyTaskSubmitter implements TaskSubmitter {
@@ -83,12 +84,12 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
     private int iterateOverFiles(HttpRecordIterator iterator,
             SubmitTaskParameters submitTaskParameters) throws HarvesterException {
-        final AtomicInteger expectedSize = new AtomicInteger(0);
+        final var expectedSize = new AtomicInteger(0);
         iterator.forEach(file -> {
             if (taskStatusChecker.hasKillFlag(submitTaskParameters.getTask().getTaskId())) {
                 return IterationResult.TERMINATE;
             }
-            DpsRecord dpsRecord = DpsRecord.builder()
+            var dpsRecord = DpsRecord.builder()
                     .taskId(submitTaskParameters.getTask().getTaskId())
                     .recordId(fileURLCreator.generateUrlFor(file))
                     .build();
@@ -107,7 +108,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             if (expectedCount == 0) {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task doesn't include any records");
             } else {
-                taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), TaskState.QUEUED.toString(), expectedCount);
+                taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), TaskState.QUEUED, expectedCount);
             }
         }
     }

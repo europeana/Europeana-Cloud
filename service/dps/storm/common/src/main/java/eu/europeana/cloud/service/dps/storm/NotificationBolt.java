@@ -2,19 +2,15 @@ package eu.europeana.cloud.service.dps.storm;
 
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.ProcessedRecord;
-import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
 import org.apache.storm.Config;
@@ -26,11 +22,7 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
@@ -78,7 +70,7 @@ public class NotificationBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         try {
-            NotificationTuple notificationTuple = NotificationTuple
+            var notificationTuple = NotificationTuple
                     .fromStormTuple(tuple);
             NotificationCache nCache = cache.get(notificationTuple.getTaskId());
             if (nCache == null) {
@@ -100,9 +92,8 @@ public class NotificationBolt extends BaseRichBolt {
     public void prepare(Map stormConf, TopologyContext tc, OutputCollector outputCollector) {
         this.outputCollector = outputCollector;
 
-        CassandraConnectionProvider cassandraConnectionProvider =
-                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
-                        hosts, port, keyspaceName, userName, password);
+        var cassandraConnectionProvider =
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
 
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
@@ -118,19 +109,14 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
-        switch (notificationTuple.getInformationType()) {
-            case NOTIFICATION:
-                storeNotificationInfo(notificationTuple, nCache);
-                break;
-            default:
-                //nothing to do
-                break;
+        if (notificationTuple.getInformationType() == InformationTypes.NOTIFICATION) {
+            storeNotificationInfo(notificationTuple, nCache);
         }
     }
 
     private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
-        long taskId = notificationTuple.getTaskId();
-        String recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
+        var taskId = notificationTuple.getTaskId();
+        var recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
         Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
         if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
             notifyTask(notificationTuple, nCache, taskId);
@@ -161,14 +147,14 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
         Map<String, Object> parameters = notificationTuple.getParameters();
         Validate.notNull(parameters);
-        String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
-        String additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
+        var errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
+        var additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         if (!isErrorTuple(notificationTuple) && parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
             errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE));
             additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE));
         }
-        String errorType = nCache.getErrorType(errorMessage);
-        String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
+        var errorType = nCache.getErrorType(errorMessage);
+        var resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         updateErrorCounter(taskId, errorType);
         insertError(taskId, errorMessage, additionalInformation, errorType, resource);
     }
@@ -209,13 +195,13 @@ public class NotificationBolt extends BaseRichBolt {
 
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) {
         Validate.notNull(parameters);
-        String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
-        String state = String.valueOf(parameters.get(NotificationParameterKeys.STATE));
-        String infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
-        String additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-        String resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
-        long now = new Date().getTime();
-        long processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
+        var resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
+        var state = String.valueOf(parameters.get(NotificationParameterKeys.STATE));
+        var infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
+        var additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
+        var resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
+        var now = Calendar.getInstance().getTimeInMillis();
+        var processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
         additionalInfo = additionalInfo + " Processing time: " + processingTime;
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
@@ -277,7 +263,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", TaskState.PROCESSED, new Date());
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {

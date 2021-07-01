@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -23,14 +24,17 @@ public class TaskStatusSynchronizer {
     }
 
     public void synchronizeTasksByTaskStateFromBasicInfo(String topologyName, Collection<String> availableTopics) {
-        List<TaskInfo> tasksFromTaskByTaskStateTableList = tasksByStateDAO.findTasksByStateAndTopology(
+        List<TaskByTaskState> tasksFromTaskByTaskStateTableList = tasksByStateDAO.findTasksByStateAndTopology(
                 Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED), topologyName);
-        Map<Long, TaskInfo> tasksFromTaskByTaskStateTableMap = tasksFromTaskByTaskStateTableList.stream().filter(info -> availableTopics.contains(info.getTopicName()))
-                .collect(Collectors.toMap(TaskInfo::getId, Function.identity()));
+
+        Map<Long, TaskByTaskState> tasksFromTaskByTaskStateTableMap = tasksFromTaskByTaskStateTableList.stream()
+                .filter(info -> availableTopics.contains(info.getTopicName()))
+                .collect(Collectors.toMap(TaskByTaskState::getId, Function.identity()));
+
         List<TaskInfo> tasksFromBasicInfoTable = findByIds(tasksFromTaskByTaskStateTableMap.keySet());
         List<TaskInfo> tasksToCorrect = tasksFromBasicInfoTable.stream().filter(this::isFinished).collect(Collectors.toList());
         for (TaskInfo task : tasksToCorrect) {
-            taskStatusUpdater.updateTask(topologyName, task.getId(), tasksFromTaskByTaskStateTableMap.get(task.getId()).getState().toString(), task.getState().toString());
+            taskStatusUpdater.updateTask(topologyName, task.getId(), tasksFromTaskByTaskStateTableMap.get(task.getId()).getState(), task.getState());
         }
     }
 

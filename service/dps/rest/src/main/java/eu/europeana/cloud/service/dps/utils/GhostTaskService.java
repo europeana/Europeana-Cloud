@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -13,11 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,7 +56,7 @@ public class GhostTaskService {
 
     private Stream<TaskInfo> findTasksInGivenStates(TaskState... states) {
         return tasksByStateDAO.findTasksByState(Arrays.asList(states)).stream()
-                .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskInfo::getId)
+                .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskByTaskState::getId)
                 .map(taskInfoDAO::findById).flatMap(Optional::stream);
     }
 

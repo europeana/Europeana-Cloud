@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
-import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -13,7 +13,7 @@ public class PostProcessorFactory {
         this.services = services;
     }
 
-    public TaskPostProcessor getPostProcessor(TaskInfo taskInfo) {
-        return services.get(taskInfo.getTopologyName());
+    public TaskPostProcessor getPostProcessor(TaskByTaskState taskByTaskState) {
+        return services.get(taskByTaskState.getTopologyName());
     }
 }

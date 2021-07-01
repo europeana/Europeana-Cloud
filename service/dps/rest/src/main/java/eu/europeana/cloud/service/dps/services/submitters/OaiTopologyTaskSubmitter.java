@@ -76,7 +76,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
             taskStatusUpdater.setTaskDropped(taskId, "The task with the submitted parameters is empty");
         } else {
             LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
-            taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(),
+            taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState(),
                     harvesterResult.getResultCounter());
         }
     }

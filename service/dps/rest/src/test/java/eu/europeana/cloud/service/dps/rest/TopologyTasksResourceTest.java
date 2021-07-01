@@ -746,7 +746,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, EMPTY_STRING, 100, 100, 10, 50, new Date(), new Date(), new Date());
 
-        when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenReturn(taskInfo);
+        when(reportService.getTaskProgress(Long.toString(TASK_ID))).thenReturn(taskInfo);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
 
         ResultActions response = mockMvc.perform(get(PROGRESS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
@@ -759,7 +759,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void shouldKillTheTask() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         String info = "Dropped by the user";
 
         ResultActions response = mockMvc.perform(
@@ -776,7 +776,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         String info = "The aggregator decided to do so";
         //String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("info", info)
         );
@@ -788,7 +788,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws Exception {
         String info = "Dropped by the user";
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
 
         ResultActions response = mockMvc.perform(
@@ -802,7 +802,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
         String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
 
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -813,7 +813,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldThrowExceptionIfTaskIdWasNotFound() throws Exception {
-        when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
+        when(reportService.getTaskProgress(Long.toString(TASK_ID))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
 
         ResultActions response = mockMvc.perform(
@@ -883,7 +883,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isOk());
         Thread.sleep(1000);
         verify(taskDAO, times(1))
-                .setTaskCompletelyProcessed(eq(TASK_ID), eq("Completely process"));
+                .setTaskCompletelyProcessed(TASK_ID, "Completely process");
         verify(taskDAO).findById(anyLong());
         verifyNoMoreInteractions(taskDAO);
     }
@@ -913,10 +913,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isOk());
         Thread.sleep(1000);
-        verify(taskDAO, times(1))
-                .setTaskDropped(eq(TASK_ID),
-                        eq("cleaner parameters can not be null")
-                );
+        verify(taskDAO, times(1)).setTaskDropped(TASK_ID, "cleaner parameters can not be null");
         verify(taskDAO).findById(anyLong());
         verifyNoMoreInteractions(taskDAO);
     }
@@ -1104,7 +1101,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyInt(), anyString(), anyString(), isA(Date.class), isA(Date.class), isA(Date.class), anyInt(), anyString());
+        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyInt(), any(), anyString(), isA(Date.class), isA(Date.class), isA(Date.class), anyInt(), anyString());
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
     }

@@ -59,7 +59,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
     @Test
     public void shouldSetTaskStateTo_ReadyForPostProcessing_ForTaskWithOneRecordAndIncrementalIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.CURRENTLY_PROCESSING.toString(), "", null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.CURRENTLY_PROCESSING, "", null, null, null, 0, null);
 
         Tuple tuple = createNotificationTuple(taskId, true);
         testedBolt.execute(tuple);
@@ -74,7 +74,8 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
     @Test
     public void shouldSetTaskStateTo_ReadyForPostProcessing_ForTaskWithMultipleRecordsAndIncrementalIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 10, 0, TaskState.CURRENTLY_PROCESSING.toString(), "", null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, "sample", 10, 0,
+                TaskState.CURRENTLY_PROCESSING, "", null, null, null, 0, null);
 
         Tuple tuple = createNotificationTuple(taskId, true);
         testedBolt.execute(tuple);
@@ -107,7 +108,8 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
     @Test
     public void shouldSetTaskStateTo_Processed_ForTaskWithOneRecordAndFullIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.CURRENTLY_PROCESSING.toString(), "", null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.CURRENTLY_PROCESSING,
+                "", null, null, null, 0, null);
 
         Tuple tuple = createNotificationTuple(taskId, false);
         testedBolt.execute(tuple);
@@ -122,7 +124,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
     @Test
     public void shouldSetTaskStateTo_Processed_ForTaskWithMultipleRecordsAndFullIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 5, 0, TaskState.CURRENTLY_PROCESSING.toString(), "", null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, "sample", 5, 0, TaskState.CURRENTLY_PROCESSING, "", null, null, null, 0, null);
 
         Tuple tuple = createNotificationTuple(taskId, false);
         testedBolt.execute(tuple);
