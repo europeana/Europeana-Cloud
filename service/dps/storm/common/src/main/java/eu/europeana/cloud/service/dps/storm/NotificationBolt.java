@@ -4,6 +4,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -19,9 +20,11 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -43,7 +46,7 @@ public class NotificationBolt extends BaseRichBolt {
     protected String topologyName;
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
-    private transient CassandraTaskInfoDAO taskInfoDAO;
+    protected transient CassandraTaskInfoDAO taskInfoDAO;
     private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
 
@@ -70,9 +73,8 @@ public class NotificationBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         try {
-            var notificationTuple = NotificationTuple
-                    .fromStormTuple(tuple);
-            NotificationCache nCache = cache.get(notificationTuple.getTaskId());
+            var notificationTuple = NotificationTuple.fromStormTuple(tuple);
+            var nCache = cache.get(notificationTuple.getTaskId());
             if (nCache == null) {
                 nCache = new NotificationCache(notificationTuple.getTaskId());
                 cache.put(notificationTuple.getTaskId(), nCache);
@@ -93,7 +95,8 @@ public class NotificationBolt extends BaseRichBolt {
         this.outputCollector = outputCollector;
 
         var cassandraConnectionProvider =
-                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+                        hosts, port, keyspaceName, userName, password);
 
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
@@ -111,18 +114,22 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
         if (notificationTuple.getInformationType() == InformationTypes.NOTIFICATION) {
             storeNotificationInfo(notificationTuple, nCache);
+        } else {
+            LOGGER.warn("Nothing to do for taskId={}. InformationType={} is not supported. ",
+                    notificationTuple.getTaskId(),
+                    notificationTuple.getInformationType());
         }
     }
 
     private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
-        var taskId = notificationTuple.getTaskId();
+        long taskId = notificationTuple.getTaskId();
         var recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
         Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
         if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
             notifyTask(notificationTuple, nCache, taskId);
-            storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
             processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState);
+            storeFinishState(notificationTuple);
         }
     }
 
@@ -153,7 +160,7 @@ public class NotificationBolt extends BaseRichBolt {
             errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE));
             additionalInformation = String.valueOf(parameters.get(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE));
         }
-        var errorType = nCache.getErrorType(errorMessage);
+        var  errorType = nCache.getErrorType(errorMessage);
         var resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         updateErrorCounter(taskId, errorType);
         insertError(taskId, errorMessage, additionalInformation, errorType, resource);
@@ -263,7 +270,40 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed", TaskState.PROCESSED, new Date());
+        try {
+            if (needsPostProcessing(notificationTuple)) {
+                setTaskStatusToReadyForPostprocessing(notificationTuple, errors, count);
+            } else {
+                setTaskProcessed(notificationTuple, errors, count);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Unable to end the task. id: {} ", notificationTuple.getTaskId(), e);
+            taskInfoDAO.setTaskDropped(notificationTuple.getTaskId(), "Unable to end the task");
+        }
+    }
+
+    protected boolean needsPostProcessing(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
+        return false;
+    }
+
+    private void setTaskProcessed(NotificationTuple notificationTuple, int errors, int count) {
+        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed",
+                TaskState.PROCESSED, Calendar.getInstance().getTime());
+        LOGGER.info("Task id={} completely processed, with {} records and {} errors.", notificationTuple.getTaskId(),
+                count, errors);
+    }
+
+    private void setTaskStatusToReadyForPostprocessing(NotificationTuple notificationTuple, int errors, int count) {
+        taskStatusUpdater.updateState(notificationTuple.getTaskId(), TaskState.READY_FOR_POST_PROCESSING,
+                "Ready for post processing after topology stage is finished");
+        LOGGER.info("Task id={} finished topology stage with {} records processed and {} errors. Now it is waiting for post processing ",
+                notificationTuple.getTaskId(), count, errors);
+    }
+
+    protected DpsTask loadDpsTask(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
+        Optional<TaskInfo> taskInfo = taskInfoDAO.findById(tuple.getTaskId());
+        String taskDefinition = taskInfo.orElseThrow(TaskInfoDoesNotExistException::new).getTaskDefinition();
+        return new ObjectMapper().readValue(taskDefinition, DpsTask.class);
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {

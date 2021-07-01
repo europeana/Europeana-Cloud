@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
@@ -20,10 +21,12 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -57,93 +60,136 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
     }
 
     @Test
-    public void shouldSetTaskStateTo_ReadyForPostProcessing_ForTaskWithOneRecordAndIncrementalIndexing() throws Exception {
+    public void shouldSetTaskStateTo_Processed_ForTaskWithOneRecordAndIncrementalIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.CURRENTLY_PROCESSING, "", null, null, null, 0, null);
+        prepareDpsTask(taskId, "true");
 
-        Tuple tuple = createNotificationTuple(taskId, true);
+        Tuple tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
 
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
         assertEquals(1, taskProgress.getProcessedElementCount());
-        assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
+        assertEquals(TaskState.PROCESSED, taskProgress.getState());
     }
 
     @Test
-    public void shouldSetTaskStateTo_ReadyForPostProcessing_ForTaskWithMultipleRecordsAndIncrementalIndexing() throws Exception {
+    public void shouldSetTaskStateTo_Processed_ForTaskWithMultipleRecordsAndIncrementalIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 10, 0,
-                TaskState.CURRENTLY_PROCESSING, "", null, null, null, 0, null);
+        prepareDpsTask(taskId, "true");
 
-        Tuple tuple = createNotificationTuple(taskId, true);
+        Tuple tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, true);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
 
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(10));
         assertEquals(10, taskProgress.getProcessedElementCount());
-        assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
+        assertEquals(TaskState.PROCESSED, taskProgress.getState());
     }
 
     @Test
-    public void shouldSetTaskStateTo_Processed_ForTaskWithOneRecordAndFullIndexing() throws Exception {
+    public void shouldSetTaskStateTo_ReadyForPostprocessing_ForTaskWithOneRecordAndFullIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.CURRENTLY_PROCESSING,
-                "", null, null, null, 0, null);
+        prepareDpsTask(taskId, null);
 
-        Tuple tuple = createNotificationTuple(taskId, false);
+        Tuple tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
 
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
         assertEquals(1, taskProgress.getProcessedElementCount());
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
     }
 
     @Test
-    public void shouldSetTaskStateTo_Processed_ForTaskWithMultipleRecordsAndFullIndexing() throws Exception {
+    public void shouldSetTaskStateTo_ReadyForPostProcessing_ForTaskWithMultipleRecordsAndFullIndexing() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, "sample", 5, 0, TaskState.CURRENTLY_PROCESSING, "", null, null, null, 0, null);
+        prepareDpsTask(taskId, "false");
 
-        Tuple tuple = createNotificationTuple(taskId, false);
+
+        Tuple tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, false);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, false);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, false);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
-        tuple = createNotificationTuple(taskId, false);
+        tuple = createNotificationTuple(taskId);
         testedBolt.execute(tuple);
 
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(5));
         assertEquals(5, taskProgress.getProcessedElementCount());
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
     }
 
+    @Test
+    public void shouldDropTheTaskInCaseOfNonParseableAndNonIncrementalDpsTask() throws Exception {
+        long taskId = 1;
+        prepareDpsTaskThatHaveNonParseableTaskInformation(taskId, "false");
+
+        Tuple tuple = createNotificationTuple(taskId);
+        testedBolt.execute(tuple);
+        testedBolt.execute(tuple);
+
+        TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
+        List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
+        assertThat(notifications, hasSize(1));
+        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(TaskState.DROPPED, taskProgress.getState());
+    }
+
+    @Test
+    public void shouldDropTheTaskInCaseOfNonParseableAndIncrementalDpsTask() throws Exception {
+        long taskId = 1;
+        prepareDpsTaskThatHaveNonParseableTaskInformation(taskId, "true");
+
+        Tuple tuple = createNotificationTuple(taskId);
+        testedBolt.execute(tuple);
+        testedBolt.execute(tuple);
+
+        TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
+        List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
+        assertThat(notifications, hasSize(1));
+        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(TaskState.DROPPED, taskProgress.getState());
+    }
+
+    private void prepareDpsTask(long taskId,String incrementalFlagValue) throws IOException {
+        DpsTask dpsTask = new DpsTask();
+        dpsTask.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, incrementalFlagValue);
+        String taskJSON = new ObjectMapper().writeValueAsString(dpsTask);
+        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.QUEUED, "", null, null, null, 0, taskJSON);
+    }
+
+    private void prepareDpsTaskThatHaveNonParseableTaskInformation(long taskId,String incrementalFlagValue) {
+        DpsTask dpsTask = new DpsTask();
+        dpsTask.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, incrementalFlagValue);
+        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.QUEUED, "", null, null, null, 0, "nonParseableTaskInformations");
+    }
 
     private void createBolt() {
         testedBolt = new IndexingNotificationBolt(CassandraTestBase.HOST, CassandraTestInstance.getPort(), CassandraTestBase.KEYSPACE, "", "");
@@ -155,26 +201,21 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         testedBolt.prepare(boltConfig, null, collector);
     }
 
-    private Tuple createNotificationTuple(long taskId, boolean inIncrementalProcessing) {
+    private Tuple createNotificationTuple(long taskId) {
         String resource = "resource" + ++resourceCounter;
-        return createNotificationTuple(taskId, resource, inIncrementalProcessing);
+        return createNotificationTuple(taskId, resource);
     }
 
-    private Tuple createNotificationTuple(long taskId, String resource, boolean inIncrementalProcessing) {
+    private Tuple createNotificationTuple(long taskId, String resource) {
         String text = "text";
         String additionalInformation = "additionalInformation";
         String resultResource = "";
-        return createTestTuple(NotificationTuple.prepareNotification(taskId, resource, RecordState.SUCCESS, text, additionalInformation, resultResource, 1L), inIncrementalProcessing);
+        return createTestTuple(NotificationTuple.prepareNotification(taskId, resource, RecordState.SUCCESS, text, additionalInformation, resultResource, 1L));
     }
 
-    private Tuple createTestTuple(NotificationTuple tuple, boolean inIncrementalProcessing) {
+    private Tuple createTestTuple(NotificationTuple tuple) {
 
         String recordId = (String) tuple.getParameters().get(NotificationParameterKeys.RESOURCE);
-        if (inIncrementalProcessing) {
-            tuple.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, "true");
-        } else {
-            tuple.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, "false");
-        }
 
         if (recordId != null) {
             processedRecordsDAO.insert(tuple.getTaskId(), recordId, 1, "", "",
