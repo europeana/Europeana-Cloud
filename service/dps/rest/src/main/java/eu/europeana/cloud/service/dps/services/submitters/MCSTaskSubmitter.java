@@ -302,7 +302,7 @@ public class MCSTaskSubmitter {
     }
 
     private void checkIfTaskIsKilled(DpsTask task) {
-        if (taskStatusChecker.hasKillFlag(task.getTaskId())) {
+        if (taskStatusChecker.hasDroppedStatus(task.getTaskId())) {
             throw new SubmitingTaskWasKilled(task);
         }
     }

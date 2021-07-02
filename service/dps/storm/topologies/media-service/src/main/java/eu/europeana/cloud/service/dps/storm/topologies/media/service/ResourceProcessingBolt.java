@@ -78,7 +78,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
         if (thumbnails != null) {
             for (Thumbnail thumbnail : thumbnails) {
-                if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId()))
                     break;
                 try (InputStream stream = thumbnail.getContentStream()) {
                     amazonClient.putObject(thumbnail.getTargetName(), stream, prepareObjectMetadata(thumbnail));

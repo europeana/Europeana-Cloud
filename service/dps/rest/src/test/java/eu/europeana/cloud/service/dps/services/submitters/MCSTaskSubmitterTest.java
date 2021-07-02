@@ -163,7 +163,7 @@ public class MCSTaskSubmitterTest {
     @Test
     public void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
-        when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(true);
+        when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(true);
 
         submitter.execute(submitParameters);
 

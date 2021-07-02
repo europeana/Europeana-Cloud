@@ -73,17 +73,19 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
         this.taskStatusUpdater = taskStatusUpdater;
     }
 
+    /**
+     * Plan for the method:
+     1. Iterate over oll records from table harvested_records where latest_harvest_date < task_execution_date
+     2. For each europeana_id:
+     - find cloud_id
+     - create representation version
+     - add revision (taken from task definition (output_revision))
+     - add created representation version to dataset (dataset taken from task definition (output dataset))
+     3. Change task status to PROCESSED;
+     * @param dpsTask
+     */
     @Override
     public void execute(DpsTask dpsTask) {
-        /** Plan:
-        1. Iterate over oll records from table harvested_records where latest_harvest_date < task_execution_date
-        2. For each europeana_id:
-            - find cloud_id
-            - create representation version
-            - add revision (taken from task definition (output_revision))
-            - add created representation version to dataset (dataset taken from task definition (output dataset))
-        3. Change task status to PROCESSED;
-         */
         taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
                 "Postprocessing - adding removed records to result revision.");
         Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);

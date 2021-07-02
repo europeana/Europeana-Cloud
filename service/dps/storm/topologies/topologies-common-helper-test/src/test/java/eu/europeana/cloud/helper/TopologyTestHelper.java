@@ -76,7 +76,7 @@ public class TopologyTestHelper {
         taskErrorsDAO = Mockito.mock(CassandraTaskErrorsDAO.class);
         PowerMockito.mockStatic(CassandraTaskErrorsDAO.class);
         PowerMockito.when(CassandraTaskErrorsDAO.getInstance(any(CassandraConnectionProvider.class))).thenReturn(taskErrorsDAO);
-        PowerMockito.when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
+        PowerMockito.when(taskInfoDAO.isDroppedTask(anyLong())).thenReturn(false);
         PowerMockito.mockStatic(CassandraConnectionProviderSingleton.class);
         PowerMockito.when(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(anyString(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Mockito.mock(CassandraConnectionProvider.class));
     }

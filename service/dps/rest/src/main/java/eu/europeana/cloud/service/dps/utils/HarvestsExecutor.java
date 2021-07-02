@@ -53,7 +53,7 @@ public class HarvestsExecutor {
         // *** Main harvesting loop for given task ***
         final AtomicBoolean taskDropped = new AtomicBoolean(false);
         headerIterator.forEach(oaiHeader -> {
-            if (taskStatusChecker.hasKillFlag(parameters.getTask().getTaskId())) {
+            if (taskStatusChecker.hasDroppedStatus(parameters.getTask().getTaskId())) {
                 LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvestToBeExecuted, parameters.getTask().getTaskId());
                 taskDropped.set(true);
                 return IterationResult.TERMINATE;

@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class TaskStatusChecker {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusChecker.class);
+
     public static final int CHECKING_INTERVAL_IN_SECONDS = 5;
     public static final int CONCURRENCY_LEVEL = 1000;
     public static final int SIZE = 100;
@@ -26,23 +28,21 @@ public class TaskStatusChecker {
 
     private static volatile LoadingCache<Long, Boolean> cache;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusChecker.class);
-
     private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
-        cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
+        TaskStatusChecker.cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
                     public Boolean load(Long taskId) throws ExecutionException, TaskInfoDoesNotExistException {
-                        return isTaskKilled(taskId);
+                        return isDroppedTask(taskId);
                     }
                 });
         this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
     }
 
     public TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
-        cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
+        TaskStatusChecker.cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
                     public Boolean load(Long taskId) throws ExecutionException, TaskInfoDoesNotExistException {
-                        return isTaskKilled(taskId);
+                        return isDroppedTask(taskId);
                     }
                 });
         this.taskDAO = taskDAO;
@@ -61,7 +61,7 @@ public class TaskStatusChecker {
         }
     }
 
-    public boolean hasKillFlag(long taskId) {
+    public boolean hasDroppedStatus(long taskId) {
         try {
             return cache.get(taskId);
         } catch (ExecutionException e) {
@@ -74,13 +74,9 @@ public class TaskStatusChecker {
        This method will only be executed if there is no VALUE for KEY taskId inside cache or if refresh method was triggered.
        In the current implementation it will be triggered every 5 seconds if it was queried.
      */
-    private Boolean isTaskKilled(long taskId) throws TaskInfoDoesNotExistException {
-        boolean isKilled = false;
+    private Boolean isDroppedTask(long taskId) throws TaskInfoDoesNotExistException {
         LOGGER.info("Checking the task status for the task id from backend: {}" , taskId);
-        if (taskDAO.hasKillFlag(taskId)) {
-            isKilled = true;
-        }
-        return isKilled;
+        return (taskDAO.isDroppedTask(taskId));
     }
 }
 

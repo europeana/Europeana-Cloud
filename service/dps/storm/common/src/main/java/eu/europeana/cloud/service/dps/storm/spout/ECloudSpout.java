@@ -114,7 +114,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             try {
                 message = readMessageFromTuple(tuple);
 
-                if (taskStatusChecker.hasKillFlag(message.getTaskId())) {
+                if (taskStatusChecker.hasDroppedStatus(message.getTaskId())) {
                     return omitMessageFromDroppedTask(message, messageId);
                 }
 

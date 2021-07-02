@@ -121,7 +121,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
         List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
         if (thumbnails != null) {
             for (Thumbnail thumbnail : thumbnails) {
-                if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+                if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId()))
                     break;
                 try (InputStream thumbnailContentStream = thumbnail.getContentStream()) {
                     amazonClient.putObject(thumbnail.getTargetName(), thumbnailContentStream, prepareObjectMetadata(thumbnail));
