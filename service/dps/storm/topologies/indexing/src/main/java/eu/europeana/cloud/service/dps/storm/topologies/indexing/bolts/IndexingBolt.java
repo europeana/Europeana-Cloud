@@ -199,16 +199,23 @@ public class IndexingBolt extends AbstractDpsBolt {
         Date latestHarvestDate = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestDate();
         UUID latestHarvestMd5 = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestMd5();
 
-        if (isPublishEnvironment(stormTaskTuple)) {
-            harvestedRecord.setPublishedHarvestDate(latestHarvestDate);
-            harvestedRecord.setPublishedHarvestMd5(latestHarvestMd5);
-        } else {
-            harvestedRecord.setPreviewHarvestDate(latestHarvestDate);
-            harvestedRecord.setPreviewHarvestMd5(latestHarvestMd5);
+        TargetIndexingDatabase database = TargetIndexingDatabase.valueOf(
+                stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
+        switch (database) {
+            case PREVIEW:
+                harvestedRecord.setPreviewHarvestDate(latestHarvestDate);
+                harvestedRecord.setPreviewHarvestMd5(latestHarvestMd5);
+                break;
+            case PUBLISH:
+                harvestedRecord.setPublishedHarvestDate(latestHarvestDate);
+                harvestedRecord.setPublishedHarvestMd5(latestHarvestMd5);
+                break;
+            default:
+                throw new TopologyGeneralException("Unknown " + PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE + " : \"" + database + "\"");
         }
 
         LOGGER.info("Updating harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
-                stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE), harvestedRecord,
+                database, harvestedRecord,
                 stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
         harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
@@ -216,22 +223,9 @@ public class IndexingBolt extends AbstractDpsBolt {
     private void insertNewHarvestedRecord(String metisDatasetId, String europeanaId,  StormTaskTuple stormTaskTuple) {
         var harvestedRecord = HarvestedRecord.builder().metisDatasetId(metisDatasetId)
                 .recordLocalId(europeanaId).build();
-        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
         LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Inserting new empty record! taskId: {}, recordId:{}",
                 europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-    }
-
-    private boolean isPublishEnvironment(StormTaskTuple stormTaskTuple) {
-        final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
-        switch (database) {
-            case "PREVIEW":
-                return false;
-            case "PUBLISH":
-                return true;
-            default:
-                throw new TopologyGeneralException("Unknown " + PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE + " : \"" + database + "\"");
-        }
-
+        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
 
     class IndexerPoolWrapper implements Closeable {
