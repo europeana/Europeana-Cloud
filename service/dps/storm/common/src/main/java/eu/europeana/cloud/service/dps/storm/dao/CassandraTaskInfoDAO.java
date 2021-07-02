@@ -102,24 +102,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
     }
 
-    private TaskInfo createTaskInfo(Row row) {
-        var task = new TaskInfo(
-                row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID),
-                row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
-                TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.STATE)),
-                row.getString(CassandraTablesAndColumnsNames.INFO),
-                row.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME),
-                row.getTimestamp(CassandraTablesAndColumnsNames.START_TIME),
-                row.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME)
-        );
-        task.setExpectedSize(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE));
-        task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
-        task.setRetryCount(row.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT));
-        task.setTaskDefinition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS));
-        task.setErrors(row.getInt(CassandraTablesAndColumnsNames.ERRORS));
-        return task;
-    }
-
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS, errorMessage = "Error while inserting task")
     public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, TaskState state,
                        String info, Date sentTime, Date startTime, Date finishTime, int errors, String taskInformations)
@@ -175,17 +157,31 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updateStateStatement.bind(String.valueOf(state), info, taskId));
     }
 
+    @Deprecated
     public boolean hasKillFlag(long taskId) throws TaskInfoDoesNotExistException {
-        return getTaskStatus(taskId) == TaskState.DROPPED;
+        return findTaskStatus(taskId) == TaskState.DROPPED;
     }
 
-    private TaskState getTaskStatus(long taskId) throws TaskInfoDoesNotExistException {
-        return findTaskStatus(taskId)
-                .orElseThrow(TaskInfoDoesNotExistException::new);
+    @Deprecated
+    public TaskState findTaskStatus(long taskId) /*throws TaskInfoDoesNotExistException*/ {
+        return findById(taskId).get()/*.orElseThrow(TaskInfoDoesNotExistException::new)*/.getState();
     }
 
-    public Optional<TaskState> findTaskStatus(long taskId) {
-        return findById(taskId).map(row -> row.getState());
+    private TaskInfo createTaskInfo(Row row) {
+        var task = new TaskInfo(
+                row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID),
+                row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
+                TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.STATE)),
+                row.getString(CassandraTablesAndColumnsNames.INFO),
+                row.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME),
+                row.getTimestamp(CassandraTablesAndColumnsNames.START_TIME),
+                row.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME)
+        );
+        task.setExpectedSize(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE));
+        task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
+        task.setRetryCount(row.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT));
+        task.setTaskDefinition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS));
+        task.setErrors(row.getInt(CassandraTablesAndColumnsNames.ERRORS));
+        return task;
     }
-
 }

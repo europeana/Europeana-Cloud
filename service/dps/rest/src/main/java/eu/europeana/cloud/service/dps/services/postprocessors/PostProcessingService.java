@@ -28,11 +28,11 @@ public class PostProcessingService {
     private static final String MESSAGE_SUCCESSFULLY_POST_PROCESSED = "Successfully post processed task with id={}";
     private static final String MESSAGE_FAILED_POST_PROCESSED = "Could not post process task with id={}";
 
-    private CassandraTaskInfoDAO taskInfoDAO;
+    private final CassandraTaskInfoDAO taskInfoDAO;
 
-    private TasksByStateDAO tasksByStateDAO;
+    private final TasksByStateDAO tasksByStateDAO;
 
-    private PostProcessorFactory postProcessorFactory;
+    private final PostProcessorFactory postProcessorFactory;
 
     @Inject
     public PostProcessingService(PostProcessorFactory postProcessorFactory,

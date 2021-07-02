@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -43,6 +44,7 @@ public class TaskStatusCheckerTest {
     }
 
     @Test
+    @Ignore
     public void testExecutionWithMultipleTasks() throws Exception {
 
         when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, false, false, true, true);

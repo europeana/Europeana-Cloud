@@ -5,6 +5,7 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class TaskStatusUpdater {
         long taskId = parameters.getTask().getTaskId();
         String topologyName = parameters.getTopologyName();
         TaskState state = parameters.getStatus();
-        insert(taskInfoDAO.findTaskStatus(taskId).get(), state, topologyName, taskId, applicationIdentifier,
+        insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier,
                 parameters.getTopicName(), Calendar.getInstance().getTime());
         taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state,
                 parameters.getInfo(), parameters.getSentTime(), parameters.getStartTime(), null, 0,

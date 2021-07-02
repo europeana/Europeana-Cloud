@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.slf4j.Logger;
@@ -75,12 +76,8 @@ public class TaskStatusChecker {
        In the current implementation it will be triggered every 5 seconds if it was queried.
      */
     private Boolean isTaskKilled(long taskId) throws TaskInfoDoesNotExistException {
-        boolean isKilled = false;
         LOGGER.info("Checking the task status for the task id from backend: {}" , taskId);
-        if (taskDAO.hasKillFlag(taskId)) {
-            isKilled = true;
-        }
-        return isKilled;
+        return (taskDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new).getState() == TaskState.DROPPED);
     }
 }
 
