@@ -99,7 +99,7 @@ public class ParseFileBoltTest {
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
-            when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
+            when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(4)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object
 
@@ -123,7 +123,7 @@ public class ParseFileBoltTest {
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
-            when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(false).thenReturn(true);
+            when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false).thenReturn(false).thenReturn(true);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(2)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
         }

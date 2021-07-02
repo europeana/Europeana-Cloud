@@ -1,9 +1,11 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -57,6 +59,8 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
         try {
+            parameters.getTask().addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(parameters.getSentTime()));
+
             final String urlToZipFile = parameters.getTask()
                     .getDataEntry(InputDataType.REPOSITORY_URLS).get(0);
             final HttpRecordIterator iterator = HarvesterFactory.createHttpHarvester()
@@ -86,7 +90,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             SubmitTaskParameters submitTaskParameters) throws HarvesterException {
         final var expectedSize = new AtomicInteger(0);
         iterator.forEach(file -> {
-            if (taskStatusChecker.hasKillFlag(submitTaskParameters.getTask().getTaskId())) {
+            if (taskStatusChecker.hasDroppedStatus(submitTaskParameters.getTask().getTaskId())) {
                 return IterationResult.TERMINATE;
             }
             var dpsRecord = DpsRecord.builder()
@@ -104,7 +108,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
     }
 
     private void updateTaskStatus(DpsTask dpsTask, int expectedCount) {
-        if (!taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+        if (!taskStatusChecker.hasDroppedStatus(dpsTask.getTaskId())) {
             if (expectedCount == 0) {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task doesn't include any records");
             } else {

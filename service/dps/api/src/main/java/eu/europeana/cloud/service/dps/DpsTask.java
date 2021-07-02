@@ -168,10 +168,6 @@ public class DpsTask implements Serializable {
 
     public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws IOException {
         var dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
-
-        //TODO remove this code if tasks in DB will have proper parameters
-        dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentDate()));
-
         return dpsTask;
     }
 

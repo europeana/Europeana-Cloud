@@ -157,14 +157,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updateStateStatement.bind(String.valueOf(state), info, taskId));
     }
 
-    @Deprecated
-    public boolean hasKillFlag(long taskId) throws TaskInfoDoesNotExistException {
-        return findTaskStatus(taskId) == TaskState.DROPPED;
-    }
-
-    @Deprecated
-    public TaskState findTaskStatus(long taskId) /*throws TaskInfoDoesNotExistException*/ {
-        return findById(taskId).get()/*.orElseThrow(TaskInfoDoesNotExistException::new)*/.getState();
+    public boolean isDroppedTask(long taskId) throws TaskInfoDoesNotExistException {
+        return (findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new).getState() == TaskState.DROPPED);
     }
 
     private TaskInfo createTaskInfo(Row row) {

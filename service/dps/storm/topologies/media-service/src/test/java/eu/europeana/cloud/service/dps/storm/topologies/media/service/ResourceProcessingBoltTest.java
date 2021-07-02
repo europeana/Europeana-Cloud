@@ -107,7 +107,7 @@ public class ResourceProcessingBoltTest {
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
         when(amazonClient.putObject(anyString(), any(InputStream.class), nullable(ObjectMetadata.class))).thenReturn(new PutObjectResult());
-        when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
+        when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false);
         resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
         verify(amazonClient, Mockito.times(thumbnailCount)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
@@ -136,7 +136,7 @@ public class ResourceProcessingBoltTest {
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
         when(amazonClient.putObject(anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(new PutObjectResult());
 
-        when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(true);
+        when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false).thenReturn(true);
 
         resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
         verify(amazonClient, Mockito.times(1)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));

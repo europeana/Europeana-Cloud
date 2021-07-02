@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.HarvestResult;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
@@ -41,6 +43,8 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
 
         LOGGER.info("Starting OAI harvesting for: {}", parameters);
+        parameters.getTask().addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(parameters.getSentTime()));
+
         OaiHarvest harvestToByExecuted = new DpsTaskToOaiHarvestConverter().from(parameters.getTask());
         int expectedCount = getFilesCountInsideTask(parameters);
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);

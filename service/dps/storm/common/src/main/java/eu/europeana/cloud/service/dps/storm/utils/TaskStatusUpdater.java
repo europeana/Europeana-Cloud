@@ -4,8 +4,8 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import org.slf4j.Logger;
@@ -16,10 +16,10 @@ import java.util.Date;
 import java.util.Optional;
 
 /**
- * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
+ * Inserts/update given task in db. Two tables are modified
+ * {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
  * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
  * NOTE: Operation is not in transaction! So on table can be modified but second one not
- *
  */
 public class TaskStatusUpdater {
 
@@ -54,10 +54,12 @@ public class TaskStatusUpdater {
     public void insertTask(SubmitTaskParameters parameters) {
         long taskId = parameters.getTask().getTaskId();
         String topologyName = parameters.getTopologyName();
-        TaskState state = parameters.getStatus();
-        insert(taskInfoDAO.findTaskStatus(taskId), state, topologyName, taskId, applicationIdentifier,
+        TaskState newState = parameters.getStatus();
+        TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
+
+        updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
                 parameters.getTopicName(), Calendar.getInstance().getTime());
-        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, state,
+        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, newState,
                 parameters.getInfo(), parameters.getSentTime(), parameters.getStartTime(), null, 0,
                 parameters.getTaskJSON());
     }
@@ -124,16 +126,17 @@ public class TaskStatusUpdater {
         String topicName = oldTask.map(TaskByTaskState::getTopicName).orElse("");
         Date startTime = oldTask.map(TaskByTaskState::getStartTime).orElse(null);
 
-        insert(oldState, newState, topologyName, taskId, applicationId, topicName, startTime);
+        updateTaskState(oldState, newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
-    private void insert(TaskState oldState, TaskState state, String topologyName, long taskId, String applicationId,
-                        String topicName, Date startTime) throws NoHostAvailableException, QueryExecutionException {
+    private void updateTaskState(TaskState oldState, TaskState newState, String topologyName,
+                                 long taskId, String applicationId, String topicName, Date startTime)
+            throws NoHostAvailableException, QueryExecutionException {
 
-        if (oldState != state) {
+        if (oldState != null && oldState != newState) {
             tasksByStateDAO.delete(oldState, topologyName, taskId);
         }
-        tasksByStateDAO.insert(state, topologyName, taskId, applicationId, topicName, startTime);
+        tasksByStateDAO.insert(newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
 }

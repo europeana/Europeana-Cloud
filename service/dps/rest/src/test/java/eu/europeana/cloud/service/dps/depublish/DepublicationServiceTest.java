@@ -145,7 +145,7 @@ public class DepublicationServiceTest {
 
     @Test
     public void shouldNotInvokeTaskRemoveIfTaskWereKilledBefore() throws IndexingException {
-        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(true);
+        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
 
         service.depublishDataset(parameters);
 
@@ -226,7 +226,7 @@ public class DepublicationServiceTest {
             return true;
         });
         when(indexer.remove(RECORD2)).thenReturn(true);
-        when(taskStatusChecker.hasKillFlag(anyLong())).thenAnswer(invocation -> taskKilled.get());
+        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenAnswer(invocation -> taskKilled.get());
 
         service.depublishIndividualRecords(parameters);
 

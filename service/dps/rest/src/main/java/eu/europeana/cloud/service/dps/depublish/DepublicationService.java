@@ -117,7 +117,7 @@ public class DepublicationService {
     }
 
     private void checkTaskKilled(long taskId) {
-        if (taskStatusChecker.hasKillFlag(taskId)) {
+        if (taskStatusChecker.hasDroppedStatus(taskId)) {
             throw new SubmitingTaskWasKilled(taskId);
         }
     }
