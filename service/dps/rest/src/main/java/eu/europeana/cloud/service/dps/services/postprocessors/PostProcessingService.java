@@ -49,25 +49,22 @@ public class PostProcessingService {
     }
 
     public void postProcess(TaskByTaskState taskByTaskState) {
-        postProcessorFactory.getPostProcessor(taskByTaskState).ifPresent(taskPostProcessor -> {
-            try {
-                taskPostProcessor.execute(loadTask(taskByTaskState.getId()));
-                LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
-            } catch (IOException | TaskInfoDoesNotExistException exception) {
-                LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
-            }
-        });
+        try {
+            postProcessorFactory.getPostProcessor(taskByTaskState).execute(loadTask(taskByTaskState.getId()));
+            LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
+        } catch (IOException | TaskInfoDoesNotExistException | PostProcessingException exception) {
+            LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
+        }
     }
 
     private Optional<TaskByTaskState> findTask(List<TaskState> state) {
         LOGGER.info("Finding tasks in {} state...", state);
         Optional<TaskByTaskState> result = tasksByStateDAO.findTaskByState(state);
 
-        if (result.isPresent()) {
-            LOGGER.info("Found task to post process with id= {}", result.get());
-        } else {
-            LOGGER.info("There are no tasks in {} state on this machine.", state);
-        }
+        result.ifPresentOrElse(
+                taskByTaskState -> LOGGER.info("Found task to post process with id= {}", taskByTaskState.getId()),
+                () -> LOGGER.info("There are no tasks in {} state on this machine.", state)
+        );
 
         return result;
     }

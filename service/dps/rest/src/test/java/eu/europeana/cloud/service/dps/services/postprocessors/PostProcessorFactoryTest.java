@@ -55,20 +55,24 @@ public class PostProcessorFactoryTest {
 
     @Test
     public void shouldChooseValidPostProcessor() {
-        Set<String> topologesForIndexing =  indexingPostProcessor.getProcessedTopologies();
-        topologesForIndexing.forEach(topologName -> shouldReturnApropriatePostProcessor(indexingPostProcessor, topologName));
+        Set<String> topologiesForIndexing =  indexingPostProcessor.getProcessedTopologies();
+        topologiesForIndexing.forEach(topologName -> shouldReturnApropriatePostProcessor(indexingPostProcessor, topologName));
 
-        Set<String> topologesForHarvesting =  harvestingPostProcessor.getProcessedTopologies();
-        topologesForHarvesting.forEach(topologName -> shouldReturnApropriatePostProcessor(harvestingPostProcessor, topologName));
+        Set<String> topologiesForHarvesting =  harvestingPostProcessor.getProcessedTopologies();
+        topologiesForHarvesting.forEach(topologName -> shouldReturnApropriatePostProcessor(harvestingPostProcessor, topologName));
+    }
+
+    @Test(expected = PostProcessingException.class)
+    public void shouldFailForUnknownTopologyProcessor() {
+        var taskByTaskState = TaskByTaskState.builder().topologyName("STRANGE_TOPOLOGY").build();
+        postProcessorFactory.getPostProcessor(taskByTaskState);
     }
 
     private void shouldReturnApropriatePostProcessor(TaskPostProcessor expectedPostProcessor, String topologyName) {
         var taskByTaskState = TaskByTaskState.builder().topologyName(topologyName).build();
         var postProcessorFromFactory = postProcessorFactory.getPostProcessor(taskByTaskState);
 
-        postProcessorFromFactory.ifPresentOrElse(
-                postProcessor -> Assert.assertEquals(expectedPostProcessor, postProcessor),
-                () -> {Assert.fail();});
+        Assert.assertSame(expectedPostProcessor, postProcessorFromFactory);
     }
 
 }

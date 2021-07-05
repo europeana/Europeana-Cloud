@@ -12,7 +12,11 @@ public class PostProcessorFactory {
         this.services = services;
     }
 
-    public Optional<TaskPostProcessor> getPostProcessor(TaskByTaskState taskByTaskState) {
-        return Optional.ofNullable(services.get(taskByTaskState.getTopologyName()));
+    public TaskPostProcessor getPostProcessor(TaskByTaskState taskByTaskState) {
+        if(!services.containsKey(taskByTaskState.getTopologyName())) {
+            throw new PostProcessingException(String.format("No PostProcessor for given topology: '%s'", taskByTaskState.getTopologyName()));
+        }
+
+        return services.get(taskByTaskState.getTopologyName());
     }
 }
