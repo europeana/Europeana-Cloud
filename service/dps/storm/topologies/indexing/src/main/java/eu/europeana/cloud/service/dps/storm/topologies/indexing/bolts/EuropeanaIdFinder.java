@@ -11,8 +11,15 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 
 import java.net.MalformedURLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Class finds Europeana id among different ids mapped to one given cloud id, stored in UIS. Class is needed cause
+ * UIS is rather general service and it does not have information about local_id type, it stores all the ids on the list,
+ * which can be get. So after getting this list, it must be distinguished which id is the Europeana id.
+ *
+ */
 public class EuropeanaIdFinder {
 
     private final UISClient uisClient;
@@ -29,42 +36,38 @@ public class EuropeanaIdFinder {
     }
 
     public String findForCloudId(String metisDatasetId, String cloudId) throws CloudException {
-        List<String> cloudIdList = findLocalIdsInUIS(cloudId);
+        List<String> localIds = findLocalIdsInUIS(cloudId);
+        return theOneAndOnlyOneIn(localIds)
+                .orElseGet(() -> theOneAndOnlyOneIn(listOfIdsPrefixedByMetisDatasetId(metisDatasetId, localIds))
+                .orElseGet(() -> theOneAndOnlyOneIn(listOfIdsWhichEuropeanaPostfixIsPartOfRestOfIds(metisDatasetId, localIds))
+                .orElseGet(() -> theOneAndOnlyOneIn(listOfIdsThatExistInHarvestedRecordsTable(metisDatasetId, localIds))
+                .orElseThrow(() -> new TopologyGeneralException("Could not resolve unambiguous EuropeanaId for cloudId: " + cloudId)))));
+    }
 
-        if (cloudIdList.size() == 1) {
-            return cloudIdList.get(0);
-        }
+    private Optional<String> theOneAndOnlyOneIn(List<String> ids) {
+        return ids.size() == 1 ? Optional.of(ids.get(0)) : Optional.empty();
+    }
 
-        List<String> idsMetisIdPrefix = cloudIdList.stream().filter(id -> isEuropeanaId(metisDatasetId, id)).collect(Collectors.toList());
-        if (idsMetisIdPrefix.size() == 1) {
-            return idsMetisIdPrefix.get(0);
-        }
+    private List<String> listOfIdsPrefixedByMetisDatasetId(String metisDatasetId, List<String> localIds) {
+        return localIds.stream().filter(id -> isEuropeanaId(metisDatasetId, id)).collect(Collectors.toList());
+    }
 
-        if (idsMetisIdPrefix.size() > 1) {
-            List<String> idsWhichLocalPartIsContainedInRestOfIds = idsMetisIdPrefix.stream().filter(
-                    id -> idsMetisIdPrefix.stream().allMatch(
-                            otherId -> otherId.contains(localIdPart(id, metisDatasetId)))).collect(Collectors.toList());
+    private List<String> listOfIdsWhichEuropeanaPostfixIsPartOfRestOfIds(String metisDatasetId, List<String> localIds) {
+        List<String> ids = listOfIdsPrefixedByMetisDatasetId(metisDatasetId, localIds);
+        return ids.stream().filter(id -> ids.stream().allMatch(
+                otherId -> otherId.contains(europeanaPostfix(id, metisDatasetId)))).collect(Collectors.toList());
+    }
 
-            if (idsWhichLocalPartIsContainedInRestOfIds.size() == 1) {
-                return idsWhichLocalPartIsContainedInRestOfIds.get(0);
-            }
-        }
-
-        List<String> idsThatExistsInHarvestedRecordsTable = cloudIdList.stream()
+    private List<String> listOfIdsThatExistInHarvestedRecordsTable(String metisDatasetId, List<String> localIds) {
+        return localIds.stream()
                 .filter(id -> existsInHarvestedRecordsTable(id, metisDatasetId)).collect(Collectors.toList());
-
-        if (idsThatExistsInHarvestedRecordsTable.size() == 1) {
-            return idsThatExistsInHarvestedRecordsTable.get(0);
-        }
-
-        throw new TopologyGeneralException("Could not resolve unambiguous EuropeanaId for cloudId: " + cloudId);
     }
 
     private boolean isEuropeanaId(String metisDatasetId, String id) {
         return id.startsWith(europeanaPrefix(metisDatasetId));
     }
 
-    private String localIdPart(String europeanaId, String metisDatasetId) {
+    private String europeanaPostfix(String europeanaId, String metisDatasetId) {
         return europeanaId.substring(europeanaPrefix(metisDatasetId).length());
     }
 
@@ -73,7 +76,9 @@ public class EuropeanaIdFinder {
     }
 
     private List<String> findLocalIdsInUIS(String cloudIdentifier) throws CloudException {
-        return uisClient.getRecordId(cloudIdentifier).getResults().stream().map(CloudId::getLocalId).map(LocalId::getRecordId).collect(Collectors.toList());
+        return uisClient.getRecordId(cloudIdentifier).getResults().stream()
+                .map(CloudId::getLocalId).map(LocalId::getRecordId)
+                .collect(Collectors.toList());
     }
 
     private boolean existsInHarvestedRecordsTable(String cloudId, String metisDatasetId) {
