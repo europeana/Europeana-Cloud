@@ -5,10 +5,6 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -19,6 +15,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingProperties;
@@ -54,7 +51,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     private final Properties indexingProperties;
     private transient HarvestedRecordsDAO harvestedRecordsDAO;
     private final String uisAddress;
-    private transient UISClient uisClient;
+    private transient EuropeanaIdFinder europeanaIdFinder;
 
 
     public IndexingBolt(DbConnectionDetails dbConnectionDetails,
@@ -72,7 +69,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         prepareDao();
-        prepareUisClient();
+        prepareEuropeanaIdFinder();
         prepareIndexer();
     }
 
@@ -105,19 +102,25 @@ public class IndexingBolt extends AbstractDpsBolt {
         final Date recordDate;
         try {
             recordDate = dateFormat
-                .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+                    .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
             final IndexingProperties properties = new IndexingProperties(recordDate,
                     preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
+
+            String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+            String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
             if (!stormTaskTuple.isMarkedAsDeleted()) {
                 indexRecord(stormTaskTuple, useAltEnv, database, properties);
-                updateRecordHarvestingDates(stormTaskTuple);
+            } else{
+                removeIndexedRecord(stormTaskTuple, useAltEnv, database, europeanaId);
             }
+            findAndUpdateHarvestedRecord(stormTaskTuple, europeanaId);
+
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
                     "Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
                     database, useAltEnv, recordDate, preserveTimestampsString);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | MalformedURLException | CloudException e) {
             logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
         } catch (ParseException e) {
             logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
@@ -125,6 +128,12 @@ public class IndexingBolt extends AbstractDpsBolt {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
         }
         outputCollector.ack(anchorTuple);
+    }
+
+    private void removeIndexedRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, String europeanaId) throws IndexingException {
+        LOGGER.info("Removing indexed record europeanaId: {}, database: {} useAltEnv: {}, taskId: {}, recordId: {}",
+                europeanaId, database, useAltEnv, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        indexerPoolWrapper.getIndexerPool(useAltEnv, database).remove(europeanaId);
     }
 
     private void prepareDao() {
@@ -138,8 +147,8 @@ public class IndexingBolt extends AbstractDpsBolt {
         harvestedRecordsDAO = HarvestedRecordsDAO.getInstance(cassandraConnectionProvider);
     }
 
-    private void prepareUisClient() {
-        uisClient = new UISClient(uisAddress);
+    private void prepareEuropeanaIdFinder() {
+        europeanaIdFinder = new EuropeanaIdFinder(new UISClient(uisAddress), harvestedRecordsDAO);
     }
 
     private void prepareIndexer() {
@@ -176,38 +185,54 @@ public class IndexingBolt extends AbstractDpsBolt {
                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
 
-    private void updateRecordHarvestingDates(StormTaskTuple stormTaskTuple) {
-        try {
-            String cloudIdentifier = extractCloudIdFromUrl(stormTaskTuple.getFileUrl());
-            ResultSlice<CloudId> cloudIds = downloadCloudIdDefinition(cloudIdentifier);
-            String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-            cloudIds.getResults()
-                    .stream()
-                    .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, metisDatasetId))
-                    .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, metisDatasetId));
-        } catch (MalformedURLException | CloudException e) {
-            String message = "Unable to update record harvesting dates";
-            LOGGER.error(message, e);
-            throw new TopologyGeneralException(message, e);
+    private void findAndUpdateHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId) {
+        String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+        Optional<HarvestedRecord> harvestedRecord = harvestedRecordsDAO.findRecord(metisDatasetId, europeanaId);
+
+        if (harvestedRecord.isPresent()) {
+            updateHarvestedRecord(harvestedRecord.get(), stormTaskTuple);
+        } else {
+            insertNewHarvestedRecord(metisDatasetId, europeanaId, stormTaskTuple);
         }
     }
 
-    private ResultSlice<CloudId> downloadCloudIdDefinition(String cloudIdentifier) throws CloudException {
-        return uisClient.getRecordId(cloudIdentifier);
+    private void updateHarvestedRecord(HarvestedRecord harvestedRecord, StormTaskTuple stormTaskTuple) {
+        Date latestHarvestDate = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestDate();
+        UUID latestHarvestMd5 = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestMd5();
+
+        if (isPublishEnvironment(stormTaskTuple)) {
+            harvestedRecord.setPublishedHarvestDate(latestHarvestDate);
+            harvestedRecord.setPublishedHarvestMd5(latestHarvestMd5);
+        } else {
+            harvestedRecord.setPreviewHarvestDate(latestHarvestDate);
+            harvestedRecord.setPreviewHarvestMd5(latestHarvestMd5);
+        }
+
+        LOGGER.info("Updating harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
+                stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE), harvestedRecord,
+                stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
 
-    private String extractCloudIdFromUrl(String fileUrl) throws MalformedURLException {
-        UrlParser parser = new UrlParser(fileUrl);
-        return parser.getPart(UrlPart.RECORDS);
+    private void insertNewHarvestedRecord(String metisDatasetId, String europeanaId,  StormTaskTuple stormTaskTuple) {
+        HarvestedRecord harvestedRecord = HarvestedRecord.builder().metisDatasetId(metisDatasetId)
+                .recordLocalId(europeanaId).build();
+        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
+        LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Inserting new empty record! taskId: {}, recordId:{}",
+                europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
     }
 
-    private boolean existsOnHarvestedRecordsList(CloudId cloudId, String metisDatasetId) {
-        return harvestedRecordsDAO.findRecord(metisDatasetId, cloudId.getLocalId().getRecordId()).isPresent();
-    }
+    private boolean isPublishEnvironment(StormTaskTuple stormTaskTuple) {
+        final String database = stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
+        switch (database) {
+            case "PREVIEW":
+                return false;
+            case "PUBLISH":
+                return true;
+            default:
+                throw new TopologyGeneralException("Unknown " + PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE + " : \"" + database + "\"");
+        }
 
-    private void updateRecordIndexingDate(CloudId cloudId, String metisDatasetId) {
-        LOGGER.info("Updating Indexing date for cloudId={}, metisDatasetId = {}", cloudId, metisDatasetId);
-        harvestedRecordsDAO.updatePublishedHarvestDate(metisDatasetId, cloudId.getLocalId().getRecordId(), new Date());
     }
 
     class IndexerPoolWrapper implements Closeable {

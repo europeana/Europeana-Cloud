@@ -62,7 +62,7 @@ public class UnfinishedTasksExecutor {
 
     private List<TaskInfo> findProcessingByRestTasks() {
         LOGGER.info("Searching for all unfinished tasks");
-        return tasksDAO.findTasksInGivenState(RESUMABLE_TASK_STATES);
+        return tasksDAO.findTasksByState(RESUMABLE_TASK_STATES);
     }
 
     private List<TaskInfo> findTasksForCurrentMachine(List<TaskInfo> results) {

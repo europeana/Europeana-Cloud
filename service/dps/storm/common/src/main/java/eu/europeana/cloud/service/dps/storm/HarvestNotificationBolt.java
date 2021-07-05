@@ -1,8 +1,11 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * This is just temporary class that has exactly same behaviour like @{@link NotificationBolt}.
@@ -28,11 +31,12 @@ public class HarvestNotificationBolt extends NotificationBolt {
     }
 
     @Override
-    protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.updateState(notificationTuple.getTaskId(), TaskState.READY_FOR_POST_PROCESSING,
-                "Ready for post processing after topology stage is finished");
-        LOGGER.info("Task id={} finished topology stage with {} records processed and {} errors. Now it is waiting for post processing ",
-                notificationTuple.getTaskId(), count, errors);
+    protected boolean needsPostProcessing(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
+        return isIncrementalHarvesting(tuple);
+    }
+
+    private boolean isIncrementalHarvesting(NotificationTuple tuple) throws IOException, TaskInfoDoesNotExistException {
+        return "true".equals(loadDpsTask(tuple).getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
     }
 
 }

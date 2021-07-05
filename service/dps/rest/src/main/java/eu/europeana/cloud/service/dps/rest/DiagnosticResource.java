@@ -1,7 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.services.task.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.utils.GhostTaskService;
@@ -32,6 +33,9 @@ public class DiagnosticResource {
     private HarvestedRecordsDAO harvestedRecordsDAO;
 
     @Autowired
+    private CassandraTaskInfoDAO taskInfoDAO;
+
+    @Autowired
     private PostProcessingService postProcessingService;
 
     @GetMapping("/ghostTasks")
@@ -47,11 +51,11 @@ public class DiagnosticResource {
             , @RequestParam(defaultValue = "10") int count, @RequestParam(required = false) String oaiId)    {
         if(oaiId!=null) {
             return Collections.singletonList(harvestedRecordsDAO.findRecord(metisDatasetId,oaiId).orElse(null));
-        }else {
+        } else {
             List<HarvestedRecord> result = new ArrayList<>();
 
             Iterator<HarvestedRecord> it = harvestedRecordsDAO.findDatasetRecords(metisDatasetId);
-            for (int i = 0; i < count && it.hasNext(); i++) {
+            for (var index = 0; index < count && it.hasNext(); index++) {
                 HarvestedRecord theRecord = it.next();
                 result.add(theRecord);
             }
@@ -63,7 +67,7 @@ public class DiagnosticResource {
     @PostMapping("/postProcess/{taskId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void postProcess(long taskId) {
-        postProcessingService.executeOneTask(taskId);
+        taskInfoDAO.findById(taskId).ifPresent(postProcessingService::postProcess);
     }
 
 }

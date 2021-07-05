@@ -54,7 +54,10 @@ public class TaskStatusSynchronizerTest {
 
     @Test
     public void synchronizedShouldRepairInconsistentData() {
-        when(tasksByStateDAO.listAllActiveTasksInTopology(eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
+        when(tasksByStateDAO.findTasksByStateAndTopology(
+                eq(Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED)),
+                eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
+
         when(taskInfoDAO.findById(eq(1L))).thenReturn(Optional.of(INFO_1_OF_UNSYNCED));
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
@@ -64,7 +67,9 @@ public class TaskStatusSynchronizerTest {
 
     @Test
     public void synchronizedShouldNotTouchTasksWithConsistentData() {
-        when(tasksByStateDAO.listAllActiveTasksInTopology(eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
+        when(tasksByStateDAO.findTasksByStateAndTopology(
+                eq(Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED)),
+                eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
         when(taskInfoDAO.findById(eq(1L))).thenReturn(Optional.of(INFO_1));
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
@@ -75,7 +80,9 @@ public class TaskStatusSynchronizerTest {
 
     @Test
     public void synchronizedShouldOnlyConcernTasksWithTopicReservedForTopology() {
-        when(tasksByStateDAO.listAllActiveTasksInTopology(eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1_UNKNOWN_TOPIC));
+        when(tasksByStateDAO.findTasksByStateAndTopology(
+                eq(Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED)),
+                eq(TOPOLOGY_NAME))).thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1_UNKNOWN_TOPIC));
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 

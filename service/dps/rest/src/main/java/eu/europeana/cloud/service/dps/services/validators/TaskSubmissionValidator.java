@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.services.validation;
+package eu.europeana.cloud.service.dps.services.validators;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
