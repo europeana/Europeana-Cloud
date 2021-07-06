@@ -4,6 +4,7 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -41,6 +42,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     private ReportService reportService;
     private CassandraSubTaskInfoDAO subtaskDAO;
     private ProcessedRecordsDAO processedRecordsDAO;
+    private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
     private int resourceCounter=0;
 
     @Before
@@ -53,6 +55,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         CassandraConnectionProvider db=new CassandraConnectionProvider(HOST,CassandraTestInstance.getPort(),KEYSPACE,USER_NAME,PASSWORD);
         subtaskDAO = CassandraSubTaskInfoDAO.getInstance(db);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
+        cassandraTaskErrorsDAO = CassandraTaskErrorsDAO.getInstance(db);
     }
 
     private void createBolt() {
@@ -236,6 +239,46 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertEquals(afterExecute.getProcessedPercentage(), 100 * ((afterExecute.getProcessedElementCount() / (totalProcessed+(expectedSize - totalProcessed)))));
     }
 
+
+    @Test
+    public void shouldStoreOnlyLimitedAmountOfErrors() throws Exception {
+        ReportService reportService = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
+        long taskId = 1;
+        int expectedSize = 120;
+        int errors = 109;
+        String topologyName = null;
+        TaskState taskState = TaskState.CURRENTLY_PROCESSING;
+        String taskInfo = "";
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+
+        //when
+        List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
+
+        TaskInfo beforeExecute = reportService.getTaskProgress(String.valueOf(taskId));
+
+        for (Tuple tuple : tuples) {
+            testedBolt.execute(tuple);
+        }
+
+        TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(String.valueOf(taskId), 0);
+
+        //then
+        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
+        assertEquals(beforeExecute.getErrors(), 0);
+
+        assertEquals(errorsInfo.getErrors().size(), 1);
+        assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
+        //
+        assertEquals(109, cassandraTaskErrorsDAO.getErrorCount(1));
+        Iterator<String> messagesUuids = cassandraTaskErrorsDAO.getMessagesUuids(1);
+        while(messagesUuids.hasNext()){
+            String error_uuid = messagesUuids.next();
+            assertEquals(109, cassandraTaskErrorsDAO.getErrorCount(1, UUID.fromString(error_uuid)));
+            TaskErrorsInfo specificTaskErrorReport = reportService.getSpecificTaskErrorReport("1", error_uuid, 200);
+            assertEquals(100, specificTaskErrorReport.getErrors().get(0).getErrorDetails().size());
+        }
+    }
 
     @Test
     public void testNotificationForErrors() throws Exception {

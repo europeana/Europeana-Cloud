@@ -5,6 +5,8 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.Constants;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -23,11 +25,8 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
@@ -48,7 +47,7 @@ public class NotificationBolt extends BaseRichBolt {
     protected String topologyName;
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
-    private transient CassandraTaskInfoDAO taskInfoDAO;
+    protected transient CassandraTaskInfoDAO taskInfoDAO;
     private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
 
@@ -130,9 +129,9 @@ public class NotificationBolt extends BaseRichBolt {
         Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
         if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
             notifyTask(notificationTuple, nCache, taskId);
-            storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
             processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState);
+            storeFinishState(notificationTuple);
         }
     }
 
@@ -174,7 +173,16 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
-        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
+        long errorCount = taskErrorDAO.getErrorCount(taskId, UUID.fromString(errorType));
+        if (!maximumNumberOfErrorsReached(errorCount)) {
+            taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
+        } else {
+            LOGGER.warn("Will not store the error message because threshold reached for taskId={}. ", taskId);
+        }
+    }
+
+    private boolean maximumNumberOfErrorsReached(long errorCount) {
+        return errorCount > Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE;
     }
 
     private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
