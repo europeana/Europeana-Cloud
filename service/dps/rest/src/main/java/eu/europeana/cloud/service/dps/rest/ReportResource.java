@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
+import eu.europeana.cloud.service.dps.Constants;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -12,7 +13,6 @@ import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,9 +29,6 @@ public class ReportResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
 
     public static final String TASK_PREFIX = "DPS_Task";
-
-    @Value("${maxIdentifiersCount}")
-    private int maxIdentifiersCount;
 
     @Autowired
     private TopologyManager topologyManager;
@@ -110,13 +107,13 @@ public class ReportResource {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
 
-        if (idsCount < 0 || idsCount > maxIdentifiersCount) {
-            throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
+        if (idsCount < 0 || idsCount > Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE) {
+            throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE);
         }
         if (error == null || error.equals("null")) {
             return reportService.getGeneralTaskErrorReport(taskId, idsCount);
         }
-        return reportService.getSpecificTaskErrorReport(taskId, error, idsCount > 0 ? idsCount : maxIdentifiersCount);
+        return reportService.getSpecificTaskErrorReport(taskId, error, idsCount > 0 ? idsCount : Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE);
     }
 
 
