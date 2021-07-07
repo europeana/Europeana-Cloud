@@ -1,0 +1,264 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------< [0;36meu.europeana.cloud:ecloud-service-dps-rest[0;1m >-------------[m
+[[1;34mINFO[m] [1mBuilding Europeana Cloud: Data Processing Service (DPS-REST) 5-SNAPSHOT[m
+[[1;34mINFO[m] [1m--------------------------------[ war ]---------------------------------[m
+[[1;33mWARNING[m] The artifact org.hibernate:hibernate-validator:jar:6.1.2.Final has been relocated to org.hibernate.validator:hibernate-validator:jar:6.1.2.Final
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mecloud-service-dps-rest[0;1m ---[m
+[[1;33mWARNING[m] The artifact org.hibernate:hibernate-validator:jar:6.1.2.Final has been relocated to org.hibernate.validator:hibernate-validator:jar:6.1.2.Final
+[[1;34mINFO[m] eu.europeana.cloud:ecloud-service-dps-rest:war:5-SNAPSHOT
+[[1;34mINFO[m] +- commons-codec:commons-codec:jar:1.15:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-uis-rest-client-java:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- org.glassfish.jersey.core:jersey-client:jar:2.23.1:compile
+[[1;34mINFO[m] |  |  +- org.glassfish.jersey.core:jersey-common:jar:2.23.1:compile
+[[1;34mINFO[m] |  |  |  \- org.glassfish.jersey.bundles.repackaged:jersey-guava:jar:2.23.1:compile
+[[1;34mINFO[m] |  |  +- org.glassfish.hk2:hk2-api:jar:2.4.0-b34:compile
+[[1;34mINFO[m] |  |  |  +- org.glassfish.hk2:hk2-utils:jar:2.4.0-b34:compile
+[[1;34mINFO[m] |  |  |  \- org.glassfish.hk2.external:aopalliance-repackaged:jar:2.4.0-b34:compile
+[[1;34mINFO[m] |  |  +- org.glassfish.hk2.external:javax.inject:jar:2.4.0-b34:compile
+[[1;34mINFO[m] |  |  \- org.glassfish.hk2:hk2-locator:jar:2.4.0-b34:compile
+[[1;34mINFO[m] |  +- org.glassfish.jersey.media:jersey-media-multipart:jar:2.23.1:compile
+[[1;34mINFO[m] |  |  \- org.jvnet.mimepull:mimepull:jar:1.9.6:compile
+[[1;34mINFO[m] |  +- org.glassfish.jersey.media:jersey-media-json-jackson:jar:2.23.1:compile
+[[1;34mINFO[m] |  |  +- org.glassfish.jersey.ext:jersey-entity-filtering:jar:2.23.1:compile
+[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar:2.5.4:compile
+[[1;34mINFO[m] |  |  \- com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:jar:2.5.4:compile
+[[1;34mINFO[m] |  +- org.glassfish.jersey.media:jersey-media-jaxb:jar:2.23.1:compile
+[[1;34mINFO[m] |  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.1:compile
+[[1;34mINFO[m] |  +- commons-io:commons-io:jar:2.4:compile
+[[1;34mINFO[m] |  +- org.slf4j:slf4j-simple:jar:1.7.12:compile
+[[1;34mINFO[m] |  \- eu.europeana.cloud:ecloud-service-uis-api:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] +- javax.validation:validation-api:jar:2.0.1.Final:compile
+[[1;34mINFO[m] +- org.springframework.security:spring-security-config:jar:5.2.2.RELEASE:compile
+[[1;34mINFO[m] |  +- org.springframework.security:spring-security-core:jar:5.2.2.RELEASE:compile
+[[1;34mINFO[m] |  +- org.springframework:spring-aop:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] |  +- org.springframework:spring-beans:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] |  +- org.springframework:spring-context:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] |  \- org.springframework:spring-core:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] |     \- org.springframework:spring-jcl:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] +- org.springframework.security:spring-security-acl:jar:5.2.2.RELEASE:compile
+[[1;34mINFO[m] |  +- org.springframework:spring-jdbc:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] |  \- org.springframework:spring-tx:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] +- org.springframework.security:spring-security-taglibs:jar:5.2.2.RELEASE:compile
+[[1;34mINFO[m] |  +- org.springframework.security:spring-security-web:jar:5.2.2.RELEASE:compile
+[[1;34mINFO[m] |  \- org.springframework:spring-expression:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] +- org.springframework:spring-orm:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] +- org.springframework:spring-context-support:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] +- org.springframework:spring-webmvc:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-dps-api:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  \- com.google.guava:guava:jar:24.1.1-jre:compile
+[[1;34mINFO[m] |     +- com.google.code.findbugs:jsr305:jar:1.3.9:compile
+[[1;34mINFO[m] |     +- org.checkerframework:checker-compat-qual:jar:2.0.0:compile
+[[1;34mINFO[m] |     +- com.google.errorprone:error_prone_annotations:jar:2.1.3:compile
+[[1;34mINFO[m] |     +- com.google.j2objc:j2objc-annotations:jar:1.1:compile
+[[1;34mINFO[m] |     \- org.codehaus.mojo:animal-sniffer-annotations:jar:1.14:compile
+[[1;34mINFO[m] +- eu.europeana.metis:metis-harvesting:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- eu.europeana.metis:metis-common-utils:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- eu.europeana.metis:metis-common-network:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  \- org.apache.httpcomponents.client5:httpclient5:jar:5.1:compile
+[[1;34mINFO[m] |  |     +- org.apache.httpcomponents.core5:httpcore5:jar:5.1.1:compile
+[[1;34mINFO[m] |  |     \- org.apache.httpcomponents.core5:httpcore5-h2:jar:5.1.1:compile
+[[1;34mINFO[m] |  +- org.dspace:xoai-service-provider:jar:4.2.0:compile
+[[1;34mINFO[m] |  |  +- org.dspace:xoai-common:jar:4.2.0:compile
+[[1;34mINFO[m] |  |  |  +- com.lyncode:test-support:jar:1.0.4:compile
+[[1;34mINFO[m] |  |  |  |  +- com.lyncode:builder-commons:jar:1.0.1:compile
+[[1;34mINFO[m] |  |  |  |  \- jaxen:jaxen:jar:1.1.4:runtime
+[[1;34mINFO[m] |  |  |  +- xml-apis:xml-apis:jar:1.0.b2:compile
+[[1;34mINFO[m] |  |  |  +- org.codehaus.woodstox:stax2-api:jar:3.0.4:compile
+[[1;34mINFO[m] |  |  |  +- javax.xml.stream:stax-api:jar:1.0-2:compile
+[[1;34mINFO[m] |  |  |  \- stax:stax-api:jar:1.0.1:compile
+[[1;34mINFO[m] |  |  +- com.lyncode:xml-io:jar:1.0.3:compile
+[[1;34mINFO[m] |  |  \- org.codehaus.woodstox:wstx-asl:jar:4.0.0:compile
+[[1;34mINFO[m] |  +- net.sf.saxon:Saxon-HE:jar:10.5:compile
+[[1;34mINFO[m] |  +- org.zeroturnaround:zt-zip:jar:1.14:compile
+[[1;34mINFO[m] |  +- org.rauschig:jarchivelib:jar:1.1.0:compile
+[[1;34mINFO[m] |  |  \- org.apache.commons:commons-compress:jar:1.20:compile
+[[1;34mINFO[m] |  \- org.apache.httpcomponents:httpclient:jar:4.5.13:compile
+[[1;34mINFO[m] |     \- org.apache.httpcomponents:httpcore:jar:4.4.13:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-dps-utils:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  \- commons-validator:commons-validator:jar:1.6:compile
+[[1;34mINFO[m] |     +- commons-beanutils:commons-beanutils:jar:1.9.2:compile
+[[1;34mINFO[m] |     \- commons-digester:commons-digester:jar:1.8.1:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-aas-authorization:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- eu.europeana.cloud:ecloud-cassandra-connector:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  \- javax.annotation:javax.annotation-api:jar:1.3.2:compile
+[[1;34mINFO[m] |  +- commons-logging:commons-logging:jar:1.2:compile
+[[1;34mINFO[m] |  \- org.apache.taglibs:taglibs-standard-jstlel:jar:1.2.1:compile
+[[1;34mINFO[m] |     +- org.apache.taglibs:taglibs-standard-spec:jar:1.2.1:compile
+[[1;34mINFO[m] |     \- org.apache.taglibs:taglibs-standard-impl:jar:1.2.1:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-aas-authentication:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  \- javax.servlet:javax.servlet-api:jar:3.1.0:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-common:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- javax.ws.rs:javax.ws.rs-api:jar:2.0:compile
+[[1;34mINFO[m] |  +- org.codehaus.jackson:jackson-core-asl:jar:1.9.13:compile
+[[1;34mINFO[m] |  +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile
+[[1;34mINFO[m] |  +- com.eaio.uuid:uuid:jar:3.5:compile
+[[1;34mINFO[m] |  |  \- com.eaio:grabbag:jar:2.7:compile
+[[1;34mINFO[m] |  \- com.fasterxml.jackson.dataformat:jackson-dataformat-xml:jar:2.9.8:compile
+[[1;34mINFO[m] |     +- com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.9.8:compile
+[[1;34mINFO[m] |     \- com.fasterxml.woodstox:woodstox-core:jar:5.0.3:compile
+[[1;34mINFO[m] +- org.springframework:spring-web:jar:5.2.3.RELEASE:compile
+[[1;34mINFO[m] +- javax.servlet:servlet-api:jar:2.5:provided
+[[1;34mINFO[m] +- com.fasterxml.jackson.core:jackson-databind:jar:2.9.10.5:compile
+[[1;34mINFO[m] |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.9.10:compile
+[[1;34mINFO[m] |  \- com.fasterxml.jackson.core:jackson-core:jar:2.9.10:compile
+[[1;34mINFO[m] +- org.slf4j:jcl-over-slf4j:jar:1.7.25:compile
+[[1;34mINFO[m] +- org.slf4j:slf4j-api:jar:1.7.25:compile
+[[1;34mINFO[m] +- org.slf4j:slf4j-log4j12:jar:1.7.25:compile
+[[1;34mINFO[m] +- org.slf4j:jul-to-slf4j:jar:1.7.25:compile
+[[1;34mINFO[m] +- org.slf4j:slf4j-ext:jar:1.7.25:compile
+[[1;34mINFO[m] +- log4j:log4j:jar:1.2.17:compile
+[[1;34mINFO[m] +- com.qmino:miredot-annotations:jar:1.2:compile
+[[1;34mINFO[m] +- eu.europeana.metis:metis-indexing:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- eu.europeana.metis:metis-common-mongo:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  +- dev.morphia.morphia:morphia-core:jar:2.2.1:compile
+[[1;34mINFO[m] |  |  |  +- org.mongodb:mongodb-driver-sync:jar:4.2.2:compile
+[[1;34mINFO[m] |  |  |  |  +- org.mongodb:bson:jar:4.2.2:compile
+[[1;34mINFO[m] |  |  |  |  \- org.mongodb:mongodb-driver-core:jar:4.2.2:compile
+[[1;34mINFO[m] |  |  |  +- org.mongodb:mongodb-driver-legacy:jar:4.2.2:compile
+[[1;34mINFO[m] |  |  |  +- io.github.classgraph:classgraph:jar:4.8.78:compile
+[[1;34mINFO[m] |  |  |  +- org.jetbrains:annotations:jar:13.0:compile
+[[1;34mINFO[m] |  |  |  \- com.github.spotbugs:spotbugs-annotations:jar:3.1.9:compile
+[[1;34mINFO[m] |  |  \- de.flapdoodle.embed:de.flapdoodle.embed.mongo:jar:3.0.0:compile
+[[1;34mINFO[m] |  |     \- de.flapdoodle.embed:de.flapdoodle.embed.process:jar:3.0.1:compile
+[[1;34mINFO[m] |  |        \- net.java.dev.jna:jna-platform:jar:5.6.0:compile
+[[1;34mINFO[m] |  +- eu.europeana.metis:metis-common-solr:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  \- org.apache.solr:solr-solrj:jar:8.8.2:compile
+[[1;34mINFO[m] |  |     +- io.netty:netty-buffer:jar:4.1.50.Final:compile
+[[1;34mINFO[m] |  |     +- io.netty:netty-codec:jar:4.1.50.Final:compile
+[[1;34mINFO[m] |  |     +- io.netty:netty-common:jar:4.1.50.Final:compile
+[[1;34mINFO[m] |  |     +- io.netty:netty-resolver:jar:4.1.50.Final:compile
+[[1;34mINFO[m] |  |     +- io.netty:netty-transport:jar:4.1.50.Final:compile
+[[1;34mINFO[m] |  |     +- io.netty:netty-transport-native-epoll:jar:4.1.50.Final:compile
+[[1;34mINFO[m] |  |     +- io.netty:netty-transport-native-unix-common:jar:4.1.50.Final:compile
+[[1;34mINFO[m] |  |     +- org.apache.commons:commons-math3:jar:3.6.1:compile
+[[1;34mINFO[m] |  |     +- org.apache.httpcomponents:httpmime:jar:4.5.12:compile
+[[1;34mINFO[m] |  |     +- org.apache.zookeeper:zookeeper:jar:3.6.2:compile
+[[1;34mINFO[m] |  |     +- org.apache.zookeeper:zookeeper-jute:jar:3.6.2:compile
+[[1;34mINFO[m] |  |     +- org.codehaus.woodstox:woodstox-core-asl:jar:4.4.1:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty:jetty-alpn-client:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty:jetty-alpn-java-client:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty:jetty-client:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty:jetty-http:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty:jetty-io:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty:jetty-util:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty.http2:http2-client:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty.http2:http2-common:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     +- org.eclipse.jetty.http2:http2-hpack:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  |     \- org.eclipse.jetty.http2:http2-http-client-transport:jar:9.4.34.v20201102:compile
+[[1;34mINFO[m] |  +- eu.europeana.metis:metis-schema:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  +- org.jibx:jibx-run:jar:1.3.3:compile
+[[1;34mINFO[m] |  |  |  +- joda-time:joda-time:jar:2.3:compile
+[[1;34mINFO[m] |  |  |  \- xpp3:xpp3:jar:1.1.3.4.O:compile
+[[1;34mINFO[m] |  |  +- org.jibx:jibx-extras:jar:1.3.3:compile
+[[1;34mINFO[m] |  |  |  +- dom4j:dom4j:jar:1.6.1:compile
+[[1;34mINFO[m] |  |  |  \- org.jdom:jdom:jar:1.1.3:compile
+[[1;34mINFO[m] |  |  \- org.apache.bcel:bcel:jar:6.5.0:compile
+[[1;34mINFO[m] |  +- eu.europeana.corelib:corelib-definitions:jar:2.14.1-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  +- eu.europeana.corelib:corelib-utils:jar:2.14.1-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  \- org.xerial.snappy:snappy-java:jar:1.1.7.2:compile
+[[1;34mINFO[m] |  +- eu.europeana.corelib:corelib-storage:jar:2.14.1-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  +- eu.europeana.corelib:corelib-web:jar:2.14.1-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  |  +- commons-httpclient:commons-httpclient:jar:3.1:compile
+[[1;34mINFO[m] |  |  |  \- org.springframework.boot:spring-boot:jar:1.3.8.RELEASE:compile
+[[1;34mINFO[m] |  |  \- org.apache.lucene:lucene-core:jar:6.6.2:compile
+[[1;34mINFO[m] |  +- org.apache.logging.log4j:log4j-api:jar:2.14.1:compile
+[[1;34mINFO[m] |  \- org.apache.commons:commons-pool2:jar:2.9.0:compile
+[[1;34mINFO[m] +- org.apache.commons:commons-lang3:jar:3.8:compile
+[[1;34mINFO[m] +- org.hamcrest:hamcrest-all:jar:1.3:compile
+[[1;34mINFO[m] +- org.projectlombok:lombok:jar:1.18.10:compile
+[[1;34mINFO[m] +- javax.xml.bind:jaxb-api:jar:2.3.1:compile
+[[1;34mINFO[m] |  \- javax.activation:javax.activation-api:jar:1.2.0:compile
+[[1;34mINFO[m] +- jakarta.xml.bind:jakarta.xml.bind-api:jar:2.3.2:compile
+[[1;34mINFO[m] |  \- jakarta.activation:jakarta.activation-api:jar:1.2.1:compile
+[[1;34mINFO[m] +- org.glassfish.jaxb:jaxb-runtime:jar:2.3.2:compile
+[[1;34mINFO[m] |  +- org.glassfish.jaxb:txw2:jar:2.3.2:compile
+[[1;34mINFO[m] |  +- com.sun.istack:istack-commons-runtime:jar:3.0.8:compile
+[[1;34mINFO[m] |  +- org.jvnet.staxex:stax-ex:jar:1.8.1:compile
+[[1;34mINFO[m] |  \- com.sun.xml.fastinfoset:FastInfoset:jar:1.2.16:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:test-common:jar:5-SNAPSHOT:test
+[[1;34mINFO[m] |  +- com.datastax.cassandra:cassandra-driver-core:jar:3.7.1:compile
+[[1;34mINFO[m] |  |  +- io.netty:netty-handler:jar:4.0.56.Final:compile
+[[1;34mINFO[m] |  |  +- io.dropwizard.metrics:metrics-core:jar:3.2.2:compile
+[[1;34mINFO[m] |  |  +- com.github.jnr:jnr-ffi:jar:2.1.7:compile
+[[1;34mINFO[m] |  |  |  +- com.github.jnr:jffi:jar:1.2.16:compile
+[[1;34mINFO[m] |  |  |  +- com.github.jnr:jffi:jar:native:1.2.16:runtime
+[[1;34mINFO[m] |  |  |  +- org.ow2.asm:asm:jar:5.0.3:compile
+[[1;34mINFO[m] |  |  |  +- org.ow2.asm:asm-commons:jar:5.0.3:compile
+[[1;34mINFO[m] |  |  |  +- org.ow2.asm:asm-analysis:jar:5.0.3:compile
+[[1;34mINFO[m] |  |  |  +- org.ow2.asm:asm-tree:jar:5.0.3:compile
+[[1;34mINFO[m] |  |  |  +- org.ow2.asm:asm-util:jar:5.0.3:compile
+[[1;34mINFO[m] |  |  |  \- com.github.jnr:jnr-x86asm:jar:1.0.2:compile
+[[1;34mINFO[m] |  |  \- com.github.jnr:jnr-posix:jar:3.0.44:compile
+[[1;34mINFO[m] |  |     \- com.github.jnr:jnr-constants:jar:0.9.9:compile
+[[1;34mINFO[m] |  +- org.hamcrest:hamcrest-library:jar:1.3:test
+[[1;34mINFO[m] |  +- com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:jar:1.4.2:test
+[[1;34mINFO[m] |  +- org.testcontainers:testcontainers:jar:1.15.1:test
+[[1;34mINFO[m] |  |  +- org.rnorth.duct-tape:duct-tape:jar:1.0.8:test
+[[1;34mINFO[m] |  |  +- org.rnorth.visible-assertions:visible-assertions:jar:2.1.2:test
+[[1;34mINFO[m] |  |  |  \- net.java.dev.jna:jna:jar:5.2.0:compile
+[[1;34mINFO[m] |  |  +- com.github.docker-java:docker-java-api:jar:3.2.7:test
+[[1;34mINFO[m] |  |  \- com.github.docker-java:docker-java-transport-zerodep:jar:3.2.7:test
+[[1;34mINFO[m] |  |     \- com.github.docker-java:docker-java-transport:jar:3.2.7:test
+[[1;34mINFO[m] |  \- org.testcontainers:cassandra:jar:1.15.1:test
+[[1;34mINFO[m] |     \- org.testcontainers:database-commons:jar:1.15.1:test
+[[1;34mINFO[m] +- org.springframework:spring-test:jar:5.2.3.RELEASE:test
+[[1;34mINFO[m] +- org.springframework.security:spring-security-test:jar:5.2.2.RELEASE:test
+[[1;34mINFO[m] +- org.kubek2k:springockito:jar:1.0.8:test
+[[1;34mINFO[m] +- pl.pragmatists:JUnitParams:jar:1.0.6:test
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-commons:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- org.aspectj:aspectjweaver:jar:1.9.6:compile
+[[1;34mINFO[m] |  \- cglib:cglib-nodep:jar:3.3.0:compile
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-dps-storm-common:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- eu.europeana.cloud:ecloud-service-mcs-rest-client-java:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  +- eu.europeana.cloud:ecloud-service-mcs-api:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  |  \- net.iharder:base64:jar:2.3.8:compile
+[[1;34mINFO[m] |  +- uk.com.robust-it:cloning:jar:1.9.1:compile
+[[1;34mINFO[m] |  +- eu.europeana.cloud:ecloud-service-dps-rest-client-java:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  +- com.google.code.gson:gson:jar:2.8.0:compile
+[[1;34mINFO[m] |  +- org.apache.curator:curator-framework:jar:4.0.1:compile
+[[1;34mINFO[m] |  |  \- org.apache.curator:curator-client:jar:4.0.1:compile
+[[1;34mINFO[m] |  +- org.apache.storm:storm-kafka-client:jar:1.1.3:compile
+[[1;34mINFO[m] |  |  \- commons-lang:commons-lang:jar:2.5:compile
+[[1;34mINFO[m] |  \- commons-collections:commons-collections:jar:3.2.2:compile
+[[1;34mINFO[m] +- com.github.tomakehurst:wiremock:jar:1.42:test
+[[1;34mINFO[m] |  +- net.sf.jopt-simple:jopt-simple:jar:4.3:test
+[[1;34mINFO[m] |  +- org.mortbay.jetty:jetty:jar:6.1.26:test
+[[1;34mINFO[m] |  |  +- org.mortbay.jetty:jetty-util:jar:6.1.26:test
+[[1;34mINFO[m] |  |  \- org.mortbay.jetty:servlet-api:jar:2.5-20081211:test
+[[1;34mINFO[m] |  +- org.skyscreamer:jsonassert:jar:1.2.1:test
+[[1;34mINFO[m] |  |  \- org.json:json:jar:20090211:test
+[[1;34mINFO[m] |  \- junit:junit-dep:jar:4.10:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:3.3.3:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.10.5:compile
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.10.5:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:2.6:compile
+[[1;34mINFO[m] +- org.powermock:powermock-core:jar:2.0.7:test
+[[1;34mINFO[m] |  +- org.powermock:powermock-reflect:jar:2.0.7:test
+[[1;34mINFO[m] |  \- org.javassist:javassist:jar:3.27.0-GA:compile
+[[1;34mINFO[m] +- org.powermock:powermock-api-mockito2:jar:2.0.7:test
+[[1;34mINFO[m] |  \- org.powermock:powermock-api-support:jar:2.0.7:test
+[[1;34mINFO[m] +- org.hibernate.validator:hibernate-validator:jar:6.1.2.Final:compile
+[[1;34mINFO[m] |  +- jakarta.validation:jakarta.validation-api:jar:2.0.2:compile
+[[1;34mINFO[m] |  +- org.jboss.logging:jboss-logging:jar:3.3.2.Final:compile
+[[1;34mINFO[m] |  \- com.fasterxml:classmate:jar:1.3.4:compile
+[[1;34mINFO[m] +- org.apache.tomcat:tomcat-el-api:jar:9.0.30:test
+[[1;34mINFO[m] +- org.apache.tomcat:tomcat-jasper-el:jar:9.0.30:test
+[[1;34mINFO[m] +- org.powermock:powermock-module-junit4:jar:2.0.7:test
+[[1;34mINFO[m] |  \- org.powermock:powermock-module-junit4-common:jar:2.0.7:test
+[[1;34mINFO[m] +- com.jayway.jsonpath:json-path-assert:jar:2.4.0:test
+[[1;34mINFO[m] |  \- org.hamcrest:hamcrest-core:jar:1.3:test
+[[1;34mINFO[m] +- com.jayway.jsonpath:json-path:jar:2.4.0:test
+[[1;34mINFO[m] |  \- net.minidev:json-smart:jar:2.3:test
+[[1;34mINFO[m] |     \- net.minidev:accessors-smart:jar:1.2:test
+[[1;34mINFO[m] +- eu.europeana.cloud:ecloud-service-dps-kafka:jar:5-SNAPSHOT:compile
+[[1;34mINFO[m] |  \- org.apache.kafka:kafka-clients:jar:1.1.1:compile
+[[1;34mINFO[m] |     \- org.lz4:lz4-java:jar:1.4.1:compile
+[[1;34mINFO[m] \- junit:junit:jar:4.12:test
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1;32mBUILD SUCCESS[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  2.191 s
+[[1;34mINFO[m] Finished at: 2021-07-07T13:23:09+02:00
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m

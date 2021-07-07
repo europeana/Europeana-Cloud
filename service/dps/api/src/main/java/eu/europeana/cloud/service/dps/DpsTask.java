@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps;
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import lombok.ToString;
 import org.codehaus.jackson.map.ObjectMapper;
 

@@ -16,8 +16,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.Set;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -29,8 +28,6 @@ public class PostProcessorFactoryTest {
 
     @Before
     public void initFactory() {
-        Map<String, TaskPostProcessor> postProcessors = new HashMap<>();
-
         harvestingPostProcessor = new HarvestingPostProcessor (
                 Mockito.mock(HarvestedRecordsDAO.class),
                 Mockito.mock(ProcessedRecordsDAO.class),
@@ -40,26 +37,21 @@ public class PostProcessorFactoryTest {
                 Mockito.mock(DataSetServiceClient.class),
                 Mockito.mock(TaskStatusUpdater.class)
         );
-        harvestingPostProcessor.getProcessedTopologies().forEach(
-                topologyName -> postProcessors.put(topologyName, harvestingPostProcessor));
-
         indexingPostProcessor = new IndexingPostProcessor (
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(HarvestedRecordsDAO.class)
         );
-        indexingPostProcessor.getProcessedTopologies().forEach(
-                topologyName -> postProcessors.put(topologyName, indexingPostProcessor));
 
-        postProcessorFactory = new PostProcessorFactory(postProcessors);
+        postProcessorFactory = new PostProcessorFactory(Arrays.asList(harvestingPostProcessor, indexingPostProcessor));
     }
 
     @Test
     public void shouldChooseValidPostProcessor() {
         Set<String> topologiesForIndexing =  indexingPostProcessor.getProcessedTopologies();
-        topologiesForIndexing.forEach(topologName -> shouldReturnApropriatePostProcessor(indexingPostProcessor, topologName));
+        topologiesForIndexing.forEach(topologyName -> shouldReturnApropriatePostProcessor(indexingPostProcessor, topologyName));
 
         Set<String> topologiesForHarvesting =  harvestingPostProcessor.getProcessedTopologies();
-        topologiesForHarvesting.forEach(topologName -> shouldReturnApropriatePostProcessor(harvestingPostProcessor, topologName));
+        topologiesForHarvesting.forEach(topologyName -> shouldReturnApropriatePostProcessor(harvestingPostProcessor, topologyName));
     }
 
     @Test(expected = PostProcessingException.class)

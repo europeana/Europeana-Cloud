@@ -11,7 +11,10 @@ import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.services.postprocessors.*;
+import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -29,8 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 
@@ -216,17 +218,9 @@ public class ServiceConfiguration {
 
     @Bean
     public PostProcessorFactory postProcessorFactory() {
-        Map<String, TaskPostProcessor> postProcessors = new HashMap<>();
-
-        TaskPostProcessor harvestingPostProcessor = harvestingPostProcessor();
-        harvestingPostProcessor.getProcessedTopologies().forEach(
-                topologyName -> postProcessors.put(topologyName, harvestingPostProcessor));
-
-        TaskPostProcessor indexingPostProcessor = indexingPostProcessor();
-        indexingPostProcessor.getProcessedTopologies().forEach(
-                topologyName -> postProcessors.put(topologyName, indexingPostProcessor));
-
-        return new PostProcessorFactory(postProcessors);
+        return new PostProcessorFactory(
+                Arrays.asList(harvestingPostProcessor(), indexingPostProcessor())
+        );
     }
 
     @Bean
@@ -275,6 +269,7 @@ public class ServiceConfiguration {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), tasksByStateDAO());
+        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(),
+                tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
     }
 }

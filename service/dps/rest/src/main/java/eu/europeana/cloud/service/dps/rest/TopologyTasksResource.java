@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -147,17 +146,6 @@ public class TopologyTasksResource {
         var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
         var task = DpsTask.fromTaskInfo(taskInfo);
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
-    }
-
-    @Deprecated(since = "07/01/2021")
-    @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    public ResponseEntity<Void> cleanIndexingDataSet(
-            @PathVariable final String topologyName,
-            @PathVariable final String taskId,
-            @RequestBody final DataSetCleanerParameters cleanerParameters
-    )  {
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
 
     /**

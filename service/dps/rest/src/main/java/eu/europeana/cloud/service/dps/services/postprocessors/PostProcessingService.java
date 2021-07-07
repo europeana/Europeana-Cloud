@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,19 +28,27 @@ public class PostProcessingService {
     private static final String MESSAGE_SUCCESSFULLY_POST_PROCESSED = "Successfully post processed task with id={}";
     private static final String MESSAGE_FAILED_POST_PROCESSED = "Could not post process task with id={}";
 
+    private final String applicationId;
+
     private final CassandraTaskInfoDAO taskInfoDAO;
 
     private final TasksByStateDAO tasksByStateDAO;
+
+    private final TaskStatusUpdater taskStatusUpdater;
 
     private final PostProcessorFactory postProcessorFactory;
 
     public PostProcessingService(PostProcessorFactory postProcessorFactory,
                                  CassandraTaskInfoDAO taskInfoDAO,
-                                 TasksByStateDAO tasksByStateDAO) {
+                                 TasksByStateDAO tasksByStateDAO,
+                                 TaskStatusUpdater taskStatusUpdater,
+                                 String applicationId) {
 
         this.postProcessorFactory = postProcessorFactory;
         this.taskInfoDAO = taskInfoDAO;
         this.tasksByStateDAO = tasksByStateDAO;
+        this.taskStatusUpdater = taskStatusUpdater;
+        this.applicationId = applicationId;
         LOGGER.info("Created post processing service");
     }
 
@@ -54,22 +63,24 @@ public class PostProcessingService {
             LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
         } catch (IOException | TaskInfoDoesNotExistException | PostProcessingException exception) {
             LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
+            taskStatusUpdater.setTaskDropped(taskByTaskState.getId(), exception.getCause() != null ?  exception.getCause().getMessage() : exception.getMessage());
         }
     }
 
-    private Optional<TaskByTaskState> findTask(List<TaskState> state) {
-        LOGGER.info("Finding tasks in {} state...", state);
-        Optional<TaskByTaskState> result = tasksByStateDAO.findTaskByState(state);
+    private Optional<TaskByTaskState> findTask(List<TaskState> states) {
+        LOGGER.info("Finding tasks in {} state...", states);
+        Optional<TaskByTaskState>  result = tasksByStateDAO.findTasksByState(states)
+                .stream().filter(task -> applicationId.equals(task.getApplicationId())).findFirst();
 
         result.ifPresentOrElse(
                 taskByTaskState -> LOGGER.info("Found task to post process with id= {}", taskByTaskState.getId()),
-                () -> LOGGER.info("There are no tasks in {} state on this machine.", state)
+                () -> LOGGER.info("There are no tasks in {} state on this machine.", states)
         );
 
         return result;
     }
 
-    public DpsTask loadTask(long taskId) throws IOException, TaskInfoDoesNotExistException {
+    private DpsTask loadTask(long taskId) throws IOException, TaskInfoDoesNotExistException {
         var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
         return DpsTask.fromTaskInfo(taskInfo);
     }

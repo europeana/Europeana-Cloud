@@ -40,8 +40,8 @@ public class IndexingPostProcessor implements TaskPostProcessor {
 
     @Override
     public void execute(DpsTask dpsTask) {
-        LOGGER.info("Started postprocessing for {}", dpsTask);
         try {
+            LOGGER.info("Started postprocessing for {}", dpsTask);
             DataSetCleanerParameters cleanerParameters = prepareParameters(dpsTask);
             LOGGER.info("Parameters that will be used in postprocessing: {}", cleanerParameters);
             if (!areParametersNull(cleanerParameters)) {
@@ -51,9 +51,10 @@ public class IndexingPostProcessor implements TaskPostProcessor {
             } else {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");
             }
-        } catch (ParseException | DatasetCleaningException | PostProcessingException e) {
-            LOGGER.error("Dataset was not removed correctly. ", e);
-            taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), e.getMessage());
+        } catch(Exception exception) {
+            throw new PostProcessingException(
+                    String.format("Error while %s post-process given task: taskId=%d. Dataset was not removed correctly. ",
+                            getClass().getSimpleName(), dpsTask.getTaskId()), exception);
         }
     }
 

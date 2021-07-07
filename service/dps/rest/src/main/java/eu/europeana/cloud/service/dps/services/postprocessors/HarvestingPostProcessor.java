@@ -86,21 +86,27 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
      */
     @Override
     public void execute(DpsTask dpsTask) {
-        taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
-                "Postprocessing - adding removed records to result revision.");
-        Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
-        while (it.hasNext()) {
-            var harvestedRecord = it.next();
-            if (!isRecordProcessed(dpsTask, harvestedRecord)) {
-                addRecordToTaskOutputRevision(dpsTask, harvestedRecord);
-                setRecordProcessed(dpsTask, harvestedRecord);
-                LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-            } else {
-                LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-            }
+        try {
+            taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+                    "Postprocessing - adding removed records to result revision.");
+            Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
+            while (it.hasNext()) {
+                var harvestedRecord = it.next();
+                if (!isRecordProcessed(dpsTask, harvestedRecord)) {
+                    addRecordToTaskOutputRevision(dpsTask, harvestedRecord);
+                    setRecordProcessed(dpsTask, harvestedRecord);
+                    LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+                } else {
+                    LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+                }
 
+            }
+            taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
+        } catch(Exception exception) {
+            throw new PostProcessingException(
+                    String.format("Error while %s post-process given task: taskId=%d", getClass().getSimpleName(), dpsTask.getTaskId()),
+                    exception);
         }
-        taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
     }
 
     public Set<String> getProcessedTopologies() {
