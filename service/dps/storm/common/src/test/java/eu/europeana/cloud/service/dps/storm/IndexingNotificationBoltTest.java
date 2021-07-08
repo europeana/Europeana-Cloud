@@ -21,7 +21,6 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -181,7 +180,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
     private void prepareDpsTask(long taskId,String incrementalFlagValue) throws IOException {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, incrementalFlagValue);
-        String taskJSON = new ObjectMapper().writeValueAsString(dpsTask);
+        String taskJSON = dpsTask.toJSON();
         taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.QUEUED, "", null, null, null, 0, taskJSON);
     }
 

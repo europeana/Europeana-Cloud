@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.rest;
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
@@ -15,8 +16,8 @@ import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidato
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -238,9 +239,15 @@ public class TopologyTasksResource {
         if (task != null) {
             LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-            var taskJSON = new ObjectMapper().writeValueAsString(task);
+
+            Date sentTime = new Date();
+            if(TopologiesNames.HTTP_TOPOLOGY.equals(topologyName) || TopologiesNames.OAI_TOPOLOGY.equals(topologyName) ) {
+                task.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(sentTime));
+            }
+
+            var taskJSON = task.toJSON();
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                    .sentTime(new Date())
+                    .sentTime(sentTime)
                     .startTime(new Date())
                     .task(task)
                     .topologyName(topologyName)
@@ -269,7 +276,6 @@ public class TopologyTasksResource {
 
         return result;
     }
-
 
     private ResponseEntity<Void> handleFailedSubmission(Exception exception, String loggedMessage, HttpStatus httpStatus,
                                                         SubmitTaskParameters parameters) {

@@ -165,9 +165,16 @@ public class DpsTask implements Serializable {
                 Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
     }
 
+    public String toJSON() throws IOException {
+        return new ObjectMapper().writeValueAsString(this);
+    }
+
+    public static DpsTask fromJSON(String json) throws IOException {
+        return new ObjectMapper().readValue(json, DpsTask.class);
+    }
+
     public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws IOException {
-        var dpsTask = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
-        return dpsTask;
+        return fromJSON(taskInfo.getTaskDefinition());
     }
 
     @Override

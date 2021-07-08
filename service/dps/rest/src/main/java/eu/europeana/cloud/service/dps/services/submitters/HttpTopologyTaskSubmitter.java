@@ -59,8 +59,6 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
         try {
-            parameters.getTask().addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(parameters.getSentTime()));
-
             final String urlToZipFile = parameters.getTask()
                     .getDataEntry(InputDataType.REPOSITORY_URLS).get(0);
             final HttpRecordIterator iterator = HarvesterFactory.createHttpHarvester()
