@@ -274,7 +274,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         Iterator<String> messagesUuids = cassandraTaskErrorsDAO.getMessagesUuids(1);
         while(messagesUuids.hasNext()){
             String error_uuid = messagesUuids.next();
-            assertEquals(109, cassandraTaskErrorsDAO.getErrorCount(1, UUID.fromString(error_uuid)));
+            assertEquals(109, cassandraTaskErrorsDAO.selectErrorCountsForErrorType(1, UUID.fromString(error_uuid)));
             TaskErrorsInfo specificTaskErrorReport = reportService.getSpecificTaskErrorReport("1", error_uuid, 200);
             assertEquals(100, specificTaskErrorReport.getErrors().get(0).getErrorDetails().size());
         }

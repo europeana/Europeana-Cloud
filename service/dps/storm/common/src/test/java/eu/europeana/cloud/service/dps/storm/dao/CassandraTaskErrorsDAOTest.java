@@ -12,6 +12,8 @@ import static org.junit.Assert.assertEquals;
 
 public class CassandraTaskErrorsDAOTest extends CassandraTestBase {
 
+    public static final String ERROR_TYPE_1 = "03e473e0-a201-11e7-a8ab-0242ac110009";
+    public static final String ERROR_TYPE_2 = "03e473e0-a201-11e7-a8ab-0242ac110010";
     private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
 
     @Before
@@ -22,22 +24,22 @@ public class CassandraTaskErrorsDAOTest extends CassandraTestBase {
 
     @Test
     public void shouldReturnZeroErrorsForTaskThatDoesNotExist() {
-        long errorCount = cassandraTaskErrorsDAO.getErrorCount(1, UUID.fromString("03e473e0-a201-11e7-a8ab-0242ac110009"));
+        long errorCount = cassandraTaskErrorsDAO.selectErrorCountsForErrorType(1, UUID.fromString(ERROR_TYPE_1));
         assertEquals(0, errorCount);
     }
 
     @Test
     public void shouldReturnCorrectNumberOfErrorsForTask() {
-        cassandraTaskErrorsDAO.updateErrorCounter(1, "03e473e0-a201-11e7-a8ab-0242ac110009");
-        cassandraTaskErrorsDAO.updateErrorCounter(1, "03e473e0-a201-11e7-a8ab-0242ac110009");
-        cassandraTaskErrorsDAO.updateErrorCounter(1, "03e473e0-a201-11e7-a8ab-0242ac110009");
-        cassandraTaskErrorsDAO.updateErrorCounter(1, "03e473e0-a201-11e7-a8ab-0242ac110009");
-        cassandraTaskErrorsDAO.updateErrorCounter(1, "03e473e0-a201-11e7-a8ab-0242ac110010");
+        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
+        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
+        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
+        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
+        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_2);
 
-        long errorCount = cassandraTaskErrorsDAO.getErrorCount(1, UUID.fromString("03e473e0-a201-11e7-a8ab-0242ac110009"));
+        long errorCount = cassandraTaskErrorsDAO.selectErrorCountsForErrorType(1, UUID.fromString(ERROR_TYPE_1));
         assertEquals(4, errorCount);
 
-        errorCount = cassandraTaskErrorsDAO.getErrorCount(1, UUID.fromString("03e473e0-a201-11e7-a8ab-0242ac110010"));
+        errorCount = cassandraTaskErrorsDAO.selectErrorCountsForErrorType(1, UUID.fromString(ERROR_TYPE_2));
         assertEquals(1, errorCount);
     }
 

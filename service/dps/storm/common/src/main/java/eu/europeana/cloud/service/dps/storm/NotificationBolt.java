@@ -174,7 +174,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
-        long errorCount = taskErrorDAO.getErrorCount(taskId, UUID.fromString(errorType));
+        long errorCount = taskErrorDAO.selectErrorCountsForErrorType(taskId, UUID.fromString(errorType));
         if (!maximumNumberOfErrorsReached(errorCount)) {
             taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
         } else {

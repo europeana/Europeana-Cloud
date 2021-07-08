@@ -154,9 +154,9 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      *
      * @param taskId identifier of the task that will be investigated
      * @param errorType type of the error that will be used to read the counter
-     * @return
+     * @return number of errors for the given task and given error type
      */
-    public long getErrorCount(long taskId, UUID errorType) {
+    public long selectErrorCountsForErrorType(long taskId, UUID errorType) {
         ResultSet rs = dbService.getSession().execute(selectErrorCountsForErrorTypeStatement.bind(taskId, errorType));
         Row result = rs.one();
         if (result != null) {
