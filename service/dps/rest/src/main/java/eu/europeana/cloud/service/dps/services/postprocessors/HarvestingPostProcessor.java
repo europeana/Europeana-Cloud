@@ -35,6 +35,22 @@ import java.util.Set;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+/**
+ * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
+ *
+ * <ol>
+ *  <li>Iterate over oll records from table <b>harvested_records</b> where <b>latest_harvest_date</b> < <b>task_execution_date</b></li>
+ *  <li>For each europeana_id:</li>
+ *      <ul>
+ *          <li>find cloud_id</li>
+ *          <li>create representation version</li>
+ *          <li>add revision (taken from task definition (output_revision))</li>
+ *          <li>add created representation version to dataset (dataset taken from task definition (output dataset))</li>
+ *      </ul>
+ *  <li>Change task status to PROCESSED;</li>
+ * </ol>
+ *
+ */
 @Service
 public class HarvestingPostProcessor implements TaskPostProcessor {
 
@@ -73,17 +89,6 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
         this.taskStatusUpdater = taskStatusUpdater;
     }
 
-    /**
-     * Plan for the method:
-     1. Iterate over oll records from table harvested_records where latest_harvest_date < task_execution_date
-     2. For each europeana_id:
-     - find cloud_id
-     - create representation version
-     - add revision (taken from task definition (output_revision))
-     - add created representation version to dataset (dataset taken from task definition (output dataset))
-     3. Change task status to PROCESSED;
-     * @param dpsTask
-     */
     @Override
     public void execute(DpsTask dpsTask) {
         try {
