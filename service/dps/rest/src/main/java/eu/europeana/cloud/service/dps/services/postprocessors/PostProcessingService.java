@@ -49,7 +49,7 @@ public class PostProcessingService {
         this.tasksByStateDAO = tasksByStateDAO;
         this.taskStatusUpdater = taskStatusUpdater;
         this.applicationId = applicationId;
-        LOGGER.info("Created post processing service");
+        LOGGER.info("Post-processing service created with given schedule (cron = '{}')", SCHEDULE_CRON_RULE);
     }
 
     @Scheduled(cron = SCHEDULE_CRON_RULE)
@@ -68,13 +68,13 @@ public class PostProcessingService {
     }
 
     private Optional<TaskByTaskState> findTask(List<TaskState> states) {
-        LOGGER.info("Finding tasks in {} state...", states);
+        LOGGER.info("Looking for tasks in {} state(s)...", states);
         Optional<TaskByTaskState>  result = tasksByStateDAO.findTasksByState(states)
                 .stream().filter(task -> applicationId.equals(task.getApplicationId())).findFirst();
 
         result.ifPresentOrElse(
-                taskByTaskState -> LOGGER.info("Found task to post process with id= {}", taskByTaskState.getId()),
-                () -> LOGGER.info("There are no tasks in {} state on this machine.", states)
+                taskByTaskState -> LOGGER.info("Found task with id = {} to post-process.", taskByTaskState.getId()),
+                () -> LOGGER.info("There are no tasks in {} state(s) on this machine.", states)
         );
 
         return result;
