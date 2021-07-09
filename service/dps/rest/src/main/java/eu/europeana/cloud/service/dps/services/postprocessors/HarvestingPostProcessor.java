@@ -109,8 +109,8 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
             taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
         } catch(Exception exception) {
             throw new PostProcessingException(
-                    String.format("Error while %s post-process given task: taskId=%d", getClass().getSimpleName(), dpsTask.getTaskId()),
-                    exception);
+                    String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
+                            dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
         }
     }
 

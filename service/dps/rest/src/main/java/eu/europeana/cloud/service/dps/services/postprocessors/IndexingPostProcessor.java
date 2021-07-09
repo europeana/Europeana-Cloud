@@ -53,8 +53,9 @@ public class IndexingPostProcessor implements TaskPostProcessor {
             }
         } catch(Exception exception) {
             throw new PostProcessingException(
-                    String.format("Error while %s post-process given task: taskId=%d. Dataset was not removed correctly. ",
-                            getClass().getSimpleName(), dpsTask.getTaskId()), exception);
+                    String.format("Error while %s post-process given task: taskId=%d. Dataset was not removed correctly. Cause: %s",
+                            getClass().getSimpleName(), dpsTask.getTaskId(),
+                            exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
         }
     }
 

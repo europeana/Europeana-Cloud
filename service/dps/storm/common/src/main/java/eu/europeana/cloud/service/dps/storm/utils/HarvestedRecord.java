@@ -13,6 +13,7 @@ public class HarvestedRecord {
 
     private String metisDatasetId;
     private String recordLocalId;
+    private int bucketNumber;
     private Date latestHarvestDate;
     private UUID latestHarvestMd5;
     private Date previewHarvestDate;
@@ -24,6 +25,7 @@ public class HarvestedRecord {
         return builder()
                 .metisDatasetId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID))
                 .recordLocalId(row.getString(CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID))
+                .bucketNumber(row.getInt(CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER))
                 .latestHarvestDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE))
                 .latestHarvestMd5(row.getUUID(CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5))
                 .previewHarvestDate(row.getTimestamp(CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE))

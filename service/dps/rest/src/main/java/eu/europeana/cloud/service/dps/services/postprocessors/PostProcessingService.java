@@ -63,7 +63,7 @@ public class PostProcessingService {
             LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
         } catch (IOException | TaskInfoDoesNotExistException | PostProcessingException exception) {
             LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
-            taskStatusUpdater.setTaskDropped(taskByTaskState.getId(), exception.getCause() != null ?  exception.getCause().getMessage() : exception.getMessage());
+            taskStatusUpdater.setTaskDropped(taskByTaskState.getId(), exception.getMessage());
         }
     }
 
