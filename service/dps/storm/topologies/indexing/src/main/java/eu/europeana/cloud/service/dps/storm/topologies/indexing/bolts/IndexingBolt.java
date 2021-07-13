@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -112,7 +113,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             } else{
                 removeIndexedRecord(stormTaskTuple, useAltEnv, database, europeanaId);
             }
-            findAndUpdateHarvestedRecord(stormTaskTuple, europeanaId);
+            updateHarvestedRecord(stormTaskTuple, europeanaId);
 
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
@@ -184,18 +185,16 @@ public class IndexingBolt extends AbstractDpsBolt {
                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
 
-    private void findAndUpdateHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId) {
+    private void updateHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId) {
         String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-        Optional<HarvestedRecord> harvestedRecord = harvestedRecordsDAO.findRecord(metisDatasetId, europeanaId);
 
-        if (harvestedRecord.isPresent()) {
-            updateHarvestedRecord(harvestedRecord.get(), stormTaskTuple);
-        } else {
-            insertNewHarvestedRecord(metisDatasetId, europeanaId, stormTaskTuple);
-        }
-    }
+        HarvestedRecord harvestedRecord = harvestedRecordsDAO.findRecord(metisDatasetId, europeanaId).orElseGet(() -> {
+            LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
+                    europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+            return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId).latestHarvestDate(
+                    Date.from(DateHelper.parse(stormTaskTuple.getParameter(PluginParameterKeys.HARVEST_DATE)))).build();
+        });
 
-    private void updateHarvestedRecord(HarvestedRecord harvestedRecord, StormTaskTuple stormTaskTuple) {
         Date latestHarvestDate = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestDate();
         UUID latestHarvestMd5 = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestMd5();
 
@@ -214,17 +213,8 @@ public class IndexingBolt extends AbstractDpsBolt {
                 throw new TopologyGeneralException("Unknown " + PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE + " : \"" + database + "\"");
         }
 
-        LOGGER.info("Updating harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
-                database, harvestedRecord,
-                stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
-    }
-
-    private void insertNewHarvestedRecord(String metisDatasetId, String europeanaId,  StormTaskTuple stormTaskTuple) {
-        var harvestedRecord = HarvestedRecord.builder().metisDatasetId(metisDatasetId)
-                .recordLocalId(europeanaId).build();
-        LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Inserting new empty record! taskId: {}, recordId:{}",
-                europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        LOGGER.info("Saving harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
+                database, harvestedRecord, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
         harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
 
