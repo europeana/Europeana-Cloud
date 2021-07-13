@@ -25,6 +25,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     private PreparedStatement insertErrorStatement;
     private PreparedStatement updateErrorCounterStatement;
     private PreparedStatement selectErrorCountsStatement;
+    private PreparedStatement selectErrorCountsForErrorTypeStatement;
     private PreparedStatement removeErrorCountsStatement;
     private PreparedStatement removeErrorNotifications;
 
@@ -77,6 +78,11 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? ");
         selectErrorCountsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
+        selectErrorCountsForErrorTypeStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER +
+                " FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ?" +
+                " AND " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE + " = ?");
+        selectErrorCountsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectErrorTypeStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE +
                 " FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
@@ -140,6 +146,24 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
             count += row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
         }
         return count;
+    }
+
+    /**
+     *
+     * Returns the number of errors of one given type of the error for a given task.
+     *
+     * @param taskId identifier of the task that will be investigated
+     * @param errorType type of the error that will be used to read the counter
+     * @return number of errors for the given task and given error type
+     */
+    public long selectErrorCountsForErrorType(long taskId, UUID errorType) {
+        ResultSet rs = dbService.getSession().execute(selectErrorCountsForErrorTypeStatement.bind(taskId, errorType));
+        Row result = rs.one();
+        if (result != null) {
+            return result.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
+        } else {
+            return 0;
+        }
     }
 
     public Iterator<String> getMessagesUuids(long taskId) {

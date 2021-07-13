@@ -4,10 +4,9 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.ProcessedRecord;
-import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.Constants;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -26,11 +25,8 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
@@ -51,7 +47,7 @@ public class NotificationBolt extends BaseRichBolt {
     protected String topologyName;
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
-    private transient CassandraTaskInfoDAO taskInfoDAO;
+    protected transient CassandraTaskInfoDAO taskInfoDAO;
     private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
 
@@ -73,13 +69,6 @@ public class NotificationBolt extends BaseRichBolt {
         this.userName = userName;
         this.password = password;
 
-    }
-
-    private static Date prepareDate(Object dateObject) {
-        Date date = null;
-        if (dateObject instanceof Date)
-            return (Date) dateObject;
-        return date;
     }
 
     @Override
@@ -125,16 +114,12 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
-        switch (notificationTuple.getInformationType()) {
-            case UPDATE_TASK:
-                updateTask(notificationTuple.getTaskId(), notificationTuple.getParameters());
-                break;
-            case NOTIFICATION:
-                storeNotificationInfo(notificationTuple, nCache);
-                break;
-            default:
-                //nothing to do
-                break;
+        if (notificationTuple.getInformationType() == InformationTypes.NOTIFICATION) {
+            storeNotificationInfo(notificationTuple, nCache);
+        } else {
+            LOGGER.warn("Nothing to do for taskId={}. InformationType={} is not supported. ",
+                    notificationTuple.getTaskId(),
+                    notificationTuple.getInformationType());
         }
     }
 
@@ -144,9 +129,9 @@ public class NotificationBolt extends BaseRichBolt {
         Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
         if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
             notifyTask(notificationTuple, nCache, taskId);
-            storeFinishState(notificationTuple);
             RecordState newRecordState = isErrorTuple(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS;
             processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState);
+            storeFinishState(notificationTuple);
         }
     }
 
@@ -188,7 +173,16 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void insertError(long taskId, String errorMessage, String additionalInformation, String errorType, String resource) {
-        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
+        long errorCount = taskErrorDAO.selectErrorCountsForErrorType(taskId, UUID.fromString(errorType));
+        if (!maximumNumberOfErrorsReached(errorCount)) {
+            taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformation);
+        } else {
+            LOGGER.warn("Will not store the error message because threshold reached for taskId={}. ", taskId);
+        }
+    }
+
+    private boolean maximumNumberOfErrorsReached(long errorCount) {
+        return errorCount > Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE;
     }
 
     private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
@@ -202,18 +196,6 @@ public class NotificationBolt extends BaseRichBolt {
             nCache.inc(false);
             return false;
         }
-    }
-
-    private void updateTask(long taskId, Map<String, Object> parameters) {
-        Validate.notNull(parameters);
-        String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
-        String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
-        Date startDate = prepareDate(parameters.get(NotificationParameterKeys.START_TIME));
-        updateTask(taskId, state, info, startDate);
-    }
-
-    private void updateTask(long taskId, String state, String info, Date startDate) {
-        taskStatusUpdater.updateTask(taskId, info, state, startDate);
     }
 
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
@@ -287,9 +269,7 @@ public class NotificationBolt extends BaseRichBolt {
             while (it.hasNext()) {
                 String errorType = it.next();
                 Optional<String> message = taskErrorDAO.getErrorMessage(taskId, errorType);
-                if (message.isPresent()) {
-                    errorMessageToUuidMap.put(message.get(), errorType);
-                }
+                message.ifPresent(s -> errorMessageToUuidMap.put(s, errorType));
             }
             return errorMessageToUuidMap;
         }

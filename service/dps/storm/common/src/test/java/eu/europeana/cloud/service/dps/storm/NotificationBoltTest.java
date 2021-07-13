@@ -4,6 +4,7 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -27,7 +28,6 @@ import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 
 public class NotificationBoltTest extends CassandraTestBase {
@@ -42,6 +42,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     private ReportService reportService;
     private CassandraSubTaskInfoDAO subtaskDAO;
     private ProcessedRecordsDAO processedRecordsDAO;
+    private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
     private int resourceCounter=0;
 
     @Before
@@ -54,6 +55,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         CassandraConnectionProvider db=new CassandraConnectionProvider(HOST,CassandraTestInstance.getPort(),KEYSPACE,USER_NAME,PASSWORD);
         subtaskDAO = CassandraSubTaskInfoDAO.getInstance(db);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
+        cassandraTaskErrorsDAO = CassandraTaskErrorsDAO.getInstance(db);
     }
 
     private void createBolt() {
@@ -64,48 +66,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         boltConfig.put(Config.STORM_ZOOKEEPER_PORT, "");
         boltConfig.put(Config.TOPOLOGY_NAME, "");
         testedBolt.prepare(boltConfig, null, collector);
-    }
-
-    @Test
-    public void testUpdateBasicInfoStateWithStartDateAndInfo() throws Exception {
-        //given
-        long taskId = 1;
-        int containsElements = 1;
-        int expectedSize = 1;
-        String topologyName = null;
-        TaskState taskState = TaskState.CURRENTLY_PROCESSING;
-        String taskInfo = "";
-        Date startTime = new Date();
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, startTime, null);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, startTime, null, 0, null);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, startTime));
-        //when
-        testedBolt.execute(tuple);
-        //then
-        TaskInfo result = taskInfoDAO.findById(taskId).get();
-        assertThat(result, notNullValue());
-        assertThat(result, is(expectedTaskInfo));
-    }
-
-    @Test
-    public void testUpdateBasicInfoStateWithFinishDateAndInfo() throws Exception {
-        //given
-        long taskId = 1;
-        int containsElements = 1;
-        int expectedSize = 1;
-        String topologyName = null;
-        TaskState taskState = TaskState.CURRENTLY_PROCESSING;
-        String taskInfo = "";
-        Date finishDate = new Date();
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, null, finishDate);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, null, finishDate, 0, null);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareEndTask(taskId, taskInfo, taskState, finishDate));
-        //when
-        testedBolt.execute(tuple);
-        //then
-        TaskInfo result = taskInfoDAO.findById(taskId).get();
-        assertThat(result, notNullValue());
-        assertThat(result, is(expectedTaskInfo));
     }
 
     @Test
@@ -136,17 +96,12 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
 
-
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
-        testedBolt.execute(setUpTuple);
         TaskInfo beforeExecute = reportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
 
         for (int i = 0; i < 98; i++) {
             testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         }
-        //we will wait 5 second to be sure that notification bolt will update progress counter
-        Thread.sleep(5001);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
 
         TaskInfo afterOneHundredExecutions = reportService.getTaskProgress(String.valueOf(taskId));
@@ -157,6 +112,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertEquals(afterOneHundredExecutions.getProcessedElementCount(), 100);
         assertThat(afterOneHundredExecutions.getState(), is(TaskState.CURRENTLY_PROCESSING));
     }
+
     @Test
     public void testSuccessfulProgressUpdateAfterBoltRecreate() throws Exception {
         long taskId = 1;
@@ -165,9 +121,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
-
-        testedBolt.execute(setUpTuple);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         createBolt();
         //we will wait 5 second to be sure that notification bolt will update progress counter
@@ -194,9 +147,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, 2, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
-        testedBolt.execute(setUpTuple);
-
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         createBolt();
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
@@ -211,10 +161,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, 2, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
-        testedBolt.execute(setUpTuple);
-
-
         testedBolt.execute(createNotificationTuple(taskId, RecordState.ERROR, RESOURCE_1));
         createBolt();
         testedBolt.execute(createNotificationTuple(taskId, RecordState.ERROR, RESOURCE_2));
@@ -258,8 +204,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
-        testedBolt.execute(setUpTuple);
 
         //when
         List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
@@ -297,6 +241,46 @@ public class NotificationBoltTest extends CassandraTestBase {
 
 
     @Test
+    public void shouldStoreOnlyLimitedAmountOfErrors() throws Exception {
+        ReportService reportService = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
+        long taskId = 1;
+        int expectedSize = 120;
+        int errors = 109;
+        String topologyName = null;
+        TaskState taskState = TaskState.CURRENTLY_PROCESSING;
+        String taskInfo = "";
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+
+        //when
+        List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
+
+        TaskInfo beforeExecute = reportService.getTaskProgress(String.valueOf(taskId));
+
+        for (Tuple tuple : tuples) {
+            testedBolt.execute(tuple);
+        }
+
+        TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(String.valueOf(taskId), 0);
+
+        //then
+        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
+        assertEquals(beforeExecute.getErrors(), 0);
+
+        assertEquals(errorsInfo.getErrors().size(), 1);
+        assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
+        //
+        assertEquals(109, cassandraTaskErrorsDAO.getErrorCount(1));
+        Iterator<String> messagesUuids = cassandraTaskErrorsDAO.getMessagesUuids(1);
+        while(messagesUuids.hasNext()){
+            String error_uuid = messagesUuids.next();
+            assertEquals(109, cassandraTaskErrorsDAO.selectErrorCountsForErrorType(1, UUID.fromString(error_uuid)));
+            TaskErrorsInfo specificTaskErrorReport = reportService.getSpecificTaskErrorReport("1", error_uuid, 200);
+            assertEquals(100, specificTaskErrorReport.getErrors().get(0).getErrorDetails().size());
+        }
+    }
+
+    @Test
     public void testNotificationForErrors() throws Exception {
         //given
         ReportService reportService = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
@@ -307,8 +291,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
-        testedBolt.execute(setUpTuple);
 
         //when
         List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
