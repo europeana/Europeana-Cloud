@@ -110,6 +110,37 @@ public class DpsTaskValidatorForIndexingTopologyTest {
         validator.validate(dpsTask);
     }
 
+    @Test(expected = DpsTaskValidationException.class)
+    public void shouldFailsWithoutDataCase01() throws DpsTaskValidationException {
+        DpsTask dpsTask = prepareDpsTaskForTests(
+                Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
+                false,
+                false
+        );
+
+        dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
+
+        DpsTaskValidator validator =
+                DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
+        validator.validate(dpsTask);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void shouldFailsWithoutDataCase02() throws DpsTaskValidationException {
+        DpsTask dpsTask = prepareDpsTaskForTests(
+                Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
+                false,
+                false
+        );
+
+        dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
+
+        DpsTaskValidator validator =
+                DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS);
+        validator.validate(dpsTask);
+    }
+
+
     private DpsTask prepareDpsTaskForTests(List<String> parameters, boolean addDatasetUrls, boolean addFilesUrls) {
         DpsTask dpsTask = new DpsTask(TASK_NAME);
         parameters.forEach(parameter -> dpsTask.addParameter(parameter, "sample_"+parameter));
