@@ -145,13 +145,14 @@ public class DpsTaskValidatorForIndexingTopologyTest {
         DpsTask dpsTask = new DpsTask(TASK_NAME);
         parameters.forEach(parameter -> dpsTask.addParameter(parameter, "sample_"+parameter));
 
+        final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
         if(addDatasetUrls) {
-            final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
             inputData.put(DATASET_URLS, Collections.singletonList(DATASET_01));
-            dpsTask.setInputData(inputData);
         } else if(addFilesUrls) {
-            final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
             inputData.put(FILE_URLS, Arrays.asList(FILE_01, FILE_02, FILE_03));
+        }
+
+        if(!inputData.isEmpty()) {
             dpsTask.setInputData(inputData);
         }
 
