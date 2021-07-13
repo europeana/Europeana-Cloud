@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.dps.service.utils;
+package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -11,8 +12,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 
 public class TopologyManagerTest {
-
-
     final String nameList = "topologyA,topologyB";
     TopologyManager instance;
 
@@ -43,32 +42,27 @@ public class TopologyManagerTest {
 
     @Test
     public void should_successfully_containsTopology1() {
-        //given
-        final String topologyName = "topologyA";
-        //when
-        boolean result = instance.containsTopology(topologyName);
-        //then
-        assertThat(result, is(equalTo(true)));
+        baseContainsTopologyTest("topologyA", true);
     }
 
     @Test
     public void should_successfully_containsTopology2() {
-        //given
-        final String topologyName = "topologyB";
-        //when
-        boolean result = instance.containsTopology(topologyName);
-        //then
-        assertThat(result, is(equalTo(true)));
+        baseContainsTopologyTest("topologyB", true);
     }
 
     @Test
     public void should_unsuccessfully_containsTopology() {
+        baseContainsTopologyTest("topologyC", false);
+    }
+
+    private void baseContainsTopologyTest(String topologyName, boolean expectedValue) {
         //given
-        final String topologyName = "topologyC";
+        //      topologyName
         //when
         boolean result = instance.containsTopology(topologyName);
         //then
-        assertThat(result, is(equalTo(false)));
+        assertThat(result, is(equalTo(expectedValue)));
+
     }
 
     private List<String> convertStringToList(String input) {
@@ -78,6 +72,4 @@ public class TopologyManagerTest {
     private String[] getSplit(String input) {
         return input.split(TopologyManager.separatorChar);
     }
-
-
 }

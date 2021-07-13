@@ -1,10 +1,8 @@
-package eu.europeana.cloud.service.dps.service.utils;
+package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

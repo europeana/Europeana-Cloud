@@ -1,7 +1,10 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.service.utils.validation.custom.*;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedInputRevisionValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.SampleSizeForIncrementalHarvestingValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.SingleOutputDatasetValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.SingleRepositoryValidator;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,33 +21,29 @@ public class DpsTaskValidatorFactory {
                             "parameterNameThatWillNeverHappen",
                             Collections.singletonList("parameterValueThatWillNeverHappen"));
 
-    private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
-    private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
-    private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
-    private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
-    private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS = "validation_topology_file_urls";
-    private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
+    static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
+    static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
+    static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
+    static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
+    static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS = "validation_topology_file_urls";
+    static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
 
-    private static final String IC_TOPOLOGY_TASK_WITH_FILE_URLS = "ic_topology_file_urls";
-    private static final String IC_TOPOLOGY_TASK_WITH_DATASETS = "ic_topology_dataset_urls";
+    static final String NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS = "normalization_topology_file_urls";
+    static final String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology_dataset_urls";
 
-    private static final String NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS = "normalization_topology_file_urls";
-    private static final String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology_dataset_urls";
+    static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
+    static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
+    static final String INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS = "indexing_topology_file_urls";
+    static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
 
-    private static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
-    private static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
-    private static final String JP2_MIME_TYPE = "image/jp2";
-    private static final String INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS = "indexing_topology_file_urls";
-    private static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
+    static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
+    static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
 
-    private static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
-    private static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
+    static final String DEPUBLICATION_TASK_FOR_DATASET = "depublication_topology_metis_dataset_id";
+    static final String DEPUBLICATION_TASK_FOR_RECORDS = "depublication_topology_record_ids_to_depublish";
 
-    private static final String DEPUBLICATION_TASK_FOR_DATASET = "depublication_topology_metis_dataset_id";
-    private static final String DEPUBLICATION_TASK_FOR_RECORDS = "depublication_topology_record_ids_to_depublish";
-
-    public static final String MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS = "media_topology_file_urls";
-    public static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology_dataset_urls";
+    static final String MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS = "media_topology_file_urls";
+    static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology_dataset_urls";
 
     private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
@@ -68,21 +67,6 @@ public class DpsTaskValidatorFactory {
         taskValidatorMap.put(XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS, new DpsTaskValidator("DataSet validator for XSLT Topology")
                 .withParameter(PluginParameterKeys.XSLT_URL)
                 .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
-                .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
-                .withOptionalOutputRevision()
-                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
-
-        taskValidatorMap.put(IC_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for IC Topology")
-                .withParameter(PluginParameterKeys.MIME_TYPE)
-                .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
-                .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withOptionalOutputRevision()
-                .withCustomValidator(new FullyDefinedInputRevisionValidator()));
-
-        taskValidatorMap.put(IC_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for IC Topology")
-                .withParameter(PluginParameterKeys.MIME_TYPE)
-                .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
-                .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
                 .withOptionalOutputRevision()
                 .withCustomValidator(new FullyDefinedInputRevisionValidator()));
@@ -140,6 +124,7 @@ public class DpsTaskValidatorFactory {
                 .withOptionalOutputRevision()
                 .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
                 .withParameter(PluginParameterKeys.METIS_DATASET_ID)
+                .withParameter(PluginParameterKeys.HARVEST_DATE)
                 .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Indexing Topology")
@@ -148,6 +133,7 @@ public class DpsTaskValidatorFactory {
                 .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
                 .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues())
                 .withParameter(PluginParameterKeys.METIS_DATASET_ID)
+                .withParameter(PluginParameterKeys.HARVEST_DATE)
                 .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
         taskValidatorMap.put(LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Link checking Topology")
