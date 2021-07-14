@@ -78,6 +78,7 @@ public class FileUploadResource {
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable String representationName,
+            @RequestParam(required = false) UUID version,
             @RequestParam String fileName,
             @RequestParam String providerId,
             @RequestParam String mimeType ,
@@ -88,7 +89,7 @@ public class FileUploadResource {
         PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
 
-        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId);
+        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
         addPrivilegesToRepresentation(representation);
 
         File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);

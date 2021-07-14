@@ -350,12 +350,11 @@ public class CassandraRecordDAO {
      * @param creationTime creation date
      * @return
      */
-    public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime)
+    public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime, UUID version)
             throws NoHostAvailableException, QueryExecutionException {
         if (cloudId == null || schema == null || providerId == null) {
             throw new IllegalArgumentException(MSG_PARAMETERS_CANNOT_BE_NULL);
         }
-        UUID version = getTimeUUID();
 
         // insert representation into representation table.
         BoundStatement boundStatement = insertRepresentationStatement.bind(
@@ -599,10 +598,6 @@ public class CassandraRecordDAO {
 
     private String serializeRevision(Revision revision) {
         return revisionGson.toJson(revision);
-    }
-
-    private static UUID getTimeUUID() {
-        return UUID.fromString(new com.eaio.uuid.UUID().toString());
     }
 
     /**
