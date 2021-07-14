@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.aas.acl.CassandraMutableAclService;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -35,10 +36,9 @@ public class RepresentationResource {
 	private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
 	private final RecordService recordService;
-	private final MutableAclService mutableAclService;
+	private final CassandraMutableAclService mutableAclService;
 
-	public RepresentationResource(RecordService recordService,
-								  MutableAclService mutableAclService) {
+	public RepresentationResource(RecordService recordService, CassandraMutableAclService mutableAclService) {
 		this.recordService = recordService;
 		this.mutableAclService = mutableAclService;
 	}
@@ -130,8 +130,7 @@ public class RepresentationResource {
 			ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
 					cloudId + "/" + representationName + "/" + representation.getVersion());
 
-			MutableAcl versionAcl = mutableAclService
-					.createAcl(versionIdentity);
+			MutableAcl versionAcl = mutableAclService.insertOrUpdateAcl(versionIdentity);
 
 			versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
 			versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);

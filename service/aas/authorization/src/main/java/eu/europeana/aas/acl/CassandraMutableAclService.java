@@ -63,14 +63,37 @@ public class CassandraMutableAclService extends CassandraAclService implements M
 
     @Override
     public MutableAcl createAcl(ObjectIdentity objectIdentity) throws AlreadyExistsException {
-        Assert.notNull(objectIdentity, "Object Identity required");
-
         if (LOG.isDebugEnabled()) {
-            LOG.debug("BEGIN createAcl: objectIdentity: " + objectIdentity);
+            LOG.debug("EXECUTE createAcl: objectIdentity: " + objectIdentity);
         }
 
+        AclObjectIdentity newAoi = createAclObjectIdentity(objectIdentity);
+        if (aclRepository.findAclObjectIdentity(newAoi) != null) {
+            throw new AclAlreadyExistsException("Object identity '" + newAoi + "' already exists");
+        }
+
+        return saveAcl(objectIdentity);
+    }
+
+    public MutableAcl insertOrUpdateAcl(ObjectIdentity objectIdentity) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("EXECUTE insertOrUpdateAcl: objectIdentity: " + objectIdentity);
+        }
+
+        AclObjectIdentity newAoi = createAclObjectIdentity(objectIdentity);
+        AclObjectIdentity oldAoi = aclRepository.findAclObjectIdentity(newAoi);
+        if (aoiIsOwnedByDifferentUser(oldAoi)) {
+            throw new AclAlreadyExistsException("Object identity '" + newAoi + "' already exists and is owned by other user!");
+        }
+
+        return saveAcl(objectIdentity);
+    }
+
+    private AclObjectIdentity createAclObjectIdentity(ObjectIdentity objectIdentity) {
         // Need to retrieve the current principal, in order to know who "owns"
         // this ACL (can be changed later on)
+        Assert.notNull(objectIdentity, "Object Identity required");
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         PrincipalSid sid = new PrincipalSid(auth);
 
@@ -78,21 +101,34 @@ public class CassandraMutableAclService extends CassandraAclService implements M
         newAoi.setOwnerId(sid.getPrincipal());
         newAoi.setOwnerPrincipal(true);
         newAoi.setEntriesInheriting(false);
+        return newAoi;
+    }
 
-        try {
-            aclRepository.saveAcl(newAoi);
-        } catch (AclAlreadyExistsException e) {
-            throw new AlreadyExistsException(e.getMessage(), e);
+    private MutableAcl saveAcl(ObjectIdentity objectIdentity) {
+        AclObjectIdentity newAoi = createAclObjectIdentity(objectIdentity);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("START saveAcl: acl: {}" + objectIdentity);
         }
+        aclRepository.saveAcl(newAoi);
 
         // Retrieve the ACL via superclass (ensures cache registration, proper retrieval etc)
         Acl acl = readAclById(objectIdentity);
         Assert.isInstanceOf(MutableAcl.class, acl, "MutableAcl should be been returned");
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("END createAcl: acl: " + acl);
+            LOG.debug("END saveAcl: acl: " + acl);
         }
+
         return (MutableAcl) acl;
+    }
+
+    private boolean aoiIsOwnedByDifferentUser(AclObjectIdentity aoi) {
+        if (aoi == null) {
+            return false;
+        }
+
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return (currentUserId == null) || !currentUserId.equals(aoi.getOwnerId());
     }
 
     @Override

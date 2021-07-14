@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.aas.acl.CassandraMutableAclService;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
@@ -38,12 +39,12 @@ public class FileUploadResource {
 
     private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
     private final RecordService recordService;
-    private final MutableAclService mutableAclService;
+    private final CassandraMutableAclService mutableAclService;
     private final Integer objectStoreSizeThreshold;
 
     public FileUploadResource(
             RecordService recordService,
-            MutableAclService mutableAclService,
+            CassandraMutableAclService mutableAclService,
             Integer objectStoreSizeThreshold) {
         this.recordService = recordService;
         this.mutableAclService = mutableAclService;
@@ -111,7 +112,7 @@ public class FileUploadResource {
                     REPRESENTATION_CLASS_NAME,
                     representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion());
 
-            MutableAcl versionAcl = mutableAclService.createAcl(versionIdentity);
+            MutableAcl versionAcl = mutableAclService.insertOrUpdateAcl(versionIdentity);
 
             versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
             versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
@@ -129,19 +130,6 @@ public class FileUploadResource {
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileStorage(storage);
-
-        if (fileName != null) {
-            try {
-                File temp = recordService.getFile(representation.getCloudId(),
-                        representation.getRepresentationName(), representation.getVersion(),
-                        fileName);
-                if (temp != null) {
-                    throw new FileAlreadyExistsException(fileName);
-                }
-            } catch (FileNotExistsException e) {
-                // file does not exist, so continue and add it
-            }
-        }
 
         if (fileName == null) {
             fileName = UUID.randomUUID().toString();

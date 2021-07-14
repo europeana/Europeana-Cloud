@@ -72,14 +72,11 @@ public interface AclRepository {
     void deleteAcls(List<AclObjectIdentity> objectIdsToDelete);
 
     /**
-     * Saves an {@link AclObjectIdentity} record in the database. It will have
-     * no entries.
+     * Saves an {@link AclObjectIdentity} record in the database.
      *
      * @param aoi the {@link AclObjectIdentity} to save.
-     * @throws AclAlreadyExistsException if the passed object identity already
-     * has a record.
      */
-    void saveAcl(AclObjectIdentity aoi) throws AclAlreadyExistsException;
+    void saveAcl(AclObjectIdentity aoi);
 
     /**
      * Changes an existing {@link AclObjectIdentity} or the related
