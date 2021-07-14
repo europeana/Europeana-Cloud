@@ -29,11 +29,11 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 true,
                 false
         );
-
         dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
+
+
         validator.validate(dpsTask);
     }
 
@@ -44,11 +44,11 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 true,
                 false
         );
-
         dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, "publish");
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
+
+
         validator.validate(dpsTask);
     }
 
@@ -59,9 +59,10 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 true,
                 false
         );
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
+
+
         validator.validate(dpsTask);
     }
 
@@ -72,11 +73,11 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 true,
                 false
         );
-
         dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PUBLISH.toString());
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
+
+
         validator.validate(dpsTask);
     }
 
@@ -87,11 +88,11 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 true,
                 false
         );
-
         dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
+
+
         validator.validate(dpsTask);
     }
 
@@ -102,11 +103,11 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 false,
                 true
         );
-
         dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS);
+
+
         validator.validate(dpsTask);
     }
 
@@ -117,11 +118,11 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 false,
                 false
         );
-
         dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
+
+
         validator.validate(dpsTask);
     }
 
@@ -132,11 +133,11 @@ public class DpsTaskValidatorForIndexingTopologyTest {
                 false,
                 false
         );
-
         dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-
         DpsTaskValidator validator =
                 DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS);
+
+
         validator.validate(dpsTask);
     }
 

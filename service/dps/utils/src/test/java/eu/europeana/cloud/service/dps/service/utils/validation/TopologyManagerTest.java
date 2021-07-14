@@ -21,7 +21,7 @@ public class TopologyManagerTest {
     }
 
     @Test
-    public void should_ProperlyCreateInstance() {
+    public void shouldCreateInstanceWithSuccess() {
         //given
         //when
         //then
@@ -30,7 +30,7 @@ public class TopologyManagerTest {
 
 
     @Test
-    public void should_successfully_getTopologyNames() {
+    public void shouldRetrieveTopologyNamesWithSuccess() {
         //given
         //when
         List<String> resultNameList = instance.getNames();
@@ -41,17 +41,17 @@ public class TopologyManagerTest {
 
 
     @Test
-    public void should_successfully_containsTopology1() {
+    public void shouldContainTopologyA() {
         baseContainsTopologyTest("topologyA", true);
     }
 
     @Test
-    public void should_successfully_containsTopology2() {
+    public void shouldContainTopologyB() {
         baseContainsTopologyTest("topologyB", true);
     }
 
     @Test
-    public void should_unsuccessfully_containsTopology() {
+    public void shouldContainTopologyC() {
         baseContainsTopologyTest("topologyC", false);
     }
 
