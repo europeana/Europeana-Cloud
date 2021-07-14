@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
@@ -7,6 +8,7 @@ import static org.mockito.Mockito.*;
 import com.google.gson.Gson;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -45,6 +47,9 @@ public class IndexingBoltTest {
     private static final Date LATEST_HARVEST_DATE = new Date(2000);
     private static final UUID LATEST_HARVEST_MD5 = UUID.randomUUID();
     public static final String LOCAL_ID = "localId";
+    private static final String HARVEST_DATE_TASK_PARAM = "2021-07-12T16:50:00.000Z";
+    public static final Date HARVEST_DATE = DateHelper.parseISODate(HARVEST_DATE_TASK_PARAM);
+
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
 
@@ -102,7 +107,7 @@ public class IndexingBoltTest {
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-        assertEquals(6, parameters.size());
+        assertEquals(7, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
@@ -137,7 +142,7 @@ public class IndexingBoltTest {
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-        assertEquals(6, parameters.size());
+        assertEquals(7, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
@@ -173,14 +178,14 @@ public class IndexingBoltTest {
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-        assertEquals(7, parameters.size());
+        assertEquals(8, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
-    public void shouldInsertEmptyHarvestedRecordsIfNotExist() throws Exception {
+    public void shouldInsertNewHarvestedRecordsIfNotExist() throws Exception {
         //given
         mockEuropeanaIdFinder();
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.empty());
@@ -196,12 +201,13 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(eq(HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID).build()));
+                .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID).latestHarvestDate(HARVEST_DATE)
+                .publishedHarvestDate(HARVEST_DATE).build()));
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-        assertEquals(6, parameters.size());
+        assertEquals(7, parameters.size());
         DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
         assertFalse(dataSetCleanerParameters.isUsingAltEnv());
         assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
@@ -286,6 +292,34 @@ public class IndexingBoltTest {
         Assert.assertTrue(val.get("state").toString().equals("ERROR"));
     }
 
+    @Test
+    public void shouldThrowExceptionWhenHarvestDateIsNull() throws IndexingException {
+        Tuple anchorTuple = mock(TupleImpl.class);
+        StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+        tuple.getParameters().remove(PluginParameterKeys.HARVEST_DATE);
+
+        indexingBolt.execute(anchorTuple, tuple);
+
+        verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
+        verify(harvestedRecordsDAO, never()).insertHarvestedRecord(any());
+        verifyNoInteractions(indexerPool);
+    }
+
+
+    @Test
+    public void shouldThrowExceptionWhenHarvestDateIsUnParsable() throws IndexingException {
+        Tuple anchorTuple = mock(TupleImpl.class);
+        StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+        tuple.addParameter(PluginParameterKeys.HARVEST_DATE, "UN_PARSABLE_DATE");
+
+        indexingBolt.execute(anchorTuple, tuple);
+
+        verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
+        verify(harvestedRecordsDAO, never()).insertHarvestedRecord(any());
+        verifyNoInteractions(indexerPool);
+    }
+
+
     private void mockEuropeanaIdFinder() throws CloudException, MalformedURLException {
         when(europeanaIdFinder.findForFileUrl(METIS_DATASET_ID, FILE_URL)).thenReturn(LOCAL_ID);
     }
@@ -302,6 +336,7 @@ public class IndexingBoltTest {
                         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
                         DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
                         put(PluginParameterKeys.METIS_RECORD_DATE, dateFormat.format(new Date()));
+                        put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
                         put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
                         put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
                         put(PluginParameterKeys.OUTPUT_DATA_SETS,"https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
