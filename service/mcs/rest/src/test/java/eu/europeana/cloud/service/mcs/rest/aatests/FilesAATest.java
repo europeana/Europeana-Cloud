@@ -91,7 +91,8 @@ public class FilesAATest extends AbstractSecurityTest {
 		file2.setFileName(FILE_NAME_2);
 		file2.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
-		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(representation).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 	}
 	
 	// -- GET FILE -- //

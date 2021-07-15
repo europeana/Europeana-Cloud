@@ -125,11 +125,8 @@ public interface RecordService {
             throws RecordNotExistsException, ProviderNotExistsException;
 
 
-    default Representation createRepresentation(String globalId, String schema, String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException {
-        return createRepresentation(globalId, schema, providerId, null);
-    }
-
+    Representation createRepresentation(String globalId, String schema, String providerId)
+            throws RecordNotExistsException, ProviderNotExistsException ;
 
 
     /**

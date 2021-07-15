@@ -31,6 +31,8 @@ import static org.junit.Assert.*;
 @ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
 public class CassandraRecordServiceTest extends CassandraTestBase {
 
+    private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
+
     @Autowired
     private CassandraRecordService cassandraRecordService;
 
@@ -67,6 +69,35 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation rFetched = cassandraRecordService.getRepresentation(
                 "globalId", "dc", r.getVersion());
         assertThat(rFetched, is(r));
+    }
+
+    @Test
+    public void shouldCreateRepresentationInGivenVersion() throws Exception {
+        mockUISProvider1Success();
+        makeUISSuccess();
+
+        Representation r = cassandraRecordService.createRepresentation(
+                "globalId", "dc", PROVIDER_1_ID, VERSION);
+
+        Representation rFetched = cassandraRecordService.getRepresentation(
+                "globalId", "dc", VERSION.toString());
+        assertThat(rFetched, is(r));
+    }
+
+    @Test
+    public void shouldAllowInvokeCreateRepresentationInTheSameGivenVersionManyTimes() throws Exception {
+        mockUISProvider1Success();
+        makeUISSuccess();
+
+        Representation r1 = cassandraRecordService.createRepresentation(
+                "globalId", "dc", PROVIDER_1_ID, VERSION);
+        Representation r2 = cassandraRecordService.createRepresentation(
+                "globalId", "dc", PROVIDER_1_ID, VERSION);
+
+        Representation rFetched = cassandraRecordService.getRepresentation(
+                "globalId", "dc", VERSION.toString());
+        assertThat(rFetched, is(r1));
+        assertThat(rFetched, is(r2));
     }
 
     @Test(expected = IllegalStateException.class)

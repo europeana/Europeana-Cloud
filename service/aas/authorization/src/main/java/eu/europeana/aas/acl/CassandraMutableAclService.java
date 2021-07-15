@@ -17,7 +17,6 @@ package eu.europeana.aas.acl;
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
 import eu.europeana.aas.acl.repository.AclRepository;
-import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,7 +68,7 @@ public class CassandraMutableAclService extends CassandraAclService implements M
 
         AclObjectIdentity newAoi = createAclObjectIdentity(objectIdentity);
         if (aclRepository.findAclObjectIdentity(newAoi) != null) {
-            throw new AclAlreadyExistsException("Object identity '" + newAoi + "' already exists");
+            throw new AlreadyExistsException("Object identity '" + newAoi + "' already exists");
         }
 
         return saveAcl(objectIdentity);
@@ -83,7 +82,7 @@ public class CassandraMutableAclService extends CassandraAclService implements M
         AclObjectIdentity newAoi = createAclObjectIdentity(objectIdentity);
         AclObjectIdentity oldAoi = aclRepository.findAclObjectIdentity(newAoi);
         if (aoiIsOwnedByDifferentUser(oldAoi)) {
-            throw new AclAlreadyExistsException("Object identity '" + newAoi + "' already exists and is owned by other user!");
+            throw new AlreadyExistsException("Object identity '" + newAoi + "' already exists and is owned by other user!");
         }
 
         return saveAcl(objectIdentity);

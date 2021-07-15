@@ -49,7 +49,7 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 	private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
 	@Autowired
-	private MutableAclService service;
+	private CassandraMutableAclService service;
 	
 	@Autowired
 	private CassandraAclRepository repository;
@@ -61,9 +61,7 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 		repository.createAclsTable();
 		repository.createChilrenTable();
 
-		SecurityContextHolder.getContext().setAuthentication(
-				new UsernamePasswordAuthenticationToken(sid1, "password", Arrays.asList(new SimpleGrantedAuthority[] { new SimpleGrantedAuthority(
-						ROLE_ADMIN) })));		
+		loginAsUser(sid1);
 	}
 	
 	@After
@@ -216,6 +214,37 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 		service.createAcl(oi);		
 	}
 
+	@Test
+	public void testInsertOrUpdateAcl() {
+		ObjectIdentity objectIdentity = createDefaultTestOI();
+
+		MutableAcl acl = service.insertOrUpdateAcl(objectIdentity);
+
+		assertAcl(objectIdentity, acl, sid1);
+		assertAcl(objectIdentity, service.readAclById(objectIdentity), sid1);
+	}
+
+	@Test
+	public void testInsertOrUpdateSameAclTwoTimes() {
+		ObjectIdentity objectIdentity = createDefaultTestOI();
+
+		MutableAcl acl1 = service.insertOrUpdateAcl(objectIdentity);
+		MutableAcl acl2 = service.insertOrUpdateAcl(objectIdentity);
+
+		assertAcl(objectIdentity, acl1, sid1);
+		assertAcl(objectIdentity, acl2, sid1);
+		assertAcl(objectIdentity, service.readAclById(objectIdentity), sid1);
+	}
+
+	@Test(expected = AlreadyExistsException.class)
+	public void testInsertOrUpdateAclOfOtherUser() {
+		ObjectIdentity objectIdentity = createDefaultTestOI();
+
+		service.insertOrUpdateAcl(objectIdentity);
+		loginAsUser(sid2);
+		service.insertOrUpdateAcl(objectIdentity);
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullAcl() {
 		service.deleteAcl(null, false);
@@ -312,6 +341,12 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 	public void testReadAclsByIdWithSidFilteringAclNotExisting() {
 		ObjectIdentity oi = createDefaultTestOI();
 		service.readAclsById(Arrays.asList(new ObjectIdentity[] { oi }), null);
+	}
+
+	private void loginAsUser(String sid2) {
+		SecurityContextHolder.getContext().setAuthentication(
+				new UsernamePasswordAuthenticationToken(sid2, "password", Arrays.asList(new SimpleGrantedAuthority[]{new SimpleGrantedAuthority(
+						ROLE_ADMIN)})));
 	}
 
 	private ObjectIdentity createDefaultTestOI() {

@@ -112,7 +112,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 		Mockito.doReturn(representation).when(recordService).getRepresentation(Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(representation).when(recordService).getRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(representation).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 		Mockito.doReturn(representation).when(recordService).persistRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(copiedRepresentation).when(recordService).copyRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
@@ -205,14 +206,14 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 	public void shouldOnlyGetRepresentationsHeCanReadTest3() throws RecordNotExistsException, ProviderNotExistsException  {
 
-		Mockito.doReturn(representation)
-			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(representation).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 
-		Mockito.doReturn(representationYouDontHavePermissionsFor)
-			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(representationYouDontHavePermissionsFor).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(RONALD_PASSWORD, RONALD_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
@@ -224,14 +225,14 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 	public void shouldOnlyGetRepresentationsHeCanReadTest4() throws RecordNotExistsException, ProviderNotExistsException  {
 
-		Mockito.doReturn(representation)
-			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(representation).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 
-		Mockito.doReturn(representationYouDontHavePermissionsFor)
-			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(representationYouDontHavePermissionsFor).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(RONALD_PASSWORD, RONALD_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);

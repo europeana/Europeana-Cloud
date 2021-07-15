@@ -229,6 +229,12 @@ public class RecordServiceClient extends MCSClient {
         }
     }
 
+
+    public URI createRepresentation(String cloudId, String representationName, String providerId,
+                                    String key, String value) throws MCSException {
+        return createRepresentation(cloudId, representationName, providerId, (UUID) null, key, value);
+    }
+
     /**
      * Creates new representation version.
      *
@@ -237,13 +243,14 @@ public class RecordServiceClient extends MCSClient {
      * @param representationName name of the representation to be created
      *                           (required)
      * @param providerId         provider of this representation version (required)
+     * @param version
      * @return URI to the created representation
      * @throws ProviderNotExistsException when no provider with given id exists
      * @throws RecordNotExistsException   when cloud id is not known to UIS
      *                                    Service
      * @throws MCSException               on unexpected situations
      */
-    public URI createRepresentation(String cloudId, String representationName, String providerId,
+    public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
                                     String key, String value) throws MCSException {
 
         WebTarget target = client
@@ -254,6 +261,7 @@ public class RecordServiceClient extends MCSClient {
         Builder request = target.request();
         Form form = new Form();
         form.param(PROVIDER_ID, providerId);
+        form.param(VERSION, version.toString());
         if (key != null) {
             request.header(key, value);
         }
@@ -307,6 +315,11 @@ public class RecordServiceClient extends MCSClient {
         }
     }
 
+    public URI createRepresentation(String cloudId, String representationName, String providerId, InputStream data,
+                                    String fileName, String mediaType, String key, String value)
+            throws IOException, MCSException {
+        return createRepresentation(cloudId, representationName, providerId, null, data, fileName, mediaType, key, value);
+    }
 
     /**
      * Creates new representation version, aploads a file and makes this representation persistent (in one request)
@@ -326,6 +339,7 @@ public class RecordServiceClient extends MCSClient {
     public URI createRepresentation(String cloudId,
                                     String representationName,
                                     String providerId,
+                                    UUID version,
                                     InputStream data,
                                     String fileName,
                                     String mediaType,

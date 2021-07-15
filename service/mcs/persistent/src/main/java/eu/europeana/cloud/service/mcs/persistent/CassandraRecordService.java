@@ -136,6 +136,11 @@ public class CassandraRecordService implements RecordService {
         }
     }
 
+    @Override
+    public Representation createRepresentation(String globalId, String schema, String providerId)
+            throws RecordNotExistsException, ProviderNotExistsException {
+        return createRepresentation(globalId, schema, providerId, null);
+    }
 
     /**
      * @inheritDoc

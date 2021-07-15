@@ -97,7 +97,8 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         representation.setRepresentationName(SCHEMA);
         representation.setVersion(VERSION);
 
-       Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+       Mockito.doReturn(representation).when(recordService)
+               .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
     }
 
 
