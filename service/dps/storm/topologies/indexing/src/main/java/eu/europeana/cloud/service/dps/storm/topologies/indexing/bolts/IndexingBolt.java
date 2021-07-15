@@ -188,17 +188,13 @@ public class IndexingBolt extends AbstractDpsBolt {
     private void updateHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId) {
         String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
 
-        HarvestedRecord harvestedRecord = harvestedRecordsDAO.findRecord(metisDatasetId, europeanaId).orElseGet(() -> {
-            LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
-                    europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-            return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId).latestHarvestDate(
-                    Date.from(DateHelper.parse(stormTaskTuple.getParameter(PluginParameterKeys.HARVEST_DATE)))).build();
-        });
+        var harvestedRecord = harvestedRecordsDAO.findRecord(metisDatasetId, europeanaId)
+                .orElseGet(() -> prepareNewHarvestedRecord(stormTaskTuple, europeanaId, metisDatasetId));
 
         Date latestHarvestDate = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestDate();
         UUID latestHarvestMd5 = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestMd5();
 
-        TargetIndexingDatabase database = TargetIndexingDatabase.valueOf(
+        var database = TargetIndexingDatabase.valueOf(
                 stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
         switch (database) {
             case PREVIEW:
@@ -216,6 +212,13 @@ public class IndexingBolt extends AbstractDpsBolt {
         LOGGER.info("Saving harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
                 database, harvestedRecord, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
         harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
+    }
+
+    private HarvestedRecord prepareNewHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId, String metisDatasetId) {
+        LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
+                europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId).latestHarvestDate(
+                Date.from(DateHelper.parse(stormTaskTuple.getParameter(PluginParameterKeys.HARVEST_DATE)))).build();
     }
 
     class IndexerPoolWrapper implements Closeable {

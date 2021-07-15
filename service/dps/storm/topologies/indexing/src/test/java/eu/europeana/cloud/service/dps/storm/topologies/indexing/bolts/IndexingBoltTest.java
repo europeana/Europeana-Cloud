@@ -98,11 +98,11 @@ public class IndexingBoltTest {
         verify(indexerPool).index(anyString(), any());
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
-        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(eq(HarvestedRecord.builder()
+        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
                 .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
                 .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
-                .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+                .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
@@ -133,11 +133,11 @@ public class IndexingBoltTest {
         verify(indexerPool).index(anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
-        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(eq(HarvestedRecord.builder()
+        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
                 .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
                 .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
-                .publishedHarvestDate(LATEST_HARVEST_DATE).publishedHarvestMd5(LATEST_HARVEST_MD5).build()));
+                .publishedHarvestDate(LATEST_HARVEST_DATE).publishedHarvestMd5(LATEST_HARVEST_MD5).build());
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
@@ -169,11 +169,11 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
         verify(indexerPool, never()).index(Mockito.anyString(), Mockito.any());
         verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
-        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(eq(HarvestedRecord.builder()
+        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
                 .latestHarvestDate(EARLIER_HARVEST_DATE).latestHarvestMd5(EARLIER_HARVEST_MD5)
                 .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
-                .publishedHarvestDate(null).publishedHarvestMd5(null).build()));
+                .publishedHarvestDate(null).publishedHarvestMd5(null).build());
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
@@ -200,9 +200,9 @@ public class IndexingBoltTest {
         verify(indexerPool).index(anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
-        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(eq(HarvestedRecord.builder()
+        Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID).latestHarvestDate(HARVEST_DATE)
-                .publishedHarvestDate(HARVEST_DATE).build()));
+                .publishedHarvestDate(HARVEST_DATE).build());
         Values capturedValues = captor.getValue();
         assertEquals(8, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
@@ -253,7 +253,7 @@ public class IndexingBoltTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenDateIsUnParsable() throws IndexingException {
+    public void shouldThrowExceptionWhenDateIsUnparsable() {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
@@ -270,7 +270,7 @@ public class IndexingBoltTest {
 
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
         Assert.assertTrue(val.get("info_text").toString().contains("Could not parse RECORD_DATE parameter"));
-        Assert.assertTrue(val.get("state").toString().equals("ERROR"));
+        assertEquals("ERROR", val.get("state").toString());
     }
 
     @Test
@@ -289,11 +289,11 @@ public class IndexingBoltTest {
         Map val = (Map) capturedValues.get(2);
 
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        Assert.assertTrue(val.get("state").toString().equals("ERROR"));
+        assertEquals("ERROR", val.get("state").toString());
     }
 
     @Test
-    public void shouldThrowExceptionWhenHarvestDateIsNull() throws IndexingException {
+    public void shouldThrowExceptionWhenHarvestDateIsNull() {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
         tuple.getParameters().remove(PluginParameterKeys.HARVEST_DATE);
@@ -307,7 +307,7 @@ public class IndexingBoltTest {
 
 
     @Test
-    public void shouldThrowExceptionWhenHarvestDateIsUnParsable() throws IndexingException {
+    public void shouldThrowExceptionWhenHarvestDateIsUnparsable() {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
         tuple.addParameter(PluginParameterKeys.HARVEST_DATE, "UN_PARSABLE_DATE");
@@ -331,7 +331,7 @@ public class IndexingBoltTest {
                 "taskName",
                 FILE_URL,
                 new byte[]{'a', 'b', 'c'},
-                new HashMap<String, String>() {
+                new HashMap<>() {
                     {
                         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
                         DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
