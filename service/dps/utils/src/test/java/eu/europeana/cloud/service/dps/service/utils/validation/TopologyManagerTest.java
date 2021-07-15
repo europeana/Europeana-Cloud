@@ -51,7 +51,7 @@ public class TopologyManagerTest {
     }
 
     @Test
-    public void shouldContainTopologyC() {
+    public void shouldNotContainTopologyC() {
         baseContainsTopologyTest("topologyC", false);
     }
 
