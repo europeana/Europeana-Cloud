@@ -6,6 +6,7 @@ import com.github.f4b6a3.uuid.strategy.NodeIdentifierStrategy;
 import com.github.f4b6a3.uuid.util.UuidTime;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -38,6 +39,10 @@ public class UUIDWrapper {
                 .withClockSequence(0);
 
         return uuidCreator.create();
+    }
+
+    public static String generateFileName(String recordId) {
+        return UUID.nameUUIDFromBytes(recordId.getBytes(StandardCharsets.UTF_8)).toString();
     }
 
     private static class CustomNodeIdentifierStrategy implements NodeIdentifierStrategy {
