@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
-import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -16,11 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Set;
-import java.util.stream.StreamSupport;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class IndexingPostProcessor implements TaskPostProcessor {
 
@@ -45,8 +41,13 @@ public class IndexingPostProcessor implements TaskPostProcessor {
             DataSetCleanerParameters cleanerParameters = prepareParameters(dpsTask);
             LOGGER.info("Parameters that will be used in postprocessing: {}", cleanerParameters);
             if (!areParametersNull(cleanerParameters)) {
-                cleanSolrAndMongo(cleanerParameters);
-                cleanECloud(cleanerParameters);
+                var datasetCleaner = new DatasetCleaner(cleanerParameters);
+                Stream<String> recordIdsThatWillBeRemoved = datasetCleaner.getRecordIds();
+                LOGGER.info("cleaning dataset {} based on date: {}",
+                        cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+                datasetCleaner.execute();
+                LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
+                cleanECloud(recordIdsThatWillBeRemoved, cleanerParameters);
                 endTheTask(dpsTask);
             } else {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");
@@ -72,31 +73,42 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                 dateFormat.parse(dpsTask.getParameter(PluginParameterKeys.METIS_RECORD_DATE)));
     }
 
-    private void cleanSolrAndMongo(DataSetCleanerParameters cleanerParameters) throws DatasetCleaningException, ParseException {
-        LOGGER.info("cleaning dataset {} based on date: {}",
-                cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
-        var datasetCleaner = new DatasetCleaner(cleanerParameters);
-        datasetCleaner.execute();
-        LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
-    }
-
-    private void cleanECloud(DataSetCleanerParameters cleanerParameters) {
-        Iterator<HarvestedRecord> datasetRecords = harvestedRecordsDAO.findDatasetRecords(cleanerParameters.getDataSetId());
+    private void cleanECloud(Stream<String> recordIds, DataSetCleanerParameters cleanerParameters) {
         if (isPreviewEnvironment(cleanerParameters)) {
-            cleanPreviewDatesAndMd5(datasetRecords, cleanerParameters);
+            cleanPreviewDateAndMd5(recordIds, cleanerParameters.getDataSetId());
         } else if (isPublishEnvironment(cleanerParameters)) {
-            cleanPublishDatesAndMd5(datasetRecords, cleanerParameters);
+            cleanPublishDateAndMd5(recordIds, cleanerParameters.getDataSetId());
         } else {
             throw new PostProcessingException("Unable to recognize environment" + cleanerParameters.getTargetIndexingEnv());
         }
     }
 
-    private void cleanPublishDatesAndMd5(Iterator<HarvestedRecord> datasetRecords, DataSetCleanerParameters cleanerParameters) {
-        Iterable<HarvestedRecord> iterable = () -> datasetRecords;
-        StreamSupport.stream(iterable.spliterator(), false)
-                .filter(harvestedRecord -> recordEligibleForRemovalForPublish(harvestedRecord, cleanerParameters.getCleaningDate()))
-                .forEach(harvestedRecord ->
-                        updateHarvestedRecord(HarvestedRecord.builder()
+    private void cleanPreviewDateAndMd5(Stream<String> recordIds, String datasetId) {
+        recordIds
+                .map(recordId -> harvestedRecordsDAO.findRecord(datasetId, recordId))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(harvestedRecord ->
+                        HarvestedRecord.builder()
+                                .metisDatasetId(harvestedRecord.getMetisDatasetId())
+                                .recordLocalId(harvestedRecord.getRecordLocalId())
+                                .latestHarvestDate(harvestedRecord.getLatestHarvestDate())
+                                .latestHarvestMd5(harvestedRecord.getLatestHarvestMd5())
+                                .previewHarvestDate(null)
+                                .previewHarvestMd5(null)
+                                .publishedHarvestDate(harvestedRecord.getPublishedHarvestDate())
+                                .publishedHarvestMd5(harvestedRecord.getPublishedHarvestMd5())
+                                .build())
+                .forEach(harvestedRecordsDAO::insertHarvestedRecord);
+    }
+
+    private void cleanPublishDateAndMd5(Stream<String> recordIds, String datasetId) {
+        recordIds
+                .map(recordId -> harvestedRecordsDAO.findRecord(datasetId, recordId))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(harvestedRecord ->
+                        HarvestedRecord.builder()
                                 .metisDatasetId(harvestedRecord.getMetisDatasetId())
                                 .recordLocalId(harvestedRecord.getRecordLocalId())
                                 .latestHarvestDate(harvestedRecord.getLatestHarvestDate())
@@ -106,36 +118,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                                 .publishedHarvestDate(null)
                                 .publishedHarvestMd5(null)
                                 .build())
-                );
-    }
-
-    private void cleanPreviewDatesAndMd5(Iterator<HarvestedRecord> datasetRecords, DataSetCleanerParameters cleanerParameters) {
-        Iterable<HarvestedRecord> iterable = () -> datasetRecords;
-        StreamSupport.stream(iterable.spliterator(), false)
-                .filter(harvestedRecord -> recordEligibleForRemovalForPreview(harvestedRecord, cleanerParameters.getCleaningDate()))
-                .forEach(harvestedRecord -> updateHarvestedRecord(HarvestedRecord.builder()
-                        .metisDatasetId(harvestedRecord.getMetisDatasetId())
-                        .recordLocalId(harvestedRecord.getRecordLocalId())
-                        .latestHarvestDate(harvestedRecord.getLatestHarvestDate())
-                        .latestHarvestMd5(harvestedRecord.getLatestHarvestMd5())
-                        .previewHarvestDate(null)
-                        .previewHarvestMd5(null)
-                        .publishedHarvestDate(harvestedRecord.getPublishedHarvestDate())
-                        .publishedHarvestMd5(harvestedRecord.getPublishedHarvestMd5())
-                        .build())
-                );
-    }
-
-    private boolean recordEligibleForRemovalForPublish(HarvestedRecord harvestedRecord, Date cutDate) {
-        return harvestedRecord.getPublishedHarvestDate().before(cutDate);
-    }
-
-    private boolean recordEligibleForRemovalForPreview(HarvestedRecord harvestedRecord, Date cutDate) {
-        return harvestedRecord.getPreviewHarvestDate().before(cutDate);
-    }
-
-    private void updateHarvestedRecord(HarvestedRecord harvestedRecord) {
-        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
+                .forEach(harvestedRecordsDAO::insertHarvestedRecord);
     }
 
     private boolean isPublishEnvironment(DataSetCleanerParameters cleanerParameters) {
