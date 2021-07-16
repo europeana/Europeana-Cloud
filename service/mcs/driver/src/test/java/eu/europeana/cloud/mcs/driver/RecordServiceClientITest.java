@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -48,6 +49,7 @@ public class RecordServiceClientITest {
 
     private static final String PROVIDER_ID = "xxx";
     private static final String DATA_SET_ID = "DATA_SET_ID";
+    private static final UUID VERSION = UUID.fromString("40585a42-e606-11eb-ba80-0242ac130004");
 
     //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA_
     //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA_
@@ -221,6 +223,42 @@ public class RecordServiceClientITest {
         int index = representationURI.toString().indexOf("/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
         assertThat(index, not(-1));
     }
+
+    @Test
+    public void createRepresentationInGivenVersionKeyValue() throws CloudException, MCSException {
+        String representationName = "StrangeRepresentationName";
+
+        UISClient uisClient = new UISClient(LOCAL_TEST_UIS_URL, USER_NAME, USER_PASSWORD);
+        //CloudId cloudId = uisClient.createCloudId(PROVIDER_ID, "recordt1");
+        CloudId cloudId = uisClient.getCloudId(PROVIDER_ID, "recordt1");
+
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+        URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID, VERSION,
+                MCSClient.AUTHORIZATION_KEY, MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
+
+        int index = representationURI.toString().indexOf("/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/" + VERSION);
+        assertThat(index, not(-1));
+    }
+
+    @Test
+    public void createRepresentationInGivenVersionFileKeyValue() throws CloudException, MCSException, IOException {
+        String representationName = "StrangeRepresentationName";
+
+        UISClient uisClient = new UISClient(LOCAL_TEST_UIS_URL, USER_NAME, USER_PASSWORD);
+        CloudId cloudId = uisClient.getCloudId(PROVIDER_ID, "recordt1");
+
+        String filename = "log4j.properties";
+        String mediatype = MediaType.TEXT_PLAIN_VALUE;
+        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/" + filename);
+
+        RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+        URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID, VERSION,
+                is, filename, mediatype, MCSClient.AUTHORIZATION_KEY, MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
+
+        int index = representationURI.toString().indexOf("/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
+        assertThat(index, not(-1));
+    }
+
 
     @Test(expected = RepresentationNotExistsException.class)
     public void deleteRepresentation() throws CloudException, MCSException, IOException {

@@ -357,6 +357,7 @@ public class RecordServiceClient extends MCSClient {
         request.header("Content-Type", "multipart/form-data");
         try {
             multipart = prepareRequestBody(providerId, data, fileName, mediaType);
+            multipart.field(VERSION, version.toString());
             response = request.header(key, value).post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
             return handleResponse(response);
         } finally {
