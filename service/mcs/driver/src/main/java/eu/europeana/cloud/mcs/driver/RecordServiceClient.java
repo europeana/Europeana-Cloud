@@ -259,9 +259,13 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(CLOUD_ID, cloudId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName);
         Builder request = target.request();
-        Form form = new Form();
+        var form = new Form();
         form.param(PROVIDER_ID, providerId);
-        form.param(VERSION, version.toString());
+
+        if (version != null) {
+            form.param(VERSION, version.toString());
+        }
+
         if (key != null) {
             request.header(key, value);
         }
@@ -399,7 +403,7 @@ public class RecordServiceClient extends MCSClient {
                 .field(ParamConstants.F_FILE_MIME, mediaType)
                 .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-        if (fileName == null || !fileName.trim().isEmpty()) {
+        if (fileName == null || fileName.trim().isEmpty()) {
             fileName = UUID.randomUUID().toString();
         }
         requestBody.field(ParamConstants.F_FILE_NAME, fileName);
