@@ -42,7 +42,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
     private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
 
     private RecordService recordService;
-    
+
     static final private String globalId = "1";
     static final private String schema = "DC";
     static final private String version = "1.0";
@@ -56,12 +56,12 @@ public class RepresentationResourceTest extends AbstractResourceTest {
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
-    
+
     @SuppressWarnings("unused")
     private Object[] mimeTypes() {
         return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
     }
-    
+
     @Test
     @Parameters(method = "mimeTypes")
     public void getRepresentation(MediaType mediaType)
@@ -168,7 +168,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
     @Test
     public void createRepresentationInGivenVersion()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID,null)).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION)).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
@@ -179,14 +179,14 @@ public class RepresentationResourceTest extends AbstractResourceTest {
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, eq(VERSION));
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, VERSION);
         verifyNoMoreInteractions(recordService);
     }
 
     @Test
     public void createRepresentationInGivenVersionTwice()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID,null)).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION)).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
@@ -205,7 +205,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(2)).createRepresentation(globalId, schema, providerID, eq(VERSION));
+        verify(recordService, times(2)).createRepresentation(globalId, schema, providerID, VERSION);
         verifyNoMoreInteractions(recordService);
     }
 
