@@ -38,7 +38,7 @@ import java.util.List;
  * @author Rigas Grigoropoulos
  *
  */
-public class CassandraMutableAclService extends CassandraAclService implements MutableAclService {
+public class CassandraMutableAclService extends CassandraAclService implements ExtendedAclService {
 
     private static final Log LOG = LogFactory.getLog(CassandraMutableAclService.class);
 

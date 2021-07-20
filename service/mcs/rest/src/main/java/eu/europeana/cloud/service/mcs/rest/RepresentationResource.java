@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.aas.acl.CassandraMutableAclService;
+import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -35,11 +35,11 @@ public class RepresentationResource {
 	private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
 	private final RecordService recordService;
-	private final CassandraMutableAclService mutableAclService;
+	private final ExtendedAclService aclService;
 
-	public RepresentationResource(RecordService recordService, CassandraMutableAclService mutableAclService) {
+	public RepresentationResource(RecordService recordService, ExtendedAclService aclService) {
 		this.recordService = recordService;
-		this.mutableAclService = mutableAclService;
+		this.aclService = aclService;
 	}
 
 	/**
@@ -120,7 +120,7 @@ public class RepresentationResource {
 			@RequestParam(required = false) UUID version
 	) throws RecordNotExistsException, ProviderNotExistsException {
 
-		Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
+		var representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
 		EnrichUriUtil.enrich(httpServletRequest, representation);
 
 		String creatorName = SpringUserUtils.getUsername();
@@ -129,14 +129,14 @@ public class RepresentationResource {
 			ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
 					cloudId + "/" + representationName + "/" + representation.getVersion());
 
-			MutableAcl versionAcl = mutableAclService.insertOrUpdateAcl(versionIdentity);
+			MutableAcl versionAcl = aclService.insertOrUpdateAcl(versionIdentity);
 
 			versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
 			versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
 			versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
 			versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
 
-			mutableAclService.updateAcl(versionAcl);
+			aclService.updateAcl(versionAcl);
 		}
 
 		return ResponseEntity.created(representation.getUri()).build();

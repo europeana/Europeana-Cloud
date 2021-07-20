@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.mcs.config;
 
 import eu.europeana.aas.acl.CassandraMutableAclService;
+import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -47,7 +46,7 @@ public class AuthorizationConfiguration {
     /* ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= */
 
     @Bean
-    public CassandraMutableAclService aclService(CassandraAclRepository aclRepository) {
+    public ExtendedAclService aclService(CassandraAclRepository aclRepository) {
         return new CassandraMutableAclService(
                 aclRepository,
                 null,
@@ -114,13 +113,13 @@ public class AuthorizationConfiguration {
     }
 
     @Bean
-    public AclPermissionCacheOptimizer permissionCacheOptimizer(CassandraMutableAclService aclService) {
+    public AclPermissionCacheOptimizer permissionCacheOptimizer(ExtendedAclService aclService) {
         return new AclPermissionCacheOptimizer(aclService);
     }
 
 
     @Bean
-    public AclPermissionEvaluator permissionEvaluator(CassandraMutableAclService aclService) {
+    public AclPermissionEvaluator permissionEvaluator(ExtendedAclService aclService) {
         return new AclPermissionEvaluator(aclService);
     }
 }
