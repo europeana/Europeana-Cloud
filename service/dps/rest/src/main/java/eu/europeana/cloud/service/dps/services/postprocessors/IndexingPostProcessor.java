@@ -75,50 +75,35 @@ public class IndexingPostProcessor implements TaskPostProcessor {
 
     private void cleanECloud(Stream<String> recordIds, DataSetCleanerParameters cleanerParameters) {
         if (isPreviewEnvironment(cleanerParameters)) {
-            cleanPreviewDateAndMd5(recordIds, cleanerParameters.getDataSetId());
+            cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), TargetIndexingDatabase.PREVIEW);
         } else if (isPublishEnvironment(cleanerParameters)) {
-            cleanPublishDateAndMd5(recordIds, cleanerParameters.getDataSetId());
+            cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), TargetIndexingDatabase.PUBLISH);
         } else {
             throw new PostProcessingException("Unable to recognize environment" + cleanerParameters.getTargetIndexingEnv());
         }
     }
 
-    private void cleanPreviewDateAndMd5(Stream<String> recordIds, String datasetId) {
+    private void cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase) {
         recordIds
                 .map(recordId -> harvestedRecordsDAO.findRecord(datasetId, recordId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(harvestedRecord ->
-                        HarvestedRecord.builder()
-                                .metisDatasetId(harvestedRecord.getMetisDatasetId())
-                                .recordLocalId(harvestedRecord.getRecordLocalId())
-                                .latestHarvestDate(harvestedRecord.getLatestHarvestDate())
-                                .latestHarvestMd5(harvestedRecord.getLatestHarvestMd5())
-                                .previewHarvestDate(null)
-                                .previewHarvestMd5(null)
-                                .publishedHarvestDate(harvestedRecord.getPublishedHarvestDate())
-                                .publishedHarvestMd5(harvestedRecord.getPublishedHarvestMd5())
-                                .build())
+                .map(harvestedRecord -> doCleaning(harvestedRecord, indexingDatabase))
                 .forEach(harvestedRecordsDAO::insertHarvestedRecord);
     }
 
-    private void cleanPublishDateAndMd5(Stream<String> recordIds, String datasetId) {
-        recordIds
-                .map(recordId -> harvestedRecordsDAO.findRecord(datasetId, recordId))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(harvestedRecord ->
-                        HarvestedRecord.builder()
-                                .metisDatasetId(harvestedRecord.getMetisDatasetId())
-                                .recordLocalId(harvestedRecord.getRecordLocalId())
-                                .latestHarvestDate(harvestedRecord.getLatestHarvestDate())
-                                .latestHarvestMd5(harvestedRecord.getLatestHarvestMd5())
-                                .previewHarvestDate(harvestedRecord.getPreviewHarvestDate())
-                                .previewHarvestMd5(harvestedRecord.getPreviewHarvestMd5())
-                                .publishedHarvestDate(null)
-                                .publishedHarvestMd5(null)
-                                .build())
-                .forEach(harvestedRecordsDAO::insertHarvestedRecord);
+    private HarvestedRecord doCleaning(HarvestedRecord harvestedRecord, TargetIndexingDatabase indexingDatabase) {
+        switch(indexingDatabase) {
+            case PREVIEW:
+                harvestedRecord.setPreviewHarvestDate(null);
+                harvestedRecord.setPreviewHarvestMd5(null);
+                break;
+            case PUBLISH:
+                harvestedRecord.setPublishedHarvestDate(null);
+                harvestedRecord.setPublishedHarvestMd5(null);
+                break;
+        }
+        return harvestedRecord;
     }
 
     private boolean isPublishEnvironment(DataSetCleanerParameters cleanerParameters) {
