@@ -74,13 +74,13 @@ public class IndexingPostProcessor implements TaskPostProcessor {
     }
 
     private void cleanECloud(Stream<String> recordIds, DataSetCleanerParameters cleanerParameters) {
-        if (isPreviewEnvironment(cleanerParameters)) {
-            cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), TargetIndexingDatabase.PREVIEW);
-        } else if (isPublishEnvironment(cleanerParameters)) {
-            cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), TargetIndexingDatabase.PUBLISH);
-        } else {
+        TargetIndexingDatabase indexingDatabase;
+        try {
+            indexingDatabase = TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv());
+        } catch(IllegalArgumentException | NullPointerException exception) {
             throw new PostProcessingException("Unable to recognize environment" + cleanerParameters.getTargetIndexingEnv());
         }
+        cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase);
     }
 
     private void cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase) {
@@ -104,14 +104,6 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                 break;
         }
         return harvestedRecord;
-    }
-
-    private boolean isPublishEnvironment(DataSetCleanerParameters cleanerParameters) {
-        return TargetIndexingDatabase.PUBLISH.toString().equals(cleanerParameters.getTargetIndexingEnv());
-    }
-
-    private boolean isPreviewEnvironment(DataSetCleanerParameters cleanerParameters) {
-        return TargetIndexingDatabase.PREVIEW.toString().equals(cleanerParameters.getTargetIndexingEnv());
     }
 
     private void endTheTask(DpsTask dpsTask) {
