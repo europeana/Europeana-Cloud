@@ -18,6 +18,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase.PREVIEW;
+import static eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase.PUBLISH;
+
 public class IndexingPostProcessor implements TaskPostProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
@@ -78,7 +81,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
         try {
             indexingDatabase = TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv());
         } catch(IllegalArgumentException | NullPointerException exception) {
-            throw new PostProcessingException("Unable to recognize environment" + cleanerParameters.getTargetIndexingEnv());
+            throw new PostProcessingException("Unable to recognize environment: " + cleanerParameters.getTargetIndexingEnv());
         }
         cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase);
     }
@@ -93,15 +96,12 @@ public class IndexingPostProcessor implements TaskPostProcessor {
     }
 
     private HarvestedRecord doCleaning(HarvestedRecord harvestedRecord, TargetIndexingDatabase indexingDatabase) {
-        switch(indexingDatabase) {
-            case PREVIEW:
-                harvestedRecord.setPreviewHarvestDate(null);
-                harvestedRecord.setPreviewHarvestMd5(null);
-                break;
-            case PUBLISH:
-                harvestedRecord.setPublishedHarvestDate(null);
-                harvestedRecord.setPublishedHarvestMd5(null);
-                break;
+        if(indexingDatabase == PREVIEW) {
+            harvestedRecord.setPreviewHarvestDate(null);
+            harvestedRecord.setPreviewHarvestMd5(null);
+        } else if(indexingDatabase == PUBLISH) {
+            harvestedRecord.setPublishedHarvestDate(null);
+            harvestedRecord.setPublishedHarvestMd5(null);
         }
         return harvestedRecord;
     }
