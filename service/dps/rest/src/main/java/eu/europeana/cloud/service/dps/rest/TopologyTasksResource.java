@@ -241,9 +241,6 @@ public class TopologyTasksResource {
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
 
             Date sentTime = new Date();
-            if(TopologiesNames.HTTP_TOPOLOGY.equals(topologyName) || TopologiesNames.OAI_TOPOLOGY.equals(topologyName) ) {
-                task.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(sentTime));
-            }
 
             var taskJSON = task.toJSON();
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
