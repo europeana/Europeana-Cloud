@@ -215,10 +215,10 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 	}
 
 	@Test
-	public void testInsertOrUpdateAcl() {
+	public void testCreateOrUpdateAcl() {
 		ObjectIdentity objectIdentity = createDefaultTestOI();
 
-		MutableAcl acl = service.insertOrUpdateAcl(objectIdentity);
+		MutableAcl acl = service.createOrUpdateAcl(objectIdentity);
 
 		assertAcl(objectIdentity, acl, sid1);
 		assertAcl(objectIdentity, service.readAclById(objectIdentity), sid1);
@@ -228,8 +228,8 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 	public void testInsertOrUpdateSameAclTwoTimes() {
 		ObjectIdentity objectIdentity = createDefaultTestOI();
 
-		MutableAcl acl1 = service.insertOrUpdateAcl(objectIdentity);
-		MutableAcl acl2 = service.insertOrUpdateAcl(objectIdentity);
+		MutableAcl acl1 = service.createOrUpdateAcl(objectIdentity);
+		MutableAcl acl2 = service.createOrUpdateAcl(objectIdentity);
 
 		assertAcl(objectIdentity, acl1, sid1);
 		assertAcl(objectIdentity, acl2, sid1);
@@ -237,12 +237,12 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 	}
 
 	@Test(expected = AlreadyExistsException.class)
-	public void testInsertOrUpdateAclOfOtherUser() {
+	public void testCreateOrUpdateAclOfOtherUser() {
 		ObjectIdentity objectIdentity = createDefaultTestOI();
 
-		service.insertOrUpdateAcl(objectIdentity);
+		service.createOrUpdateAcl(objectIdentity);
 		loginAsUser(sid2);
-		service.insertOrUpdateAcl(objectIdentity);
+		service.createOrUpdateAcl(objectIdentity);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

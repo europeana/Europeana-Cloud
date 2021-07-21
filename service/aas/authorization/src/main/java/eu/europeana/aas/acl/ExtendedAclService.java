@@ -19,5 +19,5 @@ public interface ExtendedAclService extends MutableAclService {
      *
      * @throws AlreadyExistsException if the passed object identity already has a record that belongs to other user
      */
-    MutableAcl insertOrUpdateAcl(ObjectIdentity objectIdentity);
+    MutableAcl createOrUpdateAcl(ObjectIdentity objectIdentity);
 }

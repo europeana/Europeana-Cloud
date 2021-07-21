@@ -129,7 +129,7 @@ public class RepresentationResource {
 			ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
 					cloudId + "/" + representationName + "/" + representation.getVersion());
 
-			MutableAcl versionAcl = aclService.insertOrUpdateAcl(versionIdentity);
+			MutableAcl versionAcl = aclService.createOrUpdateAcl(versionIdentity);
 
 			versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
 			versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);

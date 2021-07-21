@@ -101,8 +101,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
         writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
         writeParams.setProviderId(getProviderId(tuple));
-        writeParams.setNewVersion(evaluateNewVersionId(tuple));
-        writeParams.setNewFileName(evaluateNewFileName(tuple));
+        writeParams.setNewVersion(generateNewVersionId(tuple));
+        writeParams.setNewFileName(generateNewFileName(tuple));
         return writeParams;
     }
 
@@ -131,17 +131,17 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                         AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
-    protected UUID evaluateNewVersionId(StormTaskTuple tuple) {
+    protected UUID generateNewVersionId(StormTaskTuple tuple) {
         return UUIDWrapper.generateRepresentationVersion(
                 DateHelper.parseISODate(tuple.getParameter(SENT_DATE)).toInstant(),
                 tuple.getFileUrl());
     }
-    protected String evaluateNewFileName(StormTaskTuple tuple) {
+    protected String generateNewFileName(StormTaskTuple tuple) {
         String fileFromNameParameter = tuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
         if(fileFromNameParameter!=null){
             return fileFromNameParameter;
-        }else {
-            return UUIDWrapper.generateFileName(tuple.getFileUrl());
+        } else {
+            return UUIDWrapper.generateRepresentationFileName(tuple.getFileUrl());
         }
     }
 

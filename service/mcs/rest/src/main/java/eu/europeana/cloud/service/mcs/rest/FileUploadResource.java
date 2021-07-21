@@ -109,7 +109,7 @@ public class FileUploadResource {
                     REPRESENTATION_CLASS_NAME,
                     representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion());
 
-            MutableAcl versionAcl = aclService.insertOrUpdateAcl(versionIdentity);
+            MutableAcl versionAcl = aclService.createOrUpdateAcl(versionIdentity);
 
             versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
             versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);

@@ -41,8 +41,8 @@ public class UUIDWrapper {
         return uuidCreator.create();
     }
 
-    public static String generateFileName(String recordId) {
-        return UUID.nameUUIDFromBytes(recordId.getBytes(StandardCharsets.UTF_8)).toString();
+    public static String generateRepresentationFileName(String recordId) {
+        return UuidCreator.getNameBasedMd5(recordId).toString();
     }
 
     private static class CustomNodeIdentifierStrategy implements NodeIdentifierStrategy {

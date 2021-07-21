@@ -74,7 +74,7 @@ public class CassandraMutableAclService extends CassandraAclService implements E
         return saveAcl(objectIdentity);
     }
 
-    public MutableAcl insertOrUpdateAcl(ObjectIdentity objectIdentity) {
+    public MutableAcl createOrUpdateAcl(ObjectIdentity objectIdentity) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("EXECUTE insertOrUpdateAcl: objectIdentity: " + objectIdentity);
         }

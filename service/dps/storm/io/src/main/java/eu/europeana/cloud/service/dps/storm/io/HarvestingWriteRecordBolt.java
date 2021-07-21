@@ -24,7 +24,6 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     public static final String ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID = "Error while mapping localId to cloudId";
     public static final String ERROR_MSG_WHILE_GETTING_CLOUD_ID = "Error while getting CloudId";
     private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingWriteRecordBolt.class);
     private String ecloudUisAddress;
     private transient UISClient uisClient;
 
@@ -107,8 +106,8 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         writeParams.setCloudId(cloudId);
         writeParams.setRepresentationName(representationName);
         writeParams.setProviderId(providerId);
-        writeParams.setNewVersion(evaluateNewVersionId(stormTaskTuple));
-        writeParams.setNewFileName(evaluateNewFileName(stormTaskTuple));
+        writeParams.setNewVersion(generateNewVersionId(stormTaskTuple));
+        writeParams.setNewFileName(generateNewFileName(stormTaskTuple));
         return writeParams;
     }
 }
