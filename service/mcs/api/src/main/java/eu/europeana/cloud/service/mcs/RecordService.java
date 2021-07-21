@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -114,12 +115,18 @@ public interface RecordService {
      * @param globalId   id of the record
      * @param schema     schema of the representation
      * @param providerId provider who created this representation version.
+     * @param version version id - must conform version 1 UUID spec. Parameter is optional if null is passed
+     *               new uuid based on current time would be created.
      * @return newly created representation.
      * @throws RecordNotExistsException   provided id of a record is not registered in eCloud system.
      * @throws ProviderNotExistsException there is no such provider
      */
-    Representation createRepresentation(String globalId, String schema, String providerId)
+    Representation createRepresentation(String globalId, String schema, String providerId, UUID version)
             throws RecordNotExistsException, ProviderNotExistsException;
+
+
+    Representation createRepresentation(String globalId, String schema, String providerId)
+            throws RecordNotExistsException, ProviderNotExistsException ;
 
 
     /**

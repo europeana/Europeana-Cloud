@@ -23,7 +23,6 @@ import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.apache.commons.logging.Log;
@@ -233,17 +232,11 @@ public final class CassandraAclRepository implements AclRepository {
         }
     }
 
-    @Override
-	public void saveAcl(AclObjectIdentity aoi) throws AclAlreadyExistsException {
+	@Override
+	public void saveAcl(AclObjectIdentity aoi) {
 		assertAclObjectIdentity(aoi);
-
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("BEGIN saveAcl: aclObjectIdentity: " + aoi);
-		}
-
-		// Check this object identity hasn't already been persisted
-		if (findAclObjectIdentity(aoi) != null) {
-			throw new AclAlreadyExistsException("Object identity '" + aoi + "' already exists");
 		}
 
 		Batch batch = QueryBuilder.batch();
@@ -265,7 +258,7 @@ public final class CassandraAclRepository implements AclRepository {
 		}
 	}
 
-    @Override
+	@Override
 	public void updateAcl(AclObjectIdentity aoi, List<AclEntry> entries) throws AclNotFoundException {
 		assertAclObjectIdentity(aoi);
 

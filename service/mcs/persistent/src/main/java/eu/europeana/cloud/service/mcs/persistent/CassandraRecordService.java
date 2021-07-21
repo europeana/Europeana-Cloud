@@ -136,21 +136,28 @@ public class CassandraRecordService implements RecordService {
         }
     }
 
+    @Override
+    public Representation createRepresentation(String globalId, String schema, String providerId)
+            throws RecordNotExistsException, ProviderNotExistsException {
+        return createRepresentation(globalId, schema, providerId, null);
+    }
 
     /**
      * @inheritDoc
      */
     @Override
-    public Representation createRepresentation(String cloudId, String representationName, String providerId)
+    public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version)
             throws ProviderNotExistsException, RecordNotExistsException {
-
         Date now = Calendar.getInstance().getTime();
+        if (version == null) {
+            version = generateTimeUUID();
+        }
         // check if data provider exists
         if (uis.getProvider(providerId) == null) {
             throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
         }
         if (uis.existsCloudId(cloudId)) {
-            return recordDAO.createRepresentation(cloudId, representationName, providerId, now);
+            return recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
         } else {
             throw new RecordNotExistsException(cloudId);
         }
@@ -382,7 +389,7 @@ public class CassandraRecordService implements RecordService {
             throw new RepresentationNotExistsException();
         }
 
-        Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now);
+        Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now, generateTimeUUID());
         for (File srcFile : srcRep.getFiles()) {
             File copiedFile = new File(srcFile);
             try {
@@ -473,5 +480,8 @@ public class CassandraRecordService implements RecordService {
         throw new RevisionNotExistsException();
     }
 
+    private static UUID generateTimeUUID() {
+        return UUID.fromString(new com.eaio.uuid.UUID().toString());
+    }
 
 }

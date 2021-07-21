@@ -56,6 +56,7 @@ public final class PluginParameterKeys {
 
     public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
+    public static final String SENT_DATE = "SENT_DATE";
 
     //---------- Validation DPS Task ----
 

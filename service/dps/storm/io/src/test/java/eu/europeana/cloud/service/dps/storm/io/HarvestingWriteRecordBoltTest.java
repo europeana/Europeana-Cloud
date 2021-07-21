@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -27,11 +26,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -52,6 +50,7 @@ public class HarvestingWriteRecordBoltTest {
     private final String TASK_NAME = "TASK_NAME";
     private static final String AUTHORIZATION = "Authorization";
     private final byte[] FILE_DATA = "Data".getBytes();
+    private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
     private OAIPMHHarvestingDetails oaipmhHarvestingDetails;
 
     @Mock(name = "outputCollector")
@@ -96,7 +95,7 @@ public class HarvestingWriteRecordBoltTest {
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(),  any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
 
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
 
@@ -111,7 +110,7 @@ public class HarvestingWriteRecordBoltTest {
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), (UUID) any(), anyString(), anyString())).thenReturn(uri);
 
         StormTaskTuple stormTaskTuple = getStormTaskTuple();
         stormTaskTuple.setMarkedAsDeleted(true);
@@ -127,7 +126,7 @@ public class HarvestingWriteRecordBoltTest {
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
-        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString());
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(), any(InputStream.class), any(), anyString(),anyString(),anyString());
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
         assertFailingExpectationWhenCreatingRepresentation();
     }
@@ -138,14 +137,14 @@ public class HarvestingWriteRecordBoltTest {
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
-        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(anyString(), anyString(), anyString(), any(), any(InputStream.class), anyString(), anyString(),anyString(),anyString());
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
         assertFailingExpectationWhenCreatingRepresentation();
     }
 
     private void assertFailingExpectationWhenCreatingRepresentation() throws MCSException, IOException {
         verify(outputCollector, times(0)).emit(anyList());
-        verify(recordServiceClient, times(8)).createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString());
+        verify(recordServiceClient, times(8)).createRepresentation(anyString(), anyString(), anyString(), any(), any(InputStream.class), any(), anyString(),anyString(),anyString());
         verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyListOf(Object.class));
 
     }
@@ -159,7 +158,7 @@ public class HarvestingWriteRecordBoltTest {
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
         when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(), any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
 
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
 
@@ -178,7 +177,7 @@ public class HarvestingWriteRecordBoltTest {
         when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier",AUTHORIZATION, AUTHORIZATION_HEADER)).thenReturn(true);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(), any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
 
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
@@ -198,7 +197,7 @@ public class HarvestingWriteRecordBoltTest {
         CloudException idHasBeenMappedException = new CloudException("", new IdHasBeenMappedException(new ErrorInfo()));
         when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier")).thenThrow(idHasBeenMappedException);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(), any(InputStream.class), any(), anyString(),anyString(),anyString())).thenReturn(uri);
 
         //when
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
@@ -212,8 +211,8 @@ public class HarvestingWriteRecordBoltTest {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
-        CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
-        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenThrow(exception);
+        when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
+        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
         when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID,AUTHORIZATION,AUTHORIZATION_HEADER)).thenReturn(cloudId);
 
         when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier", AUTHORIZATION, AUTHORIZATION_HEADER)).thenThrow(CloudException.class);
@@ -246,6 +245,7 @@ public class HarvestingWriteRecordBoltTest {
         parameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE + LOCAL_ID);
         parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
+        parameters.put(PluginParameterKeys.SENT_DATE, SENT_DATE);
         return parameters;
     }
 

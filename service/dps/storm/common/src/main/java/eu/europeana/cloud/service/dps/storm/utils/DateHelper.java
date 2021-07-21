@@ -25,6 +25,10 @@ public class DateHelper {
         return DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.from(ZoneOffset.UTC)).format(date);
     }
 
+    public static String format(Date date) {
+        return format(date.toInstant());
+    }
+
     public static Instant parse(String date) {
         return ZonedDateTime.parse(date).toInstant();
     }

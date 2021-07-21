@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
-import eu.europeana.aas.acl.CassandraMutableAclService;
+import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
@@ -32,8 +32,8 @@ public class BasicResourceTestContext {
     }
 
     @Bean
-    public CassandraMutableAclService aclService() {
-        return mock(CassandraMutableAclService.class);
+    public ExtendedAclService aclService() {
+        return mock(ExtendedAclService.class);
     }
 
     @Bean
