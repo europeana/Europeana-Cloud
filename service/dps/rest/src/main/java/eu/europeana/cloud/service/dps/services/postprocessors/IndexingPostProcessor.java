@@ -1,9 +1,11 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -16,6 +18,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase.PREVIEW;
@@ -24,6 +27,10 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.TargetInde
 public class IndexingPostProcessor implements TaskPostProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
+
+    private static final int DELETE_ATTEMPTS = 20;
+
+    private static final int DELAY_BETWEEN_DELETE_ATTEMPTS = 30000;
 
     private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
 
@@ -46,11 +53,8 @@ public class IndexingPostProcessor implements TaskPostProcessor {
             if (!areParametersNull(cleanerParameters)) {
                 var datasetCleaner = new DatasetCleaner(cleanerParameters);
                 Stream<String> recordIdsThatWillBeRemoved = datasetCleaner.getRecordIds();
-                LOGGER.info("cleaning dataset {} based on date: {}",
-                        cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
-                datasetCleaner.execute();
-                LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
                 cleanECloud(recordIdsThatWillBeRemoved, cleanerParameters);
+                cleanInMetis(cleanerParameters, datasetCleaner);
                 endTheTask(dpsTask);
             } else {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");
@@ -93,6 +97,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                 .map(Optional::get)
                 .map(harvestedRecord -> doCleaning(harvestedRecord, indexingDatabase))
                 .forEach(harvestedRecordsDAO::insertHarvestedRecord);
+        LOGGER.info("Cleaned indexing columns in Harvested records table.");
     }
 
     private HarvestedRecord doCleaning(HarvestedRecord harvestedRecord, TargetIndexingDatabase indexingDatabase) {
@@ -105,6 +110,20 @@ public class IndexingPostProcessor implements TaskPostProcessor {
         }
         return harvestedRecord;
     }
+
+    private void cleanInMetis(DataSetCleanerParameters cleanerParameters, DatasetCleaner datasetCleaner) throws DatasetCleaningException {
+        LOGGER.info("cleaning dataset {} based on date: {}",
+                cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+        //The retry number and delay are relatively big cause, do not executing this task would cause inconsistency
+        //between harvested_records table and state of Metis.
+        RetryableMethodExecutor.execute("Could not clean old records in Metis", DELETE_ATTEMPTS,
+                DELAY_BETWEEN_DELETE_ATTEMPTS, () -> {
+                    datasetCleaner.execute();
+                    return null;
+                });
+        LOGGER.info("Dataset {} cleaned successfully", cleanerParameters.getDataSetId());
+    }
+
 
     private void endTheTask(DpsTask dpsTask) {
         taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "Completely process");

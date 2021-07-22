@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 
@@ -76,7 +77,9 @@ public class EuropeanaIdFinder {
     }
 
     private List<String> findLocalIdsInUIS(String cloudIdentifier) throws CloudException {
-        return uisClient.getRecordId(cloudIdentifier).getResults().stream()
+        return RetryableMethodExecutor.executeOnRest(
+                "Could not get record id for cloud id: " + cloudIdentifier + " from UIS ",
+                () -> uisClient.getRecordId(cloudIdentifier)).getResults().stream()
                 .map(CloudId::getLocalId).map(LocalId::getRecordId)
                 .collect(Collectors.toList());
     }
