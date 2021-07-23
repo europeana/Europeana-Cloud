@@ -18,7 +18,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase.PREVIEW;

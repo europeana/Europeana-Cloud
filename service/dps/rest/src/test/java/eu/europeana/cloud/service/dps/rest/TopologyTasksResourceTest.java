@@ -861,38 +861,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
-    @Test
-    public void shouldProperlyHandleCleaningRequest() throws Exception {
-        DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
-        mockSecurity(INDEXING_TOPOLOGY);
-        ResultActions response = mockMvc.perform(
-                post(CLEAN_DATASET_WEB_TARGET,INDEXING_TOPOLOGY,TASK_ID)
-                        .content(asJsonString(dataSetCleanerParameters))
-                        .contentType(MediaType.APPLICATION_JSON));
-
-        assertNotNull(response);
-        response.andExpect(status().isOk());
-        Thread.sleep(1000);
-        verify(taskDAO, times(1))
-                .setTaskCompletelyProcessed(TASK_ID, "Completely process");
-        verify(taskDAO).findById(anyLong());
-        verifyNoMoreInteractions(taskDAO);
-    }
-
-
-    @Test
-    public void shouldThrowAccessDeniedWithNoCredentials() throws Exception {
-        DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
-
-        ResultActions response = mockMvc.perform(
-                post(CLEAN_DATASET_WEB_TARGET,INDEXING_TOPOLOGY,TASK_ID)
-                        .content(asJsonString(dataSetCleanerParameters))
-                        .contentType(MediaType.APPLICATION_JSON));
-        response.andExpect(status().isMethodNotAllowed());
-    }
-
-
     @Test
     public void shouldDropTaskWhenCleanerParametersAreNull() throws Exception {
         mockSecurity(INDEXING_TOPOLOGY);
