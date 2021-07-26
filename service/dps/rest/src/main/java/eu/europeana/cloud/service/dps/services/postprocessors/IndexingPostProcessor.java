@@ -29,7 +29,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
 
     private static final int DELETE_ATTEMPTS = 20;
 
-    private static final int DELAY_BETWEEN_DELETE_ATTEMPTS = 30000;
+    private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
 
     private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
 
@@ -52,7 +52,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
             if (!areParametersNull(cleanerParameters)) {
                 var datasetCleaner = new DatasetCleaner(cleanerParameters);
                 Stream<String> recordIdsThatWillBeRemoved = datasetCleaner.getRecordIds();
-                cleanECloud(recordIdsThatWillBeRemoved, cleanerParameters);
+                cleanInECloud(cleanerParameters, recordIdsThatWillBeRemoved);
                 cleanInMetis(cleanerParameters, datasetCleaner);
                 endTheTask(dpsTask);
             } else {
@@ -79,7 +79,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                 dateFormat.parse(dpsTask.getParameter(PluginParameterKeys.METIS_RECORD_DATE)));
     }
 
-    private void cleanECloud(Stream<String> recordIds, DataSetCleanerParameters cleanerParameters) {
+    private void cleanInECloud(DataSetCleanerParameters cleanerParameters, Stream<String> recordIds) {
         TargetIndexingDatabase indexingDatabase;
         try {
             indexingDatabase = TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv());
@@ -116,7 +116,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
         //The retry number and delay are relatively big cause, do not executing this task would cause inconsistency
         //between harvested_records table and state of Metis.
         RetryableMethodExecutor.execute("Could not clean old records in Metis", DELETE_ATTEMPTS,
-                DELAY_BETWEEN_DELETE_ATTEMPTS, () -> {
+                DELAY_BETWEEN_DELETE_ATTEMPTS_MS, () -> {
                     datasetCleaner.execute();
                     return null;
                 });
