@@ -3,31 +3,27 @@ package eu.europeana.cloud.service.dps.config;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.services.task.postprocessors.HarvestingPostProcessor;
-import eu.europeana.cloud.service.dps.services.task.postprocessors.PostProcessingService;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
-import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
+import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
-import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.storm.dao.*;
+import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
+import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
@@ -35,6 +31,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import java.util.Arrays;
 
 import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 
@@ -116,7 +114,7 @@ public class ServiceConfiguration {
 
     @Bean
     public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean result = new MethodInvokingFactoryBean();
+        var result = new MethodInvokingFactoryBean();
         result.setTargetClass(SecurityContextHolder.class);
         result.setTargetMethod("setStrategyName");
         result.setArguments("MODE_INHERITABLETHREADLOCAL");
@@ -219,9 +217,21 @@ public class ServiceConfiguration {
     }
 
     @Bean
+    public PostProcessorFactory postProcessorFactory() {
+        return new PostProcessorFactory(
+                Arrays.asList(harvestingPostProcessor(), indexingPostProcessor())
+        );
+    }
+
+    @Bean
     public HarvestingPostProcessor harvestingPostProcessor(){
         return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
                 recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater());
+    }
+
+    @Bean
+    public IndexingPostProcessor indexingPostProcessor(){
+        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO());
     }
 
     @Bean
@@ -259,6 +269,7 @@ public class ServiceConfiguration {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(taskInfoDAO(), tasksByStateDAO(), applicationIdentifier(), harvestingPostProcessor());
+        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(),
+                tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
     }
 }

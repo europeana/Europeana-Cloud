@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.services.task.postprocessors;
+package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import com.google.common.collect.Iterators;
 import eu.europeana.cloud.client.uis.rest.CloudException;
@@ -14,30 +14,50 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.RepresentationParser;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+/**
+ * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
+ *
+ * <ol>
+ *  <li>Iterate over oll records from table <b>harvested_records</b> where <b>latest_harvest_date</b> < <b>task_execution_date</b></li>
+ *  <li>For each europeana_id:</li>
+ *      <ul>
+ *          <li>find cloud_id</li>
+ *          <li>create representation version</li>
+ *          <li>add revision (taken from task definition (output_revision))</li>
+ *          <li>add created representation version to dataset (dataset taken from task definition (output dataset))</li>
+ *      </ul>
+ *  <li>Change task status to PROCESSED;</li>
+ * </ol>
+ *
+ */
 @Service
 public class HarvestingPostProcessor implements TaskPostProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingPostProcessor.class);
+
+    private static final Set<String> PROCESSED_TOPOLOGIES =
+            Set.of(TopologiesNames.OAI_TOPOLOGY, TopologiesNames.HTTP_TOPOLOGY);
 
     private final HarvestedRecordsDAO harvestedRecordsDAO;
 
@@ -71,37 +91,38 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
 
     @Override
     public void execute(DpsTask dpsTask) {
-        /* Plan:
-        1. Iterate over oll records from table harvested_records where latest_harvest_date<task_execution_date
-        2. For each europeana_id:
-            - find cloud_id
-            - create representation version
-            - add revision (taken from task definition (output_revision))
-            - add created representation version to dataset (dataset taken from task definition (output dataset))
-        3. Change task status to PROCESSED;
-         */
-        taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
-                "Postprocessing - adding removed records to result revision.");
-        Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
-        while (it.hasNext()) {
-            HarvestedRecord harvestedRecord = it.next();
-            if (!isRecordProcessed(dpsTask, harvestedRecord)) {
-                addRecordToTaskOutputRevision(dpsTask, harvestedRecord);
-                setRecordProcessed(dpsTask, harvestedRecord);
-                LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-            } else {
-                LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-            }
+        try {
+            taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+                    "Postprocessing - adding removed records to result revision.");
+            Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
+            while (it.hasNext()) {
+                var harvestedRecord = it.next();
+                if (!isRecordProcessed(dpsTask, harvestedRecord)) {
+                    addRecordToTaskOutputRevision(dpsTask, harvestedRecord);
+                    setRecordProcessed(dpsTask, harvestedRecord);
+                    LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+                } else {
+                    LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+                }
 
+            }
+            taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
+        } catch(Exception exception) {
+            throw new PostProcessingException(
+                    String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
+                            dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
         }
-        taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
+    }
+
+    public Set<String> getProcessedTopologies() {
+        return PROCESSED_TOPOLOGIES;
     }
 
     private void addRecordToTaskOutputRevision(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
         try {
             String cloudId = findCloudId(dpsTask, harvestedRecord);
 
-            Representation representation = createRepresentationVersion(dpsTask, cloudId);
+            var representation = createRepresentationVersion(dpsTask, cloudId);
 
             addRevisionToRepresentation(dpsTask, representation);
 
@@ -115,7 +136,7 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
     }
 
     private Iterator<HarvestedRecord> fetchDeletedRecords(DpsTask task) {
-        Date harvestDate = DateHelper.parseISODate(task.getParameter(PluginParameterKeys.HARVEST_DATE));
+        var harvestDate = DateHelper.parseISODate(task.getParameter(PluginParameterKeys.HARVEST_DATE));
         Iterator<HarvestedRecord> allRecords =
                 harvestedRecordsDAO.findDatasetRecords(task.getParameter(PluginParameterKeys.METIS_DATASET_ID));
         return Iterators.filter(allRecords, theRecord -> theRecord.getLatestHarvestDate().before(harvestDate));
@@ -131,13 +152,13 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
     private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
         String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
         String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        URI representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
+        var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
                 AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
         return RepresentationParser.parseResultUrl(representationUri);
     }
 
     private void addRevisionToRepresentation(DpsTask dpsTask, Representation representation) throws MCSException {
-        Revision revision = new Revision(dpsTask.getOutputRevision());
+        var revision = new Revision(dpsTask.getOutputRevision());
         revision.setDeleted(true);
         revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
                 representation.getVersion(), revision, AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));

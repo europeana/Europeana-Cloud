@@ -44,9 +44,8 @@ public class TaskStatusCheckerTest {
 
     @Test
     public void testExecutionWithMultipleTasks() throws Exception {
-
-        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, false, false, true, true);
-        when(taskInfoDAO.hasKillFlag(TASK_ID2)).thenReturn(false, false, true);
+        when(taskInfoDAO.isDroppedTask(TASK_ID)).thenReturn(false, false, false, true, true);
+        when(taskInfoDAO.isDroppedTask(TASK_ID2)).thenReturn(false, false, true);
         boolean task1killedFlag = false;
         boolean task2killedFlag = false;
 
@@ -55,13 +54,13 @@ public class TaskStatusCheckerTest {
                 assertFalse(task1killedFlag);
             if (i < 3)
                 assertFalse(task2killedFlag);
-            task1killedFlag = taskStatusChecker.hasKillFlag(TASK_ID);
+            task1killedFlag = taskStatusChecker.hasDroppedStatus(TASK_ID);
             if (i < 5)
-                task2killedFlag = taskStatusChecker.hasKillFlag(TASK_ID2);
+                task2killedFlag = taskStatusChecker.hasDroppedStatus(TASK_ID2);
             Thread.sleep(6000);
         }
-        verify(taskInfoDAO, times(8)).hasKillFlag(eq(TASK_ID));
-        verify(taskInfoDAO, times(5)).hasKillFlag(eq(TASK_ID2));
+        verify(taskInfoDAO, times(8)).isDroppedTask(eq(TASK_ID));
+        verify(taskInfoDAO, times(5)).isDroppedTask(eq(TASK_ID2));
         assertTrue(task1killedFlag);
         assertTrue(task2killedFlag);
         Thread.sleep(20000);

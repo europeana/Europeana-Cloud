@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.UnfinishedTasksContext;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -16,10 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.Mockito.when;
 
@@ -28,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class UnfinishedTasksExecutorTest {
 
     @Autowired
-    private TasksByStateDAO cassandraTasksDAO;
+    private TasksByStateDAO tasksByStateDAO;
 
     @Autowired
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
@@ -44,30 +42,32 @@ public class UnfinishedTasksExecutorTest {
         //given
         List<TaskInfo> unfinishedTasks = new ArrayList<>();
 
-        Mockito.reset(cassandraTasksDAO);
-        when(cassandraTasksDAO.findTasksInGivenState(Mockito.any(List.class))).thenReturn(unfinishedTasks);
+        Mockito.reset(tasksByStateDAO);
+        when(tasksByStateDAO.findTasksByState(Mockito.any(List.class))).thenReturn(unfinishedTasks);
         //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
         //then
-        Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
+        Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
     }
 
     @Test
     public void shouldStartExecutionForOneTasks() throws TaskInfoDoesNotExistException {
         //given
-        List<TaskInfo> unfinishedTasks = new ArrayList<>();
+        List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
+        TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();
         TaskInfo taskInfo = prepareTestTask();
-        unfinishedTasks.add(taskInfo);
+        unfinishedTasks.add(taskByTaskState);
 
-        Mockito.reset(cassandraTasksDAO);
+        Mockito.reset(tasksByStateDAO);
         Mockito.reset(taskSubmitterFactory);
-        when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
+        when(tasksByStateDAO.findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
         when(cassandraTaskInfoDAO.findById(1L)).thenReturn(Optional.of(taskInfo));
-        when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
+        when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class)))
+                .thenReturn(Mockito.mock(TaskSubmitter.class));
         //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
         //then
-        Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
+        Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
         Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
     }
 
@@ -76,20 +76,21 @@ public class UnfinishedTasksExecutorTest {
     @Test
     public void shouldStartExecutionForTasksThatBelongsToGivenMachine() throws TaskInfoDoesNotExistException {
         //given
-        List<TaskInfo> unfinishedTasks = new ArrayList<>();
+        List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
+        TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();
         TaskInfo taskInfo = prepareTestTask();
-        unfinishedTasks.add(taskInfo);
-        unfinishedTasks.add(prepareTestTaskForAnotherMachine());
+        unfinishedTasks.add(taskByTaskState);
+        unfinishedTasks.add(prepareTestTaskByTaskStateForAnotherMachine());
 
-        Mockito.reset(cassandraTasksDAO);
+        Mockito.reset(tasksByStateDAO);
         Mockito.reset(taskSubmitterFactory);
-        when(cassandraTasksDAO.findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
+        when(tasksByStateDAO.findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES)).thenReturn(unfinishedTasks);
         when(cassandraTaskInfoDAO.findById(1L)).thenReturn(Optional.of(taskInfo));
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
         //when
         unfinishedTasksExecutor.reRunUnfinishedTasks();
         //then
-        Mockito.verify(cassandraTasksDAO, Mockito.times(1)).findTasksInGivenState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
+        Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
         Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
     }
 
@@ -101,10 +102,20 @@ public class UnfinishedTasksExecutorTest {
         return taskInfo;
     }
 
-    private TaskInfo prepareTestTaskForAnotherMachine(){
-        TaskInfo taskInfoForAnotherMachine = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
-                new Date(), new Date(), new Date());
-        taskInfoForAnotherMachine.setOwnerId("exampleAppIdentifierForAnotherMachine");
-        return taskInfoForAnotherMachine;
+    private TaskByTaskState prepareTestTaskByTaskState(){
+        return TaskByTaskState.builder()
+                .id(1l)
+                .topologyName("topoName")
+                .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+                .applicationId("exampleAppIdentifier")
+                .startTime(GregorianCalendar.getInstance().getTime())
+                .topicName("topicName")
+                .build();
+    }
+
+    private TaskByTaskState prepareTestTaskByTaskStateForAnotherMachine(){
+        TaskByTaskState result = prepareTestTaskByTaskState();
+        result.setApplicationId("exampleAppIdentifierForAnotherMachine");
+        return  result;
     }
 }

@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.rest;
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
@@ -10,15 +11,13 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
-import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
+import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +57,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private TaskStatusUpdater taskStatusUpdater;
-
-    @Autowired
-    private DatasetCleanerService datasetCleanerService;
 
     @Autowired
     private SubmitTaskService submitTaskService;
@@ -148,24 +144,9 @@ public class TopologyTasksResource {
             @PathVariable final String topologyName,
             @RequestHeader("Authorization") final String authorizationHeader
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        TaskInfo taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        DpsTask task = new ObjectMapper().readValue(taskInfo.getTaskDefinition(), DpsTask.class);
+        var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
+        var task = DpsTask.fromTaskInfo(taskInfo);
         return doSubmitTask(request, task, topologyName, authorizationHeader, true);
-    }
-
-    @PostMapping(path = "{taskId}/cleaner", consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    public ResponseEntity<Void> cleanIndexingDataSet(
-            @PathVariable final String topologyName,
-            @PathVariable final String taskId,
-            @RequestBody final DataSetCleanerParameters cleanerParameters
-    ) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        LOGGER.info("Cleaning parameters for: {}", cleanerParameters);
-
-        taskSubmissionValidator.assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-        datasetCleanerService.clean(taskId, cleanerParameters);
-        return ResponseEntity.ok().build();
     }
 
     /**
@@ -258,9 +239,12 @@ public class TopologyTasksResource {
         if (task != null) {
             LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
             task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-            String taskJSON = new ObjectMapper().writeValueAsString(task);
+
+            Date sentTime = new Date();
+
+            var taskJSON = task.toJSON();
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                    .sentTime(new Date())
+                    .sentTime(sentTime)
                     .startTime(new Date())
                     .task(task)
                     .topologyName(topologyName)
@@ -273,7 +257,7 @@ public class TopologyTasksResource {
                 taskSubmissionValidator.validateTaskSubmission(parameters);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                 submitTaskService.submitTask(parameters);
-                URI responseURI  = buildTaskURI(request.getRequestURL(), task);
+                var responseURI  = buildTaskURI(request.getRequestURL(), task);
                 result = ResponseEntity.created(responseURI).build();
             } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
                 taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), e.getMessage());
@@ -289,7 +273,6 @@ public class TopologyTasksResource {
 
         return result;
     }
-
 
     private ResponseEntity<Void> handleFailedSubmission(Exception exception, String loggedMessage, HttpStatus httpStatus,
                                                         SubmitTaskParameters parameters) {

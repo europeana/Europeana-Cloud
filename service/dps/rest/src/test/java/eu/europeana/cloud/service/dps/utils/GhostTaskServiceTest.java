@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.GhostTaskServiceTestContext;
@@ -15,16 +16,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.empty;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
@@ -36,8 +33,8 @@ import static org.mockito.Mockito.when;
 public class GhostTaskServiceTest {
 
     private static final List<TaskState> ACTIVE_TASK_STATES = Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED);
-    private static final TaskInfo TOPIC_INFO_1 = createTopicInfo(1L, "oai_topology_2");
-    private static final TaskInfo TOPIC_INFO_1_UNKNONW_TOPIC = createTopicInfo(1L, "unknown_topic");
+    private static final TaskByTaskState TOPIC_INFO_1 = createTopicInfo(1L, "oai_topology_2");
+    private static final TaskByTaskState TOPIC_INFO_1_UNKNONW_TOPIC = createTopicInfo(1L, "unknown_topic");
     private static final TaskInfo OLD_SENT_NO_STARTED_TASK_INFO_1 = createTaskInfo(1L,11);
     private static final TaskInfo NEWLY_SENT_NO_STARTED_TASK_INFO_1 = createTaskInfo(1L,9);
     private static final TaskInfo OLD_SENT_OLD_STARTED_TASK_INFO_1 = createTaskInfo(1L,11,11);
@@ -65,7 +62,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksReturnsTaskIfItIsOldSentAndNoStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NO_STARTED_TASK_INFO_1));
 
@@ -74,7 +71,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksReturnsTaskIfItIsOldSentAndOldStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_OLD_STARTED_TASK_INFO_1));
 
@@ -83,7 +80,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatNewlySentAndNewStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NEWLY_STARTED_TASK_INFO_1));
 
@@ -92,7 +89,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatOldSentButNewStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(NEWLY_SENT_NEWLY_STARTED_TASK_INFO_1));
 
@@ -101,7 +98,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatNewlySentAndNotStarted() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(NEWLY_SENT_NO_STARTED_TASK_INFO_1));
 
@@ -110,7 +107,7 @@ public class GhostTaskServiceTest {
 
     @Test
     public void findGhostTasksShouldIgnoreTasksThatNotReserveTopicBelongingToTopology() {
-        when(tasksByStateDAO.findTasksInGivenState(eq(ACTIVE_TASK_STATES)))
+        when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
                 .thenReturn(Collections.singletonList(TOPIC_INFO_1_UNKNONW_TOPIC));
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(OLD_SENT_NO_STARTED_TASK_INFO_1));
 
@@ -130,11 +127,11 @@ public class GhostTaskServiceTest {
         return info;
     }
 
-    private static TaskInfo createTopicInfo(Long id, String topicName) {
-        TaskInfo info = new TaskInfo();
-        info.setId(id);
-        info.setTopicName(topicName);
-        return info;
+    private static TaskByTaskState createTopicInfo(Long id, String topicName) {
+        return TaskByTaskState.builder()
+                .id(id)
+                .topicName(topicName)
+                .build();
     }
 
 }

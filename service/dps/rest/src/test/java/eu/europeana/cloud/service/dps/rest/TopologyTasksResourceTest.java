@@ -15,26 +15,20 @@ import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
-import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
-import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
-import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
-import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
-import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
-import eu.europeana.cloud.service.dps.services.validation.TaskSubmissionValidator;
-import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
+import eu.europeana.cloud.service.dps.services.submitters.*;
+import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
-import eu.europeana.cloud.service.dps.services.SubmitTaskService;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -61,11 +55,10 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
@@ -75,14 +68,13 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
         TaskSubmissionValidator.class, SubmitTaskService.class, OaiTopologyTaskSubmitter.class,
-        HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, DatasetCleanerService.class,
+        HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class,
         TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class,
         FileURLCreator.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {
@@ -746,7 +738,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, EMPTY_STRING, 100, 100, 10, 50, new Date(), new Date(), new Date());
 
-        when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenReturn(taskInfo);
+        when(reportService.getTaskProgress(Long.toString(TASK_ID))).thenReturn(taskInfo);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
 
         ResultActions response = mockMvc.perform(get(PROGRESS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
@@ -759,7 +751,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void shouldKillTheTask() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         String info = "Dropped by the user";
 
         ResultActions response = mockMvc.perform(
@@ -776,7 +768,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         String info = "The aggregator decided to do so";
         //String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("info", info)
         );
@@ -788,7 +780,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws Exception {
         String info = "Dropped by the user";
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
 
         ResultActions response = mockMvc.perform(
@@ -802,7 +794,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
         String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
 
         ResultActions response = mockMvc.perform(
                 post(KILL_TASK_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -813,7 +805,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldThrowExceptionIfTaskIdWasNotFound() throws Exception {
-        when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
+        when(reportService.getTaskProgress(Long.toString(TASK_ID))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
 
         ResultActions response = mockMvc.perform(
@@ -869,38 +861,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
-    @Test
-    public void shouldProperlyHandleCleaningRequest() throws Exception {
-        DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
-        mockSecurity(INDEXING_TOPOLOGY);
-        ResultActions response = mockMvc.perform(
-                post(CLEAN_DATASET_WEB_TARGET,INDEXING_TOPOLOGY,TASK_ID)
-                        .content(asJsonString(dataSetCleanerParameters))
-                        .contentType(MediaType.APPLICATION_JSON));
-
-        assertNotNull(response);
-        response.andExpect(status().isOk());
-        Thread.sleep(1000);
-        verify(taskDAO, times(1))
-                .setTaskCompletelyProcessed(eq(TASK_ID), eq("Completely process"));
-        verify(taskDAO).findById(anyLong());
-        verifyNoMoreInteractions(taskDAO);
-    }
-
-
-    @Test
-    public void shouldThrowAccessDeniedWithNoCredentials() throws Exception {
-        DataSetCleanerParameters dataSetCleanerParameters = prepareDataSetCleanerParameters();
-
-        ResultActions response = mockMvc.perform(
-                post(CLEAN_DATASET_WEB_TARGET,INDEXING_TOPOLOGY,TASK_ID)
-                        .content(asJsonString(dataSetCleanerParameters))
-                        .contentType(MediaType.APPLICATION_JSON));
-        response.andExpect(status().isMethodNotAllowed());
-    }
-
-
     @Test
     public void shouldDropTaskWhenCleanerParametersAreNull() throws Exception {
         mockSecurity(INDEXING_TOPOLOGY);
@@ -913,10 +873,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isOk());
         Thread.sleep(1000);
-        verify(taskDAO, times(1))
-                .setTaskDropped(eq(TASK_ID),
-                        eq("cleaner parameters can not be null")
-                );
+        verify(taskDAO, times(1)).setTaskDropped(TASK_ID, "cleaner parameters can not be null");
         verify(taskDAO).findById(anyLong());
         verifyNoMoreInteractions(taskDAO);
     }
@@ -1104,7 +1061,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyInt(), anyString(), anyString(), isA(Date.class), isA(Date.class), isA(Date.class), anyInt(), anyString());
+        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyInt(), any(), anyString(), isA(Date.class), isA(Date.class), isA(Date.class), anyInt(), anyString());
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
     }

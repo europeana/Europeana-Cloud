@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.CassandraHarvestExecutorContext;
@@ -92,7 +91,7 @@ public class HarvestsExecutorTest {
         Mockito.clearInvocations(recordSubmitService);
         task.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
         harvestedHeaders = Arrays.asList(new OaiRecordHeader(OAI_ID_1, false, DATE_AFTER_FULL), new OaiRecordHeader(OAI_ID_2, false, DATE_AFTER_FULL));
-        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(false);
+        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(false);
         //when
         executor.execute(harvest, parameters);
         //then
@@ -111,7 +110,7 @@ public class HarvestsExecutorTest {
         Mockito.clearInvocations(recordSubmitService);
         task.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "false");
         harvestedHeaders = Arrays.asList(new OaiRecordHeader(OAI_ID_1, false, DATE_AFTER_FULL), new OaiRecordHeader(OAI_ID_2, false, DATE_AFTER_FULL));
-        when(taskStatusChecker.hasKillFlag(anyLong())).thenReturn(true);
+        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
         //when
         HarvestResult harvestResult = executor.execute(harvest, parameters);
         //then

@@ -5,13 +5,15 @@ import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDat
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
+import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
+import eu.europeana.indexing.exception.SetupRelatedIndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.text.ParseException;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 /**
  * Remove dataset based on a specific date for indexing topology.
@@ -31,7 +33,13 @@ public class DatasetCleaner {
         loadProperties();
     }
 
-    public void execute() throws DatasetCleaningException, ParseException {
+    public Stream<String> getRecordIds() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+        prepareIndexerFactory();
+        return indexerFactory.getIndexer().getRecordIds(this.cleanerParameters.getDataSetId(),
+                this.cleanerParameters.getCleaningDate());
+    }
+
+    public void execute() throws DatasetCleaningException {
         LOGGER.info("Executing initial actions for indexing topology");
         if (properties.isEmpty()) {
             return;

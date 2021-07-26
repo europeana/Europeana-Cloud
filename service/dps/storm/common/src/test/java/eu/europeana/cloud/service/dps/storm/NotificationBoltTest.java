@@ -71,7 +71,8 @@ public class NotificationBoltTest extends CassandraTestBase {
     @Test
     public void verifyOnlyOneNotificationForRepeatedRecord() throws Exception {
         long taskId = 1;
-        taskInfoDAO.insert(taskId, null, 10, 0, TaskState.CURRENTLY_PROCESSING.toString(), "", null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, null, 10, 0, TaskState.CURRENTLY_PROCESSING,
+                "", null, null, null, 0, null);
 
         Tuple tuple = createNotificationTuple(taskId, RecordState.SUCCESS);
         testedBolt.execute(tuple);
@@ -80,7 +81,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(taskProgress.getProcessedElementCount(), 1);
+        assertEquals(1, taskProgress.getProcessedElementCount());
     }
 
 
@@ -94,7 +95,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState, taskInfo, null, null, null, 0, null);
 
         TaskInfo beforeExecute = reportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
@@ -106,10 +107,10 @@ public class NotificationBoltTest extends CassandraTestBase {
 
         TaskInfo afterOneHundredExecutions = reportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
-        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertEquals(0, beforeExecute.getProcessedElementCount());
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
 
-        assertEquals(afterOneHundredExecutions.getProcessedElementCount(), 100);
+        assertEquals(100, afterOneHundredExecutions.getProcessedElementCount());
         assertThat(afterOneHundredExecutions.getState(), is(TaskState.CURRENTLY_PROCESSING));
     }
 
@@ -120,7 +121,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = "";
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState, taskInfo, null, null, null, 0, null);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         createBolt();
         //we will wait 5 second to be sure that notification bolt will update progress counter
@@ -146,7 +147,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, 2, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, topologyName, 2, 0, taskState, taskInfo, null, null, null, 0, null);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         createBolt();
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
@@ -160,7 +161,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, 2, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, topologyName, 2, 0, taskState, taskInfo, null, null, null, 0, null);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.ERROR, RESOURCE_1));
         createBolt();
         testedBolt.execute(createNotificationTuple(taskId, RecordState.ERROR, RESOURCE_2));
@@ -203,7 +204,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = "";
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState, taskInfo, null, null, null, 0, null);
 
         //when
         List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
@@ -211,7 +212,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo beforeExecute = reportService.getTaskProgress(String.valueOf(taskId));
         TaskInfo middleExecute = null;
 
-        for (int i = 0; i < tuples.size(); i++) {
+        for (var i = 0; i < tuples.size(); i++) {
             if(i == middle - 1){
                 Thread.sleep(5001);
                 testedBolt.execute(tuples.get(i));
@@ -224,9 +225,9 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo afterExecute = reportService.getTaskProgress(String.valueOf(taskId));
 
         //then
-        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertEquals(0, beforeExecute.getProcessedElementCount());
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-        assertEquals(beforeExecute.getProcessedPercentage(), 0);
+        assertEquals(0, beforeExecute.getProcessedPercentage());
 
         if (middleExecute != null) {
             assertEquals(middleExecute.getProcessedElementCount(), (middle));
@@ -241,46 +242,6 @@ public class NotificationBoltTest extends CassandraTestBase {
 
 
     @Test
-    public void shouldStoreOnlyLimitedAmountOfErrors() throws Exception {
-        ReportService reportService = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
-        long taskId = 1;
-        int expectedSize = 120;
-        int errors = 109;
-        String topologyName = null;
-        TaskState taskState = TaskState.CURRENTLY_PROCESSING;
-        String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
-
-        //when
-        List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
-
-        TaskInfo beforeExecute = reportService.getTaskProgress(String.valueOf(taskId));
-
-        for (Tuple tuple : tuples) {
-            testedBolt.execute(tuple);
-        }
-
-        TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(String.valueOf(taskId), 0);
-
-        //then
-        assertEquals(beforeExecute.getProcessedElementCount(), 0);
-        assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-        assertEquals(beforeExecute.getErrors(), 0);
-
-        assertEquals(errorsInfo.getErrors().size(), 1);
-        assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
-        //
-        assertEquals(109, cassandraTaskErrorsDAO.getErrorCount(1));
-        Iterator<String> messagesUuids = cassandraTaskErrorsDAO.getMessagesUuids(1);
-        while(messagesUuids.hasNext()){
-            String error_uuid = messagesUuids.next();
-            assertEquals(109, cassandraTaskErrorsDAO.selectErrorCountsForErrorType(1, UUID.fromString(error_uuid)));
-            TaskErrorsInfo specificTaskErrorReport = reportService.getSpecificTaskErrorReport("1", error_uuid, 200);
-            assertEquals(100, specificTaskErrorReport.getErrors().get(0).getErrorDetails().size());
-        }
-    }
-
-    @Test
     public void testNotificationForErrors() throws Exception {
         //given
         ReportService reportService = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
@@ -290,7 +251,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0, null);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState, taskInfo, null, null, null, 0, null);
 
         //when
         List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
@@ -304,11 +265,11 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(String.valueOf(taskId), 0);
 
         //then
-        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertEquals(0, beforeExecute.getProcessedElementCount());
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-        assertEquals(beforeExecute.getErrors(), 0);
+        assertEquals(0, beforeExecute.getErrors());
 
-        assertEquals(errorsInfo.getErrors().size(), 1);
+        assertEquals(1, errorsInfo.getErrors().size());
         assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
     }
 

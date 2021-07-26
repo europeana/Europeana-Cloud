@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.commons.utils;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -9,6 +9,9 @@ import java.util.Date;
 import java.util.Optional;
 
 public class DateHelper {
+
+    private DateHelper() {
+    }
 
     public static String getISODateString(Date date) {
         return date.toInstant().toString();

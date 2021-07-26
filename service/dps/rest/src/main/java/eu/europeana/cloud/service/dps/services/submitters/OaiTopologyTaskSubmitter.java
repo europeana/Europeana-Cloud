@@ -40,6 +40,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
 
         LOGGER.info("Starting OAI harvesting for: {}", parameters);
+
         OaiHarvest harvestToByExecuted = new DpsTaskToOaiHarvestConverter().from(parameters.getTask());
         int expectedCount = getFilesCountInsideTask(parameters);
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
@@ -76,7 +77,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
             taskStatusUpdater.setTaskDropped(taskId, "The task with the submitted parameters is empty");
         } else {
             LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
-            taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState().toString(),
+            taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState(),
                     harvesterResult.getResultCounter());
         }
     }

@@ -81,7 +81,7 @@ public class TopologyTest {
                 List<DpsTask> data = prepareInputData();
                 MockedSources mockedSources = new MockedSources();
                 for (DpsTask task : data) {
-                    mockedSources.addMockData("KafkaSpout", new Values(new ObjectMapper().writeValueAsString(task)));
+                    mockedSources.addMockData("KafkaSpout", new Values(task.toJSON()));
                 }
 
                 CompleteTopologyParam completeTopology = new CompleteTopologyParam();

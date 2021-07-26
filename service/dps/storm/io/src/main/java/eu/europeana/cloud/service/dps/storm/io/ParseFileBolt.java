@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.io;
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -61,7 +60,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 						.map(RdfResourceEntry::getResourceUrl)
 						.forEach(LOGGER::info);
 				for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
-					if (taskStatusChecker.hasKillFlag(stormTaskTuple.getTaskId()))
+					if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId()))
 						break;
 					StormTaskTuple tuple = createStormTuple(stormTaskTuple, rdfResourceEntry, Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)));
 					outputCollector.emit(anchorTuple, tuple.toStormTuple());

@@ -1,9 +1,11 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -14,12 +16,13 @@ import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.http.HttpRecordIterator;
-import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class HttpTopologyTaskSubmitter implements TaskSubmitter {
@@ -83,12 +86,12 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
     private int iterateOverFiles(HttpRecordIterator iterator,
             SubmitTaskParameters submitTaskParameters) throws HarvesterException {
-        final AtomicInteger expectedSize = new AtomicInteger(0);
+        final var expectedSize = new AtomicInteger(0);
         iterator.forEach(file -> {
-            if (taskStatusChecker.hasKillFlag(submitTaskParameters.getTask().getTaskId())) {
+            if (taskStatusChecker.hasDroppedStatus(submitTaskParameters.getTask().getTaskId())) {
                 return IterationResult.TERMINATE;
             }
-            DpsRecord dpsRecord = DpsRecord.builder()
+            var dpsRecord = DpsRecord.builder()
                     .taskId(submitTaskParameters.getTask().getTaskId())
                     .recordId(fileURLCreator.generateUrlFor(file))
                     .build();
@@ -103,11 +106,11 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
     }
 
     private void updateTaskStatus(DpsTask dpsTask, int expectedCount) {
-        if (!taskStatusChecker.hasKillFlag(dpsTask.getTaskId())) {
+        if (!taskStatusChecker.hasDroppedStatus(dpsTask.getTaskId())) {
             if (expectedCount == 0) {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task doesn't include any records");
             } else {
-                taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), TaskState.QUEUED.toString(), expectedCount);
+                taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), TaskState.QUEUED, expectedCount);
             }
         }
     }

@@ -1,11 +1,9 @@
-package eu.europeana.cloud.service.dps.service.utils;
+package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedInputRevisionValidator;
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,7 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 
 public class DpsTaskValidatorForMediaTopologyTest {
 

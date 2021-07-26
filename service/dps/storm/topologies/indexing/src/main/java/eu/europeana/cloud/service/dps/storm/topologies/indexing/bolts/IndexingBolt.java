@@ -1,14 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
 import com.google.gson.Gson;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -19,6 +15,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingProperties;
@@ -54,7 +51,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     private final Properties indexingProperties;
     private transient HarvestedRecordsDAO harvestedRecordsDAO;
     private final String uisAddress;
-    private transient UISClient uisClient;
+    private transient EuropeanaIdFinder europeanaIdFinder;
 
 
     public IndexingBolt(DbConnectionDetails dbConnectionDetails,
@@ -72,7 +69,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         prepareDao();
-        prepareUisClient();
+        prepareEuropeanaIdFinder();
         prepareIndexer();
     }
 
@@ -88,36 +85,42 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         // Get variables.
-        final String useAltEnv = stormTaskTuple
+        final var useAltEnv = stormTaskTuple
                 .getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
-        final String datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-        final String database = stormTaskTuple
+        final var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+        final var database = stormTaskTuple
                 .getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
-        final boolean preserveTimestampsString = Boolean
+        final var preserveTimestampsString = Boolean
                 .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS));
-        final String datasetIdsToRedirectFrom = stormTaskTuple
+        final var datasetIdsToRedirectFrom = stormTaskTuple
                 .getParameter(PluginParameterKeys.DATASET_IDS_TO_REDIRECT_FROM);
-        final List<String> datasetIdsToRedirectFromList = datasetIdsToRedirectFrom == null ? null
+        final var datasetIdsToRedirectFromList = datasetIdsToRedirectFrom == null ? null
                 : Arrays.asList(datasetIdsToRedirectFrom.trim().split("\\s*,\\s*"));
-        final boolean performRedirects = Boolean
+        final var performRedirects = Boolean
                 .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
         try {
             recordDate = dateFormat
-                .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
-            final IndexingProperties properties = new IndexingProperties(recordDate,
+                    .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+            final var properties = new IndexingProperties(recordDate,
                     preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
+
+            String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+            String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
             if (!stormTaskTuple.isMarkedAsDeleted()) {
                 indexRecord(stormTaskTuple, useAltEnv, database, properties);
-                updateRecordHarvestingDates(stormTaskTuple);
+            } else{
+                removeIndexedRecord(stormTaskTuple, useAltEnv, database, europeanaId);
             }
+            updateHarvestedRecord(stormTaskTuple, europeanaId);
+
             prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
                     "Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
                     database, useAltEnv, recordDate, preserveTimestampsString);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | MalformedURLException | CloudException e) {
             logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
         } catch (ParseException e) {
             logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
@@ -127,8 +130,14 @@ public class IndexingBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
+    private void removeIndexedRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, String europeanaId) throws IndexingException {
+        LOGGER.info("Removing indexed record europeanaId: {}, database: {} useAltEnv: {}, taskId: {}, recordId: {}",
+                europeanaId, database, useAltEnv, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        indexerPoolWrapper.getIndexerPool(useAltEnv, database).remove(europeanaId);
+    }
+
     private void prepareDao() {
-        CassandraConnectionProvider cassandraConnectionProvider =
+        var cassandraConnectionProvider =
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
                         dbConnectionDetails.getHosts(),
                         dbConnectionDetails.getPort(),
@@ -138,8 +147,8 @@ public class IndexingBolt extends AbstractDpsBolt {
         harvestedRecordsDAO = HarvestedRecordsDAO.getInstance(cassandraConnectionProvider);
     }
 
-    private void prepareUisClient() {
-        uisClient = new UISClient(uisAddress);
+    private void prepareEuropeanaIdFinder() {
+        europeanaIdFinder = new EuropeanaIdFinder(new UISClient(uisAddress), harvestedRecordsDAO);
     }
 
     private void prepareIndexer() {
@@ -147,23 +156,23 @@ public class IndexingBolt extends AbstractDpsBolt {
             indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
                     IDLE_TIME_CHECK_INTERVAL_IN_SECS);
         } catch (IndexingException | URISyntaxException e) {
-            String message = "Unable to initialize indexer";
+            var message = "Unable to initialize indexer";
             LOGGER.error(message, e);
             throw new TopologyGeneralException(message, e);
         }
     }
 
     private void indexRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, IndexingProperties properties) throws IndexingException {
-        final IndexerPool indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
+        final var indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
 
-        final String document = new String(stormTaskTuple.getFileData());
+        final var document = new String(stormTaskTuple.getFileData());
         indexerPool.index(document, properties);
     }
 
     private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId,
                               String database, Date recordDate) {
         stormTaskTuple.setFileData((byte[]) null);
-        DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters(datasetId,
+        var dataSetCleanerParameters = new DataSetCleanerParameters(datasetId,
                 Boolean.parseBoolean(useAltEnv), database, recordDate);
         stormTaskTuple.addParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS,
                 new Gson().toJson(dataSetCleanerParameters));
@@ -176,38 +185,40 @@ public class IndexingBolt extends AbstractDpsBolt {
                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
 
-    private void updateRecordHarvestingDates(StormTaskTuple stormTaskTuple) {
-        try {
-            String cloudIdentifier = extractCloudIdFromUrl(stormTaskTuple.getFileUrl());
-            ResultSlice<CloudId> cloudIds = downloadCloudIdDefinition(cloudIdentifier);
-            String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-            cloudIds.getResults()
-                    .stream()
-                    .filter(cloudId -> existsOnHarvestedRecordsList(cloudId, metisDatasetId))
-                    .forEach(cloudId1 -> updateRecordIndexingDate(cloudId1, metisDatasetId));
-        } catch (MalformedURLException | CloudException e) {
-            String message = "Unable to update record harvesting dates";
-            LOGGER.error(message, e);
-            throw new TopologyGeneralException(message, e);
+    private void updateHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId) {
+        String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+
+        var harvestedRecord = harvestedRecordsDAO.findRecord(metisDatasetId, europeanaId)
+                .orElseGet(() -> prepareNewHarvestedRecord(stormTaskTuple, europeanaId, metisDatasetId));
+
+        Date latestHarvestDate = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestDate();
+        UUID latestHarvestMd5 = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestMd5();
+
+        var database = TargetIndexingDatabase.valueOf(
+                stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
+        switch (database) {
+            case PREVIEW:
+                harvestedRecord.setPreviewHarvestDate(latestHarvestDate);
+                harvestedRecord.setPreviewHarvestMd5(latestHarvestMd5);
+                break;
+            case PUBLISH:
+                harvestedRecord.setPublishedHarvestDate(latestHarvestDate);
+                harvestedRecord.setPublishedHarvestMd5(latestHarvestMd5);
+                break;
+            default:
+                throw new TopologyGeneralException("Unknown " + PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE + " : \"" + database + "\"");
         }
+
+        LOGGER.info("Saving harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
+                database, harvestedRecord, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
     }
 
-    private ResultSlice<CloudId> downloadCloudIdDefinition(String cloudIdentifier) throws CloudException {
-        return uisClient.getRecordId(cloudIdentifier);
-    }
-
-    private String extractCloudIdFromUrl(String fileUrl) throws MalformedURLException {
-        UrlParser parser = new UrlParser(fileUrl);
-        return parser.getPart(UrlPart.RECORDS);
-    }
-
-    private boolean existsOnHarvestedRecordsList(CloudId cloudId, String metisDatasetId) {
-        return harvestedRecordsDAO.findRecord(metisDatasetId, cloudId.getLocalId().getRecordId()).isPresent();
-    }
-
-    private void updateRecordIndexingDate(CloudId cloudId, String metisDatasetId) {
-        LOGGER.info("Updating Indexing date for cloudId={}, metisDatasetId = {}", cloudId, metisDatasetId);
-        harvestedRecordsDAO.updatePublishedHarvestDate(metisDatasetId, cloudId.getLocalId().getRecordId(), new Date());
+    private HarvestedRecord prepareNewHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId, String metisDatasetId) {
+        LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
+                europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId).latestHarvestDate(
+                Date.from(DateHelper.parse(stormTaskTuple.getParameter(PluginParameterKeys.HARVEST_DATE)))).build();
     }
 
     class IndexerPoolWrapper implements Closeable {
@@ -241,20 +252,15 @@ public class IndexingBolt extends AbstractDpsBolt {
 
         private void init(long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs)
                 throws IndexingException, URISyntaxException {
-            IndexingSettingsGenerator settingsGeneratorForDefaultEnv = new IndexingSettingsGenerator(
-                    indexingProperties);
-            IndexingSettingsGenerator settingsGeneratorForAnotherEnv = new IndexingSettingsGenerator(
+            var settingsGeneratorForDefaultEnv = new IndexingSettingsGenerator(indexingProperties);
+            var settingsGeneratorForAnotherEnv = new IndexingSettingsGenerator(
                     TargetIndexingEnvironment.ALTERNATIVE, indexingProperties);
 
-            IndexingSettings indexingSettingsForPreviewDbInDefaultEnv = settingsGeneratorForDefaultEnv
-                    .generateForPreview();
-            IndexingSettings indexingSettingsForPublishDbInDefaultEnv = settingsGeneratorForDefaultEnv
-                    .generateForPublish();
+            var indexingSettingsForPreviewDbInDefaultEnv = settingsGeneratorForDefaultEnv.generateForPreview();
+            var indexingSettingsForPublishDbInDefaultEnv = settingsGeneratorForDefaultEnv.generateForPublish();
 
-            IndexingSettings indexingSettingsForPreviewDbInAnotherEnv = settingsGeneratorForAnotherEnv
-                    .generateForPreview();
-            IndexingSettings indexingSettingsForPublishDbInAnotherEnv = settingsGeneratorForAnotherEnv
-                    .generateForPublish();
+            var indexingSettingsForPreviewDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPreview();
+            var indexingSettingsForPublishDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPublish();
 
             indexerPoolForPreviewDbInDefaultEnv = initIndexerPool(
                     indexingSettingsForPreviewDbInDefaultEnv,
