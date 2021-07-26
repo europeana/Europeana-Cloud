@@ -210,61 +210,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         }
     }
 
-
-    @Test
-    public void shouldBeAbleToSubmitTaskToIcTopology() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
-        //when
-        DpsTask task = new DpsTask("icTask");
-        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
-        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
-        String topologyName = "ic_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        //then
-        topologyTasksResource.submitTask(request, task, topologyName, AUTH_HEADER_VALUE);
-    }
-
-    @Test
-    public void shouldNotBeAbleToSubmitTaskToIcTopologyWithUnacceptedOutputMimeType() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
-        //when
-        DpsTask task = new DpsTask("icTask");
-        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
-        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "undefined");
-        String topologyName = "ic_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        //then
-        try {
-            topologyTasksResource.submitTask(request, task, topologyName, AUTH_HEADER_VALUE);
-            fail();
-        } catch (DpsTaskValidationException e) {
-            assertThat(e.getMessage(), is("Parameter does not meet constraints. Parameter name: OUTPUT_MIME_TYPE"));
-        }
-    }
-
-    @Test
-    public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToIcTopologyWithMissingFileUrls() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
-        //when
-        DpsTask task = new DpsTask("icTask");
-        String topologyName = "ic_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        try {
-            //when
-            topologyTasksResource.submitTask(request, task, topologyName, AUTH_HEADER_VALUE);
-            fail();
-        } catch (DpsTaskValidationException e) {
-            //then
-            assertThat(e.getMessage(), startsWith("Validation failed"));
-        }
-    }
-
-
     private void grantUserToTopology(String topologyName, String user) throws AccessDeniedOrTopologyDoesNotExistException {
         login(ADMIN, ADMIN_PASSWORD);
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);

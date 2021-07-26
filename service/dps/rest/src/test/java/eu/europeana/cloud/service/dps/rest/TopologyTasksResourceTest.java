@@ -861,23 +861,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldDropTaskWhenCleanerParametersAreNull() throws Exception {
-        mockSecurity(INDEXING_TOPOLOGY);
-        ResultActions response = mockMvc.perform(
-                post(CLEAN_DATASET_WEB_TARGET, INDEXING_TOPOLOGY, TASK_ID)
-                        .content(asJsonString(new DataSetCleanerParameters()))
-                        .contentType(MediaType.APPLICATION_JSON)
-
-        );
-        assertNotNull(response);
-        response.andExpect(status().isOk());
-        Thread.sleep(1000);
-        verify(taskDAO, times(1)).setTaskDropped(TASK_ID, "cleaner parameters can not be null");
-        verify(taskDAO).findById(anyLong());
-        verifyNoMoreInteractions(taskDAO);
-    }
-
     /* Depublication */
     @Test
     public void shouldSupportDepublication() throws Exception {
