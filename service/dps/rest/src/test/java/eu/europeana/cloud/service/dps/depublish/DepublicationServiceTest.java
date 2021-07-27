@@ -2,6 +2,8 @@ package eu.europeana.cloud.service.dps.depublish;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -23,18 +25,21 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,6 +55,8 @@ public class DepublicationServiceTest {
     public static final long WAITING_FOR_COMPLETE_TIME = 7000L;
     public static final String RECORD1 = "/1/item1";
     public static final String RECORD2 = "/1/item2";
+    private static final Date HARVEST_DATE = new Date();
+    private static final UUID RECORD1_MD5 = UUID.fromString("0acbca5d-f561-31a8-ab40-27521caadbc4");
 
     private SubmitTaskParameters parameters;
     private DpsTask task;
@@ -65,6 +72,9 @@ public class DepublicationServiceTest {
 
     @Autowired
     private RecordStatusUpdater recordStatusUpdater;
+
+    @Autowired
+    private HarvestedRecordsDAO harvestedRecordsDAO;
 
     @Autowired
     private MetisIndexerFactory metisIndexerFactory;
@@ -92,8 +102,8 @@ public class DepublicationServiceTest {
 
         service.depublishDataset(parameters);
 
-        verify(metisIndexerFactory, atLeast(1)).openIndexer(eq(false));
-        verify(metisIndexerFactory, never()).openIndexer(eq(true));
+        verify(metisIndexerFactory, atLeast(1)).openIndexer(false);
+        verify(metisIndexerFactory, never()).openIndexer(true);
     }
 
     @Test
@@ -102,8 +112,8 @@ public class DepublicationServiceTest {
 
         service.depublishDataset(parameters);
 
-        verify(metisIndexerFactory, atLeast(1)).openIndexer(eq(true));
-        verify(metisIndexerFactory, never()).openIndexer(eq(false));
+        verify(metisIndexerFactory, atLeast(1)).openIndexer(true);
+        verify(metisIndexerFactory, never()).openIndexer(false);
     }
 
 
@@ -115,6 +125,23 @@ public class DepublicationServiceTest {
         assertTaskSucceed();
     }
 
+    @Test
+    public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateWholeDataset() {
+        when(harvestedRecordsDAO.findDatasetRecords(DATASET_METIS_ID))
+                .thenReturn(Collections.singleton(
+                        HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
+                                .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build())
+                        .iterator());
+
+        service.depublishDataset(parameters);
+
+        verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5).build());
+        assertTaskSucceed();
+    }
 
     @Test
     public void shouldSaveValidSetSizeInResults() {
@@ -179,6 +206,24 @@ public class DepublicationServiceTest {
 
         verify(indexer).remove(RECORD1);
         verify(indexer).remove(RECORD2);
+        assertTaskSucceed();
+    }
+
+    @Test
+    public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateChosenRecords() {
+        when(harvestedRecordsDAO.findRecord(DATASET_METIS_ID, RECORD1))
+                .thenReturn(Optional.of(
+                        HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
+                                .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build()));
+        when(harvestedRecordsDAO.findRecord(DATASET_METIS_ID, RECORD2)).thenReturn(Optional.empty());
+
+        service.depublishDataset(parameters);
+
+        verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5).build());
         assertTaskSucceed();
     }
 

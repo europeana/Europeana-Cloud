@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.depublish;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.services.submitters.SubmitingTaskWasKilled;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
@@ -28,13 +30,17 @@ public class DepublicationService {
     private final DatasetDepublisher depublisher;
     private final TaskStatusUpdater taskStatusUpdater;
     private final RecordStatusUpdater recordStatusUpdater;
+    private HarvestedRecordsDAO harvestedRecordsDAO;
 
 
-    public DepublicationService(TaskStatusChecker taskStatusChecker, DatasetDepublisher depublisher, TaskStatusUpdater taskStatusUpdater, RecordStatusUpdater recordStatusUpdater) {
+    public DepublicationService(TaskStatusChecker taskStatusChecker, DatasetDepublisher depublisher,
+                                TaskStatusUpdater taskStatusUpdater, RecordStatusUpdater recordStatusUpdater,
+                                HarvestedRecordsDAO harvestedRecordsDAO) {
         this.taskStatusChecker = taskStatusChecker;
         this.depublisher = depublisher;
         this.taskStatusUpdater = taskStatusUpdater;
         this.recordStatusUpdater = recordStatusUpdater;
+        this.harvestedRecordsDAO = harvestedRecordsDAO;
     }
 
     public void depublishDataset(SubmitTaskParameters parameters) {
@@ -43,7 +49,7 @@ public class DepublicationService {
             checkTaskKilled(taskId);
             Future<Integer> future = depublisher.executeDatasetDepublicationAsync(parameters);
             waitForFinish(future, parameters);
-
+            cleanAllDatasetRecordsInHarvestedRecordsTable(parameters);
         } catch (SubmitingTaskWasKilled e) {
             LOGGER.warn(e.getMessage(), e);
         } catch (Exception e) {
@@ -61,7 +67,9 @@ public class DepublicationService {
                 LOGGER.info("Removing record with id '{}' from index", records[i]);
                 checkTaskKilled(parameters.getTask().getTaskId());
                 boolean removedSuccessfully = depublisher.removeRecord(parameters, records[i]);
+
                 if (removedSuccessfully) {
+                    cleanRecordInHarvestedRecordsTable(parameters, records[i]);
                     recordStatusUpdater.addSuccessfullyProcessedRecord(resourceNum, parameters.getTask().getTaskId(),
                             TopologiesNames.DEPUBLICATION_TOPOLOGY, records[i]);
                 } else {
@@ -134,6 +142,22 @@ public class DepublicationService {
         String fullStacktrace = ExceptionUtils.getStackTrace(e);
         LOGGER.error("Task execution failed: {}", fullStacktrace);
         taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), fullStacktrace);
+    }
+
+    private void cleanAllDatasetRecordsInHarvestedRecordsTable(SubmitTaskParameters parameters) {
+        String metisDatasetId = parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID);
+        harvestedRecordsDAO.findDatasetRecords(metisDatasetId).forEachRemaining(this::cleanRecordInHarvestedRecordsTable);
+    }
+
+    private void cleanRecordInHarvestedRecordsTable(SubmitTaskParameters parameters, String recordId) {
+        String metisDatasetId = parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID);
+        harvestedRecordsDAO.findRecord(metisDatasetId, recordId).ifPresent(this::cleanRecordInHarvestedRecordsTable);
+    }
+
+    private void cleanRecordInHarvestedRecordsTable(HarvestedRecord theRecord) {
+        theRecord.setPublishedHarvestDate(null);
+        theRecord.setPublishedHarvestMd5(null);
+        harvestedRecordsDAO.insertHarvestedRecord(theRecord);
     }
 
 }
