@@ -33,7 +33,7 @@ public class CassandraDataSetDAO {
     protected static final String CDSID_SEPARATOR = "\n";
 
     private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
-    private static final int MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT = 250000;
+    private static final int MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT = 125000;
 
     private static final String DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS = "data_set_assignments_by_data_set_buckets";
 
