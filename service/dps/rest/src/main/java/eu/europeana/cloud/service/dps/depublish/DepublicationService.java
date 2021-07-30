@@ -52,7 +52,15 @@ public class DepublicationService {
             cleanAllDatasetRecordsInHarvestedRecordsTable(parameters);
         } catch (SubmitingTaskWasKilled e) {
             LOGGER.warn(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            //We do not set failed task status in Cassandra in hope that task would be continued
+            // by UnfinishedTaskExecutor, while applicaction server would start again
+            LOGGER.warn("Depublication was interrupted!", e);
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
+            //Any other exception is caught, cause the method is executed asynchronously and the exception would
+            //be eventually only logged. Instead of that the task result is stored in Cassandra, and by this way it
+            //would be accessible to the user.
             saveErrorResult(parameters, e);
         }
     }
@@ -82,6 +90,9 @@ public class DepublicationService {
                 LOGGER.warn(e.getMessage(), e);
                 return;
             } catch (Exception e) {
+                //Any other exception is caught to perform independently as many records as it could be possible.
+                //Anyway the method is executed asynchronously and the exception would be eventually only logged.
+                //Instead of that the results are stored in Cassandra, and by this way they are accessible to the user.
                 LOGGER.warn("Error while depublishing record {}" , records[i], e);
                 recordStatusUpdater.addWronglyProcessedRecord(
                         resourceNum,
