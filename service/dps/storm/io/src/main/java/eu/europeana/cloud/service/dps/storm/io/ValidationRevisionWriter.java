@@ -32,15 +32,18 @@ public class ValidationRevisionWriter extends RevisionWriterBolt {
         LOGGER.info("{} executed", getClass().getSimpleName());
         try {
             addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
-            emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), successNotificationMessage, "", "",
+            emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), successNotificationMessage, "", "",
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:"+e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:"+e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
     }

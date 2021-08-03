@@ -160,12 +160,12 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached: {}", message);
             var notificationTuple = NotificationTuple.prepareNotification(
                     message.getTaskId(),
+                    message.isMarkedAsDeleted(),
                     message.getRecordId(),
                     RecordState.ERROR,
                     "Max retries reached",
                     "Max retries reached",
                     System.currentTimeMillis());
-            notificationTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
             return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
         }
 

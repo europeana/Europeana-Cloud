@@ -80,7 +80,7 @@ public class NotificationBolt extends BaseRichBolt {
                 nCache = new NotificationCache(notificationTuple.getTaskId());
                 cache.put(notificationTuple.getTaskId(), nCache);
             }
-            storeTaskDetails(notificationTuple, nCache);
+            storeNotificationInfo(notificationTuple, nCache);
 
         } catch (NoHostAvailableException | QueryExecutionException ex) {
             LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
@@ -110,16 +110,6 @@ public class NotificationBolt extends BaseRichBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer ofd) {
         //last bolt in all topologies, nothing to declare
-    }
-
-    private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {
-        if (notificationTuple.getInformationType() == InformationTypes.NOTIFICATION) {
-            storeNotificationInfo(notificationTuple, nCache);
-        } else {
-            LOGGER.warn("Nothing to do for taskId={}. InformationType={} is not supported. ",
-                    notificationTuple.getTaskId(),
-                    notificationTuple.getInformationType());
-        }
     }
 
     private void storeNotificationInfo(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException {

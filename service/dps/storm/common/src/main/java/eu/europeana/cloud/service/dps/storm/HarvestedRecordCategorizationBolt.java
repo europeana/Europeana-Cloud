@@ -59,13 +59,13 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
     }
 
     private void ignoreRecordAsNotChanged(Tuple anchorTuple, StormTaskTuple stormTaskTuple, CategorizationResult categorizationResult) {
-        emitSuccessNotification(
+        emitIgnoredNotification(
                 anchorTuple,
                 stormTaskTuple.getTaskId(),
+                stormTaskTuple.isMarkedAsDeleted(),
                 stormTaskTuple.getFileUrl(),
                 "Record ignored.",
                 "Record ignored in this incremental processing because it was already processed. Record datestamp: " + categorizationResult.getCategorizationParameters().getRecordDateStamp() + ".",
-                "",
                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
 }

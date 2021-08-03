@@ -209,7 +209,8 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         String text = "text";
         String additionalInformation = "additionalInformation";
         String resultResource = "";
-        return createTestTuple(NotificationTuple.prepareNotification(taskId, resource, RecordState.SUCCESS, text, additionalInformation, resultResource, 1L));
+        return createTestTuple(NotificationTuple.prepareNotification(taskId, false, resource, RecordState.SUCCESS, text,
+                additionalInformation, resultResource, 1L));
     }
 
     private Tuple createTestTuple(NotificationTuple tuple) {

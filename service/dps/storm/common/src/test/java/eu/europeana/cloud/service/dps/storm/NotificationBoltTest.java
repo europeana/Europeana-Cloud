@@ -189,7 +189,8 @@ public class NotificationBoltTest extends CassandraTestBase {
         String text = "text";
         String additionalInformation = "additionalInformation";
         String resultResource = "";
-        return createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformation, resultResource,1L));
+        return createTestTuple(NotificationTuple.prepareNotification(taskId, false, resource, state, text,
+                additionalInformation, resultResource,1L));
     }
 
 
@@ -285,11 +286,14 @@ public class NotificationBoltTest extends CassandraTestBase {
         }
 
         for (int i = 0; i < errors; i++) {
-            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(i), RecordState.ERROR, text, additionalInformation, resultResource, 1L)));
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, false, resource + String.valueOf(i),
+                    RecordState.ERROR, text, additionalInformation, resultResource, 1L)));
         }
 
         while (result.size() < size) {
-            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(result.size()), RecordState.SUCCESS, text, additionalInformation, resultResource, 1L)));
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, false,
+                    resource + String.valueOf(result.size()), RecordState.SUCCESS, text, additionalInformation,
+                    resultResource, 1L)));
         }
         return result;
     }
