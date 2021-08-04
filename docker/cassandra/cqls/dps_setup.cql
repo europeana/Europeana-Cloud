@@ -1,19 +1,21 @@
 USE ecloud_dps;
 
-CREATE TABLE basic_info (
-    task_id bigint,
-    topology_name varchar,
-    expected_size int,
-    processed_files_count int,
-    state varchar,
-    info varchar,
-    start_time timestamp,
-    finish_time timestamp,
-    sent_time timestamp,
-    errors int,
-    task_informations text,
-    retry_count int,
-    PRIMARY KEY(task_id)
+CREATE TABLE task_info (
+    task_id                 bigint,
+    topology_name           varchar,
+    state                   varchar,
+    state_description       varchar,
+    sent_time               timestamp,
+    start_time              timestamp,
+    finish_time             timestamp,
+    expected_records_number int,
+    processed_records_count int,
+    ignored_records_count   int,
+    deleted_records_count   int,
+    processed_errors_count  int,
+    deleted_errors_count    int,
+    definition              text,
+    PRIMARY KEY (task_id)
 );
 
 CREATE TABLE notifications (
