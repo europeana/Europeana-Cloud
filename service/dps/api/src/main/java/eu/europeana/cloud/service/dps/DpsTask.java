@@ -174,7 +174,7 @@ public class DpsTask implements Serializable {
     }
 
     public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws IOException {
-        return fromJSON(taskInfo.getTaskDefinition());
+        return fromJSON(taskInfo.getDefinition());
     }
 
     @Override

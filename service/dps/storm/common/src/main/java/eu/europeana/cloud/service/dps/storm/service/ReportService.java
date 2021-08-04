@@ -76,17 +76,19 @@ public class ReportService implements TaskExecutionReportService {
 
         Row basicInfo = cassandra.getSession().execute(selectFromBasicInfo).one();
         if (basicInfo != null) {
-            return new TaskInfo(taskIdValue,
-                    basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
-                    TaskState.valueOf(basicInfo.getString(CassandraTablesAndColumnsNames.STATE)),
-                    basicInfo.getString(CassandraTablesAndColumnsNames.INFO),
-                    basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE),
-                    basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT),
-                    basicInfo.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT),
-                    basicInfo.getInt(CassandraTablesAndColumnsNames.ERRORS),
-                    basicInfo.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME),
-                    basicInfo.getTimestamp(CassandraTablesAndColumnsNames.START_TIME),
-                    basicInfo.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME));
+            return TaskInfo.builder()
+                    .id(taskIdValue)
+                    .topologyName(basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME))
+                    .state(TaskState.valueOf(basicInfo.getString(CassandraTablesAndColumnsNames.STATE)))
+                    .stateDescription(basicInfo.getString(CassandraTablesAndColumnsNames.INFO))
+                    .expectedRecordsNumber(basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE))
+                    .processedRecordsCount(basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT))
+                    .retryCount(basicInfo.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT))
+                    .processedErrorsCount(basicInfo.getInt(CassandraTablesAndColumnsNames.ERRORS))
+                    .sentDate(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME))
+                    .startDate(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.START_TIME))
+                    .finishDate(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME))
+                    .build();
         }
         throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
     }

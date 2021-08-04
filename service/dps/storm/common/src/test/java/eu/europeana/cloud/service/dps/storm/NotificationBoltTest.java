@@ -81,7 +81,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
     }
 
 
@@ -107,10 +107,10 @@ public class NotificationBoltTest extends CassandraTestBase {
 
         TaskInfo afterOneHundredExecutions = reportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
-        assertEquals(0, beforeExecute.getProcessedElementCount());
+        assertEquals(0, beforeExecute.getProcessedRecordsCount());
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
 
-        assertEquals(100, afterOneHundredExecutions.getProcessedElementCount());
+        assertEquals(100, afterOneHundredExecutions.getProcessedRecordsCount());
         assertThat(afterOneHundredExecutions.getState(), is(TaskState.CURRENTLY_PROCESSING));
     }
 
@@ -129,12 +129,12 @@ public class NotificationBoltTest extends CassandraTestBase {
         Thread.sleep(5001);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         TaskInfo info = reportService.getTaskProgress(String.valueOf(taskId));
-        assertEquals(3, info.getProcessedElementCount());
+        assertEquals(3, info.getProcessedRecordsCount());
         assertEquals(TaskState.CURRENTLY_PROCESSING, info.getState());
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
 
         info = reportService.getTaskProgress(String.valueOf(taskId));
-        assertEquals(expectedSize, info.getProcessedElementCount());
+        assertEquals(expectedSize, info.getProcessedRecordsCount());
         assertEquals(TaskState.PROCESSED, info.getState());
 
     }
@@ -226,19 +226,17 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo afterExecute = reportService.getTaskProgress(String.valueOf(taskId));
 
         //then
-        assertEquals(0, beforeExecute.getProcessedElementCount());
+        assertEquals(0, beforeExecute.getProcessedRecordsCount());
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-        assertEquals(0, beforeExecute.getProcessedPercentage());
+        assertEquals(0, beforeExecute.getProcessedRecordsCount());
 
         if (middleExecute != null) {
-            assertEquals(middleExecute.getProcessedElementCount(), (middle));
+            assertEquals(middleExecute.getProcessedRecordsCount(), (middle));
             assertThat(middleExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-            assertEquals(middleExecute.getProcessedPercentage(), 100 * middle / expectedSize);
         }
         int totalProcessed = expectedSize;
-        assertEquals(afterExecute.getProcessedElementCount(), totalProcessed+(expectedSize - totalProcessed) );
+        assertEquals(afterExecute.getProcessedRecordsCount(), totalProcessed+(expectedSize - totalProcessed) );
         assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
-        assertEquals(afterExecute.getProcessedPercentage(), 100 * ((afterExecute.getProcessedElementCount() / (totalProcessed+(expectedSize - totalProcessed)))));
     }
 
 
@@ -266,9 +264,9 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(String.valueOf(taskId), 0);
 
         //then
-        assertEquals(0, beforeExecute.getProcessedElementCount());
+        assertEquals(0, beforeExecute.getProcessedRecordsCount());
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
-        assertEquals(0, beforeExecute.getErrors());
+        assertEquals(0, beforeExecute.getProcessedErrorsCount());
 
         assertEquals(1, errorsInfo.getErrors().size());
         assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
@@ -299,8 +297,16 @@ public class NotificationBoltTest extends CassandraTestBase {
     }
 
     private TaskInfo createTaskInfo(long taskId, int containElement, String topologyName, TaskState state, String info, Date sentTime, Date startTime, Date finishTime) {
-        TaskInfo expectedTaskInfo = new TaskInfo(taskId, topologyName, state, info, sentTime, startTime, finishTime);
-        expectedTaskInfo.setExpectedSize(containElement);
+        TaskInfo expectedTaskInfo = TaskInfo.builder()
+                .id(taskId)
+                .topologyName(topologyName)
+                .state(state)
+                .stateDescription(info)
+                .sentDate(sentTime)
+                .startDate(startTime)
+                .finishDate(finishTime)
+                .build();
+        expectedTaskInfo.setExpectedRecordsNumber(containElement);
         return expectedTaskInfo;
     }
 

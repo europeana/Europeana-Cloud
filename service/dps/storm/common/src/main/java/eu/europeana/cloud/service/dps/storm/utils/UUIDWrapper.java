@@ -6,7 +6,6 @@ import com.github.f4b6a3.uuid.strategy.NodeIdentifierStrategy;
 import com.github.f4b6a3.uuid.util.UuidTime;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -23,7 +22,7 @@ public class UUIDWrapper {
 
     /**
      * Generates representation version that will be later used for uploading file content to the eCloud by the topologies
-     * (usually in the WriteRecordBolt). It will generate version-3 UUID.
+     * (usually in the WriteRecordBolt). It will generate version-1 UUID.
      *
      * @param date this date will be inserted to the UUID in the 'time' part of the UUID version 1
      * @param recordId it will be hashed (md5) and inserted to the 'node' part of the UUID
