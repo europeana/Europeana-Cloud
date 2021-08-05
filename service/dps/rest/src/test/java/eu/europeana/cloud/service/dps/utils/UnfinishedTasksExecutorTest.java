@@ -74,7 +74,7 @@ public class UnfinishedTasksExecutorTest {
 
 
     @Test
-    public void shouldStartExecutionForTasksThatBelongsToGivenMachine() throws TaskInfoDoesNotExistException {
+    public void shouldStartExecutionForTasksThatBelongsToGivenMachine() {
         //given
         List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
         TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();
@@ -95,16 +95,23 @@ public class UnfinishedTasksExecutorTest {
     }
 
     private TaskInfo prepareTestTask(){
-        TaskInfo taskInfo = new TaskInfo(1L, "topoName", TaskState.PROCESSING_BY_REST_APPLICATION, "info",
-                new Date(), new Date(), new Date());
+        TaskInfo taskInfo = TaskInfo.builder()
+                .id(1)
+                .topologyName("topoName")
+                .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+                .stateDescription("info")
+                .sentDate(new Date())
+                .startDate(new Date())
+                .finishDate(new Date())
+                .build();
         taskInfo.setOwnerId("exampleAppIdentifier");
-        taskInfo.setTaskDefinition("{\"inputData\":{\"DATASET_URLS\":[\"http://195.216.97.81/api/data-providers/topologiesTestProvider/data-sets/DEREFERENCE_DATASET\"]},\"parameters\":{\"REPRESENTATION_NAME\":\"derefernce_rep\",\"AUTHORIZATION_HEADER\":\"Basic bWV0aXNfdGVzdDoxUmtaQnVWZg==\"},\"outputRevision\":null,\"taskId\":-2054267154868584315,\"taskName\":\"\",\"harvestingDetails\":null}");
+        taskInfo.setDefinition("{\"inputData\":{\"DATASET_URLS\":[\"http://195.216.97.81/api/data-providers/topologiesTestProvider/data-sets/DEREFERENCE_DATASET\"]},\"parameters\":{\"REPRESENTATION_NAME\":\"derefernce_rep\",\"AUTHORIZATION_HEADER\":\"Basic bWV0aXNfdGVzdDoxUmtaQnVWZg==\"},\"outputRevision\":null,\"taskId\":-2054267154868584315,\"taskName\":\"\",\"harvestingDetails\":null}");
         return taskInfo;
     }
 
     private TaskByTaskState prepareTestTaskByTaskState(){
         return TaskByTaskState.builder()
-                .id(1l)
+                .id(1L)
                 .topologyName("topoName")
                 .state(TaskState.PROCESSING_BY_REST_APPLICATION)
                 .applicationId("exampleAppIdentifier")

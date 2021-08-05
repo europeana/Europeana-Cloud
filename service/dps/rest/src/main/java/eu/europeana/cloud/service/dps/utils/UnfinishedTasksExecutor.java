@@ -119,7 +119,7 @@ public class UnfinishedTasksExecutor {
                 .topologyName(taskInfo.getTopologyName())
                 .status(TaskState.PROCESSING_BY_REST_APPLICATION)
                 .info("The task is in a pending mode, it is being processed before submission")
-                .taskJSON(taskInfo.getTaskDefinition())
+                .taskJSON(taskInfo.getDefinition())
                 .restarted(true).build();
     }
 }

@@ -69,7 +69,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.PROCESSED, taskProgress.getState());
     }
 
@@ -102,7 +102,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(10));
-        assertEquals(10, taskProgress.getProcessedElementCount());
+        assertEquals(10, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.PROCESSED, taskProgress.getState());
     }
 
@@ -117,7 +117,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
     }
 
@@ -141,7 +141,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(5));
-        assertEquals(5, taskProgress.getProcessedElementCount());
+        assertEquals(5, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
     }
 
@@ -157,7 +157,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.DROPPED, taskProgress.getState());
     }
 
@@ -173,7 +173,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.DROPPED, taskProgress.getState());
     }
 

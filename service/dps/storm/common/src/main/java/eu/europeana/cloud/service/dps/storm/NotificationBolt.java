@@ -198,7 +198,7 @@ public class NotificationBolt extends BaseRichBolt {
         if (task != null) {
             NotificationCache nCache = cache.get(taskId);
             int count = nCache.getProcessed();
-            int expectedSize = task.getExpectedSize();
+            int expectedSize = task.getExpectedRecordsNumber();
             if (count == expectedSize) {
                 endTask(notificationTuple, nCache.getErrors(), count);
             }
@@ -236,7 +236,7 @@ public class NotificationBolt extends BaseRichBolt {
         NotificationCache(long taskId) {
             processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
             if (processed > 0) {
-                errors = taskInfoDAO.findById(taskId).orElseThrow().getErrors();
+                errors = taskInfoDAO.findById(taskId).orElseThrow().getProcessedErrorsCount();
                 errorTypes = getMessagesUUIDsMap(taskId);
                 LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}", taskId, processed, errors, errorTypes);
             }
@@ -308,7 +308,7 @@ public class NotificationBolt extends BaseRichBolt {
 
     protected DpsTask loadDpsTask(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
         Optional<TaskInfo> taskInfo = taskInfoDAO.findById(tuple.getTaskId());
-        String taskDefinition = taskInfo.orElseThrow(TaskInfoDoesNotExistException::new).getTaskDefinition();
+        String taskDefinition = taskInfo.orElseThrow(TaskInfoDoesNotExistException::new).getDefinition();
         return new ObjectMapper().readValue(taskDefinition, DpsTask.class);
     }
 

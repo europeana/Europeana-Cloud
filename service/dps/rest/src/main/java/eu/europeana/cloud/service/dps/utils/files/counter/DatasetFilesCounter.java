@@ -29,7 +29,7 @@ public class DatasetFilesCounter extends FilesCounter {
         try {
             long taskId = Long.parseLong(providedTaskId);
             TaskInfo taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-            return taskInfo.getProcessedElementCount();
+            return taskInfo.getProcessedRecordsCount();
         } catch (NumberFormatException e) {
             LOGGER.error("The provided previous task id {} is not long  ", providedTaskId);
             return UNKNOWN_EXPECTED_SIZE;

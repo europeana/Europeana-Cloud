@@ -737,7 +737,19 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetProgressReport() throws Exception {
 
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, EMPTY_STRING, 100, 100, 10, 50, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = TaskInfo.builder()
+                .id(TASK_ID)
+                .topologyName(TOPOLOGY_NAME)
+                .state(TaskState.PROCESSED)
+                .stateDescription(EMPTY_STRING)
+                .expectedRecordsNumber(100)
+                .processedRecordsCount(100)
+                .retryCount(10)
+                .processedErrorsCount(50)
+                .sentDate(new Date())
+                .startDate(new Date())
+                .finishDate(new Date())
+                .build();
 
         when(reportService.getTaskProgress(Long.toString(TASK_ID))).thenReturn(taskInfo);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);

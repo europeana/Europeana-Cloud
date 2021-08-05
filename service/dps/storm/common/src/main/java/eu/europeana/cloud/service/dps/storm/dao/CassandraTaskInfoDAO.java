@@ -162,20 +162,19 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     private TaskInfo createTaskInfo(Row row) {
-        var task = new TaskInfo(
-                row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID),
-                row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
-                TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.STATE)),
-                row.getString(CassandraTablesAndColumnsNames.INFO),
-                row.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME),
-                row.getTimestamp(CassandraTablesAndColumnsNames.START_TIME),
-                row.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME)
-        );
-        task.setExpectedSize(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE));
-        task.setProcessedElementCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
-        task.setRetryCount(row.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT));
-        task.setTaskDefinition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS));
-        task.setErrors(row.getInt(CassandraTablesAndColumnsNames.ERRORS));
-        return task;
+        return TaskInfo.builder()
+                .id(row.getLong(CassandraTablesAndColumnsNames.BASIC_TASK_ID))
+                .topologyName(row.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME))
+                .state(TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.STATE)))
+                .stateDescription(row.getString(CassandraTablesAndColumnsNames.INFO))
+                .sentDate(row.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME))
+                .startDate(row.getTimestamp(CassandraTablesAndColumnsNames.START_TIME))
+                .finishDate(row.getTimestamp(CassandraTablesAndColumnsNames.FINISH_TIME))
+                .expectedRecordsNumber(row.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE))
+                .processedRecordsCount(row.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT))
+                .retryCount(row.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT))
+                .definition(row.getString(CassandraTablesAndColumnsNames.TASK_INFORMATIONS))
+                .processedErrorsCount(row.getInt(CassandraTablesAndColumnsNames.ERRORS))
+                .build();
     }
 }
