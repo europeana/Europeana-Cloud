@@ -28,6 +28,18 @@ public class CassandraTablesAndColumnsNames {
     public static final String ERRORS = "errors";
     public static final String TASK_INFORMATIONS = "task_informations";
 
+    //-------- TASK_DIAGNOSTIC_INFO --------
+    public static final String TASK_DIAGNOSTIC_INFO_TABLE = "task_diagnostic_info";
+    public static final String TASK_DIAGNOSTIC_INFO_ID = "task_id";
+    public static final String TASK_DIAGNOSTIC_INFO_STARTED_RECORDS_COUNT = "started_records_count";
+    public static final String TASK_DIAGNOSTIC_INFO_RECORDS_RETRY_COUNT = "records_retry_count";
+    public static final String TASK_DIAGNOSTIC_INFO_QUEUED_TIME = "queued_time";
+    public static final String TASK_DIAGNOSTIC_INFO_START_ON_STORM_TIME = "start_on_storm_time";
+    public static final String TASK_DIAGNOSTIC_INFO_FINISH_ON_STORM_TIME = "finish_on_storm_time";
+    public static final String TASK_DIAGNOSTIC_INFO_LAST_RECORD_FINISHED_ON_STORM_TIME = "last_record_finished_on_storm_time";
+    public static final String TASK_DIAGNOSTIC_INFO_POST_PROCESSING_START_TIME = "post_processing_start_time";
+
+
     //------- NOTIFICATION -------
     public static final String NOTIFICATION_TASK_ID = "task_id";
     public static final String NOTIFICATION_BUCKET_NUMBER = "bucket_number";

@@ -1,0 +1,77 @@
+package eu.europeana.cloud.service.dps.rest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Optional;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class DiagnosticResourceTest {
+
+    @InjectMocks
+    DiagnosticResource resource;
+
+    @Mock
+    TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+
+    @Mock
+    CassandraTaskInfoDAO taskInfoDAO;
+
+    @Mock
+    TasksByStateDAO tasksByStateDAO;
+
+    @Test
+    public void shouldReturnDiagnosticForTaskWithUncomleteInformation() throws IOException {
+        TaskInfo task=new TaskInfo();
+        task.setId(10);
+        task.setStartDate(new Date());
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(task));
+        when(taskDiagnosticInfoDAO.findById(anyLong())).thenReturn(Optional.empty());
+        when(tasksByStateDAO.findTask(any(),any(),anyLong())).thenReturn(Optional.empty());
+
+
+        String json = resource.task(10);
+
+
+        System.out.println(json);
+        assertNotNull(new ObjectMapper().readTree(json));
+    }
+
+    @Test
+    public void shouldReturnDiagnosticForTaskWithComleteInformation() throws IOException {
+        TaskInfo task = new TaskInfo();
+        task.setId(10);
+        task.setStartDate(new Date());
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(task));
+        when(taskDiagnosticInfoDAO.findById(anyLong())).thenReturn(Optional.of(TaskDiagnosticInfo.builder()
+                .finishOnStormTime(Instant.now()).build()));
+        TaskByTaskState s = new TaskByTaskState();
+        s.setTopicName("topic");
+        when(tasksByStateDAO.findTask(any(), any(), anyLong())).thenReturn(Optional.of(s));
+
+
+        String json = resource.task(10);
+
+
+        System.out.println(json);
+        assertNotNull(new ObjectMapper().readTree(json));
+    }
+}

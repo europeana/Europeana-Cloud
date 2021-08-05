@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.spout;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
@@ -13,6 +14,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.apache.storm.kafka.spout.KafkaSpout;
@@ -25,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
@@ -43,6 +46,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private String password;
 
     protected transient CassandraTaskInfoDAO taskInfoDAO;
+    protected transient TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
@@ -92,7 +96,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         TaskStatusChecker.init(cassandraConnectionProvider);
         taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
-
+        taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
         tasksCache = new TasksCache(cassandraConnectionProvider);
     }
 
@@ -150,7 +154,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
         List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
             var taskInfo = getTaskInfo(message);
-            updateRetryCount(taskInfo, aRecord);
+            updateDiagnosticCounters(aRecord);
             var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);
             LOGGER.info("Emitting a record to the subsequent bolt: {}", message);
             return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
@@ -224,13 +228,24 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return stormTaskTuple;
         }
 
-        private void updateRetryCount(TaskInfo taskInfo, ProcessedRecord aRecord) {
+        private void updateDiagnosticCounters(ProcessedRecord aRecord) {
+            TaskDiagnosticInfo taskInfo = tasksCache.getDiagnosticInfo(aRecord.getTaskId());
+
+            if (taskInfo.getStartedCount() == 0) {
+                taskInfo.setStartOnStormTime(Instant.now());
+                taskDiagnosticInfoDAO.updateStartOnStormTime(taskInfo.getId(), taskInfo.getStartOnStormTime());
+                taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getId(), 0);
+            }
+
             if (aRecord.getAttemptNumber() > 1) {
                 LOGGER.info("Task {} the record {} is repeated - {} attempt!", taskInfo.getId(), aRecord.getRecordId(), aRecord.getAttemptNumber());
                 int retryCount = taskInfo.getRetryCount();
                 retryCount++;
                 taskInfo.setRetryCount(retryCount);
-                taskStatusUpdater.updateRetryCount(taskInfo.getId(), retryCount);
+                taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getId(), retryCount);
+            } else {
+                taskInfo.setStartedCount(taskInfo.getStartedCount() + 1);
+                taskDiagnosticInfoDAO.updateStartedRecordsCount(taskInfo.getId(), taskInfo.getStartedCount());
             }
         }
 

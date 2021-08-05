@@ -19,6 +19,18 @@ CREATE TABLE task_info (
     PRIMARY KEY (task_id)
 );
 
+CREATE TABLE task_diagnostic_info (
+    task_id                            bigint,
+    started_records_count              int,
+    records_retry_count                int,
+    queued_time                        timestamp,
+    start_on_storm_time                timestamp,
+    last_record_finished_on_storm_time timestamp,
+    finish_on_storm_time               timestamp,
+    post_processing_start_time         timestamp,
+    PRIMARY KEY (task_id)
+);
+
 CREATE TABLE notifications(
     task_id bigint,
     bucket_number int,

@@ -25,6 +25,7 @@ import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.submitters.*;
 import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -73,8 +74,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
-        TaskSubmissionValidator.class, SubmitTaskService.class, OaiTopologyTaskSubmitter.class,
-        HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class,
+        TaskSubmissionValidator.class, SubmitTaskService.class, TaskDiagnosticInfoDAO.class,
+        OaiTopologyTaskSubmitter.class, HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class,
         TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class,
         FileURLCreator.class})
 public class TopologyTasksResourceTest extends AbstractResourceTest {

@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.services.postprocessors;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -33,6 +34,9 @@ public class PostProcessingServiceTest {
 
     @Mock
     private CassandraTaskInfoDAO taskInfoDAO;
+
+    @Mock
+    private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
 
     @Mock
     private TasksByStateDAO tasksByStateDAO;

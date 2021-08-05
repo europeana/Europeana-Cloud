@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.PreparedStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 /**
@@ -34,5 +35,11 @@ public abstract class CassandraDAO {
 
     public String getPort() {
         return this.port;
+    }
+
+    protected PreparedStatement prepare(String query) {
+        PreparedStatement statement = dbService.getSession().prepare(query);
+        statement.setConsistencyLevel(dbService.getConsistencyLevel());
+        return statement;
     }
 }

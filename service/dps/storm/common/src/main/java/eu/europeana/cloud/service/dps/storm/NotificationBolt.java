@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -48,6 +50,7 @@ public class NotificationBolt extends BaseRichBolt {
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient CassandraTaskInfoDAO taskInfoDAO;
+    private transient TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
 
@@ -100,6 +103,7 @@ public class NotificationBolt extends BaseRichBolt {
                         hosts, port, keyspaceName, userName, password);
 
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
         taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
@@ -122,6 +126,7 @@ public class NotificationBolt extends BaseRichBolt {
             processedRecordsDAO.updateProcessedRecordState(taskId, recordId, newRecordState);
             storeFinishState(notificationTuple);
         }
+        taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTime(notificationTuple.getTaskId(), Instant.now());
     }
 
     private void notifyTask(NotificationTuple notificationTuple, NotificationCache nCache, long taskId) {
@@ -276,6 +281,7 @@ public class NotificationBolt extends BaseRichBolt {
             } else {
                 setTaskProcessed(notificationTuple, errors, count);
             }
+            taskDiagnosticInfoDAO.updateFinishOnStormTime(notificationTuple.getTaskId(), Instant.now());
         } catch (Exception e) {
             LOGGER.error("Unable to end the task. id: {} ", notificationTuple.getTaskId(), e);
             taskInfoDAO.setTaskDropped(notificationTuple.getTaskId(), "Unable to end the task");

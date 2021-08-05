@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,8 @@ public class PostProcessingService {
 
     private final CassandraTaskInfoDAO taskInfoDAO;
 
+    private final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+
     private final TasksByStateDAO tasksByStateDAO;
 
     private final TaskStatusUpdater taskStatusUpdater;
@@ -40,12 +44,14 @@ public class PostProcessingService {
 
     public PostProcessingService(PostProcessorFactory postProcessorFactory,
                                  CassandraTaskInfoDAO taskInfoDAO,
+                                 TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
                                  TasksByStateDAO tasksByStateDAO,
                                  TaskStatusUpdater taskStatusUpdater,
                                  String applicationId) {
 
         this.postProcessorFactory = postProcessorFactory;
         this.taskInfoDAO = taskInfoDAO;
+        this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
         this.tasksByStateDAO = tasksByStateDAO;
         this.taskStatusUpdater = taskStatusUpdater;
         this.applicationId = applicationId;
@@ -59,7 +65,10 @@ public class PostProcessingService {
 
     public void postProcess(TaskByTaskState taskByTaskState) {
         try {
-            postProcessorFactory.getPostProcessor(taskByTaskState).execute(loadTask(taskByTaskState.getId()));
+            TaskPostProcessor postProcessor = postProcessorFactory.getPostProcessor(taskByTaskState);
+            DpsTask task = loadTask(taskByTaskState.getId());
+            taskDiagnosticInfoDAO.updatePostprocessingStartTime(taskByTaskState.getId(), Instant.now());
+            postProcessor.execute(task);
             LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
         } catch (IOException | TaskInfoDoesNotExistException | PostProcessingException exception) {
             LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
