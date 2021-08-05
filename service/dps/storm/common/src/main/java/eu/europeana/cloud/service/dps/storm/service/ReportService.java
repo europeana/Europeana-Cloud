@@ -83,7 +83,6 @@ public class ReportService implements TaskExecutionReportService {
                     .stateDescription(basicInfo.getString(CassandraTablesAndColumnsNames.INFO))
                     .expectedRecordsNumber(basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE))
                     .processedRecordsCount(basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT))
-                    .retryCount(basicInfo.getInt(CassandraTablesAndColumnsNames.RETRY_COUNT))
                     .processedErrorsCount(basicInfo.getInt(CassandraTablesAndColumnsNames.ERRORS))
                     .sentDate(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.SENT_TIME))
                     .startDate(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.START_TIME))

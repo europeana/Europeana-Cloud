@@ -149,10 +149,10 @@ public class DiagnosticResource {
 
     @Getter
     @AllArgsConstructor
-    @JsonPropertyOrder({"info","diagnosticInfo"})
+    @JsonPropertyOrder({"info", "diagnosticInfo"})
     public class JoinedTaskInfo {
         @JsonUnwrapped
-        @JsonIgnoreProperties({"taskDefinition", "subtasks","ownerId"})
+        @JsonIgnoreProperties({"definition", "ownerId"})
         TaskInfo info;
         @JsonUnwrapped
         @JsonIgnoreProperties({"id"})

@@ -99,10 +99,6 @@ public class TaskStatusUpdater {
         taskInfoDAO.updateState(taskId, state, info);
     }
 
-    public void updateRetryCount(long taskId, int retryCount) {
-        taskInfoDAO.updateRetryCount(taskId, retryCount);
-    }
-
     public void updateStatusExpectedSize(long taskId, TaskState state, int expectedSize)
             throws NoHostAvailableException, QueryExecutionException {
         LOGGER.info("Updating task {} expected size to: {}", taskId, expectedSize);

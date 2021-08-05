@@ -127,7 +127,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
                 .stateDescription("")
                 .expectedRecordsNumber(100)
                 .processedRecordsCount(100)
-                .retryCount(0)
                 .processedErrorsCount(0)
                 .sentDate(new Date())
                 .startDate(new Date())

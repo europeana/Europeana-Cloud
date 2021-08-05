@@ -50,7 +50,6 @@ public class DatasetFilesCounterTest {
                 .stateDescription("")
                 .expectedRecordsNumber(EXPECTED_SIZE)
                 .processedRecordsCount(EXPECTED_SIZE)
-                .retryCount(0)
                 .processedErrorsCount(0)
                 .sentDate(new Date())
                 .startDate(new Date())

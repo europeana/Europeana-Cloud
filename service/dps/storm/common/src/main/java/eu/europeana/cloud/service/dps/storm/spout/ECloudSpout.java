@@ -239,9 +239,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
             if (aRecord.getAttemptNumber() > 1) {
                 LOGGER.info("Task {} the record {} is repeated - {} attempt!", taskInfo.getId(), aRecord.getRecordId(), aRecord.getAttemptNumber());
-                int retryCount = taskInfo.getRetryCount();
+                int retryCount = taskInfo.getRecordsRetryCount();
                 retryCount++;
-                taskInfo.setRetryCount(retryCount);
+                taskInfo.setRecordsRetryCount(retryCount);
                 taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getId(), retryCount);
             } else {
                 taskInfo.setStartedCount(taskInfo.getStartedCount() + 1);

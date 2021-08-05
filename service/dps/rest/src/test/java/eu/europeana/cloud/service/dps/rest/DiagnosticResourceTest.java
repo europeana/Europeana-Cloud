@@ -40,12 +40,10 @@ public class DiagnosticResourceTest {
 
     @Test
     public void shouldReturnDiagnosticForTaskWithUncomleteInformation() throws IOException {
-        TaskInfo task=new TaskInfo();
-        task.setId(10);
-        task.setStartDate(new Date());
-        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(task));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(
+                TaskInfo.builder().id(10).startDate(new Date()).build()));
         when(taskDiagnosticInfoDAO.findById(anyLong())).thenReturn(Optional.empty());
-        when(tasksByStateDAO.findTask(any(),any(),anyLong())).thenReturn(Optional.empty());
+        when(tasksByStateDAO.findTask(any(), any(), anyLong())).thenReturn(Optional.empty());
 
 
         String json = resource.task(10);
@@ -57,10 +55,8 @@ public class DiagnosticResourceTest {
 
     @Test
     public void shouldReturnDiagnosticForTaskWithComleteInformation() throws IOException {
-        TaskInfo task = new TaskInfo();
-        task.setId(10);
-        task.setStartDate(new Date());
-        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(task));
+        when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(
+                TaskInfo.builder().id(10).startDate(new Date()).build()));
         when(taskDiagnosticInfoDAO.findById(anyLong())).thenReturn(Optional.of(TaskDiagnosticInfo.builder()
                 .finishOnStormTime(Instant.now()).build()));
         TaskByTaskState s = new TaskByTaskState();

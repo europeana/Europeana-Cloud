@@ -744,7 +744,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 .stateDescription(EMPTY_STRING)
                 .expectedRecordsNumber(100)
                 .processedRecordsCount(100)
-                .retryCount(10)
                 .processedErrorsCount(50)
                 .sentDate(new Date())
                 .startDate(new Date())

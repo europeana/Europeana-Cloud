@@ -133,7 +133,6 @@ public class DPSClientTest {
                 .stateDescription("")
                 .expectedRecordsNumber(1)
                 .processedRecordsCount(0)
-                .retryCount(0)
                 .processedErrorsCount(0)
                 .build();
 

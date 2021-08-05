@@ -22,8 +22,6 @@ public class TaskInfo {
     /** Number of records that was already processed by the topology that was ignored by this execution.<br/>
      * For now only OAI topology can ignore the records in HarvestedRecordCategorizationBolt */
     private int ignoredRecordsCount;
-    /** Number of retries done on the records processed by the topology*/
-    private int retryCount;
     private TaskState state;
     private String stateDescription;
     /** Tomcat application identifier where the task was executed */

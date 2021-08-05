@@ -113,7 +113,7 @@ public class TaskDiagnosticInfoDAO extends CassandraDAO {
         return TaskDiagnosticInfo.builder()
                 .id(row.getLong(TASK_DIAGNOSTIC_INFO_ID))
                 .startedCount(row.getInt(TASK_DIAGNOSTIC_INFO_STARTED_RECORDS_COUNT))
-                .retryCount(row.getInt(TASK_DIAGNOSTIC_INFO_RECORDS_RETRY_COUNT))
+                .recordsRetryCount(row.getInt(TASK_DIAGNOSTIC_INFO_RECORDS_RETRY_COUNT))
                 .queuedTime(getInstant(row, TASK_DIAGNOSTIC_INFO_QUEUED_TIME))
                 .startOnStormTime(getInstant(row, TASK_DIAGNOSTIC_INFO_START_ON_STORM_TIME))
                 .finishOnStormTime(getInstant(row, TASK_DIAGNOSTIC_INFO_FINISH_ON_STORM_TIME))
