@@ -302,9 +302,9 @@ public class NotificationBoltTest extends CassandraTestBase {
                 .topologyName(topologyName)
                 .state(state)
                 .stateDescription(info)
-                .sentDate(sentTime)
-                .startDate(startTime)
-                .finishDate(finishTime)
+                .sentTimestamp(sentTime)
+                .startTimestamp(startTime)
+                .finishTimestamp(finishTime)
                 .build();
         expectedTaskInfo.setExpectedRecordsNumber(containElement);
         return expectedTaskInfo;

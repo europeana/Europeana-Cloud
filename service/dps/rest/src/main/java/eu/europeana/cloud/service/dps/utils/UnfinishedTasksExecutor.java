@@ -110,10 +110,10 @@ public class UnfinishedTasksExecutor {
     private SubmitTaskParameters prepareSubmitTaskParameters(TaskInfo taskInfo) throws IOException {
         var dpsTask = DpsTask.fromTaskInfo(taskInfo);
 
-        dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentDate()));
+        dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentTimestamp()));
 
         return SubmitTaskParameters.builder()
-                .sentTime(taskInfo.getSentDate())
+                .sentTime(taskInfo.getSentTimestamp())
                 .startTime(new Date())
                 .task(dpsTask)
                 .topologyName(taskInfo.getTopologyName())

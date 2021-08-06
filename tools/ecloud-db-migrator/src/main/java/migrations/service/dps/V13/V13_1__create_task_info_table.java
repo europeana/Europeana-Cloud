@@ -12,9 +12,9 @@ public class V13_1__create_task_info_table implements JavaMigration {
                         "    topology_name           varchar,\n" +
                         "    state                   varchar,\n" +
                         "    state_description       varchar,\n" +
-                        "    sent_time               timestamp,\n" +
-                        "    start_time              timestamp,\n" +
-                        "    finish_time             timestamp,\n" +
+                        "    sent_timestamp          timestamp,\n" +
+                        "    start_timestamp         timestamp,\n" +
+                        "    finish_timestamp        timestamp,\n" +
                         "    expected_records_number int,\n" +
                         "    processed_records_count int,\n" +
                         "    ignored_records_count   int,\n" +

@@ -116,13 +116,13 @@ public class GhostTaskServiceTest {
     private static TaskInfo createTaskInfo(Long id, int sentDaysAgo) {
         TaskInfo info = TaskInfo.builder().build();
         info.setId(id);
-        info.setSentDate(Date.from(Instant.now().minus(sentDaysAgo, ChronoUnit.DAYS)));
+        info.setSentTimestamp(Date.from(Instant.now().minus(sentDaysAgo, ChronoUnit.DAYS)));
         return info;
     }
 
     private static TaskInfo createTaskInfo(Long id, int sentDaysAgo, int startedDaysAgo) {
         TaskInfo info = createTaskInfo(id, sentDaysAgo);
-        info.setStartDate(Date.from(Instant.now().minus(startedDaysAgo, ChronoUnit.DAYS)));
+        info.setStartTimestamp(Date.from(Instant.now().minus(startedDaysAgo, ChronoUnit.DAYS)));
         return info;
     }
 

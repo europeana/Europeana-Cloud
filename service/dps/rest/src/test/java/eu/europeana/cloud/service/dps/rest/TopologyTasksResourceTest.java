@@ -745,9 +745,9 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
                 .expectedRecordsNumber(100)
                 .processedRecordsCount(100)
                 .processedErrorsCount(50)
-                .sentDate(new Date())
-                .startDate(new Date())
-                .finishDate(new Date())
+                .sentTimestamp(new Date())
+                .startTimestamp(new Date())
+                .finishTimestamp(new Date())
                 .build();
 
         when(reportService.getTaskProgress(Long.toString(TASK_ID))).thenReturn(taskInfo);

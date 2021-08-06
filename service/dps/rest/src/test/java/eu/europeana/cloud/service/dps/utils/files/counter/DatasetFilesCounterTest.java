@@ -51,9 +51,9 @@ public class DatasetFilesCounterTest {
                 .expectedRecordsNumber(EXPECTED_SIZE)
                 .processedRecordsCount(EXPECTED_SIZE)
                 .processedErrorsCount(0)
-                .sentDate(new Date())
-                .startDate(new Date())
-                .finishDate(new Date())
+                .sentTimestamp(new Date())
+                .startTimestamp(new Date())
+                .finishTimestamp(new Date())
                 .build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));

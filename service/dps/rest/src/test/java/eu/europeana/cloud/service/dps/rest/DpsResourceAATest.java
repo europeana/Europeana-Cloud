@@ -128,9 +128,9 @@ public class DpsResourceAATest extends AbstractSecurityTest {
                 .expectedRecordsNumber(100)
                 .processedRecordsCount(100)
                 .processedErrorsCount(0)
-                .sentDate(new Date())
-                .startDate(new Date())
-                .finishDate(new Date())
+                .sentTimestamp(new Date())
+                .startTimestamp(new Date())
+                .finishTimestamp(new Date())
                 .build();
 
         when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
