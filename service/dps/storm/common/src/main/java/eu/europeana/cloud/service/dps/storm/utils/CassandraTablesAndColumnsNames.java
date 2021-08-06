@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 public class CassandraTablesAndColumnsNames {
     //------- TABLES -------
-    public static final String BASIC_INFO_TABLE = "task_info";
+    public static final String TASK_INFO_TABLE = "task_info";
     public static final String NOTIFICATIONS_TABLE = "notifications";
     public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
     public static final String ERROR_COUNTERS_TABLE = "error_counters";
@@ -19,9 +19,9 @@ public class CassandraTablesAndColumnsNames {
     public static final String TASK_INFO_TOPOLOGY_NAME = "topology_name";
     public static final String TASK_INFO_STATE = "state";
     public static final String TASK_INFO_STATE_DESCRIPTION = "state_description";
-    public static final String TASK_INFO_SENT_TIME = "sent_timestamp";
-    public static final String TASK_INFO_START_TIME = "start_timestamp";
-    public static final String TASK_INFO_FINISH_TIME = "finish_timestamp";
+    public static final String TASK_INFO_SENT_TIMESTAMP = "sent_timestamp";
+    public static final String TASK_INFO_START_TIMESTAMP = "start_timestamp";
+    public static final String TASK_INFO_FINISH_TIMESTAMP = "finish_timestamp";
     public static final String TASK_INFO_EXPECTED_RECORDS_NUMBER = "expected_records_number";
     public static final String TASK_INFO_PROCESSED_RECORDS_COUNT = "processed_records_count";
     public static final String TASK_INFO_IGNORED_RECORDS_COUNT = "ignored_records_count";

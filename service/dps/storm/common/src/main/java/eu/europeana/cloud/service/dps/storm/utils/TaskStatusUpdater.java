@@ -17,7 +17,7 @@ import java.util.Optional;
 
 /**
  * Inserts/update given task in db. Two tables are modified
- * {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
+ * {@link CassandraTablesAndColumnsNames#TASK_INFO_TABLE}
  * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
  * NOTE: Operation is not in transaction! So on table can be modified but second one not
  */

@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -10,6 +9,7 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.conversion.TaskInfoConverter;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.Date;
@@ -57,45 +57,45 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     @Override
     void prepareStatements() {
         taskSearchStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+                "SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        updateTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_START_TIME + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " =? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " =? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateTask.setConsistencyLevel(dbService.getConsistencyLevel());
-        updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateProcessedFiles.setConsistencyLevel(dbService.getConsistencyLevel());
-        endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " =? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " =? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         endTask.setConsistencyLevel(dbService.getConsistencyLevel());
-        taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
+        taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
                 "(" + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_STATE + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIME + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_START_TIME + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIME + ","
+                + CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIMESTAMP + ","
+                + CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP + ","
+                + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        finishTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIME + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        finishTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         finishTask.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateExpectedSize = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateExpectedSize = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateExpectedSize.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateStatusExpectedSizeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateStatusExpectedSizeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateStateStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateStateStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateStateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public Optional<TaskInfo> findById(long taskId)
             throws NoHostAvailableException, QueryExecutionException {
-        return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(this::createTaskInfo);
+        return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one()).map(TaskInfoConverter::fromDBRow);
     }
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS, errorMessage = "Error while inserting task")
@@ -150,21 +150,5 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public boolean isDroppedTask(long taskId) throws TaskInfoDoesNotExistException {
         return (findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new).getState() == TaskState.DROPPED);
-    }
-
-    private TaskInfo createTaskInfo(Row row) {
-        return TaskInfo.builder()
-                .id(row.getLong(CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID))
-                .topologyName(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME))
-                .state(TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE)))
-                .stateDescription(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION))
-                .sentTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIME))
-                .startTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_START_TIME))
-                .finishTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIME))
-                .expectedRecordsNumber(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER))
-                .processedRecordsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT))
-                .definition(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION))
-                .processedErrorsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
-                .build();
     }
 }

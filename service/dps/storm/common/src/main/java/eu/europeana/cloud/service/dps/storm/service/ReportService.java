@@ -7,6 +7,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.conversion.TaskInfoConverter;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
@@ -57,7 +58,7 @@ public class ReportService implements TaskExecutionReportService {
                 "AND " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE + " = ?");
         selectErrorCounterStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        checkIfTaskExistsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
+        checkIfTaskExistsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         checkIfTaskExistsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
@@ -70,24 +71,13 @@ public class ReportService implements TaskExecutionReportService {
     @Override
     public TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
         long taskIdValue = Long.parseLong(taskId);
-        Statement selectFromBasicInfo = QueryBuilder.select().all()
-                .from(CassandraTablesAndColumnsNames.BASIC_INFO_TABLE)
+        Statement selectFromTaskInfo = QueryBuilder.select().all()
+                .from(CassandraTablesAndColumnsNames.TASK_INFO_TABLE)
                 .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID, taskIdValue));
 
-        Row basicInfo = cassandra.getSession().execute(selectFromBasicInfo).one();
-        if (basicInfo != null) {
-            return TaskInfo.builder()
-                    .id(taskIdValue)
-                    .topologyName(basicInfo.getString(CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME))
-                    .state(TaskState.valueOf(basicInfo.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE)))
-                    .stateDescription(basicInfo.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION))
-                    .expectedRecordsNumber(basicInfo.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER))
-                    .processedRecordsCount(basicInfo.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT))
-                    .processedErrorsCount(basicInfo.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
-                    .sentTimestamp(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIME))
-                    .startTimestamp(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_START_TIME))
-                    .finishTimestamp(basicInfo.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIME))
-                    .build();
+        Row taskInfo = cassandra.getSession().execute(selectFromTaskInfo).one();
+        if (taskInfo != null) {
+            return TaskInfoConverter.fromDBRow(taskInfo);
         }
         throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
     }
@@ -260,8 +250,8 @@ public class ReportService implements TaskExecutionReportService {
 
     @Override
     public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
-        Row basicInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(Long.parseLong(taskId))).one();
-        if (basicInfo == null || !basicInfo.getString(CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME).equals(topologyName)) {
+        Row taskInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(Long.parseLong(taskId))).one();
+        if (taskInfo == null || !taskInfo.getString(CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME).equals(topologyName)) {
             throw new AccessDeniedOrObjectDoesNotExistException("The specified task does not exist in this service!");
         }
     }
