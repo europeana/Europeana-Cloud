@@ -12,7 +12,7 @@ public abstract class CassandraDAO {
     protected String port;
     protected CassandraConnectionProvider dbService;
 
-    abstract void prepareStatements();
+    protected abstract void prepareStatements();
 
     protected CassandraDAO(){
     }

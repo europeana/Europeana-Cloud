@@ -56,9 +56,9 @@ public class TaskDiagnosticInfoDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
-        findByIdStatement = prepare("SELECT * FROM " + TASK_DIAGNOSTIC_INFO_TABLE +
-                " WHERE " + TASK_DIAGNOSTIC_INFO_ID + " = ?");
+    protected void prepareStatements() {
+        findByIdStatement = prepare(String.format("SELECT * FROM %s WHERE %s = ?",
+                TASK_DIAGNOSTIC_INFO_TABLE, TASK_DIAGNOSTIC_INFO_ID));
         updateStartedRecordsCount = prepareUpdateQuery(TASK_DIAGNOSTIC_INFO_STARTED_RECORDS_COUNT);
         updateRecordsRetryCount = prepareUpdateQuery(TASK_DIAGNOSTIC_INFO_RECORDS_RETRY_COUNT);
         updateQueuedTime = prepareUpdateQuery(TASK_DIAGNOSTIC_INFO_QUEUED_TIME);
@@ -70,8 +70,9 @@ public class TaskDiagnosticInfoDAO extends CassandraDAO {
     }
 
     private PreparedStatement prepareUpdateQuery(String column) {
-        return prepare("INSERT INTO "
-                + TASK_DIAGNOSTIC_INFO_TABLE + " (" + TASK_DIAGNOSTIC_INFO_ID + "," + column + ") VALUES(?,?)");
+        return prepare(String.format(
+                "INSERT INTO %s(%s,%s) VALUES(?,?)",
+                TASK_DIAGNOSTIC_INFO_TABLE, TASK_DIAGNOSTIC_INFO_ID, column));
     }
 
     public Optional<TaskDiagnosticInfo> findById(long taskId)
@@ -111,8 +112,8 @@ public class TaskDiagnosticInfoDAO extends CassandraDAO {
 
     private TaskDiagnosticInfo createTaskInfo(Row row) {
         return TaskDiagnosticInfo.builder()
-                .id(row.getLong(TASK_DIAGNOSTIC_INFO_ID))
-                .startedCount(row.getInt(TASK_DIAGNOSTIC_INFO_STARTED_RECORDS_COUNT))
+                .taskId(row.getLong(TASK_DIAGNOSTIC_INFO_ID))
+                .startedRecordsCount(row.getInt(TASK_DIAGNOSTIC_INFO_STARTED_RECORDS_COUNT))
                 .recordsRetryCount(row.getInt(TASK_DIAGNOSTIC_INFO_RECORDS_RETRY_COUNT))
                 .queuedTime(getInstant(row, TASK_DIAGNOSTIC_INFO_QUEUED_TIME))
                 .startOnStormTime(getInstant(row, TASK_DIAGNOSTIC_INFO_START_ON_STORM_TIME))

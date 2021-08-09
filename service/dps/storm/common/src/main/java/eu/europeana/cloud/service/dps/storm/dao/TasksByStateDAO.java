@@ -45,7 +45,7 @@ public class TasksByStateDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         insertStatement = dbService.getSession().prepare("INSERT INTO " + TASKS_BY_STATE_TABLE +
                 "("
                 + TASKS_BY_STATE_STATE_COL_NAME + ","

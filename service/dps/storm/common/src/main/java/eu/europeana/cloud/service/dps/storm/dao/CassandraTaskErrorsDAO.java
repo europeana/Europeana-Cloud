@@ -57,7 +57,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         insertErrorStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
                 "(" + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","

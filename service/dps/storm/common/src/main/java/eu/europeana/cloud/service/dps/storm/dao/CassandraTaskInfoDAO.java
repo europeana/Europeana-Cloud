@@ -55,7 +55,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         taskSearchStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());

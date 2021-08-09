@@ -128,7 +128,7 @@ public class DiagnosticResource {
 
     private JoinedTaskInfo loadExtraInfo(TaskInfo taskInfo) {
         TaskDiagnosticInfo diagnosticInfo = taskDiagnosticInfoDAO.findById(taskInfo.getId()).
-                orElse(TaskDiagnosticInfo.builder().id(taskInfo.getId()).build());
+                orElse(TaskDiagnosticInfo.builder().taskId(taskInfo.getId()).build());
         tasksByStateDAO.findTask(taskInfo.getState(), taskInfo.getTopologyName(), taskInfo.getId())
                 .ifPresent(taskStateInfo -> taskInfo.setTopicName(taskStateInfo.getTopicName()));
         return new JoinedTaskInfo(taskInfo, diagnosticInfo);

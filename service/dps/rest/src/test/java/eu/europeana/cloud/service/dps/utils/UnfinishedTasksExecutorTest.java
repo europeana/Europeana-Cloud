@@ -45,7 +45,7 @@ public class UnfinishedTasksExecutorTest {
         Mockito.reset(tasksByStateDAO);
         when(tasksByStateDAO.findTasksByState(Mockito.any(List.class))).thenReturn(unfinishedTasks);
         //when
-        unfinishedTasksExecutor.reRunUnfinishedTasks();
+        unfinishedTasksExecutor.restartUnfinishedTasks();
         //then
         Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
     }
@@ -65,7 +65,7 @@ public class UnfinishedTasksExecutorTest {
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class)))
                 .thenReturn(Mockito.mock(TaskSubmitter.class));
         //when
-        unfinishedTasksExecutor.reRunUnfinishedTasks();
+        unfinishedTasksExecutor.restartUnfinishedTasks();
         //then
         Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
         Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
@@ -88,7 +88,7 @@ public class UnfinishedTasksExecutorTest {
         when(cassandraTaskInfoDAO.findById(1L)).thenReturn(Optional.of(taskInfo));
         when(taskSubmitterFactory.provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class))).thenReturn(Mockito.mock(TaskSubmitter.class));
         //when
-        unfinishedTasksExecutor.reRunUnfinishedTasks();
+        unfinishedTasksExecutor.restartUnfinishedTasks();
         //then
         Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
         Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));

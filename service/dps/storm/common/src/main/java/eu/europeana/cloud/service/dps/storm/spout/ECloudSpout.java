@@ -231,21 +231,21 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         private void updateDiagnosticCounters(ProcessedRecord aRecord) {
             TaskDiagnosticInfo taskInfo = tasksCache.getDiagnosticInfo(aRecord.getTaskId());
 
-            if (taskInfo.getStartedCount() == 0) {
+            if (taskInfo.getStartedRecordsCount() == 0) {
                 taskInfo.setStartOnStormTime(Instant.now());
-                taskDiagnosticInfoDAO.updateStartOnStormTime(taskInfo.getId(), taskInfo.getStartOnStormTime());
-                taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getId(), 0);
+                taskDiagnosticInfoDAO.updateStartOnStormTime(taskInfo.getTaskId(), taskInfo.getStartOnStormTime());
+                taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getTaskId(), 0);
             }
 
             if (aRecord.getAttemptNumber() > 1) {
-                LOGGER.info("Task {} the record {} is repeated - {} attempt!", taskInfo.getId(), aRecord.getRecordId(), aRecord.getAttemptNumber());
+                LOGGER.info("Task {} the record {} is repeated - {} attempt!", taskInfo.getTaskId(), aRecord.getRecordId(), aRecord.getAttemptNumber());
                 int retryCount = taskInfo.getRecordsRetryCount();
                 retryCount++;
                 taskInfo.setRecordsRetryCount(retryCount);
-                taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getId(), retryCount);
+                taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getTaskId(), retryCount);
             } else {
-                taskInfo.setStartedCount(taskInfo.getStartedCount() + 1);
-                taskDiagnosticInfoDAO.updateStartedRecordsCount(taskInfo.getId(), taskInfo.getStartedCount());
+                taskInfo.setStartedRecordsCount(taskInfo.getStartedRecordsCount() + 1);
+                taskDiagnosticInfoDAO.updateStartedRecordsCount(taskInfo.getTaskId(), taskInfo.getStartedRecordsCount());
             }
         }
 

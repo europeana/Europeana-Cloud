@@ -59,7 +59,7 @@ public class UnfinishedTasksExecutor {
     }
 
     @PostConstruct
-    public void reRunUnfinishedTasks() {
+    public void restartUnfinishedTasks() {
         LOGGER.info("Will restart all pending tasks");
         List<TaskByTaskState> results = findProcessingByRestTasks();
         List<TaskInfo> tasksForCurrentMachine = findTasksForCurrentMachine(results);

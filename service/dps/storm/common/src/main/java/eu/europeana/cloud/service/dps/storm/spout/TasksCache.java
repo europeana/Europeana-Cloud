@@ -63,7 +63,7 @@ public class TasksCache {
     public TaskDiagnosticInfo getDiagnosticInfo(long taskId) {
         TaskDiagnosticInfo info = diagnosticCache.get(taskId);
         if (info == null) {
-            info = taskDiagnosticInfoDAO.findById(taskId).orElse(TaskDiagnosticInfo.builder().id(taskId).build());
+            info = taskDiagnosticInfoDAO.findById(taskId).orElse(TaskDiagnosticInfo.builder().taskId(taskId).build());
             diagnosticCache.put(taskId, info);
         }
         return info;

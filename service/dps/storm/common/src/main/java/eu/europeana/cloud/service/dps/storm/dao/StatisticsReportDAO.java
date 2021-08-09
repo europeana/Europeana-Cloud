@@ -44,7 +44,7 @@ public class StatisticsReportDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
 
         storeStatisticsReportStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " (" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + "," +

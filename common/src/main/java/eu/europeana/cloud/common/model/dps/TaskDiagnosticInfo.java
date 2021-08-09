@@ -14,9 +14,9 @@ import java.time.Instant;
 @ToString
 @EqualsAndHashCode
 public class TaskDiagnosticInfo {
-    private long id;
+    private long taskId;
+    private int startedRecordsCount;
     private int recordsRetryCount;
-    private int startedCount;
     private Instant queuedTime;
     private Instant startOnStormTime;
     private Instant lastRecordFinishedOnStormTime;
