@@ -176,22 +176,22 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
-    protected void emitIgnoredNotification(Tuple anchorTuple, long taskId, boolean markedAsDelete, String resource,
+    protected void emitIgnoredNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
                                            String message, String additionalInformation,
                                            long processingStartTime) {
-        NotificationTuple tuple = NotificationTuple.prepareNotification(taskId, markedAsDelete,
+        NotificationTuple tuple = NotificationTuple.prepareNotification(taskId, markedAsDeleted,
                 resource, RecordState.SUCCESS, message, additionalInformation, "", processingStartTime);
         tuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
     }
 
 
-    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, boolean markedAsDelete,
+    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, boolean markedAsDeleted,
                                                       DataSetCleanerParameters dataSetCleanerParameters,
                                                       String authenticationHeader, String resource, String message,
                                                       String additionalInformation, String resultResource,
                                                       long processingStartTime) {
-        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, markedAsDelete, dataSetCleanerParameters, authenticationHeader,
+        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, markedAsDeleted, dataSetCleanerParameters, authenticationHeader,
                 resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
