@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
-import eu.europeana.cloud.common.model.dps.InformationTypes;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
@@ -118,11 +117,7 @@ public class NotificationTuple {
         return "true".equals(parameters.get(PluginParameterKeys.MARKED_AS_DELETED));
     }
 
-    public void setMarkedAsDeleted(boolean markedAsDeleted) {
-        if(markedAsDeleted){
-            parameters.put(PluginParameterKeys.MARKED_AS_DELETED,"true");
-        }else{
-            parameters.remove(PluginParameterKeys.MARKED_AS_DELETED);
-        }
+    public boolean isIgnoredRecord() {
+        return "true".equals(parameters.get(PluginParameterKeys.IGNORED_RECORD));
     }
 }

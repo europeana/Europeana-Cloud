@@ -64,12 +64,6 @@ public class TaskStatusUpdater {
                 parameters.getTaskJSON());
     }
 
-    public void updateTask(long taskId, String info, TaskState state, Date startDate)
-            throws NoHostAvailableException, QueryExecutionException {
-        updateTasksByTaskStateTable(taskId, state);
-        taskInfoDAO.updateTask(taskId, info, state, startDate);
-    }
-
     public void setTaskCompletelyProcessed(long taskId, String info)
             throws NoHostAvailableException, QueryExecutionException {
         updateTasksByTaskStateTable(taskId, TaskState.PROCESSED);
@@ -82,15 +76,11 @@ public class TaskStatusUpdater {
         taskInfoDAO.setTaskDropped(taskId, info);
     }
 
-    public void endTask(long taskId, int processedFilesCount, int errors, String info, TaskState state, Date finishDate)
+    public void setUpdateProcessedFiles(long taskId, int processedRecordsCount, int ignoredRecordsCount,
+                                        int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount)
             throws NoHostAvailableException, QueryExecutionException {
-        updateTasksByTaskStateTable(taskId, state);
-        taskInfoDAO.endTask(taskId, processedFilesCount, errors, info, state, finishDate);
-    }
-
-    public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
-            throws NoHostAvailableException, QueryExecutionException {
-        taskInfoDAO.setUpdateProcessedFiles(taskId, processedFilesCount, errors);
+        taskInfoDAO.setUpdateProcessedFiles(taskId, processedRecordsCount, ignoredRecordsCount, deletedRecordsCount,
+                processedErrorsCount, deletedErrorsCount);
     }
 
     public void updateState(long taskId, TaskState state, String info)

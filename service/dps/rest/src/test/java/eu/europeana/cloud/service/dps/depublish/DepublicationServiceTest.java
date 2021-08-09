@@ -147,7 +147,7 @@ public class DepublicationServiceTest {
     public void shouldSaveValidSetSizeInResults() {
         service.depublishDataset(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, EXPECTED_SET_SIZE, 0);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, EXPECTED_SET_SIZE, 0, 0, 0, 0);
     }
 
     @Test
@@ -231,7 +231,7 @@ public class DepublicationServiceTest {
     public void shouldValidRecordCountBeSavedInResult() {
         service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(1, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD1);
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
         assertTaskSucceed();
@@ -244,7 +244,7 @@ public class DepublicationServiceTest {
 
         service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 1);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
         verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY), eq(RECORD1), any(), any());
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
         assertTaskSucceed();
@@ -257,7 +257,7 @@ public class DepublicationServiceTest {
 
         service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 1);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
         verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY), eq(RECORD1), any(), any());
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
         assertTaskSucceed();
@@ -275,7 +275,7 @@ public class DepublicationServiceTest {
 
         service.depublishIndividualRecords(parameters);
 
-        verify(updater, never()).setUpdateProcessedFiles(TASK_ID, 2, 0);
+        verify(updater, never()).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
         verify(recordStatusUpdater, never()).addSuccessfullyProcessedRecord(anyInt(), anyLong(), any(), eq(RECORD2));
     }
 

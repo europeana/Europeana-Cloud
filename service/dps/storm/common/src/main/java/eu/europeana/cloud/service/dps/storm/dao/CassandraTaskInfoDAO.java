@@ -26,9 +26,6 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskSearchStatement;
     private PreparedStatement taskInsertStatement;
-    private PreparedStatement updateExpectedSize;
-    private PreparedStatement updateTask;
-    private PreparedStatement endTask;
     private PreparedStatement updateProcessedFiles;
     private PreparedStatement finishTask;
     private PreparedStatement updateStatusExpectedSizeStatement;
@@ -59,12 +56,16 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         taskSearchStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        updateTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " =? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        updateTask.setConsistencyLevel(dbService.getConsistencyLevel());
         updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateProcessedFiles = dbService.getSession().prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT + " = ?" +
+                        " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateProcessedFiles.setConsistencyLevel(dbService.getConsistencyLevel());
-        endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " =? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        endTask.setConsistencyLevel(dbService.getConsistencyLevel());
         taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
                 "(" + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME + ","
@@ -82,9 +83,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
         finishTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         finishTask.setConsistencyLevel(dbService.getConsistencyLevel());
-
-        updateExpectedSize = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        updateExpectedSize.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateStatusExpectedSizeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -109,11 +107,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         );
     }
 
-    public void updateTask(long taskId, String info, TaskState state, Date startDate)
-            throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateTask.bind(String.valueOf(state), startDate, info, taskId));
-    }
-
     public void setTaskCompletelyProcessed(long taskId, String info)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(finishTask.bind(TaskState.PROCESSED.toString(), info, new Date(), taskId));
@@ -124,19 +117,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(finishTask.bind(String.valueOf(TaskState.DROPPED), info, new Date(), taskId));
     }
 
-    public void setUpdateExpectedSize(long taskId, int expectedSize)
+    public void setUpdateProcessedFiles(long taskId, int processedRecordsCount, int ignoredRecordsCount,
+                                        int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateExpectedSize.bind(expectedSize, taskId));
-    }
-
-    public void endTask(long taskId, int processeFilesCount, int errors, String info, TaskState state, Date finishDate)
-            throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(endTask.bind(processeFilesCount, errors, String.valueOf(state), finishDate, info, taskId));
-    }
-
-    public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
-            throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateProcessedFiles.bind(processedFilesCount, errors, taskId));
+        dbService.getSession().execute(updateProcessedFiles.bind(processedRecordsCount, ignoredRecordsCount,
+                deletedRecordsCount, processedErrorsCount, deletedErrorsCount, taskId));
     }
 
     public void updateStatusExpectedSize(long taskId, TaskState state, int expectedSize)

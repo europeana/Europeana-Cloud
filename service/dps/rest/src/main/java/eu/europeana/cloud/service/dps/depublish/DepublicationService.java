@@ -135,7 +135,7 @@ public class DepublicationService {
     }
 
     private void saveProgress(long taskId, int processed, int errors) {
-        taskStatusUpdater.setUpdateProcessedFiles(taskId, processed, errors);
+        taskStatusUpdater.setUpdateProcessedFiles(taskId, processed, 0, 0, errors, 0);
     }
 
     private void saveErrorResult(SubmitTaskParameters parameters, Exception e) {

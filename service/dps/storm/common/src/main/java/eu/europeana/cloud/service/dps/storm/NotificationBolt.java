@@ -15,7 +15,10 @@ import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.util.LRUCache;
+import lombok.Getter;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.StandardToStringStyle;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -130,21 +133,25 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private void notifyTask(NotificationTuple notificationTuple, NotificationCache nCache, long taskId) {
-        boolean error = isError(notificationTuple, nCache);
-
-        int processesFilesCount = nCache.getProcessed();
-        int errors = nCache.getErrors();
+        boolean error = isError(notificationTuple);
+        nCache.incrementCounters(notificationTuple);
 
         //notification table (for single record)
-        storeNotification(processesFilesCount, taskId,
+        storeNotification(nCache.getProcessed(), taskId,
                 notificationTuple.getParameters());
 
         if (error) {
             storeNotificationError(taskId, nCache, notificationTuple);
         }
 
-        LOGGER.info("Updating task counter for task_id = {} and counter value: {}", taskId, processesFilesCount);
-        taskStatusUpdater.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
+        saveProgressCounters(taskId, nCache);
+    }
+
+    private void saveProgressCounters(long taskId, NotificationCache nCache) {
+        LOGGER.info("Updating task counter for task_id = {} and counters: {}", taskId, nCache.getCountersAsText());
+        taskStatusUpdater.setUpdateProcessedFiles(taskId, nCache.getProcessedRecordsCount(),
+                nCache.getIgnoredRecordsCount(), nCache.getDeletedRecordsCount(),
+                nCache.getProcessedErrorsCount(), nCache.getDeletedErrorsCount());
     }
 
     private void storeNotificationError(long taskId, NotificationCache nCache, NotificationTuple notificationTuple) {
@@ -179,17 +186,9 @@ public class NotificationBolt extends BaseRichBolt {
         return errorCount > Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE;
     }
 
-    private boolean isError(NotificationTuple notificationTuple, NotificationCache nCache) {
-        if (isErrorTuple(notificationTuple)) {
-            nCache.inc(true);
-            return true;
-        } else if (notificationTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
-            nCache.inc(false);
-            return true;
-        } else {
-            nCache.inc(false);
-            return false;
-        }
+    private boolean isError(NotificationTuple notificationTuple) {
+        return isErrorTuple(notificationTuple)
+                || (notificationTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null);
     }
 
     private void storeFinishState(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
@@ -200,7 +199,7 @@ public class NotificationBolt extends BaseRichBolt {
             int count = nCache.getProcessed();
             int expectedSize = task.getExpectedRecordsNumber();
             if (count == expectedSize) {
-                endTask(notificationTuple, nCache.getErrors(), count);
+                endTask(notificationTuple, nCache);
             }
         }
     }
@@ -226,35 +225,57 @@ public class NotificationBolt extends BaseRichBolt {
         return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
     }
 
+    @Getter
     protected class NotificationCache {
 
         int processed;
-        int errors = 0;
+        int processedRecordsCount;
+        int ignoredRecordsCount;
+        int deletedRecordsCount;
+        int processedErrorsCount;
+        int deletedErrorsCount;
 
         Map<String, String> errorTypes = new HashMap<>();
 
         NotificationCache(long taskId) {
             processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
             if (processed > 0) {
-                errors = taskInfoDAO.findById(taskId).orElseThrow().getProcessedErrorsCount();
+                var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
+                processedRecordsCount = taskInfo.getProcessedRecordsCount();
+                ignoredRecordsCount = taskInfo.getIgnoredRecordsCount();
+                deletedRecordsCount = taskInfo.getDeletedRecordsCount();
+                processedErrorsCount = taskInfo.getProcessedErrorsCount();
+                deletedErrorsCount = taskInfo.getDeletedErrorsCount();
                 errorTypes = getMessagesUUIDsMap(taskId);
-                LOGGER.debug("Restored state of NotificationBolt from Cassandra for taskId={} processed={} errors={}\nerrorTypes={}", taskId, processed, errors, errorTypes);
+                LOGGER.info("Restored state of NotificationBolt from Cassandra for taskId={} counters={}",
+                        taskId, getCountersAsText());
             }
         }
 
-        public void inc(boolean error) {
+        public void incrementCounters(NotificationTuple notificationTuple) {
             processed++;
-            if (error) {
-                errors++;
+
+            if (notificationTuple.isMarkedAsDeleted()) {
+                deletedRecordsCount++;
+                if (isErrorTuple(notificationTuple)) {
+                    deletedErrorsCount++;
+                }
+            } else if (notificationTuple.isIgnoredRecord()) {
+                if (isErrorTuple(notificationTuple)) {
+                    LOGGER.error("Tuple is marked as ignored and error in the same time! It should not occur. Tuple: {}"
+                            , notificationTuple);
+                    processedRecordsCount++;
+                    processedErrorsCount++;
+                } else {
+                    ignoredRecordsCount++;
+                }
+            } else {
+                processedRecordsCount++;
+                if (isErrorTuple(notificationTuple)) {
+                    processedErrorsCount++;
+                }
             }
-        }
 
-        public int getProcessed() {
-            return processed;
-        }
-
-        public int getErrors() {
-            return errors;
         }
 
         private Map<String, String> getMessagesUUIDsMap(long taskId) {
@@ -272,19 +293,28 @@ public class NotificationBolt extends BaseRichBolt {
             return errorTypes.computeIfAbsent(infoText,
                     key -> new com.eaio.uuid.UUID().toString());
         }
+
+        public String getCountersAsText() {
+            var style = new StandardToStringStyle();
+            style.setUseClassName(false);
+            style.setUseIdentityHashCode(false);
+            style.setContentEnd("");
+            style.setContentStart("");
+            return new ReflectionToStringBuilder(this, style).setExcludeFieldNames("errorTypes").toString();
+        }
     }
 
-    protected void endTask(NotificationTuple notificationTuple, int errors, int count) {
+    protected void endTask(NotificationTuple notificationTuple, NotificationCache nCache) {
         try {
             if (needsPostProcessing(notificationTuple)) {
-                setTaskStatusToReadyForPostprocessing(notificationTuple, errors, count);
+                setTaskStatusToReadyForPostprocessing(notificationTuple, nCache);
             } else {
-                setTaskProcessed(notificationTuple, errors, count);
+                setTaskProcessed(notificationTuple, nCache);
             }
             taskDiagnosticInfoDAO.updateFinishOnStormTime(notificationTuple.getTaskId(), Instant.now());
         } catch (Exception e) {
             LOGGER.error("Unable to end the task. id: {} ", notificationTuple.getTaskId(), e);
-            taskInfoDAO.setTaskDropped(notificationTuple.getTaskId(), "Unable to end the task");
+            taskStatusUpdater.setTaskDropped(notificationTuple.getTaskId(), "Unable to end the task");
         }
     }
 
@@ -292,18 +322,17 @@ public class NotificationBolt extends BaseRichBolt {
         return false;
     }
 
-    private void setTaskProcessed(NotificationTuple notificationTuple, int errors, int count) {
-        taskStatusUpdater.endTask(notificationTuple.getTaskId(), count, errors, "Completely processed",
-                TaskState.PROCESSED, Calendar.getInstance().getTime());
-        LOGGER.info("Task id={} completely processed, with {} records and {} errors.", notificationTuple.getTaskId(),
-                count, errors);
+    private void setTaskProcessed(NotificationTuple notificationTuple, NotificationCache nCache) {
+        taskStatusUpdater.setTaskCompletelyProcessed(notificationTuple.getTaskId(), "Completely processed");
+        LOGGER.info("Task id={} completely processed! Counters: {} ", notificationTuple.getTaskId(),
+                nCache.getCountersAsText());
     }
 
-    private void setTaskStatusToReadyForPostprocessing(NotificationTuple notificationTuple, int errors, int count) {
+    private void setTaskStatusToReadyForPostprocessing(NotificationTuple notificationTuple, NotificationCache nCache) {
         taskStatusUpdater.updateState(notificationTuple.getTaskId(), TaskState.READY_FOR_POST_PROCESSING,
                 "Ready for post processing after topology stage is finished");
-        LOGGER.info("Task id={} finished topology stage with {} records processed and {} errors. Now it is waiting for post processing ",
-                notificationTuple.getTaskId(), count, errors);
+        LOGGER.info("Task id={} finished topology stage. Now it is waiting for post processing. Counters: {}",
+                notificationTuple.getTaskId(), nCache.getCountersAsText());
     }
 
     protected DpsTask loadDpsTask(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
