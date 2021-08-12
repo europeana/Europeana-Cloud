@@ -105,6 +105,7 @@ public class IndexingPostProcessorTest {
                         .previewHarvestMd5(null)
                         .build())
         ));
+        verify(taskStatusUpdater).updateDeletedCount(anyLong(), eq(1));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
     }
 
@@ -164,6 +165,7 @@ public class IndexingPostProcessorTest {
                 .build()));
 
         verify(harvestedRecordsDAO, times(2)).findRecord(any(), any());
+        verify(taskStatusUpdater).updateDeletedCount(anyLong(), eq(2));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
     }
 
@@ -198,6 +200,7 @@ public class IndexingPostProcessorTest {
                         .previewHarvestMd5(previewHarvestMd5ForRecord_1)
                         .build())
         ));
+        verify(taskStatusUpdater).updateDeletedCount(anyLong(), eq(1));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
     }
 
@@ -257,6 +260,7 @@ public class IndexingPostProcessorTest {
                 .build()));
 
         verify(harvestedRecordsDAO, times(2)).findRecord(any(), any());
+        verify(taskStatusUpdater).updateDeletedCount(anyLong(), eq(2));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
     }
 
