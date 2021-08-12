@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -90,16 +91,19 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
     }
 
     @Override
-    public void execute(DpsTask dpsTask) {
+    public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
         try {
             taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
                     "Postprocessing - adding removed records to result revision.");
             Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
+            int deletedCount = taskInfo.getDeletedRecordsCount();
             while (it.hasNext()) {
                 var harvestedRecord = it.next();
                 if (!isRecordProcessed(dpsTask, harvestedRecord)) {
                     addRecordToTaskOutputRevision(dpsTask, harvestedRecord);
                     setRecordProcessed(dpsTask, harvestedRecord);
+                    deletedCount++;
+                    taskStatusUpdater.updateDeletedCount(dpsTask.getTaskId(), deletedCount);
                     LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
                 } else {
                     LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
@@ -66,9 +67,10 @@ public class PostProcessingService {
     public void postProcess(TaskByTaskState taskByTaskState) {
         try {
             TaskPostProcessor postProcessor = postProcessorFactory.getPostProcessor(taskByTaskState);
-            DpsTask task = loadTask(taskByTaskState.getId());
+            var taskInfo = loadTask(taskByTaskState);
+            DpsTask task = DpsTask.fromTaskInfo(taskInfo);
             taskDiagnosticInfoDAO.updatePostprocessingStartTime(taskByTaskState.getId(), Instant.now());
-            postProcessor.execute(task);
+            postProcessor.execute(taskInfo, task);
             LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
         } catch (IOException | TaskInfoDoesNotExistException | PostProcessingException exception) {
             LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
@@ -89,8 +91,7 @@ public class PostProcessingService {
         return result;
     }
 
-    private DpsTask loadTask(long taskId) throws IOException, TaskInfoDoesNotExistException {
-        var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-        return DpsTask.fromTaskInfo(taskInfo);
+    private TaskInfo loadTask(TaskByTaskState taskByTaskState) throws TaskInfoDoesNotExistException {
+        return taskInfoDAO.findById(taskByTaskState.getId()).orElseThrow(TaskInfoDoesNotExistException::new);
     }
 }

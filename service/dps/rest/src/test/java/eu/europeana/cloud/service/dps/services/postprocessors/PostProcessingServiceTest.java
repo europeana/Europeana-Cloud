@@ -63,13 +63,13 @@ public class PostProcessingServiceTest {
     @Test
     public void shouldExecutePostprocessor() {
         postProcessingService.postProcess(TASK_BY_TASK_STATE_1);
-        verify(taskPostProcessor).execute(any());
+        verify(taskPostProcessor).execute(any(), any());
     }
 
     @Test
     public void shouldNotExecuteForUnknownTopology() {
         postProcessingService.postProcess(TASK_BY_TASK_STATE_2);
-        verify(taskPostProcessor, never()).execute(any());
+        verify(taskPostProcessor, never()).execute(any(), any());
     }
 
     private void initTaskInfoDAOMock() {

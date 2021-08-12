@@ -26,7 +26,8 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskSearchStatement;
     private PreparedStatement taskInsertStatement;
-    private PreparedStatement updateProcessedFiles;
+    private PreparedStatement updateCounters;
+    private PreparedStatement updateDeleteRecordsCount;
     private PreparedStatement finishTask;
     private PreparedStatement updateStatusExpectedSizeStatement;
     private PreparedStatement updateStateStatement;
@@ -56,8 +57,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         taskSearchStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        updateProcessedFiles = dbService.getSession().prepare(
+        updateCounters = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateCounters = dbService.getSession().prepare(
                 "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET "
                         + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , "
                         + CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT + " = ? , "
@@ -65,7 +66,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                         + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? , "
                         + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT + " = ?" +
                         " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        updateProcessedFiles.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateCounters.setConsistencyLevel(dbService.getConsistencyLevel());
+        updateDeleteRecordsCount = prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT + " = ?" +
+                " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
                 "(" + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME + ","
@@ -120,8 +124,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     public void setUpdateProcessedFiles(long taskId, int processedRecordsCount, int ignoredRecordsCount,
                                         int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateProcessedFiles.bind(processedRecordsCount, ignoredRecordsCount,
+        dbService.getSession().execute(updateCounters.bind(processedRecordsCount, ignoredRecordsCount,
                 deletedRecordsCount, processedErrorsCount, deletedErrorsCount, taskId));
+    }
+
+    public void updateDeleteRecordsCount(long taskId, int deleteRecordsCount)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(updateDeleteRecordsCount.bind(deleteRecordsCount, taskId));
     }
 
     public void updateStatusExpectedSize(long taskId, TaskState state, int expectedSize)

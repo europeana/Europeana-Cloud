@@ -125,4 +125,7 @@ public class TaskStatusUpdater {
         tasksByStateDAO.insert(newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
+    public void updateDeletedCount(long taskId, int deletedCount) {
+        taskInfoDAO.updateDeleteRecordsCount(taskId, deletedCount);
+    }
 }

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
@@ -66,6 +67,7 @@ public class IndexingPostProcessorTest {
     private static final UUID latestHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-fa163e64bb83");
     private static final UUID publishHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000001");
     private static final UUID previewHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000002");
+    private TaskInfo taskInfo=new TaskInfo();
 
     @Before
     public void setup() throws Exception {
@@ -88,7 +90,7 @@ public class IndexingPostProcessorTest {
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(oneRecord));
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
         //when
-        service.execute(prepareTaskForPreviewEnv());
+        service.execute(taskInfo, prepareTaskForPreviewEnv());
         //then
         verify(harvestedRecordsDAO).findRecord(any(), any());
         verify(harvestedRecordsDAO).insertHarvestedRecord(argThat(samePropertyValuesAs(
@@ -133,7 +135,7 @@ public class IndexingPostProcessorTest {
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_2)).thenReturn(Optional.of(record2));
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         //when
-        service.execute(prepareTaskForPreviewEnv());
+        service.execute(taskInfo,  prepareTaskForPreviewEnv());
         //then
         ArgumentCaptor<HarvestedRecord> argument = ArgumentCaptor.forClass(HarvestedRecord.class);
         verify(harvestedRecordsDAO, times(2)).insertHarvestedRecord(argument.capture());
@@ -181,7 +183,7 @@ public class IndexingPostProcessorTest {
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(oneRecord));
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
         //when
-        service.execute(prepareTaskForPublishEnv());
+        service.execute(taskInfo,  prepareTaskForPublishEnv());
         //then
         verify(harvestedRecordsDAO).findRecord(any(), any());
         verify(harvestedRecordsDAO).insertHarvestedRecord(argThat(samePropertyValuesAs(
@@ -226,7 +228,7 @@ public class IndexingPostProcessorTest {
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_2)).thenReturn(Optional.of(record2));
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         //when
-        service.execute(prepareTaskForPublishEnv());
+        service.execute(taskInfo, prepareTaskForPublishEnv());
         //then
         ArgumentCaptor<HarvestedRecord> argument = ArgumentCaptor.forClass(HarvestedRecord.class);
         verify(harvestedRecordsDAO, times(2)).insertHarvestedRecord(argument.capture());
@@ -263,7 +265,7 @@ public class IndexingPostProcessorTest {
         //given
         when(harvestedRecordsDAO.findDatasetRecords(METIS_DATASET_ID)).thenReturn(Collections.emptyIterator());
         //when
-        service.execute(prepareTaskForNotUnknownEnv());
+        service.execute(taskInfo, prepareTaskForNotUnknownEnv());
     }
 
     private DpsTask prepareTaskForPreviewEnv() {

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -44,7 +45,7 @@ public class IndexingPostProcessor implements TaskPostProcessor {
     }
 
     @Override
-    public void execute(DpsTask dpsTask) {
+    public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
         try {
             LOGGER.info("Started postprocessing for {}", dpsTask);
             DataSetCleanerParameters cleanerParameters = prepareParameters(dpsTask);
