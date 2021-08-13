@@ -104,7 +104,6 @@ public class UnfinishedTasksExecutorTest {
                 .startTimestamp(new Date())
                 .finishTimestamp(new Date())
                 .build();
-        taskInfo.setOwnerId("exampleAppIdentifier");
         taskInfo.setDefinition("{\"inputData\":{\"DATASET_URLS\":[\"http://195.216.97.81/api/data-providers/topologiesTestProvider/data-sets/DEREFERENCE_DATASET\"]},\"parameters\":{\"REPRESENTATION_NAME\":\"derefernce_rep\",\"AUTHORIZATION_HEADER\":\"Basic bWV0aXNfdGVzdDoxUmtaQnVWZg==\"},\"outputRevision\":null,\"taskId\":-2054267154868584315,\"taskName\":\"\",\"harvestingDetails\":null}");
         return taskInfo;
     }

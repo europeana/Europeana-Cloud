@@ -41,8 +41,8 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
 
         String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
         parameters.setTopicName(preferredTopicName);
-        parameters.setExpectedSize(expectedCount);
-        taskStatusUpdater.insertTask(parameters);
+        parameters.setExpectedRecordsNumber(expectedCount);
+        taskStatusUpdater.updateSubmitParameters(parameters);
 
         mcsTaskSubmitter.execute(parameters);
     }

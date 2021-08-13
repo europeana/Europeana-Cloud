@@ -54,14 +54,12 @@ public class TaskStatusUpdater {
     public void insertTask(SubmitTaskParameters parameters) {
         long taskId = parameters.getTask().getTaskId();
         String topologyName = parameters.getTopologyName();
-        TaskState newState = parameters.getStatus();
+        TaskState newState = parameters.getState();
         TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
 
         updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
                 parameters.getTopicName(), Calendar.getInstance().getTime());
-        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, newState,
-                parameters.getInfo(), parameters.getSentTime(), parameters.getStartTime(), null, 0,
-                parameters.getTaskJSON());
+        taskInfoDAO.insert(parameters);
     }
 
     public void setTaskCompletelyProcessed(long taskId, String info)
@@ -127,5 +125,16 @@ public class TaskStatusUpdater {
 
     public void updateDeletedCount(long taskId, int deletedCount) {
         taskInfoDAO.updateDeleteRecordsCount(taskId, deletedCount);
+    }
+
+    public void updateSubmitParameters(SubmitTaskParameters parameters) {
+        long taskId = parameters.getTask().getTaskId();
+        String topologyName = parameters.getTopologyName();
+        TaskState newState = parameters.getState();
+        TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
+        updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
+                parameters.getTopicName(), Calendar.getInstance().getTime());
+
+        taskInfoDAO.updateSubmitParameters(parameters);
     }
 }

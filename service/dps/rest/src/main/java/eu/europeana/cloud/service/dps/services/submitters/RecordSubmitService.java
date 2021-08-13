@@ -62,7 +62,7 @@ public class RecordSubmitService {
     }
 
     private boolean isResendingAfterFail(ProcessedRecord alreadySubmittedRecord, SubmitTaskParameters submitParameters) {
-        Date currentExecutionStart = submitParameters.getStartTime();
+        Date currentExecutionStart = submitParameters.getStartTimestamp();
         return submitParameters.isRestarted() && alreadySubmittedRecord.getStarTime().before(currentExecutionStart);
     }
 

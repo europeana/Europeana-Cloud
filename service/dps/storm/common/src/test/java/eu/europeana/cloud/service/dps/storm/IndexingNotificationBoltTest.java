@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
@@ -180,14 +181,19 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
     private void prepareDpsTask(long taskId,String incrementalFlagValue) throws IOException {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, incrementalFlagValue);
+        dpsTask.setTaskId(taskId);
         String taskJSON = dpsTask.toJSON();
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.QUEUED, "", null, null, null, 0, taskJSON);
+        taskInfoDAO.insert(SubmitTaskParameters.builder().task(dpsTask).topologyName("sample")
+                .expectedRecordsNumber(1).state(TaskState.QUEUED).stateDescription("").taskJSON(taskJSON).build());
     }
 
     private void prepareDpsTaskThatHaveNonParseableTaskInformation(long taskId,String incrementalFlagValue) {
         DpsTask dpsTask = new DpsTask();
+        dpsTask.setTaskId(taskId);
         dpsTask.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, incrementalFlagValue);
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.QUEUED, "", null, null, null, 0, "nonParseableTaskInformations");
+        taskInfoDAO.insert(SubmitTaskParameters.builder().task(dpsTask).topologyName("sample")
+                .expectedRecordsNumber(1).state(TaskState.QUEUED).stateDescription("")
+                .taskJSON("nonParseableTaskInformations").build());
     }
 
     private void createBolt() {

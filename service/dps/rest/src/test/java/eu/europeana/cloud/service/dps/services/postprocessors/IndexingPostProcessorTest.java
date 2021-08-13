@@ -67,7 +67,7 @@ public class IndexingPostProcessorTest {
     private static final UUID latestHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-fa163e64bb83");
     private static final UUID publishHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000001");
     private static final UUID previewHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000002");
-    private TaskInfo taskInfo=new TaskInfo();
+    private final TaskInfo taskInfo=new TaskInfo();
 
     @Before
     public void setup() throws Exception {

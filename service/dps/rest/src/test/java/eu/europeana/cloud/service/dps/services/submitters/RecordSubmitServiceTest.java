@@ -48,7 +48,7 @@ public class RecordSubmitServiceTest {
     private DpsRecord record = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID).build();
 
     private SubmitTaskParameters parameters = SubmitTaskParameters.builder().topologyName(TOPOLOGY).topicName(TOPIC)
-            .startTime(CURRENT_EXECUTION_START_TIME).build();
+            .startTimestamp(CURRENT_EXECUTION_START_TIME).build();
 
     @InjectMocks
     private RecordSubmitService service;

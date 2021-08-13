@@ -13,14 +13,11 @@ public interface TaskPostProcessor {
     /**
      * Executes post processing activity for the provided task
      *
-     * @param taskInfo
-     * @param dpsTask
      */
     void execute(TaskInfo taskInfo, DpsTask dpsTask);
 
     /**
-     * Retrurns set of names of processed topologies
-     * @return
+     * Returns set of names of processed topologies
      */
     Set<String> getProcessedTopologies();
 }

@@ -52,11 +52,11 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
 
         String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
         parameters.setTopicName(preferredTopicName);
-        parameters.setInfo("Task submitted successfully and processed by REST app");
-        parameters.setExpectedSize(expectedCount);
-        parameters.setStatus(TaskState.PROCESSING_BY_REST_APPLICATION);
+        parameters.setStateDescription("Task submitted successfully and processed by REST app");
+        parameters.setExpectedRecordsNumber(expectedCount);
+        parameters.setState(TaskState.PROCESSING_BY_REST_APPLICATION);
         LOGGER.info("Selected topic name: {} for {}", preferredTopicName, parameters.getTask().getTaskId());
-        taskStatusUpdater.insertTask(parameters);
+        taskStatusUpdater.updateSubmitParameters(parameters);
 
         try {
             HarvestResult harvesterResult;

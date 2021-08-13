@@ -129,33 +129,40 @@ public class DiagnosticResource {
     private JoinedTaskInfo loadExtraInfo(TaskInfo taskInfo) {
         TaskDiagnosticInfo diagnosticInfo = taskDiagnosticInfoDAO.findById(taskInfo.getId()).
                 orElse(TaskDiagnosticInfo.builder().taskId(taskInfo.getId()).build());
-        tasksByStateDAO.findTask(taskInfo.getState(), taskInfo.getTopologyName(), taskInfo.getId())
-                .ifPresent(taskStateInfo -> taskInfo.setTopicName(taskStateInfo.getTopicName()));
-        return new JoinedTaskInfo(taskInfo, diagnosticInfo);
+        TaskByTaskState tasksByState = tasksByStateDAO
+                .findTask(taskInfo.getState(), taskInfo.getTopologyName(), taskInfo.getId())
+                .orElse(TaskByTaskState.builder().id(taskInfo.getId()).build());
+        return new JoinedTaskInfo(tasksByState, taskInfo, diagnosticInfo);
     }
 
     private ObjectMapper mapper() {
-        ObjectMapper mapper = new ObjectMapper();
+        var mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setDateFormat(isoDateFormat());
         return mapper;
     }
 
     private SimpleDateFormat isoDateFormat() {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        var format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format;
     }
 
     @Getter
     @AllArgsConstructor
-    @JsonPropertyOrder({"info", "diagnosticInfo"})
-    public class JoinedTaskInfo {
+    @JsonPropertyOrder({"taskByTaskState", "info", "diagnosticInfo"})
+    public static class JoinedTaskInfo {
+
         @JsonUnwrapped
-        @JsonIgnoreProperties({"definition", "ownerId"})
+        @JsonIgnoreProperties({"state", "topologyName", "startTime"})
+        TaskByTaskState taskByTaskState;
+
+        @JsonUnwrapped
+        @JsonIgnoreProperties({"id", "definition"})
         TaskInfo info;
+
         @JsonUnwrapped
-        @JsonIgnoreProperties({"id"})
+        @JsonIgnoreProperties({"taskId"})
         TaskDiagnosticInfo diagnosticInfo;
     }
 

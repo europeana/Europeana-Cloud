@@ -30,7 +30,7 @@ public class DepublicationService {
     private final DatasetDepublisher depublisher;
     private final TaskStatusUpdater taskStatusUpdater;
     private final RecordStatusUpdater recordStatusUpdater;
-    private HarvestedRecordsDAO harvestedRecordsDAO;
+    private final HarvestedRecordsDAO harvestedRecordsDAO;
 
 
     public DepublicationService(TaskStatusChecker taskStatusChecker, DatasetDepublisher depublisher,
@@ -105,8 +105,8 @@ public class DepublicationService {
     private void waitForAllRecordsRemoved(Future<Integer> future, SubmitTaskParameters parameters) throws InterruptedException, URISyntaxException, IOException, IndexingException, ExecutionException {
         while (true) {
             long recordsLeft = depublisher.getRecordsCount(parameters);
-            saveProgress(parameters.getTask().getTaskId(), parameters.getExpectedSize() - recordsLeft);
-            checkRemoveInvocationFinished(future, parameters.getExpectedSize());
+            saveProgress(parameters.getTask().getTaskId(), parameters.getExpectedRecordsNumber() - recordsLeft);
+            checkRemoveInvocationFinished(future, parameters.getExpectedRecordsNumber());
             if (recordsLeft == 0) {
                 return;
             }

@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.rest;
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
@@ -16,7 +15,6 @@ import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidato
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -244,12 +242,12 @@ public class TopologyTasksResource {
 
             var taskJSON = task.toJSON();
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                    .sentTime(sentTime)
-                    .startTime(new Date())
+                    .sentTimestamp(sentTime)
+                    .startTimestamp(new Date())
                     .task(task)
                     .topologyName(topologyName)
-                    .status(TaskState.PROCESSING_BY_REST_APPLICATION)
-                    .info("The task is in a pending mode, it is being processed before submission")
+                    .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+                    .stateDescription("The task is in a pending mode, it is being processed before submission")
                     .taskJSON(taskJSON)
                     .restarted(restart).build();
             try {

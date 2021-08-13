@@ -65,7 +65,7 @@ public class HarvestingPostProcessorTest {
 
     private final DpsTask task = new DpsTask();
     private List<HarvestedRecord> allHarvestedRecords;
-    private TaskInfo taskInfo = TaskInfo.builder().build();
+    private final TaskInfo taskInfo = TaskInfo.builder().build();
 
     @Mock
     private HarvestedRecordsDAO harvestedRecordsDAO;
