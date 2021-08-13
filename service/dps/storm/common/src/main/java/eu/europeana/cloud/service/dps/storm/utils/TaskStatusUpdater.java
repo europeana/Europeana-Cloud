@@ -123,8 +123,12 @@ public class TaskStatusUpdater {
         tasksByStateDAO.insert(newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
-    public void updateDeletedCount(long taskId, int deletedCount) {
-        taskInfoDAO.updateDeleteRecordsCount(taskId, deletedCount);
+    public void updatePostProcessedRecordsCount(long taskId, int postProcessedRecordsCount) {
+        taskInfoDAO.updatePostProcessedRecordsCount(taskId, postProcessedRecordsCount);
+    }
+
+    public void updateExpectedPostProcessedRecordsNumber(long taskId, int expectedPostProcessedRecordsNumber) {
+        taskInfoDAO.updateExpectedPostProcessedRecordsNumber(taskId, expectedPostProcessedRecordsNumber);
     }
 
     public void updateSubmitParameters(SubmitTaskParameters parameters) {

@@ -28,6 +28,8 @@ public class CassandraTablesAndColumnsNames {
     public static final String TASK_INFO_DELETED_RECORDS_COUNT = "deleted_records_count";
     public static final String TASK_INFO_PROCESSED_ERRORS_COUNT = "processed_errors_count";
     public static final String TASK_INFO_DELETED_ERRORS_COUNT = "deleted_errors_count";
+    public static final String TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER = "expected_post_processed_records_number";
+    public static final String TASK_INFO_POST_PROCESSED_RECORDS_COUNT = "post_processed_records_count";
     public static final String TASK_INFO_DEFINITION = "definition";
 
 

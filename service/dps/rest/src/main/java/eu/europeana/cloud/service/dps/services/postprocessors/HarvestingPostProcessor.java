@@ -95,6 +95,8 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
         try {
             taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
                     "Postprocessing - adding removed records to result revision.");
+            taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
+                    Iterators.size(fetchDeletedRecords(dpsTask)));
             Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
             int deletedCount = taskInfo.getDeletedRecordsCount();
             while (it.hasNext()) {
@@ -103,7 +105,7 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
                     addRecordToTaskOutputRevision(dpsTask, harvestedRecord);
                     setRecordProcessed(dpsTask, harvestedRecord);
                     deletedCount++;
-                    taskStatusUpdater.updateDeletedCount(dpsTask.getTaskId(), deletedCount);
+                    taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), deletedCount);
                     LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
                 } else {
                     LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());

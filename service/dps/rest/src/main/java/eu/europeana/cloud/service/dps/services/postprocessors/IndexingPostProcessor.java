@@ -53,10 +53,11 @@ public class IndexingPostProcessor implements TaskPostProcessor {
             LOGGER.info("Parameters that will be used in postprocessing: {}", cleanerParameters);
             if (!areParametersNull(cleanerParameters)) {
                 var datasetCleaner = new DatasetCleaner(cleanerParameters);
+                taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(), datasetCleaner.getRecordsCount());
                 Stream<String> recordIdsThatWillBeRemoved = datasetCleaner.getRecordIds();
                 int deletedCount = cleanInECloud(cleanerParameters, recordIdsThatWillBeRemoved);
                 cleanInMetis(cleanerParameters, datasetCleaner);
-                taskStatusUpdater.updateDeletedCount(dpsTask.getTaskId(), deletedCount);
+                taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), deletedCount);
                 endTheTask(dpsTask);
             } else {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");

@@ -31,10 +31,15 @@ public class DatasetCleaner {
     public DatasetCleaner(DataSetCleanerParameters cleanerParameters) {
         this.cleanerParameters = cleanerParameters;
         loadProperties();
+        prepareIndexerFactory();
+    }
+
+    public int getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+        //TODO Use db count method instead of counting stream size - changes in Metis needed
+        return (int) getRecordIds().count();
     }
 
     public Stream<String> getRecordIds() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
-        prepareIndexerFactory();
         return indexerFactory.getIndexer().getRecordIds(this.cleanerParameters.getDataSetId(),
                 this.cleanerParameters.getCleaningDate());
     }
@@ -44,7 +49,6 @@ public class DatasetCleaner {
         if (properties.isEmpty()) {
             return;
         }
-        prepareIndexerFactory();
         try {
             removeDataSet(cleanerParameters.getDataSetId());
         } catch (IndexingException e) {

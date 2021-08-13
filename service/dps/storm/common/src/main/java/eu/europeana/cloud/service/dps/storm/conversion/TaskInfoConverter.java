@@ -27,6 +27,9 @@ public class TaskInfoConverter {
                 .finishTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP))
                 .processedErrorsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
                 .deletedErrorsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT))
+                .expectedPostProcessedRecordsNumber(
+                        row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER))
+                .postProcessedRecordsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT))
                 .definition(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION))
                 .build();
     }

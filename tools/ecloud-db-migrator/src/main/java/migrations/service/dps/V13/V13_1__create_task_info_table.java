@@ -21,6 +21,8 @@ public class V13_1__create_task_info_table implements JavaMigration {
                         "    deleted_records_count   int,\n" +
                         "    processed_errors_count  int,\n" +
                         "    deleted_errors_count    int,\n" +
+                        "    expected_post_processed_records_number    int,\n" +
+                        "    post_processed_records_count    int,\n" +
                         "    definition              text,\n" +
                         "    PRIMARY KEY (task_id)\n" +
                         ");"

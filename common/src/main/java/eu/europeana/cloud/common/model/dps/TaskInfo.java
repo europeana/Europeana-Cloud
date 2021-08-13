@@ -31,6 +31,8 @@ public class TaskInfo {
     private int deletedRecordsCount;
     private int processedErrorsCount;
     private int deletedErrorsCount;
+    private int expectedPostProcessedRecordsNumber;
+    private int postProcessedRecordsCount;
     /**Full definition of the task stored in Json format*/
     private String definition;
 }
