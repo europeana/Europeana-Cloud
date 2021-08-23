@@ -64,6 +64,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             emitErrorNotification(
                     anchorTuple,
                     tuple.getTaskId(),
+                    tuple.isMarkedAsDeleted(),
                     tuple.getFileUrl(),
                     "Error while detecting duplicates",
                     e.getMessage(),
@@ -79,6 +80,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
         emitErrorNotification(
                 anchorTuple,
                 tuple.getTaskId(),
+                tuple.isMarkedAsDeleted(),
                 tuple.getFileUrl(),
                 "Duplicate detected",
                 "Duplicate detected for " + tuple.getFileUrl(),

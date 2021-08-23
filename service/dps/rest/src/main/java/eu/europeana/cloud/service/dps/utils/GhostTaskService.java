@@ -61,7 +61,7 @@ public class GhostTaskService {
     }
 
     private boolean isGhost(TaskInfo task) {
-        return isDateTooOld(task.getSentDate()) && ((task.getStartDate() == null) || isDateTooOld(task.getStartDate()));
+        return isDateTooOld(task.getSentTimestamp()) && ((task.getStartTimestamp() == null) || isDateTooOld(task.getStartTimestamp()));
     }
 
     private boolean isDateTooOld(Date date) {

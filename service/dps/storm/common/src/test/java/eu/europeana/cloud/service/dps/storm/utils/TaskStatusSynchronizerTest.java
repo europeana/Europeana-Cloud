@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -100,7 +99,7 @@ public class TaskStatusSynchronizerTest {
     }
 
     private static TaskInfo createTaskTopicInfo(TaskState state) {
-        TaskInfo info = new TaskInfo();
+        TaskInfo info = TaskInfo.builder().build();
         info.setId(1L);
         info.setTopologyName(TOPOLOGY_NAME);
         info.setState(state);

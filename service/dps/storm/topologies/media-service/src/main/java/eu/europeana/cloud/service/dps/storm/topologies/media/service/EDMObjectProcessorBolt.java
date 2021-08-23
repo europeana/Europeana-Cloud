@@ -93,6 +93,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             emitErrorNotification(
                     anchorTuple,
                     stormTaskTuple.getTaskId(),
+                    stormTaskTuple.isMarkedAsDeleted(),
                     stormTaskTuple.getFileUrl(),
                     "Unable to deserialize the file",
                     "The cause of the error is:" + e.getCause(),

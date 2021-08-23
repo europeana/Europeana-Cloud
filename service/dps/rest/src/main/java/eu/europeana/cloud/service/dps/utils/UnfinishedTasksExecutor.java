@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,24 +39,27 @@ public class UnfinishedTasksExecutor {
 
     private final TasksByStateDAO tasksDAO;
     private final CassandraTaskInfoDAO taskInfoDAO;
+    private final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     private final TaskSubmitterFactory taskSubmitterFactory;
     private final String applicationIdentifier;
     private final TaskStatusUpdater taskStatusUpdater;
 
     UnfinishedTasksExecutor(TasksByStateDAO tasksDAO,
                             CassandraTaskInfoDAO taskInfoDAO,
+                            TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
                             TaskSubmitterFactory taskSubmitterFactory,
                             String applicationIdentifier,
                             TaskStatusUpdater taskStatusUpdater) {
         this.tasksDAO = tasksDAO;
         this.taskSubmitterFactory = taskSubmitterFactory;
         this.taskInfoDAO = taskInfoDAO;
+        this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
         this.applicationIdentifier = applicationIdentifier;
         this.taskStatusUpdater = taskStatusUpdater;
     }
 
     @PostConstruct
-    public void reRunUnfinishedTasks() {
+    public void restartUnfinishedTasks() {
         LOGGER.info("Will restart all pending tasks");
         List<TaskByTaskState> results = findProcessingByRestTasks();
         List<TaskInfo> tasksForCurrentMachine = findTasksForCurrentMachine(results);
@@ -95,6 +100,7 @@ public class UnfinishedTasksExecutor {
             var submitTaskParameters = prepareSubmitTaskParameters(taskInfo);
             var taskSubmitter = taskSubmitterFactory.provideTaskSubmitter(submitTaskParameters);
             taskSubmitter.submitTask(submitTaskParameters);
+            taskDiagnosticInfoDAO.updateQueuedTime(taskInfo.getId(), Instant.now());
         } catch (IOException | TaskSubmissionException e) {
             LOGGER.error("Unable to resume the task", e);
             taskStatusUpdater.setTaskDropped(taskInfo.getId(), ExceptionUtils.getStackTrace(e));
@@ -104,16 +110,18 @@ public class UnfinishedTasksExecutor {
     private SubmitTaskParameters prepareSubmitTaskParameters(TaskInfo taskInfo) throws IOException {
         var dpsTask = DpsTask.fromTaskInfo(taskInfo);
 
-        dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentDate()));
+        dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentTimestamp()));
 
         return SubmitTaskParameters.builder()
-                .sentTime(taskInfo.getSentDate())
-                .startTime(new Date())
+                .taskInfo(TaskInfo.builder()
+                        .sentTimestamp(taskInfo.getSentTimestamp())
+                        .startTimestamp(new Date())
+                        .topologyName(taskInfo.getTopologyName())
+                        .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+                        .stateDescription("The task is in a pending mode, it is being processed before submission")
+                        .definition(taskInfo.getDefinition())
+                        .build())
                 .task(dpsTask)
-                .topologyName(taskInfo.getTopologyName())
-                .status(TaskState.PROCESSING_BY_REST_APPLICATION)
-                .info("The task is in a pending mode, it is being processed before submission")
-                .taskJSON(taskInfo.getTaskDefinition())
                 .restarted(true).build();
     }
 }

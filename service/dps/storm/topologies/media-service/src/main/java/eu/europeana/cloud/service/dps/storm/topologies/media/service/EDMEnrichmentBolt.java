@@ -57,7 +57,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             } catch (Exception ex) {
                 LOGGER.error("Error while serializing the enriched file: ", ex);
-                emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(),
+                emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                        stormTaskTuple.getFileUrl(), ex.getMessage(),
                         "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),
                         StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
             }
@@ -100,7 +101,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                         outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
                         LOGGER.error("Error while serializing the enriched file: ", ex);
-                        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), ex.getMessage(), "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),
+                        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(),
+                                stormTaskTuple.isMarkedAsDeleted(), stormTaskTuple.getFileUrl(), ex.getMessage(),
+                                "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),
                                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                     }
                     ackAllSourceTuplesForFile(tempEnrichedFile);

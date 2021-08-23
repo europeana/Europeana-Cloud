@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
+import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -42,7 +43,18 @@ public class DatasetFilesCounterTest {
 
     @Test
     public void shouldReturnProcessedFiles() throws Exception {
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", EXPECTED_SIZE, EXPECTED_SIZE, 0, 0, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = TaskInfo.builder()
+                .id(TASK_ID)
+                .topologyName(TOPOLOGY_NAME)
+                .state(TaskState.PROCESSED)
+                .stateDescription("")
+                .expectedRecordsNumber(EXPECTED_SIZE)
+                .processedRecordsCount(EXPECTED_SIZE)
+                .processedErrorsCount(0)
+                .sentTimestamp(new Date())
+                .startTimestamp(new Date())
+                .finishTimestamp(new Date())
+                .build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
         int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);

@@ -71,6 +71,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 emitErrorNotification(
                         anchorTuple,
                         stormTaskTuple.getTaskId(),
+                        stormTaskTuple.isMarkedAsDeleted(),
                         stormTaskTuple.getFileUrl(),
                         "Error while harvesting a record",
                         "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause(),
@@ -81,6 +82,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
             emitErrorNotification(
                     anchorTuple,
                     stormTaskTuple.getTaskId(),
+                    stormTaskTuple.isMarkedAsDeleted(),
                     stormTaskTuple.getParameter(DPS_TASK_INPUT_DATA),
                     "Invalid parameters",
                     null,

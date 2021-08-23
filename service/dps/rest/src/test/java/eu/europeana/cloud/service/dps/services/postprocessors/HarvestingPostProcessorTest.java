@@ -7,6 +7,8 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -63,6 +65,7 @@ public class HarvestingPostProcessorTest {
 
     private final DpsTask task = new DpsTask();
     private List<HarvestedRecord> allHarvestedRecords;
+    private final TaskInfo taskInfo = TaskInfo.builder().build();
 
     @Mock
     private HarvestedRecordsDAO harvestedRecordsDAO;
@@ -136,7 +139,7 @@ public class HarvestingPostProcessorTest {
     @Test
     public void shouldNotFailWhenThereIsNoHarvestedRecords() {
 
-        service.execute(task);
+        service.execute(taskInfo, task);
 
         verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     }
@@ -146,9 +149,11 @@ public class HarvestingPostProcessorTest {
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(HARVEST_DATE).recordLocalId(RECORD_ID1).build());
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(HARVEST_DATE).recordLocalId(RECORD_ID2).build());
 
-        service.execute(task);
+        service.execute(taskInfo, task);
 
         verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 0);
+        verify(taskStatusUpdater, never()).updatePostProcessedRecordsCount(anyLong(), anyInt());
         verifyNoInteractions(uisClient, recordServiceClient, revisionServiceClient, dataSetServiceClient);
     }
 
@@ -157,25 +162,31 @@ public class HarvestingPostProcessorTest {
     public void shouldAddOlderRecordAsDeleted() throws MCSException {
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID1).build());
 
-        service.execute(task);
+        service.execute(taskInfo, task);
 
         verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, AUTHORIZATION, AUTHORIZATION_HEADER);
         verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION, AUTHORIZATION, AUTHORIZATION_HEADER);
         verify(dataSetServiceClient).assignRepresentationToDataSet(PROVIDER_ID, DATASET_ID, CLOUD_ID1, REPRESENTATION_NAME, VERSION, AUTHORIZATION, AUTHORIZATION_HEADER);
         verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
+        verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+        verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
         verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+        verifyNoMoreInteractions(taskStatusUpdater);
     }
 
     @Test
     public void shouldOmitRecordThatIsAlreadyAddedAsDeleted() {
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID1).build());
-        when(processedRecordsDAO.selectByPrimaryKey(TASK_ID,RECORD_ID1)).
+        when(processedRecordsDAO.selectByPrimaryKey(TASK_ID, RECORD_ID1)).
                 thenReturn(Optional.of(ProcessedRecord.builder().state(RecordState.SUCCESS).build()));
 
-        service.execute(task);
+        service.execute(taskInfo, task);
 
         verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
         verify(processedRecordsDAO, never()).insert(any());
+        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+        verify(taskStatusUpdater, never()).updatePostProcessedRecordsCount(anyLong(), anyInt());
         verifyNoInteractions(uisClient, recordServiceClient, revisionServiceClient, dataSetServiceClient);
     }
 
@@ -184,7 +195,7 @@ public class HarvestingPostProcessorTest {
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID1).build());
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID2).build());
 
-        service.execute(task);
+        service.execute(taskInfo, task);
 
         //record1
         verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, AUTHORIZATION, AUTHORIZATION_HEADER);
@@ -196,7 +207,12 @@ public class HarvestingPostProcessorTest {
         verify(dataSetServiceClient).assignRepresentationToDataSet(PROVIDER_ID, DATASET_ID, CLOUD_ID2, REPRESENTATION_NAME, VERSION, AUTHORIZATION, AUTHORIZATION_HEADER);
         //task
         verify(processedRecordsDAO, times(2)).insert(any());
+        verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
         verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
+        verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+        verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 2);
+        verifyNoMoreInteractions(taskStatusUpdater);
     }
 
     @Test
@@ -204,14 +220,17 @@ public class HarvestingPostProcessorTest {
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(HARVEST_DATE).recordLocalId(RECORD_ID1).build());
         allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID2).build());
 
-        service.execute(task);
+        service.execute(taskInfo, task);
 
         verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, AUTHORIZATION, AUTHORIZATION_HEADER);
         verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION, AUTHORIZATION, AUTHORIZATION_HEADER);
         verify(dataSetServiceClient).assignRepresentationToDataSet(PROVIDER_ID, DATASET_ID, CLOUD_ID2, REPRESENTATION_NAME, VERSION, AUTHORIZATION, AUTHORIZATION_HEADER);
-        verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
         verify(processedRecordsDAO).insert(any());
-        verifyNoMoreInteractions(recordServiceClient, revisionServiceClient, dataSetServiceClient);
+        verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+        verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+        verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+        verifyNoMoreInteractions(taskStatusUpdater, recordServiceClient, revisionServiceClient, dataSetServiceClient);
     }
 
     private CloudId createCloudId(String cloudId, String localId) {

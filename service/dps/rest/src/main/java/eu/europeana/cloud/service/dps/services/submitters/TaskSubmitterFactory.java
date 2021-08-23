@@ -23,7 +23,7 @@ public class TaskSubmitterFactory {
     }
 
     public TaskSubmitter provideTaskSubmitter(SubmitTaskParameters parameters) {
-        switch (parameters.getTopologyName()) {
+        switch (parameters.getTaskInfo().getTopologyName()) {
             case TopologiesNames.OAI_TOPOLOGY:
                 return oaiTopologyTaskSubmitter;
             case TopologiesNames.HTTP_TOPOLOGY:
@@ -39,7 +39,7 @@ public class TaskSubmitterFactory {
             case TopologiesNames.DEPUBLICATION_TOPOLOGY:
                 return depublicationTaskSubmitter;
             default:
-                throw new IllegalArgumentException("Unable to find the TaskSubmitter for the given topology name: " + parameters.getTopologyName());
+                throw new IllegalArgumentException("Unable to find the TaskSubmitter for the given topology name: " + parameters.getTaskInfo().getTopologyName());
         }
     }
 }

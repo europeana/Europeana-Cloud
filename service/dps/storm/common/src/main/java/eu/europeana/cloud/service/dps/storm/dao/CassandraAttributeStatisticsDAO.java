@@ -47,7 +47,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         updateAttributeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
                 " SET " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE + " = " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE + " + ? " +
                 "WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +

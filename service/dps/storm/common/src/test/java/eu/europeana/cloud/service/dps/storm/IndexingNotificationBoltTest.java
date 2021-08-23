@@ -69,7 +69,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.PROCESSED, taskProgress.getState());
     }
 
@@ -102,7 +102,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(10));
-        assertEquals(10, taskProgress.getProcessedElementCount());
+        assertEquals(10, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.PROCESSED, taskProgress.getState());
     }
 
@@ -117,7 +117,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
     }
 
@@ -141,7 +141,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(5));
-        assertEquals(5, taskProgress.getProcessedElementCount());
+        assertEquals(5, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.READY_FOR_POST_PROCESSING, taskProgress.getState());
     }
 
@@ -157,7 +157,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.DROPPED, taskProgress.getState());
     }
 
@@ -173,7 +173,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf(taskId));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + taskId, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(1, taskProgress.getProcessedElementCount());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(TaskState.DROPPED, taskProgress.getState());
     }
 
@@ -181,13 +181,29 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, incrementalFlagValue);
         String taskJSON = dpsTask.toJSON();
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.QUEUED, "", null, null, null, 0, taskJSON);
+        taskInfoDAO.insert(
+                TaskInfo.builder()
+                        .id(taskId)
+                        .topologyName("sample")
+                        .state(TaskState.QUEUED)
+                        .stateDescription("")
+                        .expectedRecordsNumber(1)
+                        .definition(taskJSON)
+                        .build());
     }
 
     private void prepareDpsTaskThatHaveNonParseableTaskInformation(long taskId,String incrementalFlagValue) {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(PluginParameterKeys.INCREMENTAL_INDEXING, incrementalFlagValue);
-        taskInfoDAO.insert(taskId, "sample", 1, 0, TaskState.QUEUED, "", null, null, null, 0, "nonParseableTaskInformations");
+        taskInfoDAO.insert(
+                TaskInfo.builder()
+                        .id(taskId)
+                        .topologyName("sample")
+                        .state(TaskState.QUEUED)
+                        .expectedRecordsNumber(1)
+                        .definition("")
+                        .definition("nonParseableTaskInformations")
+                        .build());
     }
 
     private void createBolt() {
@@ -209,7 +225,8 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
         String text = "text";
         String additionalInformation = "additionalInformation";
         String resultResource = "";
-        return createTestTuple(NotificationTuple.prepareNotification(taskId, resource, RecordState.SUCCESS, text, additionalInformation, resultResource, 1L));
+        return createTestTuple(NotificationTuple.prepareNotification(taskId, false, resource, RecordState.SUCCESS, text,
+                additionalInformation, resultResource, 1L));
     }
 
     private Tuple createTestTuple(NotificationTuple tuple) {

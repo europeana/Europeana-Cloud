@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -64,6 +62,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             final HttpRecordIterator iterator = HarvesterFactory.createHttpHarvester()
                     .harvestRecords(urlToZipFile, downloadedFileLocationFor(parameters.getTask()));
             selectKafkaTopicFor(parameters);
+            taskStatusUpdater.updateSubmitParameters(parameters);
             expectedCount = iterateOverFiles(iterator, parameters);
             updateTaskStatus(parameters.getTask(), expectedCount);
         } catch (HarvesterException e) {

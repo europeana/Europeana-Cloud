@@ -17,7 +17,7 @@ import java.util.Optional;
 
 /**
  * Inserts/update given task in db. Two tables are modified
- * {@link CassandraTablesAndColumnsNames#BASIC_INFO_TABLE}
+ * {@link CassandraTablesAndColumnsNames#TASK_INFO_TABLE}
  * and {@link CassandraTablesAndColumnsNames#TASKS_BY_STATE_TABLE}<br/>
  * NOTE: Operation is not in transaction! So on table can be modified but second one not
  */
@@ -53,21 +53,13 @@ public class TaskStatusUpdater {
 
     public void insertTask(SubmitTaskParameters parameters) {
         long taskId = parameters.getTask().getTaskId();
-        String topologyName = parameters.getTopologyName();
-        TaskState newState = parameters.getStatus();
+        String topologyName = parameters.getTaskInfo().getTopologyName();
+        TaskState newState = parameters.getTaskInfo().getState();
         TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
 
         updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
                 parameters.getTopicName(), Calendar.getInstance().getTime());
-        taskInfoDAO.insert(taskId, topologyName, parameters.getExpectedSize(), 0, newState,
-                parameters.getInfo(), parameters.getSentTime(), parameters.getStartTime(), null, 0,
-                parameters.getTaskJSON());
-    }
-
-    public void updateTask(long taskId, String info, TaskState state, Date startDate)
-            throws NoHostAvailableException, QueryExecutionException {
-        updateTasksByTaskStateTable(taskId, state);
-        taskInfoDAO.updateTask(taskId, info, state, startDate);
+        taskInfoDAO.insert(parameters.getTaskInfo());
     }
 
     public void setTaskCompletelyProcessed(long taskId, String info)
@@ -82,25 +74,17 @@ public class TaskStatusUpdater {
         taskInfoDAO.setTaskDropped(taskId, info);
     }
 
-    public void endTask(long taskId, int processedFilesCount, int errors, String info, TaskState state, Date finishDate)
+    public void setUpdateProcessedFiles(long taskId, int processedRecordsCount, int ignoredRecordsCount,
+                                        int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount)
             throws NoHostAvailableException, QueryExecutionException {
-        updateTasksByTaskStateTable(taskId, state);
-        taskInfoDAO.endTask(taskId, processedFilesCount, errors, info, state, finishDate);
-    }
-
-    public void setUpdateProcessedFiles(long taskId, int processedFilesCount, int errors)
-            throws NoHostAvailableException, QueryExecutionException {
-        taskInfoDAO.setUpdateProcessedFiles(taskId, processedFilesCount, errors);
+        taskInfoDAO.setUpdateProcessedFiles(taskId, processedRecordsCount, ignoredRecordsCount, deletedRecordsCount,
+                processedErrorsCount, deletedErrorsCount);
     }
 
     public void updateState(long taskId, TaskState state, String info)
             throws NoHostAvailableException, QueryExecutionException {
         updateTasksByTaskStateTable(taskId, state);
         taskInfoDAO.updateState(taskId, state, info);
-    }
-
-    public void updateRetryCount(long taskId, int retryCount) {
-        taskInfoDAO.updateRetryCount(taskId, retryCount);
     }
 
     public void updateStatusExpectedSize(long taskId, TaskState state, int expectedSize)
@@ -139,4 +123,22 @@ public class TaskStatusUpdater {
         tasksByStateDAO.insert(newState, topologyName, taskId, applicationId, topicName, startTime);
     }
 
+    public void updatePostProcessedRecordsCount(long taskId, int postProcessedRecordsCount) {
+        taskInfoDAO.updatePostProcessedRecordsCount(taskId, postProcessedRecordsCount);
+    }
+
+    public void updateExpectedPostProcessedRecordsNumber(long taskId, long expectedPostProcessedRecordsNumber) {
+        taskInfoDAO.updateExpectedPostProcessedRecordsNumber(taskId, expectedPostProcessedRecordsNumber);
+    }
+
+    public void updateSubmitParameters(SubmitTaskParameters parameters) {
+        long taskId = parameters.getTask().getTaskId();
+        String topologyName = parameters.getTaskInfo().getTopologyName();
+        TaskState newState = parameters.getTaskInfo().getState();
+        TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
+        updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
+                parameters.getTopicName(), Calendar.getInstance().getTime());
+
+        taskInfoDAO.updateSubmitParameters(parameters);
+    }
 }

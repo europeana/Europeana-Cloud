@@ -45,7 +45,7 @@ public class TasksByStateDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         insertStatement = dbService.getSession().prepare("INSERT INTO " + TASKS_BY_STATE_TABLE +
                 "("
                 + TASKS_BY_STATE_STATE_COL_NAME + ","
@@ -57,33 +57,33 @@ public class TasksByStateDAO extends CassandraDAO {
                 ") VALUES (?,?,?,?,?,?)");
 
         deleteStatement = dbService.getSession().prepare("DELETE FROM " + TASKS_BY_STATE_TABLE +
-                " WHERE " + STATE + " = ?" +
+                " WHERE " + TASK_INFO_STATE + " = ?" +
                 " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
                 " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?");
 
         findTaskStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE +
-                        " WHERE " + STATE + " = ?" +
+                        " WHERE " + TASK_INFO_STATE + " = ?" +
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
                         " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?");
 
 
         findTasksByStateStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + STATE + " IN ?");
+                "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + TASK_INFO_STATE + " IN ?");
 
 
         findTasksByStateAndTopologyStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE +
-                        " WHERE " + STATE + " IN ?" +
+                        " WHERE " + TASK_INFO_STATE + " IN ?" +
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?");
 
         findTaskByStateStatement = dbService.getSession().prepare(
-                String.format("select * from %s where %s in ? limit 1", TASKS_BY_STATE_TABLE, STATE)
+                String.format("select * from %s where %s in ? limit 1", TASKS_BY_STATE_TABLE, TASK_INFO_STATE)
         );
 
         findTaskByStateAndTopologyStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + TASKS_BY_STATE_TABLE +
-                        " WHERE " + STATE + " IN ?" +
+                        " WHERE " + TASK_INFO_STATE + " IN ?" +
                         " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
                         " LIMIT 1");
 

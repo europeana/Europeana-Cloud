@@ -51,7 +51,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         insertHarvestedRecordStatement = dbService.getSession().prepare("INSERT INTO "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE + "("
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID

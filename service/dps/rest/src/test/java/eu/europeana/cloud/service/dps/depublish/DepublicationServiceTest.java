@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.depublish;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
@@ -90,7 +91,11 @@ public class DepublicationServiceTest {
         task.setTaskId(TASK_ID);
         task.addParameter(PluginParameterKeys.METIS_DATASET_ID, DATASET_METIS_ID);
         task.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD1 + "," + RECORD2);
-        parameters = SubmitTaskParameters.builder().expectedSize(EXPECTED_SET_SIZE).task(task).build();
+        parameters = SubmitTaskParameters.builder()
+                .taskInfo(TaskInfo.builder()
+                        .expectedRecordsNumber(EXPECTED_SET_SIZE)
+                        .build())
+                .task(task).build();
         when(metisIndexerFactory.openIndexer(anyBoolean())).thenReturn(indexer);
         when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SET_SIZE, 0L);
         when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE);
@@ -147,7 +152,7 @@ public class DepublicationServiceTest {
     public void shouldSaveValidSetSizeInResults() {
         service.depublishDataset(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, EXPECTED_SET_SIZE, 0);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, EXPECTED_SET_SIZE, 0, 0, 0, 0);
     }
 
     @Test
@@ -231,7 +236,7 @@ public class DepublicationServiceTest {
     public void shouldValidRecordCountBeSavedInResult() {
         service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(1, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD1);
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
         assertTaskSucceed();
@@ -244,7 +249,7 @@ public class DepublicationServiceTest {
 
         service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 1);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
         verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY), eq(RECORD1), any(), any());
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
         assertTaskSucceed();
@@ -257,7 +262,7 @@ public class DepublicationServiceTest {
 
         service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 1);
+        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
         verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY), eq(RECORD1), any(), any());
         verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
         assertTaskSucceed();
@@ -275,7 +280,7 @@ public class DepublicationServiceTest {
 
         service.depublishIndividualRecords(parameters);
 
-        verify(updater, never()).setUpdateProcessedFiles(TASK_ID, 2, 0);
+        verify(updater, never()).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
         verify(recordStatusUpdater, never()).addSuccessfullyProcessedRecord(anyInt(), anyLong(), any(), eq(RECORD2));
     }
 

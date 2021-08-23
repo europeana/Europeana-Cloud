@@ -126,6 +126,10 @@ public class ServiceConfiguration {
         return new CassandraTaskInfoDAO(dpsCassandraProvider());
     }
 
+    @Bean
+    public TaskDiagnosticInfoDAO taskDiagnosticInfoDAO() {
+        return new TaskDiagnosticInfoDAO(dpsCassandraProvider());
+    }
 
     @Bean
     public HarvestedRecordsDAO harvestedRecordsDAO() {
@@ -269,7 +273,8 @@ public class ServiceConfiguration {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(),
+        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), taskDiagnosticInfoDAO(),
                 tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
     }
+
 }

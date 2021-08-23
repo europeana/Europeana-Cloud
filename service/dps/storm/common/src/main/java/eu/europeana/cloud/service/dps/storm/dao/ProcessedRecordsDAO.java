@@ -52,7 +52,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         insertStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
                 + PROCESSED_RECORDS_TASK_ID + ","

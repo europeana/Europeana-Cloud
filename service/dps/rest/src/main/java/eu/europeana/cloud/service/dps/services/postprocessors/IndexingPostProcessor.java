@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -18,6 +19,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase.PREVIEW;
@@ -44,16 +46,18 @@ public class IndexingPostProcessor implements TaskPostProcessor {
     }
 
     @Override
-    public void execute(DpsTask dpsTask) {
+    public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
         try {
             LOGGER.info("Started postprocessing for {}", dpsTask);
             DataSetCleanerParameters cleanerParameters = prepareParameters(dpsTask);
             LOGGER.info("Parameters that will be used in postprocessing: {}", cleanerParameters);
             if (!areParametersNull(cleanerParameters)) {
                 var datasetCleaner = new DatasetCleaner(cleanerParameters);
+                taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(), datasetCleaner.getRecordsCount());
                 Stream<String> recordIdsThatWillBeRemoved = datasetCleaner.getRecordIds();
-                cleanInECloud(cleanerParameters, recordIdsThatWillBeRemoved);
+                int deletedCount = cleanInECloud(cleanerParameters, recordIdsThatWillBeRemoved);
                 cleanInMetis(cleanerParameters, datasetCleaner);
+                taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), deletedCount);
                 endTheTask(dpsTask);
             } else {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");
@@ -79,24 +83,29 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                 dateFormat.parse(dpsTask.getParameter(PluginParameterKeys.METIS_RECORD_DATE)));
     }
 
-    private void cleanInECloud(DataSetCleanerParameters cleanerParameters, Stream<String> recordIds) {
+    private int cleanInECloud(DataSetCleanerParameters cleanerParameters, Stream<String> recordIds) {
         TargetIndexingDatabase indexingDatabase;
         try {
             indexingDatabase = TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv());
         } catch(IllegalArgumentException | NullPointerException exception) {
             throw new PostProcessingException("Unable to recognize environment: " + cleanerParameters.getTargetIndexingEnv());
         }
-        cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase);
+       return cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase);
     }
 
-    private void cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase) {
+    private int cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase) {
+        var deletedCount = new AtomicInteger();
         recordIds
                 .map(recordId -> harvestedRecordsDAO.findRecord(datasetId, recordId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(harvestedRecord -> doCleaning(harvestedRecord, indexingDatabase))
-                .forEach(harvestedRecordsDAO::insertHarvestedRecord);
-        LOGGER.info("Cleaned indexing columns in Harvested records table.");
+                .forEach(theRecord -> {
+                    harvestedRecordsDAO.insertHarvestedRecord(theRecord);
+                    deletedCount.incrementAndGet();
+                });
+        LOGGER.info("Cleaned indexing columns in Harvested records table for {} records.", deletedCount.get());
+        return deletedCount.get();
     }
 
     private HarvestedRecord doCleaning(HarvestedRecord harvestedRecord, TargetIndexingDatabase indexingDatabase) {

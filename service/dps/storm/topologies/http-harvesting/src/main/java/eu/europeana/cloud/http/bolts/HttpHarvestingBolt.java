@@ -44,7 +44,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
             outputCollector.fail(anchorTuple);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
-            emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(),
+            emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(), tuple.getFileUrl(),
                     "Error while reading a file",
                     "Can't read file: " + tuple.getFileUrl() + " because of " + e.getMessage(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(tuple));

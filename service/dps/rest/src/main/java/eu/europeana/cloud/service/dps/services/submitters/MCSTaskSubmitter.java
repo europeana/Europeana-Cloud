@@ -58,7 +58,7 @@ public class MCSTaskSubmitter {
         DpsTask task = submitParameters.getTask();
         try {
             LOGGER.info("Sending task id={} to topology {} by kafka topic {}. Parameters:\n{}",
-                    task.getTaskId(), submitParameters.getTopologyName(), submitParameters.getTopicName(), submitParameters);
+                    task.getTaskId(), submitParameters.getTaskInfo().getTopologyName(), submitParameters.getTopicName(), submitParameters);
 
             checkIfTaskIsKilled(task);
 

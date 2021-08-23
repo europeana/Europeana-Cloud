@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.services.postprocessors;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -20,19 +21,22 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class PostProcessingServiceTest {
 
-    private long TASK_ID_1 = 1l;
-    private long TASK_ID_2 = 2l;
-    private TaskInfo TASK_INFO_1 = new  TaskInfo();
-    private TaskByTaskState TASK_BY_TASK_STATE_1
+    private final long TASK_ID_1 = 1L;
+    private final long TASK_ID_2 = 2L;
+    private final TaskInfo TASK_INFO_1 = TaskInfo.builder().build();
+    private final TaskByTaskState TASK_BY_TASK_STATE_1
             = TaskByTaskState.builder().id(TASK_ID_1).topologyName(TopologiesNames.HTTP_TOPOLOGY).build();
-    private TaskByTaskState TASK_BY_TASK_STATE_2
+    private final TaskByTaskState TASK_BY_TASK_STATE_2
             = TaskByTaskState.builder().id(TASK_ID_2).topologyName("UNKNOWN_TOPOLOGY").build();
 
-    private String TASK_DETAILS_PATTERN = "{\"inputData\":{\"DATASET_URLS\":[\"http://a.b.c/d/e/f\"]}, \"taskId\":%s}";
+    private final String TASK_DETAILS_PATTERN = "{\"inputData\":{\"DATASET_URLS\":[\"http://a.b.c/d/e/f\"]}, \"taskId\":%s}";
 
 
     @Mock
     private CassandraTaskInfoDAO taskInfoDAO;
+
+    @Mock
+    private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
 
     @Mock
     private TasksByStateDAO tasksByStateDAO;
@@ -57,22 +61,22 @@ public class PostProcessingServiceTest {
 
 
     @Test
-    public void shouldExecutePostprocessor() throws Exception {
+    public void shouldExecutePostprocessor() {
         postProcessingService.postProcess(TASK_BY_TASK_STATE_1);
-        verify(taskPostProcessor).execute(any());
+        verify(taskPostProcessor).execute(any(), any());
     }
 
     @Test
     public void shouldNotExecuteForUnknownTopology() {
         postProcessingService.postProcess(TASK_BY_TASK_STATE_2);
-        verify(taskPostProcessor, never()).execute(any());
+        verify(taskPostProcessor, never()).execute(any(), any());
     }
 
     private void initTaskInfoDAOMock() {
         TASK_INFO_1.setId(TASK_ID_1);
-        TASK_INFO_1.setTaskDefinition(String.format(TASK_DETAILS_PATTERN, TASK_ID_1));
+        TASK_INFO_1.setDefinition(String.format(TASK_DETAILS_PATTERN, TASK_ID_1));
 
-        when(taskInfoDAO.findById(TASK_ID_1)).thenReturn(Optional.ofNullable(TASK_INFO_1));
+        when(taskInfoDAO.findById(TASK_ID_1)).thenReturn(Optional.of(TASK_INFO_1));
     }
 
     private void initPostProcessorFactory() {

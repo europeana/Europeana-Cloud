@@ -48,7 +48,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     }
 
     @Override
-    void prepareStatements() {
+    protected void prepareStatements() {
         subtaskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + "("
                 + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER

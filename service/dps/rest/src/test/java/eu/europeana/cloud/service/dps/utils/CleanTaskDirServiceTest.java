@@ -123,7 +123,7 @@ public class CleanTaskDirServiceTest {
     }
 
     private TaskInfo createTaskInfo(long id, TaskState state) {
-        TaskInfo result = new TaskInfo();
+        TaskInfo result = TaskInfo.builder().build();
         result.setId(id);
         result.setState(state);
         return result;

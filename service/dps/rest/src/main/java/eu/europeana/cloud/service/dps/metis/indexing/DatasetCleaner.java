@@ -31,10 +31,14 @@ public class DatasetCleaner {
     public DatasetCleaner(DataSetCleanerParameters cleanerParameters) {
         this.cleanerParameters = cleanerParameters;
         loadProperties();
+        prepareIndexerFactory();
+    }
+
+    public long getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+        return indexerFactory.getIndexer().countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
     }
 
     public Stream<String> getRecordIds() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
-        prepareIndexerFactory();
         return indexerFactory.getIndexer().getRecordIds(this.cleanerParameters.getDataSetId(),
                 this.cleanerParameters.getCleaningDate());
     }
@@ -44,7 +48,6 @@ public class DatasetCleaner {
         if (properties.isEmpty()) {
             return;
         }
-        prepareIndexerFactory();
         try {
             removeDataSet(cleanerParameters.getDataSetId());
         } catch (IndexingException e) {

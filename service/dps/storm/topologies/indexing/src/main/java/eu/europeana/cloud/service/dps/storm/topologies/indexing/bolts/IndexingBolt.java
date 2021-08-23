@@ -180,7 +180,8 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
         LOGGER.error(errorMessage, e);
-        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), errorMessage,
+        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                stormTaskTuple.getFileUrl(), errorMessage,
                 "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e),
                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
