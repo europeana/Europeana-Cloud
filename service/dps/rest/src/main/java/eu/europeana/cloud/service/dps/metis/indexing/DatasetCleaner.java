@@ -34,9 +34,8 @@ public class DatasetCleaner {
         prepareIndexerFactory();
     }
 
-    public int getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
-        //TODO Use db count method instead of counting stream size - changes in Metis needed
-        return (int) getRecordIds().count();
+    public long getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+        return indexerFactory.getIndexer().countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
     }
 
     public Stream<String> getRecordIds() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {

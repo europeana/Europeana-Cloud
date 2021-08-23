@@ -53,13 +53,13 @@ public class TaskStatusUpdater {
 
     public void insertTask(SubmitTaskParameters parameters) {
         long taskId = parameters.getTask().getTaskId();
-        String topologyName = parameters.getTopologyName();
-        TaskState newState = parameters.getState();
+        String topologyName = parameters.getTaskInfo().getTopologyName();
+        TaskState newState = parameters.getTaskInfo().getState();
         TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
 
         updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
                 parameters.getTopicName(), Calendar.getInstance().getTime());
-        taskInfoDAO.insert(parameters);
+        taskInfoDAO.insert(parameters.getTaskInfo());
     }
 
     public void setTaskCompletelyProcessed(long taskId, String info)
@@ -127,14 +127,14 @@ public class TaskStatusUpdater {
         taskInfoDAO.updatePostProcessedRecordsCount(taskId, postProcessedRecordsCount);
     }
 
-    public void updateExpectedPostProcessedRecordsNumber(long taskId, int expectedPostProcessedRecordsNumber) {
+    public void updateExpectedPostProcessedRecordsNumber(long taskId, long expectedPostProcessedRecordsNumber) {
         taskInfoDAO.updateExpectedPostProcessedRecordsNumber(taskId, expectedPostProcessedRecordsNumber);
     }
 
     public void updateSubmitParameters(SubmitTaskParameters parameters) {
         long taskId = parameters.getTask().getTaskId();
-        String topologyName = parameters.getTopologyName();
-        TaskState newState = parameters.getState();
+        String topologyName = parameters.getTaskInfo().getTopologyName();
+        TaskState newState = parameters.getTaskInfo().getState();
         TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
         updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
                 parameters.getTopicName(), Calendar.getInstance().getTime());

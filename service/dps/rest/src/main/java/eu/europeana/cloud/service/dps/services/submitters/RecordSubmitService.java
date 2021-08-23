@@ -48,7 +48,7 @@ public class RecordSubmitService {
             kafkaSubmitService.submitRecord(record, submitParameters.getTopicName());
             LOGGER.debug("Updating record in processed_records table: {}", record);
             processedRecordsDAO.insert(record.getTaskId(), record.getRecordId(), 0,
-                    "", submitParameters.getTopologyName(), RecordState.QUEUED.toString(), "", "");
+                    "", submitParameters.getTaskInfo().getTopologyName(), RecordState.QUEUED.toString(), "", "");
             return true;
         } else if (isResendingAfterFail(alreadySubmittedRecord.get(), submitParameters)) {
             LOGGER.info("Omitting record already sent to Kafka {}", record);
@@ -62,7 +62,7 @@ public class RecordSubmitService {
     }
 
     private boolean isResendingAfterFail(ProcessedRecord alreadySubmittedRecord, SubmitTaskParameters submitParameters) {
-        Date currentExecutionStart = submitParameters.getStartTimestamp();
+        Date currentExecutionStart = submitParameters.getTaskInfo().getStartTimestamp();
         return submitParameters.isRestarted() && alreadySubmittedRecord.getStarTime().before(currentExecutionStart);
     }
 

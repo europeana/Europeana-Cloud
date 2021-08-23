@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.junit.Test;
@@ -19,7 +20,11 @@ public class TaskSubmitterFactoryTest {
                 Mockito.mock(OtherTopologiesTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
-                SubmitTaskParameters.builder().topologyName(TopologiesNames.DEPUBLICATION_TOPOLOGY).build());
+                SubmitTaskParameters.builder()
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.DEPUBLICATION_TOPOLOGY)
+                                .build())
+                        .build());
         assertTrue(taskSubmitter instanceof DepublicationTaskSubmitter);
     }
 
@@ -32,7 +37,11 @@ public class TaskSubmitterFactoryTest {
                 Mockito.mock(OtherTopologiesTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
-                SubmitTaskParameters.builder().topologyName(TopologiesNames.OAI_TOPOLOGY).build());
+                SubmitTaskParameters.builder()
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.OAI_TOPOLOGY)
+                                .build())
+                        .build());
         assertTrue(taskSubmitter instanceof OaiTopologyTaskSubmitter);
     }
 
@@ -45,7 +54,11 @@ public class TaskSubmitterFactoryTest {
                 Mockito.mock(OtherTopologiesTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
-                SubmitTaskParameters.builder().topologyName(TopologiesNames.HTTP_TOPOLOGY).build());
+                SubmitTaskParameters.builder()
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.HTTP_TOPOLOGY)
+                                .build())
+                        .build());
         assertTrue(taskSubmitter instanceof HttpTopologyTaskSubmitter);
     }
 
@@ -62,48 +75,62 @@ public class TaskSubmitterFactoryTest {
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
                         .builder()
-                        .topologyName(TopologiesNames.VALIDATION_TOPOLOGY)
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.VALIDATION_TOPOLOGY)
+                                .build())
                         .build()
         ) instanceof OtherTopologiesTaskSubmitter);
 
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
                         .builder()
-                        .topologyName(TopologiesNames.INDEXING_TOPOLOGY)
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.INDEXING_TOPOLOGY)
+                                .build())
                         .build()
         ) instanceof OtherTopologiesTaskSubmitter);
 
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
                         .builder()
-                        .topologyName(TopologiesNames.ENRICHMENT_TOPOLOGY)
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.ENRICHMENT_TOPOLOGY)
+                                .build())
                         .build()
         ) instanceof OtherTopologiesTaskSubmitter);
 
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
                         .builder()
-                        .topologyName(TopologiesNames.NORMALIZATION_TOPOLOGY)
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.NORMALIZATION_TOPOLOGY)
+                                .build())
                         .build()
         ) instanceof OtherTopologiesTaskSubmitter);
 
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
                         .builder()
-                        .topologyName(TopologiesNames.LINKCHECK_TOPOLOGY)
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.LINKCHECK_TOPOLOGY)
+                                .build())
                         .build()
         ) instanceof OtherTopologiesTaskSubmitter);
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
                         .builder()
-                        .topologyName(TopologiesNames.MEDIA_TOPOLOGY)
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.MEDIA_TOPOLOGY)
+                                .build())
                         .build()
         ) instanceof OtherTopologiesTaskSubmitter);
 
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
                         .builder()
-                        .topologyName(TopologiesNames.XSLT_TOPOLOGY)
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName(TopologiesNames.XSLT_TOPOLOGY)
+                                .build())
                         .build()
         ) instanceof OtherTopologiesTaskSubmitter);
     }
@@ -116,6 +143,10 @@ public class TaskSubmitterFactoryTest {
                 Mockito.mock(OtherTopologiesTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
-                SubmitTaskParameters.builder().topologyName("Unknown topology name").build());
+                SubmitTaskParameters.builder()
+                        .taskInfo(TaskInfo.builder()
+                                .topologyName("Unknown topology name")
+                                .build())
+                        .build());
     }
 }

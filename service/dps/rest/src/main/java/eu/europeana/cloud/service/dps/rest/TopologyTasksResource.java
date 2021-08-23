@@ -242,13 +242,27 @@ public class TopologyTasksResource {
 
             var taskJSON = task.toJSON();
             SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                    .sentTimestamp(sentTime)
-                    .startTimestamp(new Date())
+                    .taskInfo(
+                            TaskInfo.builder()
+                                    .id(task.getTaskId())
+                                    .topologyName(topologyName)
+                                    .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+                                    .stateDescription("The task is in a pending mode, it is being processed before submission")
+                                    .sentTimestamp(sentTime)
+                                    .startTimestamp(new Date())
+                                    .finishTimestamp(null)
+                                    .expectedRecordsNumber(0)
+                                    .processedRecordsCount(0)
+                                    .ignoredRecordsCount(0)
+                                    .deletedRecordsCount(0)
+                                    .processedErrorsCount(0)
+                                    .deletedErrorsCount(0)
+                                    .expectedPostProcessedRecordsNumber(-1)
+                                    .postProcessedRecordsCount(0)
+                                    .definition(taskJSON)
+                                    .build()
+                    )
                     .task(task)
-                    .topologyName(topologyName)
-                    .state(TaskState.PROCESSING_BY_REST_APPLICATION)
-                    .stateDescription("The task is in a pending mode, it is being processed before submission")
-                    .taskJSON(taskJSON)
                     .restarted(restart).build();
             try {
                 taskStatusUpdater.insertTask(parameters);

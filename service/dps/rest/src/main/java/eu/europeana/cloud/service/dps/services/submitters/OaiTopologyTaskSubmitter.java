@@ -50,11 +50,11 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
             return;
         }
 
-        String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
+        String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
         parameters.setTopicName(preferredTopicName);
-        parameters.setStateDescription("Task submitted successfully and processed by REST app");
-        parameters.setExpectedRecordsNumber(expectedCount);
-        parameters.setState(TaskState.PROCESSING_BY_REST_APPLICATION);
+        parameters.getTaskInfo().setStateDescription("Task submitted successfully and processed by REST app");
+        parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
+        parameters.getTaskInfo().setState(TaskState.PROCESSING_BY_REST_APPLICATION);
         LOGGER.info("Selected topic name: {} for {}", preferredTopicName, parameters.getTask().getTaskId());
         taskStatusUpdater.updateSubmitParameters(parameters);
 
@@ -68,7 +68,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
     }
 
     private int getFilesCountInsideTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
-        return filesCounterFactory.createFilesCounter(parameters.getTask(), parameters.getTopologyName()).getFilesCount(parameters.getTask());
+        return filesCounterFactory.createFilesCounter(parameters.getTask(), parameters.getTaskInfo().getTopologyName()).getFilesCount(parameters.getTask());
     }
 
     private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {

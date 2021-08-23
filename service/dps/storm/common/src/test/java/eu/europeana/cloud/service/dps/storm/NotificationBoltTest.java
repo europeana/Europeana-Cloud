@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
@@ -415,10 +414,15 @@ public class NotificationBoltTest extends CassandraTestBase {
     private void insertTaskToDB(long taskId, String topologyName, int expectedSize, TaskState state,
                                 String info)
             throws NoHostAvailableException, QueryExecutionException {
-        DpsTask task = new DpsTask();
-        task.setTaskId(taskId);
-        taskInfoDAO.insert(SubmitTaskParameters.builder().task(task).topologyName(topologyName)
-                .expectedRecordsNumber(expectedSize).state(state).stateDescription(info).build());
+        taskInfoDAO.insert(
+                TaskInfo.builder()
+                        .id(taskId)
+                        .topologyName(topologyName)
+                        .expectedRecordsNumber(expectedSize)
+                        .state(state)
+                        .stateDescription(info)
+                        .build());
+
     }
 
     private List<Tuple> prepareTuples(long taskId, int size, int errors) {

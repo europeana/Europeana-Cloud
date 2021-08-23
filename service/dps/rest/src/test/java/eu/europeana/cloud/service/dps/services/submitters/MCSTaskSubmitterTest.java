@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -154,7 +155,12 @@ public class MCSTaskSubmitterTest {
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
         task.setTaskId(TASK_ID);
         task.addParameter(PluginParameterKeys.SCHEMA_NAME, SCHEMA_NAME);
-        submitParameters = SubmitTaskParameters.builder().task(task).topologyName(TOPOLOGY).topicName(TOPIC).build();
+        submitParameters = SubmitTaskParameters.builder()
+                .task(task)
+                .taskInfo(TaskInfo.builder()
+                        .topologyName(TOPOLOGY)
+                        .build())
+                .topicName(TOPIC).build();
 
         //used in most tests
         when(fileServiceClient.getFileUri(eq(CLOUD_ID1), eq(REPRESENTATION_NAME), eq(VERSION_1), eq(FILE_NAME_1))).thenReturn(FILE_URI_1);

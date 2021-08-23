@@ -113,13 +113,15 @@ public class UnfinishedTasksExecutor {
         dpsTask.addParameter(PluginParameterKeys.HARVEST_DATE, DateHelper.getISODateString(taskInfo.getSentTimestamp()));
 
         return SubmitTaskParameters.builder()
-                .sentTimestamp(taskInfo.getSentTimestamp())
-                .startTimestamp(new Date())
+                .taskInfo(TaskInfo.builder()
+                        .sentTimestamp(taskInfo.getSentTimestamp())
+                        .startTimestamp(new Date())
+                        .topologyName(taskInfo.getTopologyName())
+                        .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+                        .stateDescription("The task is in a pending mode, it is being processed before submission")
+                        .definition(taskInfo.getDefinition())
+                        .build())
                 .task(dpsTask)
-                .topologyName(taskInfo.getTopologyName())
-                .state(TaskState.PROCESSING_BY_REST_APPLICATION)
-                .stateDescription("The task is in a pending mode, it is being processed before submission")
-                .taskJSON(taskInfo.getDefinition())
                 .restarted(true).build();
     }
 }

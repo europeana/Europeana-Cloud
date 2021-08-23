@@ -122,27 +122,27 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS, errorMessage = "Error while inserting task")
-    public void insert(SubmitTaskParameters parameters)
+    public void insert(TaskInfo taskInfo)
             throws NoHostAvailableException, QueryExecutionException {
 
         dbService.getSession().execute(
                 taskInsertStatement.bind(
-                        parameters.getTask().getTaskId(),
-                        parameters.getTopologyName(),
-                        String.valueOf(parameters.getState()),
-                        parameters.getStateDescription(),
-                        parameters.getSentTimestamp(),
-                        parameters.getStartTimestamp(),
-                        null, //finishTimestamp
-                        parameters.getExpectedRecordsNumber(),
-                        0, // processedRecordsCount
-                        0, //ignoredRecordsCount
-                        0, //deletedRecordsCount
-                        0, //processedErrorsCount
-                        0, //deletedErrorsCount
-                        -1, //expectedPostProcessedRecordsNumber
-                        0, //postProcessedRecordsCount
-                        parameters.getTaskJSON()
+                        taskInfo.getId(),
+                        taskInfo.getTopologyName(),
+                        String.valueOf(taskInfo.getState()),
+                        taskInfo.getStateDescription(),
+                        taskInfo.getSentTimestamp(),
+                        taskInfo.getStartTimestamp(),
+                        taskInfo.getFinishTimestamp(),
+                        taskInfo.getExpectedRecordsNumber(),
+                        taskInfo.getProcessedRecordsCount(),
+                        taskInfo.getIgnoredRecordsCount(),
+                        taskInfo.getDeletedRecordsCount(),
+                        taskInfo.getProcessedErrorsCount(),
+                        taskInfo.getDeletedErrorsCount(),
+                        taskInfo.getExpectedPostProcessedRecordsNumber(),
+                        taskInfo.getPostProcessedRecordsCount(),
+                        taskInfo.getDefinition()
                 ));
     }
 
@@ -168,7 +168,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updatePostProcessedRecordsCount.bind(postProcessedRecordsCount, taskId));
     }
 
-    public void updateExpectedPostProcessedRecordsNumber(long taskId, int expectedPostProcessedRecordsNumber)
+    public void updateExpectedPostProcessedRecordsNumber(long taskId, long expectedPostProcessedRecordsNumber)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateExpectedPostProcessedRecordsNumber.bind(expectedPostProcessedRecordsNumber, taskId));
     }
@@ -188,8 +188,8 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public void updateSubmitParameters(SubmitTaskParameters parameters)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateSubmitParameters.bind(parameters.getStartTimestamp(),
-                String.valueOf(parameters.getState()), parameters.getStateDescription(), parameters.getExpectedRecordsNumber(),
+        dbService.getSession().execute(updateSubmitParameters.bind(parameters.getTaskInfo().getStartTimestamp(),
+                String.valueOf(parameters.getTaskInfo().getState()), parameters.getTaskInfo().getStateDescription(), parameters.getTaskInfo().getExpectedRecordsNumber(),
                 parameters.getTask().getTaskId()));
     }
 

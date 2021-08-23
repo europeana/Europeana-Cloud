@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
@@ -47,8 +48,12 @@ public class RecordSubmitServiceTest {
 
     private DpsRecord record = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID).build();
 
-    private SubmitTaskParameters parameters = SubmitTaskParameters.builder().topologyName(TOPOLOGY).topicName(TOPIC)
-            .startTimestamp(CURRENT_EXECUTION_START_TIME).build();
+    private SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+            .taskInfo(TaskInfo.builder()
+                    .topologyName(TOPOLOGY)
+                    .startTimestamp(CURRENT_EXECUTION_START_TIME)
+                    .build())
+            .topicName(TOPIC).build();
 
     @InjectMocks
     private RecordSubmitService service;

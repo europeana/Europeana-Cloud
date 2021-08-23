@@ -40,8 +40,8 @@ public class TaskSubmissionValidator {
     }
 
     public void validateTaskSubmission(SubmitTaskParameters parameters) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
-        assertContainTopology(parameters.getTopologyName());
-        validateTask(parameters.getTask(), parameters.getTopologyName());
+        assertContainTopology(parameters.getTaskInfo().getTopologyName());
+        validateTask(parameters.getTask(), parameters.getTaskInfo().getTopologyName());
         validateOutputDataSetsIfExist(parameters.getTask());
     }
 

@@ -31,7 +31,7 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
 
     @Override
     public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
-        int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTopologyName());
+        int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTaskInfo().getTopologyName());
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
         if (expectedCount == 0) {
@@ -39,9 +39,9 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
             return;
         }
 
-        String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTopologyName());
+        String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
         parameters.setTopicName(preferredTopicName);
-        parameters.setExpectedRecordsNumber(expectedCount);
+        parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
         taskStatusUpdater.updateSubmitParameters(parameters);
 
         mcsTaskSubmitter.execute(parameters);

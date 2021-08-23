@@ -29,15 +29,6 @@ public class DpsTask implements Serializable {
     /* output revision*/
     private Revision outputRevision;
 
-    /* Task start time */
-    private Date startTime = null;
-
-    /* Task create time */
-    private Date createTime = new Date(System.currentTimeMillis());
-
-    /* Task end time*/
-    private Date endTime = null;
-
     /* Unique id for this task */
     private long taskId;
 
@@ -158,9 +149,6 @@ public class DpsTask implements Serializable {
                 com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
                 Objects.equal(parameters, dpsTask.parameters) &&
                 Objects.equal(outputRevision, dpsTask.outputRevision) &&
-                Objects.equal(startTime, dpsTask.startTime) &&
-                Objects.equal(createTime, dpsTask.createTime) &&
-                Objects.equal(endTime, dpsTask.endTime) &&
                 Objects.equal(taskName, dpsTask.taskName) &&
                 Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
     }
@@ -179,7 +167,7 @@ public class DpsTask implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(inputData, parameters, outputRevision, startTime, createTime, endTime, taskId, taskName, harvestingDetails);
+        return Objects.hashCode(inputData, parameters, outputRevision, taskId, taskName, harvestingDetails);
     }
 }
 
