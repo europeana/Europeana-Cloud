@@ -168,7 +168,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updatePostProcessedRecordsCount.bind(postProcessedRecordsCount, taskId));
     }
 
-    public void updateExpectedPostProcessedRecordsNumber(long taskId, long expectedPostProcessedRecordsNumber)
+    public void updateExpectedPostProcessedRecordsNumber(long taskId, int expectedPostProcessedRecordsNumber)
             throws NoHostAvailableException, QueryExecutionException {
         dbService.getSession().execute(updateExpectedPostProcessedRecordsNumber.bind(expectedPostProcessedRecordsNumber, taskId));
     }

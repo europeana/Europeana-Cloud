@@ -34,8 +34,8 @@ public class DatasetCleaner {
         prepareIndexerFactory();
     }
 
-    public long getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
-        return indexerFactory.getIndexer().countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+    public int getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+        return (int)indexerFactory.getIndexer().countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
     }
 
     public Stream<String> getRecordIds() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {

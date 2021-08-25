@@ -53,12 +53,6 @@
         </dependency>
 
         <dependency>
-            <groupId>eu.europeana.metis</groupId>
-            <artifactId>metis-harvesting</artifactId>
-            <version>${version.metis}</version>
-        </dependency>
-
-        <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
@@ -96,6 +90,12 @@
                     <groupId>log4j</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.metis</groupId>
+            <artifactId>metis-harvesting</artifactId>
+            <version>${version.metis}</version>
         </dependency>
 
         <dependency>

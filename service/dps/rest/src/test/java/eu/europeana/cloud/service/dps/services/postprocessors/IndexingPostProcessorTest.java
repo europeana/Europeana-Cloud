@@ -88,7 +88,7 @@ public class IndexingPostProcessorTest {
                 .previewHarvestMd5(previewHarvestMd5ForRecord_1)
                 .build();
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(oneRecord));
-        when(datasetCleaner.getRecordsCount()).thenReturn(1L);
+        when(datasetCleaner.getRecordsCount()).thenReturn(1);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
         //when
         service.execute(taskInfo, prepareTaskForPreviewEnv());
@@ -136,7 +136,7 @@ public class IndexingPostProcessorTest {
                 .build();
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(record1));
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_2)).thenReturn(Optional.of(record2));
-        when(datasetCleaner.getRecordsCount()).thenReturn(2L);
+        when(datasetCleaner.getRecordsCount()).thenReturn(2);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         //when
         service.execute(taskInfo,  prepareTaskForPreviewEnv());
@@ -187,7 +187,7 @@ public class IndexingPostProcessorTest {
                 .previewHarvestMd5(previewHarvestMd5ForRecord_1)
                 .build();
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(oneRecord));
-        when(datasetCleaner.getRecordsCount()).thenReturn(1L);
+        when(datasetCleaner.getRecordsCount()).thenReturn(1);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
         //when
         service.execute(taskInfo,  prepareTaskForPublishEnv());
@@ -235,7 +235,7 @@ public class IndexingPostProcessorTest {
                 .build();
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(record1));
         when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_2)).thenReturn(Optional.of(record2));
-        when(datasetCleaner.getRecordsCount()).thenReturn(2L);
+        when(datasetCleaner.getRecordsCount()).thenReturn(2);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         //when
         service.execute(taskInfo, prepareTaskForPublishEnv());

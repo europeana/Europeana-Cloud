@@ -127,7 +127,7 @@ public class TaskStatusUpdater {
         taskInfoDAO.updatePostProcessedRecordsCount(taskId, postProcessedRecordsCount);
     }
 
-    public void updateExpectedPostProcessedRecordsNumber(long taskId, long expectedPostProcessedRecordsNumber) {
+    public void updateExpectedPostProcessedRecordsNumber(long taskId, int expectedPostProcessedRecordsNumber) {
         taskInfoDAO.updateExpectedPostProcessedRecordsNumber(taskId, expectedPostProcessedRecordsNumber);
     }
 
