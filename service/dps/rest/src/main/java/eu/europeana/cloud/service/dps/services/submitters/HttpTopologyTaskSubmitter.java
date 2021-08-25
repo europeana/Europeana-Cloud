@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -90,10 +91,18 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
             if (taskStatusChecker.hasDroppedStatus(submitTaskParameters.getTask().getTaskId())) {
                 return IterationResult.TERMINATE;
             }
-            var dpsRecord = DpsRecord.builder()
-                    .taskId(submitTaskParameters.getTask().getTaskId())
-                    .recordId(fileURLCreator.generateUrlFor(file))
-                    .build();
+            DpsRecord dpsRecord;
+            try {
+                dpsRecord = DpsRecord.builder()
+                        .taskId(submitTaskParameters.getTask().getTaskId())
+                        .recordId(fileURLCreator.generateUrlFor(file))
+                        .build();
+            } catch (UnsupportedEncodingException e) {
+                taskStatusUpdater.setTaskDropped(submitTaskParameters.getTask().getTaskId(),
+                        "Unable to generate URL for file: " + file.toString());
+                return IterationResult.TERMINATE;
+            }
+
             if (recordSubmitService.submitRecord(
                     dpsRecord,
                     submitTaskParameters)) {
