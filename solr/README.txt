@@ -1,3 +1,0 @@
-This project builds Solr package with eCloud specific properties (like schema) and adds required libraries to it (like log4j). Builded package contains solr.home directory inside. 
-Resultant package will be in solr-dist/target directory.
-To build package with your specific solr.home/solr.data.dir paths, run mvn with -Dsolr.home -Dsolr.data.dir parameters eg. mvn clean install -Dsolr.home=/home/solr/ -Dsolr.data.dir=/home/solr/data/
