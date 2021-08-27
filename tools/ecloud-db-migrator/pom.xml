@@ -7,7 +7,6 @@
         <version>5-SNAPSHOT</version>
     </parent>
 
-    <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-db-migrator</artifactId>
 
     <packaging>jar</packaging>
@@ -46,12 +45,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${version.junit}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.cassandraunit</groupId>

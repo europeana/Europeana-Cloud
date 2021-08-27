@@ -143,12 +143,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -186,25 +180,6 @@
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.theoryinpractise</groupId>
-                <artifactId>clojure-maven-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <sourceDirectories>
-                        <sourceDirectory>src/clj</sourceDirectory>
-                    </sourceDirectories>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -72,7 +72,6 @@
     </developers>
     <modules>
         <module>common</module>
-        <module>solr</module>
         <module>cassandra-connector</module>
         <module>service/uis</module>
         <module>service/dps</module>
@@ -240,8 +239,8 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-<!--
                     <version>2.5.1</version>
+<!--
                     <configuration>
                         <source>${version.jdk}</source>
                         <target>${version.jdk}</target>
@@ -272,47 +271,6 @@
                     <version>2.1.1</version>
                     <configuration>
                         <failOnMissingWebXml>false</failOnMissingWebXml>
-                    </configuration>
-                </plugin>
-                <!-- Ignore/Execute plugin execution -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <!-- copy-dependency plugin -->
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                            <goal>unpack</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                                <!-- copy-dependency plugin -->
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>com.qmino</groupId>
-                                        <artifactId>miredot-maven-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>restdoc</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
                 <plugin>
