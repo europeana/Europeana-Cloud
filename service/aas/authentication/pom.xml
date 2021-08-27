@@ -49,19 +49,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-acl</artifactId>
-            <version>${version.spring-security}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>${version.spring-security}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
             <version>${version.spring-security}</version>
             <scope>compile</scope>
         </dependency>
@@ -113,13 +101,7 @@
             <version>${version.spring-framework}</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${version.spring-framework}</version>
-            <scope>test</scope>
-        </dependency>
-		
+
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
