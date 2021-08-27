@@ -6,7 +6,6 @@
         <version>5-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <groupId>eu.europeana.cloud</groupId>
     <artifactId>ResourceMigrator</artifactId>
     <packaging>jar</packaging>
     <version>5-SNAPSHOT</version>

@@ -7,7 +7,6 @@
         <version>5-SNAPSHOT</version>
     </parent>
 
-    <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-db-migrator</artifactId>
 
     <packaging>jar</packaging>
