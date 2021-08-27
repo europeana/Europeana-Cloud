@@ -127,7 +127,7 @@
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>11</version.jdk>
-        <version.junit>4.12</version.junit>
+        <version.junit>4.13.1</version.junit>
         <version.powermock>2.0.7</version.powermock>
         <version.powermock-mockito>2.0.7</version.powermock-mockito>
         <version.jersey>2.23.1</version.jersey>
