@@ -156,8 +156,7 @@
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <log4j2_version>2.0-rc1</log4j2_version>
-        <version.log4j>1.2.17</version.log4j>
+        <version.log4j>2.14.1</version.log4j>
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
         <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
@@ -410,9 +409,9 @@
                 <version>${version.slf4j}</version>
             </dependency>
             <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-                <version>1.2.17</version>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${version.log4j}</version>
             </dependency>
 
             <dependency>
