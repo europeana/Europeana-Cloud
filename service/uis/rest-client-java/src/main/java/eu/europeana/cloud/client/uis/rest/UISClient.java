@@ -14,6 +14,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -109,7 +110,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(CloudId.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
 
         } finally {
@@ -141,7 +142,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(CloudId.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
 
         } finally {
@@ -167,7 +168,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(CloudId.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -195,7 +196,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(CloudId.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -225,7 +226,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(CloudId.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -252,7 +253,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -279,7 +280,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -306,7 +307,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -338,7 +339,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -370,7 +371,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -401,7 +402,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return true;
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -435,7 +436,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return true;
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -463,7 +464,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return true;
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -489,7 +490,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return true;
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -517,7 +518,7 @@ public class UISClient {
             if (resp.getStatus() == Status.CREATED.getStatusCode()) {
                 return resp.toString();
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -545,7 +546,7 @@ public class UISClient {
             if (resp.getStatus() == Status.NO_CONTENT.getStatusCode()) {
                 return true;
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -572,7 +573,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -598,7 +599,7 @@ public class UISClient {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(DataProvider.class);
             } else {
-                throw generateException(resp.readEntity(ErrorInfo.class));
+                throw generateExpception(resp);
             }
         } finally {
             closeResponse(resp);
@@ -608,13 +609,22 @@ public class UISClient {
     /**
      * Generates the exception to be returned to the client.
      *
-     * @param e The error info that was generated
+     * @param response - response containing the error info that was generated on server
      * @return A CloudException that wraps the original exception
      */
-    public CloudException generateException(ErrorInfo e) {
-        IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
-        LOGGER.error(e.getDetails());
-        return new CloudException(e.getErrorCode(), error.getException(e));
+    private CloudException generateExpception(Response response) {
+        ErrorInfo errorInfo;
+        try {
+            response.bufferEntity();
+            errorInfo = response.readEntity(ErrorInfo.class);
+        } catch (ProcessingException e) {
+            String message = response.readEntity(String.class);
+            throw new RuntimeException("Cound not deserialize response with statusCode: " + response.getStatus()
+                    + ", and message: " + message, e);
+        }
+        IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(errorInfo.getErrorCode());
+        LOGGER.error(errorInfo.getDetails());
+        return new CloudException(errorInfo.getErrorCode(), error.getException(errorInfo));
     }
 
     private void closeResponse(Response response) {
