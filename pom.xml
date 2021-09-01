@@ -127,7 +127,7 @@
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>11</version.jdk>
-        <version.junit>4.12</version.junit>
+        <version.junit>4.13.2</version.junit>
         <version.powermock>2.0.7</version.powermock>
         <version.powermock-mockito>2.0.7</version.powermock-mockito>
         <version.jersey>2.23.1</version.jersey>
@@ -174,7 +174,7 @@
         <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
-        <version.jackson>1.9.13</version.jackson>
+        <version.jackson>2.12.5</version.jackson>
         <version.jacoco>0.8.1</version.jacoco>
         <version.metis>5-SNAPSHOT</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
