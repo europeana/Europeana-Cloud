@@ -11,7 +11,8 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.utils.CloudIdReader;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 public class ProviderRemover {
-    static final Logger LOGGER = Logger.getLogger(ProviderRemover.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(ProviderRemover.class);
 
     private static final int FETCH_LIMIT = 1000;
     private final String url;

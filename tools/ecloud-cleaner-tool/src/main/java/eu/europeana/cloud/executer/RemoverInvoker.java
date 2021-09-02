@@ -3,7 +3,8 @@ package eu.europeana.cloud.executer;
 import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.api.TaskIdsReader;
 import eu.europeana.cloud.readers.CommaSeparatorReaderImpl;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
 public class RemoverInvoker {
     private final Remover remover;
 
-    static final Logger LOGGER = Logger.getLogger(RemoverInvoker.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(RemoverInvoker.class);
 
     public RemoverInvoker(Remover remover) {
         this.remover = remover;
