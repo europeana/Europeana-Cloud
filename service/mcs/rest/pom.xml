@@ -599,8 +599,6 @@
         <dependency>
             <artifactId>guava</artifactId>
             <groupId>com.google.guava</groupId>
-            <type>jar</type>
-            <version>${version.guava}</version>
         </dependency>
     </dependencies>
 </project>
