@@ -58,8 +58,12 @@ public class HarvestsExecutor {
                 taskDropped.set(true);
                 return IterationResult.TERMINATE;
             }
-            DpsRecord record = convertToDpsRecord(oaiHeader, harvestToBeExecuted, parameters.getTask());
-            if (recordSubmitService.submitRecord(record, parameters)) {
+            if (oaiHeader.isDeleted()) {
+                LOGGER.warn("Ignoring OAI record header {} because it is deleted on the OAI repo", oaiHeader.getOaiIdentifier());
+                return IterationResult.CONTINUE;
+            }
+            DpsRecord dpsRecord = convertToDpsRecord(oaiHeader, harvestToBeExecuted, parameters.getTask());
+            if (recordSubmitService.submitRecord(dpsRecord, parameters)) {
                 resultCounter.incrementAndGet();
             }
             logProgressFor(harvestToBeExecuted, parameters.incrementAndGetPerformedRecordCounter());

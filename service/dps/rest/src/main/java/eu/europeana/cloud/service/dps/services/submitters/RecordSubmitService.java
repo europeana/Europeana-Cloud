@@ -33,7 +33,7 @@ public class RecordSubmitService {
     /**
      * Submits record to storm cluster by sending it to valid Kafka topic.
      *
-     * @param record
+     * @param dpsRecord
      * @param submitParameters
      * @return true if task size should be incremented and false if not. False is returned only in case of duplicated
      * record ids. For such cases record is sent to storm only once and excepting retries also only once performed in it.
@@ -41,21 +41,21 @@ public class RecordSubmitService {
      * performd in storm cluster and such task would be never marked as finished.
      * finish.
      */
-    public boolean submitRecord(DpsRecord record, SubmitTaskParameters submitParameters) {
-        Optional<ProcessedRecord> alreadySubmittedRecord = processedRecordsDAO.selectByPrimaryKey(record.getTaskId(), record.getRecordId());
+    public boolean submitRecord(DpsRecord dpsRecord, SubmitTaskParameters submitParameters) {
+        Optional<ProcessedRecord> alreadySubmittedRecord = processedRecordsDAO.selectByPrimaryKey(dpsRecord.getTaskId(), dpsRecord.getRecordId());
 
         if (alreadySubmittedRecord.isEmpty()) {
-            kafkaSubmitService.submitRecord(record, submitParameters.getTopicName());
-            LOGGER.debug("Updating record in processed_records table: {}", record);
-            processedRecordsDAO.insert(record.getTaskId(), record.getRecordId(), 0,
+            kafkaSubmitService.submitRecord(dpsRecord, submitParameters.getTopicName());
+            LOGGER.debug("Updating record in processed_records table: {}", dpsRecord);
+            processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(), 0,
                     "", submitParameters.getTaskInfo().getTopologyName(), RecordState.QUEUED.toString(), "", "");
             return true;
         } else if (isResendingAfterFail(alreadySubmittedRecord.get(), submitParameters)) {
-            LOGGER.info("Omitting record already sent to Kafka {}", record);
-            processedRecordsDAO.updateStartTime(record.getTaskId(), record.getRecordId(), new Date());
+            LOGGER.info("Omitting record already sent to Kafka {}", dpsRecord);
+            processedRecordsDAO.updateStartTime(dpsRecord.getTaskId(), dpsRecord.getRecordId(), new Date());
             return true;
         } else {
-            LOGGER.warn("Omitting duplicated record {}", record);
+            LOGGER.warn("Omitting duplicated record {}", dpsRecord);
             return false;
         }
 
