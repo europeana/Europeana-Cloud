@@ -59,7 +59,9 @@ public class HarvestsExecutor {
                 return IterationResult.TERMINATE;
             }
             if (oaiHeader.isDeleted()) {
-                LOGGER.warn("Ignoring OAI record header {} because it is deleted on the OAI repo", oaiHeader.getOaiIdentifier());
+                LOGGER.warn("Ignoring OAI record header {} for {} because it is deleted on the OAI repo",
+                        oaiHeader.getOaiIdentifier(),
+                        parameters.getTask().getTaskId());
                 return IterationResult.CONTINUE;
             }
             DpsRecord dpsRecord = convertToDpsRecord(oaiHeader, harvestToBeExecuted, parameters.getTask());
