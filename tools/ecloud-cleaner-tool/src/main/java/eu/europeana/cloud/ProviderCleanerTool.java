@@ -5,15 +5,16 @@ import eu.europeana.cloud.persisted.ProviderRemover;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import eu.europeana.cloud.utils.Toolkit;
 import org.apache.commons.cli.*;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProviderCleanerTool {
-    static final Logger LOGGER = Logger.getLogger(ProviderCleanerTool.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(ProviderCleanerTool.class);
 
     private static final String URL = "url";
     private static final String TEST_MODE = "test-mode";

@@ -2,14 +2,15 @@ package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class RoyalArmoryResourceProvider
         extends DefaultResourceProvider {
 
-    private static final Logger logger = Logger.getLogger(RoyalArmoryResourceProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(RoyalArmoryResourceProvider.class);
 
 
     public RoyalArmoryResourceProvider(String representationName, String mappingFile, String locations, String dataProviderId) {

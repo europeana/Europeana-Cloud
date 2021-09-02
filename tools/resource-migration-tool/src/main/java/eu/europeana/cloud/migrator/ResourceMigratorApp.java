@@ -6,7 +6,8 @@ import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.MutuallyExclusiveGroup;
 import net.sourceforge.argparse4j.inf.Namespace;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -23,7 +24,7 @@ import java.util.Properties;
 
 public class ResourceMigratorApp {
 
-    private static final Logger logger = Logger.getLogger(ResourceMigratorApp.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceMigratorApp.class);
 
     private static final String CLEAN = "clean";
 

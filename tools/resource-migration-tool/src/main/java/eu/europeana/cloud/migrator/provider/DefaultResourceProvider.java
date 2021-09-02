@@ -2,7 +2,8 @@ package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,7 +59,7 @@ public abstract class DefaultResourceProvider
     public static final int DEFAULT_LIST_SIZE = 500;
 
     // Logger
-    private static final Logger logger = Logger.getLogger(DefaultResourceProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultResourceProvider.class);
 
     // Representation name from configuration
     protected String representationName;

@@ -20,7 +20,8 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.ProcessingException;
@@ -43,7 +44,7 @@ public class ResourceMigrator {
 
     private static final String FILES_PART = "files";
 
-    private static final Logger logger = Logger.getLogger(ResourceMigrator.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceMigrator.class);
 
     private static final Map<String, String> mimeTypes = new HashMap<String, String>();
 

@@ -7,7 +7,8 @@ import com.datastax.driver.core.Session;
 import data.validator.cql.CassandraHelper;
 import data.validator.jobs.RowsValidatorJob;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,7 +29,7 @@ import static data.validator.constants.Constants.*;
 public class DataValidator {
     private CassandraConnectionProvider sourceCassandraConnectionProvider;
     private CassandraConnectionProvider targetCassandraConnectionProvider;
-    final static Logger LOGGER = Logger.getLogger(DataValidator.class);
+    final static Logger LOGGER = LoggerFactory.getLogger(DataValidator.class);
 
 
     private static final String SELECT_COLUMN_NAMES = "SELECT " + COLUMN_NAME_SELECTOR + ", " + COLUMN_INDEX_TYPE + " FROM " + SYSTEM_SCHEMA_COLUMNS_TABLE +

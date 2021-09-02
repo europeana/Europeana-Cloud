@@ -6,14 +6,16 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Created by Tarek on 4/16/2019.
  */
 public class RemoverImpl implements Remover {
 
-    static final Logger LOGGER = Logger.getLogger(RemoverImpl.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(RemoverImpl.class);
 
     private final CassandraSubTaskInfoDAO subTaskInfoDAO;
     private final CassandraTaskErrorsDAO taskErrorDAO;

@@ -5,8 +5,9 @@ import eu.europeana.cloud.executer.RemoverInvoker;
 import eu.europeana.cloud.persisted.RemoverImpl;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import org.apache.commons.cli.*;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
  */
 public class TaskCleanerTool {
 
-    static final Logger LOGGER = Logger.getLogger(TaskCleanerTool.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(TaskCleanerTool.class);
 
     private static final String HOSTS = "hosts";
     private static final String PORT = "port";
