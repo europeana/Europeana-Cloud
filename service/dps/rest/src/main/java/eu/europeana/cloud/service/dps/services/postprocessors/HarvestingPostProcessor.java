@@ -101,7 +101,11 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
             int postProcessedRecordsCount = 0;
             while (it.hasNext()) {
                 var harvestedRecord = it.next();
-                if (!isRecordProcessed(dpsTask, harvestedRecord)) {
+                if (recordIsNotIndexedOnAnyEnvironment(harvestedRecord)) {
+                    harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
+                    LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed on any environment, taskId={}"
+                            , harvestedRecord, dpsTask.getTaskId());
+                } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
                     createPostProcessedRecord(dpsTask, harvestedRecord);
                     markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
                     postProcessedRecordsCount++;
@@ -118,6 +122,10 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
                     String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
                             dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
         }
+    }
+
+    private boolean recordIsNotIndexedOnAnyEnvironment(HarvestedRecord harvestedRecord) {
+        return (harvestedRecord.getPreviewHarvestDate() == null) && (harvestedRecord.getPublishedHarvestDate() == null);
     }
 
     public Set<String> getProcessedTopologies() {
