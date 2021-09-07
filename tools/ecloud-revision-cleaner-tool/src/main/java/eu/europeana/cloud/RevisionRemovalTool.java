@@ -9,7 +9,6 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.reader.CSVReader;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import org.apache.commons.cli.*;
-import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,6 @@ public class RevisionRemovalTool {
 
 
     public static void main(String[] args) {
-        PropertyConfigurator.configure("log4j.properties");
         Options options = getOptions();
         CommandLineParser parser = new DefaultParser();
         try {

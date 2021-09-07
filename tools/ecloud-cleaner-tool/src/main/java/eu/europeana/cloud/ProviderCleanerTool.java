@@ -5,7 +5,6 @@ import eu.europeana.cloud.persisted.ProviderRemover;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import eu.europeana.cloud.utils.Toolkit;
 import org.apache.commons.cli.*;
-import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,6 @@ public class ProviderCleanerTool {
      * @param args
      */
     public static void main(String[] args) {
-        PropertyConfigurator.configure("log4j.properties");
         Options options = getOptions();
         CommandLineParser parser = new DefaultParser();
         try {
