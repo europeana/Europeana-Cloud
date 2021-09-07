@@ -6,7 +6,8 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.migrator.ResourceMigrator;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -19,7 +20,7 @@ import java.util.StringTokenizer;
  */
 public class Cleaner {
 
-    private static final Logger logger = Logger.getLogger(Cleaner.class);
+    private static final Logger logger = LoggerFactory.getLogger(Cleaner.class);
 
     public void clean(String providerId, RecordServiceClient mcs, UISClient uis) {
         try {

@@ -126,6 +126,7 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
 
     private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
         try {
+            LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
             String cloudId = findCloudId(dpsTask, harvestedRecord);
             var representation = createRepresentationVersion(dpsTask, cloudId);
             addRevisionToRepresentation(dpsTask, representation);

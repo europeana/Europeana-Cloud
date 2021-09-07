@@ -1,7 +1,8 @@
 package eu.europeana.cloud.migrator.processing;
 
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +15,7 @@ public class JPEG2JP2000Converter
         extends CommandExecutor
         implements FileProcessor {
 
-    private static final Logger logger = Logger.getLogger(JPEG2JP2000Converter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JPEG2JP2000Converter.class);
 
     private static final int JPEG_TO_TIFF_COMMAND_ID = 0;
 

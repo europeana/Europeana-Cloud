@@ -57,11 +57,7 @@
             <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-1.2-api</artifactId>
-            <version>${version.log4j}</version>
-        </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-rest-client-java</artifactId>

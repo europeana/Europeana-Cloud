@@ -9,8 +9,9 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.reader.CSVReader;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import org.apache.commons.cli.*;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Tarek on 7/15/2019.
  */
 public class RevisionRemovalTool {
-    static final Logger LOGGER = Logger.getLogger(RevisionRemovalTool.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(RevisionRemovalTool.class);
 
     private static final String MCS_URL = "mcs_url";
     private static final String USER_NAME = "username";
@@ -58,7 +59,7 @@ public class RevisionRemovalTool {
         } catch (ParseException exp) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("Data Cleaner ", options);
-            LOGGER.error(exp);
+            LOGGER.error(exp.getMessage(), exp);
             System.exit(0);
         } catch (Exception e) {
             LOGGER.error("Error while cleaning data " + e.getMessage() + ". Because of " + e.getCause());

@@ -1,7 +1,8 @@
 package eu.europeana.cloud.migrator.processing;
 
 import eu.europeana.cloud.migrator.ResourceMigratorApp;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,7 +24,7 @@ public class CommandExecutor {
 
     protected String workingDirectory;
 
-    private static final Logger logger = Logger.getLogger(CommandExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
 
     public CommandExecutor(String configFile) {
         loadConfig(ResourceMigratorApp.loadPropertiesFile(new File(configFile)));

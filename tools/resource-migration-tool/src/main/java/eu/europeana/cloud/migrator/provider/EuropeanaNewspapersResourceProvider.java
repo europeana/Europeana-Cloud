@@ -2,7 +2,8 @@ package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,7 +26,7 @@ public class EuropeanaNewspapersResourceProvider
 
     private Map<String, Integer> fileCounts = new HashMap<String, Integer>();
 
-    private static final Logger logger = Logger.getLogger(EuropeanaNewspapersResourceProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(EuropeanaNewspapersResourceProvider.class);
 
     public EuropeanaNewspapersResourceProvider(String representationName, String mappingFile, String locations, String dataProviderId) throws IOException {
         super(representationName, mappingFile, locations, dataProviderId);
@@ -245,7 +246,7 @@ public class EuropeanaNewspapersResourceProvider
                 try {
                     pathsReader.close();
                 } catch (IOException e) {
-                    logger.error(e);
+                    logger.error(e.getMessage(), e);
                 }
             }
         }
