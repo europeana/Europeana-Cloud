@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 /**
- * <p>Contains the categorization algorithm based on the OAI dateStamp and published and preview harvested dates.
+ * <p>Contains the categorization algorithm for the full OAI harvesting. It based on the OAI dateStamp and published and preview harvested dates.
  * To further understand why the {@link #DATE_BUFFER_IN_MINUTES} has a value of minutes equivalent to 2 days(2880), here is
  * an example:</p>
  *
