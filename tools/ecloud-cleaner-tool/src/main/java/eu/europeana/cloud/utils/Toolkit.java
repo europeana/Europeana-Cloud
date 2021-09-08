@@ -18,7 +18,7 @@ public class Toolkit {
 
         File file = new File(textFilename);
         if(!file.exists() || !file.isFile()) {
-            LOGGER.info(String.format("File '%s' doesn't exists or isn't an ordinary file", textFilename));
+            LOGGER.info("File '{}' doesn't exists or isn't an ordinary file", textFilename);
             return result;
         }
 

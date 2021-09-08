@@ -86,7 +86,7 @@ public class ResourceMigratorApp {
         try(InputStream is = new FileInputStream(dpFile)) {
             props.load(is);
         } catch (IOException e) {
-            logger.error("Could not load properties file " + dpFile.getAbsolutePath());
+            logger.error("Could not load properties file {}", dpFile.getAbsolutePath());
         }
         return props;
     }

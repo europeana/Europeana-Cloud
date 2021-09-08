@@ -43,7 +43,7 @@ public class TaskCleanerTool {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("Data Cleaner ", options);
         } catch (Exception e) {
-            LOGGER.error("Error while cleaning data " + e.getMessage() + ". Because of " + e.getCause());
+            LOGGER.error("Error while cleaning data {}. Because of {}", e.getMessage(), e.getCause());
             System.exit(1);
         }
     }

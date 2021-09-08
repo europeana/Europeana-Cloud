@@ -62,7 +62,7 @@ public class RevisionRemovalTool {
             LOGGER.error(exp.getMessage(), exp);
             System.exit(0);
         } catch (Exception e) {
-            LOGGER.error("Error while cleaning data " + e.getMessage() + ". Because of " + e.getCause());
+            LOGGER.error("Error while cleaning data {}. Because of {}", e.getMessage(), e.getCause());
             System.exit(1);
         }
 

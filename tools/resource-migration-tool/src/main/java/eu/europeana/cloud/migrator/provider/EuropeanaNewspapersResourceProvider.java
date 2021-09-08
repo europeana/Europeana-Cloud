@@ -50,7 +50,9 @@ public class EuropeanaNewspapersResourceProvider
         } catch (InvalidPathException e) {
             // in case path cannot be created try to treat the mapping file as absolute path
             mappingPath = FileSystems.getDefault().getPath(mappingFile);
-            logger.info("Invalid Path exception. Mapping file " + mappingFile + " as absolute path: " + mappingPath);
+            logger.info("Invalid Path exception. Mapping file {} as absolute path: {}",
+                    mappingFile,
+                    mappingPath);
         }
         if (mappingPath == null || !mappingPath.toFile().exists())
             throw new IOException("Mapping file cannot be found: " + mappingFile);
@@ -73,7 +75,7 @@ public class EuropeanaNewspapersResourceProvider
                 else
                     localId = null;
                 if (localId == null) {
-                    logger.warn("Local identifier is null (" + localId + "). Skipping line.");
+                    logger.warn("Local identifier is null ({}). Skipping line.", localId);
                     continue;
                 }
 
@@ -88,7 +90,10 @@ public class EuropeanaNewspapersResourceProvider
                     if (path.isEmpty())
                         continue;
                     if (reversedMapping.get(path) != null && !duplicate) {
-                        logger.warn("File " + path + " already has a local id = " + reversedMapping.get(path) + ". New local id = " + localId);
+                        logger.warn("File {} already has a local id = {}}. New local id = {}",
+                                path,
+                                reversedMapping.get(path),
+                                localId);
                         duplicate = true;
                         for (String s : paths) {
                             reversedMapping.remove(s);
@@ -168,7 +173,7 @@ public class EuropeanaNewspapersResourceProvider
         String localId = duplicate ? duplicateMapping.get(localPath) : reversedMapping.get(localPath);
         // when searching in normal mapping and id is not found display a warning
         if (localId == null && !duplicate)
-            logger.warn("Local identifier for file " + localPath + " was not found in the mapping file!");
+            logger.warn("Local identifier for file {} was not found in the mapping file!", localPath);
         return localId;
     }
 
@@ -240,7 +245,10 @@ public class EuropeanaNewspapersResourceProvider
                 titlePaths.get(title).add(path);
             }
         } catch (IOException e) {
-            logger.error("Cannot read paths file for location " + fp.getLocation() + " and provider " + fp.getDataProvider());
+            logger.error("Cannot read paths file for location {} and provider {}",
+                    fp.getLocation(),
+                    fp.getDataProvider()
+            );
         } finally {
             if (pathsReader != null) {
                 try {

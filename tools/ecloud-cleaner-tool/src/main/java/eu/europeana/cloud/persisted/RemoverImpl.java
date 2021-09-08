@@ -50,7 +50,7 @@ public class RemoverImpl implements Remover {
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the logs. Retries left: " + retries);
+                    LOGGER.warn("Error while removing the logs. Retries left: {}", retries);
                     waitForTheNextCall();
                 } else {
                     LOGGER.error("Error while removing the logs.");
@@ -69,7 +69,7 @@ public class RemoverImpl implements Remover {
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the error reports. Retries left: " + retries);
+                    LOGGER.warn("Error while removing the error reports. Retries left: {}", retries);
                     waitForTheNextCall();
                 } else {
                     LOGGER.error("Error while removing the error reports.");
@@ -89,10 +89,10 @@ public class RemoverImpl implements Remover {
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the validation statistics. Retries left: " + retries);
+                    LOGGER.warn("Error while removing the validation statistics. Retries left: {}", retries);
                     waitForTheNextCall();
                 } else {
-                    LOGGER.error("rror while removing the validation statistics.");
+                    LOGGER.error("Error while removing the validation statistics.");
                     throw e;
                 }
             }
