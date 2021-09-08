@@ -127,7 +127,6 @@
             <version>1.0.8</version>
             <scope>test</scope>
             <exclusions>
-                <!--without jcl - because we use log4j through slf4j -->
                 <exclusion>
                     <groupId>org.mockito</groupId>
                     <artifactId>mockito-all</artifactId>

@@ -303,12 +303,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-rest-client-java</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-simple</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -347,20 +341,6 @@
             <version>${project.version}</version>
         </dependency>
 
-<!--  ## It seams to be unnecessary but it is difficult to check it
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-mcs-persistent</artifactId>
-            <version>${project.version}</version>
-            <exclusions> &lt;!&ndash;Remove exclusions if all spring libraries in all project modules will be new&ndash;&gt;
-                <exclusion>
-                    <artifactId>*</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-            </exclusions>
-            <scope>test</scope>
-        </dependency>
--->
         <!-- Authentication + Authorization -->
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

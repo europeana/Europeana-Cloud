@@ -48,12 +48,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-api</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>log4j</artifactId>
-                    <groupId>log4j</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
