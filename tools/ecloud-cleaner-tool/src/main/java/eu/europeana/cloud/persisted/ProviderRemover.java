@@ -84,7 +84,7 @@ public class ProviderRemover {
             }
         } while (startRecordId != null);
 
-        LOGGER.info(String.format("Total processed records for provider '%s' : %d", providerId, counter));
+        LOGGER.info("Total processed records for provider '{}' : {}}", providerId, counter);
     }
 
     private int removeRecords(UISClient uisClient, List<?> records, int counter) {
@@ -105,7 +105,7 @@ public class ProviderRemover {
             }
 
             counter++;
-            LOGGER.info(String.format("[%d] Remove record '%s'...", counter, id));
+            LOGGER.info("[{}] Remove record '{}'...", counter, id);
             if ( !testMode && !removedRecords.contains(id) ) {
                 try {
                     try {
@@ -118,7 +118,7 @@ public class ProviderRemover {
                     }
 
                     uisClient.deleteCloudId(id);
-                    LOGGER.info(String.format("Record with cloudId = '%s' removed", id));
+                    LOGGER.info("Record with cloudId = '{}' removed", id);
                     removedRecords.add(id);
                 } catch(MCSException | CloudException | DriverException serviceException) {
                     LOGGER.error(String.format("Error while removing record '%s' : %s", id, serviceException.getMessage()));
@@ -142,11 +142,11 @@ public class ProviderRemover {
 
         while (dataSetIterator.hasNext()) {
             DataSet dataSet = dataSetIterator.next();
-            LOGGER.info(String.format("[%d] Remove dataset '%s'...", counter, dataSet.getId()));
+            LOGGER.info("[{}] Remove dataset '{}'...", counter, dataSet.getId());
             if(!testMode) {
                 try {
                     dataSetServiceClient.deleteDataSet(providerId, dataSet.getId());
-                    LOGGER.info(String.format("Dataset '%s' removed", dataSet.getId()));
+                    LOGGER.info("Dataset '{}' removed", dataSet.getId());
                 } catch(MCSException mcsException) {
                     LOGGER.error(String.format("Error while removing dataset '%s' : %s", dataSet.getId(), mcsException.getMessage()));
                 }
@@ -154,6 +154,6 @@ public class ProviderRemover {
             counter++;
         }
 
-        LOGGER.info(String.format("Total processed datasets for provider '%s' : %d", providerId, counter));
+        LOGGER.info("Total processed datasets for provider '{}' : {}", providerId, counter);
     }
 }

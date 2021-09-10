@@ -76,7 +76,10 @@ public class FilePaths {
             if (dest.toFile().exists())
                 Files.write(dest, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            logger.error(e.getMessage() + " .Because of " + e.getCause());
+            logger.error("{} .Because of {}",
+                    e.getMessage(),
+                    e.getCause()
+            );
         }
     }
 
@@ -131,8 +134,9 @@ public class FilePaths {
             Files.write(dest, String.valueOf(path + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
             size++;
         } catch (IOException e) {
-            System.out.println("Cannot store path " + path + "in file " + prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
-            logger.error("Cannot store path " + path + "in file " + prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
+            logger.error("Cannot store path {} in file {}",
+                    path,
+                    prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
         }
     }
 

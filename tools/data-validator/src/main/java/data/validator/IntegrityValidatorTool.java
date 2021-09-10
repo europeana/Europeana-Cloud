@@ -19,7 +19,7 @@ import static data.validator.constants.Constants.*;
  */
 public class IntegrityValidatorTool {
     private static Properties topologyProperties;
-    final static Logger LOGGER = LoggerFactory.getLogger(IntegrityValidatorTool.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(IntegrityValidatorTool.class);
 
     public static void main(String[] args) {
         topologyProperties = new Properties();
@@ -30,12 +30,11 @@ public class IntegrityValidatorTool {
             cmd = parser.parse(options, args);
             executeIntegrityValidation(cmd);
         } catch (ParseException exp) {
-            System.out.println(exp.getMessage());
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("Integrity Validator ", options);
 
         } catch (Exception e) {
-            LOGGER.error("An exception happened caused by: " + e.getMessage());
+            LOGGER.error("An exception happened caused by: ", e);
             System.exit(1);
         }
     }

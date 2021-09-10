@@ -23,13 +23,13 @@ public class RemoverInvoker {
 
     public void executeInvokerForSingleTask(long taskId, boolean shouldRemoveErrors) {
         remover.removeNotifications(taskId);
-        LOGGER.info(String.format("Logs for task Id:%d were removed successfully", taskId));
-        LOGGER.info("Removing statistics for:" + taskId + " was started. This step could take times depending on the size of the task");
+        LOGGER.info("Logs for task Id:{} were removed successfully", taskId);
+        LOGGER.info("Removing statistics for:{} was started. This step could take times depending on the size of the task", taskId);
         remover.removeStatistics(taskId);
-        LOGGER.info(String.format("Statistics for task Id:%d were removed successfully", taskId));
+        LOGGER.info("Statistics for task Id:{} were removed successfully", taskId);
         if (shouldRemoveErrors) {
             remover.removeErrorReports(taskId);
-            LOGGER.info(String.format("Error reports for task Id:%d were removed successfully", taskId));
+            LOGGER.info("Error reports for task Id:{} were removed successfully", taskId);
         }
     }
 
