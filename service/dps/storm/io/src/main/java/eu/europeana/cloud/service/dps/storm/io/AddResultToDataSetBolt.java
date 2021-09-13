@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.time.Instant;
+import java.util.Calendar;
 import java.util.List;
 
 import static eu.europeana.cloud.service.commons.urls.RepresentationParser.parseResultUrl;
@@ -53,7 +55,8 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("Adding result to dataset");
+        LOGGER.info("Adding representation verions to dataset");
+        long processingStartTime = Instant.now().toEpochMilli();
         final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
@@ -82,6 +85,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
+        LOGGER.info("Representation version added to dataset in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
     }
 
     private void addRecordToDataset(StormTaskTuple stormTaskTuple, String authorizationHeader, String resultUrl) throws MalformedURLException, MCSException {

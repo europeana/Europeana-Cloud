@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.apache.storm.kafka.spout.KafkaSpout;
@@ -117,14 +118,15 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             DpsRecord message = null;
             try {
                 message = readMessageFromTuple(tuple);
-
+                DiagnosticContextWrapper.putValuesFrom(message);
+                LOGGER.info("Reading message from Queue");
                 if (taskStatusChecker.hasDroppedStatus(message.getTaskId())) {
-                    return omitMessageFromDroppedTask(message, messageId);
+                    return omitMessageFromDroppedTask(messageId);
                 }
 
                 ProcessedRecord aRecord = prepareRecordForExecution(message);
                 if (isFinished(aRecord)) {
-                    return omitAlreadyProcessedRecord(message, messageId);
+                    return omitAlreadyProcessedRecord(messageId);
                 }
 
                 if (maxTriesReached(aRecord)) {
@@ -136,18 +138,20 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 LOGGER.error("Unable to read message", e);
                 return Collections.emptyList();
             } catch (TaskInfoDoesNotExistException e) {
-                LOGGER.error("Task definition not found in DB for: {}", message);
+                LOGGER.error("Task definition not found in DB");
                 return Collections.emptyList();
+            } finally {
+                DiagnosticContextWrapper.clear();
             }
         }
 
-        List<Integer> omitAlreadyProcessedRecord(DpsRecord message, Object messageId) {
+        List<Integer> omitAlreadyProcessedRecord(Object messageId) {
             //Ignore records that is already preformed. It could take place after spout restart
             //if record was performed but was not acknowledged in kafka service. It is normal situation.
             //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
             //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
             //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
-            LOGGER.info("Dropping kafka message for task {} because record {} was already processed: ", message.getTaskId(), message.getRecordId());
+            LOGGER.info("Dropping kafka message because record was already processed");
             ackIgnoredMessage(messageId);
             return Collections.emptyList();
         }
@@ -156,12 +160,12 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             var taskInfo = getTaskInfo(message);
             updateDiagnosticCounters(aRecord);
             var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);
-            LOGGER.info("Emitting a record to the subsequent bolt: {}", message);
+            LOGGER.info("Emitting a record to the subsequent bolt");
             return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
         }
 
         List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
-            LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached: {}", message);
+            LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached");
             var notificationTuple = NotificationTuple.prepareNotification(
                     message.getTaskId(),
                     message.isMarkedAsDeleted(),
@@ -173,12 +177,12 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
         }
 
-        List<Integer> omitMessageFromDroppedTask(DpsRecord message, Object messageId) {
+        List<Integer> omitMessageFromDroppedTask(Object messageId) {
             // Ignores message from dropped tasks. Such message should not be emitted,
             // but must be acknowledged to not remain in topic and to allow acknowledgement
             // of any following messages.
             ackIgnoredMessage(messageId);
-            LOGGER.info("Dropping kafka message because task was dropped: {}", message.getTaskId());
+            LOGGER.info("Dropping kafka message because task was dropped");
             return Collections.emptyList();
         }
 
@@ -238,7 +242,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             }
 
             if (aRecord.getAttemptNumber() > 1) {
-                LOGGER.info("Task {} the record {} is repeated - {} attempt!", taskInfo.getTaskId(), aRecord.getRecordId(), aRecord.getAttemptNumber());
+                LOGGER.info("Record is repeated - {} attempt!", aRecord.getAttemptNumber());
                 int retryCount = taskInfo.getRecordsRetryCount();
                 retryCount++;
                 taskInfo.setRecordsRetryCount(retryCount);

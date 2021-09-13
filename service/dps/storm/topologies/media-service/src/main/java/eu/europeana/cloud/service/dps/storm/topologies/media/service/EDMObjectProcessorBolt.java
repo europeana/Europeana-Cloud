@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -14,7 +13,6 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
-import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -24,9 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
@@ -39,6 +36,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     private transient Gson gson;
     private transient MediaExtractor mediaExtractor;
     private transient RdfDeserializer rdfDeserializer;
+    private transient ThumbnailUploader thumbnailUploader;
 
     public EDMObjectProcessorBolt(String ecloudMcsAddress, AmazonClient amazonClient) {
         super(ecloudMcsAddress);
@@ -56,14 +54,16 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting edm:object processing");
-        long processingStartTime = new Date().getTime();
+        long processingStartTime = Instant.now().toEpochMilli();
         StringBuilder exception = new StringBuilder();
 
         int resourcesToBeProcessed = 0;
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
+            LOGGER.info("Searching for main thumbnail in the resource");
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
+            LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);
             boolean mainThumbnailAvailable = false;
             // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
             //  to collect all the resources instead of just counting them
@@ -71,8 +71,10 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
             if (edmObjectResourceEntry != null) {
                 resourcesToBeProcessed++;
+                LOGGER.info("Performing media extraction for: {}", edmObjectResourceEntry);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
                 if (resourceExtractionResult != null) {
+                    LOGGER.info("Extracted the following metadata {}", resourceExtractionResult);
                     StormTaskTuple tuple = null;
                     if (resourceExtractionResult.getMetadata() != null) {
                         tuple = new Cloner().deepClone(stormTaskTuple);
@@ -119,22 +121,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
-        List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
-        if (thumbnails != null) {
-            for (Thumbnail thumbnail : thumbnails) {
-                if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId()))
-                    break;
-                try (InputStream thumbnailContentStream = thumbnail.getContentStream()) {
-                    amazonClient.putObject(thumbnail.getTargetName(), thumbnailContentStream, prepareObjectMetadata(thumbnail));
-                } catch (Exception e) {
-                    String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage() + " because of: " + e.getCause();
-                    LOGGER.error(errorMessage,e);
-                    buildErrorMessage(exception, errorMessage);
-                } finally {
-                    thumbnail.close();
-                }
-            }
-        }
+        thumbnailUploader.storeThumbnails(stormTaskTuple,exception,resourceExtractionResult);
     }
 
     @Override
@@ -145,17 +132,11 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
             gson = new Gson();
             amazonClient.init();
+            thumbnailUploader = new ThumbnailUploader(taskStatusChecker, amazonClient);
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
             throw new RuntimeException(e);
         }
-    }
-
-    private ObjectMetadata prepareObjectMetadata(Thumbnail thumbnail) throws IOException {
-        final ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentType(thumbnail.getMimeType());
-        objectMetadata.setContentLength(thumbnail.getContentSize());
-        return objectMetadata;
     }
 
     private void buildErrorMessage(StringBuilder message, String newMessage) {

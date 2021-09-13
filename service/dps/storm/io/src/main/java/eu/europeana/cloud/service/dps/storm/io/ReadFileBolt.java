@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.Calendar;
 
 
 /**
@@ -66,10 +68,13 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
+        long processingStartTime = Instant.now().toEpochMilli();
         final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+        LOGGER.info("Downloading the following file: {}", file);
         stormTaskTuple.setFileUrl(file);
-        LOGGER.info("HERE THE LINK: {}", file);
-        return getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        InputStream downloadedFile = getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        LOGGER.info("File downloaded in {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        return downloadedFile;
     }
 
 }

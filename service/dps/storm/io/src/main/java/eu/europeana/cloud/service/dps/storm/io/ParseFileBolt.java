@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -45,6 +47,8 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 
 	@Override
 	public void execute(Tuple anchorTuple,  StormTaskTuple stormTaskTuple) {
+		LOGGER.info("Starting file parsing");
+		long processingStartTime = Instant.now().toEpochMilli();
 		try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
 			byte[] fileContent = IOUtils.toByteArray(stream);
 			List<RdfResourceEntry> rdfResourceEntries = getResourcesFromRDF(fileContent);
@@ -74,6 +78,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 					StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
 		}
         outputCollector.ack(anchorTuple);
+		LOGGER.info("File parsing finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
 	}
 
 	@Override

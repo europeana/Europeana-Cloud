@@ -7,11 +7,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
-import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
@@ -21,13 +19,10 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 
 /**
  * Created by Tarek on 12/12/2018.
@@ -49,6 +44,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+        LOGGER.info("Starting EDM enrichment");
+        long processingStartTime = Instant.now().toEpochMilli();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
             try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
@@ -95,7 +92,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 tempEnrichedFile.increaseCount();
                 if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
                     try {
-                        LOGGER.info("The file {} was fully enriched and will be send to the next bolt", file);
+                        LOGGER.info("The file was fully enriched and will be send to the next bolt");
                         prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
                         cache.remove(file);
                         outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
@@ -112,6 +109,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 }
             }
         }
+        LOGGER.info("EDM enrichment finished in {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
     }
 
     @Override
