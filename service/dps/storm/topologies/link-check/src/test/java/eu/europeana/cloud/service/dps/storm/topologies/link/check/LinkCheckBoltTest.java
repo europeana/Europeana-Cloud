@@ -46,7 +46,7 @@ public class LinkCheckBoltTest {
         StormTaskTuple tuple = prepareTupleWithLinksCountEqualsToZero();
         linkCheckBolt.execute(anchorTuple, tuple);
         verify(outputCollector, times(1)).emit( eq("NotificationStream"), eq(anchorTuple), captor.capture());
-        validateCapturedValues(captor);
+        validateCapturedValues(captor, false);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class LinkCheckBoltTest {
         linkCheckBolt.execute(anchorTuple, tuple);
 
         verify(outputCollector).emit( eq("NotificationStream"), eq(anchorTuple), captor.capture());
-        validateCapturedValues(captor);
+        validateCapturedValues(captor, true);
     }
 
     @Test
@@ -131,11 +131,11 @@ public class LinkCheckBoltTest {
         return tuple;
     }
 
-    private void validateCapturedValues(ArgumentCaptor<Values> captor) {
+    private void validateCapturedValues(ArgumentCaptor<Values> captor, boolean hasDeletedInfo) {
         Values values = captor.getValue();
-        Map<String, String> parameters = (Map) values.get(2);
+        Map<String, String> parameters = (Map) values.get(1);
         assertNotNull(parameters);
-        assertEquals(6, parameters.size());
+        assertEquals(hasDeletedInfo ? 7 : 6, parameters.size());
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
         assertEquals("ecloudFileUrl", parameters.get("resource"));
@@ -143,7 +143,7 @@ public class LinkCheckBoltTest {
 
     private void validateCapturedValuesForError(ArgumentCaptor<Values> captor) {
         Values values = captor.getValue();
-        Map<String, String> parameters = (Map) values.get(2);
+        Map<String, String> parameters = (Map) values.get(1);
         assertNotNull(parameters);
         assertEquals(8, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
