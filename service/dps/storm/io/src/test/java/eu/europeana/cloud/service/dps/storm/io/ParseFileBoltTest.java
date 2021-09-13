@@ -157,7 +157,7 @@ public class ParseFileBoltTest {
         verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         Values values = captor.getValue();
         assertNotNull(values);
-        Map<String, String> valueMap = (Map) values.get(2);
+        Map<String, String> valueMap = (Map) values.get(1);
         assertNotNull(valueMap);
         assertEquals(5, valueMap.size());
         assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
@@ -176,7 +176,7 @@ public class ParseFileBoltTest {
             verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
             Values values = captor.getValue();
             assertNotNull(values);
-            Map<String, String> valueMap = (Map) values.get(2);
+            Map<String, String> valueMap = (Map) values.get(1);
             assertNotNull(valueMap);
             assertEquals(5, valueMap.size());
             assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
