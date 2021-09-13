@@ -44,7 +44,8 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 @RunWith(PowerMockRunner.class)
 @ContextConfiguration(classes = {CassandraHarvestExecutorContext.class})
 @PrepareForTest({HarvesterFactory.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "org.apache.commons.codec.digest.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "org.apache.commons.codec.digest.*",
+        "org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*"})
 public class HarvestsExecutorTest {
 
     public static final String DATASET_URL = "https://xyx.abc/mcs/data-providers/prov/data-sets/dat";

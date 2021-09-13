@@ -54,7 +54,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*"})
 public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
     private static final String AUTHORIZATION = "Authorization";

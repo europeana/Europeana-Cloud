@@ -90,7 +90,7 @@ public class EnrichmentBoltTest {
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
+        Map val = (Map) capturedValues.get(1);
         Assert.assertTrue(val.get("additionalInfo").toString().contains("emote Enrichment/dereference service caused the problem!. The full error:"));
         Assert.assertTrue(val.get("additionalInfo").toString().contains(errorMessage));
     }
