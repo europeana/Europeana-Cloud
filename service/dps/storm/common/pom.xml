@@ -16,8 +16,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
     <dependencies>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${version.log4j}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
                 to avoid data corruption in Cassandra.
