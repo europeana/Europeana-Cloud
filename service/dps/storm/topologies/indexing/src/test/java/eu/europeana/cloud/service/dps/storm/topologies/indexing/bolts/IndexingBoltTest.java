@@ -226,7 +226,7 @@ public class IndexingBoltTest {
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
+        Map val = (Map) capturedValues.get(1);
 
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
         Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
@@ -245,7 +245,7 @@ public class IndexingBoltTest {
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
+        Map val = (Map) capturedValues.get(1);
 
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
         Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
@@ -266,7 +266,7 @@ public class IndexingBoltTest {
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
+        Map val = (Map) capturedValues.get(1);
 
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
         Assert.assertTrue(val.get("info_text").toString().contains("Could not parse RECORD_DATE parameter"));
@@ -286,7 +286,7 @@ public class IndexingBoltTest {
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
         Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
+        Map val = (Map) capturedValues.get(1);
 
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
         assertEquals("ERROR", val.get("state").toString());
