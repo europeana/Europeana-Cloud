@@ -4,7 +4,8 @@ import com.datastax.driver.core.TableMetadata;
 import data.validator.DataValidator;
 import data.validator.jobs.TableValidatorJob;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,7 +19,7 @@ import java.util.concurrent.Executors;
  * Created by Tarek on 5/2/2017.
  */
 public class KeyspaceValidator implements Validator {
-    final static Logger LOGGER = Logger.getLogger(KeyspaceValidator.class);
+    final static Logger LOGGER = LoggerFactory.getLogger(KeyspaceValidator.class);
 
     @Override
     public void validate(CassandraConnectionProvider sourceCassandraConnectionProvider, CassandraConnectionProvider targetCassandraConnectionProvider, String sourceTableName, String targetTableName, int threadsCount) throws InterruptedException, ExecutionException {

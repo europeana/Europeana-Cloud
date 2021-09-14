@@ -1,6 +1,8 @@
 package data.validator.properities;
 
-import org.apache.log4j.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,7 +14,7 @@ import java.util.Properties;
  * Utility class for reading eCloud topology properties.
  */
 public class PropertyFileLoader {
-    final static Logger LOGGER = Logger.getLogger(PropertyFileLoader.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(PropertyFileLoader.class);
 
 
     public static void loadPropertyFile(String defaultPropertyFile, String providedPropertyFile, Properties topologyProperties) {
@@ -22,9 +24,9 @@ public class PropertyFileLoader {
             if (providedPropertyFile != null)
                 reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
         } catch (FileNotFoundException e) {
-            LOGGER.error("ERROR while reading the properties file " + e.getMessage());
+            LOGGER.error("ERROR while reading the properties file ", e);
         } catch (IOException e) {
-            LOGGER.error("ERROR while reading the properties file " + e.getMessage());
+            LOGGER.error("ERROR while reading the properties file ", e);
         }
     }
 

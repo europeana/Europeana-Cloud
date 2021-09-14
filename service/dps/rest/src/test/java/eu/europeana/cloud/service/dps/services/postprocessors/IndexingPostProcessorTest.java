@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -36,6 +37,7 @@ import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(IndexingPostProcessor.class)
+@PowerMockIgnore({"org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class IndexingPostProcessorTest {
 
     public static final String RECORD_ID_1 = "recordId1";

@@ -22,7 +22,8 @@ import static org.mockito.Mockito.*;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CassandraTaskInfoDAO.class)
-@PowerMockIgnore({"javax.management.*"})
+@PowerMockIgnore({"javax.management.*", "org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*",
+        "eu.europeana.cloud.test.CassandraTestInstance"})
 public class TaskStatusCheckerTest {
 
     private static TaskStatusChecker taskStatusChecker;
