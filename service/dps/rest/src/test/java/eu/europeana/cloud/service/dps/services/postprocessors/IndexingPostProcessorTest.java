@@ -37,7 +37,7 @@ import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(IndexingPostProcessor.class)
-@PowerMockIgnore({"org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*"})
+@PowerMockIgnore({"org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class IndexingPostProcessorTest {
 
     public static final String RECORD_ID_1 = "recordId1";

@@ -68,7 +68,9 @@ import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, MediaTopology.class, EDMObjectProcessorBolt.class, ParseFileForMediaBolt.class, EDMEnrichmentBolt.class, RevisionWriterBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, TaskStatusChecker.class, ProcessedRecordsDAO.class, TasksByStateDAO.class, TaskStatusUpdater.class})
-@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*", "javax.activation.*", "com.sun.org.apache.xerces.*", "javax.xml.parsers.*"})
+@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*",
+        "org.xml.*", "org.w3c.dom.*", "javax.activation.*", "com.sun.org.apache.xerces.*", "javax.xml.parsers.*",
+        "eu.europeana.cloud.test.CassandraTestInstance"})
 
 public class MediaTopologyTest extends TopologyTestHelper {
     private static StormTopology topology;
@@ -124,7 +126,7 @@ public class MediaTopologyTest extends TopologyTestHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
