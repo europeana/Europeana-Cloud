@@ -146,8 +146,8 @@ public class HarvestingPostProcessorTest {
 
     @Test
     public void shouldNotDoAnythingWhenAllRecordsBelongsToCurrentHarvest() {
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(HARVEST_DATE).recordLocalId(RECORD_ID1).build());
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(HARVEST_DATE).recordLocalId(RECORD_ID2).build());
+        allHarvestedRecords.add(createHarvestedRecord(HARVEST_DATE, RECORD_ID1));
+        allHarvestedRecords.add(createHarvestedRecord(HARVEST_DATE, RECORD_ID2));
 
         service.execute(taskInfo, task);
 
@@ -160,7 +160,7 @@ public class HarvestingPostProcessorTest {
 
     @Test
     public void shouldAddOlderRecordAsDeleted() throws MCSException {
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID1).build());
+        allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
 
         service.execute(taskInfo, task);
 
@@ -177,7 +177,7 @@ public class HarvestingPostProcessorTest {
 
     @Test
     public void shouldOmitRecordThatIsAlreadyAddedAsDeleted() {
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID1).build());
+        allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
         when(processedRecordsDAO.selectByPrimaryKey(TASK_ID, RECORD_ID1)).
                 thenReturn(Optional.of(ProcessedRecord.builder().state(RecordState.SUCCESS).build()));
 
@@ -192,8 +192,8 @@ public class HarvestingPostProcessorTest {
 
     @Test
     public void shouldAddAllOlderRecordAsDeleted() throws MCSException {
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID1).build());
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID2).build());
+        allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
+        allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
 
         service.execute(taskInfo, task);
 
@@ -217,8 +217,8 @@ public class HarvestingPostProcessorTest {
 
     @Test
     public void shouldNotAddRecordThatNotBelongsToCurrentHarvest() throws MCSException {
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(HARVEST_DATE).recordLocalId(RECORD_ID1).build());
-        allHarvestedRecords.add(HarvestedRecord.builder().latestHarvestDate(OLDER_DATE).recordLocalId(RECORD_ID2).build());
+        allHarvestedRecords.add(createHarvestedRecord(HARVEST_DATE, RECORD_ID1));
+        allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
 
         service.execute(taskInfo, task);
 
@@ -231,6 +231,10 @@ public class HarvestingPostProcessorTest {
         verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
         verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
         verifyNoMoreInteractions(taskStatusUpdater, recordServiceClient, revisionServiceClient, dataSetServiceClient);
+    }
+
+    private HarvestedRecord createHarvestedRecord(Date date, String recordId) {
+        return HarvestedRecord.builder().latestHarvestDate(date).recordLocalId(recordId).previewHarvestDate(date).build();
     }
 
     private CloudId createCloudId(String cloudId, String localId) {
