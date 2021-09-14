@@ -1,10 +1,10 @@
 package eu.europeana.cloud.service.dps.service.kafka.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import org.apache.kafka.common.serialization.Serializer;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ public class DpsRecordSerializer implements Serializer<DpsRecord> {
     @Override
     public byte[] serialize(String s, DpsRecord dpsRecord) {
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_DEFAULT);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
         try {
             return objectMapper.writeValueAsString(dpsRecord).getBytes();
         } catch (JsonProcessingException e) {
