@@ -30,6 +30,7 @@ import org.apache.storm.tuple.Fields;
 import org.json.JSONException;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -56,7 +57,9 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 12/5/2017.
  */
 
-@RunWith(PowerMockRunner.class)
+//TODO Replaced with mockito runner, cause test had exited Vm machine and broke other tests. Anyway test had not passed.
+@RunWith(MockitoJUnitRunner.class)
+//@RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, StatisticsBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class ValidationTopologyTest extends ValidationMockHelper {
