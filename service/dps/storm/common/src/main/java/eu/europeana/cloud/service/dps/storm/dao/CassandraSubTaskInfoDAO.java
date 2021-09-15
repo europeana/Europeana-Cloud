@@ -20,7 +20,6 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
-    private static final long TIME_TO_LIVE = Duration.ofDays(14).toSeconds();
     public static final int BUCKET_SIZE = 10000;
 
     private PreparedStatement subtaskInsertStatement;
@@ -59,7 +58,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
-                + ") VALUES (?,?,?,?,?,?,?,?,?) USING TTL "+ TIME_TO_LIVE);
+                + ") VALUES (?,?,?,?,?,?,?,?,?)");
         subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
