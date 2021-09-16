@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.google.gson.Gson;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -15,8 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * Created by Tarek on 12/11/2018.
@@ -39,7 +39,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting resource processing");
-        long processingStartTime = new Date().getTime();
+        Instant processingStartTime = Instant.now();
         StringBuilder exception = new StringBuilder();
         try {
             RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
@@ -69,7 +69,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         }
 
         LOGGER.info("Resource processing finished in: {}ms for {}",
-                Calendar.getInstance().getTimeInMillis() - processingStartTime,
+                Clock.millisecondsSince(processingStartTime),
                 stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL));
     }
 

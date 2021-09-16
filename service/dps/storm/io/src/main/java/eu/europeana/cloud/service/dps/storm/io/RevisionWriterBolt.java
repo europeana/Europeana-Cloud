@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
@@ -48,7 +49,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Adding revision to the file");
-        long processingStartTime = Instant.now().toEpochMilli();
+        Instant processingStartTime = Instant.now();
         String resourceURL = getResourceUrl(stormTaskTuple);
         try {
             addRevisionToSpecificResource(stormTaskTuple, resourceURL);
@@ -64,7 +65,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                     stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
-        LOGGER.info("Revision added in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("Revision added in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private String getResourceUrl(StormTaskTuple stormTaskTuple) {

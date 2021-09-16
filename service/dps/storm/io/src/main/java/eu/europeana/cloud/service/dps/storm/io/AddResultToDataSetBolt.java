@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
@@ -55,8 +56,8 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("Adding representation verions to dataset");
-        long processingStartTime = Instant.now().toEpochMilli();
+        LOGGER.info("Adding representation versions to dataset");
+        Instant processingStartTime = Instant.now();
         final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
@@ -85,7 +86,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
-        LOGGER.info("Representation version added to dataset in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("Representation version added to dataset in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private void addRecordToDataset(StormTaskTuple stormTaskTuple, String authorizationHeader, String resultUrl) throws MalformedURLException, MCSException {

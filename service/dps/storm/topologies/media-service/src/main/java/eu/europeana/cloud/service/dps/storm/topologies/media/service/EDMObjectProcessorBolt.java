@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -54,7 +55,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting edm:object processing");
-        long processingStartTime = Instant.now().toEpochMilli();
+        Instant processingStartTime = Instant.now();
         StringBuilder exception = new StringBuilder();
 
         int resourcesToBeProcessed = 0;
@@ -117,7 +118,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             outputCollector.ack(anchorTuple);
         }
-        LOGGER.info("Processing edm:object finished in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("Processing edm:object finished in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -46,7 +48,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
      */
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        long harvestingStartTime = new Date().getTime();
+        Instant harvestingStartTime = Instant.now();
         LOGGER.info("Starting harvesting for: {}", stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         String endpointLocation = readEndpointLocation(stormTaskTuple);
         String recordId = readRecordId(stormTaskTuple);
@@ -88,7 +90,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                     null,
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
-        LOGGER.info("Harvesting finished in: {}ms for {}", Calendar.getInstance().getTimeInMillis() - harvestingStartTime, stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
+        LOGGER.info("Harvesting finished in: {}ms for {}", Clock.millisecondsSince(harvestingStartTime), stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
         outputCollector.ack(anchorTuple);
     }
 

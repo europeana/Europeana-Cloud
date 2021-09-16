@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
@@ -28,7 +29,7 @@ public class ThumbnailUploader {
 
     public void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
         LOGGER.info("Storing the thumbnail for resourceExtractionResult={}", resourceExtractionResult);
-        long processingStartTime = Instant.now().toEpochMilli();
+        Instant processingStartTime = Instant.now();
         List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
         if (thumbnails != null) {
             for (Thumbnail thumbnail : thumbnails) {
@@ -45,7 +46,7 @@ public class ThumbnailUploader {
                 }
             }
         }
-        LOGGER.info("Storing the thumbnail finished in {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("Storing the thumbnail finished in {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private ObjectMetadata prepareObjectMetadata(Thumbnail thumbnail) throws IOException {

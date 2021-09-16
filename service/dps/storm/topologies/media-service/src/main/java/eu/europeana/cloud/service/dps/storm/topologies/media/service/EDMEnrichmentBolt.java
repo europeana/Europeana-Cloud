@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.google.gson.Gson;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -32,6 +33,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
+    private static final String SERIALIZATION_EXCEPTION_MESSAGE = "Error while serializing the enriched file: ";
+
     private static final int CACHE_SIZE = 1024;
     transient Map<String, TempEnrichedFile> cache;
     private transient Gson gson;
@@ -45,7 +48,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting EDM enrichment");
-        long processingStartTime = Instant.now().toEpochMilli();
+        Instant processingStartTime = Instant.now();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
             try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
@@ -53,10 +56,10 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 prepareStormTaskTuple(stormTaskTuple, enrichedRdf, NO_RESOURCES_DETAILED_MESSAGE);
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             } catch (Exception ex) {
-                LOGGER.error("Error while serializing the enriched file: ", ex);
+                LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
                 emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
                         stormTaskTuple.getFileUrl(), ex.getMessage(),
-                        "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),
+                        SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
                         StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
             }
             outputCollector.ack(anchorTuple);
@@ -97,10 +100,10 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                         cache.remove(file);
                         outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
                     } catch (Exception ex) {
-                        LOGGER.error("Error while serializing the enriched file: ", ex);
+                        LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
                         emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(),
                                 stormTaskTuple.isMarkedAsDeleted(), stormTaskTuple.getFileUrl(), ex.getMessage(),
-                                "Error while serializing the enriched file: " + ExceptionUtils.getStackTrace(ex),
+                                SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
                                 StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                     }
                     ackAllSourceTuplesForFile(tempEnrichedFile);
@@ -109,7 +112,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 }
             }
         }
-        LOGGER.info("EDM enrichment finished in {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("EDM enrichment finished in {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     @Override

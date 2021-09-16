@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -51,7 +52,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("WriteRecordBolt: persisting processed file");
-        long processingStartTime = Instant.now().toEpochMilli();
+        Instant processingStartTime = Instant.now();
         try {
             RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
             var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
@@ -67,7 +68,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
-        LOGGER.info("File persisted in eCloud in: {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private String getProviderId(StormTaskTuple stormTaskTuple) throws MCSException {

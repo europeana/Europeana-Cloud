@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -68,12 +69,12 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
-        long processingStartTime = Instant.now().toEpochMilli();
+        Instant processingStartTime = Instant.now();
         final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         LOGGER.info("Downloading the following file: {}", file);
         stormTaskTuple.setFileUrl(file);
         InputStream downloadedFile = getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-        LOGGER.info("File downloaded in {}ms", Calendar.getInstance().getTimeInMillis() - processingStartTime);
+        LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
         return downloadedFile;
     }
 
