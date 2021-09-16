@@ -20,7 +20,8 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.ProcessingException;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
@@ -43,9 +45,9 @@ public class ResourceMigrator {
 
     private static final String FILES_PART = "files";
 
-    private static final Logger logger = Logger.getLogger(ResourceMigrator.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceMigrator.class);
 
-    private static final Map<String, String> mimeTypes = new HashMap<String, String>();
+    private static final Map<String, String> mimeTypes = new HashMap<>();
 
     static {
         mimeTypes.put("jp2", "image/jp2");
@@ -121,7 +123,7 @@ public class ResourceMigrator {
     }
 
     private Map<String, String> readDataProvidersMapping(String dataProvidersMappingFile) throws IOException {
-        Map<String, String> mapping = new HashMap<String, String>();
+        Map<String, String> mapping = new HashMap<>();
         // data providers mapping is optional so return empty map when not provided
         if (dataProvidersMappingFile == null || dataProvidersMappingFile.isEmpty())
             return mapping;
@@ -142,7 +144,7 @@ public class ResourceMigrator {
         String directory;
         String identifier;
 
-        for (String line : Files.readAllLines(mappingPath, Charset.forName("UTF-8"))) {
+        for (String line : Files.readAllLines(mappingPath, StandardCharsets.UTF_8)) {
             if (line == null)
                 break;
             StringTokenizer tokenizer = new StringTokenizer(line, ";");
@@ -152,7 +154,7 @@ public class ResourceMigrator {
             else
                 directory = null;
             if (directory == null || directory.isEmpty()) {
-                logger.warn("Directory name for data provider is missing (" + directory + "). Skipping line.");
+                logger.warn("Directory name for data provider is missing ({}). Skipping line.", directory);
                 continue;
             }
 
@@ -171,7 +173,7 @@ public class ResourceMigrator {
     }
 
     public void verifyLocalIds() {
-        Set<String> uniqueIds = new HashSet<String>();
+        Set<String> uniqueIds = new HashSet<>();
         uniqueIds.addAll(resourceProvider.getReversedMapping().values());
 
         // do nothing when local identifiers could not be retrieved
@@ -193,18 +195,18 @@ public class ResourceMigrator {
                 idsPerThread++;
         }
 
-        List<Callable<LocalIdVerificationResult>> tasks = new ArrayList<Callable<LocalIdVerificationResult>>(parts);
-        List<String> localIds = new ArrayList<String>(uniqueIds);
+        List<Callable<LocalIdVerificationResult>> tasks = new ArrayList<>(parts);
+        List<String> localIds = new ArrayList<>(uniqueIds);
         // create task for each resource provider
         for (int i = 0; i < parts; i++) {
             int from = i * idsPerThread;
             int to = (i + 1) * idsPerThread > localIds.size() ? localIds.size() : (i + 1) * idsPerThread;
             String id = String.valueOf(from + "-" + to);
-            logger.info("Starting local identifier verification task thread for part " + id + "...");
+            logger.info("Starting local identifier verification task thread for part {}...", id);
             tasks.add(new LocalIdVerifier(localIds.subList(from, to), id));
         }
 
-        if (tasks.size() == 0)
+        if (tasks.isEmpty())
             return;
 
         try {
@@ -214,7 +216,10 @@ public class ResourceMigrator {
             LocalIdVerificationResult localIdResult;
             for (Future<LocalIdVerificationResult> result : results) {
                 localIdResult = result.get();
-                logger.info("Verification of local identifier part " + localIdResult.getIdentifier() + " performed successfully. Verification time: " + localIdResult.getTime() + " sec. Number of not migrated identifiers: " + localIdResult.getNotMigratedCount());
+                logger.info("Verification of local identifier part {} performed successfully. Verification time: {} sec. Number of not migrated identifiers: {}",
+                        localIdResult.getIdentifier(),
+                        localIdResult.getTime(),
+                        localIdResult.getNotMigratedCount());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -241,17 +246,17 @@ public class ResourceMigrator {
     }
 
     public boolean grant(boolean simulate) {
-        Set<String> uniqueIds = new HashSet<String>();
+        Set<String> uniqueIds = new HashSet<>();
         uniqueIds.addAll(resourceProvider.getReversedMapping().values());
 
         // do nothing when local identifiers could not be retrieved
-        if (uniqueIds.size() == 0)
+        if (uniqueIds.isEmpty())
             return false;
 
         ExecutorService threadLocalIdPool = Executors
                 .newFixedThreadPool(threadsCount);
         List<Future<PublicAccessGranterResult>> results = null;
-        List<Callable<PublicAccessGranterResult>> tasks = new ArrayList<Callable<PublicAccessGranterResult>>();
+        List<Callable<PublicAccessGranterResult>> tasks = new ArrayList<>();
 
         int parts = threadsCount;
 
@@ -264,7 +269,7 @@ public class ResourceMigrator {
                 idsPerThread++;
         }
 
-        List<String> localIds = new ArrayList<String>(uniqueIds);
+        List<String> localIds = new ArrayList<>(uniqueIds);
         // create task for each resource provider
         for (int i = 0; i < parts; i++) {
             int from = i * idsPerThread;
@@ -273,7 +278,7 @@ public class ResourceMigrator {
             }
             int to = (i + 1) * idsPerThread > localIds.size() ? localIds.size() : (i + 1) * idsPerThread;
             String id = String.valueOf(from + "-" + to);
-            logger.info("Starting public access granter task thread for part " + id + "...");
+            logger.info("Starting public access granter task thread for part {}...", id);
             tasks.add(new PublicAccessGranter(localIds.subList(from, to), id, simulate));
         }
 
@@ -287,7 +292,8 @@ public class ResourceMigrator {
             PublicAccessGranterResult granterResult;
             for (Future<PublicAccessGranterResult> result : results) {
                 granterResult = result.get();
-                logger.info("Public access granter part " + granterResult.getIdentifier() + " performed successfully. Granting time: " + granterResult.getTime() + " sec. Number of not granted identifiers: " + granterResult.getNotGrantedCount());
+                logger.info("Public access granter part {} performed successfully. Granting time: {} sec. Number of not granted identifiers: {}",
+                        granterResult.getIdentifier(), granterResult.getTime(), granterResult.getNotGrantedCount());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -306,7 +312,7 @@ public class ResourceMigrator {
         // key is provider id, value is a list of files to add
         Map<String, List<FilePaths>> paths = resourceProvider.scan();
 
-        logger.info("Scanning resource provider locations finished in " + String.valueOf(((float) (System.currentTimeMillis() - start) / (float) 1000)) + " sec.");
+        logger.info("Scanning resource provider locations finished in {} sec.", ((float) (System.currentTimeMillis() - start) / (float) 1000));
 
         // when simulate is true just a simulation is performed - it scans the locations and stores summary to a file
         if (!clean && simulate) {
@@ -315,7 +321,7 @@ public class ResourceMigrator {
         }
 
         List<Future<MigrationResult>> results = null;
-        List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>();
+        List<Callable<MigrationResult>> tasks = new ArrayList<>();
 
         // create task for each resource provider
         Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
@@ -323,17 +329,17 @@ public class ResourceMigrator {
             Entry<String, List<FilePaths>> entry = iterator.next();
 
             if (clean) {
-                logger.info("Cleaning " + entry.getKey());
+                logger.info("Cleaning {}", entry.getKey());
                 clean(entry.getKey());
             }
             if (!simulate) {
-                logger.info("Starting task thread for provider " + entry.getKey() + "...");
+                logger.info("Starting task thread for provider {}...", entry.getKey());
                 tasks.add(new ProviderMigrator(entry.getKey(), entry.getValue(), null));
             }
         }
 
         // when simulation mode is on no tasks to invoke should be created, return immediately
-        if (tasks.size() == 0)
+        if (tasks.isEmpty())
             return success;
 
         try {
@@ -343,7 +349,10 @@ public class ResourceMigrator {
             MigrationResult providerResult;
             for (Future<MigrationResult> result : results) {
                 providerResult = result.get();
-                logger.info("Migration of provider " + providerResult.getProviderId() + " performed " + (providerResult.isSuccessful() ? "" : "un") + "successfully. Migration time: " + providerResult.getTime() + " sec.");
+                logger.info("Migration of provider {} performed. Was successful: {}. Migration time: {} sec.",
+                        providerResult.getProviderId(),
+                        providerResult.isSuccessful(),
+                        providerResult.getTime());
                 success &= providerResult.isSuccessful();
             }
         } catch (InterruptedException e) {
@@ -363,29 +372,29 @@ public class ResourceMigrator {
 
             Path dest = FileSystems.getDefault().getPath(".", summaryFile);
             String msg = "Found " + paths.size() + " data providers.\n";
-            Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+            Files.write(dest, msg.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
             for (Map.Entry<String, List<FilePaths>> entry : paths.entrySet()) {
                 msg = "\nData provider " + entry.getKey();
                 if (dataProvidersMapping.get(entry.getKey()) != null)
                     msg += " (mapped: " + dataProvidersMapping.get(entry.getKey()) + ")";
                 msg += ": " + entry.getValue().size() + " locations\n";
-                Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                Files.write(dest, msg.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
                 for (FilePaths fp : entry.getValue()) {
                     BufferedReader reader = fp.getPathsReader();
                     try {
                         msg = "\nLocation: " + fp.getLocation() + " - " + fp.size() + " paths\n\n";
-                        Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                        Files.write(dest, msg.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
                         int counter = 1;
                         if (reader != null) {
                             for (; ; ) {
                                 String s = reader.readLine();
                                 if (s == null)
                                     break;
-                                Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                                Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
                             }
                         } else {
                             for (String s : fp.getFullPaths()) {
-                                Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                                Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
                             }
                         }
                     } finally {
@@ -434,12 +443,16 @@ public class ResourceMigrator {
                 // when there are no representations add a new one
                 return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), dataProviderId);
             } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while creating representation for record " + cloudId + ", provider " + dataProviderId + ". Retries left: " + retries, e);
+                logger.warn("Error processing HTTP request while creating representation for record {}, provider {}. Retries left: {}",
+                        cloudId,
+                        dataProviderId,
+                        retries,
+                        e);
             } catch (ProviderNotExistsException e) {
-                logger.error("Provider " + dataProviderId + " does not exist!");
+                logger.error("Provider {} does not exist!", dataProviderId);
                 break;
             } catch (RecordNotExistsException e) {
-                logger.error("Record " + cloudId + " does not exist!");
+                logger.error("Record {} does not exist!", cloudId);
                 break;
             } catch (MCSException e) {
                 logger.error("Problem with creating representation name!");
@@ -447,7 +460,10 @@ public class ResourceMigrator {
                 logger.error("Exception when creating representation occured.", e);
             }
         }
-        logger.warn("All attempts to create representation failed. ProviderId: " + providerId + " CloudId: " + cloudId + " Representation: " + resourceProvider.getRepresentationName());
+        logger.warn("All attempts to create representation failed. ProviderId: {} CloudId: {} Representation: {}",
+                providerId,
+                cloudId,
+                resourceProvider.getRepresentationName());
         return null;
     }
 
@@ -468,29 +484,47 @@ public class ResourceMigrator {
                 if (cloudId != null)
                     return cloudId.getId();
             } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while creating record for provider " + dataProviderId + " and local id " + localId + ". Retries left: " + retries, e);
+                logger.warn("Error processing HTTP request while creating record for provider {} and local id {}. Retries left: {}",
+                        dataProviderId,
+                        localId,
+                        retries,
+                        e);
             } catch (CloudException e) {
                 if (e.getCause() instanceof RecordExistsException) {
                     try {
-                        logger.info("Record Exists" + localId);
+                        logger.info("Record Exists {}", localId);
                         return uis.getCloudId(dataProviderId, localId).getId();
                     } catch (ProcessingException e1) {
-                        logger.warn("Error processing HTTP request while creating record for provider " + dataProviderId + ". Retries left: " + retries, e);
+                        logger.warn("Error processing HTTP request while creating record for provider {}. Retries left: {}",
+                                dataProviderId,
+                                retries,
+                                e);
                     } catch (CloudException e1) {
-                        logger.warn("Record for provider " + dataProviderId + " with local id " + localId + " could not be created", e1);
+                        logger.warn("Record for provider {} with local id {} could not be created",
+                                dataProviderId,
+                                localId,
+                                e1);
                         break;
                     } catch (Exception e1) {
-                        logger.info("Provider: " + providerId + " Local: " + localId, e);
+                        logger.info("Provider: {} Local: {}",
+                                providerId,
+                                localId,
+                                e);
                     }
                 } else {
-                    logger.warn("Record for provider " + dataProviderId + " with local id " + localId + " could not be created", e);
+                    logger.warn("Record for provider {} with local id {} could not be created",
+                            dataProviderId,
+                            localId,
+                            e);
                     break;
                 }
             } catch (Exception e) {
                 logger.error("Exception when creating record occured.", e);
             }
         }
-        logger.warn("All attempts to create record failed. ProviderId: " + providerId + " LocalId: " + localId);
+        logger.warn("All attempts to create record failed. ProviderId: {} LocalId: {}",
+                providerId,
+                localId);
         return null;
     }
 
@@ -512,7 +546,11 @@ public class ResourceMigrator {
                 if (cloudId != null)
                     return cloudId.getId();
             } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while getting record for provider " + dataProviderId + " and local id " + localId + ". Retries left: " + retries, e);
+                logger.warn("Error processing HTTP request while getting record for provider {} and local id {}. Retries left: {}",
+                        dataProviderId,
+                        localId,
+                        retries,
+                        e);
             } catch (CloudException e) {
                 if (e.getCause() instanceof RecordDoesNotExistException) {
                     return null;
@@ -521,7 +559,9 @@ public class ResourceMigrator {
                 logger.error("Exception when getting record occured.", e);
             }
         }
-        logger.warn("All attempts to get record failed. ProviderId: " + providerId + " LocalId: " + localId);
+        logger.warn("All attempts to get record failed. ProviderId: {} LocalId: {}",
+                providerId,
+                localId);
         return null;
     }
 
@@ -556,7 +596,7 @@ public class ResourceMigrator {
             if (mimeType == null)
                 mimeType = mimeFromExtension(path);
             if (fullURI == null) {
-                logger.error("URI for path " + path + " could not be created.");
+                logger.error("URI for path {} could not be created.", path);
                 return null;
             }
         } catch (URISyntaxException e) {
@@ -582,14 +622,14 @@ public class ResourceMigrator {
                         fileName = changeExtension(fileName, processed.getName());
                         mimeType = mimeFromExtension(fileName);
                     } else {
-                        logger.error("Problem with processing file: " + path);
+                        logger.error("Problem with processing file: {}", path);
                         return null;
                     }
                 } else
                     is = fullURI.toURL().openStream();
 
                 if (logger.isDebugEnabled())
-                    logger.debug("Trying to upload file with name: " + fileName);
+                    logger.debug("Trying to upload file with name: {}", fileName);
 
                 // path should contain proper slash characters ("/")
                 URI result = fsc.uploadFile(recordId, resourceProvider.getRepresentationName(), version, fileName, is, mimeType);
@@ -607,11 +647,21 @@ public class ResourceMigrator {
                     return fileURL;
                 }
             } catch (ProcessingException e) {
-                logger.warn("Processing HTTP request failed. Upload file: " + resourceProvider.getFilename(location, fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
+                logger.warn("Processing HTTP request failed. Upload file: {} for record id: {}. Retries left: {}",
+                        resourceProvider.getFilename(location, fullURI.toString()),
+                        recordId,
+                        retries
+                );
             } catch (SocketTimeoutException e) {
-                logger.warn("Read time out. Upload file: " + resourceProvider.getFilename(location, fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
+                logger.warn("Read time out. Upload file: {} for record id: {}. Retries left: {}",
+                        resourceProvider.getFilename(location, fullURI.toString()),
+                        recordId,
+                        retries);
             } catch (ConnectException e) {
-                logger.error("Connection timeout. Upload file: " + resourceProvider.getFilename(location, fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
+                logger.error("Connection timeout. Upload file: {} for record id: {}. Retries left: {}",
+                        resourceProvider.getFilename(location, fullURI.toString()),
+                        recordId,
+                        retries);
             } catch (FileNotFoundException e) {
                 logger.error("Could not open input stream to file!", e);
             } catch (IOException e) {
@@ -628,7 +678,11 @@ public class ResourceMigrator {
                 }
             }
         }
-        logger.warn("All attempts to upload file failed. Location: " + location + " Path: " + path + " Version: " + version + " RecordId: " + recordId);
+        logger.warn("All attempts to upload file failed. Location: {} Path: {} Version: {} RecordId: {}",
+                location,
+                path,
+                version,
+                recordId);
         return null;
     }
 
@@ -658,7 +712,7 @@ public class ResourceMigrator {
         connection.setRequestMethod("HEAD");
         if (isRedirect(connection.getResponseCode())) {
             String newUrl = connection.getHeaderField("Location"); // get redirect url from "location" header field
-            logger.warn("Original request URL: " + url + " redirected to: " + newUrl);
+            logger.warn("Original request URL: {} redirected to: {}", url, newUrl);
             return getContentType(new URL(newUrl));
         }
         return connection.getContentType();
@@ -696,7 +750,7 @@ public class ResourceMigrator {
         return mapped;
     }
 
-    synchronized private String createProvider(String path) {
+    private synchronized String createProvider(String path) {
         // get mapped data provider identifier
         String providerId = getProviderId(resourceProvider.getDataProviderId(path));
         DataProviderProperties providerProps = resourceProvider.getDataProviderProperties(path);
@@ -707,10 +761,13 @@ public class ResourceMigrator {
                 uis.createProvider(providerId, providerProps);
                 return providerId;
             } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while creating provider " + providerId + ". Retries left: " + retries, e);
+                logger.warn("Error processing HTTP request while creating provider {}. Retries left: {}",
+                        providerId,
+                        retries,
+                        e);
             } catch (CloudException e) {
                 if (e.getCause() instanceof ProviderAlreadyExistsException) {
-                    logger.warn("Provider " + providerId + " already exists.");
+                    logger.warn("Provider {} already exists.", providerId);
                     return providerId;
                 }
                 logger.error("Exception when creating provider occured.", e);
@@ -718,7 +775,7 @@ public class ResourceMigrator {
                 logger.error("Exception when creating provider occured.", e);
             }
         }
-        logger.warn("All attempts to create data provider failed. Provider: " + providerId + " Path: " + path);
+        logger.warn("All attempts to create data provider failed. Provider: {} Path: {}", providerId, path);
         return null;
     }
 
@@ -733,7 +790,7 @@ public class ResourceMigrator {
             }
             paths.removeAll(processed);
         } catch (IOException e) {
-            logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.");
+            logger.warn("Progress file for provider {} could not be opened. Returning all paths.", providerId);
         }
     }
 
@@ -786,12 +843,12 @@ public class ResourceMigrator {
             try {
                 path = reader.readLine();
             } catch (IOException e) {
-                logger.error(e.getMessage() + ". Because of: " + e.getCause());
+                logger.error("{}. Because of: {}", e.getMessage(), e.getCause());
             } finally {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
+                    logger.error("{}. Because of: {}", e.getMessage(), e.getCause());
                 }
             }
         } else
@@ -815,13 +872,13 @@ public class ResourceMigrator {
         String identifier = fp.getIdentifier();
 
         // key is local identifier, value is cloud identifier
-        Map<String, String> cloudIds = new HashMap<String, String>();
+        Map<String, String> cloudIds = new HashMap<>();
         // key is local identifier, value is version identifier
-        Map<String, String> versionIds = new HashMap<String, String>();
+        Map<String, String> versionIds = new HashMap<>();
         // key is version identifier, value is a list of strings containing path=URI
-        Map<String, List<String>> processed = new HashMap<String, List<String>>();
+        Map<String, List<String>> processed = new HashMap<>();
         // key is local identifier, value is files that were added
-        Map<String, Integer> fileCount = new HashMap<String, Integer>();
+        Map<String, Integer> fileCount = new HashMap<>();
 
         int counter = 0;
         int errors = 0;
@@ -838,7 +895,14 @@ public class ResourceMigrator {
             String path;
             for (; ; ) {
                 if ((int) (((float) (counter) / (float) size) * 100) > (int) (((float) (counter - 1) / (float) size) * 100))
-                    logger.info("Resource provider: " + resourceProviderId + "." + (identifier.equals(resourceProviderId) ? "" : (" Part: " + identifier + ".")) + " Progress: " + counter + " of " + size + " (" + (int) (((float) (counter) / (float) size) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
+                    logger.info("Resource provider: {}. Progress: {} of {} ({}%). Errors: {}}. Duplicates: {}",
+                            resourceProviderId,
+                            counter,
+                            size,
+                            (int) (((float) (counter) / (float) size) * 100),
+                            errors,
+                            duplicate
+                    );
                 if (reader == null) {
                     // paths in list
                     if (counter >= size)
@@ -859,7 +923,7 @@ public class ResourceMigrator {
                             duplicates.add(path);
                     }
                     // when local identifier is null it means that the path may be wrong
-                    logger.warn("Local identifier for path: " + path + " could not be obtained. Skipping path...");
+                    logger.warn("Local identifier for path: {} could not be obtained. Skipping path...", path);
                     continue;
                 }
 
@@ -870,17 +934,20 @@ public class ResourceMigrator {
                 }
 
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Local identifier for path: " + path + ": " + localId);
+                    logger.debug("Local identifier for path: {}: {}",path, localId);
                 }
                 if (!localId.equals(prevLocalId)) {
                     if (prevLocalId != null && cloudIds.get(prevLocalId) != null && versionIds.get(prevLocalId) != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
                         if (logger.isDebugEnabled())
-                            logger.debug("Record " + prevLocalId + " complete. Saving...");
+                            logger.debug("Record {} complete. Saving...", prevLocalId);
                         // persist previous version if it was created
                         URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
                         if (persistent != null) {
                             if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                                logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                                logger.warn("Could not grant permissions to version {} of record {}. Version is only available for current user.",
+                                        versionIds.get(prevLocalId),
+                                        cloudIds.get(prevLocalId)
+                                );
                             saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false, null);
                             // remove already saved paths
                             processed.get(versionIds.get(prevLocalId)).clear();
@@ -895,7 +962,7 @@ public class ResourceMigrator {
                     // create new record when it was not created before
                     String cloudId = createRecord(resourceProvider.getDataProviderId(path), localId);
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Cloud identifier for path: " + path + ": " + cloudId);
+                        logger.debug("Local identifier for path: {}: {}",path, localId);
                     }
                     if (cloudId == null) {
                         // this is an error
@@ -906,7 +973,9 @@ public class ResourceMigrator {
                     // create representation for the record
                     URI uri = createRepresentationName(resourceProvider.getDataProviderId(path), cloudId);
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Representation for path: " + path + ": " + (uri != null ? uri.toString() : "null"));
+                        logger.debug("Representation for path: {}}: {}",
+                                path,
+                                uri);
                     }
                     if (uri == null) {
                         // this is not an error, version is already there and is persistent
@@ -914,7 +983,7 @@ public class ResourceMigrator {
                     }
                     String verId = getVersionIdentifier(uri);
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Version identifier for path: " + path + ": " + verId);
+                        logger.debug("Version identifier for path: {}: {}", path, verId);
                     }
                     if (verId == null) {
                         // this is an error, version identifier could not be retrieved from representation URI
@@ -925,7 +994,12 @@ public class ResourceMigrator {
                 }
 
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Before creating file: \nLocation: " + location + "\nPath: " + path + "\nVersion: " + versionIds.get(localId) + "\nCloudId: " + cloudIds.get(localId));
+                    logger.debug("Before creating file: \nLocation: {}\nPath: {}\nVersion: {}\nCloudId: {}",
+                            location,
+                            path,
+                            versionIds.get(localId),
+                            cloudIds.get(localId)
+                    );
                 }
 
                 // create file name in ECloud with the specified name
@@ -937,19 +1011,21 @@ public class ResourceMigrator {
                 }
                 // put the created URI for path to processed list
                 if (processed.get(versionIds.get(localId)) == null)
-                    processed.put(versionIds.get(localId), new ArrayList<String>());
+                    processed.put(versionIds.get(localId), new ArrayList<>());
                 processed.get(versionIds.get(localId)).add(path + ";" + fileAdded);
                 // increase file count or set to 1 if it's a first file
                 fileCount.put(localId, fileCount.get(localId) != null ? (fileCount.get(localId) + 1) : 1);
             }
             if (prevLocalId != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
                 if (logger.isDebugEnabled())
-                    logger.debug("Record " + prevLocalId + " complete. Saving...");
+                    logger.debug("Record {} complete. Saving...", prevLocalId);
                 // persist previous version
                 URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
                 if (persistent != null) {
                     if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                        logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                        logger.warn("Could not grant permissions to version {} of record {}. Version is only available for current user.",
+                                versionIds.get(prevLocalId),
+                                cloudIds.get(prevLocalId));
                     saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false, null);
                     processed.get(versionIds.get(prevLocalId)).clear();
                     processed.remove(versionIds.get(prevLocalId));
@@ -962,7 +1038,9 @@ public class ResourceMigrator {
                 reader.close();
         }
         if (errors > 0)
-            logger.warn("Migration of " + resourceProviderId + " encoutered " + errors + " errors.");
+            logger.warn("Migration of {} encountered {} errors.",
+                    resourceProviderId,
+                    errors);
         return (counter - errors) == size;
     }
 
@@ -979,9 +1057,9 @@ public class ResourceMigrator {
                 if (Files.exists(dest))
                     Files.copy(dest, bkp);
                 // truncate and write to empty file
-                Files.write(dest, strings, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+                Files.write(dest, strings, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
             } else
-                Files.write(dest, strings, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                Files.write(dest, strings, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
         } catch (IOException e) {
             logger.error("Progress file " + (prefix != null ? prefix : "") + providerId + ".txt could not be saved.", e);
         }
@@ -993,13 +1071,26 @@ public class ResourceMigrator {
             try {
                 return mcs.persistRepresentation(cloudId, resourceProvider.getRepresentationName(), version);
             } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while persisting version: " + version + " for record: " + cloudId + ". Retries left: " + retries, e);
+                logger.warn("Error processing HTTP request while persisting version: {} for record: {}. Retries left: {}",
+                        version,
+                        cloudId,
+                        retries,
+                        e);
             } catch (MCSException e) {
-                logger.error("ECloud error when persisting version: " + version + " for record: " + cloudId, e);
+                logger.error("ECloud error when persisting version: {} for record: {}",
+                        version,
+                        cloudId,
+                        e);
                 if (e.getCause() instanceof ConnectException) {
-                    logger.warn("Connection timeout error when persisting version: " + version + " for record: " + cloudId + ". Retries left: " + retries);
+                    logger.warn("Connection timeout error when persisting version: {} for record: {}. Retries left: {}",
+                            version,
+                            cloudId,
+                            retries);
                 } else if (e.getCause() instanceof SocketTimeoutException) {
-                    logger.warn("Read time out error when persisting version: " + version + " for record: " + cloudId + ". Retries left: " + retries);
+                    logger.warn("Read time out error when persisting version: {} for record: {}. Retries left: {}",
+                            version,
+                            cloudId,
+                            retries);
                 } else
                     break;
             }
@@ -1018,9 +1109,13 @@ public class ResourceMigrator {
             } catch (MCSException e) {
                 logger.error("ECloud error when granting permissions to version: " + version + " for record: " + cloudId, e);
                 if (e.getCause() instanceof ConnectException) {
-                    logger.warn("Connection timeout error when granting permissions to version: " + version + " for record: " + cloudId + ". Retries left: " + retries);
+                    logger.warn("Connection timeout error when granting permissions to version: {} for record: {}. Retries left: {}",
+                            version, cloudId, retries);
                 } else if (e.getCause() instanceof SocketTimeoutException) {
-                    logger.warn("Read time out error when granting permissions to version: " + version + " for record: " + cloudId + ". Retries left: " + retries);
+                    logger.warn("Read time out error when granting permissions to version: {} for record: {}. Retries left: {}",
+                            version,
+                            cloudId,
+                            retries);
                 } else
                     break;
             }
@@ -1044,20 +1139,21 @@ public class ResourceMigrator {
         long start = System.currentTimeMillis();
         // key is provider id, value is a list of files to add
         Map<String, List<FilePaths>> paths = resourceProvider.scan();
-        logger.info("Scanning resource provider locations finished in " + String.valueOf(((float) (System.currentTimeMillis() - start) / (float) 1000)) + " sec.");
+        logger.info("Scanning resource provider locations finished in {} sec.",
+                ((float) (System.currentTimeMillis() - start) / (float) 1000));
 
         List<Future<VerificationResult>> results = null;
-        List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>(paths.size());
+        List<Callable<VerificationResult>> tasks = new ArrayList<>(paths.size());
 
         // create task for each resource provider
         Iterator<Entry<String, List<FilePaths>>> iterator = paths.entrySet().iterator();
         while (iterator.hasNext()) {
             Entry<String, List<FilePaths>> entry = iterator.next();
-            logger.info("Starting verification task thread for provider " + entry.getKey() + "...");
+            logger.info("Starting verification task thread for provider {}...", entry.getKey());
             tasks.add(new ProviderVerifier(entry.getKey(), entry.getValue(), null));
         }
 
-        if (tasks.size() == 0)
+        if (tasks.isEmpty())
             return;
 
         try {
@@ -1067,7 +1163,11 @@ public class ResourceMigrator {
             VerificationResult providerResult;
             for (Future<VerificationResult> result : results) {
                 providerResult = result.get();
-                logger.info("Verification of provider " + providerResult.getProviderId() + " performed successfully. Verification time: " + providerResult.getTime() + " sec. Number of not migrated files: " + providerResult.getNotMigratedCount());
+                logger.info("Verification of provider {} performed successfully. Verification time: {} sec. Number of not migrated files: {}",
+                        providerResult.getProviderId(),
+                        providerResult.getTime(),
+                        providerResult.getNotMigratedCount()
+                );
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -1085,22 +1185,25 @@ public class ResourceMigrator {
         String localId = "";
         String cloudId;
 
-        Map<String, String> cloudIds = new HashMap<String, String>();
-        List<String> strings = new ArrayList<String>();
-        Set<String> migratedLocalIds = new HashSet<String>();
-        Set<String> notExistingLocalIds = new HashSet<String>();
+        Map<String, String> cloudIds = new HashMap<>();
+        List<String> strings = new ArrayList<>();
+        Set<String> migratedLocalIds = new HashSet<>();
+        Set<String> notExistingLocalIds = new HashSet<>();
 
         long count = 0;
         int counter = 0;
         int total = providerPaths.size();
         // Identifier of the file paths list
-        String identifier = providerPaths.getIdentifier();
 
         try {
             for (; ; ) {
                 try {
                     if ((int) (((float) (counter) / (float) total) * 100) > (int) (((float) (counter - 1) / (float) total) * 100))
-                        logger.info("Resource provider: " + resourceProviderId + "." + (identifier.equals(resourceProviderId) ? "" : (" Part: " + identifier + ".")) + " Progress: " + counter + " of " + total + " (" + (int) (((float) (counter) / (float) total) * 100) + "%).");
+                        logger.info("Resource provider: {}. Progress: {} of {} ({}%).",
+                                resourceProviderId,
+                                counter,
+                                total,
+                                (int) (((float) (counter) / (float) total) * 100));
                     if (reader == null) {
                         // paths in list
                         if (counter >= total)
@@ -1165,15 +1268,13 @@ public class ResourceMigrator {
                     // when we got here it means that for the current localId there is a cloud id and persistent representation - the whole record is migrated
                     migratedLocalIds.add(localId.intern());
                 } catch (IOException e) {
-                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
+                    logger.error("{}.Because of: {}", e.getMessage(), e.getCause());
                     break;
-                } catch (RecordNotExistsException e) {
-                    strings.add(line + " (upload " + localId + ")");
-                } catch (RepresentationNotExistsException e) {
+                } catch (RecordNotExistsException | RepresentationNotExistsException e) {
                     strings.add(line + " (upload " + localId + ")");
                 } catch (MCSException e) {
                     logger.error("Problem with getting representation.");
-                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
+                    logger.error("{}.Because of: {}", e.getMessage(), e.getCause());
 
                 }
             }
@@ -1183,7 +1284,7 @@ public class ResourceMigrator {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    logger.error(e.getMessage() + ". Because of: " + e.getCause());
+                    logger.error("{}.Because of: {}", e.getMessage(), e.getCause());
                 }
             }
         }
@@ -1222,14 +1323,14 @@ public class ResourceMigrator {
                     success &= processProvider(providerId, fp);
             } else { // initial paths were split into more sets, for each set run separate thread and gather results
                 List<Future<MigrationResult>> results = null;
-                List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>(split.size());
+                List<Callable<MigrationResult>> tasks = new ArrayList<>(split.size());
 
                 boolean mergeProgress = false;
 
                 // create task for each file path
                 for (FilePaths fp : split) {
                     logger.info("Starting task thread for file paths " + fp.getIdentifier() + "...");
-                    List<FilePaths> lst = new ArrayList<FilePaths>();
+                    List<FilePaths> lst = new ArrayList<>();
                     lst.add(fp);
                     mergeProgress |= !fp.getIdentifier().equals(fp.getDataProvider());
                     tasks.add(new ProviderMigrator(providerId, lst, fp.getIdentifier()));
@@ -1242,7 +1343,11 @@ public class ResourceMigrator {
                     MigrationResult partResult;
                     for (Future<MigrationResult> result : results) {
                         partResult = result.get();
-                        logger.info("Migration of part " + partResult.getIdentifier() + " (" + partResult.getProviderId() + ") performed " + (partResult.isSuccessful() ? "" : "un") + "successfully. Migration time: " + partResult.getTime() + " sec.");
+                        logger.info("Migration of part {} ({}) performed. Migration time: {} sec.",
+                                partResult.getIdentifier(),
+                                partResult.getProviderId(),
+                                partResult.getTime()
+                        );
                         success &= partResult.isSuccessful();
                     }
                     // concatenate progress files to one if necessary
@@ -1284,18 +1389,18 @@ public class ResourceMigrator {
                     continue;
                 Path progressFile = FileSystems.getDefault().getPath(".", fp.getIdentifier() + ResourceMigrator.TEXT_EXTENSION);
                 try {
-                    reader = Files.newBufferedReader(progressFile, Charset.forName("UTF-8"));
+                    reader = Files.newBufferedReader(progressFile, StandardCharsets.UTF_8);
                     for (; ; ) {
                         String line = reader.readLine();
                         if (line == null)
                             break;
                         if (!line.endsWith("\n"))
                             line += "\n";
-                        Files.write(dest, line.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                        Files.write(dest, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
                     }
                 } catch (IOException e) {
                     // do nothing, move to the next file
-                    logger.warn("Problem with file " + progressFile.toAbsolutePath().toString());
+                    logger.warn("Problem with file {}", progressFile.toAbsolutePath());
                 } finally {
                     if (reader != null)
                         reader.close();
@@ -1377,12 +1482,12 @@ public class ResourceMigrator {
                     notMigrated += verifyProvider(providerId, fp);
             } else { // initial paths were split into more sets, for each set run separate thread and gather results
                 List<Future<VerificationResult>> results = null;
-                List<Callable<VerificationResult>> tasks = new ArrayList<Callable<VerificationResult>>(split.size());
+                List<Callable<VerificationResult>> tasks = new ArrayList<>(split.size());
 
                 // create task for each file path
                 for (FilePaths fp : split) {
                     logger.info("Starting verification task thread for file paths " + fp.getIdentifier() + "...");
-                    List<FilePaths> lst = new ArrayList<FilePaths>();
+                    List<FilePaths> lst = new ArrayList<>();
                     lst.add(fp);
                     tasks.add(new ProviderVerifier(providerId, lst, fp.getIdentifier()));
                 }
@@ -1394,7 +1499,13 @@ public class ResourceMigrator {
                     VerificationResult partResult;
                     for (Future<VerificationResult> result : results) {
                         partResult = result.get();
-                        logger.info("Verification of part " + partResult.getIdentifier() + " (" + partResult.getProviderId() + ") performed successfully. Verification time: " + partResult.getTime() + " sec. Number of not migrated files: " + partResult.getNotMigratedCount());
+                        logger.info("Verification of part {} ({}) performed successfully. Verification time: {}sec. Number of not migrated files: {}",
+                                partResult.getIdentifier(),
+                                partResult.getProviderId(),
+                                partResult.getTime(),
+                                partResult.getNotMigratedCount()
+                        );
+
                         notMigrated += partResult.getNotMigratedCount();
                     }
                 } catch (InterruptedException e) {
@@ -1469,15 +1580,20 @@ public class ResourceMigrator {
             int total = localIds.size();
             String localId;
             String cloudId;
-            List<String> strings = new ArrayList<String>();
+            List<String> strings = new ArrayList<>();
 
             // truncate file
             saveProgress(resourceProvider.getDataProviderId(""), strings, true, "verifylocalids_" + identifier + "_");
 
             for (Iterator<String> i = localIds.iterator(); i.hasNext(); ) {
                 if ((int) (((float) (counter) / (float) total) * 100) > (int) (((float) (counter - 1) / (float) total) * 100)) {
-                    logger.info("Local identifiers verification part " + identifier + " progress: " + counter + " of " + total + " (" + (int) (((float) (counter) / (float) total) * 100) + "%).");
-                    if (strings.size() > 0) {
+                    logger.info("Local identifiers verification part {} progress: {} of {} ({}%).",
+                            identifier,
+                            counter,
+                            total,
+                            (int) (((float) (counter) / (float) total) * 100)
+                    );
+                    if (!strings.isEmpty()) {
                         saveProgress(resourceProvider.getDataProviderId(""), strings, false, "verifylocalids_" + identifier + "_");
                         notMigrated += strings.size();
                         strings.clear();
@@ -1496,9 +1612,9 @@ public class ResourceMigrator {
                     try {
                         representations = mcs.getRepresentations(cloudId, resourceProvider.getRepresentationName());
                     } catch (MCSException e) {
-                        logger.error(e.getMessage() + ". Because of: " + e.getCause());
+                        logger.error("{}. Because of: {}", e.getMessage(), e.getCause());
                     }
-                    if (representations == null || representations.size() == 0) {
+                    if (representations == null || representations.isEmpty()) {
                         strings.add(localId + ";" + "no representation");
                         continue;
                     }
@@ -1523,7 +1639,7 @@ public class ResourceMigrator {
                     }
                 }
             }
-            if (strings.size() > 0) {
+            if (!strings.isEmpty()) {
                 saveProgress(resourceProvider.getDataProviderId(""), strings, false, "verifylocalids_" + identifier + "_");
                 notMigrated += strings.size();
             }
@@ -1563,11 +1679,11 @@ public class ResourceMigrator {
 
     public void clean(String providerId) {
         try {
-            List<String> toSave = new ArrayList<String>();
+            List<String> toSave = new ArrayList<>();
 
             new Cleaner().cleanRecords(providerId, mcs, uis);
 
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), Charset.forName("UTF-8"))) {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), StandardCharsets.UTF_8)) {
                 StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     st.nextToken();
@@ -1590,15 +1706,6 @@ public class ResourceMigrator {
                         } catch (RecordNotExistsException e) {
                             // no record, no problem
                             break;
-                        } catch (CloudException e) {
-                            // nothing to do
-                            logger.warn("Could not delete record.", e);
-                            if (retries == 0) // when this is the last unsuccessful try
-                                toSave.add(line);
-                        } catch (MCSException e) {
-                            logger.warn("Could not delete record.", e);
-                            if (retries == 0) // when this is the last unsuccessful try
-                                toSave.add(line);
                         } catch (Exception e) {
                             logger.warn("Could not delete record.", e);
                             if (retries == 0) // when this is the last unsuccessful try
@@ -1645,7 +1752,12 @@ public class ResourceMigrator {
 
             for (String localId : localIds) {
                 if ((int) (((float) (counter) / (float) total) * 100) > (int) (((float) (counter - 1) / (float) total) * 100)) {
-                    logger.info("Granting public access part " + identifier + " progress: " + counter + " of " + total + " (" + (int) (((float) (counter) / (float) total) * 100) + "%).");
+                    logger.info("Granting public access part {} progress: {} of {} ({}%).",
+                            identifier,
+                            counter,
+                            total,
+                            (int) (((float) (counter) / (float) total) * 100)
+                    );
                     if (!strings.isEmpty()) {
                         saveProgress(resourceProvider.getDataProviderId(""), strings, false, "grantaccess_" + identifier + "_");
                         notGranted += strings.size();

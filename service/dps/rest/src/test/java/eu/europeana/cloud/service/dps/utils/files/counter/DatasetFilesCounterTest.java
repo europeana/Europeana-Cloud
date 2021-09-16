@@ -85,7 +85,7 @@ public class DatasetFilesCounterTest {
     @Test(expected = TaskSubmissionException.class)
     public void shouldThrowExceptionWhenQueryingDatabaseUsingPreviousTaskIdThrowAnExceptionOtherThanTaskInfoDoesNotExistException() throws Exception {
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
-        doThrow(Exception.class).when(taskInfoDAO).findById(TASK_ID);
+        doThrow(QueryExecutionException.class).when(taskInfoDAO).findById(TASK_ID);
         datasetFilesCounter.getFilesCount(dpsTask);
     }
 

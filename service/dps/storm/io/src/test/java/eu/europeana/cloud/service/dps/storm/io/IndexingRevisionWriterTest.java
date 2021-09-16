@@ -61,8 +61,8 @@ public class IndexingRevisionWriterTest {
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         List list = captor.getValue();
         assertNotNull(list);
-        assertEquals(3, list.size());
-        Map<String, String> parameters = (Map<String, String>) list.get(2);
+        assertEquals(2, list.size());
+        Map<String, String> parameters = (Map<String, String>) list.get(1);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
         assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
         assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
@@ -80,8 +80,8 @@ public class IndexingRevisionWriterTest {
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         List list = captor.getValue();
         assertNotNull(list);
-        assertEquals(3, list.size());
-        Map<String, String> parameters = (Map<String, String>) list.get(2);
+        assertEquals(2, list.size());
+        Map<String, String> parameters = (Map<String, String>) list.get(1);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
         assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
         assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
@@ -97,8 +97,8 @@ public class IndexingRevisionWriterTest {
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         List list = captor.getValue();
         assertNotNull(list);
-        assertEquals(3, list.size());
-        Map<String, String> parameters = (Map<String, String>) list.get(2);
+        assertEquals(2, list.size());
+        Map<String, String> parameters = (Map<String, String>) list.get(1);
         assertEquals("ERROR", parameters.get("state"));
 
 

@@ -1,7 +1,9 @@
 package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,7 +19,7 @@ import java.util.List;
 public class FilePaths {
 
     private static final String prefix = "paths_";
-    private static final Logger logger = Logger.getLogger(FilePaths.class);
+    private static final Logger logger = LoggerFactory.getLogger(FilePaths.class);
 
     /**
      * Location part in path
@@ -74,7 +76,10 @@ public class FilePaths {
             if (dest.toFile().exists())
                 Files.write(dest, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            logger.error(e.getMessage() + " .Because of " + e.getCause());
+            logger.error("{} .Because of {}",
+                    e.getMessage(),
+                    e.getCause()
+            );
         }
     }
 
@@ -129,8 +134,9 @@ public class FilePaths {
             Files.write(dest, String.valueOf(path + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
             size++;
         } catch (IOException e) {
-            System.out.println("Cannot store path " + path + "in file " + prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
-            logger.error("Cannot store path " + path + "in file " + prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
+            logger.error("Cannot store path {} in file {}",
+                    path,
+                    prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
         }
     }
 

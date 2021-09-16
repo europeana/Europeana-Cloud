@@ -6,14 +6,16 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Created by Tarek on 4/16/2019.
  */
 public class RemoverImpl implements Remover {
 
-    static final Logger LOGGER = Logger.getLogger(RemoverImpl.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(RemoverImpl.class);
 
     private final CassandraSubTaskInfoDAO subTaskInfoDAO;
     private final CassandraTaskErrorsDAO taskErrorDAO;
@@ -48,7 +50,7 @@ public class RemoverImpl implements Remover {
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the logs. Retries left: " + retries);
+                    LOGGER.warn("Error while removing the logs. Retries left: {}", retries);
                     waitForTheNextCall();
                 } else {
                     LOGGER.error("Error while removing the logs.");
@@ -67,7 +69,7 @@ public class RemoverImpl implements Remover {
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the error reports. Retries left: " + retries);
+                    LOGGER.warn("Error while removing the error reports. Retries left: {}", retries);
                     waitForTheNextCall();
                 } else {
                     LOGGER.error("Error while removing the error reports.");
@@ -87,10 +89,10 @@ public class RemoverImpl implements Remover {
                 break;
             } catch (Exception e) {
                 if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the validation statistics. Retries left: " + retries);
+                    LOGGER.warn("Error while removing the validation statistics. Retries left: {}", retries);
                     waitForTheNextCall();
                 } else {
-                    LOGGER.error("rror while removing the validation statistics.");
+                    LOGGER.error("Error while removing the validation statistics.");
                     throw e;
                 }
             }

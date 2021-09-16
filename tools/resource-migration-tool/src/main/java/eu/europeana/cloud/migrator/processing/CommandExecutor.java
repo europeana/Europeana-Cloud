@@ -1,7 +1,8 @@
 package eu.europeana.cloud.migrator.processing;
 
 import eu.europeana.cloud.migrator.ResourceMigratorApp;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,7 +24,7 @@ public class CommandExecutor {
 
     protected String workingDirectory;
 
-    private static final Logger logger = Logger.getLogger(CommandExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
 
     public CommandExecutor(String configFile) {
         loadConfig(ResourceMigratorApp.loadPropertiesFile(new File(configFile)));
@@ -86,7 +87,7 @@ public class CommandExecutor {
         CommandResult result = new CommandResult();
 
         if (logger.isDebugEnabled())
-            logger.debug("Starting execution of command: " + command);
+            logger.debug("Starting execution of command: {}", command);
 
         try {
             Process process = Runtime.getRuntime().exec(command);
@@ -129,7 +130,7 @@ public class CommandExecutor {
             // read the stdout stream in the main thread
             String out = read(process.getInputStream());
             if (!out.isEmpty() && logger.isDebugEnabled()) {
-                logger.debug("Command output: " + out);
+                logger.debug("Command output: {}", out);
             }
             result.setStdOut(out);
 
@@ -137,8 +138,7 @@ public class CommandExecutor {
             int exitStatus;
             exitStatus = process.waitFor();
             if (exitStatus != 0) {
-                logger.warn("Command executed unsuccessfully with exit status " + exitStatus + ": "
-                        + command);
+                logger.warn("Command executed unsuccessfully with exit status {}: {}", exitStatus, command);
                 result.setResult(false);
                 result.setExitStatus(exitStatus);
             }
@@ -153,11 +153,9 @@ public class CommandExecutor {
 
         if (logger.isDebugEnabled()) {
             if (result.getResult())
-                logger.debug("Command: " + command
-                        + " executed successfully.");
+                logger.debug("Command: {} executed successfully.", command);
             else
-                logger.debug("Command: " + command
-                        + " executed with errors.");
+                logger.debug("Command: {} executed with errors.", command);
         }
 
         return result;

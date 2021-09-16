@@ -88,7 +88,7 @@ public class ResourceProcessingBoltTest {
 
     void setStaticField(Field field, Object newValue) throws Exception {
         field.setAccessible(true);
-        field.set(null, newValue);
+        field.set(resourceProcessingBolt, newValue);
     }
 
 

@@ -68,7 +68,7 @@ public class NormalizationBoltTest {
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
+        Map val = (Map) capturedValues.get(1);
         Assert.assertEquals("Error during normalization.", val.get("additionalInfo"));
         Assert.assertTrue(val.get("info_text").toString().startsWith("Error parsing XML: Could not parse DOM for"));
     }
@@ -87,7 +87,7 @@ public class NormalizationBoltTest {
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(2);
+        Map val = (Map) capturedValues.get(1);
         Assert.assertTrue(val.get("additionalInfo").toString().contains("Cannot prepare output storm tuple."));
         Assert.assertTrue(val.get("additionalInfo").toString().contains("malformed.url"));
     }

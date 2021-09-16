@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.service.kafka.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.europeana.cloud.service.dps.DpsTask;
 import org.apache.kafka.common.serialization.Serializer;
-import org.codehaus.jackson.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

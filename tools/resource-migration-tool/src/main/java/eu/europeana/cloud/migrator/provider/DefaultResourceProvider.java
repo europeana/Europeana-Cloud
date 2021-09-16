@@ -2,7 +2,8 @@ package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,7 +59,7 @@ public abstract class DefaultResourceProvider
     public static final int DEFAULT_LIST_SIZE = 500;
 
     // Logger
-    private static final Logger logger = Logger.getLogger(DefaultResourceProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultResourceProvider.class);
 
     // Representation name from configuration
     protected String representationName;
@@ -255,13 +256,13 @@ public abstract class DefaultResourceProvider
     @Override
     public String getFilename(String location, String path) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Get filename for location: " + location + ", path: " + path);
+            logger.debug("Get filename for location: {}, path: {}", location, path);
         }
         int pos = -1;
         if (path.startsWith(location)) {
             path = path.substring(location.length());
             if (logger.isDebugEnabled()) {
-                logger.debug("Path without location: " + path);
+                logger.debug("Path without location: {}", path);
             }
             pos = path.indexOf(ResourceMigrator.LINUX_SEPARATOR);
             if (pos == -1)
@@ -272,7 +273,7 @@ public abstract class DefaultResourceProvider
                 pos = path.lastIndexOf(ResourceMigrator.WINDOWS_SEPARATOR);
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("Returning: " + path.substring(pos + 1));
+            logger.debug("Returning: {}", path.substring(pos + 1));
         }
         // when pos == -1 whole path is returned, otherwise only part after pos
         return path.substring(pos + 1);

@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.apache.storm.Config;
 import org.apache.storm.testing.CompleteTopologyParam;
@@ -31,6 +32,7 @@ import static org.mockito.Matchers.*;
  */
 public class TopologyTestHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
+    protected TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected CassandraTaskErrorsDAO taskErrorsDAO;
     protected TaskStatusChecker taskStatusChecker;
@@ -56,6 +58,10 @@ public class TopologyTestHelper {
         taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
         PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
         PowerMockito.when(CassandraTaskInfoDAO.getInstance(any(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
+
+        taskDiagnosticInfoDAO = Mockito.mock(TaskDiagnosticInfoDAO.class);
+        PowerMockito.mockStatic(TaskDiagnosticInfoDAO.class);
+        PowerMockito.when(TaskDiagnosticInfoDAO.getInstance(any(CassandraConnectionProvider.class))).thenReturn(taskDiagnosticInfoDAO);
 
         taskStatusChecker = Mockito.mock(TaskStatusChecker.class);
         PowerMockito.mockStatic(TaskStatusChecker.class);
