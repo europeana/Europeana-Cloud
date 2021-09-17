@@ -211,7 +211,7 @@ public class NotificationBolt extends BaseRichBolt {
         var infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
         var additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         var resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
-        var now = Calendar.getInstance().getTimeInMillis();
+        var now = Instant.now().toEpochMilli();
         var processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
         additionalInfo = additionalInfo + " Processing time: " + processingTime;
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);

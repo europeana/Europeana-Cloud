@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Calendar;
+import java.time.Instant;
 
 import static org.junit.Assert.assertTrue;
 
@@ -25,9 +25,9 @@ public class RetryAspectSpringTest {
 
     @Test
     public void shoudCallDefault3Times() {
-        long startTime = Calendar.getInstance().getTimeInMillis();
+        long startTime = Instant.now().toEpochMilli();
         String result = aspectedTest.test_default("Text to process");
-        long endTime = Calendar.getInstance().getTimeInMillis();
+        long endTime = Instant.now().toEpochMilli();
 
         assertTrue(result.contains("Text to process"));
         assertTrue(endTime - startTime >= 2*1000);
@@ -35,27 +35,27 @@ public class RetryAspectSpringTest {
 
     @Test
     public void shoudCall10Times() {
-        long startTime = Calendar.getInstance().getTimeInMillis();
+        long startTime = Instant.now().toEpochMilli();
         aspectedTest.test_delay_500_10();
-        long endTime = Calendar.getInstance().getTimeInMillis();
+        long endTime = Instant.now().toEpochMilli();
 
         assertTrue(endTime - startTime >= 9*500);
     }
 
     @Test(expected = TestRuntimeExpection.class)
     public void shoudCall6TimesAndFail(){
-        long startTime = Calendar.getInstance().getTimeInMillis();
+        long startTime = Instant.now().toEpochMilli();
         aspectedTest.test_delay_2000_6();
-        long endTime = Calendar.getInstance().getTimeInMillis();
+        long endTime = Instant.now().toEpochMilli();
 
         assertTrue(endTime - startTime >= 5*2000);
     }
 
     @Test
     public void shoudCall4Times() {
-        long startTime = Calendar.getInstance().getTimeInMillis();
+        long startTime = Instant.now().toEpochMilli();
         aspectedTest.test_delay_3000_4();
-        long endTime = Calendar.getInstance().getTimeInMillis();
+        long endTime = Instant.now().toEpochMilli();
 
         assertTrue(endTime - startTime >= 3*3000);
     }

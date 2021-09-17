@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
@@ -16,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.time.Instant;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -45,7 +48,8 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     }
 
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("{} executed", getClass().getSimpleName());
+        LOGGER.info("Adding revision to the file");
+        Instant processingStartTime = Instant.now();
         String resourceURL = getResourceUrl(stormTaskTuple);
         try {
             addRevisionToSpecificResource(stormTaskTuple, resourceURL);
@@ -61,6 +65,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                     stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
+        LOGGER.info("Revision added in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private String getResourceUrl(StormTaskTuple stormTaskTuple) {
@@ -73,7 +78,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     protected void addRevisionToSpecificResource(StormTaskTuple stormTaskTuple, String affectedResourceURL) throws MalformedURLException, MCSException {
         if (stormTaskTuple.hasRevisionToBeApplied()) {
-            LOGGER.info("Adding revisions to representation version: {}", stormTaskTuple.getFileUrl());
+            LOGGER.info("The following revision will be added: {}", stormTaskTuple.getRevisionToBeApplied());
             final UrlParser urlParser = new UrlParser(affectedResourceURL);
             Revision revisionToBeApplied = stormTaskTuple.getRevisionToBeApplied();
             if (revisionToBeApplied.getCreationTimeStamp() == null)

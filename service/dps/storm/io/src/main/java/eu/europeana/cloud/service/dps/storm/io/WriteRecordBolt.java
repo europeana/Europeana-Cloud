@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -21,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
+import java.time.Instant;
+import java.util.Calendar;
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
@@ -48,8 +51,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+        LOGGER.info("WriteRecordBolt: persisting processed file");
+        Instant processingStartTime = Instant.now();
         try {
-            LOGGER.info("WriteRecordBolt: persisting processed file");
             RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
             var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
             LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
@@ -64,6 +68,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
+        LOGGER.info("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private String getProviderId(StormTaskTuple stormTaskTuple) throws MCSException {
@@ -115,6 +120,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
+        LOGGER.debug("Creating empty representation for tuple that is marked as deleted");
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
                         writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
@@ -122,6 +128,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
+        LOGGER.debug("Creating new representation");
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(
                         writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
