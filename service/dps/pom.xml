@@ -25,7 +25,6 @@
         <module>rest</module>
         <module>rest-client-java</module>
         <module>utils</module>
-        <module>storm/local-topology-logging-config</module>
         <module>storm/common</module>
         <module>storm/io</module>
         <module>storm/topologies/xslt</module>
