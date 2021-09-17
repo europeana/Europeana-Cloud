@@ -13,12 +13,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>local-topology-logging-config</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${version.log4j}</version>
