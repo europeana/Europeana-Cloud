@@ -72,13 +72,13 @@ public class TaskSubmissionValidator {
                 validateProviderId(task, dataSet.getProviderId());
             } catch (MalformedURLException e) {
                 throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
-                        + " can not be submitted because: " + e.getMessage());
+                        + " can not be submitted because: " + e.getMessage(), e);
             } catch (DataSetNotExistsException e) {
                 throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
-                        + " Does not exist");
+                        + " Does not exist", e);
             } catch (Exception e) {
                 throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
-                        + dataSetURL + " because of: " + e.getMessage());
+                        + dataSetURL + " because of: " + e.getMessage(), e);
             }
         }
     }
