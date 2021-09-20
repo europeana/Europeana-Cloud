@@ -62,6 +62,28 @@ public class DatasetFilesCounterTest {
     }
 
     @Test
+    public void shouldReturnProperNumberOfRecordsForNextTopology() throws Exception {
+        TaskInfo taskInfo = TaskInfo.builder()
+                .id(TASK_ID)
+                .topologyName(TOPOLOGY_NAME)
+                .state(TaskState.PROCESSED)
+                .stateDescription("")
+                .expectedRecordsNumber(EXPECTED_SIZE)
+                .processedRecordsCount(EXPECTED_SIZE)
+                .deletedRecordsCount(10)
+                .postProcessedRecordsCount(10)
+                .processedErrorsCount(0)
+                .sentTimestamp(new Date())
+                .startTimestamp(new Date())
+                .finishTimestamp(new Date())
+                .build();
+        when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
+        dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
+        int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
+        assertEquals(EXPECTED_SIZE + 10 + 10, expectedFilesCount);
+    }
+
+    @Test
     public void shouldReturnedDefaultFilesCountWhenNoPreviousTaskIdIsProvided() throws Exception {
         int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
         assertEquals(DEFAULT_FILES_COUNT, expectedFilesCount);
