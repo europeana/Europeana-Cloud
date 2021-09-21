@@ -24,7 +24,6 @@ import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +51,6 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
  * </ol>
  *
  */
-@Service
 public class HarvestingPostProcessor implements TaskPostProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingPostProcessor.class);
