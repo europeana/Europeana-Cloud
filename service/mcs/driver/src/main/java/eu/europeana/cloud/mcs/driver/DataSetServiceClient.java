@@ -553,24 +553,25 @@ public class DataSetServiceClient extends MCSClient {
      * @return slice of representation cloud identifier list from data set together with tags of the revision
      * @throws MCSException on unexpected situations
      */
-    public ResultSlice<CloudTagsResponse> getDataSetOnlyExistingRevisions(
+    public List<CloudTagsResponse> getRevisionsWithDeletedFlagSetToFalse(
             String providerId, String dataSetId, String representationName, String revisionName, String revisionProviderId,
             String revisionTimestamp, int limit) throws MCSException {
         WebTarget target = client.target(baseUrl)
-                .path(DATA_SET_ONLY_ONLY_REVISIONS_RESOURCE)
+                .path(DATA_SET_REVISIONS_RESOURCE)
                 .resolveTemplate(PROVIDER_ID, providerId)
                 .resolveTemplate(DATA_SET_ID, dataSetId)
                 .resolveTemplate(REPRESENTATION_NAME, representationName)
                 .resolveTemplate(REVISION_NAME, revisionName)
                 .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
                 .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                .queryParam(F_EXISTING_ONLY, true)
                 .queryParam(F_LIMIT, limit);
 
         Response response = null;
         try {
             response = target.request().get();
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
+                return response.readEntity(ResultSlice.class).getResults();
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);

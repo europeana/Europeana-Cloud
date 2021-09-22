@@ -3,11 +3,12 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.List;
@@ -26,6 +27,7 @@ public class DataSetServiceClientITest {
     private static final String ADMIN_NAME = "admin";  //admin z bazy danych
     private static final String ADMIN_PASSWORD = "glEumLWDSVUjQcRVswhN";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClientITest.class);
 
     @Test
     public void createDataSet() throws MCSException {
@@ -100,7 +102,7 @@ public class DataSetServiceClientITest {
     }
 
     @Test
-    public void getDataSetOnlyExistingRevisions() throws MCSException {
+    public void getRevisionsWithDeletedFlagSetToFalse() throws MCSException {
         String providerId = "xxx";
         String dataSetId = "autotests";
         String representationName = "xxx";
@@ -111,13 +113,11 @@ public class DataSetServiceClientITest {
 
         DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
-        ResultSlice<CloudTagsResponse> response =
-                mcsClient.getDataSetOnlyExistingRevisions(providerId, dataSetId, representationName,
-                        revisionName, revisionProviderId, revisionTimestamp, limit);
+        List<CloudTagsResponse> response = mcsClient.getRevisionsWithDeletedFlagSetToFalse(providerId, dataSetId,
+                representationName, revisionName, revisionProviderId, revisionTimestamp, limit);
 
         assertNotNull(response);
-        assertNotNull(response.getResults());
-        System.out.println(response.getResults());
+        LOGGER.info(response.toString());
     }
 
     @Test

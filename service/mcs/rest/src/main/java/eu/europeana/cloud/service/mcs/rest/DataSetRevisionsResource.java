@@ -61,59 +61,29 @@ public class DataSetRevisionsResource {
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
             @RequestParam String revisionTimestamp,
+            @RequestParam(defaultValue = "false") boolean existingOnly,
             @RequestParam(required = false) String startFrom,
             @RequestParam int limit) throws DataSetNotExistsException, ProviderNotExistsException {
+
+        if (existingOnly && startFrom != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not continue query with parameter existingOnly=true!");
+        }
 
         // when limitParam is specified we can retrieve more results than configured number of elements per page
         final int limitWithNextSlice = (limit > 0 && limit <= 10000) ? limit : numberOfElementsOnPage;
 
         DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
 
-        ResultSlice<CloudTagsResponse> result = dataSetService.getDataSetsRevisions(providerId, dataSetId,
+        ResultSlice<CloudTagsResponse> result;
+        if (existingOnly) {
+            result = new ResultSlice(null, dataSetService.getDataSetsExistingRevisions(providerId, dataSetId,
+                    revisionProviderId, revisionName, timestamp.toDate(), representationName, limitWithNextSlice));
+        } else {
+            result = dataSetService.getDataSetsRevisions(providerId, dataSetId,
                 revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
+        }
 
         return ResponseEntity.ok(result);
-    }
-
-    /**
-     * Lists cloudIds from data set. Result is returned in
-     * slices.
-     *
-     * @param providerId         identifier of the dataset's provider.
-     * @param dataSetId          identifier of a data set.
-     * @param representationName representation name.
-     * @param revisionName       name of the revision
-     * @param revisionProviderId provider of revision
-     * @param revisionTimestamp  timestamp used for identifying revision, must be in UTC format
-     * @param limit
-     * @return slice of cloud id with tags of the revision list.
-     * @throws DataSetNotExistsException no such data set exists.
-     * @summary get representation versions from a data set
-     */
-    @GetMapping(value = "/existingOnly", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<ResultSlice<CloudTagsResponse>> getDataSetOnlyExistingRevisions(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
-            @PathVariable String representationName,
-            @PathVariable String revisionName,
-            @PathVariable String revisionProviderId,
-            @RequestParam String revisionTimestamp,
-            @RequestParam int limit) throws DataSetNotExistsException, ProviderNotExistsException {
-
-        if (limit == 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit could not be 0");
-        }
-
-        if (limit > 10000) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit could not be greater that 10000");
-        }
-
-        DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
-
-        List<CloudTagsResponse> result = dataSetService.getDataSetsExistingRevisions(providerId, dataSetId,
-                revisionProviderId, revisionName, timestamp.toDate(), representationName, limit);
-
-        return ResponseEntity.ok(new ResultSlice<>(null, result));
     }
 }
 

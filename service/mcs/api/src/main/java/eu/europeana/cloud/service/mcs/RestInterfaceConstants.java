@@ -21,10 +21,6 @@ public class RestInterfaceConstants {
     public static final String DATA_SET_REVISIONS_RESOURCE =
             "/data-providers/{providerId}/data-sets/{dataSetId}/representations/{representationName}/revisions/{revisionName}/revisionProvider/{revisionProviderId}";
 
-    //DataSetRevisionsResource
-    public static final String DATA_SET_ONLY_ONLY_REVISIONS_RESOURCE =
-            "/data-providers/{providerId}/data-sets/{dataSetId}/representations/{representationName}/revisions/{revisionName}/revisionProvider/{revisionProviderId}/existingOnly";
-
     //DataSetsResource
     public static final String DATA_SETS_RESOURCE =
             "/data-providers/{providerId}/data-sets";
