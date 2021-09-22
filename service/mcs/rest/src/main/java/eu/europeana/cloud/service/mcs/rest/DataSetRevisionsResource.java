@@ -12,9 +12,13 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REVISIONS_RESOURCE;
 
@@ -69,6 +73,48 @@ public class DataSetRevisionsResource {
                 revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
 
         return ResponseEntity.ok(result);
+    }
+
+
+    /**
+     * Lists cloudIds from data set. Result is returned in
+     * slices.
+     *
+     * @param providerId         identifier of the dataset's provider.
+     * @param dataSetId          identifier of a data set.
+     * @param representationName representation name.
+     * @param revisionName       name of the revision
+     * @param revisionProviderId provider of revision
+     * @param revisionTimestamp  timestamp used for identifying revision, must be in UTC format
+     * @param limit
+     * @return slice of cloud id with tags of the revision list.
+     * @throws DataSetNotExistsException no such data set exists.
+     * @summary get representation versions from a data set
+     */
+    @GetMapping(value = "/existingOnly", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<ResultSlice<CloudTagsResponse>> getDataSetOnlyExistingRevisions(
+            @PathVariable String providerId,
+            @PathVariable String dataSetId,
+            @PathVariable String representationName,
+            @PathVariable String revisionName,
+            @PathVariable String revisionProviderId,
+            @RequestParam String revisionTimestamp,
+            @RequestParam int limit) throws DataSetNotExistsException, ProviderNotExistsException {
+
+        if (limit == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit could not be 0");
+        }
+
+        if (limit > 10000) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit could not be greater that 10000");
+        }
+
+        DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
+
+        List<CloudTagsResponse> result = dataSetService.getDataSetsExistingRevisions(providerId, dataSetId,
+                revisionProviderId, revisionName, timestamp.toDate(), representationName, limit);
+
+        return ResponseEntity.ok(new ResultSlice<>(null, result));
     }
 }
 

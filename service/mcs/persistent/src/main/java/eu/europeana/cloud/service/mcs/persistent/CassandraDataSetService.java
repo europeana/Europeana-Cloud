@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static java.util.function.Predicate.not;
+
 /**
  * Implementation of data set service using Cassandra database.
  */
@@ -226,6 +228,27 @@ public class CassandraDataSetService implements DataSetService {
             list.remove(limit);
         }
         return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
+    }
+
+    @Override
+    public List<CloudTagsResponse> getDataSetsExistingRevisions(
+            String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp,
+            String representationName, int limit) throws ProviderNotExistsException, DataSetNotExistsException {
+
+        List<CloudTagsResponse> resultList = new ArrayList<>();
+        ResultSlice<CloudTagsResponse> subResults;
+        String startFrom = null;
+
+        do {
+            subResults = getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
+                    representationName, startFrom, 5000);
+
+            subResults.getResults().stream().filter(not(CloudTagsResponse::isDeleted)).limit(limit - resultList.size())
+                    .forEach(resultList::add);
+            startFrom = subResults.getNextSlice();
+        } while (startFrom != null && resultList.size() < limit);
+
+        return resultList;
     }
 
     private List<CloudTagsResponse> prepareCloudTagsResponseList(List<Properties> list) {

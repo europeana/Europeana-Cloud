@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -143,7 +144,22 @@ public interface DataSetService {
                                                         String representationName, String startFrom, int limit)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
-
+    /**
+     * Lists all cloudId that are included in given dataSet for given revisionId and representationName.
+     *
+     * @param providerId         dataSet owner
+     * @param dataSetId          dataSet id
+     * @param revisionProviderId revision provider id
+     * @param revisionName       revision name
+     * @param revisionTimestamp  revision timestamp
+     * @param representationName representation name
+     * @param limit              max number of results in one slice.
+     * @return List of cloudIds and tags in given dataSet for given revisionId and representationName.
+     */
+    List<CloudTagsResponse> getDataSetsExistingRevisions(String providerId, String dataSetId, String revisionProviderId,
+                                                         String revisionName, Date revisionTimestamp,
+                                                         String representationName, int limit)
+            throws ProviderNotExistsException, DataSetNotExistsException;
     /**
      * Remove a revision
      *

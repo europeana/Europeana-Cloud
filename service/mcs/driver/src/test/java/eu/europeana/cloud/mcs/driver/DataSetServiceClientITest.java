@@ -100,6 +100,27 @@ public class DataSetServiceClientITest {
     }
 
     @Test
+    public void getDataSetOnlyExistingRevisions() throws MCSException {
+        String providerId = "xxx";
+        String dataSetId = "autotests";
+        String representationName = "xxx";
+        String revisionName = "OAIPMH_HARVEST";
+        String revisionProviderId = "xxx";
+        String revisionTimestamp = "2021-09-22T06:45:02.592";
+        Integer limit = 1000;
+
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        ResultSlice<CloudTagsResponse> response =
+                mcsClient.getDataSetOnlyExistingRevisions(providerId, dataSetId, representationName,
+                        revisionName, revisionProviderId, revisionTimestamp, limit);
+
+        assertNotNull(response);
+        assertNotNull(response.getResults());
+        System.out.println(response.getResults());
+    }
+
+    @Test
     public void getDataSetRepresentationsChunk() throws MCSException {
         String providerId = "<enter_provider_id_here>";
         String dataSetId = "<enter_data_set_id_here>";

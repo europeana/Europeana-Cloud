@@ -537,6 +537,50 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     }
 
+
+    @Test
+    public void shouldAllowReturningOnlyExistingRevisions() throws Exception {
+                makeUISProviderSuccess();
+        //given
+        makeUISSuccess();
+        makeDatasetExists();
+        Revision exitstingRevision = new Revision(REVISION, REVISION_PROVIDER);
+        Revision deletedRevision = new Revision(REVISION, REVISION_PROVIDER);
+        deletedRevision.setCreationTimeStamp(exitstingRevision.getCreationTimeStamp());
+        deletedRevision.setDeleted(true);
+        for(int i=0;i<12500;i++) {
+            if ((i + 1) % 2000 == 0) {
+                dataSetDAO.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, exitstingRevision, REPRESENTATION, "CLOUD_ID_" + i);
+            } else {
+                dataSetDAO.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, deletedRevision, REPRESENTATION, "CLOUD_ID_" + i);
+            }
+        }
+
+
+        //when
+        List<CloudTagsResponse> result = cassandraDataSetService.getDataSetsExistingRevisions(PROVIDER_ID, DATA_SET_NAME,
+                REVISION_PROVIDER, REVISION, exitstingRevision.getCreationTimeStamp(), REPRESENTATION, 5);
+        //then
+        assertEquals(5,result.size());
+        result.forEach(response->assertFalse(response.isDeleted()));
+
+
+        //when
+        result = cassandraDataSetService.getDataSetsExistingRevisions(PROVIDER_ID, DATA_SET_NAME, REVISION_PROVIDER,
+                REVISION, exitstingRevision.getCreationTimeStamp(), REPRESENTATION, 6);
+        //then
+        assertEquals(6,result.size());
+        result.forEach(response->assertFalse(response.isDeleted()));
+
+
+        //when
+        result = cassandraDataSetService.getDataSetsExistingRevisions(PROVIDER_ID, DATA_SET_NAME, REVISION_PROVIDER,
+                REVISION, exitstingRevision.getCreationTimeStamp(), REPRESENTATION, 10);
+        //then
+        assertEquals(6,result.size());
+        result.forEach(response->assertFalse(response.isDeleted()));
+    }
+
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsException() throws Exception {
         makeUISProviderSuccess();
