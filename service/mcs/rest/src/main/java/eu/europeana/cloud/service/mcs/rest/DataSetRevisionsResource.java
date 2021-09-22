@@ -75,7 +75,6 @@ public class DataSetRevisionsResource {
         return ResponseEntity.ok(result);
     }
 
-
     /**
      * Lists cloudIds from data set. Result is returned in
      * slices.
