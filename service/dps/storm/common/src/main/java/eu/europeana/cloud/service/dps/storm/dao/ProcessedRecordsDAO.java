@@ -25,7 +25,6 @@ import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColum
  */
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class ProcessedRecordsDAO extends CassandraDAO {
-    private static final long TIME_TO_LIVE = 2 * 7 * 24 * 60 * 60L;  //two weeks in seconds
     private static final int BUCKETS_COUNT = 128;
 
     private PreparedStatement insertStatement;
@@ -65,7 +64,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_START_TIME + ","
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                ") VALUES (?,?,?,?,?,?,?,?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?,?,?,?,?,?,?)");
 
         updateRecordStateStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
@@ -73,7 +72,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_RECORD_ID + ","
                 + PROCESSED_RECORDS_BUCKET_NUMBER + ","
                 + PROCESSED_RECORDS_STATE +
-                ") VALUES (?,?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?)");
 
         updateRecordStartTime = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
@@ -81,7 +80,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_RECORD_ID + ","
                 + PROCESSED_RECORDS_BUCKET_NUMBER + ","
                 + PROCESSED_RECORDS_START_TIME +
-                ") VALUES (?,?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?)");
 
         updateAttemptNumberStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
@@ -89,7 +88,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_RECORD_ID + ","
                 + PROCESSED_RECORDS_BUCKET_NUMBER + ","
                 + PROCESSED_RECORDS_ATTEMPT_NUMBER +
-                ") VALUES (?,?,?,?) USING TTL " + TIME_TO_LIVE);
+                ") VALUES (?,?,?,?)");
 
         selectByPrimaryKeyStatement = dbService.getSession().prepare("SELECT "
                 + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
