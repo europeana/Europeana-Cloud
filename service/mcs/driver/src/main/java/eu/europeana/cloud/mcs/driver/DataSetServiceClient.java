@@ -539,13 +539,54 @@ public class DataSetServiceClient extends MCSClient {
         }
     }
 
+
+    /**
+     * Retrieve list of existing (not deleted) cloudIds and tags from data set for specific revision.
+     *
+     * @param providerId         provider identifier (required)
+     * @param dataSetId          data set identifier (requred)
+     * @param representationName name of the representation (required)
+     * @param revisionName       revision name (required)
+     * @param revisionProviderId revision provider id (required)
+     * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
+     * @param limit              maximum number of returned elements. Should not be greater than 10000
+     * @return slice of representation cloud identifier list from data set together with tags of the revision
+     * @throws MCSException on unexpected situations
+     */
+    public List<CloudTagsResponse> getRevisionsWithDeletedFlagSetToFalse(
+            String providerId, String dataSetId, String representationName, String revisionName, String revisionProviderId,
+            String revisionTimestamp, int limit) throws MCSException {
+        WebTarget target = client.target(baseUrl)
+                .path(DATA_SET_REVISIONS_RESOURCE)
+                .resolveTemplate(PROVIDER_ID, providerId)
+                .resolveTemplate(DATA_SET_ID, dataSetId)
+                .resolveTemplate(REPRESENTATION_NAME, representationName)
+                .resolveTemplate(REVISION_NAME, revisionName)
+                .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
+                .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                .queryParam(F_EXISTING_ONLY, true)
+                .queryParam(F_LIMIT, limit);
+
+        Response response = null;
+        try {
+            response = target.request().get();
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(ResultSlice.class).getResults();
+            }
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        } finally {
+            closeResponse(response);
+        }
+    }
+
     /**
      * Retrieve chunk of cloudIds and tags from data set for specific revision.
      *
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (requred)
      * @param representationName name of the representation (required)
-     * @param revisionName       revision naem (required)
+     * @param revisionName       revision name (required)
      * @param revisionProviderId revision provider id (required)
      * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
      * @param startFrom          code pointing to the requested result slice (if equal to
