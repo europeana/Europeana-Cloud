@@ -18,14 +18,9 @@ import static org.junit.Assert.*;
 @Ignore
 public class DataSetServiceClientITest {
     private  static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
-    private  static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
-    private  static final String REMOTE_TEST_URL = "https://test.ecloud.psnc.pl/api";
-    private  static final String REMOTE_TEST_UIS_URL = "https://test.ecloud.psnc.pl/api";
 
     private static final String USER_NAME = "metis_test";  //user z bazy danych
-    private static final String USER_PASSWORD = "1RkZBuVf";
-    private static final String ADMIN_NAME = "admin";  //admin z bazy danych
-    private static final String ADMIN_PASSWORD = "glEumLWDSVUjQcRVswhN";
+    private static final String USER_PASSWORD = "Gi*Z26h4c1y^rTGf";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClientITest.class);
 

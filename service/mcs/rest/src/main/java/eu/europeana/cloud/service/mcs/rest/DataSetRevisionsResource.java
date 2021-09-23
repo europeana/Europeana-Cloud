@@ -18,8 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REVISIONS_RESOURCE;
 
 /**
@@ -47,6 +45,8 @@ public class DataSetRevisionsResource {
      * @param revisionName       name of the revision
      * @param revisionProviderId provider of revision
      * @param revisionTimestamp  timestamp used for identifying revision, must be in UTC format
+     * @param existingOnly       if set to true, records with deleted flag would be filtered out, additionally
+     *                           the result would not contain nextToken, so continuation request would be impossible.
      * @param startFrom          reference to next slice of result. If not provided, first slice of result will be returned.
      * @param limit
      * @return slice of cloud id with tags of the revision list.
@@ -66,7 +66,8 @@ public class DataSetRevisionsResource {
             @RequestParam int limit) throws DataSetNotExistsException, ProviderNotExistsException {
 
         if (existingOnly && startFrom != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not continue query with parameter existingOnly=true!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Could not continue query with parameter existingOnly=true! It is not allowed together with 'startFrom' parameter.");
         }
 
         // when limitParam is specified we can retrieve more results than configured number of elements per page
