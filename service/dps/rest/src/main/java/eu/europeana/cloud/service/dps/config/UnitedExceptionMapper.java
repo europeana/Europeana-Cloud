@@ -97,7 +97,7 @@ public class UnitedExceptionMapper {
     }
     
     private static ErrorInfo buildResponse(DpsErrorCode errorCode, Exception e) {
-        LOGGER.error("Operation failed because of: {}", e.getMessage());
+        LOGGER.error("Operation failed because of: {}", e.getMessage(), e);
         return buildResponse(errorCode, e.getMessage());
     }
 

@@ -1,7 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -29,7 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.CLIENT_FILE_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
 
 /**
  * Exposes API related to files.
@@ -161,8 +161,7 @@ public class FileServiceClient extends MCSClient {
                 InputStream contentResponse = response.readEntity(InputStream.class);
                 return copiedInputStream(contentResponse);
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
 
         } finally {
@@ -282,8 +281,7 @@ public class FileServiceClient extends MCSClient {
             if (response.getStatus() == Status.CREATED.getStatusCode()) {
                 return response.getLocation();
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
 
         } finally {
@@ -331,8 +329,7 @@ public class FileServiceClient extends MCSClient {
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 return response.getLocation();
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeOpenResources(data, multipart, response);
@@ -364,8 +361,7 @@ public class FileServiceClient extends MCSClient {
             if (response.getStatus() == Status.CREATED.getStatusCode()) {
                 return response.getLocation();
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
 
         } finally {
@@ -429,8 +425,7 @@ public class FileServiceClient extends MCSClient {
                 return response.getLocation();
 
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
 
         } finally {
@@ -465,8 +460,7 @@ public class FileServiceClient extends MCSClient {
         try {
             response = target.request().delete();
             if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -565,8 +559,7 @@ public class FileServiceClient extends MCSClient {
             }
             return response.getLocation();
         } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(getErrorInfo(response));
         }
     }
 
@@ -575,8 +568,7 @@ public class FileServiceClient extends MCSClient {
             InputStream contentResponse = response.readEntity(InputStream.class);
             return copiedInputStream(contentResponse);
         } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(getErrorInfo(response));
         }
     }
 

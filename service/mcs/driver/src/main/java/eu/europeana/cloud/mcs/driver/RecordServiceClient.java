@@ -4,10 +4,8 @@ import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -132,8 +130,7 @@ public class RecordServiceClient extends MCSClient {
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(Record.class);
             }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(getErrorInfo(response));
 
         } finally {
             closeResponse(response);
@@ -185,8 +182,7 @@ public class RecordServiceClient extends MCSClient {
                 }); //formatting here is irreadble
             }
 
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(getErrorInfo(response));
 
         } finally {
             closeResponse(response);
@@ -220,8 +216,7 @@ public class RecordServiceClient extends MCSClient {
 
                 return response.readEntity(Representation.class);
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
 
         } finally {
@@ -457,8 +452,7 @@ public class RecordServiceClient extends MCSClient {
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(new GenericType<List<Representation>>() {});
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -596,8 +590,7 @@ public class RecordServiceClient extends MCSClient {
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 return response.getLocation();
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -665,7 +658,7 @@ public class RecordServiceClient extends MCSClient {
             if(response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
                 throw new MCSException("Permissions not modified");
             } else if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-                throwException(response);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -721,7 +714,7 @@ public class RecordServiceClient extends MCSClient {
         try {
             response = request.post(null);
             if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-                throwException(response);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -773,8 +766,7 @@ public class RecordServiceClient extends MCSClient {
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(new GenericType<List<Representation>>() {});
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } catch (MessageBodyProviderNotFoundException e) {
             String out = webtarget.getUri().toString();
@@ -817,8 +809,7 @@ public class RecordServiceClient extends MCSClient {
                 return response.readEntity(new GenericType<List<Representation>>() {
                 });
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } catch (MessageBodyProviderNotFoundException e) {
             String out = webtarget.getUri().toString();
@@ -833,18 +824,6 @@ public class RecordServiceClient extends MCSClient {
         client.close();
     }
 
-    private void throwException(Response response) throws MCSException {
-        try {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        } catch (MessageBodyProviderNotFoundException e) {
-            ErrorInfo errorInfo = new ErrorInfo();
-            errorInfo.setErrorCode(McsErrorCode.OTHER.toString());
-            errorInfo.setDetails("Mcs not available");
-            throw MCSExceptionProvider.generateException(errorInfo);
-        }
-    }
-
     private void closeResponse(Response response) {
         if (response != null) {
             response.close();
@@ -855,8 +834,7 @@ public class RecordServiceClient extends MCSClient {
         if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
             return response.getLocation();
         } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(getErrorInfo(response));
         }
     }
 
@@ -865,8 +843,7 @@ public class RecordServiceClient extends MCSClient {
         try {
             response = request.delete();
             if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -880,8 +857,7 @@ public class RecordServiceClient extends MCSClient {
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(Representation.class);
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } catch (MessageBodyProviderNotFoundException e) {
             String out = webtarget.getUri().toString();

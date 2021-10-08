@@ -2,7 +2,6 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -251,8 +250,7 @@ public class RevisionServiceClient extends MCSClient {
         try {
             response = request.delete();
             if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -292,8 +290,7 @@ public class RevisionServiceClient extends MCSClient {
         try {
             response = request.delete();
             if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(getErrorInfo(response));
             }
         } finally {
             closeResponse(response);
@@ -316,8 +313,7 @@ public class RevisionServiceClient extends MCSClient {
         if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
             return response.getLocation();
         } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(getErrorInfo(response));
         }
     }
 
