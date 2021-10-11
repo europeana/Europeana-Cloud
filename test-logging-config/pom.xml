@@ -13,4 +13,16 @@
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
+    <distributionManagement>
+        <repository>
+            <id>artifactory.eanadev.org</id>
+            <name>artifactory.eanadev.org-releases</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>artifactory.eanadev.org</id>
+            <name>artifactory.eanadev.org-snapshots</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
