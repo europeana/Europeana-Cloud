@@ -1,5 +1,8 @@
 # Change Log
 
+## [v5](https://github.com/europeana/Europeana-Cloud/tree/v5) (2021-10-11)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v4...v5)
+
 ## [v4](https://github.com/europeana/Europeana-Cloud/tree/v4) (2021-04-19)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v3...v4)
 
@@ -16,13 +19,13 @@
 - Provide information on the exception about the response status code a… [\#305](https://github.com/europeana/Europeana-Cloud/pull/305) ([stzanakis](https://github.com/stzanakis))
 - MET-3217 fix for the zip files containing directories [\#304](https://github.com/europeana/Europeana-Cloud/pull/304) ([pWoz](https://github.com/pWoz))
 - Feat/met 3187 restarts in http topology [\#303](https://github.com/europeana/Europeana-Cloud/pull/303) ([pWoz](https://github.com/pWoz))
-- Update metis version to new SNAPSHOT [\#302](https://github.com/europeana/Europeana-Cloud/pull/302) ([stzanakis](https://github.com/stzanakis))
 
 ## [v2](https://github.com/europeana/Europeana-Cloud/tree/v2) (2020-10-12)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1...v2)
 
 **Merged pull requests:**
 
+- Update metis version to new SNAPSHOT [\#302](https://github.com/europeana/Europeana-Cloud/pull/302) ([stzanakis](https://github.com/stzanakis))
 - Changes in HttpTopologyTaskSubmitter [\#287](https://github.com/europeana/Europeana-Cloud/pull/287) ([pWoz](https://github.com/pWoz))
 - MET-3049 Count records not entire data set \(records priority\) + test … [\#286](https://github.com/europeana/Europeana-Cloud/pull/286) ([pWoz](https://github.com/pWoz))
 - Changes so that the with new metis SNAPSHOT the build works [\#285](https://github.com/europeana/Europeana-Cloud/pull/285) ([stzanakis](https://github.com/stzanakis))
@@ -70,6 +73,7 @@
 - Feat/met 2227 oai topology by record instead of task [\#251](https://github.com/europeana/Europeana-Cloud/pull/251) ([margraf](https://github.com/margraf))
 - Met 2227 oai topology by record instead of task [\#249](https://github.com/europeana/Europeana-Cloud/pull/249) ([pWoz](https://github.com/pWoz))
 - Met 2315 id for dps app [\#248](https://github.com/europeana/Europeana-Cloud/pull/248) ([pWoz](https://github.com/pWoz))
+- Met 1659 [\#234](https://github.com/europeana/Europeana-Cloud/pull/234) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.7.0](https://github.com/europeana/Europeana-Cloud/tree/v1.7.0) (2019-11-13)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.6.0...v1.7.0)
@@ -93,7 +97,6 @@
 - MET-2182 Add RECORD\_DATE parameter in indexing topology [\#238](https://github.com/europeana/Europeana-Cloud/pull/238) ([stzanakis](https://github.com/stzanakis))
 - Met 2109 [\#236](https://github.com/europeana/Europeana-Cloud/pull/236) ([tarekkh](https://github.com/tarekkh))
 - Met 1492 [\#235](https://github.com/europeana/Europeana-Cloud/pull/235) ([tarekkh](https://github.com/tarekkh))
-- Met 1659 [\#234](https://github.com/europeana/Europeana-Cloud/pull/234) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.5.1](https://github.com/europeana/Europeana-Cloud/tree/v1.5.1) (2019-07-25)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.5.0...v1.5.1)
@@ -441,7 +444,6 @@
 - Ecl 928 [\#8](https://github.com/europeana/Europeana-Cloud/pull/8) ([tarekkh](https://github.com/tarekkh))
 - Ecl 753 method not allowed [\#7](https://github.com/europeana/Europeana-Cloud/pull/7) ([pWoz](https://github.com/pWoz))
 - ECL-890 upgrade jersey to version 2.23.1 [\#5](https://github.com/europeana/Europeana-Cloud/pull/5) ([akrystian](https://github.com/akrystian))
-- Ecl 885 fix listing cloud ids for data provider [\#4](https://github.com/europeana/Europeana-Cloud/pull/4) ([akrystian](https://github.com/akrystian))
 
 ## [v0.5](https://github.com/europeana/Europeana-Cloud/tree/v0.5) (2016-05-09)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.4...v0.5)
@@ -457,6 +459,7 @@
 
 **Merged pull requests:**
 
+- Ecl 885 fix listing cloud ids for data provider [\#4](https://github.com/europeana/Europeana-Cloud/pull/4) ([akrystian](https://github.com/akrystian))
 - Text stripping topology [\#2](https://github.com/europeana/Europeana-Cloud/pull/2) ([nb-ceffa](https://github.com/nb-ceffa))
 
 ## [ecloud_2014_11_26_freeze](https://github.com/europeana/Europeana-Cloud/tree/ecloud_2014_11_26_freeze) (2014-11-25)
