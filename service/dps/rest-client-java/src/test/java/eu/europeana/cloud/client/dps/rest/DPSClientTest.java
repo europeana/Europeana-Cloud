@@ -126,7 +126,16 @@ public class DPSClientTest {
     @Betamax(tape = "DPSClient/getTaskProgressTest")
     public final void shouldReturnedProgressReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 1, 0, 0, 0, null, null, null);
+        TaskInfo taskInfo = TaskInfo.builder()
+                .id(TASK_ID)
+                .topologyName(TOPOLOGY_NAME)
+                .state(TaskState.DROPPED)
+                .stateDescription("")
+                .expectedRecordsNumber(1)
+                .processedRecordsCount(0)
+                .processedErrorsCount(0)
+                .build();
+
         assertThat(dpsClient.getTaskProgress(TOPOLOGY_NAME, TASK_ID), is(taskInfo));
 
     }
@@ -251,33 +260,6 @@ public class DPSClientTest {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         dpsClient.getTaskStatisticsReport(TOPOLOGY_NAME, TASK_ID);
     }
-
-
-    @Test
-    @Betamax(tape = "DPSClient_shouldCleanIndexingDataSet")
-    public void shouldCleanIndexingDataSet() throws DpsException {
-        DpsClient dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        dpsClient.cleanMetisIndexingDataset(TOPOLOGY_NAME, TASK_ID, new DataSetCleanerParameters());
-    }
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    @Betamax(tape = "DPSClient_shouldThrowAccessDeniedWhenTaskIdDoesNotExistOrUnAccessible")
-    public void shouldThrowAccessDeniedWhenTaskIdDoesNotExistOrUnAccessible() throws DpsException {
-        DpsClient dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        long missingTaskId = 111;
-        dpsClient.cleanMetisIndexingDataset(TOPOLOGY_NAME, missingTaskId, new DataSetCleanerParameters());
-
-    }
-
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    @Betamax(tape = "DPSClient_shouldThrowAccessDeniedWhenTopologyDoesNotExist")
-    public void shouldThrowAccessDeniedWhenTopologyDoesNotExist() throws DpsException {
-        DpsClient dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        String wrongTopologyName = "wrongTopology";
-        dpsClient.cleanMetisIndexingDataset(wrongTopologyName, TASK_ID, new DataSetCleanerParameters());
-    }
-
 
     private TaskErrorsInfo createErrorInfo(long taskId, boolean specific) {
         TaskErrorsInfo info = new TaskErrorsInfo();

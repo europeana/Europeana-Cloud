@@ -1,11 +1,12 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.utils.TaskCountersAggregator;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ public class DatasetFilesCounter extends FilesCounter {
         try {
             long taskId = Long.parseLong(providedTaskId);
             TaskInfo taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-            return taskInfo.getProcessedElementCount();
+            return TaskCountersAggregator.recordsDesignedForTheFurtherProcessing(taskInfo);
         } catch (NumberFormatException e) {
             LOGGER.error("The provided previous task id {} is not long  ", providedTaskId);
             return UNKNOWN_EXPECTED_SIZE;

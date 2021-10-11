@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#" 
+    xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" 
+    xmlns:xalan="http://xml.apache.org/xalan" 
+    xmlns:edm="http://www.europeana.eu/schemas/edm/" 
+    xmlns:foaf="http://xmlns.com/foaf/0.1/" 
+    xmlns:odrl="http://www.w3.org/ns/odrl/2/" 
+    xmlns:ore="http://www.openarchives.org/ore/terms/" 
+    xmlns:adms="http://www.w3.org/ns/adms#" 
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:cc="http://creativecommons.org/ns#" 
+    xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" 
+    xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#" 
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/" 
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" 
+    xmlns:dcat="http://www.w3.org/ns/dcat#" 
+    xmlns:skos="http://www.w3.org/2004/02/skos/core#">
+<edm:ProvidedCHO rdf:about="LIT_280_002">
+    <dc:creator rdf:resource="http://viaf.org/viaf/38006858"/>
+    <dc:description xml:lang="li">Pranciškus Smuglevičius – žymiausias Lietuvos klasicizmo dailininkas, pirmasis Vilniaus universitete įsteigtos Piešimo ir tapybos katedros vadovas, savo kūryba ir pedagogine veikla padaręs didelę įtaką Lietuvos profesionaliosios dailės raidai. Tapydamas paveikslus antikiniais siužetais P. Smuglevičius įkvėpimo sėmėsi iš antikos autorių (Herodoto, Plutarcho, Homero, Vergilijaus) veikalų. Jis savo vaizduojamiems siužetams suteikdavo  moralizuojančią potekstę. Paveiksle „Persų pasiuntiniai pas Etiopų karalių“ pavaizduotas persų karaliaus Kambizo (mirė 522 m. pr. Kr.), sumaniusio karo žygį prieš Etiopiją, žvalgus, atvykusius pas etiopų karalių su dovanomis: purpurine mantija, auksiniu vėriniu ir sage, alebastro dėžute su balzamu ir vyno amforomis. Etiopų karalius, perpratęs jų klastą, pasiuntiniams įteikia lanką, liepdamas persų karaliui perduoti, kad jis pataria tik tada žygiuoti su kariuomene prieš etiopus, kai persai įstengs įtempti tokio dydžio lankus. Kol to nebus, tegul persai dėkoja dievams, kad jie Etiopijos sūnums neįdiegė minties prie savosios žemės prisijungti svetimas. P. Smuglevičiaus kompozicijoje lanką regime jau persų pasiuntinio rankoje. Etiopų karalius, nežiūrėdamas į prie jo kojų sukrautas dovanas, valdingu mostu varo svečius lauk. Rytietiški veikėjų apdarai, egzotiški tipažai, prabangios dovanos kuria spalvingą, barokiškai turtingą reginį. Skitų pasiuntinių priėmimo scenoje Pranciškus Smuglevičius pavaizdavo persų karaliaus Darijaus I (550-486 m. pr. Kr.) nesėkmingo žygio į skitų žemes epizodą. Pas Darijų atvykęs skitų šauklys karaliui įteikia paukštį, pelę, varlę ir penkias strėlės, liepdamas patiems persams išsiaiškinti dovanų prasmę. Soste sėdintis karalius susimąstęs žvelgia į dovanas. Nemažiau intensyviai mąsto už karaliaus susibūrę dvariškiai. Darijaus nuomone, dovanos reiškia, kad skitai pasiduoda persams su žeme ir vandeniu. Visiškai kitokią nuomonę išsakė Gobrijas, vienas iš septynių vyrų, nuvertusių magą. Pasak jo, dovanos skelbia: „O, persai! Jeigu jūs kaip paukščiai nenuskrisite į padanges arba kaip pelės nesulysite į žemę, arba kaip varlės nesušoksite į vandenį, tai negrįšite namo, nes jus pervers šitos strėlės”. Kaip ir paveiksle „Persų pasiuntiniai pas Etiopų karalių“, Pranciškus Smuglevičius čia per analogiją išreiškia tautų teisę į nepriklausomybę bei kovą už ją. Dailininkas su malonumu vartoja vėlyvojo baroko efektus: rytietišką spalvingumą, turtingas egzotiškos aprangos, kilimų ir draperijų, šarvų ir ginklų faktūras. Paveikslai „Persų pasiuntiniai pas Etiopų karalių“ ir „Skitų pasiuntiniai pas Persų karalių Darijų“ kelia tautų teisės į nepriklausomybę bei kovos už laisvę temas. Jos buvo itin aktualios tieks P. Smuglevičiaus gyvenimo laikotarpiu, kai Rusija, Prūsija ir Austrija pasidalijo Abiejų Tautų Respubliką (bendrą Lietuvos ir Lenkijos valstybę), tiek ir vėlesniais metais.</dc:description>
+    <dc:description xml:lang="en">Franciszek Smuglewicz is one of the most famous Lithuanian Classicism painters, the first professor and the head of the Drawing and Painting Department established in late 18th century in Vilnius University. His artworks and educational activities made significant impact for the development of professional Lithuanian art. His ancient subject paintings were inspired by works of Antique authors, such as Herodotus, Plutarch, Homer, and Vergilius. Depicted scenes were given philosophic and moralising subtext, corresponding with the spirit of the Enlightened Classicism.  Painting “Persian Envoys before the King of Ethiopia“ portrays the episode described in “The History” by Herodotus, when the messengers of Persian king Cambyses (d. 522 BC), who plots an attack on Ethiopia, visits the Ethiopian king. Envoys brought gifts: a purple robe, a gold chain and a pin, an alabaster box containing balsam, and amphorae of wine. The king of Ethiopia realizes their cunning advances. He presents Persians with a bow and orders it to be given to their king, suggesting him to march upon the Ethiopians only when his forces are capable of drawing such mighty bows. Until they are able to do so, the Persians should thank their gods that the thought of marching to foreign lands did not cross the minds of Ethiopian sons. In the painting the bow is already in the hands of Persian envoy. Ethiopian king ignoring gifts piled at his feet drives his guests away with a thrust of his hand. Both "Persian Envoys before the King of Ethiopia”  and “Scythian Messengers Meet the Persian King Darius I“ promote the right of nations to be independent and to fight for their freedom. As the Polish-Lithuanian Commonwealth ceased to exist in the late 18th century after its’ territory was partitioned among Prussia, the Austrian Empire, and the Russian Empire these ideas were very important at the time Franciszek Smuglewicz lived in and during the following years.</dc:description>
+    <dc:language>English</dc:language>
+    <dc:language>Lietuvių</dc:language>
+    <dc:subject rdf:resource="http://iconclass.org/61A"/>
+    <dc:title xml:lang="en">Persian Envoys before the King of Ethiopia</dc:title>
+    <dc:type rdf:resource="http://vocab.getty.edu/aat/300033799"/>
+    <dc:type rdf:resource="http://vocab.getty.edu/aat/300033898"/>
+    <dcterms:created xml:lang="en">end of the 18th century - beginning of the 19th century</dcterms:created>
+    <dcterms:extent xml:lang="en">145 cm x 184 cm</dcterms:extent>
+    <dcterms:medium rdf:resource="http://vocab.getty.edu/aat/300178684"/>
+    <edm:currentLocation rdf:resource="#LIT_place2"/>
+    <edm:type>IMAGE</edm:type>
+</edm:ProvidedCHO>
+<edm:WebResource rdf:about="https://www.dropbox.com/s/2a6n1spcvzvdjsu/Lithuania_3a_Smuglevicius_P_Persian_Envoys_before_the_King_of_Ethiopia.jpg?raw=1">
+        <edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+</edm:WebResource>
+<ore:Aggregation rdf:about="LIT_280_002">
+    <edm:aggregatedCHO rdf:resource="LIT_280_002#aggregation"/>
+    <edm:dataProvider>Lithuanian Art Museum</edm:dataProvider>
+    <edm:isShownAt rdf:resource="https://www.limis.lt/detali-paieska/perziura/-/exhibit/preview/20000002228789"/>
+    <edm:isShownBy rdf:resource="https://www.dropbox.com/s/2a6n1spcvzvdjsu/Lithuania_3a_Smuglevicius_P_Persian_Envoys_before_the_King_of_Ethiopia.jpg?raw=1"/>
+    <edm:object rdf:resource="https://www.dropbox.com/s/2a6n1spcvzvdjsu/Lithuania_3a_Smuglevicius_P_Persian_Envoys_before_the_King_of_Ethiopia.jpg?raw=1"/>
+    <edm:provider>Europeana 280</edm:provider>
+    <edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+</ore:Aggregation>
+<edm:Place rdf:about="#LIT_place2">
+        <wgs84_pos:lat>54.6804674</wgs84_pos:lat>
+        <wgs84_pos:long>25.2893464</wgs84_pos:long>
+        <skos:prefLabel xml:lang="li">Vilniaus paveikslu galerija, Lietuvos dailes muziejus</skos:prefLabel>
+</edm:Place>
+</rdf:RDF>

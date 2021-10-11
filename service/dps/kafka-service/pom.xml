@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>4.2</version>
+        <version>5</version>
     </parent>
 
     <artifactId>ecloud-service-dps-kafka</artifactId>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
         </dependency>
 
         <dependency>
@@ -45,48 +45,18 @@
             <artifactId>kafka-clients</artifactId>
             <version>${version.kafka}</version>
         </dependency>
-
-        <!--logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-        </dependency>
         <!-- SLF4J extensions -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-ext</artifactId>
             <version>1.7.5</version>
         </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-
         <!--tests -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
             <version>${version.spring-framework}</version>
-            <exclusions>
-                <!--without jcl - because we use log4j through slf4j -->
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.kubek2k</groupId>
@@ -99,6 +69,12 @@
             <artifactId>lz4</artifactId>
             <version>1.2.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${version.lombok}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

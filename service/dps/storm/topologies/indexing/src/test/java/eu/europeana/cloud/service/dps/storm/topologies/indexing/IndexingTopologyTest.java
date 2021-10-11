@@ -23,9 +23,9 @@ import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
@@ -66,7 +66,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, IndexingRevisionWriter.class,
         CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class,
         CassandraTaskErrorsDAO.class, TaskStatusChecker.class, TaskStatusUpdater.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class IndexingTopologyTest extends TopologyTestHelper {
 
     private static final String AUTHORIZATION = "Authorization";
@@ -102,9 +102,9 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
-                .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.INDEXING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+                .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.INDEXING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
 
         topology = builder.createTopology();
     }
@@ -171,7 +171,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"Record is indexed correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"Record is indexed correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
 
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }

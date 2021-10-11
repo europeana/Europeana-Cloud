@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -10,13 +11,9 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
+import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -27,28 +24,26 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
-import static eu.europeana.cloud.service.dps.storm.utils.DateHelper.parseISODate;
+import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({MCSTaskSubmitter.class, MCSReader.class})
+@PowerMockIgnore({"org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class MCSTaskSubmitterTest {
 
     public static final String REPRESENTATION_URI_STRING_1 = "http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions/ec3c18b0-7354-11ea-b16e-04922659f621";
@@ -162,7 +157,12 @@ public class MCSTaskSubmitterTest {
         whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordServiceClient);
         task.setTaskId(TASK_ID);
         task.addParameter(PluginParameterKeys.SCHEMA_NAME, SCHEMA_NAME);
-        submitParameters = SubmitTaskParameters.builder().task(task).topologyName(TOPOLOGY).topicName(TOPIC).build();
+        submitParameters = SubmitTaskParameters.builder()
+                .task(task)
+                .taskInfo(TaskInfo.builder()
+                        .topologyName(TOPOLOGY)
+                        .build())
+                .topicName(TOPIC).build();
 
         //used in most tests
         when(fileServiceClient.getFileUri(eq(CLOUD_ID1), eq(REPRESENTATION_NAME), eq(VERSION_1), eq(FILE_NAME_1))).thenReturn(FILE_URI_1);
@@ -171,7 +171,7 @@ public class MCSTaskSubmitterTest {
     @Test
     public void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() {
         task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
-        when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(true);
+        when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(true);
 
         submitter.execute(submitParameters);
 
@@ -184,7 +184,7 @@ public class MCSTaskSubmitterTest {
 
         submitter.execute(submitParameters);
 
-        verify(taskStatusUpdater).updateStatusExpectedSize(eq(TASK_ID), eq(String.valueOf(TaskState.QUEUED)), eq(1));
+        verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, 1);
     }
 
     @Test
@@ -442,6 +442,6 @@ public class MCSTaskSubmitterTest {
     }
 
     private void verifyValidStateAndExpectedSizeSavedInCassandra(String[] fileUrls) {
-        verify(taskStatusUpdater).updateStatusExpectedSize(eq(TASK_ID), eq(String.valueOf(TaskState.QUEUED)), eq(fileUrls.length));
+        verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, fileUrls.length);
     }
 }

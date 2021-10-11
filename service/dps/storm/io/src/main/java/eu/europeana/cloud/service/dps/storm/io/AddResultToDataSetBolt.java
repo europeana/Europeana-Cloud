@@ -2,15 +2,14 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
@@ -18,8 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.util.Arrays;
+import java.time.Instant;
+import java.util.Calendar;
 import java.util.List;
+
+import static eu.europeana.cloud.service.commons.urls.RepresentationParser.parseResultUrl;
 
 /**
  *
@@ -28,7 +30,7 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
 
-    private String ecloudMcsAddress;
+    private final String ecloudMcsAddress;
     private transient DataSetServiceClient dataSetServiceClient;
 
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
@@ -54,7 +56,8 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("Adding result to dataset");
+        LOGGER.info("Adding representation versions to dataset");
+        Instant processingStartTime = Instant.now();
         final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         String resultUrl = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
         try {
@@ -63,20 +66,27 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             }
 
             if (stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) == null)
-                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl,
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                        stormTaskTuple.getFileUrl(), "", "", resultUrl,
                         StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
             else
-                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), "", "", resultUrl, stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE), stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
+                emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                        stormTaskTuple.getFileUrl(), "", "", resultUrl,
+                        stormTaskTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
+                        stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
                         StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MCSException | DriverException e) {
             LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is: " + e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is: " + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MalformedURLException e) {
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is: " + e.getCause(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is: " + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
+        LOGGER.info("Representation version added to dataset in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private void addRecordToDataset(StormTaskTuple stormTaskTuple, String authorizationHeader, String resultUrl) throws MalformedURLException, MCSException {
@@ -103,16 +113,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
 
 
-    private Representation parseResultUrl(String url) throws MalformedURLException {
-        UrlParser parser = new UrlParser(url);
-        if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
-            Representation rep = new Representation();
-            rep.setCloudId(parser.getPart(UrlPart.RECORDS));
-            rep.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
-            rep.setVersion(parser.getPart(UrlPart.VERSIONS));
-            return rep;
-        }
-        throw new MalformedURLException("The resulted output URL is not formulated correctly");
-    }
+
 
 }

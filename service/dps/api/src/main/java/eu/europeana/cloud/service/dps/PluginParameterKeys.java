@@ -56,6 +56,7 @@ public final class PluginParameterKeys {
 
     public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
+    public static final String SENT_DATE = "SENT_DATE";
 
     //---------- Validation DPS Task ----
 
@@ -80,6 +81,9 @@ public final class PluginParameterKeys {
     public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
     public static final String USE_DEFAULT_IDENTIFIERS = "USE_DEFAULT_IDENTIFIERS";
     public static final String INCREMENTAL_HARVEST = "INCREMENTAL_HARVEST";
+    public static final String INCREMENTAL_INDEXING = "INCREMENTAL_INDEXING";
+    public static final String HARVEST_DATE = "HARVEST_DATE";
+    public static final String RECORD_DATESTAMP = "RECORD_DATESTAMP";
 
     // -----------MIGRATION----------
     public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";
@@ -94,12 +98,12 @@ public final class PluginParameterKeys {
     public static final String RESOURCE_METADATA = "RESOURCE_METADATA";
 
     public static final String MAIN_THUMBNAIL_AVAILABLE = "MAIN_THUMBNAIL_AVAILABLE";
-    public static final String MAIN_RESOURCE_METADATA_AVAILABLE = "MAIN_RESOURCE_METADATA_AVAILABLE";
 
 
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
     public static final String FILES_ROOT_URL = "FILES_ROOT_URL";
     public static final String MARKED_AS_DELETED = "DELETED_RECORD";
+    public static final String IGNORED_RECORD = "IGNORED_RECORD";
 
     static {
         //the default value for output mimeType

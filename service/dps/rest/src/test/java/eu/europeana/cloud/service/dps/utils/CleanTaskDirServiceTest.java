@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.utils;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.CleanTaskDirServiceTestContext;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -123,7 +123,7 @@ public class CleanTaskDirServiceTest {
     }
 
     private TaskInfo createTaskInfo(long id, TaskState state) {
-        TaskInfo result = new TaskInfo();
+        TaskInfo result = TaskInfo.builder().build();
         result.setId(id);
         result.setState(state);
         return result;

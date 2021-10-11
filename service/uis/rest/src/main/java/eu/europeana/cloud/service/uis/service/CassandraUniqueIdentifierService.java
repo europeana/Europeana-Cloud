@@ -76,6 +76,13 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         }
         String id = IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + recordId);
         List<CloudId> cloudIds = cloudIdDao.insert(false, id, providerId, recordId);
+
+        if(cloudIds.isEmpty()) {
+            throw new CloudIdAlreadyExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getHttpCode(),
+                    IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(id)));
+        }
+
         localIdDao.insert(providerId, recordId, id);
         CloudId cloudId = new CloudId();
         cloudId.setId(cloudIds.get(0).getId());
@@ -204,7 +211,11 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
         localIdDao.insert(providerId, recordId, cloudId);
 
-        cloudIdDao.insert(false, cloudId, providerId, recordId);
+        if (cloudIdDao.insert(false, cloudId, providerId, recordId).isEmpty()) {
+            throw new CloudIdAlreadyExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getHttpCode(),
+                    IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(cloudId)));
+        }
 
         CloudId newCloudId = new CloudId();
         newCloudId.setId(cloudId);

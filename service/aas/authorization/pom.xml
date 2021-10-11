@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-aas</artifactId>
-        <version>4.2</version>
+        <version>5</version>
     </parent>
 
     <artifactId>ecloud-service-aas-authorization</artifactId>
@@ -59,56 +59,33 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>${commons-logging.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${version.junit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <version>${version.spring-framework}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${version.log4j}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${version.slf4j}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

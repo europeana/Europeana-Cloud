@@ -4,10 +4,9 @@
     <parent>
         <artifactId>ecloud-tools</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>4.2</version>
+        <version>5</version>
     </parent>
 
-    <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-db-migrator</artifactId>
 
     <packaging>jar</packaging>
@@ -16,11 +15,6 @@
             <groupId>com.contrastsecurity</groupId>
             <artifactId>cassandra-migration</artifactId>
             <version>0.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${version.slf4j}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -46,12 +40,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${version.junit}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.cassandraunit</groupId>

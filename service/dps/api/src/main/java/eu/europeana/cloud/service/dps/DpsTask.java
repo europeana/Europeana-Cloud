@@ -1,10 +1,13 @@
 package eu.europeana.cloud.service.dps;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import lombok.ToString;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -25,15 +28,6 @@ public class DpsTask implements Serializable {
 
     /* output revision*/
     private Revision outputRevision;
-
-    /* Task start time */
-    private Date startTime = null;
-
-    /* Task create time */
-    private Date createTime = new Date(System.currentTimeMillis());
-
-    /* Task end time*/
-    private Date endTime = null;
 
     /* Unique id for this task */
     private long taskId;
@@ -56,8 +50,8 @@ public class DpsTask implements Serializable {
 
         this.taskName = taskName;
 
-        inputData = new HashMap();
-        parameters = new HashMap();
+        inputData = new EnumMap<>(InputDataType.class);
+        parameters = new HashMap<>();
 
         taskId = UUID.randomUUID().getMostSignificantBits();
 
@@ -150,21 +144,30 @@ public class DpsTask implements Serializable {
         if (!(o instanceof DpsTask)) {
             return false;
         }
-        DpsTask dpsTask = (DpsTask) o;
+        var dpsTask = (DpsTask) o;
         return taskId == dpsTask.taskId &&
                 com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
                 Objects.equal(parameters, dpsTask.parameters) &&
                 Objects.equal(outputRevision, dpsTask.outputRevision) &&
-                Objects.equal(startTime, dpsTask.startTime) &&
-                Objects.equal(createTime, dpsTask.createTime) &&
-                Objects.equal(endTime, dpsTask.endTime) &&
                 Objects.equal(taskName, dpsTask.taskName) &&
                 Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
     }
 
+    public String toJSON() throws IOException {
+        return new ObjectMapper().writeValueAsString(this);
+    }
+
+    public static DpsTask fromJSON(String json) throws IOException {
+        return new ObjectMapper().readValue(json, DpsTask.class);
+    }
+
+    public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws IOException {
+        return fromJSON(taskInfo.getDefinition());
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hashCode(inputData, parameters, outputRevision, startTime, createTime, endTime, taskId, taskName, harvestingDetails);
+        return Objects.hashCode(inputData, parameters, outputRevision, taskId, taskName, harvestingDetails);
     }
 }
 

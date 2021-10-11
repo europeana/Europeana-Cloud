@@ -12,8 +12,13 @@ import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.submitters.DepublicationTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
-import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
@@ -57,13 +62,13 @@ public class DPSServiceTestContext {
     }
 
     @Bean
-    public CassandraReportService reportService() {
-        return Mockito.mock(CassandraReportService.class);
+    public ReportService reportService() {
+        return Mockito.mock(ReportService.class);
     }
 
     @Bean
-    public CassandraValidationStatisticsService validationStatisticsService() {
-        return Mockito.mock(CassandraValidationStatisticsService.class);
+    public ValidationStatisticsServiceImpl validationStatisticsService() {
+        return Mockito.mock(ValidationStatisticsServiceImpl.class);
     }
 
     @Bean

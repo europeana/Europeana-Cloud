@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.config.AbstractSecurityTestContext;
 import eu.europeana.cloud.service.dps.config.AuthentificationTestContext;
 import eu.europeana.cloud.service.dps.config.AuthorizationTestContext;
 import eu.europeana.cloud.service.dps.config.RecordContext;
-import eu.europeana.cloud.service.dps.services.DatasetCleanerService;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import org.junit.After;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @ContextConfiguration(classes =
         {AuthentificationTestContext.class, AuthorizationTestContext.class, PermissionManager.class,
-                AbstractSecurityTestContext.class, RecordContext.class, DatasetCleanerService.class})
+                AbstractSecurityTestContext.class, RecordContext.class})
 @TestPropertySource(properties = {"numberOfElementsOnPage=100", "maxIdentifiersCount=100"})
 public abstract class AbstractSecurityTest extends CassandraAATestRunner {
 

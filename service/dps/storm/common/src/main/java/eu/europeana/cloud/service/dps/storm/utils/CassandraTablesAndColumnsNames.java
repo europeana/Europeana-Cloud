@@ -1,11 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-/**
- * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
- */
 public class CassandraTablesAndColumnsNames {
     //------- TABLES -------
-    public static final String BASIC_INFO_TABLE = "basic_info";
+    public static final String TASK_INFO_TABLE = "task_info";
     public static final String NOTIFICATIONS_TABLE = "notifications";
     public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
     public static final String ERROR_COUNTERS_TABLE = "error_counters";
@@ -17,19 +14,36 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_TABLE = "processed_records";
     public static final String HARVESTED_RECORD_TABLE = "harvested_records";
 
-    //------- BASIC INFO -------
-    public static final String BASIC_TASK_ID = "task_id";
-    public static final String BASIC_TOPOLOGY_NAME = "topology_name";
-    public static final String BASIC_EXPECTED_SIZE = "expected_size";
-    public static final String STATE = "state";
-    public static final String INFO = "info";
-    public static final String START_TIME = "start_time";
-    public static final String FINISH_TIME = "finish_time";
-    public static final String SENT_TIME = "sent_time";
-    public static final String PROCESSED_FILES_COUNT = "processed_files_count";
-    public static final String RETRY_COUNT = "retry_count";
-    public static final String ERRORS = "errors";
-    public static final String TASK_INFORMATIONS = "task_informations";
+    //------- TASK INFO -------
+    public static final String TASK_INFO_TASK_ID = "task_id";
+    public static final String TASK_INFO_TOPOLOGY_NAME = "topology_name";
+    public static final String TASK_INFO_STATE = "state";
+    public static final String TASK_INFO_STATE_DESCRIPTION = "state_description";
+    public static final String TASK_INFO_SENT_TIMESTAMP = "sent_timestamp";
+    public static final String TASK_INFO_START_TIMESTAMP = "start_timestamp";
+    public static final String TASK_INFO_FINISH_TIMESTAMP = "finish_timestamp";
+    public static final String TASK_INFO_EXPECTED_RECORDS_NUMBER = "expected_records_number";
+    public static final String TASK_INFO_PROCESSED_RECORDS_COUNT = "processed_records_count";
+    public static final String TASK_INFO_IGNORED_RECORDS_COUNT = "ignored_records_count";
+    public static final String TASK_INFO_DELETED_RECORDS_COUNT = "deleted_records_count";
+    public static final String TASK_INFO_PROCESSED_ERRORS_COUNT = "processed_errors_count";
+    public static final String TASK_INFO_DELETED_ERRORS_COUNT = "deleted_errors_count";
+    public static final String TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER = "expected_post_processed_records_number";
+    public static final String TASK_INFO_POST_PROCESSED_RECORDS_COUNT = "post_processed_records_count";
+    public static final String TASK_INFO_DEFINITION = "definition";
+
+
+    //-------- TASK_DIAGNOSTIC_INFO --------
+    public static final String TASK_DIAGNOSTIC_INFO_TABLE = "task_diagnostic_info";
+    public static final String TASK_DIAGNOSTIC_INFO_ID = "task_id";
+    public static final String TASK_DIAGNOSTIC_INFO_STARTED_RECORDS_COUNT = "started_records_count";
+    public static final String TASK_DIAGNOSTIC_INFO_RECORDS_RETRY_COUNT = "records_retry_count";
+    public static final String TASK_DIAGNOSTIC_INFO_QUEUED_TIME = "queued_time";
+    public static final String TASK_DIAGNOSTIC_INFO_START_ON_STORM_TIME = "start_on_storm_time";
+    public static final String TASK_DIAGNOSTIC_INFO_FINISH_ON_STORM_TIME = "finish_on_storm_time";
+    public static final String TASK_DIAGNOSTIC_INFO_LAST_RECORD_FINISHED_ON_STORM_TIME = "last_record_finished_on_storm_time";
+    public static final String TASK_DIAGNOSTIC_INFO_POST_PROCESSING_START_TIME = "post_processing_start_time";
+
 
     //------- NOTIFICATION -------
     public static final String NOTIFICATION_TASK_ID = "task_id";
@@ -104,14 +118,15 @@ public class CassandraTablesAndColumnsNames {
     public static final String PROCESSED_RECORDS_BUCKET_NUMBER = "bucket_number";
     //------- HARVESTED_RECORD -------
     public static final String HARVESTED_RECORD_METIS_DATASET_ID = "metis_dataset_id";
-    public static final String HARVESTED_RECORD_LOCAL_ID = "record_local_id";
     public static final String HARVESTED_RECORD_BUCKET_NUMBER = "bucket_number";
-    public static final String HARVESTED_RECORD_HARVEST_DATE = "harvest_date";
-    public static final String HARVESTED_RECORD_MD5 = "md5";
-    public static final String HARVESTED_RECORD_INDEXING_DATE = "indexing_date";
+    public static final String HARVESTED_RECORD_LOCAL_ID = "record_local_id";
+    public static final String HARVESTED_RECORD_LATEST_HARVEST_DATE = "latest_harvest_date";
+    public static final String HARVESTED_RECORD_LATEST_HARVEST_MD5 = "latest_harvest_md5";
+    public static final String HARVESTED_RECORD_PUBLISHED_HARVEST_DATE = "published_harvest_date";
+    public static final String HARVESTED_RECORD_PUBLISHED_HARVEST_MD5 = "published_harvest_md5";
+    public static final String HARVESTED_RECORD_PREVIEW_HARVEST_DATE = "preview_harvest_date";
+    public static final String HARVESTED_RECORD_PREVIEW_HARVEST_MD5 = "preview_harvest_md5";
 
     private CassandraTablesAndColumnsNames() {
     }
-
-
 }

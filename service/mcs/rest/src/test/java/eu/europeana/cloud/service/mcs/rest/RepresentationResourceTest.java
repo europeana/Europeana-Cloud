@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static junitparams.JUnitParamsRunner.$;
@@ -37,9 +38,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationResourceTest extends AbstractResourceTest {
-    
+
+    private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
+
     private RecordService recordService;
-    
+
     static final private String globalId = "1";
     static final private String schema = "DC";
     static final private String version = "1.0";
@@ -53,12 +56,12 @@ public class RepresentationResourceTest extends AbstractResourceTest {
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
-    
+
     @SuppressWarnings("unused")
     private Object[] mimeTypes() {
         return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
     }
-    
+
     @Test
     @Parameters(method = "mimeTypes")
     public void getRepresentation(MediaType mediaType)
@@ -148,7 +151,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
     @Test
     public void createRepresentation()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID)).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID, null)).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
@@ -158,7 +161,51 @@ public class RepresentationResourceTest extends AbstractResourceTest {
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID);
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, null);
+        verifyNoMoreInteractions(recordService);
+    }
+
+    @Test
+    public void createRepresentationInGivenVersion()
+            throws Exception {
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION)).thenReturn(
+                new Representation(representation));
+
+        mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param(ParamConstants.F_PROVIDER, providerID)
+                .param(ParamConstants.VERSION, VERSION.toString()))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.LOCATION,
+                        URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
+
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, VERSION);
+        verifyNoMoreInteractions(recordService);
+    }
+
+    @Test
+    public void createRepresentationInGivenVersionTwice()
+            throws Exception {
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION)).thenReturn(
+                new Representation(representation));
+
+        mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param(ParamConstants.F_PROVIDER, providerID)
+                .param(ParamConstants.VERSION, VERSION.toString()))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.LOCATION,
+                        URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
+
+        mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param(ParamConstants.F_PROVIDER, providerID)
+                .param(ParamConstants.VERSION, VERSION.toString()))
+                .andExpect(status().isCreated())
+                .andExpect(header().string(HttpHeaders.LOCATION,
+                        URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
+
+        verify(recordService, times(2)).createRepresentation(globalId, schema, providerID, VERSION);
         verifyNoMoreInteractions(recordService);
     }
 
@@ -167,7 +214,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
     public void createRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
             String errorCode)
             throws Exception {
-        Mockito.doThrow(exception).when(recordService).createRepresentation(globalId, schema, providerID);
+        Mockito.doThrow(exception).when(recordService).createRepresentation(globalId, schema, providerID,null);
 
         ResultActions response = mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -176,7 +223,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
 
         ErrorInfo errorInfo = responseContentAsErrorInfo(response);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
-        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID);
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID,null);
         verifyNoMoreInteractions(recordService);
     }
 

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<solr persistent="true" sharedLib="lib">
-	<cores adminPath="/admin/cores" zkClientTimeout="20000" hostPort="8080" hostContext="solr">
-	</cores> 
-</solr> 

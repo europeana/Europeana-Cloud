@@ -91,7 +91,8 @@ public class FilesAATest extends AbstractSecurityTest {
 		file2.setFileName(FILE_NAME_2);
 		file2.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
-		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(representation).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 	}
 	
 	// -- GET FILE -- //
@@ -118,7 +119,7 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME_2);
 		
@@ -138,7 +139,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		
 		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -163,7 +164,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 	}
 	
@@ -175,7 +176,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 
 		login(RONALDO, RONALD_PASSWORD);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
@@ -206,7 +207,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
@@ -219,7 +220,7 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);

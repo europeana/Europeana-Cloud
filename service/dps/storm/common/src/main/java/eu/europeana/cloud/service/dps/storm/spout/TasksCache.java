@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +20,15 @@ public class TasksCache {
 
     private final LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
 
+    private final LRUCache<Long, TaskDiagnosticInfo> diagnosticCache = new LRUCache<>(50);
+
     private CassandraTaskInfoDAO taskInfoDAO;
+
+    private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
 
     public TasksCache(CassandraConnectionProvider cassandraConnectionProvider) {
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
     }
 
     public TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
@@ -51,5 +58,14 @@ public class TasksCache {
 
     private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
         return taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
+    }
+
+    public TaskDiagnosticInfo getDiagnosticInfo(long taskId) {
+        TaskDiagnosticInfo info = diagnosticCache.get(taskId);
+        if (info == null) {
+            info = taskDiagnosticInfoDAO.findById(taskId).orElse(TaskDiagnosticInfo.builder().taskId(taskId).build());
+            diagnosticCache.put(taskId, info);
+        }
+        return info;
     }
 }

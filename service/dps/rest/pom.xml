@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>4.2</version>
+        <version>5</version>
     </parent>
 
 
@@ -14,8 +14,6 @@
 
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
-        <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
-        <spring-security.version>5.2.2.RELEASE</spring-security.version>
     </properties>
 
     <profiles>
@@ -194,6 +192,11 @@
         </dependency>
 
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-uis-rest-client-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <version>2.0.1.Final</version>
@@ -201,17 +204,17 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-taglibs</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -309,13 +312,6 @@
             <artifactId>spring-web</artifactId>
             <version>${version.spring-framework}</version>
             <scope>compile</scope>
-            <exclusions>
-                <!--without jcl - because we use log4j through slf4j -->
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -329,42 +325,18 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.10.5</version>
-        </dependency>
-
-        <!--logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.25</version>
+            <version>${version.jackson}</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${version.log4j}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.25</version>
+            <version>${version.slf4j}</version>
         </dependency>
-
-        <!-- SLF4J extensions -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-ext</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>com.qmino</groupId>
             <artifactId>miredot-annotations</artifactId>
@@ -394,10 +366,6 @@
                 <exclusion>
                     <artifactId>*</artifactId>
                     <groupId>org.springframework</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j-slf4j-impl</artifactId>
-                    <groupId>org.apache.logging.log4j</groupId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.mockito</groupId>
@@ -457,26 +425,12 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
             <version>${version.spring-framework}</version>
-            <exclusions>
-                <!--without jcl - because we use log4j through slf4j -->
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>${spring-security.version}</version>
+            <version>${version.spring-security}</version>
             <scope>test</scope>
-            <exclusions>
-                <!--without jcl - because we use log4j through slf4j -->
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.kubek2k</groupId>
@@ -515,26 +469,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j</artifactId>
-                    <groupId>log4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>zookeeper</artifactId>
-                    <groupId>org.apache.zookeeper</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <version>1.42</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -596,6 +530,11 @@
             <artifactId>json-path</artifactId>
             <version>2.4.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${version.jackson}</version>
         </dependency>
 
     </dependencies>

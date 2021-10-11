@@ -62,7 +62,15 @@ public class ParseFileBoltTest {
     public static void init() {
 
         parseFileBolt.prepare();
-        expectedParametersKeysList = Arrays.asList(PluginParameterKeys.AUTHORIZATION_HEADER, PluginParameterKeys.RESOURCE_LINK_KEY, PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, PluginParameterKeys.RESOURCE_URL, PluginParameterKeys.RESOURCE_LINKS_COUNT, PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE);
+        expectedParametersKeysList = Arrays.asList(
+                PluginParameterKeys.AUTHORIZATION_HEADER,
+                PluginParameterKeys.RESOURCE_LINK_KEY,
+                PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER,
+                PluginParameterKeys.RESOURCE_URL,
+                PluginParameterKeys.RESOURCE_LINKS_COUNT,
+                PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE,
+                PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS,
+                PluginParameterKeys.RESOURCE_LINK_KEY);
 
     }
 
@@ -81,7 +89,8 @@ public class ParseFileBoltTest {
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
         stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-        setStaticField(ParseFileForMediaBolt.class.getSuperclass().getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "3");
+//        setStaticField(ParseFileForMediaBolt.class.getSuperclass().getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
     }
 
     @Test
@@ -90,9 +99,9 @@ public class ParseFileBoltTest {
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
-            when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false);
+            when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
-            verify(outputCollector, Mockito.times(5)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object
+            verify(outputCollector, Mockito.times(4)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object
 
             List<Values> capturedValuesList = captor.getAllValues();
             assertEquals(4, capturedValuesList.size());
@@ -114,7 +123,7 @@ public class ParseFileBoltTest {
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
-            when(taskStatusChecker.hasKillFlag(eq(TASK_ID))).thenReturn(false).thenReturn(false).thenReturn(true);
+            when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false).thenReturn(false).thenReturn(true);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(2)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
         }
@@ -133,8 +142,8 @@ public class ParseFileBoltTest {
             System.out.println(values);
             Map<String, String> map = (Map) values.get(4);
             System.out.println(map);
-            assertEquals(3, map.size());
-            assertNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
+            assertEquals(4, map.size());
+            assertNotNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
             assertNull(map.get(PluginParameterKeys.RESOURCE_LINK_KEY));
         }
 
@@ -148,7 +157,7 @@ public class ParseFileBoltTest {
         verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         Values values = captor.getValue();
         assertNotNull(values);
-        Map<String, String> valueMap = (Map) values.get(2);
+        Map<String, String> valueMap = (Map) values.get(1);
         assertNotNull(valueMap);
         assertEquals(5, valueMap.size());
         assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));
@@ -167,7 +176,7 @@ public class ParseFileBoltTest {
             verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
             Values values = captor.getValue();
             assertNotNull(values);
-            Map<String, String> valueMap = (Map) values.get(2);
+            Map<String, String> valueMap = (Map) values.get(1);
             assertNotNull(valueMap);
             assertEquals(5, valueMap.size());
             assertTrue(valueMap.get("additionalInfo").contains("Error while reading and parsing the EDM file"));

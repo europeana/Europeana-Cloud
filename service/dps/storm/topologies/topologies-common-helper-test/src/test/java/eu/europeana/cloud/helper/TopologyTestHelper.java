@@ -8,6 +8,11 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.apache.storm.Config;
 import org.apache.storm.testing.CompleteTopologyParam;
@@ -27,6 +32,7 @@ import static org.mockito.Matchers.*;
  */
 public class TopologyTestHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
+    protected TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected CassandraTaskErrorsDAO taskErrorsDAO;
     protected TaskStatusChecker taskStatusChecker;
@@ -53,6 +59,10 @@ public class TopologyTestHelper {
         PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
         PowerMockito.when(CassandraTaskInfoDAO.getInstance(any(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
 
+        taskDiagnosticInfoDAO = Mockito.mock(TaskDiagnosticInfoDAO.class);
+        PowerMockito.mockStatic(TaskDiagnosticInfoDAO.class);
+        PowerMockito.when(TaskDiagnosticInfoDAO.getInstance(any(CassandraConnectionProvider.class))).thenReturn(taskDiagnosticInfoDAO);
+
         taskStatusChecker = Mockito.mock(TaskStatusChecker.class);
         PowerMockito.mockStatic(TaskStatusChecker.class);
         PowerMockito.when(TaskStatusChecker.getTaskStatusChecker()).thenReturn(taskStatusChecker);
@@ -72,7 +82,7 @@ public class TopologyTestHelper {
         taskErrorsDAO = Mockito.mock(CassandraTaskErrorsDAO.class);
         PowerMockito.mockStatic(CassandraTaskErrorsDAO.class);
         PowerMockito.when(CassandraTaskErrorsDAO.getInstance(any(CassandraConnectionProvider.class))).thenReturn(taskErrorsDAO);
-        PowerMockito.when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
+        PowerMockito.when(taskInfoDAO.isDroppedTask(anyLong())).thenReturn(false);
         PowerMockito.mockStatic(CassandraConnectionProviderSingleton.class);
         PowerMockito.when(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(anyString(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Mockito.mock(CassandraConnectionProvider.class));
     }

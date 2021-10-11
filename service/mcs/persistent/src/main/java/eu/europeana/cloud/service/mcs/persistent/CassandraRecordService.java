@@ -38,7 +38,6 @@ public class CassandraRecordService implements RecordService {
     @Autowired
     private CassandraRecordDAO recordDAO;
 
-
     @Autowired
     private DataSetService dataSetService;
 
@@ -46,7 +45,7 @@ public class CassandraRecordService implements RecordService {
     private CassandraDataSetDAO dataSetDAO;
 
     @Autowired
-    private DynamicContentDAO contentDAO;
+    private DynamicContentProxy contentDAO;
 
     @Autowired
     private UISClientHandler uis;
@@ -56,18 +55,17 @@ public class CassandraRecordService implements RecordService {
      * @inheritDoc
      */
     @Override
-    public Record getRecord(String cloudId)
-            throws RecordNotExistsException {
-        Record record = null;
+    public Record getRecord(String cloudId) throws RecordNotExistsException {
+        Record aRecord = null;
         if (uis.existsCloudId(cloudId)) {
-            record = recordDAO.getRecord(cloudId);
-            if (record.getRepresentations().isEmpty()) {
+            aRecord = recordDAO.getRecord(cloudId);
+            if (aRecord.getRepresentations().isEmpty()) {
                 throw new RecordNotExistsException(cloudId);
             }
         } else {
             throw new RecordNotExistsException(cloudId);
         }
-        return record;
+        return aRecord;
     }
 
 
@@ -75,8 +73,8 @@ public class CassandraRecordService implements RecordService {
      * @inheritDoc
      */
     @Override
-    public void deleteRecord(String cloudId)
-            throws RecordNotExistsException, RepresentationNotExistsException {
+    public void deleteRecord(String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
+
         if (uis.existsCloudId(cloudId)) {
             List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(cloudId);
             if (allRecordRepresentationsInAllVersions.isEmpty()) {
@@ -85,8 +83,6 @@ public class CassandraRecordService implements RecordService {
             }
 
             sortByProviderId(allRecordRepresentationsInAllVersions);
-
-            String dPId = null;
 
             for (Representation repVersion : allRecordRepresentationsInAllVersions) {
                 removeFilesFromRepresentationVersion(cloudId, repVersion);
@@ -100,31 +96,31 @@ public class CassandraRecordService implements RecordService {
     }
 
     private void removeFilesFromRepresentationVersion(String cloudId, Representation repVersion) {
+
         for (File f : repVersion.getFiles()) {
             try {
                 contentDAO.deleteContent(FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
                         repVersion.getVersion(), f.getFileName()), f.getFileStorage());
             } catch (FileNotExistsException ex) {
                 LOGGER.warn(
-                        "File {} was found in representation {}-{}-{} but no content of such file was found",
+                        "File '{}' was found in representation {}-{}-{} but no content of such file was found",
                         f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
             }
         }
     }
 
-
     /**
      * @inheritDoc
      */
     @Override
-    public void deleteRepresentation(String globalId, String schema)
-            throws RepresentationNotExistsException {
+    public void deleteRepresentation(String globalId, String schema) throws RepresentationNotExistsException {
 
         List<Representation> listRepresentations = recordDAO.listRepresentationVersions(globalId, schema);
+        if(listRepresentations == null) {
+            throw new RepresentationNotExistsException();
+        }
 
         sortByProviderId(listRepresentations);
-
-        String dPId = null;
 
         for (Representation rep : listRepresentations) {
             removeFilesFromRepresentationVersion(globalId, rep);
@@ -140,23 +136,28 @@ public class CassandraRecordService implements RecordService {
         }
     }
 
+    @Override
+    public Representation createRepresentation(String globalId, String schema, String providerId)
+            throws RecordNotExistsException, ProviderNotExistsException {
+        return createRepresentation(globalId, schema, providerId, null);
+    }
 
     /**
      * @inheritDoc
      */
     @Override
-    public Representation createRepresentation(String cloudId, String representationName, String providerId)
+    public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version)
             throws ProviderNotExistsException, RecordNotExistsException {
-
-        Date now = new Date();
-        DataProvider dataProvider;
+        Date now = Calendar.getInstance().getTime();
+        if (version == null) {
+            version = generateTimeUUID();
+        }
         // check if data provider exists
-        if ((dataProvider = uis.getProvider(providerId)) == null) {
+        if (uis.getProvider(providerId) == null) {
             throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
         }
         if (uis.existsCloudId(cloudId)) {
-            Representation rep = recordDAO.createRepresentation(cloudId, representationName, providerId, now);
-            return rep;
+            return recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
         } else {
             throw new RecordNotExistsException(cloudId);
         }
@@ -218,6 +219,7 @@ public class CassandraRecordService implements RecordService {
                 try {
                     dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, representation.getRepresentationName(), representation.getVersion());
                 } catch (DataSetNotExistsException e) {
+                    //Nothing to do, skip exception
                 }
             }
         }
@@ -231,7 +233,7 @@ public class CassandraRecordService implements RecordService {
     public Representation persistRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             CannotPersistEmptyRepresentationException {
-        Date now = new Date();
+        Date now = Calendar.getInstance().getTime();
         Representation rep = recordDAO.getRepresentation(globalId, schema, version);
         if (rep == null) {
             throw new RepresentationNotExistsException();
@@ -261,7 +263,12 @@ public class CassandraRecordService implements RecordService {
     @Override
     public List<Representation> listRepresentationVersions(String globalId, String schema)
             throws RepresentationNotExistsException {
-        return recordDAO.listRepresentationVersions(globalId, schema);
+
+        List<Representation> result = recordDAO.listRepresentationVersions(globalId, schema);
+        if(result == null) {
+            throw new RepresentationNotExistsException();
+        }
+        return result;
     }
 
 
@@ -376,13 +383,13 @@ public class CassandraRecordService implements RecordService {
     @Override
     public Representation copyRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException {
-        Date now = new Date();
+        Date now = Calendar.getInstance().getTime();
         Representation srcRep = recordDAO.getRepresentation(globalId, schema, version);
         if (srcRep == null) {
             throw new RepresentationNotExistsException();
         }
 
-        Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now);
+        Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now, generateTimeUUID());
         for (File srcFile : srcRep.getFiles()) {
             File copiedFile = new File(srcFile);
             try {
@@ -390,11 +397,11 @@ public class CassandraRecordService implements RecordService {
                         FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()),
                         srcFile.getFileStorage());
             } catch (FileNotExistsException ex) {
-                LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+                LOGGER.warn("File '{}' was found in representation {}-{}-{} but no content of such file was found",
                         srcFile.getFileName(), globalId, schema, version);
             } catch (FileAlreadyExistsException ex) {
-                LOGGER.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
-                        schema, copiedRep.getVersion());
+                LOGGER.warn("File '{}' already exists in newly created representation? {}-{}-{}",
+                        copiedFile.getFileName(), globalId, schema, copiedRep.getVersion());
             } catch (IOException e) {
                 LOGGER.error(Throwables.getStackTraceAsString(e));
             }
@@ -466,14 +473,15 @@ public class CassandraRecordService implements RecordService {
             throws RevisionNotExistsException, RepresentationNotExistsException {
         Representation rep = getRepresentation(globalId, schema, version);
         for (Revision revision : rep.getRevisions()) {
-            if (revision != null) {
-                if (RevisionUtils.getRevisionKey(revision).equals(revisionKey)) {
-                    return revision;
-                }
+            if (revision != null && RevisionUtils.getRevisionKey(revision).equals(revisionKey)) {
+                return revision;
             }
         }
         throw new RevisionNotExistsException();
     }
 
+    private static UUID generateTimeUUID() {
+        return UUID.fromString(new com.eaio.uuid.UUID().toString());
+    }
 
 }

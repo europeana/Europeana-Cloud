@@ -1,9 +1,9 @@
 package eu.europeana.cloud.http.bolts;
 
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.storm.tuple.Tuple;
@@ -44,7 +44,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
             outputCollector.fail(anchorTuple);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
-            emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.getFileUrl(),
+            emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(), tuple.getFileUrl(),
                     "Error while reading a file",
                     "Can't read file: " + tuple.getFileUrl() + " because of " + e.getMessage(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(tuple));

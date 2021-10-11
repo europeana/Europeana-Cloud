@@ -2,13 +2,13 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
-import eu.europeana.aas.acl.CassandraMutableAclService;
+import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
-import eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
 import org.springframework.context.annotation.Bean;
@@ -32,8 +32,8 @@ public class BasicResourceTestContext {
     }
 
     @Bean
-    public CassandraMutableAclService aclService() {
-        return mock(CassandraMutableAclService.class);
+    public ExtendedAclService aclService() {
+        return mock(ExtendedAclService.class);
     }
 
     @Bean
@@ -52,8 +52,8 @@ public class BasicResourceTestContext {
     }
 
     @Bean
-    public DynamicContentDAO dynamicContentDAO() {
-        return mock(DynamicContentDAO.class);
+    public DynamicContentProxy dynamicContentProxy() {
+        return mock(DynamicContentProxy.class);
     }
 
     @Bean

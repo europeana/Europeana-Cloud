@@ -1,38 +1,38 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
-import eu.europeana.cloud.service.dps.storm.utils.TasksByStateDAO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static eu.europeana.cloud.service.dps.config.JndiNames.*;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 @Service
 public class KafkaTopicSelector {
 
     private final Map<String, List<String>> availableTopic;
 
-    @Autowired
     private TasksByStateDAO tasksByStateDAO;
 
-    @Autowired
     private TaskStatusSynchronizer taskStatusSynchronizer;
 
-    public KafkaTopicSelector(Environment environment) {
-        availableTopic = new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS));
+    public KafkaTopicSelector(Environment environment, TasksByStateDAO tasksByStateDAO,
+                              TaskStatusSynchronizer taskStatusSynchronizer) {
+        availableTopic = Collections.unmodifiableMap(
+                new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS)));
+        this.tasksByStateDAO = tasksByStateDAO;
+        this.taskStatusSynchronizer = taskStatusSynchronizer;
     }
 
     public String findPreferredTopicNameFor(String topologyName) {
-        return findFreeTopic(topologyName)
+        return randomFreeTopic(topologyName)
                 .orElseGet(() -> {
                             synchronizeTasksByTaskStateFromBasicInfo(topologyName);
-                            return findFreeTopic(topologyName)
+                            return randomFreeTopic(topologyName)
                                     .orElse(randomTopic(topologyName));
                         }
                 );
@@ -42,13 +42,28 @@ public class KafkaTopicSelector {
         taskStatusSynchronizer.synchronizeTasksByTaskStateFromBasicInfo(topologyName, availableTopic.get(topologyName));
     }
 
-    private Optional<String> findFreeTopic(String topologyName) {
-        Set<String> topicsCurrentlyInUse = tasksByStateDAO.listAllInUseTopicsFor(topologyName);
-        for (String topicName : topicsForOneTopology(topologyName)) {
-            if (!topicsCurrentlyInUse.contains(topicName))
-                return Optional.of(topicName);
+    private Optional<String> randomFreeTopic(String topologyName) {
+        List<String> freeTopics = findAllFreeTopics(topologyName);
+        if (freeTopics.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(freeTopics.get(new Random().nextInt(freeTopics.size())));
         }
-        return Optional.empty();
+    }
+
+    private List<String> findAllFreeTopics(String topologyName) {
+        List<String> freeTopics = new ArrayList<>(topicsForOneTopology(topologyName));
+        freeTopics.removeAll(findTopicsCurrentlyInUse(topologyName));
+        return freeTopics;
+    }
+
+    private Set<String> findTopicsCurrentlyInUse(String topologyName) {
+        return tasksByStateDAO.findTasksByStateAndTopology(
+                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED), topologyName)
+                .stream()
+                .map(TaskByTaskState::getTopicName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     private String randomTopic(String topologyName) {

@@ -1,10 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -14,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.Calendar;
 
 
 /**
@@ -50,12 +53,12 @@ public class ReadFileBolt extends AbstractDpsBolt {
         } catch (RepresentationNotExistsException | FileNotExistsException |
                 WrongContentRangeException ex) {
             LOGGER.warn("Can not retrieve file at {}", file);
-            emitErrorNotification(anchorTuple, t.getTaskId(), file, "Can not retrieve file", "The cause of the error is:" + ex.getCause(),
-                    StormTaskTupleHelper.getRecordProcessingStartTime(t));
+            emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, "Can not retrieve file",
+                    "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
         } catch (Exception ex) {
             LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
-            emitErrorNotification(anchorTuple, t.getTaskId(), file, ex.getMessage(), "The cause of the error is:" + ex.getCause(),
-                    StormTaskTupleHelper.getRecordProcessingStartTime(t));
+            emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, ex.getMessage(),
+                    "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
         }
         outputCollector.ack(anchorTuple);
     }
@@ -66,10 +69,13 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
+        Instant processingStartTime = Instant.now();
         final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+        LOGGER.info("Downloading the following file: {}", file);
         stormTaskTuple.setFileUrl(file);
-        LOGGER.info("HERE THE LINK: {}", file);
-        return getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        InputStream downloadedFile = getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
+        return downloadedFile;
     }
 
 }

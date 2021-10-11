@@ -7,6 +7,10 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
@@ -26,6 +30,7 @@ import org.apache.storm.tuple.Fields;
 import org.json.JSONException;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -52,9 +57,11 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 12/5/2017.
  */
 
-@RunWith(PowerMockRunner.class)
+//TODO Replaced with mockito runner, cause test had exited Vm machine and broke other tests. Anyway test had not passed.
+@RunWith(MockitoJUnitRunner.class)
+//@RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, StatisticsBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, TaskStatusChecker.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class ValidationTopologyTest extends ValidationMockHelper {
 
     @Rule
@@ -84,6 +91,10 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                         .withStatus(200)
                         .withFixedDelay(2000)
                         .withBodyFile("test_schema.zip")));
+        wireMockRule.stubFor(get(urlEqualTo("/edm_sorter.xsl"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBodyFile("edm_sorter.xsl")));
 
     }
 
@@ -95,7 +106,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"The record is validated correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"The record is validated correctly\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
@@ -222,10 +233,10 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
-                .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+                .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
 
         topology = builder.createTopology();
     }

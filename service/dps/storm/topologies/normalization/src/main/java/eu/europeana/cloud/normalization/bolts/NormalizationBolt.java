@@ -53,7 +53,8 @@ public class NormalizationBolt extends AbstractDpsBolt {
 
             if (normalizationResult.getErrorMessage() != null) {
                 LOGGER.error(NORMALIZATION_EX_MESSAGE, normalizationResult.getErrorMessage());
-                emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), normalizationResult.getErrorMessage(), "Error during normalization.",
+                emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                        stormTaskTuple.getFileUrl(), normalizationResult.getErrorMessage(), "Error during normalization.",
                         StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
             } else {
                 String output = normalizationResult.getNormalizedRecordInEdmXml();
@@ -61,15 +62,21 @@ public class NormalizationBolt extends AbstractDpsBolt {
             }
         } catch (NormalizationConfigurationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(),
+                    "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (NormalizationException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(),
+                    "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (MalformedURLException e) {
             LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(),
+                    "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);

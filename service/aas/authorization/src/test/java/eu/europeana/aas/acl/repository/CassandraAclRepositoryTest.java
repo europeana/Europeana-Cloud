@@ -18,7 +18,6 @@ import eu.europeana.aas.acl.CassandraTestBase;
 import eu.europeana.aas.acl.TestContextConfiguration;
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 import org.junit.After;
 import org.junit.Before;
@@ -265,7 +264,7 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
 	service.saveAcl(null);
     }
 
-    @Test(expected = AclAlreadyExistsException.class)
+	@Test
     public void testSaveAclAlreadyExisting() {
 	AclObjectIdentity newAoi = createDefaultTestAOI();
 	service.saveAcl(newAoi);

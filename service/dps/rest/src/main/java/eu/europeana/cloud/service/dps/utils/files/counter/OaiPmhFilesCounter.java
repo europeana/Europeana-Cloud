@@ -20,6 +20,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
     @Override
     public int getFilesCount(DpsTask task) throws TaskSubmissionException {
 
+        LOGGER.info("Starting counting records for taskId={}", task.getTaskId());
         OaiHarvest harvestToByExecuted = new DpsTaskToOaiHarvestConverter().from(task);
         int total = 0;
         final OaiHarvester harvester = HarvesterFactory.createOaiHarvester();
@@ -38,6 +39,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
             LOGGER.info(logMessage, e);
             throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage(), e);
         }
+        LOGGER.info("Records counting finished for taskId={}. There are {} records", task.getTaskId(), total);
         return total;
     }
 }

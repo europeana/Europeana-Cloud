@@ -4,24 +4,24 @@
     <parent>
         <artifactId>ecloud-parent</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-    <version>4.2</version>
-  </parent>
+        <version>5</version>
+    </parent>
 
-  <groupId>eu.europeana.cloud</groupId>
-  <artifactId>ecloud-tools</artifactId>
-  <version>4.2</version>
-  <packaging>pom</packaging>
-  <name>Europeana Cloud: Tools</name>
+    <artifactId>ecloud-tools</artifactId>
+    <version>5</version>
+    <packaging>pom</packaging>
+    <name>Europeana Cloud: Tools</name>
 
-  <properties>
-    <!-- skipped as those are just helper/tools projects-->
-    <sonar.skip>true</sonar.skip>
-  </properties>
+    <properties>
+        <!-- skipped as those are just helper/tools projects-->
+        <sonar.skip>true</sonar.skip>
+    </properties>
 
-  <modules>
-      <module>resource-migration-tool</module>
-      <module>ecloud-revision-cleaner-tool</module>
-      <module>ecloud-cleaner-tool</module>
-      <module>ecloud-db-migrator</module>
-  </modules>
+    <modules>
+        <module>resource-migration-tool</module>
+        <module>ecloud-revision-cleaner-tool</module>
+        <module>ecloud-cleaner-tool</module>
+        <module>ecloud-db-migrator</module>
+        <module>harvested-records-table-updater</module>
+    </modules>
 </project>

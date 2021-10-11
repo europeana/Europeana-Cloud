@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>4.2</version>
+        <version>5</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -16,61 +16,13 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jul-to-slf4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-ext</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-storm-io</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j</artifactId>
-                    <groupId>log4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
             <version>${version.storm}</version>
             <!-- keep storm out of the jar-with-dependencies -->
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j-over-slf4j</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>zookeeper</artifactId>
-                    <groupId>org.apache.zookeeper</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <!--test dependencies-->
         <dependency>
@@ -98,12 +50,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <version>1.42</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-matchers</artifactId>
             <version>2.3.0</version>
@@ -113,11 +59,6 @@
             <artifactId>jsonassert</artifactId>
             <version>1.5.0</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-storm-common</artifactId>
-            <version>4.2</version>
         </dependency>
     </dependencies>
     <build>

@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>4.2</version>
+    <version>5</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,7 +16,7 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-        <tag>v4</tag>
+        <tag>v5</tag>
     </scm>
     <developers>
         <developer>
@@ -72,7 +72,6 @@
     </developers>
     <modules>
         <module>common</module>
-        <module>solr</module>
         <module>cassandra-connector</module>
         <module>service/uis</module>
         <module>service/dps</module>
@@ -81,6 +80,7 @@
         <module>service/commons</module>
         <module>tools</module>
         <module>test-common</module>
+        <module>test-logging-config</module>
     </modules>
     <repositories>
         <repository>
@@ -128,20 +128,24 @@
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>11</version.jdk>
-        <version.junit>4.12</version.junit>
+        <version.junit>4.13.2</version.junit>
         <version.powermock>2.0.7</version.powermock>
         <version.powermock-mockito>2.0.7</version.powermock-mockito>
-        <version.jersey>2.23.1</version.jersey>
-        <version.org.glassfish.jersey.test-framework>2.23.1</version.org.glassfish.jersey.test-framework>
+        <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.12</version.slf4j>
+<!--
         <version.spring-framework>3.2.9.RELEASE</version.spring-framework>
+-->
+        <version.spring-framework>5.2.15.RELEASE</version.spring-framework>
+        <version.spring-security>5.2.10.RELEASE</version.spring-security>
+
         <version.servlet>2.5</version.servlet>
         <version.junitparams>1.0.6</version.junitparams>
         <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
             to avoid data corruption in Cassandra.
             Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
         <version.commonscodec>1.15</version.commonscodec>
-        <version.commonio>2.4</version.commonio>
+        <version.commonio>2.10.0</version.commonio>
         <version.uuid>3.5</version.uuid>
         <version.swift>2.2.1</version.swift>
         <version.gson>2.3.1</version.gson>
@@ -152,15 +156,11 @@
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <log4j2_version>2.0-rc1</log4j2_version>
-        <version.log4j>1.2.17</version.log4j>
+        <version.log4j>2.14.1</version.log4j>
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
         <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
 
-        <spring-security.version>3.1.4.RELEASE</spring-security.version>
-
-        <commons-logging.version>1.2</commons-logging.version>
         <version.cassandra-driver>3.9.0</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
@@ -168,17 +168,17 @@
         <version.lucene>4.10.4</version.lucene>
 
         <version.tika>1.14</version.tika>
-        <version.zookeeper>3.4.6</version.zookeeper>
         <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
-        <version.jackson>1.9.13</version.jackson>
+        <version.jackson>2.12.5</version.jackson>
         <version.jacoco>0.8.1</version.jacoco>
-        <version.metis>4</version.metis>
+        <version.metis>5</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
-        <version.guava>24.1.1-jre</version.guava>
+        <version.guava>30.1.1-jre</version.guava>
         <version.lombok>1.18.10</version.lombok>
         <version.commons-collections>3.2.2</version.commons-collections>
+        <version.cglib>3.3.0</version.cglib>
 
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -236,8 +236,8 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-<!--
                     <version>2.5.1</version>
+<!--
                     <configuration>
                         <source>${version.jdk}</source>
                         <target>${version.jdk}</target>
@@ -268,47 +268,6 @@
                     <version>2.1.1</version>
                     <configuration>
                         <failOnMissingWebXml>false</failOnMissingWebXml>
-                    </configuration>
-                </plugin>
-                <!-- Ignore/Execute plugin execution -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <!-- copy-dependency plugin -->
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                            <goal>unpack</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                                <!-- copy-dependency plugin -->
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>com.qmino</groupId>
-                                        <artifactId>miredot-maven-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>restdoc</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -425,34 +384,6 @@
                 <type>jar</type>
                 <version>${version.guava}</version>
             </dependency>
-
-            <!--logging -->
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jcl-over-slf4j</artifactId>
-                <version>${version.slf4j}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${version.slf4j}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>${version.slf4j}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jul-to-slf4j</artifactId>
-                <version>${version.slf4j}</version>
-            </dependency>
-            <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-                <version>1.2.17</version>
-            </dependency>
-
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
@@ -479,6 +410,37 @@
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
             <scope>test</scope>
+        </dependency>
+        <!--logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${version.slf4j}</version>
+        </dependency>
+        <!--logging for tests-->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${version.log4j}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-logging-config</artifactId>
+            <scope>test</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <scope>test</scope>
+            <version>${version.slf4j}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <scope>test</scope>
+            <version>${version.slf4j}</version>
         </dependency>
     </dependencies>
     <pluginRepositories>

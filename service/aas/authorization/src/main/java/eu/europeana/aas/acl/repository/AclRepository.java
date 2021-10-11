@@ -16,7 +16,6 @@ package eu.europeana.aas.acl.repository;
 
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 
 import java.util.List;
@@ -72,14 +71,11 @@ public interface AclRepository {
     void deleteAcls(List<AclObjectIdentity> objectIdsToDelete);
 
     /**
-     * Saves an {@link AclObjectIdentity} record in the database. It will have
-     * no entries.
+     * Saves an {@link AclObjectIdentity} record in the database.
      *
      * @param aoi the {@link AclObjectIdentity} to save.
-     * @throws AclAlreadyExistsException if the passed object identity already
-     * has a record.
      */
-    void saveAcl(AclObjectIdentity aoi) throws AclAlreadyExistsException;
+    void saveAcl(AclObjectIdentity aoi);
 
     /**
      * Changes an existing {@link AclObjectIdentity} or the related

@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.depublish;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.services.submitters.SubmitingTaskWasKilled;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
@@ -28,13 +30,17 @@ public class DepublicationService {
     private final DatasetDepublisher depublisher;
     private final TaskStatusUpdater taskStatusUpdater;
     private final RecordStatusUpdater recordStatusUpdater;
+    private final HarvestedRecordsDAO harvestedRecordsDAO;
 
 
-    public DepublicationService(TaskStatusChecker taskStatusChecker, DatasetDepublisher depublisher, TaskStatusUpdater taskStatusUpdater, RecordStatusUpdater recordStatusUpdater) {
+    public DepublicationService(TaskStatusChecker taskStatusChecker, DatasetDepublisher depublisher,
+                                TaskStatusUpdater taskStatusUpdater, RecordStatusUpdater recordStatusUpdater,
+                                HarvestedRecordsDAO harvestedRecordsDAO) {
         this.taskStatusChecker = taskStatusChecker;
         this.depublisher = depublisher;
         this.taskStatusUpdater = taskStatusUpdater;
         this.recordStatusUpdater = recordStatusUpdater;
+        this.harvestedRecordsDAO = harvestedRecordsDAO;
     }
 
     public void depublishDataset(SubmitTaskParameters parameters) {
@@ -43,10 +49,18 @@ public class DepublicationService {
             checkTaskKilled(taskId);
             Future<Integer> future = depublisher.executeDatasetDepublicationAsync(parameters);
             waitForFinish(future, parameters);
-
+            cleanAllDatasetRecordsInHarvestedRecordsTable(parameters);
         } catch (SubmitingTaskWasKilled e) {
             LOGGER.warn(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            //We do not set failed task status in Cassandra in hope that task would be continued
+            // by UnfinishedTaskExecutor, while applicaction server would start again
+            LOGGER.warn("Depublication was interrupted!", e);
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
+            //Any other exception is caught, cause the method is executed asynchronously and the exception would
+            //be eventually only logged. Instead of that the task result is stored in Cassandra, and by this way it
+            //would be accessible to the user.
             saveErrorResult(parameters, e);
         }
     }
@@ -61,7 +75,9 @@ public class DepublicationService {
                 LOGGER.info("Removing record with id '{}' from index", records[i]);
                 checkTaskKilled(parameters.getTask().getTaskId());
                 boolean removedSuccessfully = depublisher.removeRecord(parameters, records[i]);
+
                 if (removedSuccessfully) {
+                    cleanRecordInHarvestedRecordsTable(parameters, records[i]);
                     recordStatusUpdater.addSuccessfullyProcessedRecord(resourceNum, parameters.getTask().getTaskId(),
                             TopologiesNames.DEPUBLICATION_TOPOLOGY, records[i]);
                 } else {
@@ -74,6 +90,9 @@ public class DepublicationService {
                 LOGGER.warn(e.getMessage(), e);
                 return;
             } catch (Exception e) {
+                //Any other exception is caught to perform independently as many records as it could be possible.
+                //Anyway the method is executed asynchronously and the exception would be eventually only logged.
+                //Instead of that the results are stored in Cassandra, and by this way they are accessible to the user.
                 LOGGER.warn("Error while depublishing record {}" , records[i], e);
                 recordStatusUpdater.addWronglyProcessedRecord(
                         resourceNum,
@@ -97,8 +116,8 @@ public class DepublicationService {
     private void waitForAllRecordsRemoved(Future<Integer> future, SubmitTaskParameters parameters) throws InterruptedException, URISyntaxException, IOException, IndexingException, ExecutionException {
         while (true) {
             long recordsLeft = depublisher.getRecordsCount(parameters);
-            saveProgress(parameters.getTask().getTaskId(), parameters.getExpectedSize() - recordsLeft);
-            checkRemoveInvocationFinished(future, parameters.getExpectedSize());
+            saveProgress(parameters.getTask().getTaskId(), parameters.getTaskInfo().getExpectedRecordsNumber() - recordsLeft);
+            checkRemoveInvocationFinished(future, parameters.getTaskInfo().getExpectedRecordsNumber());
             if (recordsLeft == 0) {
                 return;
             }
@@ -117,7 +136,7 @@ public class DepublicationService {
     }
 
     private void checkTaskKilled(long taskId) {
-        if (taskStatusChecker.hasKillFlag(taskId)) {
+        if (taskStatusChecker.hasDroppedStatus(taskId)) {
             throw new SubmitingTaskWasKilled(taskId);
         }
     }
@@ -127,13 +146,29 @@ public class DepublicationService {
     }
 
     private void saveProgress(long taskId, int processed, int errors) {
-        taskStatusUpdater.setUpdateProcessedFiles(taskId, processed, errors);
+        taskStatusUpdater.setUpdateProcessedFiles(taskId, processed, 0, 0, errors, 0);
     }
 
     private void saveErrorResult(SubmitTaskParameters parameters, Exception e) {
         String fullStacktrace = ExceptionUtils.getStackTrace(e);
         LOGGER.error("Task execution failed: {}", fullStacktrace);
         taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), fullStacktrace);
+    }
+
+    private void cleanAllDatasetRecordsInHarvestedRecordsTable(SubmitTaskParameters parameters) {
+        String metisDatasetId = parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID);
+        harvestedRecordsDAO.findDatasetRecords(metisDatasetId).forEachRemaining(this::cleanRecordInHarvestedRecordsTable);
+    }
+
+    private void cleanRecordInHarvestedRecordsTable(SubmitTaskParameters parameters, String recordId) {
+        String metisDatasetId = parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID);
+        harvestedRecordsDAO.findRecord(metisDatasetId, recordId).ifPresent(this::cleanRecordInHarvestedRecordsTable);
+    }
+
+    private void cleanRecordInHarvestedRecordsTable(HarvestedRecord theRecord) {
+        theRecord.setPublishedHarvestDate(null);
+        theRecord.setPublishedHarvestMd5(null);
+        harvestedRecordsDAO.insertHarvestedRecord(theRecord);
     }
 
 }

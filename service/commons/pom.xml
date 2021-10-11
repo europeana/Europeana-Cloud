@@ -3,7 +3,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-parent</artifactId>
-        <version>4.2</version>
+        <version>5</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -12,16 +12,11 @@
 
     <name>Europeana Cloud: Services Commons</name>
 
+    <properties>
+        <main.directory>${project.parent.basedir}</main.directory>
+    </properties>
+
     <dependencies>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${version.slf4j}</version>
-        </dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-common</artifactId>
@@ -42,18 +37,18 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>${version.spring-framework}</version>
+            <version>${version.spring-security}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -102,5 +97,24 @@
             <artifactId>ecloud-cassandra-connector</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>${version.cglib}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.3.3</version>
+            <scope>test</scope>
+        </dependency>
+
+
     </dependencies>
 </project>

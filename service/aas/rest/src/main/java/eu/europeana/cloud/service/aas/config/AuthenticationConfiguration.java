@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.aas.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService;
-import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

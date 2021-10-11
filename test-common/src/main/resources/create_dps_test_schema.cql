@@ -2,22 +2,37 @@ CREATE KEYSPACE ecloud_test WITH replication = {'class': 'SimpleStrategy', 'repl
 
 USE ecloud_test;
 
-CREATE TABLE basic_info (
-    task_id bigint,
-    topology_name varchar,
-    expected_size int,
-    processed_files_count int,
-    state varchar,
-    info varchar,
-    start_time timestamp,
-    finish_time timestamp,
-    sent_time timestamp,
-    errors int,
-    task_informations text,
-    retry_count int,
-    PRIMARY KEY(task_id)
+CREATE TABLE task_info (
+    task_id                                bigint,
+    topology_name                          varchar,
+    state                                  varchar,
+    state_description                      varchar,
+    sent_timestamp                         timestamp,
+    start_timestamp                        timestamp,
+    finish_timestamp                       timestamp,
+    expected_records_number                int,
+    processed_records_count                int,
+    ignored_records_count                  int,
+    deleted_records_count                  int,
+    processed_errors_count                 int,
+    deleted_errors_count                   int,
+    expected_post_processed_records_number int,
+    post_processed_records_count           int,
+    definition                             text,
+    PRIMARY KEY (task_id)
 );
 
+CREATE TABLE task_diagnostic_info (
+    task_id                            bigint,
+    started_records_count              int,
+    records_retry_count                int,
+    queued_time                        timestamp,
+    start_on_storm_time                timestamp,
+    last_record_finished_on_storm_time timestamp,
+    finish_on_storm_time               timestamp,
+    post_processing_start_time         timestamp,
+    PRIMARY KEY (task_id)
+);
 
 CREATE TABLE notifications (
     resource_num int,
@@ -29,7 +44,8 @@ CREATE TABLE notifications (
     additional_informations text,
     result_resource varchar,
     PRIMARY KEY(task_id,resource_num)
-) WITH CLUSTERING ORDER BY (resource_num DESC);
+) WITH CLUSTERING ORDER BY (resource_num DESC)
+  AND default_time_to_live = 2592000;
 
 
 CREATE TABLE error_notifications (
@@ -90,25 +106,29 @@ CREATE TABLE tasks_by_task_state(
     PRIMARY KEY(state, topology_name, task_id)
 );
 
-CREATE TABLE processed_records (
-    task_id bigint,
-    record_id varchar,
-    attempt_number int,
-    dst_identifier varchar,
-    topology_name varchar,
-    state varchar,
-    start_time     timestamp,
-    info_text text,
+CREATE TABLE processed_records(
+    task_id                 bigint,
+    bucket_number           int,
+    record_id               varchar,
+    attempt_number          int,
+    dst_identifier          varchar,
+    topology_name           varchar,
+    state                   varchar,
+    start_time              timestamp,
+    info_text               text,
     additional_informations text,
-    PRIMARY KEY(task_id, record_id)
-);
+    PRIMARY KEY ((task_id, bucket_number), record_id)
+) WITH default_time_to_live = 2592000;
 
 create table harvested_records(
     metis_dataset_id varchar,
     bucket_number    int,
     record_local_id  varchar,
-    harvest_date     timestamp,
-    md5              uuid,
-    indexing_date    timestamp,
+    latest_harvest_date timestamp,
+    latest_harvest_md5 uuid,
+    preview_harvest_date timestamp,
+    preview_harvest_md5 uuid,
+    published_harvest_date timestamp,
+    published_harvest_md5 uuid,
     PRIMARY KEY ((metis_dataset_id, bucket_number), record_local_id)
 );

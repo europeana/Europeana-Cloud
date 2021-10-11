@@ -80,6 +80,8 @@ public interface ParamConstants {
 
     String F_REVISION_TIMESTAMP = "revisionTimestamp";
 
+    String F_EXISTING_ONLY = "existingOnly";
+
     String F_REVISION_PROVIDER_ID = "revisionProviderId";
 
     //header paramiters' names

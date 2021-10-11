@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#" 
+    xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" 
+    xmlns:xalan="http://xml.apache.org/xalan" 
+    xmlns:edm="http://www.europeana.eu/schemas/edm/" 
+    xmlns:foaf="http://xmlns.com/foaf/0.1/" 
+    xmlns:odrl="http://www.w3.org/ns/odrl/2/" 
+    xmlns:ore="http://www.openarchives.org/ore/terms/" 
+    xmlns:adms="http://www.w3.org/ns/adms#" 
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:cc="http://creativecommons.org/ns#" 
+    xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" 
+    xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#" 
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/" 
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" 
+    xmlns:dcat="http://www.w3.org/ns/dcat#" 
+    xmlns:skos="http://www.w3.org/2004/02/skos/core#">
+<edm:ProvidedCHO rdf:about="LIT_280_004">
+    <dc:creator rdf:resource="http://viaf.org/viaf/901183"/>
+    <dc:description xml:lang="li">XIX a. I p. buitinis žanras buvo tapęs itin svarbia Vilniaus meno mokyklos auklėtinių, romantizmo epochos dailininkų, kūrybos sritimi. Būtent buitiniai paveikslai, atspindintys bajorų ir valstiečių gyvenimo būdą, tradicijas, papročius, įamžinantys ir supoetinantys jų gyvenamąją aplinką, tapo kertiniais „vilnietiškojo romantizmo“ akcentais.  Didžiulį pasisekimą ano meto visuomenėje turėjo lietuvio dailininko Kanuto Rusecko drobės, vaizdavusios liaudies papročius ir tradicijas. Paveikslas „Lietuvaitė su verbomis“ (dar vadinamas „Verbų sekmadieniu“) yra vienas populiariausių šio ciklo kūrinių, plačiai žinomų Lietuvoje. Santūriai, bet sausokai nutapytoje drobėje išreiškiamas liaudiškas grožio supratimas. Virpantis bažnyčios rokokas subtiliai sugretinamas su auksu švytinčiomis lauko sausžolėmis. Idealizuotas jaunos, kuklios etninės lietuvaitės, katalikės, atvaizdas įkūnija tautinę, tėvynės meilės idėją, užsimenant apie katalikiškąsias bei nacionalines krašto tradicijas. Šis paveikslas yra tapęs XIX a. lietuvių dailės simboliu. </dc:description>
+    <dc:description xml:lang="en">In the first half of the 19th century genre art became particularly relevant in artworks of Romanticism painters, as well as of professors and graduates of Vilnius University departments of fine arts (so called Vilnius Art School). Genre scenes depicting lifestyles, traditions, and customs both of nobility and peasants were essential part of Vilnius Romanticism.  Set of artworks by Kanutas Ruseckas portraying folk customs and traditions were very well-liked in society of that time. One of the most popular and well-known artwork of that set is the picture “Lithuanian Girl with Palm Sunday Fronds” (also known as “Palm Sunday”). This modestly and somewhat restrainedly painted canvas expresses folk perception of beauty. Vibrating rococo church is delicately compared with outdoor dry-grass fronds glowing in gold. Idealised image of young and humble ethnic Lithuanian girl, Catholic, embodies love for homeland, hinting towards national and Catholic traditions of the country. As a result for some this painting even became the symbol of the 19th century’s Lithuanian fine arts.</dc:description>
+    <dc:language>English</dc:language>
+    <dc:language>Lietuvių</dc:language>
+    <dc:relation rdf:resource="http://www.wikidata.org/entity/Q21771319"/>
+    <dc:subject rdf:resource="http://iconclass.org/31D13"/>
+    <dc:title xml:lang="en">Lithuanian Girl with Palm Sunday Fronds</dc:title>
+    <dc:type rdf:resource="http://vocab.getty.edu/aat/300033799"/>
+    <dc:type rdf:resource="http://vocab.getty.edu/aat/300139140"/>
+    <dcterms:alternative xml:lang="en">Palm Sunday</dcterms:alternative>
+    <dcterms:created xml:lang="en">1844</dcterms:created>
+    <dcterms:extent xml:lang="en">45 cm x 34 cm</dcterms:extent>
+    <dcterms:medium rdf:resource="http://vocab.getty.edu/aat/300178684"/>
+    <edm:currentLocation rdf:resource="#LIT_place4"/>
+    <edm:type>IMAGE</edm:type>
+</edm:ProvidedCHO>
+<edm:WebResource rdf:about="https://www.dropbox.com/s/oi0036oqtrh0yx1/Lithuania_5_Ruseckas_K_Lithuanian_Girl_with_Palm_Sunday_Fronds_1844.jpg?raw=1">
+    <edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+</edm:WebResource>
+<ore:Aggregation rdf:about="LIT_280_004#aggregation">
+        <edm:aggregatedCHO rdf:resource="LIT_280_004#aggregation"/>
+        <edm:dataProvider xml:lang="en">Lithuanian Art Museum</edm:dataProvider>
+        <edm:isShownAt rdf:resource="https://www.limis.lt/greita-paieska/perziura/-/exhibit/preview/20000001505144"/>
+        <edm:isShownBy rdf:resource="https://www.dropbox.com/s/oi0036oqtrh0yx1/Lithuania_5_Ruseckas_K_Lithuanian_Girl_with_Palm_Sunday_Fronds_1844.jpg?raw=1"/>
+        <edm:object rdf:resource="https://www.dropbox.com/s/oi0036oqtrh0yx1/Lithuania_5_Ruseckas_K_Lithuanian_Girl_with_Palm_Sunday_Fronds_1844.jpg?raw=1"/>
+        <edm:provider>Europeana 280</edm:provider>
+        <edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+</ore:Aggregation>
+<edm:Place rdf:about="#LIT_place4">
+        <wgs84_pos:lat>54.6804674</wgs84_pos:lat>
+        <wgs84_pos:long>25.2893464</wgs84_pos:long>
+        <skos:prefLabel xml:lang="li">Vilniaus paveikslu galerija, Lietuvos dailes muziejus</skos:prefLabel>
+    </edm:Place>
+</rdf:RDF>

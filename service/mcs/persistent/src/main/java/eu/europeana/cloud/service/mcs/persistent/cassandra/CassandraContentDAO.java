@@ -6,6 +6,7 @@ import com.google.common.io.BaseEncoding;
 import com.google.common.io.CountingInputStream;
 import com.google.common.primitives.Ints;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
@@ -36,41 +37,46 @@ import java.util.Arrays;
 @Repository
 public class CassandraContentDAO implements ContentDAO {
 
+    private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
+    private static final String MSG_FILE_ALREADY_EXISTS = "File %s already exists";
+    private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
+
     @Autowired
     @Qualifier("dbService")
     private CassandraConnectionProvider connectionProvider;
 
-    private PreparedStatement insert;
-    private PreparedStatement select;
-    private PreparedStatement delete;
+    private PreparedStatement insertStatement;
+    private PreparedStatement selectStatement;
+    private PreparedStatement deleteStatement;
 
     private final StreamCompressor streamCompressor = new StreamCompressor();
 
     @PostConstruct
     private void prepareStatements() {
         Session s = connectionProvider.getSession();
-        insert = s.prepare("INSERT INTO files_content (fileName, data) VALUES (?,?) IF NOT EXISTS");
-        insert.setConsistencyLevel(connectionProvider
-                .getConsistencyLevel());
-        select = s.prepare("SELECT data FROM files_content WHERE fileName = ?;");
-        select.setConsistencyLevel(connectionProvider
-                .getConsistencyLevel());
-        delete = s.prepare("DELETE FROM files_content WHERE fileName = ? IF EXISTS;");
-        delete.setConsistencyLevel(connectionProvider
-                .getConsistencyLevel());
+        insertStatement = s.prepare("INSERT INTO files_content (fileName, data) VALUES (?,?) IF NOT EXISTS");
+        insertStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        selectStatement = s.prepare("SELECT data FROM files_content WHERE fileName = ?;");
+        selectStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        deleteStatement = s.prepare("DELETE FROM files_content WHERE fileName = ? IF EXISTS;");
+        deleteStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public void copyContent(String sourceObjectId, String trgObjectId) throws FileNotExistsException, FileAlreadyExistsException, IOException {
+    public void copyContent(String sourceObjectId, String trgObjectId)
+            throws FileNotExistsException, FileAlreadyExistsException, IOException {
+
         try(ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             getContent(sourceObjectId, -1, -1, os);
             checkIfObjectNotExists(trgObjectId);
             putContent(trgObjectId, new ByteArrayInputStream(os.toByteArray()));
         } catch (FileNotExistsException e) {
-            throw new FileNotExistsException(String.format("File %s not exists", sourceObjectId));
+            throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, sourceObjectId));
         }
     }
 
@@ -78,10 +84,11 @@ public class CassandraContentDAO implements ContentDAO {
      * @inheritDoc
      */
     @Override
+    @Retryable
     public void deleteContent(String fileName) throws FileNotExistsException {
-        ResultSet rs = executeQueryWithLogger(delete.bind(fileName));
+        ResultSet rs = executeQueryWithLogger(deleteStatement.bind(fileName));
         if (!rs.wasApplied()) {
-            throw new FileNotExistsException(String.format("File %s not exists", fileName));
+            throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
         }
     }
 
@@ -89,13 +96,15 @@ public class CassandraContentDAO implements ContentDAO {
      * @inheritDoc
      */
     @Override
-    public void getContent(String fileName, long start, long end, OutputStream result) throws IOException,
-            FileNotExistsException {
-        ResultSet rs = executeQueryWithLogger(select.bind(fileName));
+    @Retryable
+    public void getContent(String fileName, long start, long end, OutputStream result)
+            throws IOException, FileNotExistsException {
+
+        ResultSet rs = executeQueryWithLogger(selectStatement.bind(fileName));
 
         Row row = rs.one();
         if (row == null) {
-            throw new FileNotExistsException(String.format("File %s not exists", fileName));
+            throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
         }
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
@@ -112,21 +121,22 @@ public class CassandraContentDAO implements ContentDAO {
      * @inheritDoc
      */
     @Override
+    @Retryable
     public PutResult putContent(String fileName, InputStream data) throws IOException {
         CountingInputStream countingInputStream = new CountingInputStream(data);
         DigestInputStream md5DigestInputStream = prepareMd5DigestStream(countingInputStream);
         ByteBuffer wrappedBytes = ByteBuffer.wrap(streamCompressor.compress(md5DigestInputStream));
-        executeQueryWithLogger(insert.bind(fileName, wrappedBytes));
+        executeQueryWithLogger(insertStatement.bind(fileName, wrappedBytes));
         String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
         Long contentLength = countingInputStream.getCount();
         return new PutResult(md5, contentLength);
     }
 
-    private void checkIfObjectNotExists(String trgObjectId) throws IOException, FileAlreadyExistsException {
-        ResultSet rs = executeQueryWithLogger(select.bind(trgObjectId));
+    private void checkIfObjectNotExists(String trgObjectId) throws FileAlreadyExistsException {
+        ResultSet rs = executeQueryWithLogger(selectStatement.bind(trgObjectId));
         Row row = rs.one();
         if (row != null) {
-            throw new FileAlreadyExistsException(String.format("File %s already exists", trgObjectId));
+            throw new FileAlreadyExistsException(String.format(MSG_FILE_ALREADY_EXISTS, trgObjectId));
         }
     }
 
@@ -163,7 +173,7 @@ public class CassandraContentDAO implements ContentDAO {
             MessageDigest md = MessageDigest.getInstance("MD5");
             return new DigestInputStream(is, md);
         } catch (NoSuchAlgorithmException ex) {
-            throw new AssertionError("Cannot get instance of MD5 but such algorithm should be provided", ex);
+            throw new AssertionError(MSG_CANNOT_GET_INSTANCE_OF_MD_5, ex);
         }
     }
 }

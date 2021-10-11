@@ -13,7 +13,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.junit.Before;
@@ -120,7 +120,19 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         XSLT_TASK_WITH_MALFORMED_URL.addDataEntry(FILE_URLS, Arrays.asList("httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, 0, 0, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = TaskInfo.builder()
+                .id(TASK_ID)
+                .topologyName(SAMPLE_TOPOLOGY_NAME)
+                .state(TaskState.PROCESSED)
+                .stateDescription("")
+                .expectedRecordsNumber(100)
+                .processedRecordsCount(100)
+                .processedErrorsCount(0)
+                .sentTimestamp(new Date())
+                .startTimestamp(new Date())
+                .finishTimestamp(new Date())
+                .build();
+
         when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
         Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
         when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
@@ -209,61 +221,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: XSLT_URL"));
         }
     }
-
-
-    @Test
-    public void shouldBeAbleToSubmitTaskToIcTopology() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
-        //when
-        DpsTask task = new DpsTask("icTask");
-        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
-        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
-        String topologyName = "ic_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        //then
-        topologyTasksResource.submitTask(request, task, topologyName, AUTH_HEADER_VALUE);
-    }
-
-    @Test
-    public void shouldNotBeAbleToSubmitTaskToIcTopologyWithUnacceptedOutputMimeType() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
-        //when
-        DpsTask task = new DpsTask("icTask");
-        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
-        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "undefined");
-        String topologyName = "ic_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        //then
-        try {
-            topologyTasksResource.submitTask(request, task, topologyName, AUTH_HEADER_VALUE);
-            fail();
-        } catch (DpsTaskValidationException e) {
-            assertThat(e.getMessage(), is("Parameter does not meet constraints. Parameter name: OUTPUT_MIME_TYPE"));
-        }
-    }
-
-    @Test
-    public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToIcTopologyWithMissingFileUrls() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
-        //when
-        DpsTask task = new DpsTask("icTask");
-        String topologyName = "ic_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        try {
-            //when
-            topologyTasksResource.submitTask(request, task, topologyName, AUTH_HEADER_VALUE);
-            fail();
-        } catch (DpsTaskValidationException e) {
-            //then
-            assertThat(e.getMessage(), startsWith("Validation failed"));
-        }
-    }
-
 
     private void grantUserToTopology(String topologyName, String user) throws AccessDeniedOrTopologyDoesNotExistException {
         login(ADMIN, ADMIN_PASSWORD);

@@ -10,6 +10,10 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -50,7 +54,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
     private static final String AUTHORIZATION = "Authorization";
@@ -60,6 +64,7 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
     @BeforeClass
     public static void buildToplogy() {
+
         buildTopology();
     }
 
@@ -83,7 +88,7 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,{\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
@@ -183,11 +188,11 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
-                .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.ENRICHMENT_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+                .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.ENRICHMENT_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
         topology = builder.createTopology();
 
     }

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.depublish;
 
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -30,5 +31,10 @@ public class TestContext {
     @Bean
     public RecordStatusUpdater recordStatusUpdater() {
         return Mockito.mock(RecordStatusUpdater.class);
+    }
+
+    @Bean
+    public HarvestedRecordsDAO harvestedRecordsDAO() {
+        return Mockito.mock(HarvestedRecordsDAO.class);
     }
 }

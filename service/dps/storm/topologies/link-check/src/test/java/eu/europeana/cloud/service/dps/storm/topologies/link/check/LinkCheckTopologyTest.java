@@ -12,6 +12,11 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -61,8 +66,9 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileForMediaBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class, ProcessedRecordsDAO.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xerces.*", "javax.xml.parsers.*"})
+@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileForMediaBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, TaskDiagnosticInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class, ProcessedRecordsDAO.class})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.*",
+        "org.w3c.dom.*", "com.sun.org.apache.xerces.*", "javax.xml.parsers.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 
 public class LinkCheckTopologyTest extends TopologyTestHelper {
 
@@ -107,7 +113,7 @@ public class LinkCheckTopologyTest extends TopologyTestHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, stormTaskTuple.toStormTuple());
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"START_TIME\":1,\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,{\"START_TIME\":1,\"resource\":\"" + SOURCE_VERSION_URL + "\",\"info_text\":\"\",\"resultResource\":\"\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
@@ -193,8 +199,8 @@ public class LinkCheckTopologyTest extends TopologyTestHelper {
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.LINK_CHECK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
-                .fieldsGrouping(TopologyHelper.PARSE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(TopologyHelper.LINK_CHECK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+                .fieldsGrouping(TopologyHelper.PARSE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                .fieldsGrouping(TopologyHelper.LINK_CHECK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
         topology = builder.createTopology();
 
     }

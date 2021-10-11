@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" 
+    xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#" 
+    xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" 
+    xmlns:xalan="http://xml.apache.org/xalan" 
+    xmlns:edm="http://www.europeana.eu/schemas/edm/" 
+    xmlns:foaf="http://xmlns.com/foaf/0.1/" 
+    xmlns:odrl="http://www.w3.org/ns/odrl/2/" 
+    xmlns:ore="http://www.openarchives.org/ore/terms/" 
+    xmlns:adms="http://www.w3.org/ns/adms#" 
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:cc="http://creativecommons.org/ns#" 
+    xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" 
+    xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#" 
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/" 
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" 
+    xmlns:dcat="http://www.w3.org/ns/dcat#" 
+    xmlns:skos="http://www.w3.org/2004/02/skos/core#">
+   <edm:ProvidedCHO rdf:about="LIT_280_003">
+        <dc:creator rdf:resource="http://viaf.org/viaf/96089549"/>
+        <dc:description xml:lang="li">Antanas Gudaitis – vienas žymiausių Lietuvos XX a. dailininkų. 1926–1929 m. jis studijavo Kauno universitete literatūrą ir kartu Kauno meno mokykloje lankė Justino Vienožinskio studiją. 1929–1933 m. dailę studijavo Paryžiaus nacionalinėje taikomosios dailės mokykloje bei įvairiose privačiose studijose. Buvo aktyvus „Ars“ menininkų grupės organizatorius ir narys. Jis savo kūryboje atmetė pasenusius kanonus, kūrė tokią meninę kalbą, kuri leistų laisvai ir nevaržomai išreikšti šiuolaikinio žmogaus estetinius išgyvenimus, nuotaikas, pasaulėjautą. A. Gudaičio kūrybinių ieškojimų kelyje esminės permainos įvyko 1933–1934 metais, kai jis grįžo iš studijų Paryžiuje. Tuo laikotarpiu jis palaipsniui atsisakė ankstesniais metais puoselėtos racionalios ir aiškios tapybos sistemos. Jo kūryboje atsirado daugiau laisvės ir spontaniškumo, vaizdo dramatiškumo. Paveikslas „Naujakuriai“ sukurtas būtent tuo laikotarpiu. Tai ne tik vienas vertingiausių meniniu požiūriu A. Gudaičio ankstyvojo kūrybos etapo kūrinys. Šis paveikslas svarbus ir Lietuvos dailės istorijai, iliustruojantis, kad lietuvių tapybos nutolimą nuo anuomet viešpatavusio akademizmo ir romantizuoto realizmo bei orientaciją į modernesnę, ekspresyvesnę formų kalbą. Kompozicijoje dar justi modernizmo sostinėje įgytas tapysenos ir kolorito lengvumas, mėlynos tonais drąsiai modeliuojant ožkos, o raudonos - karvės formas ieškoma spalvų dermės. Tipažų bruožai ir nuotaika dar šiek tiek primena paryžietiškąsias kompozicijas su cirko artistais ir muzikantais, nors jaunosios valstiečių poros atvaizdas skleidžia ne nuoširdų gyvenimo džiaugsmą, bet nerimą ir susirūpinimą. Modernizmo sostinėje įgytą ir kultivuotą skonėjimąsi kūrybos teikiamais maloniais išgyvenimais ima stelbti užuojauta gyvenimo nuskriaustiesiems ir įsipareigojimas visuomenei. Vargo naštos slegiamos jaunos šeimos atvaizdą dailininkas aktualizavo suteikęs pavadinimą, kuris jo amžininkams iš karto reiškė opią socialinę problemą, atspindėtą ne tik to meto dailėje, bet ir literatūroje.</dc:description>
+        <dc:description xml:lang="en">Antanas Gudaitis is one of the most eminent Lithuanian painters of the 20th century. During 1926-1929 he had studied literature at Kaunas University. In the meantime he also attended Justinas Vienožinskis courses at Kaunas Art School. In 1929 he left Lithuania for Paris in order to develop his drawing and painting skills. Until 1933 he had studied there at various private studios and at the National Conservatory of Arts and Crafts. Antanas Gudaitis was also one of the founders and an active member of the artists’ group “Ars”. His artworks rejected outdated rules of visual arts. He also tried to use aesthetics that would freely express feelings, emotions and perceptions of modern man. However, the major shift in Antanas Gudaitis painting style occurred in 1933-1934, when he returned from Paris. At that time he gradually given up on rational and clear method of painting he was using before. His artworks now contained more freedom, spontaneity, and drama. Painting “Settlers” was created during this transformation period. From the artistic point of view it is one of the most valuable artworks of Antanas Gudaitis from his early days. The painting is also important for the history of Lithuanian art. It illustrates the shift from academic and romantic realism styles, which in those days predominated artistic circles, towards more modern and expressive artistic language of shapes. The painting has an air of lightness about it evident in the brushwork and the colours; a taste probably acquired in Paris. In order to make an interesting colour combination the artist boldly painted goat in tones of blue and cow in tones of red. The characters and mood of the painting recall Parisian depictions of musicians and circus artists. Although, rather than reflecting the joy of life, anxiety and problems of young peasant couple are portrayed. Enjoyment of culture that Antanas Gudaitis acquired in Paris is gradually overshadowed by empathy for the less fortunate and sense of duty to society. In the eyes of contemporaries the title given to the painting turned this artwork into a reference toward a pressing problem in society, which is reflected both in art and literature of the period.</dc:description>
+        <dc:language>English</dc:language>
+        <dc:language>Lietuvių</dc:language>
+        <dc:relation rdf:resource="http://www.wikidata.org/entity/Q21758870"/>
+        <dc:subject rdf:resource="http://iconclass.org/42"/>
+        <dc:title xml:lang="en">Settlers</dc:title>
+        <dc:type rdf:resource="http://vocab.getty.edu/aat/300033799"/>
+        <dc:type rdf:resource="http://vocab.getty.edu/aat/300139140"/>
+        <dcterms:created xml:lang="en">1933</dcterms:created>
+        <dcterms:extent xml:lang="en">113 cm x 88 cm</dcterms:extent>
+        <dcterms:medium rdf:resource="http://vocab.getty.edu/aat/300178684"/>
+        <edm:currentLocation rdf:resource="#LIT_place3"/>
+        <edm:type>IMAGE</edm:type>
+    </edm:ProvidedCHO>
+    <edm:WebResource rdf:about="https://www.dropbox.com/s/vazqpd6ln8gjqrt/Lithuania_4_Gudaitis_A_Settlers_1933.jpg?raw=1">
+        <edm:rights rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+    </edm:WebResource>
+    <ore:Aggregation rdf:about="LIT_280_003#aggregation">
+        <edm:aggregatedCHO rdf:resource="LIT_280_003#aggregation"/>
+        <edm:dataProvider>Lithuanian Art Museum</edm:dataProvider>
+        <edm:isShownAt rdf:resource="http://www.ndg.lt/collection/artworks/antanas-gudaitis.aspx"/>
+        <edm:isShownBy rdf:resource="https://www.dropbox.com/s/vazqpd6ln8gjqrt/Lithuania_4_Gudaitis_A_Settlers_1933.jpg?raw=1"/>
+        <edm:object rdf:resource="https://www.dropbox.com/s/vazqpd6ln8gjqrt/Lithuania_4_Gudaitis_A_Settlers_1933.jpg?raw=1"/>
+        <edm:provider>Europeana 280</edm:provider>
+        <edm:rights rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+    </ore:Aggregation>
+    <edm:Place rdf:about="#LIT_place3">
+        <wgs84_pos:lat>54.696876</wgs84_pos:lat>
+        <wgs84_pos:long>25.270725</wgs84_pos:long>
+        <skos:prefLabel xml:lang="li">Lietuvos dailės muziejus</skos:prefLabel>
+    </edm:Place>
+    </rdf:RDF>

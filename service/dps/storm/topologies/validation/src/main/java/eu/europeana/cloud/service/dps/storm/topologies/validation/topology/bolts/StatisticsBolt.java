@@ -6,9 +6,9 @@ import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
     private final String keyspaceName;
     private final String userName;
     private final String password;
-    private transient CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
+    private transient ValidationStatisticsServiceImpl statisticsService;
     private transient ProcessedRecordsDAO processedRecordsDAO;
 
     public StatisticsBolt(String hosts, int port, String keyspaceName,
@@ -46,7 +46,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
     public void prepare() {
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
-        cassandraNodeStatisticsDAO = CassandraNodeStatisticsDAO.getInstance(cassandraConnectionProvider);
+        statisticsService = ValidationStatisticsServiceImpl.getInstance(cassandraConnectionProvider);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
     }
 
@@ -64,7 +64,8 @@ public class StatisticsBolt extends AbstractDpsBolt {
             stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (Exception e) {
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.",
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.",
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
@@ -80,12 +81,12 @@ public class StatisticsBolt extends AbstractDpsBolt {
     private void countStatistics(StormTaskTuple stormTaskTuple) throws ParserConfigurationException, SAXException, IOException {
         String document = new String(stormTaskTuple.getFileData());
         RecordStatisticsGenerator statisticsGenerator = new RecordStatisticsGenerator(document);
-        cassandraNodeStatisticsDAO.insertNodeStatistics(stormTaskTuple.getTaskId(), statisticsGenerator.getStatistics());
+        statisticsService.insertNodeStatistics(stormTaskTuple.getTaskId(), statisticsGenerator.getStatistics());
     }
 
     private void markRecordStatsAsCalculated(StormTaskTuple stormTaskTuple) {
         if (!statsAlreadyCalculated(stormTaskTuple)) {
-            processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED.toString());
+            processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), RecordState.STATS_GENERATED);
         }
     }
 }

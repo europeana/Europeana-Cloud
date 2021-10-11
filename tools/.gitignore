@@ -9,5 +9,5 @@ performanceTest/p*
 *.parms
 records-downloader-tool/target
 ecloud-db-migrator/target
-
-
+/harvested-records-table-updater/target/
+!/harvested-records-table-updater/src/test/resources/*.csv

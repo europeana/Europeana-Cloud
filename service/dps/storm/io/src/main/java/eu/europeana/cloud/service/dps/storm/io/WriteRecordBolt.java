@@ -3,25 +3,30 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
+import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
 import org.apache.storm.tuple.Tuple;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
-import java.util.List;
+import java.time.Instant;
+import java.util.Calendar;
+import java.util.UUID;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
 
 /**
  * Stores a Record on the cloud.
@@ -46,54 +51,24 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+        LOGGER.info("WriteRecordBolt: persisting processed file");
+        Instant processingStartTime = Instant.now();
         try {
-            LOGGER.info("WriteRecordBolt: persisting processed file");
             RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
-            if (isMessageResent(stormTaskTuple)) {
-                processResentMessage(stormTaskTuple, writeParams);
-            } else {
-                processNewMessage(stormTaskTuple, writeParams);
-            }
+            var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
+            LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
+            prepareEmittedTuple(stormTaskTuple, uri.toString());
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (Exception e) {
             LOGGER.error("Unable to process the message", e);
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
-                    "Cannot process data because: " + e.getMessage(), stack.toString(),
+            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), "Cannot process data because: " + e.getMessage(), stack.toString(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
-    }
-
-    private boolean isMessageResent(StormTaskTuple stormTaskTuple) {
-        return StormTaskTupleHelper.isMessageResent(stormTaskTuple);
-    }
-
-    private void processResentMessage(StormTaskTuple tuple, RecordWriteParams writeParams) throws Exception {
-        LOGGER.info("Reprocessing message that was sent again");
-        List<Representation> representations = findRepresentationsWithSameRevision(tuple, writeParams);
-        if (representations.isEmpty()) {
-            processNewMessage(tuple, writeParams);
-            return;
-        }
-        prepareEmittedTuple(tuple, representations.get(0).getFiles().get(0).getContentUri().toString());
-    }
-
-    private void processNewMessage(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
-        final URI uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
-        LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
-        prepareEmittedTuple(stormTaskTuple, uri.toString());
-    }
-
-    private List<Representation> findRepresentationsWithSameRevision(StormTaskTuple tuple, RecordWriteParams writeParams) throws MCSException {
-        return recordServiceClient.getRepresentationsByRevision(
-                writeParams.getCloudId(), writeParams.getRepresentationName(),
-                tuple.getRevisionToBeApplied().getRevisionName(),
-                tuple.getRevisionToBeApplied().getRevisionProviderId(),
-                new DateTime(tuple.getRevisionToBeApplied().getCreationTimeStamp(), DateTimeZone.UTC).toString(),
-                AUTHORIZATION,
-                tuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        LOGGER.info("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private String getProviderId(StormTaskTuple stormTaskTuple) throws MCSException {
@@ -122,13 +97,17 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         String cloudId;
         String representationName;
         String providerId;
+        UUID newVersion;
+        String newFileName;
     }
 
     protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException {
-        RecordWriteParams writeParams = new RecordWriteParams();
+        var writeParams = new RecordWriteParams();
         writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
         writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
         writeParams.setProviderId(getProviderId(tuple));
+        writeParams.setNewVersion(generateNewVersionId(tuple));
+        writeParams.setNewFileName(generateNewFileName(tuple));
         return writeParams;
     }
 
@@ -141,21 +120,36 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
+        LOGGER.debug("Creating empty representation for tuple that is marked as deleted");
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
-                        writeParams.getProviderId(), AUTHORIZATION,
+                        writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
                         stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
+        LOGGER.debug("Creating new representation");
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(
-                        writeParams.getCloudId(),
-                        writeParams.getRepresentationName(),
-                        writeParams.getProviderId(), stormTaskTuple.getFileByteDataAsStream(),
-                        stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME),
+                        writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
+                        writeParams.getNewVersion(), stormTaskTuple.getFileByteDataAsStream(),
+                        writeParams.getNewFileName(),
                         TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
                         AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+    }
+
+    protected UUID generateNewVersionId(StormTaskTuple tuple) {
+        return UUIDWrapper.generateRepresentationVersion(
+                DateHelper.parseISODate(tuple.getParameter(SENT_DATE)).toInstant(),
+                tuple.getFileUrl());
+    }
+    protected String generateNewFileName(StormTaskTuple tuple) {
+        String fileFromNameParameter = tuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
+        if(fileFromNameParameter!=null){
+            return fileFromNameParameter;
+        } else {
+            return UUIDWrapper.generateRepresentationFileName(tuple.getFileUrl());
+        }
     }
 
 }

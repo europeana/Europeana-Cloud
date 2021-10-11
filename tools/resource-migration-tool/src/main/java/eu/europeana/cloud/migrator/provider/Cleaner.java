@@ -5,8 +5,8 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.migrator.ResourceMigrator;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  */
 public class Cleaner {
 
-    private static final Logger logger = Logger.getLogger(Cleaner.class);
+    private static final Logger logger = LoggerFactory.getLogger(Cleaner.class);
 
     public void clean(String providerId, RecordServiceClient mcs, UISClient uis) {
         try {
@@ -37,12 +37,7 @@ public class Cleaner {
                     uis.deleteCloudId(id);
                 }
             }
-        } catch (IOException e) {
-        } catch (RecordNotExistsException e) {
-            logger.error("Error while cleaning ", e);
-        } catch (MCSException e) {
-            logger.error("Error while cleaning ", e);
-        } catch (CloudException e) {
+        } catch (IOException | MCSException | CloudException e) {
             logger.error("Error while cleaning ", e);
         }
 
@@ -53,16 +48,11 @@ public class Cleaner {
         try {
             for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + "_ids.txt"), Charset.forName("UTF-8"))) {
                 String id = line.trim();
-                logger.info("Cleaning record: " + id);
+                logger.info("Cleaning record: {}", id);
                 mcs.deleteRecord(id);
                 uis.deleteCloudId(id);
             }
-        } catch (IOException e) {
-        } catch (RecordNotExistsException e) {
-            logger.error("Error while cleaning records ", e);
-        } catch (MCSException e) {
-            logger.error("Error while cleaning records ", e);
-        } catch (CloudException e) {
+        } catch (IOException |MCSException | CloudException e) {
             logger.error("Error while cleaning records ", e);
         }
 

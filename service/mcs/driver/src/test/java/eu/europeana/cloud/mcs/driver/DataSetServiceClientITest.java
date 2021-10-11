@@ -3,11 +3,12 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.List;
@@ -17,15 +18,11 @@ import static org.junit.Assert.*;
 @Ignore
 public class DataSetServiceClientITest {
     private  static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
-    private  static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
-    private  static final String REMOTE_TEST_URL = "https://test.ecloud.psnc.pl/api";
-    private  static final String REMOTE_TEST_UIS_URL = "https://test.ecloud.psnc.pl/api";
 
     private static final String USER_NAME = "metis_test";  //user z bazy danych
-    private static final String USER_PASSWORD = "1RkZBuVf";
-    private static final String ADMIN_NAME = "admin";  //admin z bazy danych
-    private static final String ADMIN_PASSWORD = "glEumLWDSVUjQcRVswhN";
+    private static final String USER_PASSWORD = "Gi*Z26h4c1y^rTGf";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClientITest.class);
 
     @Test
     public void createDataSet() throws MCSException {
@@ -97,6 +94,25 @@ public class DataSetServiceClientITest {
 
         assertNotNull(response);
         assertNotNull(response.getResults());
+    }
+
+    @Test
+    public void getRevisionsWithDeletedFlagSetToFalse() throws MCSException {
+        String providerId = "xxx";
+        String dataSetId = "autotests";
+        String representationName = "xxx";
+        String revisionName = "OAIPMH_HARVEST";
+        String revisionProviderId = "xxx";
+        String revisionTimestamp = "2021-09-22T06:45:02.592";
+        Integer limit = 1000;
+
+        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
+
+        List<CloudTagsResponse> response = mcsClient.getRevisionsWithDeletedFlagSetToFalse(providerId, dataSetId,
+                representationName, revisionName, revisionProviderId, revisionTimestamp, limit);
+
+        assertNotNull(response);
+        LOGGER.info(response.toString());
     }
 
     @Test

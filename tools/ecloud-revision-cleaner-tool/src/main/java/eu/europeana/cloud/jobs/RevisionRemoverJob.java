@@ -10,9 +10,10 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -22,7 +23,7 @@ import java.util.List;
  * Created by Tarek on 7/15/2019.
  */
 public class RevisionRemoverJob implements Runnable {
-    static final Logger LOGGER = Logger.getLogger(RevisionRemoverJob.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(RevisionRemoverJob.class);
 
     private DataSetServiceClient dataSetServiceClient;
     private RecordServiceClient recordServiceClient;
