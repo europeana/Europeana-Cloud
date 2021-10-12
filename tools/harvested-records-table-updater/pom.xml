@@ -20,6 +20,11 @@
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>6-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${version.slf4j}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

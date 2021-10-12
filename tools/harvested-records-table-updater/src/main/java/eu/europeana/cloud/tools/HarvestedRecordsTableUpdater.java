@@ -26,6 +26,11 @@ public class HarvestedRecordsTableUpdater {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestedRecordsTableUpdater.class);
 
+    private static final String DATASET_ID_GROUP = "DSID";
+    private static final String RECORD_ID_GROUP = "RECID";
+    private static final String LATEST_GROUP = "TLATEST";
+    private static final String PREVIEW_GROUP = "TPREVIEW";
+    private static final String PUBLISHED_GROUP = "TPUBLISHED";
     /**
      * "metis_dataset_id","record_id","latest_harvest_revision_timestamp","preview_harvest_revision_timestamp","published_harvest_revision_timestamp"
      * Possible lines covered by regular expression below
@@ -35,7 +40,7 @@ public class HarvestedRecordsTableUpdater {
      * 54,/54/item_W2I5JU3M3EXM3HR6VV3YBH45SOEBMH2M,1618222127555,1618222127555,1618222127555
      * 54,/54/item_W7UDO6XLGZ73D2DYDT73P4AE4Y33HKBX,1618222127555,1618222127555,
      */
-    private static final String LINE_PATTERN_REGEXP = "\\\"?(?<DSID>.+?)\\\"?,\\\"?(?<RECID>.+?)\\\"?,\\\"?(?<TLATEST>\\d+)\\\"?,\\\"?(?<TPREVIEW>\\d+)\\\"?,\\\"?(?<TPUBLISHED>\\d*)\\\"?";
+    private static final String LINE_PATTERN_REGEXP = "\"?(?<"+DATASET_ID_GROUP+">.+?)\"?,\"?(?<"+RECORD_ID_GROUP+">.+?)\"?,\"?(?<"+LATEST_GROUP+">\\d*)\"?,\"?(?<"+PREVIEW_GROUP+">\\d*)\"?,\"?(?<"+PUBLISHED_GROUP+">\\d*)\"?";
     private static final Pattern LINE_PATTERN = Pattern.compile(LINE_PATTERN_REGEXP);
 
     private static final int BATCH_SIZE = 10000;
@@ -103,12 +108,18 @@ public class HarvestedRecordsTableUpdater {
 
     private HarvestedRecord createRecord(Matcher lineMatcher) {
         return HarvestedRecord.builder()
-                .metisDatasetId(lineMatcher.group("DSID"))
-                .recordLocalId(lineMatcher.group("RECID"))
-                .latestHarvestDate(new Date(Long.parseLong(lineMatcher.group("TLATEST"))))
-                .previewHarvestDate(new Date(Long.parseLong(lineMatcher.group("TPREVIEW"))))
-                .publishedHarvestDate(lineMatcher.group("TPUBLISHED").isEmpty() ? null :
-                        new Date(Long.parseLong(lineMatcher.group("TPUBLISHED"))))
+                .metisDatasetId(lineMatcher.group(DATASET_ID_GROUP))
+                .recordLocalId(lineMatcher.group(RECORD_ID_GROUP))
+                .latestHarvestDate(
+                        lineMatcher.group(LATEST_GROUP).isEmpty() ? null :
+                                new Date(Long.parseLong(lineMatcher.group(LATEST_GROUP)))
+                )
+                .previewHarvestDate(
+                        lineMatcher.group(PREVIEW_GROUP).isEmpty() ? null :
+                                new Date(Long.parseLong(lineMatcher.group(PREVIEW_GROUP)))
+                )
+                .publishedHarvestDate(lineMatcher.group(PUBLISHED_GROUP).isEmpty() ? null :
+                        new Date(Long.parseLong(lineMatcher.group(PUBLISHED_GROUP))))
                 .build();
     }
 
