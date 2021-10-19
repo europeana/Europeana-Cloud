@@ -27,6 +27,8 @@ then check list again
 
     $ sudo yum install ImageMagick7-libs.x86_64
     $ sudo yum install ImageMagick7.x86_64
+    
+    maybe with --enablerepo="epel" option if repo epel is switched off
 
 4. Check if IM was installed
 
