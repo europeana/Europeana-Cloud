@@ -30,13 +30,13 @@ then check list again
     
     maybe with --enablerepo="epel" option if repo epel is switched off
 
-4. Check if IM was installed
+4. Check if IM is installed
 
     $ /usr/bin/magick -version
 
-5. Remove old ImageMagick version installed in /usr/local/bin
+5 (or 0). Remove old ImageMagick version installed in /usr/local/bin
 
-    $ cd ~/ImageMagick-7.0.1-10
+    $ cd ~/<install_path>/ImageMagick-7.0.1-10
     $ sudo make uninstall
 
 6. Check if on valid version of IM is installed one (to clean $PATH cache re-login)
