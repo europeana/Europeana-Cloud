@@ -1,7 +1,6 @@
-package eu.europeana.cloud.service.dps.service.kafka.util;
+package eu.europeana.cloud.service.dps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.cloud.service.dps.DpsRecord;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

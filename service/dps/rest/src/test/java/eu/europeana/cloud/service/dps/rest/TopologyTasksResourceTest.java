@@ -18,10 +18,9 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
+import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.*;
 import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -113,8 +112,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private RecordKafkaSubmitService recordKafkaSubmitService;
     private RecordServiceClient recordServiceClient;
     private TaskExecutionReportService reportService;
-    private TaskKafkaSubmitService taskKafkaSubmitService;
-    
+
     @Autowired
     private DepublicationService depublicationService;
 
@@ -140,14 +138,12 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
         reportService = applicationContext.getBean(TaskExecutionReportService.class);
-        taskKafkaSubmitService = applicationContext.getBean(TaskKafkaSubmitService.class);
 
         reset(
                 taskDAO,
                 dataSetServiceClient,
                 recordKafkaSubmitService,
                 reportService,
-                taskKafkaSubmitService,
                 depublicationService
         );
         when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
@@ -496,7 +492,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isCreated());
         Thread.sleep( 1000);
         verify(harvestsExecutor).execute(any(OaiHarvest.class), any(SubmitTaskParameters.class));
-        verifyZeroInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
     }
 
@@ -664,7 +659,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         response.andExpect(status().isCreated());
         Thread.sleep(10000);
-        verifyZeroInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
     }
 
@@ -966,17 +960,14 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep(5000);
-        verify(taskKafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
-        verifyNoMoreInteractions(taskKafkaSubmitService);
         verifyZeroInteractions(recordKafkaSubmitService);
-        //verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
+        verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
     }
 
     private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep(5000);
-        verifyZeroInteractions(taskKafkaSubmitService);
     }
 
     private DataSetCleanerParameters prepareDataSetCleanerParameters() {

@@ -21,7 +21,6 @@
 
     <modules>
         <module>api</module>
-        <module>kafka-service</module>
         <module>rest</module>
         <module>rest-client-java</module>
         <module>utils</module>
