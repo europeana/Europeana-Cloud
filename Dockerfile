@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     net-tools \
+    dnsutils \
     vim \
     && rm -rf /var/lib/apt/lists/*
 
