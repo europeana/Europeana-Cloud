@@ -483,6 +483,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
         harvestingDetails.setSchema("oai_dc");
         task.setHarvestingDetails(harvestingDetails);
+        task.addParameter(HARVEST_DATE,"date");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/tiffDataSets");
         when(harvestsExecutor.execute(any(OaiHarvest.class), any(SubmitTaskParameters.class))).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
@@ -651,6 +653,9 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER,PROVIDER_ID);
+        task.addParameter(PluginParameterKeys.REVISION_NAME,"sampleRevision");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP,"sampleRevisonTimestamp");
         setCorrectlyFormulatedOutputRevision(task);
         prepareMocks(VALIDATION_TOPOLOGY);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
