@@ -6,7 +6,6 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.rest.TopologiesResource;
-import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
@@ -73,11 +72,6 @@ public class AbstractSecurityTestContext {
     @Bean
     public FilesCounter filesCounter(){
         return Mockito.mock(FilesCounter.class);
-    }
-
-    @Bean
-    public TaskKafkaSubmitService dpsSubmittingService(){
-        return Mockito.mock(TaskKafkaSubmitService.class);
     }
 
     @Bean

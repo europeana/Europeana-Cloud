@@ -12,6 +12,6 @@ public interface RecordExecutionSubmitService {
 	 * Depending on the record-type and the record-owner,
 	 * the {@link DpsRecord} will be submitted to a different Storm topology
 	 */
-    void submitRecord(DpsRecord record, String topic);
+    void submitRecord(DpsRecord dpsRecord, String topic);
     
 }

@@ -8,9 +8,8 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
-import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
@@ -55,15 +54,10 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public TaskKafkaSubmitService taskKafkaSubmitService() {
-        return new TaskKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
-    }
-
-    @Bean
     public RecordExecutionSubmitService recordKafkaSubmitService() {
         return new RecordKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
+                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
+                taskStatusUpdater());
     }
 
     @Bean
