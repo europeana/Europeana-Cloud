@@ -10,7 +10,7 @@ import java.util.GregorianCalendar;
 
 import static org.junit.Assert.*;
 
-public class RevisionServiceClientITest {
+public class RevisionServiceClientTestIT {
     private  static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
     private  static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
     private  static final String REMOTE_TEST_URL = "https://test.ecloud.psnc.pl/api";

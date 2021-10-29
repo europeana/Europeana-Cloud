@@ -25,8 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
-public class RecordServiceClientITest {
+public class RecordServiceClientTestIT {
 //http://localhosta:8080/mcs/records/2YRDQTLJMPCN264Y75CVIJ65RPZP5DJFS36CYAGMNIGT3GLKLMDA/representations/edm/versions
 //https://test.ecloud.psnc.pl/api/records/2YRDQTLJMPCN264Y75CVIJ65RPZP5DJFS36CYAGMNIGT3GLKLMDA/representations/edm/versions
 
@@ -76,7 +75,7 @@ public class RecordServiceClientITest {
 
         String filename = "log4j.properties";
         String mediatype = MediaType.TEXT_PLAIN_VALUE;
-        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/"+filename);
+        InputStream is = RecordServiceClientTestIT.class.getResourceAsStream("/"+filename);
 
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID, is, filename, mediatype);
 
@@ -176,7 +175,7 @@ public class RecordServiceClientITest {
 
         String filename = "log4j.properties";
         String mediatype = MediaType.TEXT_PLAIN_VALUE;
-        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/"+filename);
+        InputStream is = RecordServiceClientTestIT.class.getResourceAsStream("/"+filename);
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID,
@@ -196,7 +195,7 @@ public class RecordServiceClientITest {
 
         String filename = "log4j.properties";
         String mediatype = MediaType.TEXT_PLAIN_VALUE;
-        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/"+filename);
+        InputStream is = RecordServiceClientTestIT.class.getResourceAsStream("/"+filename);
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID,
@@ -215,7 +214,7 @@ public class RecordServiceClientITest {
 
         String filename = "log4j.properties";
         String mediatype = MediaType.TEXT_PLAIN_VALUE;
-        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/"+filename);
+        InputStream is = RecordServiceClientTestIT.class.getResourceAsStream("/"+filename);
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID, is, mediatype);
@@ -249,7 +248,7 @@ public class RecordServiceClientITest {
 
         String filename = "log4j.properties";
         String mediatype = MediaType.TEXT_PLAIN_VALUE;
-        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/" + filename);
+        InputStream is = RecordServiceClientTestIT.class.getResourceAsStream("/" + filename);
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID, VERSION,
@@ -269,7 +268,7 @@ public class RecordServiceClientITest {
 
         String filename = "log4j.properties";
         String mediatype = MediaType.TEXT_PLAIN_VALUE;
-        InputStream is = RecordServiceClientITest.class.getResourceAsStream("/"+filename);
+        InputStream is = RecordServiceClientTestIT.class.getResourceAsStream("/"+filename);
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, ADMIN_NAME, ADMIN_PASSWORD);
         URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID,

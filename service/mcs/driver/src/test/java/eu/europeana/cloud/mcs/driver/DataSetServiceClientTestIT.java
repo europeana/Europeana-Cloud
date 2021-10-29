@@ -15,14 +15,13 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-@Ignore
-public class DataSetServiceClientITest {
+public class DataSetServiceClientTestIT {
     private  static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
 
     private static final String USER_NAME = "metis_test";  //user z bazy danych
     private static final String USER_PASSWORD = "Gi*Z26h4c1y^rTGf";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClientITest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClientTestIT.class);
 
     @Test
     public void createDataSet() throws MCSException {
