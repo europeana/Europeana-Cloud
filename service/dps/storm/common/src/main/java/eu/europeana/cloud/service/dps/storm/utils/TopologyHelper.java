@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.service.kafka.util.DpsRecordDeserializer;
+import eu.europeana.cloud.service.dps.DpsRecordDeserializer;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
