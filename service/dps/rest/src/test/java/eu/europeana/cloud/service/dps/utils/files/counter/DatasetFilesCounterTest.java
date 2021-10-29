@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import com.datastax.driver.core.exceptions.QueryExecutionException;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -13,11 +13,8 @@ import org.junit.Test;
 import java.util.Date;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Tarek on 5/25/2018.
@@ -107,7 +104,7 @@ public class DatasetFilesCounterTest {
     @Test(expected = TaskSubmissionException.class)
     public void shouldThrowExceptionWhenQueryingDatabaseUsingPreviousTaskIdThrowAnExceptionOtherThanTaskInfoDoesNotExistException() throws Exception {
         dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
-        doThrow(QueryExecutionException.class).when(taskInfoDAO).findById(TASK_ID);
+        doThrow(NoHostAvailableException.class).when(taskInfoDAO).findById(TASK_ID);
         datasetFilesCounter.getFilesCount(dpsTask);
     }
 

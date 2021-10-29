@@ -61,7 +61,6 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -116,9 +115,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     @Autowired
     private DepublicationService depublicationService;
 
-    @Autowired
-    private DatasetDepublisher datasetDepublisher;
-
     public TopologyTasksResourceTest() {
         super();
     }
@@ -149,32 +145,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
     }
 
-
-    @Test
-    public void shouldProperlySendTask() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithFileDataEntry();
-        task.addParameter(MIME_TYPE, IMAGE_TIFF);
-        task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
-        prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-        assertSuccessfulRequest(response, IC_TOPOLOGY);
-    }
-
-
-    @Test
-    public void shouldProperlySendTaskWithDataSetEntry() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithDataSetEntry();
-        prepareCompleteParametersForIcTask(task);
-        prepareMocks(IC_TOPOLOGY);
-
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-
-        assertSuccessfulRequest(response, IC_TOPOLOGY);
-    }
-
-
     @Test
     public void shouldProperlySendTaskWithDataSetEntryToValidationTopology() throws Exception {
         //given
@@ -189,7 +159,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
     }
 
-
     @Test
     public void shouldProperlySendTaskWithDataSetEntryAndRevisionToEnrichmentTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -199,7 +168,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
-
 
     @Test
     public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToEnrichmentTopology() throws Exception {
@@ -212,11 +180,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
 
-
     @Test
     public void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithWrongDataSetURL() throws Exception {
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
+        task.addDataEntry(DATASET_URLS, List.of(WRONG_DATA_SET_URL));
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
         ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
@@ -318,6 +285,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(ENRICHMENT_TOPOLOGY);
@@ -379,11 +350,14 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
     @Test
     public void shouldProperlySendTaskWithFileEntryToNormalizationTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
@@ -398,6 +372,9 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         //given
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(VALIDATION_TOPOLOGY);
@@ -480,11 +457,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldProperlySendTaskWithOaiPmhRepository() throws Exception {
         DpsTask task = getDpsTaskWithRepositoryURL(OAI_PMH_REPOSITORY_END_POINT);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
         harvestingDetails.setSchema("oai_dc");
         task.setHarvestingDetails(harvestingDetails);
-        task.addParameter(HARVEST_DATE,"date");
-        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/tiffDataSets");
         when(harvestsExecutor.execute(any(OaiHarvest.class), any(SubmitTaskParameters.class))).thenReturn(new HarvestResult(1, TaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
@@ -515,6 +492,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         DpsTask task = getDpsTaskWithRepositoryURL(HTTP_COMPRESSED_FILE_URL);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
 
         prepareMocks(HTTP_TOPOLOGY);
         ResultActions response = sendTask(task, HTTP_TOPOLOGY);
@@ -548,26 +530,17 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
-    @Test
-    public void shouldProperlySendTaskWithDataSetEntryWithOutputRevision() throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry();
-        prepareCompleteParametersForIcTask(task);
-        task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
-
-        prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-        assertSuccessfulRequest(response, IC_TOPOLOGY);
-    }
-
-
     @Test
     public void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
 
         prepareMocks(INDEXING_TOPOLOGY);
@@ -585,6 +558,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
         prepareMocks(INDEXING_TOPOLOGY);
 
@@ -602,6 +580,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
         prepareMocks(INDEXING_TOPOLOGY);
 
         //when
@@ -653,9 +636,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
-        task.addParameter(PluginParameterKeys.REVISION_PROVIDER,PROVIDER_ID);
-        task.addParameter(PluginParameterKeys.REVISION_NAME,"sampleRevision");
-        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP,"sampleRevisonTimestamp");
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
         prepareMocks(VALIDATION_TOPOLOGY);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
@@ -966,7 +950,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isCreated());
         Thread.sleep(5000);
         verifyZeroInteractions(recordKafkaSubmitService);
-        verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
     }
 
     private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
@@ -988,6 +971,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Collections.singletonList(DATA_SET_URL));
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
+
         return task;
     }
 
