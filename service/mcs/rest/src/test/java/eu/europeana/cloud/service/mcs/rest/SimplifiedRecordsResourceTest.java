@@ -19,9 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-
-import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpServletRequest;
+import java.util.List;
 
 public class SimplifiedRecordsResourceTest extends AbstractResourceTest{
 
@@ -80,7 +78,7 @@ public class SimplifiedRecordsResourceTest extends AbstractResourceTest{
 
         Assert.assertNotNull(record);
         for (Representation representation : record.getRepresentations()) {
-            Assert.assertTrue(representation.getCloudId() == null);
+            Assert.assertNull(representation.getCloudId());
         }
     }
 
@@ -99,14 +97,14 @@ public class SimplifiedRecordsResourceTest extends AbstractResourceTest{
         lid.setRecordId(LOCAL_ID_FOR_EXISTING_RECORD);
         recordWithoutRepresentations.setLocalId(lid);
         //
-        Mockito.when(uisClient.getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString())).thenThrow(new CloudException("", new ProviderDoesNotExistException(new ErrorInfo())));
-        Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
-        Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD)).thenReturn(cid);
-        Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS)).thenReturn(recordWithoutRepresentations);
+        Mockito.doThrow(new CloudException("", new ProviderDoesNotExistException(new ErrorInfo()))).when(uisClient).getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString());
+        Mockito.doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient).getCloudId(PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD);
+        Mockito.doReturn(cid).when(uisClient).getCloudId(PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD);
+        Mockito.doReturn(recordWithoutRepresentations).when(uisClient).getCloudId(PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS);
     }
 
     private void setupRecordService() throws RecordNotExistsException {
-        Record record = new Record(CLOUD_ID, Arrays.asList(new Representation(CLOUD_ID, "sampleRepName", "sampleVersion", null, null, PROVIDER_ID, null, null, false, null)));
+        Record record = new Record(CLOUD_ID, List.of(new Representation(CLOUD_ID, "sampleRepName", "sampleVersion", null, null, PROVIDER_ID, null, null, false, null)));
         //
         Mockito.when(recordService.getRecord(CLOUD_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS)).thenThrow(RecordNotExistsException.class);
         Mockito.when(recordService.getRecord(CLOUD_ID)).thenReturn(record);
