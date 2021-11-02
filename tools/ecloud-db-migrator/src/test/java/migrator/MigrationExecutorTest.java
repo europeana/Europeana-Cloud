@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session;
 import migrator.validators.*;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author krystian.
  */
+@Ignore("Should be decided what to do with the Migrator")
 public class MigrationExecutorTest {
     private static final String contactPoint = "localhost";
     private static final String cassandraUsername = "";
