@@ -19,11 +19,14 @@ import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -269,7 +272,7 @@ public class TopologyTasksResource {
                 taskSubmissionValidator.validateTaskSubmission(parameters);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                 submitTaskService.submitTask(parameters);
-                var responseURI  = buildTaskURI(request.getRequestURL(), task);
+                var responseURI  = buildTaskURI(request, task);
                 result = ResponseEntity.created(responseURI).build();
             } catch(DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
                 taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), e.getMessage());
@@ -293,11 +296,8 @@ public class TopologyTasksResource {
         return ResponseEntity.status(httpStatus).build();
     }
 
-    private URI buildTaskURI(StringBuffer base, DpsTask task) throws URISyntaxException {
-        if(base.charAt(base.length()-1) != '/') {
-            base.append('/');
-        }
-        base.append(task.getTaskId());
-        return new URI(base.toString());
-   }
+    private URI buildTaskURI(HttpServletRequest httpServletRequest, DpsTask task) {
+        HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
+        return UriComponentsBuilder.fromHttpRequest(httpRequest).pathSegment(String.valueOf(task.getTaskId())).build().toUri();
+    }
 }

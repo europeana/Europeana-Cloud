@@ -6,6 +6,9 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
@@ -85,8 +88,9 @@ public final class EnrichUriUtil {
         uriSpec.append(httpServletRequest.getContextPath());
         uriSpec.append(PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(path, properties));
         try {
+            HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
             URL url = new URL(
-                    httpServletRequest.getScheme(),
+                    UriComponentsBuilder.fromHttpRequest(httpRequest).build().getScheme(),
                     httpServletRequest.getServerName(),
                     (httpServletRequest.getServerPort() == 80 || httpServletRequest.getServerPort() == 443) ?
                             -1 : httpServletRequest.getServerPort(),  //Do not setup 80 (http) or 443 (https) ports - pointed by scheme
