@@ -29,10 +29,10 @@
     <authentication-manager alias="authenticationManager">
         <authentication-provider>
             <user-service>
-                <user name="admin" password="admin" authorities="ROLE_ADMIN, ROLE_USER"/>
-                <user name="Robin_Van_Persie" password="Feyenoord" authorities="ROLE_USER"/>
-                <user name="Cristiano" password="Ronaldo" authorities="ROLE_USER"/>
-                <user name="Anonymous" password="Anonymous" authorities="ROLE_ANONYMOUS"/>
+                <user name="admin" password="{noop}admin" authorities="ROLE_ADMIN, ROLE_USER"/>
+                <user name="Robin_Van_Persie" password="{noop}Feyenoord" authorities="ROLE_USER"/>
+                <user name="Cristiano" password="{noop}Ronaldo" authorities="ROLE_USER"/>
+                <user name="Anonymous" password="{noop}Anonymous" authorities="ROLE_ANONYMOUS"/>
             </user-service>
         </authentication-provider>
     </authentication-manager>
