@@ -15,7 +15,7 @@ public class WiremockHelper {
     private static final String APPLICATION_XML = "application/xml";
 
 
-    public WireMockRule wireMockRule;
+    private WireMockRule wireMockRule;
 
     public WiremockHelper(WireMockRule wireMockRule) {
         this.wireMockRule = wireMockRule;

@@ -15,8 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class RevisionServiceClientTest {
 
@@ -25,7 +24,6 @@ public class RevisionServiceClientTest {
 
     private static final String baseUrl = "http://localhost:8080/mcs/";
     private static final String CLOUD_ID = "test_cloud_id";
-    private static final String DATASET = "DATASET";
     private static final String REPRESENTATION_NAME = "test_representation";
     private static final String REVISION_NAME = "test_revision_name";
     private static final String PROVIDER_ID = "test_provider_id";
@@ -129,6 +127,7 @@ public class RevisionServiceClientTest {
                 204);
         //
         instance.deleteRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, "2019-07-11");
+        assertTrue(true);
     }
 
 
