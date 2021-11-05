@@ -113,18 +113,21 @@ public class EDMEnrichmentBoltTest {
     @Test
     public void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
-        int expectedParametersSize = 3;
-        Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
-        assertEquals(expectedParametersSize, initialTupleParameters.size());
-        verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
-        Values value = captor.getValue();
-        Map<String, String> parametersAfterExecution = (Map) value.get(4);
-        assertNotNull(parametersAfterExecution);
-        assertEquals(expectedParametersSize, parametersAfterExecution.size());
-        for (String key : parametersAfterExecution.keySet()) {
-            assertTrue(initialTupleParameters.keySet().contains(key));
-            assertEquals(initialTupleParameters.get(key), parametersAfterExecution.get(key));
+        try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
+            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
+            edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
+            int expectedParametersSize = 8;
+            Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
+            assertEquals(expectedParametersSize, initialTupleParameters.size());
+            verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
+            Values value = captor.getValue();
+            Map<String, String> parametersAfterExecution = (Map) value.get(4);
+            assertNotNull(parametersAfterExecution);
+            assertEquals(expectedParametersSize, parametersAfterExecution.size());
+            for (String key : parametersAfterExecution.keySet()) {
+                assertTrue(initialTupleParameters.keySet().contains(key));
+                assertEquals(initialTupleParameters.get(key), parametersAfterExecution.get(key));
+            }
         }
     }
 

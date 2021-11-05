@@ -42,7 +42,7 @@ public class HttpHarvestingBoltTest {
     private static final String TASK_NAME = "TASK_NAME";
     private static final long TASK_ID = -5964014235733572511L;
     private static final String TASK_RELATIVE_URL = "/http_harvest/task_-5964014235733572511/";
-    private static final String FILE_URL = "http://localhost:9999/http_harvest/task_-5964014235733572511/record.xml";
+    private String FILE_URL;
 
 
     private StormTaskTuple tuple ;
@@ -60,11 +60,12 @@ public class HttpHarvestingBoltTest {
     private ArgumentCaptor<List<Object>> resultTupleCaptor;
 
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
     @Before
     public void setup() throws IllegalAccessException {
         wireMockRule.resetAll();
+        FILE_URL = "http://localhost:" + wireMockRule.port() + "/http_harvest/task_-5964014235733572511/record.xml";
         tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, null, prepareStormTaskTupleParameters(), new Revision());
         PowerMockito.field(HttpHarvestingBolt.class,"SLEEP_TIME_BETWEEN_RETRIES_MS").setInt(bolt,100);
         bolt.prepare();

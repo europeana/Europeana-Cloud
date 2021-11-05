@@ -17,6 +17,7 @@ import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
+import org.mockito.internal.util.reflection.FieldSetter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,9 +66,11 @@ public class ResourceProcessingBoltTest {
     @Mock(name = "taskStatusChecker")
     private TaskStatusChecker taskStatusChecker;
 
+    @InjectMocks
+    private ThumbnailUploader thumbnailUploader;
+
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
-
 
     @InjectMocks
     ResourceProcessingBolt resourceProcessingBolt = new ResourceProcessingBolt(amazonClient);
@@ -76,6 +79,8 @@ public class ResourceProcessingBoltTest {
     @Before
     public void prepareTuple() throws Exception {
         MockitoAnnotations.initMocks(this);
+        FieldSetter.setField(resourceProcessingBolt,
+                ResourceProcessingBolt.class.getDeclaredField("thumbnailUploader"), thumbnailUploader);
         resourceProcessingBolt.initGson();
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);

@@ -70,7 +70,7 @@ public class XsltBoltTest {
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues, 4);
+        assertEmittedTuple(allValues, 5);
     }
 
     @Captor
@@ -80,8 +80,7 @@ public class XsltBoltTest {
     private HashMap<String, String> prepareStormTaskTupleParameters(String xsltFile) {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
-        URL xsltFileUrl = Resources.getResource(xsltFile);
-        parameters.put(PluginParameterKeys.XSLT_URL, xsltFileUrl.toString());
+        parameters.put(PluginParameterKeys.XSLT_URL, "https://metis-core-rest-test.eanadev.org/datasets/xslt/60a50844eec47c5ba9f6eb56");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }
@@ -135,7 +134,7 @@ public class XsltBoltTest {
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues, 4);
+        assertEmittedTuple(allValues, 5);
 
         String transformed = new String((byte[]) allValues.get(0).get(3));
         assertNotNull(transformed);

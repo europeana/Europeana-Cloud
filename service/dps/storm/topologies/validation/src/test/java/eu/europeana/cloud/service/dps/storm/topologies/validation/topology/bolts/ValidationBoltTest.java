@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -42,14 +41,16 @@ public class ValidationBoltTest {
     private final String TASK_NAME = "TASK_NAME";
 
 
-    @InjectMocks
-    private ValidationBolt validationBolt = new ValidationBolt(readProperties("validation.properties"));
-
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+
+    @InjectMocks
+    private ValidationBolt validationBolt;
+
 
     @Before
     public void init() {
+        validationBolt = new ValidationBolt(readProperties());
         MockitoAnnotations.initMocks(this);
 
         wireMockRule.resetAll();
@@ -58,6 +59,11 @@ public class ValidationBoltTest {
                         .withStatus(200)
                         .withFixedDelay(2000)
                         .withBodyFile("test_schema.zip")));
+        wireMockRule.stubFor(get(urlEqualTo("/edm_sorter.xsl"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withFixedDelay(10)
+                        .withBodyFile("edm_sorter.xsl")));
         validationBolt.prepare();
     }
 
@@ -116,9 +122,14 @@ public class ValidationBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }
 
-    private static Properties readProperties(String propertyFilename) {
+    private Properties readProperties() {
         Properties props = new Properties();
-        PropertyFileLoader.loadPropertyFile(propertyFilename, "", props);
+        props.put("predefinedSchemas", "edm-internal,edm-external");
+        props.put("edmSorterFileLocation", "http://127.0.0.1:" + wireMockRule.port() + "/edm_sorter.xsl");
+        props.put("predefinedSchemas.edm-internal.url", "http://127.0.0.1:" + wireMockRule.port() + "/test_schema.zip");
+        props.put("predefinedSchemas.edm-internal.rootLocation", "EDM-INTERNAL.xsd");
+        props.put("predefinedSchemas.edm-external.url", "http://127.0.0.1:" + wireMockRule.port() + "/test_schema.zip");
+        props.put("predefinedSchemas.edm-external.rootLocation", "EDM.xsd");
         return props;
     }
 

@@ -19,7 +19,9 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -29,6 +31,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class EDMObjectProcessorBoltTest {
 
     @Captor
@@ -176,7 +179,6 @@ public class EDMObjectProcessorBoltTest {
             when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
 
             when(amazonClient.putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class))).thenThrow(new RuntimeException());
-            doThrow(new RuntimeException()).when(amazonClient).putObject(anyString(), anyString(), any(InputStream.class), nullable(ObjectMetadata.class));
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
