@@ -62,6 +62,8 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 //@RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, StatisticsBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, TaskStatusChecker.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "eu.europeana.cloud.test.CassandraTestInstance"})
+@Ignore //There are only ignored tests in this class - so the class must have this annotation
+// in other case tests finish with error: No tests found in ValidationTopologyTest
 public class ValidationTopologyTest extends ValidationMockHelper {
 
     @Rule
