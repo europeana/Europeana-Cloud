@@ -30,6 +30,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -82,7 +84,9 @@ public class HttpHarvestingBoltTest {
         assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
         assertEquals("/100/object_DCU_24927017",resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
         assertEquals("http://more.locloud.eu/object/DCU/24927017",resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        assertEquals(MediaType.APPLICATION_XML, resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE));
+        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
     }
 
     @Test
@@ -96,7 +100,9 @@ public class HttpHarvestingBoltTest {
         StormTaskTuple resultTuple = getResultStormTaskTuple();
         assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
         assertThat(resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), StringStartsWith.startsWith("record.xml"));
-        assertEquals(MediaType.APPLICATION_XML, resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE));
+        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
 
     }
 
@@ -112,7 +118,9 @@ public class HttpHarvestingBoltTest {
         assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
         assertEquals("/100/object_DCU_24927017",resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
         assertEquals("http://more.locloud.eu/object/DCU/24927017",resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        assertEquals(MediaType.APPLICATION_XML, resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE));
+        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
     }
 
     @Test
