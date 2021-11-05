@@ -12,7 +12,6 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
-import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -469,9 +468,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         assertNotNull(response);
         response.andExpect(status().isCreated());
-        Thread.sleep( 1000);
         verify(harvestsExecutor).execute(any(OaiHarvest.class), any(SubmitTaskParameters.class));
-        verifyZeroInteractions(recordKafkaSubmitService);
+        verifyNoInteractions(recordKafkaSubmitService);
     }
 
 
@@ -647,8 +645,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
 
         response.andExpect(status().isCreated());
-        Thread.sleep(10000);
-        verifyZeroInteractions(recordKafkaSubmitService);
+        verifyNoInteractions(recordKafkaSubmitService);
     }
 
 
@@ -774,7 +771,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws Exception {
-        String info = "Dropped by the user";
         doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
 
@@ -787,7 +783,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
-        String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
 
@@ -913,7 +908,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
-        Thread.sleep(200L);
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishIndividualRecords(captor.capture());
@@ -930,7 +924,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
-        Thread.sleep(200L);
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishDataset(captor.capture());
@@ -948,14 +941,12 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private void assertSuccessfulHttpTopologyRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
-        Thread.sleep(5000);
-        verifyZeroInteractions(recordKafkaSubmitService);
+        verifyNoInteractions(recordKafkaSubmitService);
     }
 
     private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
-        Thread.sleep(5000);
     }
 
     private DataSetCleanerParameters prepareDataSetCleanerParameters() {
