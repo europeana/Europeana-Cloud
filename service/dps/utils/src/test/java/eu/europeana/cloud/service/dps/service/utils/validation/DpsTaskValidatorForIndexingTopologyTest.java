@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.service.utils.validation;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import org.junit.Test;
 
 import java.util.Arrays;

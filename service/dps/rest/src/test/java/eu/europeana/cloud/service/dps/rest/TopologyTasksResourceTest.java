@@ -17,8 +17,6 @@ import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.*;
@@ -973,15 +971,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         Thread.sleep(5000);
-    }
-
-    private DataSetCleanerParameters prepareDataSetCleanerParameters() {
-        DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters();
-        dataSetCleanerParameters.setCleaningDate(new Date());
-        dataSetCleanerParameters.setDataSetId("DATASET_ID");
-        dataSetCleanerParameters.setUsingAltEnv(true);
-        dataSetCleanerParameters.setTargetIndexingEnv(TargetIndexingDatabase.PREVIEW.toString());
-        return dataSetCleanerParameters;
     }
 
     private DpsTask getDpsTaskWithDataSetEntry() {

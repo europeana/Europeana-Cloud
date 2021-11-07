@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
 import com.mongodb.ServerAddress;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
 import org.junit.Test;

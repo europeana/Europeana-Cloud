@@ -8,7 +8,9 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
@@ -270,5 +272,16 @@ public class ServiceConfiguration {
         return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), taskDiagnosticInfoDAO(),
                 tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
     }
+
+    @Bean
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever){
+        return new MetisDatasetService(datasetStatsRetriever);
+    }
+
+    @Bean
+    public DatasetStatsRetriever DatasetStatsRetriever(){
+        return new DatasetStatsRetriever();
+    }
+
 
 }

@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.dps.metis.indexing;
 
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
