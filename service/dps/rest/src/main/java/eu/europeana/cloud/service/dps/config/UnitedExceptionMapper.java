@@ -13,6 +13,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -39,6 +40,12 @@ public class UnitedExceptionMapper {
         return new ErrorInfo(DpsErrorCode.OTHER.toString(),"HTTP 404 Not Found");
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseBody
+    public ErrorInfo handleMissingServletRequestParameterException(Exception e) {
+        return new ErrorInfo(DpsErrorCode.BAD_REQUEST.toString(), e.getMessage());
+    }
 
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     @ExceptionHandler(TopologyAlreadyExistsException.class)

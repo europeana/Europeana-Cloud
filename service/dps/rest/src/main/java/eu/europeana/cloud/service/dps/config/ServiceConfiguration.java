@@ -10,7 +10,9 @@ import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
@@ -306,4 +308,15 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         executor.setThreadNamePrefix("DPSThreadPool-");
         return executor;
     }
+    @Bean
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever){
+        return new MetisDatasetService(datasetStatsRetriever);
+    }
+
+    @Bean
+    public DatasetStatsRetriever DatasetStatsRetriever(){
+        return new DatasetStatsRetriever();
+    }
+
+
 }

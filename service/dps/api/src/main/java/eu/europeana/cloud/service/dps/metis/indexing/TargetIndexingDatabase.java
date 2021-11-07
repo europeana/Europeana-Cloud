@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.service.utils.validation;
+package eu.europeana.cloud.service.dps.metis.indexing;
 
 import java.util.ArrayList;
 import java.util.List;

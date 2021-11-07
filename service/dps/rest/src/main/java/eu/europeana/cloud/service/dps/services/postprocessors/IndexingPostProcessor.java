@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -22,8 +22,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase.PREVIEW;
-import static eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase.PUBLISH;
+import static eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase.*;
 
 public class IndexingPostProcessor implements TaskPostProcessor {
 
