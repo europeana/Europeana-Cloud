@@ -36,14 +36,20 @@ public class EDMObjectProcessorBoltTest {
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
+
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
+
     @Mock(name = "fileClient")
     private FileServiceClient fileClient;
+
+    @SuppressWarnings("unused") //Field is used on runtime - by @InjectMocks
     @Mock(name = "taskStatusChecker")
     private TaskStatusChecker taskStatusChecker;
+
     @Spy
     private transient MediaExtractor mediaExtractor;
+
     @Spy
     private transient RdfDeserializer rdfDeserializer;
 

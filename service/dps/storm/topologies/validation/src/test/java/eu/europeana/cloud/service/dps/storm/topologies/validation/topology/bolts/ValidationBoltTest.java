@@ -5,21 +5,24 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import java.net.MalformedURLException;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Properties;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -31,8 +34,8 @@ import static org.mockito.Mockito.mock;
  * Created by Tarek on 1/16/2018.
  */
 
+@RunWith(JUnitParamsRunner.class)
 public class ValidationBoltTest {
-
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
@@ -46,7 +49,6 @@ public class ValidationBoltTest {
 
     @InjectMocks
     private ValidationBolt validationBolt;
-
 
     @Before
     public void init() {
@@ -67,38 +69,18 @@ public class ValidationBoltTest {
         validationBolt.prepare();
     }
 
-    @Test
-    public void validateEdmInternalFile() throws Exception {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-internal", null), new Revision());
-        validationBolt.execute(anchorTuple, tuple);
-        assertSuccessfulValidation();
-    }
 
     @Test
-    public void validateEdmInternalFileWithProvidedRootLocation() throws Exception {
+    @Parameters({
+            "src/test/resources/Item_35834473_test.xml, edm-internal, null", //validateEdmInternalFile
+            "src/test/resources/Item_35834473_test.xml, edm-internal, EDM-INTERNAL.xsd", //validateEdmInternalFileWithProvidedRootLocation
+            "src/test/resources/Item_35834473.xml, edm-external, null", //validateEdmExternalFile
+            "src/test/resources/edmExternalWithOutOfOrderElements.xml, edm-external, null" //validateEdmExternalOutOfOrderFile
+    })
+    public void validateEdm(String resourcePath, String schemaName, String schemaRootLocation) throws IOException {
         Tuple anchorTuple = mock(TupleImpl.class);
-        byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-internal", "EDM-INTERNAL.xsd"), new Revision());
-        validationBolt.execute(anchorTuple, tuple);
-        assertSuccessfulValidation();
-    }
-
-    @Test
-    public void validateEdmExternalFile() throws Exception {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-external", null), new Revision());
-        validationBolt.execute(anchorTuple, tuple);
-        assertSuccessfulValidation();
-    }
-
-    @Test
-    public void validateEdmExternalOutOfOrderFile() throws Exception {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/edmExternalWithOutOfOrderElements.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters("edm-external", null), new Revision());
+        byte[] FILE_DATA = Files.readAllBytes(Paths.get(resourcePath));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(schemaName, schemaRootLocation), new Revision());
         validationBolt.execute(anchorTuple, tuple);
         assertSuccessfulValidation();
     }
@@ -113,13 +95,13 @@ public class ValidationBoltTest {
     }
 
     private void assertSuccessfulValidation() {
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.anyList());
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
     }
 
     private void assertFailedValidation() {
-        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.anyList());
+        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
     }
 
     private Properties readProperties() {
@@ -133,7 +115,7 @@ public class ValidationBoltTest {
         return props;
     }
 
-    private HashMap<String, String> prepareStormTaskTupleParameters(String schemaName, String schemaRootLocation) throws MalformedURLException {
+    private HashMap<String, String> prepareStormTaskTupleParameters(String schemaName, String schemaRootLocation) {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.SCHEMA_NAME, schemaName);

@@ -7,7 +7,7 @@ import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
