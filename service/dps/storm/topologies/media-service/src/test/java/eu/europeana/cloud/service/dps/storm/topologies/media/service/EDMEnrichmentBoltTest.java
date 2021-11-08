@@ -18,9 +18,6 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 12/14/2018.
- */
 public class EDMEnrichmentBoltTest {
 
     private static final String AUTHORIZATION = "Authorization";

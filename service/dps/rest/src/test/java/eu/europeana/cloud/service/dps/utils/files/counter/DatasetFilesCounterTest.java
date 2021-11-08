@@ -16,9 +16,6 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 5/25/2018.
- */
 public class DatasetFilesCounterTest {
 
     private DatasetFilesCounter datasetFilesCounter;

@@ -32,9 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
-/**
- * Created by Tarek on 7/18/2017.
- */
 public class XsltBoltTest {
     private static final String EXAMPLE_METIS_DATASET_ID = "100";
     private final int TASK_ID = 1;

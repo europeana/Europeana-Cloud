@@ -28,9 +28,6 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import static eu.europeana.cloud.service.dps.test.TestConstants.NUM_WORKERS;
 import static org.mockito.Matchers.*;
 
-/**
- * Created by Tarek on 11/8/2017.
- */
 public class TopologyTestHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;

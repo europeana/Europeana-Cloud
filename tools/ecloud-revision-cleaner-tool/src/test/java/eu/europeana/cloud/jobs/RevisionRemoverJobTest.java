@@ -26,10 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-
-/**
- * Created by Tarek on 7/16/2019.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class RevisionRemoverJobTest {
 

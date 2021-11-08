@@ -35,9 +35,6 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 12/11/2018.
- */
 public class ResourceProcessingBoltTest {
 
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";

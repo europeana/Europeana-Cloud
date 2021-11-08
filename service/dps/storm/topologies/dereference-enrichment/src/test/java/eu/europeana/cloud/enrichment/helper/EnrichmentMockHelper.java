@@ -10,9 +10,6 @@ import org.powermock.api.mockito.PowerMockito;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by Tarek on 1/24/2018.
- */
 public class EnrichmentMockHelper extends TopologyTestHelper {
     protected RepresentationIterator representationIterator;
 

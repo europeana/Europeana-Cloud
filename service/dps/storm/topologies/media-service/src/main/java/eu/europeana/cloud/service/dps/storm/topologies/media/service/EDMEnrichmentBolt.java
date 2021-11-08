@@ -25,9 +25,6 @@ import java.net.MalformedURLException;
 import java.time.Instant;
 import java.util.*;
 
-/**
- * Created by Tarek on 12/12/2018.
- */
 public class EDMEnrichmentBolt extends ReadFileBolt {
     public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
     private static final long serialVersionUID = 1L;

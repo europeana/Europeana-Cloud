@@ -10,9 +10,6 @@ import java.util.Properties;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by Tarek on 11/13/2015.
- */
 public class PropertyFileLoaderTest {
 
     String DEFAULT_PROPERTIES_FILE = "test-config.properties";

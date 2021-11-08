@@ -10,9 +10,6 @@ import org.powermock.api.mockito.PowerMockito;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by Tarek on 12/5/2017.
- */
 public class ValidationMockHelper extends TopologyTestHelper {
     protected RepresentationIterator representationIterator;
     protected CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;

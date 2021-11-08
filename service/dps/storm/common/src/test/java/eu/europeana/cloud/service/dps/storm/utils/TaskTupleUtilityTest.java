@@ -7,9 +7,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by Tarek on 11/13/2015.
- */
 public class TaskTupleUtilityTest {
     StormTaskTuple stormTaskTuple;
     static final String MIME_TYPE = "text/xml";

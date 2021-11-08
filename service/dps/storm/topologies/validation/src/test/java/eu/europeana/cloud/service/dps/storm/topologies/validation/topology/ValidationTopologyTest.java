@@ -53,9 +53,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
-/**
- * Created by Tarek on 12/5/2017.
- */
 
 //TODO Replaced with mockito runner, cause test had exited Vm machine and broke other tests. Anyway test had not passed.
 @RunWith(MockitoJUnitRunner.class)

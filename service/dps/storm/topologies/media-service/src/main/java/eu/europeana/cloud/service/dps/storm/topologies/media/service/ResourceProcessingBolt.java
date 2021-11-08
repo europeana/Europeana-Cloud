@@ -18,9 +18,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Instant;
 
-/**
- * Created by Tarek on 12/11/2018.
- */
 public class ResourceProcessingBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);

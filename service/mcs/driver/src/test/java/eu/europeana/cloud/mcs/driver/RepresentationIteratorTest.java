@@ -15,10 +15,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.notNull;
 import static org.mockito.Mockito.*;
 
-
-/**
- * Created by Tarek on 5/24/2018.
- */
 public class RepresentationIteratorTest {
 
     public static final String NEXT_SLICE = "nextSlice";

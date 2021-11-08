@@ -30,10 +30,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 7/21/2017.
- */
-
 public class WriteRecordBoltTest {
 
     public static final String AUTHORIZATION = "Authorization";

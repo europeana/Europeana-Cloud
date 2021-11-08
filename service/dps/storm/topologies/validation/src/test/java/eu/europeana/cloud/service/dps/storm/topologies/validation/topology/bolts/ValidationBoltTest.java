@@ -30,10 +30,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 import static org.mockito.Mockito.mock;
 
-/**
- * Created by Tarek on 1/16/2018.
- */
-
 @RunWith(JUnitParamsRunner.class)
 public class ValidationBoltTest {
 

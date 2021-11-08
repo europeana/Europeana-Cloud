@@ -62,9 +62,6 @@ import static org.mockito.Matchers.isA;
 import static org.mockito.Matchers.nullable;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 12/17/2018.
- */
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, MediaTopology.class, EDMObjectProcessorBolt.class, ParseFileForMediaBolt.class, EDMEnrichmentBolt.class, RevisionWriterBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, TaskStatusChecker.class, ProcessedRecordsDAO.class, TasksByStateDAO.class, TaskStatusUpdater.class})

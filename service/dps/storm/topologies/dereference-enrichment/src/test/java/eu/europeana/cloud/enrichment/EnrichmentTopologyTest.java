@@ -62,9 +62,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
-/**
- * Created by Tarek on 1/25/2018.
- */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class,
         CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class,
