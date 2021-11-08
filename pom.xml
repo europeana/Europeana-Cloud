@@ -129,8 +129,8 @@
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>11</version.jdk>
         <version.junit>4.13.2</version.junit>
-        <version.powermock>2.0.7</version.powermock>
-        <version.powermock-mockito>2.0.7</version.powermock-mockito>
+        <version.powermock>2.0.9</version.powermock>
+        <version.powermock-mockito>2.0.9</version.powermock-mockito>
         <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.12</version.slf4j>
 <!--

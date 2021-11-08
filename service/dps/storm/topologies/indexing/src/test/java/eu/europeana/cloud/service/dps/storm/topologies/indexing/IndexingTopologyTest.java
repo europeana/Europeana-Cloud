@@ -1,17 +1,24 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS;
 import static eu.europeana.cloud.service.dps.test.TestConstants.MCS_URL;
 import static eu.europeana.cloud.service.dps.test.TestConstants.REPRESENTATION_NAME;
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 import static eu.europeana.cloud.service.dps.test.TestConstants.TEST_END_BOLT;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.helper.TopologyTestHelper;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -19,23 +26,33 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.indexing.IndexerPool;
 import java.io.ByteArrayInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -65,14 +82,22 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, IndexingBolt.class, NotificationBolt.class, IndexingRevisionWriter.class,
         CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class,
-        CassandraTaskErrorsDAO.class, TaskStatusChecker.class, TaskStatusUpdater.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "eu.europeana.cloud.test.CassandraTestInstance"})
+        CassandraTaskErrorsDAO.class,  CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class,
+        TaskStatusChecker.class, TaskStatusUpdater.class, TaskDiagnosticInfoDAO.class, CassandraDAO.class,
+        HarvestedRecordsDAO.class, ProcessedRecordsDAO.class,UniqueIdentifierService.class})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*", "eu.europeana.cloud.test.CassandraTestInstance",
+        "org.apache.logging.log4j.*","com.sun.org.apache.xerces.*","javax.xml.parsers.*","org.mockito.*",
+        "javax.xml.*","org.springframework.util.*","com.ctc.wstx.*","com.sun.*"
+})
+
 public class IndexingTopologyTest extends TopologyTestHelper {
 
     private static final String AUTHORIZATION = "Authorization";
 
     private static StormTopology topology;
     static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.INDEXING_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+
+    private UISClient uisClient;
 
     @BeforeClass
     public static void prepareTopology() {
@@ -85,6 +110,7 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         mockFileSC();
         mockDatSetClient();
         mockRevisionServiceClient();
+        mockUISClient();
         mockCassandraInteraction();
     }
 
@@ -97,7 +123,10 @@ public class IndexingTopologyTest extends TopologyTestHelper {
 
         builder.setSpout(TopologyHelper.SPOUT, new TestSpout(), 1);
         builder.setBolt(TopologyHelper.RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(TopologyHelper.SPOUT);
-        builder.setBolt(TopologyHelper.INDEXING_BOLT, new IndexingBolt(null, readProperties("indexing.properties"),"uisLocation")).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
+        builder.setBolt(TopologyHelper.INDEXING_BOLT, new IndexingBolt(DbConnectionDetails.builder()
+                .hosts("").port(1).keyspaceName("").userName("").password("").build()
+                , readProperties("indexing.properties"), "uisLocation"))
+                .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new IndexingRevisionWriter(MCS_URL, IndexingTopology.SUCCESS_MESSAGE)).shuffleGrouping(TopologyHelper.INDEXING_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
@@ -139,8 +168,10 @@ public class IndexingTopologyTest extends TopologyTestHelper {
         taskParameters.put(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS, "FALSE");
         taskParameters.put(PluginParameterKeys.PERFORM_REDIRECTS, "TRUE");
         taskParameters.put(PluginParameterKeys.DATASET_IDS_TO_REDIRECT_FROM, "dataset1, dataset2");
+        taskParameters.put(PluginParameterKeys.HARVEST_DATE, DateHelper.format(Instant.now()));
         DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
         taskParameters.put(PluginParameterKeys.METIS_RECORD_DATE, dateFormat.format(new Date()));
+        taskParameters.put(MESSAGE_PROCESSING_START_TIME_IN_MS, String.valueOf(Instant.now().toEpochMilli()));
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
         dpsTask.setOutputRevision(new Revision());
@@ -161,6 +192,20 @@ public class IndexingTopologyTest extends TopologyTestHelper {
     protected void mockRevisionServiceClient() throws Exception {
         revisionServiceClient = Mockito.mock(RevisionServiceClient.class);
         PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);
+    }
+
+    protected void mockUISClient() throws Exception {
+        uisClient = Mockito.mock(UISClient.class);
+        PowerMockito.whenNew(UISClient.class).withAnyArguments().thenReturn(uisClient);
+
+        CloudId cloudId=new CloudId();
+        cloudId.setId("abc");
+        LocalId localId = new LocalId();
+        localId.setRecordId("/1/afasd");
+        localId.setProviderId("metis_junit");
+        cloudId.setLocalId(localId);
+        List<CloudId> cloudIds= Collections.singletonList(cloudId);
+        when(uisClient.getRecordId(anyString())).thenReturn(new ResultSlice<>(null,cloudIds));
     }
 
     private void assertTopology(final StormTaskTuple stormTaskTuple) {

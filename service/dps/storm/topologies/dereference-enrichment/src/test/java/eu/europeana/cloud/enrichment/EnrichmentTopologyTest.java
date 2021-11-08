@@ -10,10 +10,14 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -31,9 +35,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,8 +52,12 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.*;
 
+import static eu.europeana.cloud.enrichment.bolts.EnrichmentBoltTest.DEREFERENCE_URL;
+import static eu.europeana.cloud.enrichment.bolts.EnrichmentBoltTest.ENRICHMENT_URL;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
+import static junit.framework.TestCase.fail;
 import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
@@ -53,13 +66,27 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  * Created by Tarek on 1/25/2018.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "eu.europeana.cloud.test.CassandraTestInstance"})
+@PrepareForTest({ReadFileBolt.class, EnrichmentBolt.class, ValidationRevisionWriter.class, NotificationBolt.class,
+        CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class,
+        CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class, WriteRecordBolt.class, ReadFileBolt.class,
+        TaskStatusChecker.class, TaskStatusUpdater.class, TaskDiagnosticInfoDAO.class, CassandraDAO.class,
+        HarvestedRecordsDAO.class, ProcessedRecordsDAO.class
+        //,       org.apache.storm.util$exit_process_BANG_.class
+})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "eu.europeana.cloud.test.CassandraTestInstance",
+        "org.apache.logging.log4j.*","com.sun.org.apache.xerces.*","javax.xml.parsers.*","org.mockito.*",
+        "javax.xml.*","org.springframework.util.*","com.ctc.wstx.*","com.sun.*"
+//        ,"org.apache.*","clojure.*"
+})
 public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentTopologyTest.class);
+
     private static final String AUTHORIZATION = "Authorization";
+    public static final byte[] FILE_DATA = "<a>B</b>".getBytes();
     private static StormTopology topology;
     static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.ENRICHMENT_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+
 
 
     @BeforeClass
@@ -82,7 +109,7 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
     private void assertTopology(final StormTaskTuple stormTaskTuple) {
         MkClusterParam mkClusterParam = prepareMKClusterParm();
-        Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
+        Testing.withLocalCluster(mkClusterParam, new TestJob() {
             @Override
             public void run(ILocalCluster cluster) throws JSONException {
                 MockedSources mockedSources = new MockedSources();
@@ -102,16 +129,18 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
         DpsTask dpsTask = new DpsTask();
         dpsTask.setTaskId(1);
         Map<String, String> taskParameters = prepareTaskParameters();
+        taskParameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE_VERSION_URL);
         dpsTask.setParameters(taskParameters);
         dpsTask.setInputData(null);
         dpsTask.setOutputRevision(new Revision());
         dpsTask.setHarvestingDetails(new OAIPMHHarvestingDetails());
         dpsTask.setTaskName("Task_Name");
 
+
         StormTaskTuple stormTaskTuple = new StormTaskTuple(
                 dpsTask.getTaskId(),
                 dpsTask.getTaskName(),
-                null, null, taskParameters, dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
+                SOURCE_VERSION_URL, FILE_DATA, taskParameters, dpsTask.getOutputRevision(), new OAIPMHHarvestingDetails());
 
         assertTopology(stormTaskTuple);
 
@@ -145,6 +174,7 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
 
 
     private void assertResultedTuple(ILocalCluster cluster, StormTopology topology, CompleteTopologyParam completeTopologyParam, List<String> expectedTuples) throws JSONException {
+
         Map result = Testing.completeTopology(cluster, topology,
                 completeTopologyParam);
         //then
@@ -171,7 +201,7 @@ public class EnrichmentTopologyTest extends EnrichmentMockHelper {
         // build the test topology
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(MCS_URL);
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
-        EnrichmentBolt enrichmentBolt = new EnrichmentBolt("", "");
+        EnrichmentBolt enrichmentBolt = new EnrichmentBolt(DEREFERENCE_URL, ENRICHMENT_URL);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(MCS_URL);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(MCS_URL);
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(MCS_URL);

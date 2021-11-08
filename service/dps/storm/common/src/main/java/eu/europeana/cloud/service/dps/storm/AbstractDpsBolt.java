@@ -65,6 +65,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         StormTaskTuple stormTaskTuple = null;
         try {
             stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
+            LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(),stormTaskTuple);
             prepareDiagnosticContext(stormTaskTuple);
 
             if(stormTaskTuple.getRecordAttemptNumber() > 1) {
@@ -84,7 +85,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 return;
             }
 
-            LOGGER.debug("Mapped to StormTaskTuple with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+            LOGGER.debug("{} Mapped to StormTaskTuple with taskId {} and parameters list : {}", getClass().getName(),
+                    stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
             execute(tuple, stormTaskTuple);
 
         } catch (Exception e) {
