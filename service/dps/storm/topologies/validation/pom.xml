@@ -183,13 +183,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>topologies-common-helper-test</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
             <version>${version.junitparams}</version>
