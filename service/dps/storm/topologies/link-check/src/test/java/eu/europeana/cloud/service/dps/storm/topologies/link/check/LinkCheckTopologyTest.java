@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
@@ -62,7 +63,10 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileForMediaBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, TaskDiagnosticInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class, TaskStatusChecker.class, TaskStatusUpdater.class, ProcessedRecordsDAO.class})
+@PrepareForTest({ReadFileBolt.class, LinkCheckTopology.class, LinkCheckBolt.class, ParseFileForMediaBolt.class,
+        NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class,
+        CassandraSubTaskInfoDAO.class, TaskDiagnosticInfoDAO.class, CassandraTaskErrorsDAO.class, ReadFileBolt.class,
+        TaskStatusChecker.class, TaskStatusUpdater.class, ProcessedRecordsDAO.class, HarvestedRecordsDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*", "org.apache.logging.log4j.*", "javax.xml.*", "org.xml.*",
         "org.w3c.dom.*", "com.sun.org.apache.xerces.*", "javax.xml.parsers.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 
