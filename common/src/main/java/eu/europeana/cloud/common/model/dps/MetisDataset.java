@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class MetisDataset {
 
     private String id;
-    private long elements;
+    private long size;
 }

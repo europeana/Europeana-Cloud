@@ -235,8 +235,8 @@ public class DpsClient {
      * @return number of elements in the dataset
      * @throws DpsException
      */
-    public long getTotalDatabaseRecords(String datasetId, TargetIndexingDatabase database) throws DpsException {
-        return this.getTotalDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
+    public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database) throws DpsException {
+        return this.getTotalMetisDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
     }
 
     /**
@@ -248,7 +248,7 @@ public class DpsClient {
      * @return number of elements in the dataset
      * @throws DpsException
      */
-    public long getTotalDatabaseRecords(String datasetId, TargetIndexingDatabase database, TargetIndexingEnvironment environment) throws DpsException {
+    public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database, TargetIndexingEnvironment environment) throws DpsException {
         Response response = null;
 
         try {
@@ -262,7 +262,7 @@ public class DpsClient {
 
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 MetisDataset metisDataset = response.readEntity(MetisDataset.class);
-                return metisDataset.getElements();
+                return metisDataset.getSize();
             } else {
                 throw handleException(response);
             }

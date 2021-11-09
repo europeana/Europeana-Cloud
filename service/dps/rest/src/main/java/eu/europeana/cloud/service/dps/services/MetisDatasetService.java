@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.services;
 
 import eu.europeana.cloud.common.model.dps.MetisDataset;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetParameters;
+import eu.europeana.cloud.service.dps.metis.indexing.MetisDataSetParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
@@ -21,10 +21,10 @@ public class MetisDatasetService {
 
     public MetisDataset prepareStatsFor(MetisDataset metisDataset, TargetIndexingDatabase targetIndexingDatabase, TargetIndexingEnvironment targetIndexingEnvironment) throws IndexingException {
         LOGGER.info("Reading dataset stats for dataset: {}", metisDataset);
-        DataSetParameters parameters = new DataSetParameters(metisDataset.getId(), targetIndexingDatabase, targetIndexingEnvironment, null);
+        MetisDataSetParameters parameters = new MetisDataSetParameters(metisDataset.getId(), targetIndexingDatabase, targetIndexingEnvironment, null);
         MetisDataset result = MetisDataset.builder()
                 .id(metisDataset.getId())
-                .elements(datasetStatsRetriever.getTotalRecordsForDataset(parameters))
+                .size(datasetStatsRetriever.getTotalRecordsForDataset(parameters))
                 .build();
         LOGGER.info("Found stats: {}", result);
         return result;

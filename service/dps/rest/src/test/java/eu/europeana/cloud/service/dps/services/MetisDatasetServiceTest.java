@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.services;
 
 import eu.europeana.cloud.common.model.dps.MetisDataset;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetParameters;
+import eu.europeana.cloud.service.dps.metis.indexing.MetisDataSetParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
@@ -21,7 +21,7 @@ public class MetisDatasetServiceTest {
         DatasetStatsRetriever datasetStatsRetriever = mock(DatasetStatsRetriever.class);
         doReturn(10L).when(datasetStatsRetriever).getTotalRecordsForDataset(
                 argThat(samePropertyValuesAs(
-                        DataSetParameters.builder()
+                        MetisDataSetParameters.builder()
                                 .dataSetId("1")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PREVIEW)
                                 .targetIndexingEnvironment(TargetIndexingEnvironment.DEFAULT)
@@ -34,7 +34,7 @@ public class MetisDatasetServiceTest {
                         .build(),
                 TargetIndexingDatabase.PREVIEW,
                 TargetIndexingEnvironment.DEFAULT);
-        Assert.assertEquals(10, metisDataset.getElements());
+        Assert.assertEquals(10, metisDataset.getSize());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class MetisDatasetServiceTest {
         DatasetStatsRetriever datasetStatsRetriever = mock(DatasetStatsRetriever.class);
         doReturn(10L).when(datasetStatsRetriever).getTotalRecordsForDataset(
                 argThat(samePropertyValuesAs(
-                        DataSetParameters.builder()
+                        MetisDataSetParameters.builder()
                                 .dataSetId("2")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PREVIEW)
                                 .targetIndexingEnvironment(TargetIndexingEnvironment.ALTERNATIVE)
@@ -55,7 +55,7 @@ public class MetisDatasetServiceTest {
                         .build(),
                 TargetIndexingDatabase.PREVIEW,
                 TargetIndexingEnvironment.ALTERNATIVE);
-        Assert.assertEquals(10, metisDataset.getElements());
+        Assert.assertEquals(10, metisDataset.getSize());
     }
 
     @Test
@@ -63,7 +63,7 @@ public class MetisDatasetServiceTest {
         DatasetStatsRetriever datasetStatsRetriever = mock(DatasetStatsRetriever.class);
         doReturn(10L).when(datasetStatsRetriever).getTotalRecordsForDataset(
                 argThat(samePropertyValuesAs(
-                        DataSetParameters.builder()
+                        MetisDataSetParameters.builder()
                                 .dataSetId("3")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PUBLISH)
                                 .targetIndexingEnvironment(TargetIndexingEnvironment.DEFAULT)
@@ -76,7 +76,7 @@ public class MetisDatasetServiceTest {
                         .build(),
                 TargetIndexingDatabase.PUBLISH,
                 TargetIndexingEnvironment.DEFAULT);
-        Assert.assertEquals(10, metisDataset.getElements());
+        Assert.assertEquals(10, metisDataset.getSize());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class MetisDatasetServiceTest {
         DatasetStatsRetriever datasetStatsRetriever = mock(DatasetStatsRetriever.class);
         doReturn(10L).when(datasetStatsRetriever).getTotalRecordsForDataset(
                 argThat(samePropertyValuesAs(
-                        DataSetParameters.builder()
+                        MetisDataSetParameters.builder()
                                 .dataSetId("4")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PUBLISH)
                                 .targetIndexingEnvironment(TargetIndexingEnvironment.ALTERNATIVE)
@@ -97,6 +97,6 @@ public class MetisDatasetServiceTest {
                         .build(),
                 TargetIndexingDatabase.PUBLISH,
                 TargetIndexingEnvironment.ALTERNATIVE);
-        Assert.assertEquals(10, metisDataset.getElements());
+        Assert.assertEquals(10, metisDataset.getSize());
     }
 }
