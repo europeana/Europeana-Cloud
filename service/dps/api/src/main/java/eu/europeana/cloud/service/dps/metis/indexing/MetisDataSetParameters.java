@@ -18,7 +18,7 @@ import java.util.Date;
 @ToString
 @Data
 @Builder
-public class DataSetParameters implements Serializable {
+public class MetisDataSetParameters implements Serializable {
     private static final long serialVersionUID = 123456789L;
 
     private String dataSetId;
@@ -29,13 +29,13 @@ public class DataSetParameters implements Serializable {
     @XmlJavaTypeAdapter(DateAdapter.class)
     private Date cleaningDate;
 
-    public DataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, TargetIndexingEnvironment targetIndexingEnvironment, Date cleaningDate) {
+    public MetisDataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, TargetIndexingEnvironment targetIndexingEnvironment, Date cleaningDate) {
         this.dataSetId = dataSetId;
         this.targetIndexingEnvironment = targetIndexingEnvironment;
         this.targetIndexingDatabase = targetIndexingDatabase;
         this.cleaningDate = cleaningDate;
     }
-    public DataSetParameters() {
+    public MetisDataSetParameters() {
     }
 
 }
