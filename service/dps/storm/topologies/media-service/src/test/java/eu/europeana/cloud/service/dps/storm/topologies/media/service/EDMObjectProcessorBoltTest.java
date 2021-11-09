@@ -179,7 +179,7 @@ public class EDMObjectProcessorBoltTest {
         }
     }
     @Test
-    public void shouldDoProperEmissionInCaseOfFileExceptionWhileStoringTheThumbnail() throws Exception {
+    public void shouldDoProperEmissionWhileThumbnailStoringFailure() throws Exception {
         //given
         try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
             when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
