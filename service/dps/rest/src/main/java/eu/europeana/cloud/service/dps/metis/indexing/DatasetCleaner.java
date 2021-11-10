@@ -17,7 +17,7 @@ public class DatasetCleaner extends IndexWrapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
     private final DataSetCleanerParameters cleanerParameters;
-    private final DATABASE_LOCATION databaseLocation;
+    private final DatabaseLocation databaseLocation;
 
     public DatasetCleaner(DataSetCleanerParameters cleanerParameters) {
         this.cleanerParameters = cleanerParameters;
@@ -47,20 +47,13 @@ public class DatasetCleaner extends IndexWrapper {
         }
     }
 
-    private DATABASE_LOCATION evaluateDatabaseLocation() {
-        if (cleanerParameters.isUsingAltEnv()) {
-            return evaluateDatabaseLocation(MetisDataSetParameters.builder()
-                    .dataSetId(cleanerParameters.getDataSetId())
-                    .targetIndexingDatabase(TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv()))
-                    .targetIndexingEnvironment(TargetIndexingEnvironment.ALTERNATIVE)
-                    .build());
-        } else {
-            return evaluateDatabaseLocation(MetisDataSetParameters.builder()
-                    .dataSetId(cleanerParameters.getDataSetId())
-                    .targetIndexingDatabase(TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv()))
-                    .targetIndexingEnvironment(TargetIndexingEnvironment.DEFAULT)
-                    .build());
-        }
+    private DatabaseLocation evaluateDatabaseLocation() {
+        return evaluateDatabaseLocation(MetisDataSetParameters.builder()
+                .dataSetId(cleanerParameters.getDataSetId())
+                .targetIndexingDatabase(TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv()))
+                .targetIndexingEnvironment(cleanerParameters.isUsingAltEnv() ?
+                        TargetIndexingEnvironment.ALTERNATIVE : TargetIndexingEnvironment.DEFAULT)
+                .build());
     }
 
     private void removeDataSet(String datasetId) throws IndexingException {

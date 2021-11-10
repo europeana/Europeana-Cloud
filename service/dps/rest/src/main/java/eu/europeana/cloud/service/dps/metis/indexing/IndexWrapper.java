@@ -23,7 +23,7 @@ public abstract class IndexWrapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexWrapper.class);
     protected final Properties properties = new Properties();
-    protected final Map<DATABASE_LOCATION, Indexer> indexers = new EnumMap<>(DATABASE_LOCATION.class);
+    protected final Map<DatabaseLocation, Indexer> indexers = new EnumMap<>(DatabaseLocation.class);
 
     protected IndexWrapper() {
         try {
@@ -47,29 +47,29 @@ public abstract class IndexWrapper {
         IndexingSettingsGenerator indexingSettingsGenerator = new IndexingSettingsGenerator(properties);
 
         IndexingSettings indexingSettings = indexingSettingsGenerator.generateForPreview();
-        indexers.put(DATABASE_LOCATION.DEFAULT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
+        indexers.put(DatabaseLocation.DEFAULT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
         indexingSettings = indexingSettingsGenerator.generateForPublish();
-        indexers.put(DATABASE_LOCATION.DEFAULT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
+        indexers.put(DatabaseLocation.DEFAULT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
         //
         indexingSettingsGenerator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
         indexingSettings = indexingSettingsGenerator.generateForPreview();
-        indexers.put(DATABASE_LOCATION.ALT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
+        indexers.put(DatabaseLocation.ALT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
         indexingSettings = indexingSettingsGenerator.generateForPublish();
-        indexers.put(DATABASE_LOCATION.ALT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
+        indexers.put(DatabaseLocation.ALT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
     }
 
-    protected DATABASE_LOCATION evaluateDatabaseLocation(MetisDataSetParameters metisDataSetParameters) {
+    protected DatabaseLocation evaluateDatabaseLocation(MetisDataSetParameters metisDataSetParameters) {
         if (metisDataSetParameters.getTargetIndexingDatabase().equals(TargetIndexingDatabase.PUBLISH)) {
             if (metisDataSetParameters.getTargetIndexingEnvironment().equals(TargetIndexingEnvironment.ALTERNATIVE)) {
-                return DATABASE_LOCATION.ALT_PUBLISH;
+                return DatabaseLocation.ALT_PUBLISH;
             } else {
-                return DATABASE_LOCATION.DEFAULT_PUBLISH;
+                return DatabaseLocation.DEFAULT_PUBLISH;
             }
         } else if (metisDataSetParameters.getTargetIndexingDatabase().equals(TargetIndexingDatabase.PREVIEW)) {
             if (metisDataSetParameters.getTargetIndexingEnvironment().equals(TargetIndexingEnvironment.ALTERNATIVE)) {
-                return DATABASE_LOCATION.ALT_PREVIEW;
+                return DatabaseLocation.ALT_PREVIEW;
             } else {
-                return DATABASE_LOCATION.DEFAULT_PREVIEW;
+                return DatabaseLocation.DEFAULT_PREVIEW;
             }
         }
         throw new NullPointerException("Indexer not found");

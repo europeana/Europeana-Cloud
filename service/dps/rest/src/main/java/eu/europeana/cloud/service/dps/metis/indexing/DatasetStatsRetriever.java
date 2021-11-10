@@ -4,7 +4,7 @@ import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-enum DATABASE_LOCATION {
+enum DatabaseLocation {
     DEFAULT_PREVIEW,
     DEFAULT_PUBLISH,
     ALT_PREVIEW,
@@ -20,7 +20,7 @@ public class DatasetStatsRetriever extends IndexWrapper {
 
     public long getTotalRecordsForDataset(MetisDataSetParameters metisDataSetParameters) throws IndexingException {
         LOGGER.info("Reading total number of records for {}", metisDataSetParameters);
-        DATABASE_LOCATION databaseLocation = evaluateDatabaseLocation(metisDataSetParameters);
+        DatabaseLocation databaseLocation = evaluateDatabaseLocation(metisDataSetParameters);
         return indexers.get(databaseLocation).countRecords(metisDataSetParameters.getDataSetId());
     }
 }
