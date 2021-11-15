@@ -8,7 +8,6 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsException;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
