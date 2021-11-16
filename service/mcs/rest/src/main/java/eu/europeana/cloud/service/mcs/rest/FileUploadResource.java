@@ -11,6 +11,8 @@ import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,6 +38,7 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_
 @RequestMapping(FILE_UPLOAD_RESOURCE)
 public class FileUploadResource {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadResource.class);
     private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
     private final RecordService recordService;
     private final ExtendedAclService aclService;
@@ -82,11 +85,12 @@ public class FileUploadResource {
             @RequestParam String mimeType ,
             @RequestParam MultipartFile data) throws RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, RecordNotExistsException,
-            ProviderNotExistsException, FileAlreadyExistsException, CannotPersistEmptyRepresentationException, IOException {
-
+            ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException {
+        LOGGER.info("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
+                cloudId, representationName, version, fileName, providerId, mimeType);
         PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
-
+        LOGGER.debug("File {} buffered", fileName);
         Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
         addPrivilegesToRepresentation(representation);
 
@@ -117,6 +121,7 @@ public class FileUploadResource {
             versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
 
             aclService.updateAcl(versionAcl);
+            LOGGER.info("Privileges were added to representation {} ", representation);
         }
     }
 
@@ -143,5 +148,6 @@ public class FileUploadResource {
             CannotPersistEmptyRepresentationException,
             RepresentationNotExistsException {
         recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+        LOGGER.info("Representation persisted: {}", representation);
     }
 }

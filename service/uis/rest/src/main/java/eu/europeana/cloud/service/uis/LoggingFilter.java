@@ -2,7 +2,9 @@ package eu.europeana.cloud.service.uis;
 
 import eu.europeana.cloud.service.commons.logging.LoggingMessage;
 import eu.europeana.cloud.service.commons.logging.LoggingMessageBuilder;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,10 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 public class LoggingFilter implements HandlerInterceptor {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingFilter.class);
+    public static final String REQUEST_ID_ATTRIBUTE_NAME = "requestId";
 
     @Override
     public boolean preHandle(HttpServletRequest servletRequest,
                              HttpServletResponse hsr1, Object handler) {
+        MDC.put(REQUEST_ID_ATTRIBUTE_NAME, RandomStringUtils.randomAlphanumeric(6));
         publishRequestStartTimeTo(servletRequest);
         return true;
     }
@@ -32,6 +36,7 @@ public class LoggingFilter implements HandlerInterceptor {
                 LOGGER.info(message.getMessage());
                 break;
         }
+        MDC.remove(REQUEST_ID_ATTRIBUTE_NAME);
     }
 
     private void publishRequestStartTimeTo(HttpServletRequest servletRequest) {
