@@ -55,6 +55,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         Instant processingStartTime = Instant.now();
         try {
             RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
+            LOGGER.info("WriteRecordBolt: prepared write parameters: {}", writeParams);
             var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
             LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(stormTaskTuple, uri.toString());
