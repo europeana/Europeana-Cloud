@@ -26,9 +26,6 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 2/19/2019.
- */
 
 public class ParseFileBoltTest {
     private static final long serialVersionUID = 1L;

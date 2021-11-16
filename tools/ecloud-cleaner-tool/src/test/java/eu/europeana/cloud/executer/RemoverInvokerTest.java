@@ -14,10 +14,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-
-/**
- * Created by Tarek on 4/17/2019.
- */
 public class RemoverInvokerTest {
 
     @Mock(name = "remover")

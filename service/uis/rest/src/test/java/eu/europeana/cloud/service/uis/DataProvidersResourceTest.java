@@ -43,7 +43,7 @@ public class DataProvidersResourceTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
 
         // given there is no provider
-        Mockito.doReturn(new ResultSlice<DataProvider>()).when(dataProviderService).getProviders(Mockito.anyString(), Mockito.anyInt());
+        Mockito.doReturn(new ResultSlice<DataProvider>()).when(dataProviderService).getProviders(Mockito.any(), Mockito.anyInt());
 
         // when you list all providers
         MvcResult response = mockMvc.perform(get("/data-providers").accept(MediaType.APPLICATION_JSON))

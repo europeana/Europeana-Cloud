@@ -30,6 +30,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -42,7 +44,7 @@ public class HttpHarvestingBoltTest {
     private static final String TASK_NAME = "TASK_NAME";
     private static final long TASK_ID = -5964014235733572511L;
     private static final String TASK_RELATIVE_URL = "/http_harvest/task_-5964014235733572511/";
-    private static final String FILE_URL = "http://localhost:9999/http_harvest/task_-5964014235733572511/record.xml";
+    private String fileUrl;
 
 
     private StormTaskTuple tuple ;
@@ -60,12 +62,13 @@ public class HttpHarvestingBoltTest {
     private ArgumentCaptor<List<Object>> resultTupleCaptor;
 
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
     @Before
     public void setup() throws IllegalAccessException {
         wireMockRule.resetAll();
-        tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, null, prepareStormTaskTupleParameters(), new Revision());
+        fileUrl = "http://localhost:" + wireMockRule.port() + "/http_harvest/task_-5964014235733572511/record.xml";
+        tuple = new StormTaskTuple(TASK_ID, TASK_NAME, fileUrl, null, prepareStormTaskTupleParameters(), new Revision());
         PowerMockito.field(HttpHarvestingBolt.class,"SLEEP_TIME_BETWEEN_RETRIES_MS").setInt(bolt,100);
         bolt.prepare();
     }
@@ -81,7 +84,9 @@ public class HttpHarvestingBoltTest {
         assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
         assertEquals("/100/object_DCU_24927017",resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
         assertEquals("http://more.locloud.eu/object/DCU/24927017",resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        assertEquals(MediaType.APPLICATION_XML, resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE));
+        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
     }
 
     @Test
@@ -95,7 +100,9 @@ public class HttpHarvestingBoltTest {
         StormTaskTuple resultTuple = getResultStormTaskTuple();
         assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
         assertThat(resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), StringStartsWith.startsWith("record.xml"));
-        assertEquals(MediaType.APPLICATION_XML, resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE));
+        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
 
     }
 
@@ -111,7 +118,9 @@ public class HttpHarvestingBoltTest {
         assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
         assertEquals("/100/object_DCU_24927017",resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
         assertEquals("http://more.locloud.eu/object/DCU/24927017",resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        assertEquals(MediaType.APPLICATION_XML, resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE));
+        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
     }
 
     @Test

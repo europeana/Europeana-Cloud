@@ -129,8 +129,8 @@
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>11</version.jdk>
         <version.junit>4.13.2</version.junit>
-        <version.powermock>2.0.7</version.powermock>
-        <version.powermock-mockito>2.0.7</version.powermock-mockito>
+        <version.powermock>2.0.9</version.powermock>
+        <version.powermock-mockito>2.0.9</version.powermock-mockito>
         <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.12</version.slf4j>
 <!--
@@ -139,7 +139,7 @@
         <version.spring-framework>5.2.15.RELEASE</version.spring-framework>
         <version.spring-security>5.2.10.RELEASE</version.spring-security>
 
-        <version.servlet>2.5</version.servlet>
+        <version.servlet>4.0.1</version.servlet>
         <version.junitparams>1.0.6</version.junitparams>
         <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
             to avoid data corruption in Cassandra.
@@ -179,6 +179,7 @@
         <version.lombok>1.18.10</version.lombok>
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.cglib>3.3.0</version.cglib>
+        <version.wiremock>2.27.2</version.wiremock>
 
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>

@@ -187,7 +187,7 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <version>${version.servlet}</version>
         </dependency>
         <dependency>
             <groupId>com.qmino</groupId>

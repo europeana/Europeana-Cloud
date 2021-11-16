@@ -19,6 +19,18 @@
 
     <dependencies>
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>${version.wiremock}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
             <version>${version.jersey}</version>
@@ -67,22 +79,9 @@
 
         <!--test dependencies -->
         <dependency>
-            <groupId>co.freeside</groupId>
-            <artifactId>betamax</artifactId>
-            <version>1.1.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
             <version>${version.junitparams}</version>
-            <scope>test</scope>
-        </dependency>
-        <!--betamax is in groovy :) -->
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.0.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>

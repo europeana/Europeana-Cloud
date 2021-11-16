@@ -9,9 +9,6 @@ import java.util.List;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by Tarek on 4/17/2019.
- */
 public class CSVReaderTest {
     private final CommaSeparatorReaderImpl csvReader = new CommaSeparatorReaderImpl();
 

@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import org.mockito.Mockito;
@@ -29,6 +30,11 @@ public class RecordContext {
     @Bean
     public KafkaTopicSelector kafkaTopicSelector() {
         return Mockito.mock(KafkaTopicSelector.class);
+    }
+
+    @Bean
+    public TaskDiagnosticInfoDAO taskDiagnosticInfoDAO() {
+        return Mockito.mock(TaskDiagnosticInfoDAO.class);
     }
 
 }

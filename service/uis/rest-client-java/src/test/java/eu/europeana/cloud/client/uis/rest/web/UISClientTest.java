@@ -1,7 +1,6 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
-import co.freeside.betamax.Betamax;
-import co.freeside.betamax.Recorder;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
@@ -9,14 +8,17 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.test.WiremockHelper;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import java.util.Map;
 
-/** 
- * Tests the UISClient, using Betamax. 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.Assert.*;
+
+/**
+ * Tests the UISClient, using Wiremock.
  * 
  * The rest API should be running in the URL defined below {@link UISClientTest#BASE_URL}
  * 
@@ -25,11 +27,10 @@ import static org.junit.Assert.assertTrue;
 public class UISClientTest {
 
     @Rule
-    public Recorder recorder = new Recorder();
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8080));
 
     /** Needed to record the tests. */
-    private static final String BASE_URL_ISTI = "http://ecloud.eanadev.org:8080/ecloud-service-uis-rest-0.2-SNAPSHOT/";
-    private static final String BASE_URL_LOCALHOST = "http://localhost:8080/ecloud-service-uis-rest";
+    private static final String BASE_URL_LOCALHOST = "http://localhost:8080/uis";
     private static final String BASE_URL = BASE_URL_LOCALHOST;
     
     private static final String PROVIDER_ID = "PROVIDER_1";
@@ -49,18 +50,26 @@ public class UISClientTest {
 	private static final String createCloudIdandRetrieveCloudIdTest_PROVIDER_ID = "createCloudIdandRetrieveCloudIdTest_PROVIDERID";
 	private static final String updateProviderTest_PROVIDER_ID = "updateProviderTest_PROVIDERID";
 	
-
     /**
      * Tests for:
      * 
      * Create, Retrieve provider.
      */
-    @Betamax(tape = "UISClient/createAndRetrieveProviderTest")
     @Test
     public final void createAndRetrieveProviderTest() throws Exception {
 
         UISClient uisClient = new UISClient(BASE_URL, username, password);
-    	
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=createAndRetrieveProviderTest_PROVIDERID",
+                201,
+                Map.of("Location","http://localhost:8080/ecloud-service-uis-rest/data-providers/createAndRetrieveProviderTest_PROVIDERID"),
+                null);
+
+        new WiremockHelper(wireMockRule).stubGet("/uis/data-providers/createAndRetrieveProviderTest_PROVIDERID",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dataProvider><id>createAndRetrieveProviderTest_PROVIDER_ID_12</id><partitionKey>-926013828</partitionKey><properties><contactPerson>person</contactPerson><digitalLibraryURL>url</digitalLibraryURL><digitalLibraryWebsite>url</digitalLibraryWebsite><officialAddress>Address</officialAddress><organisationName>Name</organisationName><organisationWebsite>website</organisationWebsite><organisationWebsiteURL>url</organisationWebsiteURL><remarks>remarks</remarks></properties></dataProvider>");
+
     	// Create some test properties and store them in the cloud
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
         		"url", "url", "url", "person", "remarks");
@@ -70,7 +79,7 @@ public class UISClientTest {
         DataProvider provider = uisClient.getDataProvider(createAndRetrieveProviderTest_PROVIDER_ID);
         assertNotNull(provider);
         assertNotNull(provider.getProperties());
-        assertTrue(provider.getProperties().equals(providerProperties));
+        assertEquals(provider.getProperties(), providerProperties);
     }
     
     /**
@@ -78,13 +87,28 @@ public class UISClientTest {
      * 2) Makes a call to Update the provider with new properties =>
      * 3) Retrieves the properties and makes sure the updated properties come back.
      */
-    @Betamax(tape = "UISClient/updateProvider")
     @Test
     public final void updateProviderTest() throws CloudException {
     	
         UISClient uisClient = new UISClient(BASE_URL, username, password);
-        
-    	// Create some test properties and store them in the cloud
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=updateProviderTest_PROVIDERID",
+                201,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDERID",
+                null);
+
+        new WiremockHelper(wireMockRule).stubPut(
+                "/uis/data-providers/updateProviderTest_PROVIDERID",
+                204
+        );
+
+        new WiremockHelper(wireMockRule).stubGet(
+                "/uis/data-providers/updateProviderTest_PROVIDERID",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dataProvider><id>updateProviderTest_PROVIDERID</id><partitionKey>103212895</partitionKey><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties></dataProvider>");
+
+        // Create some test properties and store them in the cloud
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
         		"url", "url", "url", "person", "remarks");
         uisClient.createProvider(updateProviderTest_PROVIDER_ID, providerProperties);
@@ -98,14 +122,25 @@ public class UISClientTest {
         DataProvider providerUpdated = uisClient.getDataProvider(updateProviderTest_PROVIDER_ID);
         assertNotNull(providerUpdated);
         assertNotNull(providerUpdated.getProperties());
-        assertTrue(providerUpdated.getProperties().equals(providerPropertiesUpdated));
+        assertEquals(providerUpdated.getProperties(), providerPropertiesUpdated);
     }
     
-    @Betamax(tape = "UISClient/duplicateProvider")
     @Test
     public final void duplicateProviderRecordTest() throws Exception {
     	
         UISClient uisClient = new UISClient(BASE_URL, username, password);
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=duplicateProviderRecordTest_PROVIDERID",
+                201,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/duplicateProviderRecordTest_PROVIDER_ID_12",
+                null);
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/cloudIds?providerId=duplicateProviderRecordTest_PROVIDERID&recordId=TEST_RECORD_1",
+                200,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/duplicateProviderRecordTest_PROVIDER_ID_12",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>KH5C38JBR3X</id><localId><providerId>duplicateProviderRecordTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
 
     	// Create a provider with some random properties
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
@@ -113,20 +148,36 @@ public class UISClientTest {
         uisClient.createProvider(duplicateProviderRecordTest_PROVIDER_ID, providerProperties);
 
     	// try to insert the same (PROVIDER_ID + RECORD_ID) twice
-    	uisClient.createCloudId(duplicateProviderRecordTest_PROVIDER_ID, RECORD_ID);
-    	try{
-    	uisClient.createCloudId(duplicateProviderRecordTest_PROVIDER_ID, RECORD_ID);
-    	} catch(Exception e) {
-    		assertTrue(e instanceof CloudException);
-    	}
+        uisClient.createCloudId(duplicateProviderRecordTest_PROVIDER_ID, RECORD_ID);
+        try {
+            uisClient.createCloudId(duplicateProviderRecordTest_PROVIDER_ID, RECORD_ID);
+        } catch (Exception e) {
+            assertTrue(e instanceof CloudException);
+        }
     }
     
-    @Betamax(tape = "UISClient/createMappingTest")
     @Test
     public final void createMappingTest() throws Exception {
 
         UISClient uisClient = new UISClient(BASE_URL, username, password);
-        
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=createMappingTest_PROVIDERID",
+                201,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
+                null);
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/cloudIds?providerId=createMappingTest_PROVIDERID",
+                200,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>7J9BZXFWTMG</id><localId><providerId>createMappingTest_PROVIDERID</providerId><recordId>2QTW98PT1PP</recordId></localId></cloudId>");
+
+        new WiremockHelper(wireMockRule).stubGet(
+                "/uis/cloudIds/7J9BZXFWTMG",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>7J9BZXFWTMG</id><localId><providerId>createMappingTest_PROVIDERID</providerId><recordId>2QTW98PT1PP</recordId></localId></results></resultSlice>");
+
     	// Create a provider with some random properties
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
         		"url", "url", "url", "person", "remarks");
@@ -135,19 +186,40 @@ public class UISClientTest {
         // create a mapping
         final CloudId cloudId = uisClient.createCloudId(createMappingTest_PROVIDER_ID);
         final LocalId localId = cloudId.getLocalId(); // local Id was created automatically
-        assertTrue(localId != null);
+        assertNotNull(localId);
         
         // lets test that we can get some results back using the previously created CloudId  
         ResultSlice<CloudId> resultSliceWithResults = uisClient.getRecordId(cloudId.getId());
-        assertTrue(!resultSliceWithResults.getResults().isEmpty());
+        assertFalse(resultSliceWithResults.getResults().isEmpty());
     }
     
-    @Betamax(tape = "UISClient/removeMappingTest")
     @Test
     public final void removeMappingTest() throws Exception {
     	
         UISClient uisClient = new UISClient(BASE_URL, username, password);
-        
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=removeMappingTest_PROVIDERID",
+                201,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/removeMappingTest_PROVIDERID",
+                null);
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/cloudIds?providerId=removeMappingTest_PROVIDERID&recordId=TEST_RECORD_1",
+                200,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>15G2L35ZK6G</id><localId><providerId>removeMappingTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
+
+        new WiremockHelper(wireMockRule).stubDelete(
+                "/uis/data-providers/removeMappingTest_PROVIDERID/localIds/TEST_RECORD_1",
+                200,
+                "Mapping marked as deleted");
+
+        new WiremockHelper(wireMockRule).stubGet(
+                "/uis/cloudIds/15G2L35ZK6G",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice/>");
+
     	// Create a provider with some random properties
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
         		"url", "url", "url", "person", "remarks");
@@ -167,12 +239,40 @@ public class UISClientTest {
     }
     
 
-    @Betamax(tape = "UISClient/removeAndRecreateMappingTest")
     @Test
     public final void removeAndRecreateMappingTest() throws Exception {
     	
         UISClient uisClient = new UISClient(BASE_URL, username, password);
-        
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=removeAndRecreateMappingTest_PROVIDERID",
+                201,
+                Map.of("Location","/data-providers?providerId=removeAndRecreateMappingTest_PROVIDERID"),
+                null);
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/cloudIds?providerId=removeAndRecreateMappingTest_PROVIDERID",
+                200,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></cloudId>");
+
+        new WiremockHelper(wireMockRule).stubDelete(
+                "/uis/data-providers/removeAndRecreateMappingTest_PROVIDERID/localIds/C5M2JGHNCXQ",
+                200,
+                "Mapping marked as deleted");
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers/removeAndRecreateMappingTest_PROVIDERID/cloudIds/1VP8GL0D73Z?recordId=C5M2JGHNCXQ",
+                200,
+                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></cloudId>");
+
+        new WiremockHelper(wireMockRule).stubGet(
+                "/uis/cloudIds/1VP8GL0D73Z",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></results></resultSlice>");
+
+
     	// Create a provider with some random properties
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
         		"url", "url", "url", "person", "remarks");
@@ -182,8 +282,8 @@ public class UISClientTest {
         final CloudId cloudId = uisClient.createCloudId(removeAndRecreateMappingTest_PROVIDER_ID);
         final LocalId localId = cloudId.getLocalId(); // local Id was created automatically
 
-        assertTrue(localId.getProviderId() != null);
-        assertTrue(localId.getRecordId() != null);
+        assertNotNull(localId.getProviderId());
+        assertNotNull(localId.getRecordId());
         
         // remove the mapping
         final boolean removedSuccesfully = uisClient.removeMappingByLocalId(localId.getProviderId(), localId.getRecordId());
@@ -194,15 +294,30 @@ public class UISClientTest {
         
         // lets test that we can get some results back
         ResultSlice<CloudId> resultSliceWithResults = uisClient.getRecordId(cloudId.getId());
-        assertTrue(!resultSliceWithResults.getResults().isEmpty());
+        assertFalse(resultSliceWithResults.getResults().isEmpty());
     }
 
-    @Betamax(tape = "UISClient/createAndRetrieveRecordTest")
     @Test
     public final void createAndRetrieveRecordTest() throws Exception {
 
         UISClient uisClient = new UISClient(BASE_URL, username, password);
-        
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=createAndRetrieveRecordTest_PROVIDERID",
+                201,
+                Map.of("Location","http://localhost:8080/ecloud-service-uis-rest/data-providers/createAndRetrieveRecordTest_PROVIDERID"),
+                null);
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/cloudIds?providerId=createAndRetrieveRecordTest_PROVIDERID&recordId=TEST_RECORD_1",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>255S7VQKHVM</id><localId><providerId>createAndRetrieveRecordTest_PROVIDER_ID_12</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
+
+        new WiremockHelper(wireMockRule).stubGet(
+                "/uis/cloudIds/255S7VQKHVM",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>255S7VQKHVM</id><localId><providerId>createAndRetrieveRecordTest_PROVIDER_ID_12</providerId><recordId>TEST_RECORD_1</recordId></localId></results></resultSlice>");
+
         // Create a provider with some random properties
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
         		"url", "url", "url", "person", "remarks");
@@ -214,15 +329,19 @@ public class UISClientTest {
         
         // get back the record
         CloudId cloudIdIGotBack = resultsSlice.getResults().iterator().next();
-        assertTrue(cloudIdIhave.equals(cloudIdIGotBack));
+        assertEquals(cloudIdIhave, cloudIdIGotBack);
     }
 
-    @Betamax(tape = "UISClient/deleteRecordTest")
     @Test(expected = CloudException.class)
     public final void deleteRecordTest() throws Exception {
 
         UISClient uisClient = new UISClient(BASE_URL, username, password);
-    	
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/cloudIds?providerId=PROVIDER_1&recordId=TEST_RECORD_1",
+                404,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>The supplied provider identifier PROVIDER_1 does not exist</details><errorCode>PROVIDER_DOES_NOT_EXIST</errorCode></errorInfo>");
+
     	// create a record
         final CloudId cloudIdIhave = uisClient.createCloudId(PROVIDER_ID, RECORD_ID);
         
@@ -234,12 +353,27 @@ public class UISClientTest {
         uisClient.getRecordId(cloudIdIhave.getId());
     }
 
-    @Betamax(tape = "UISClient/createCloudIdandRetrieveCloudIdTest")
     @Test
     public final void createCloudIdandRetrieveCloudIdTest() throws Exception {
 	  
     	UISClient uisClient = new UISClient(BASE_URL, username, password);
-    	
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/data-providers?providerId=createCloudIdandRetrieveCloudIdTest_PROVIDERID",
+                201,
+                Map.of("Location","http://localhost:8080/ecloud-service-uis-rest/data-providers/createCloudIdandRetrieveCloudIdTest_PROVIDERID"),
+                null);
+
+        new WiremockHelper(wireMockRule).stubPost(
+                "/uis/cloudIds?providerId=createCloudIdandRetrieveCloudIdTest_PROVIDERID&recordId=TEST_RECORD_1",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>SP46XMN47N2</id><localId><providerId>createCloudIdandRetrieveCloudIdTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
+
+        new WiremockHelper(wireMockRule).stubGet(
+                "/uis/cloudIds/SP46XMN47N2",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>SP46XMN47N2</id><localId><providerId>createCloudIdandRetrieveCloudIdTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></results></resultSlice>");
+
         // Create a provider with some random properties
         DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
         		"url", "url", "url", "person", "remarks");
@@ -249,6 +383,6 @@ public class UISClientTest {
     	ResultSlice<CloudId> resultsSlice = uisClient.getRecordId(cloudIdIhave.getId());
       
     	CloudId cloudIdIGotBack = resultsSlice.getResults().iterator().next();
-    	assertTrue(cloudIdIhave.equals(cloudIdIGotBack));
+        assertEquals(cloudIdIhave, cloudIdIGotBack);
     }    
 }

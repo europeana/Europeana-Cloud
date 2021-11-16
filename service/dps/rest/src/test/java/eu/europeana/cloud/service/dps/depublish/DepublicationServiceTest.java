@@ -26,10 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
@@ -41,10 +38,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {DepublicationService.class, DatasetDepublisher.class, TestContext.class,})
@@ -132,6 +126,7 @@ public class DepublicationServiceTest {
 
     @Test
     public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateWholeDataset() {
+        reset(harvestedRecordsDAO);
         when(harvestedRecordsDAO.findDatasetRecords(DATASET_METIS_ID))
                 .thenReturn(Collections.singleton(
                         HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
@@ -216,16 +211,18 @@ public class DepublicationServiceTest {
 
     @Test
     public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateChosenRecords() {
-        when(harvestedRecordsDAO.findRecord(DATASET_METIS_ID, RECORD1))
-                .thenReturn(Optional.of(
-                        HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
-                                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
-                                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
-                                .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build()));
-        when(harvestedRecordsDAO.findRecord(DATASET_METIS_ID, RECORD2)).thenReturn(Optional.empty());
+        //given
+        HarvestedRecord theRecord = HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
+                .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build();
 
+        when(harvestedRecordsDAO.findDatasetRecords(anyString())).thenReturn(Collections.singleton(theRecord).iterator());
+
+        //when
         service.depublishDataset(parameters);
 
+        //then
         verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
                 .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
                 .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5).build());

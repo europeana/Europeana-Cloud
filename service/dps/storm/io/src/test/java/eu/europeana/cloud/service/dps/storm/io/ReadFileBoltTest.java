@@ -22,9 +22,6 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 5/9/2018.
- */
 public class ReadFileBoltTest {
     private static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
     private static final String AUTHORIZATION = "Authorization";

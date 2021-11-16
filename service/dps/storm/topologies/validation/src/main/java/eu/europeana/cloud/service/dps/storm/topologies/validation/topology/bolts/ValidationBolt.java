@@ -18,9 +18,6 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-/**
- * Created by Tarek on 12/5/2017.
- */
 public class ValidationBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(ValidationBolt.class);
     private static final long serialVersionUID = 1L;

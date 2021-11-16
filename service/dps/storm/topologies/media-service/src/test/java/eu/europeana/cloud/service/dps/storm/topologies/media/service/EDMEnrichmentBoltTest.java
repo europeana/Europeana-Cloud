@@ -16,12 +16,8 @@ import java.io.InputStream;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 12/14/2018.
- */
 public class EDMEnrichmentBoltTest {
 
     private static final String AUTHORIZATION = "Authorization";
@@ -64,7 +60,7 @@ public class EDMEnrichmentBoltTest {
     public void shouldEnrichTheFileSuccessfullyAndSendItToTheNextBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
             assertEquals(5, stormTaskTuple.getParameters().size());
@@ -86,7 +82,7 @@ public class EDMEnrichmentBoltTest {
     public void shouldEnrichTheFileSuccessfullyOnMultipleBatchesAndSendItToTheNextBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
 
             int resourceLinksCount = 10;
@@ -113,18 +109,21 @@ public class EDMEnrichmentBoltTest {
     @Test
     public void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
-        int expectedParametersSize = 3;
-        Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
-        assertEquals(expectedParametersSize, initialTupleParameters.size());
-        verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
-        Values value = captor.getValue();
-        Map<String, String> parametersAfterExecution = (Map) value.get(4);
-        assertNotNull(parametersAfterExecution);
-        assertEquals(expectedParametersSize, parametersAfterExecution.size());
-        for (String key : parametersAfterExecution.keySet()) {
-            assertTrue(initialTupleParameters.keySet().contains(key));
-            assertEquals(initialTupleParameters.get(key), parametersAfterExecution.get(key));
+        try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
+            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
+            int expectedParametersSize = 8;
+            Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
+            assertEquals(expectedParametersSize, initialTupleParameters.size());
+            verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
+            Values value = captor.getValue();
+            Map<String, String> parametersAfterExecution = (Map) value.get(4);
+            assertNotNull(parametersAfterExecution);
+            assertEquals(expectedParametersSize, parametersAfterExecution.size());
+            for (String key : parametersAfterExecution.keySet()) {
+                assertTrue(initialTupleParameters.containsKey(key));
+                assertEquals(initialTupleParameters.get(key), parametersAfterExecution.get(key));
+            }
         }
     }
 
@@ -133,7 +132,7 @@ public class EDMEnrichmentBoltTest {
     public void shouldLogTheExceptionAndSendItAsParameterToTheNextBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
             String brokenMetaData = "{\"textResourceMetadata\":{\"containsTe/xml\",\"resourceUrl\":\"RESOURCE_URL\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}";
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, brokenMetaData);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
