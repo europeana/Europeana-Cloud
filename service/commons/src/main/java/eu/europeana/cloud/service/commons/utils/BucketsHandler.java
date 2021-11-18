@@ -89,6 +89,16 @@ public class BucketsHandler {
         return getBucket(query);
     }
 
+    public Bucket getPreviousBucket(String bucketsTableName, String objectId) {
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' ORDER BY bucket_id DESC LIMIT 1;";
+        return getBucket(query);
+    }
+
+    public Bucket getPreviousBucket(String bucketsTableName, String objectId, Bucket bucket) {
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' AND bucket_id < " + UUID.fromString(bucket.getBucketId()) + " ORDER BY bucket_id DESC LIMIT 1;";
+        return getBucket(query);
+    }
+
     public void removeBucket(String bucketsTableName, Bucket bucket) {
         String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
         session.execute(query);
