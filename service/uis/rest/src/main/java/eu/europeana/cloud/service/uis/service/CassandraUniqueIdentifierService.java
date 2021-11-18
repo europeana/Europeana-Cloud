@@ -122,16 +122,32 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
                     IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
         }
         List<CloudId> localIds = new ArrayList<>();
-        for (CloudId cId : cloudIds) {
-            LOGGER.info("Checking if given recordId={} from provider={} exists in the providers records table",
-                    cId.getLocalId().getRecordId(), cId.getLocalId().getProviderId());
-            if (localIdDao.searchById(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId()).size() > 0) {
-                localIds.add(cId);
+        if (manyIdsFromTheSameProvider(cloudIds)) {
+             //optimized approach
+            LOGGER.info("Optimized approach checking if for every of {} cloudIds exists record in exists in the providers records table.",cloudIds.size());
+            List<Boolean> existResult = localIdDao.localIdsExists(cloudIds.get(0).getLocalId().getProviderId(), cloudIds);
+            for(int i=0;i<cloudIds.size();i++){
+                if(existResult.get(i)){
+                    localIds.add(cloudIds.get(i));
+                }
+            }
+        } else {
+            //classic approach
+            for (CloudId cId : cloudIds) {
+                LOGGER.info("Checking if given recordId={} from provider={} exists in the providers records table",
+                        cId.getLocalId().getRecordId(), cId.getLocalId().getProviderId());
+                if (localIdDao.searchById(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId()).size() > 0) {
+                    localIds.add(cId);
+                }
             }
         }
         LOGGER.info("Prepared id list for cloudId={}, size={}", cloudId, localIds.size());
         return localIds;
 
+    }
+
+    private boolean manyIdsFromTheSameProvider(List<CloudId> cloudIds) {
+        return cloudIds.size()>1 && cloudIds.stream().map(c -> c.getLocalId().getProviderId()).distinct().count() <= 1;
     }
 
 
