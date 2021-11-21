@@ -25,6 +25,7 @@ import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.web.common.LoggingFilter;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
@@ -32,6 +33,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 
@@ -42,7 +45,7 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
 @EnableAspectJAutoProxy
-public class ServiceConfiguration {
+public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
 
@@ -283,5 +286,9 @@ public class ServiceConfiguration {
         return new DatasetStatsRetriever();
     }
 
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoggingFilter());
+    }
 
 }

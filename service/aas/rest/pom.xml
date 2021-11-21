@@ -19,6 +19,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-web-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
             <version>${version.spring-framework}</version>

@@ -1,7 +1,5 @@
-package eu.europeana.cloud.service.uis;
+package eu.europeana.cloud.service.web.common;
 
-import eu.europeana.cloud.service.commons.logging.LoggingMessage;
-import eu.europeana.cloud.service.commons.logging.LoggingMessageBuilder;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;

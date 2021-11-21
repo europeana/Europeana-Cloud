@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.commons.logging;
+package eu.europeana.cloud.service.web.common;
 
 public class LoggingMessage {
     
