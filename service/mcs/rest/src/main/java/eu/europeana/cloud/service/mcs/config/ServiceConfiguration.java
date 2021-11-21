@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
-import eu.europeana.cloud.service.mcs.utils.LoggingFilter;
+import eu.europeana.cloud.service.web.common.LoggingFilter;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;

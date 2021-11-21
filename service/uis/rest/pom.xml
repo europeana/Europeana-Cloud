@@ -20,6 +20,11 @@
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-web-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-api</artifactId>
             <version>${project.version}</version>
         </dependency>
