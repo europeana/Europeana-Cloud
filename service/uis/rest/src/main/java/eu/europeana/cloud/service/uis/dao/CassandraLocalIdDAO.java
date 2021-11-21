@@ -4,6 +4,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.google.common.collect.Lists;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CloudId;
@@ -13,10 +14,14 @@ import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.service.CassandraUniqueIdentifierService;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +32,7 @@ import java.util.UUID;
  * @author Yorgos.Mamakis@ kb.nl
  */
 public class CassandraLocalIdDAO {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLocalIdDAO.class);
     private static final String PROVIDER_RECORD_ID_BUCKETS_TABLE = "provider_record_id_buckets";
     private final CassandraConnectionProvider dbService;
     private PreparedStatement insertStatement;
@@ -76,17 +81,64 @@ public class CassandraLocalIdDAO {
         try {
             ResultSet rs = null;
             List<CloudId> result = new ArrayList<>();
-
-            Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
+            int bucketTreversedCount=0;
+            Bucket bucket = bucketsHandler.getPreviousBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
             while (bucket != null) {
                 if (args.length == 1) {
                     rs = dbService.getSession().execute(searchByProviderStatement.bind(args[0], UUID.fromString(bucket.getBucketId())));
                 } else if (args.length >= 2) {
                     rs = dbService.getSession().execute(searchByRecordIdStatement.bind(args[0], UUID.fromString(bucket.getBucketId()), args[1]));
                 }
+                bucketTreversedCount++;
                 result.addAll(createCloudIdsFromRs(rs));
-                bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0], bucket);
+                if (result.size() > 0) {
+                    break;
+                }
+                bucket = bucketsHandler.getPreviousBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0], bucket);
             }
+            LOGGER.info("Seaching by localId result size: {}, performed {} record searches on different buckets."
+                    ,result.size(),bucketTreversedCount);
+            return result;
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
+        }
+    }
+
+    @Retryable
+    public List<Boolean> localIdsExists(String provider, List<CloudId> localIds) throws DatabaseConnectionException {
+        try {
+            List<Boolean> result = new ArrayList<>();
+            localIds.stream().forEach(id->result.add(false));
+
+            int bucketTreversedCount=0;
+            int recordSearchCount=0;
+            List<Bucket> list = bucketsHandler.getAllBuckets(PROVIDER_RECORD_ID_BUCKETS_TABLE, provider);
+            list=Lists.reverse(list);
+
+            //Bucket bucket = bucketsHandler.getPreviousBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE,provider);
+            for(Bucket bucket:list) {
+                for(int i=0;i<localIds.size();i++) {
+                    if(!result.get(i)) {
+                        String recordId = localIds.get(i).getLocalId().getRecordId();
+                        ResultSet rs = dbService.getSession().execute(searchByRecordIdStatement.bind(provider, UUID.fromString(bucket.getBucketId()), recordId));
+                        recordSearchCount++;
+                        if (!createCloudIdsFromRs(rs).isEmpty()) {
+                            LOGGER.info("Found record id in bucket no {}", bucketTreversedCount);
+                            result.set(i, true);
+                        }
+                    }
+                }
+                bucketTreversedCount++;
+                if (result.stream().allMatch(e -> e)) {
+                    break;
+                }
+              //  bucket = bucketsHandler.getPreviousBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, provider, bucket);
+            }
+
+            LOGGER.info("Checking if localids exists result: {}, traversed {} buckets and performed {} record searches."
+                    ,result,bucketTreversedCount,recordSearchCount);
             return result;
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(

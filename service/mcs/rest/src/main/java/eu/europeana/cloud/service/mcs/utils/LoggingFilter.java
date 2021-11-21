@@ -16,7 +16,7 @@ public class LoggingFilter implements HandlerInterceptor {
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingFilter.class);
-    public static final String REQUEST_ID_ATTRIBUTE_NAME = "requestId";
+    private static final String REQUEST_ID_ATTRIBUTE_NAME = "requestId";
 
     @Override
     public boolean preHandle(HttpServletRequest servletRequest,
