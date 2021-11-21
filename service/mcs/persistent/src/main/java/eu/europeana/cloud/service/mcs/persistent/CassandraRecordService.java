@@ -156,8 +156,17 @@ public class CassandraRecordService implements RecordService {
         if (uis.getProvider(providerId) == null) {
             throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
         }
-        if (uis.existsCloudId(cloudId)) {
-            return recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
+        LOGGER.info("Confirmed provider, id={} exists.", providerId);
+
+        boolean cloudExists = uis.existsCloudId(cloudId);
+        LOGGER.info("Confirmed cloudId={} exists.", cloudId);
+
+        if (cloudExists) {
+            Representation representation =
+                    recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
+            LOGGER.info("Created representation cloudid={}, representationName={}, providerId={}, version={}"
+                    , cloudId, representationName, providerId, version);
+            return representation;
         } else {
             throw new RecordNotExistsException(cloudId);
         }
@@ -189,6 +198,7 @@ public class CassandraRecordService implements RecordService {
         if (rep == null) {
             throw new RepresentationNotExistsException();
         } else {
+            LOGGER.info("Loaded representation {}", rep);
             return rep;
         }
     }
@@ -295,18 +305,22 @@ public class CassandraRecordService implements RecordService {
         PutResult result;
         try {
             result = contentDAO.putContent(keyForFile, content, file.getFileStorage());
+            LOGGER.info("Stored content for file: {} version: {}", file.getFileName(), version);
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
+
         file.setMd5(result.getMd5());
         DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
         file.setDate(fmt.print(now));
         file.setContentLength(result.getContentLength());
         recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
+        LOGGER.info("Updated file information in representation: {}", representation);
 
         for (Revision revision : representation.getRevisions()) {
             // update information in extra table
             recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, version, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), file);
+            LOGGER.info("Updated file information in revision: {}", revision);
         }
 
         return isCreate;

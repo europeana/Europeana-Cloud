@@ -123,10 +123,13 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         }
         List<CloudId> localIds = new ArrayList<>();
         for (CloudId cId : cloudIds) {
+            LOGGER.info("Checking if given recordId={} from provider={} exists in the providers records table",
+                    cId.getLocalId().getRecordId(), cId.getLocalId().getProviderId());
             if (localIdDao.searchById(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId()).size() > 0) {
                 localIds.add(cId);
             }
         }
+        LOGGER.info("Prepared id list for cloudId={}, size={}", cloudId, localIds.size());
         return localIds;
 
     }
