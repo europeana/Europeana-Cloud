@@ -86,11 +86,11 @@ public class FileUploadResource {
             @RequestParam MultipartFile data) throws RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, RecordNotExistsException,
             ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException {
-        LOGGER.info("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
+        LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
                 cloudId, representationName, version, fileName, providerId, mimeType);
         PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
-        LOGGER.debug("File {} buffered", fileName);
+        LOGGER.trace("File {} buffered", fileName);
         Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
         addPrivilegesToRepresentation(representation);
 
@@ -121,7 +121,7 @@ public class FileUploadResource {
             versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
 
             aclService.updateAcl(versionAcl);
-            LOGGER.info("Privileges were added to representation {} ", representation);
+            LOGGER.debug("Privileges were added to representation {} ", representation);
         }
     }
 
@@ -148,6 +148,6 @@ public class FileUploadResource {
             CannotPersistEmptyRepresentationException,
             RepresentationNotExistsException {
         recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
-        LOGGER.info("Representation persisted: {}", representation);
+        LOGGER.debug("Representation persisted: {}", representation);
     }
 }

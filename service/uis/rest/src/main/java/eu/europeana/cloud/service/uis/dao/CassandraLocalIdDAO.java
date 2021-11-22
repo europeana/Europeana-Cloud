@@ -14,14 +14,12 @@ import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.service.CassandraUniqueIdentifierService;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,7 +87,7 @@ public class CassandraLocalIdDAO {
                 bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId, bucket);
                 bucketTreversedCount++;
             }
-            LOGGER.info("Searching by providerId, result size: {}, performed {} record searches on different buckets."
+            LOGGER.debug("Searching by providerId, result size: {}, performed {} searches of records on different buckets."
                     , result.size(), bucketTreversedCount);
             return result;
         } catch (NoHostAvailableException e) {
@@ -114,7 +112,7 @@ public class CassandraLocalIdDAO {
                     break;
                 }
             }
-            LOGGER.info("Searching by localId result size: {}, performed {} record searches on different buckets."
+            LOGGER.debug("Searching by localId result size: {}, performed {} searches on different buckets."
                     , result.size(), bucketTreversedCount);
             return result;
         } catch (NoHostAvailableException e) {
