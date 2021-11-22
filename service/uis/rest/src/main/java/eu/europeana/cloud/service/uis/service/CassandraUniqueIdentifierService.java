@@ -68,7 +68,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         }
         String recordId = recordInfo.length > 1 ? recordInfo[1] : IdGenerator.timeEncode(providerId);
         LOGGER.info("createCloudId() creating cloudId providerId='{}', recordId='{}'", providerId, recordId);
-        if (!localIdDao.searchById(providerId, recordId).isEmpty()) {
+        if (localIdDao.searchById(providerId, recordId).isPresent()) {
             LOGGER.warn("RecordExistsException for providerId={}, recordId={}", providerId, recordId);
             throw new RecordExistsException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
@@ -97,15 +97,13 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
     @Override
     public CloudId getCloudId(String providerId, String recordId)
             throws DatabaseConnectionException, RecordDoesNotExistException {
-        LOGGER.info("getCloudId() providerId='{}', recordId='{}'", providerId, recordId);
-        List<CloudId> cloudIds = localIdDao.searchById(providerId, recordId);
-        if (cloudIds.isEmpty()) {
-            throw new RecordDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId)));
-        }
-        final CloudId cloudId = cloudIds.get(0);
-        LOGGER.info("getCloudId() returning cloudId='{}'", cloudId);
+        LOGGER.debug("getCloudId() providerId='{}', recordId='{}'", providerId, recordId);
+        final CloudId cloudId = localIdDao.searchById(providerId, recordId)
+                .orElseThrow(() -> new RecordDoesNotExistException(new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getHttpCode(),
+                        IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId))));
+
+        LOGGER.debug("getCloudId() returning cloudId='{}'", cloudId);
         return cloudId;
     }
 
@@ -193,8 +191,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
                     IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
                     IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
         }
-        List<CloudId> localIds = localIdDao.searchById(providerId, recordId);
-        if (!localIds.isEmpty()) {
+        if (localIdDao.searchById(providerId, recordId).isPresent()) {
             LOGGER.warn("IdHasBeenMappedException for cloudId='{}', providerId='{}', recordId='{}'", cloudId,
                     providerId, recordId);
             throw new IdHasBeenMappedException(new IdentifierErrorInfo(
