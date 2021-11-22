@@ -35,7 +35,7 @@ public class TasksCache {
         TaskInfo taskInfo = findTaskInCache(message);
         //
         if (taskFoundInCache(taskInfo)) {
-            LOGGER.debug("TaskInfo found in cache");
+            LOGGER.trace("TaskInfo found in cache");
         } else {
             LOGGER.debug("TaskInfo NOT found in cache");
             taskInfo = readTaskFromDB(message.getTaskId());

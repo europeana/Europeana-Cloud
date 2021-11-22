@@ -22,6 +22,7 @@
             <!-- Log only to file <AppenderRef ref="STDOUT"/> -->
             <AppenderRef ref="FILE"/>
         </Root>
+        <Logger name="eu.europeana.cloud.service.uis" level="debug"/>
     </Loggers>
 
 </Configuration>
