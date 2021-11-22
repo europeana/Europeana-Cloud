@@ -26,8 +26,8 @@ public final class QueryTracer {
      *            query result set
      */
     public static void logConsistencyLevel(BoundStatement boundStatement, ResultSet rs) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("requested CL {}, achived CL {}", boundStatement.getConsistencyLevel(), rs.getExecutionInfo()
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("requested CL {}, achived CL {}", boundStatement.getConsistencyLevel(), rs.getExecutionInfo()
                     .getAchievedConsistencyLevel());
         }
     }

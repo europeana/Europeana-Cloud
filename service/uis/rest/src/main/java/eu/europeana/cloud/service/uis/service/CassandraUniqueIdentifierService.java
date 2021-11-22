@@ -113,7 +113,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
     @Override
     public List<CloudId> getLocalIdsByCloudId(String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException {
-        LOGGER.info("getLocalIdsByCloudId() cloudId='{}'", cloudId);
+        LOGGER.debug("getLocalIdsByCloudId() cloudId='{}'", cloudId);
         List<CloudId> cloudIds = cloudIdDao.searchById(cloudId);
         if (cloudIds.isEmpty()) {
             LOGGER.warn("CloudIdDoesNotExistException for cloudId={}", cloudId);
