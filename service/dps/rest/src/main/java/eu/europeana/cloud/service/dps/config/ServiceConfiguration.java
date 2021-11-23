@@ -29,8 +29,11 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -50,6 +53,16 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     public ServiceConfiguration(Environment environment){
         this.environment = environment;
+    }
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor(asyncExecutor());
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoggingFilter());
     }
 
     @Bean
@@ -280,8 +293,14 @@ public class ServiceConfiguration implements WebMvcConfigurer {
                 tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoggingFilter());
+    @Bean
+    public AsyncTaskExecutor asyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(40);
+        executor.setQueueCapacity(20);
+        executor.setThreadNamePrefix("DPSThreadPoolTaskExecutor-");
+        executor.initialize();
+        return executor;
     }
 }
