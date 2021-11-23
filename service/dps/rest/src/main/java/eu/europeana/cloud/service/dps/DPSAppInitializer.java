@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps;
 
-import eu.europeana.cloud.service.dps.config.AsyncConfig;
 import eu.europeana.cloud.service.dps.config.AuthenticationConfiguration;
 import eu.europeana.cloud.service.dps.config.AuthorizationConfiguration;
 import eu.europeana.cloud.service.dps.config.ServiceConfiguration;
@@ -23,8 +22,8 @@ public class DPSAppInitializer extends AbstractAnnotationConfigDispatcherServlet
         return new Class<?>[]{
                 ServiceConfiguration.class,
                 AuthenticationConfiguration.class,
-                AuthorizationConfiguration.class,
-                AsyncConfig.class};
+                AuthorizationConfiguration.class
+        };
     }
 
     @Override
