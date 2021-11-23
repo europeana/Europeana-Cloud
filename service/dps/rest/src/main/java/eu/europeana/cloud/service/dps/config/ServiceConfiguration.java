@@ -31,6 +31,7 @@ import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
@@ -48,6 +49,7 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
 @EnableAspectJAutoProxy
+@EnableAsync
 public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
@@ -295,7 +297,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public DatasetStatsRetriever DatasetStatsRetriever(){
+    public DatasetStatsRetriever datasetStatsRetriever(){
         return new DatasetStatsRetriever();
     }
 
