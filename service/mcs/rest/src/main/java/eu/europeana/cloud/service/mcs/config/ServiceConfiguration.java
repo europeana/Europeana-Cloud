@@ -19,16 +19,21 @@ import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.LoggingFilter;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 @Configuration
 @EnableWebMvc
+@EnableAsync
 @PropertySource("classpath:mcs.properties")
 @ComponentScan("eu.europeana.cloud.service.mcs.rest")
 @EnableAspectJAutoProxy
@@ -46,7 +51,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     private static final String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
 
     private static final String JNDI_KEY_UISURL = "/mcs/uis-url";
-    private static final long MAX_UPLOAD_SIZE = (long)(128*1024*1024); //128MB
+    private static final long MAX_UPLOAD_SIZE = (long)128*1024*1024; //128MB
 
     private Environment environment;
 
@@ -57,6 +62,11 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LoggingFilter());
+    }
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor(asyncExecutor());
     }
 
     @Bean
@@ -95,7 +105,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public DynamicContentProxy dynamicContentProxy() {
-        Map<Storage, ContentDAO> params = new HashMap<>();
+        Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
         params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
         params.put(Storage.DATA_BASE, cassandraContentDAO());
@@ -148,5 +158,16 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Bean
     public RetryAspect retryAspect() {
         return new RetryAspect();
+    }
+
+    @Bean
+    public AsyncTaskExecutor asyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(40);
+        executor.setQueueCapacity(20);
+        executor.setThreadNamePrefix("MCSThreadPoolTaskExecutor-");
+        executor.initialize();
+        return executor;
     }
 }

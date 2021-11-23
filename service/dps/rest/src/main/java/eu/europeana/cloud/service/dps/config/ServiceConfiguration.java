@@ -29,9 +29,14 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 
@@ -42,12 +47,18 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
 @EnableAspectJAutoProxy
-public class ServiceConfiguration {
+@EnableAsync
+public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
 
     public ServiceConfiguration(Environment environment){
         this.environment = environment;
+    }
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor(asyncExecutor());
     }
 
     @Bean
@@ -279,9 +290,18 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public DatasetStatsRetriever DatasetStatsRetriever(){
+    public DatasetStatsRetriever datasetStatsRetriever() {
         return new DatasetStatsRetriever();
     }
 
-
+    @Bean
+    public AsyncTaskExecutor asyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(40);
+        executor.setQueueCapacity(20);
+        executor.setThreadNamePrefix("DPSThreadPoolTaskExecutor-");
+        executor.initialize();
+        return executor;
+    }
 }
