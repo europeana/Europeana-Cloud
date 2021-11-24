@@ -301,8 +301,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         executor.setCorePoolSize(10);
         executor.setMaxPoolSize(40);
         executor.setQueueCapacity(20);
-        executor.setThreadNamePrefix("DPSThreadPoolTaskExecutor-");
-        executor.initialize();
+        executor.setThreadNamePrefix("DPSThreadPool-");
         return executor;
     }
 }
