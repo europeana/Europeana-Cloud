@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.Revision;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.With;
 
 import java.util.Date;
@@ -12,6 +13,7 @@ import java.util.Date;
 @With
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class RevisionIdentifier {
     private String revisionName;
     private String revisionProviderId;
