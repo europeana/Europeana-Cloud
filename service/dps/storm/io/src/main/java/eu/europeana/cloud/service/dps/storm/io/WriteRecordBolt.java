@@ -51,16 +51,17 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("WriteRecordBolt: persisting processed file");
+        LOGGER.debug("WriteRecordBolt: persisting processed file");
         Instant processingStartTime = Instant.now();
         try {
             RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
+            LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
             var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
-            LOGGER.info("WriteRecordBolt: file modified, new URI: {}", uri);
+            LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(stormTaskTuple, uri.toString());
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } catch (Exception e) {
-            LOGGER.error("Unable to process the message", e);
+            LOGGER.warn("Unable to process the message", e);
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
@@ -68,7 +69,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
-        LOGGER.info("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
+        LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private String getProviderId(StormTaskTuple stormTaskTuple) throws MCSException {

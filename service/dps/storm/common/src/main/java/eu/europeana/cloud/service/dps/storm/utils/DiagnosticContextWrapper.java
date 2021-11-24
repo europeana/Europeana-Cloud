@@ -30,7 +30,7 @@ public class DiagnosticContextWrapper {
     }
 
     public static void clear() {
-        LOGGER.debug("Cleaning diagnostic context");
+        LOGGER.trace("Cleaning diagnostic context");
         MDC.clear();
     }
 }

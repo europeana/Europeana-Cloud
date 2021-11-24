@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.aas.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.aas.LoggingFilter;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
+import eu.europeana.cloud.service.web.common.LoggingFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

@@ -81,6 +81,7 @@
         <module>tools</module>
         <module>test-common</module>
         <module>test-logging-config</module>
+        <module>service/ecloud-web-commons</module>
     </modules>
     <repositories>
         <repository>
