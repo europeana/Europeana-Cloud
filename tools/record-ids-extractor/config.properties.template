@@ -1,5 +1,5 @@
 # configuration for records-ids-extractor
-mcs.url=
+uis.url=
 mcs.url=
 ecloud.user=
 ecloud.password=
