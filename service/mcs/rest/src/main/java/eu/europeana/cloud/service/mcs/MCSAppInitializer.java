@@ -21,7 +21,7 @@ public class MCSAppInitializer extends AbstractAnnotationConfigDispatcherServlet
                 ServiceConfiguration.class,
                 AuthenticationConfiguration.class,
                 AuthorizationConfiguration.class,
-                UnitedExceptionMapper.class
+                UnifiedExceptionsMapper.class
         };
     }
 

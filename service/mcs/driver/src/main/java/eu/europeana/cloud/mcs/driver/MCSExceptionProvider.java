@@ -60,8 +60,6 @@ public class MCSExceptionProvider {
                 return new RecordNotExistsException(details);
             case REPRESENTATION_NOT_EXISTS:
                 return new RepresentationNotExistsException(details);
-            case VERSION_NOT_EXISTS:
-                return new VersionNotExistsException(details);
             case FILE_CONTENT_HASH_MISMATCH:
                 return new FileContentHashMismatchException(details);
             case REPRESENTATION_ALREADY_IN_SET:

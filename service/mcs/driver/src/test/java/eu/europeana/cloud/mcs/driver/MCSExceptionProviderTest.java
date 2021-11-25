@@ -10,9 +10,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static junitparams.JUnitParamsRunner.$;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(JUnitParamsRunner.class)
@@ -29,28 +28,6 @@ public class MCSExceptionProviderTest {
     public void shouldThrowDriverExceptionWhenUnknownErrorInfoCodePassed() {
         ErrorInfo errorInfo = new ErrorInfo("THIS_IS_REALLY_WRONG_CODE", null);
         MCSExceptionProvider.generateException(errorInfo);
-    }
-
-
-    @SuppressWarnings("unused")
-    private Object[] statusCodes() {
-        return $(
-            $(new CannotModifyPersistentRepresentationException(),
-                McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString()),
-            $(new DataSetAlreadyExistsException(), McsErrorCode.DATASET_ALREADY_EXISTS.toString()),
-            $(new DataSetNotExistsException(), McsErrorCode.DATASET_NOT_EXISTS.toString()),
-            $(new FileAlreadyExistsException(), McsErrorCode.FILE_ALREADY_EXISTS.toString()),
-            $(new FileNotExistsException(), McsErrorCode.FILE_NOT_EXISTS.toString()),
-            $(new ProviderNotExistsException(), McsErrorCode.PROVIDER_NOT_EXISTS.toString()),
-            $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()),
-            $(new VersionNotExistsException(), McsErrorCode.VERSION_NOT_EXISTS.toString()),
-            $(new FileContentHashMismatchException(), McsErrorCode.FILE_CONTENT_HASH_MISMATCH.toString()),
-            $(new RepresentationAlreadyInSet(), McsErrorCode.REPRESENTATION_ALREADY_IN_SET.toString()),
-            $(new CannotPersistEmptyRepresentationException(),
-                McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString()),
-            $(new WrongContentRangeException(), McsErrorCode.WRONG_CONTENT_RANGE.toString())
-        //
-        );
     }
 
 
@@ -81,4 +58,22 @@ public class MCSExceptionProviderTest {
         ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.toString(), "details");
         MCSExceptionProvider.generateException(errorInfo);
     }
+
+    @SuppressWarnings("unused")
+    private Object[] statusCodes() {
+        return new Object[]{
+                new Object[]{new CannotModifyPersistentRepresentationException(), McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString()},
+                new Object[]{new DataSetAlreadyExistsException(), McsErrorCode.DATASET_ALREADY_EXISTS.toString()},
+                new Object[]{new DataSetNotExistsException(), McsErrorCode.DATASET_NOT_EXISTS.toString()},
+                new Object[]{new FileAlreadyExistsException(), McsErrorCode.FILE_ALREADY_EXISTS.toString()},
+                new Object[]{new FileNotExistsException(), McsErrorCode.FILE_NOT_EXISTS.toString()},
+                new Object[]{new ProviderNotExistsException(), McsErrorCode.PROVIDER_NOT_EXISTS.toString()},
+                new Object[]{new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()},
+                new Object[]{new FileContentHashMismatchException(), McsErrorCode.FILE_CONTENT_HASH_MISMATCH.toString()},
+                new Object[]{new RepresentationAlreadyInSet(), McsErrorCode.REPRESENTATION_ALREADY_IN_SET.toString()},
+                new Object[]{new CannotPersistEmptyRepresentationException(), McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString()},
+                new Object[]{new WrongContentRangeException(), McsErrorCode.WRONG_CONTENT_RANGE.toString()}
+        };
+    }
+
 }
