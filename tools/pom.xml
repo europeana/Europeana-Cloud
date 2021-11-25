@@ -23,5 +23,6 @@
         <module>ecloud-cleaner-tool</module>
         <module>ecloud-db-migrator</module>
         <module>harvested-records-table-updater</module>
+        <module>record-ids-extractor</module>
     </modules>
 </project>
