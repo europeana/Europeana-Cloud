@@ -31,6 +31,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
@@ -49,6 +50,7 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @ComponentScan("eu.europeana.cloud.service.dps")
 @EnableAspectJAutoProxy
 @EnableAsync
+@EnableScheduling
 public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
