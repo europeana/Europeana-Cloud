@@ -10,7 +10,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 import com.google.common.base.Charsets;

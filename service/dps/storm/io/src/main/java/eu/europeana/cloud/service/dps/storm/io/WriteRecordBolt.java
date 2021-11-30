@@ -23,7 +23,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;

@@ -3,7 +3,6 @@ package eu.europeana.cloud.common.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;

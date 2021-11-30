@@ -9,8 +9,6 @@ import migrations.service.mcs.V17.jobs.DataCopier;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static migrations.common.TableCopier.hasNextRow;
-
 /**
  * Created by pwozniak on 4/24/19
  */

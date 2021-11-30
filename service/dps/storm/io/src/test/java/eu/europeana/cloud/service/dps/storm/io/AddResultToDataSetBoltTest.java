@@ -19,7 +19,6 @@ import org.mockito.MockitoAnnotations;
 import java.net.URISyntaxException;
 import java.util.Date;
 
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 public class AddResultToDataSetBoltTest {

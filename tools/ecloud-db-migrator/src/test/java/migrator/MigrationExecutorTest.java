@@ -4,7 +4,6 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import migrator.validators.*;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 

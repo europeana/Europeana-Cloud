@@ -8,8 +8,6 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
-import java.time.Duration;
-
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 /**

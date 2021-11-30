@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;

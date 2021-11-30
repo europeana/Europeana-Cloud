@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.uis.dao;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.uis.TestAAConfiguration;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.service.CassandraTestBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;

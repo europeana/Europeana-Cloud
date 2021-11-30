@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.mcs;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-
 public class RestInterfaceConstants {
 
     private RestInterfaceConstants() {}

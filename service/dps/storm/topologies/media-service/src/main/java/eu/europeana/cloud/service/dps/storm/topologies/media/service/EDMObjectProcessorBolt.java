@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.Calendar;
 
 public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
