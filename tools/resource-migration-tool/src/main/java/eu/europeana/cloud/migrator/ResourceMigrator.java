@@ -665,8 +665,6 @@ public class ResourceMigrator {
                 logger.error("Could not open input stream to file!", e);
             } catch (IOException e) {
                 logger.error("Problem with detecting mime type from file (" + path + ")", e);
-            } catch (MCSException e) {
-                logger.error("ECloud error when uploading file.", e);
             } catch (Exception e) {
                 logger.error("ECloud error when uploading file.", e);
             } finally {
