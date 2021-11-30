@@ -21,4 +21,13 @@
         <module>rest</module>
         <module>driver</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

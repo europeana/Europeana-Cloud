@@ -156,19 +156,6 @@
             <version>${version.spring-framework}</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>test-common</artifactId>
-            <scope>test</scope>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-            <version>1.1</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.kubek2k</groupId>
             <artifactId>springockito</artifactId>

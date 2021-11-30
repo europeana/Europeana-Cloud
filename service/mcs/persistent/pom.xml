@@ -110,12 +110,6 @@
         </dependency>
         <!--tests -->
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>test-common</artifactId>
-            <scope>test</scope>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>

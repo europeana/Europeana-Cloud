@@ -115,12 +115,6 @@
             <version>${version.spring-framework}</version>
         </dependency>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>test-common</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>net.jpountz.lz4</groupId>
             <artifactId>lz4</artifactId>
             <version>1.2.0</version>

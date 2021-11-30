@@ -78,14 +78,6 @@
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <artifactId>test-common</artifactId>
-            <groupId>${project.groupId}</groupId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
