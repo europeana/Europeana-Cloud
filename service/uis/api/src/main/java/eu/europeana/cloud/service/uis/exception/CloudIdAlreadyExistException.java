@@ -28,7 +28,7 @@ public class CloudIdAlreadyExistException extends GenericException {
     /**
      * Creates a new instance of this class.
      * 
-     * @param e
+     * @param errorInfo
      *            ErrorInfo
      */
     public CloudIdAlreadyExistException(IdentifierErrorInfo errorInfo) {
