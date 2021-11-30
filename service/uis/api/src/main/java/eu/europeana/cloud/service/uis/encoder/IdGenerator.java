@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.uis.encoder;
 import org.apache.commons.codec.binary.Base32;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -37,9 +38,9 @@ public class IdGenerator {
         byte[] digest = null;
         try {
             final MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(input.getBytes("UTF-8"));
+            md.update(input.getBytes(StandardCharsets.UTF_8));
             digest = md.digest();
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+        } catch (NoSuchAlgorithmException ex) {
             throw new RuntimeException(ex);
         }
 

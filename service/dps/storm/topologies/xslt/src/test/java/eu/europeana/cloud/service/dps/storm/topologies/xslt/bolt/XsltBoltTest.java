@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,7 @@ public class XsltBoltTest {
     private byte[] readFile(String fileName) throws IOException {
         String myXml = IOUtils.toString(getClass().getResource(fileName),
                 Charsets.UTF_8);
-        byte[] bytes = myXml.getBytes("UTF-8");
+        byte[] bytes = myXml.getBytes(StandardCharsets.UTF_8);
         InputStream contentStream = new ByteArrayInputStream(bytes);
         return IOUtils.toByteArray(contentStream);
 

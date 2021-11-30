@@ -782,7 +782,7 @@ public class ResourceMigrator {
     private void removeProcessedPaths(String providerId, FilePaths paths) {
         try {
             List<String> processed = new ArrayList<String>();
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), Charset.forName("UTF-8"))) {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), StandardCharsets.UTF_8)) {
                 StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     processed.add(st.nextToken());
