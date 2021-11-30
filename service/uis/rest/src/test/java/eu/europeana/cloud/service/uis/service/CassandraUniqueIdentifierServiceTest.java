@@ -302,7 +302,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
 	    RecordDatasetEmptyException, CloudIdDoesNotExistException,
 	    CloudIdAlreadyExistException {
 	// given
-	final Map<String, String> map = new HashMap<String, String>();
+	final Map<String, String> map = new HashMap<>();
 	dataProviderDao.createDataProvider("testprovider",
 		new DataProviderProperties());
 	for (BigInteger bigCounter = BigInteger.ONE; bigCounter

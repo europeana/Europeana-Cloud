@@ -75,7 +75,7 @@ public class CassandraParamertizedTestRunner extends CassandraTestRunner {
     public Description getDescription() {
         Description description = Description.createSuiteDescription(getName(), getTestClass().getAnnotations());
 
-        List<FrameworkMethod> resultMethods = new ArrayList<FrameworkMethod>();
+        List<FrameworkMethod> resultMethods = new ArrayList<>();
         resultMethods.addAll(parameterisedRunner.returnListOfMethods());
 
         for (FrameworkMethod method : resultMethods) {
