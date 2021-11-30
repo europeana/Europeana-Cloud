@@ -1100,7 +1100,7 @@ public class DataSetServiceClientTest {
 
     @Test(expected = DataSetNotExistsException.class)
     public void shouldProvideRepresentationIteratorThatThrowsExceptionWhenNoProvider()
-            throws MCSException, Throwable {
+            throws Throwable {
         String providerId = "noSuchProvider";
         String dataSetId = "dataset3";
 

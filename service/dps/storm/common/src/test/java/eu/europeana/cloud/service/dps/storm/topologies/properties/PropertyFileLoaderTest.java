@@ -24,7 +24,7 @@ public class PropertyFileLoaderTest {
     }
 
     @Test
-    public void testLoadingDefaultPropertiesFile() throws FileNotFoundException, IOException {
+    public void testLoadingDefaultPropertiesFile() throws IOException {
         reader.loadDefaultPropertyFile(DEFAULT_PROPERTIES_FILE, topologyProperties);
         assertNotNull(topologyProperties);
         assertFalse(topologyProperties.isEmpty());
@@ -35,7 +35,7 @@ public class PropertyFileLoaderTest {
     }
 
     @Test
-    public void testLoadingProvidedPropertiesFile() throws FileNotFoundException, IOException {
+    public void testLoadingProvidedPropertiesFile() throws IOException {
         reader.loadProvidedPropertyFile(PROVIDED_PROPERTIES_FILE, topologyProperties);
         assertNotNull(topologyProperties);
         assertFalse(topologyProperties.isEmpty());
@@ -46,18 +46,18 @@ public class PropertyFileLoaderTest {
     }
 
     @Test(expected = FileNotFoundException.class)
-    public void testLoadingNonExistedDefaultFile() throws FileNotFoundException, IOException {
+    public void testLoadingNonExistedDefaultFile() throws IOException {
         reader.loadDefaultPropertyFile("NON_EXISTED_FILE", topologyProperties);
     }
 
     @Test(expected = FileNotFoundException.class)
-    public void testLoadingNonExistedProvidedFile() throws FileNotFoundException, IOException {
+    public void testLoadingNonExistedProvidedFile() throws IOException {
         reader.loadProvidedPropertyFile("NON_EXISTED_FILE", topologyProperties);
     }
 
 
     @Test
-    public void testLoadingFileWhenProvidedPropertyFileNotExisted() throws FileNotFoundException, IOException {
+    public void testLoadingFileWhenProvidedPropertyFileNotExisted() throws IOException {
         PropertyFileLoader.loadPropertyFile(DEFAULT_PROPERTIES_FILE, "NON_EXISTED_PROVIDED_FILE", topologyProperties);
         assertNotNull(topologyProperties);
         assertFalse(topologyProperties.isEmpty());
@@ -70,7 +70,7 @@ public class PropertyFileLoaderTest {
     //in case of provided property file and not existing default file. the loaded property file will be empty !
     @Test
     public void testLoadingFileWhenDefaultFileNotExists()
-            throws FileNotFoundException, IOException
+            throws IOException
 
     {
         PropertyFileLoader.loadPropertyFile("NON_EXISTED_DEFAULT_FILE", PROVIDED_PROPERTIES_FILE, topologyProperties);
