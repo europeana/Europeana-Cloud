@@ -185,7 +185,7 @@ public class FileResource {
         if (fileMimeType != null) {
             response.contentType(fileMimeType);
         }
-        return response.body(downloadMethod::accept);
+        return response.body(outputStream -> downloadMethod.accept(outputStream));
     }
 
     /**

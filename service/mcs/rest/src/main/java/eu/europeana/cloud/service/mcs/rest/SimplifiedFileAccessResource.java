@@ -105,7 +105,7 @@ public class SimplifiedFileAccessResource {
             if (fileMimeType != null) {
                 response.contentType(fileMimeType);
             }
-            return response.body(downloadingMethod::accept);
+            return response.body(output -> downloadingMethod.accept(output));
         } else {
             throw new AccessDeniedException("Access is denied");
         }
