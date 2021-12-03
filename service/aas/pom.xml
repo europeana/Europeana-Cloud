@@ -21,6 +21,5 @@
         <module>authentication</module>
         <module>authorization</module>
         <module>rest</module>
-        <module>rest-client-java</module>
     </modules>
 </project>

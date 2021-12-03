@@ -2,13 +2,20 @@ package eu.europeana.cloud.service.dps.exception;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.status.DpsErrorCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Tarek on 2/6/2018.
  */
 public class DPSExceptionProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DPSExceptionProvider.class);
+
+    private DPSExceptionProvider() {
+    }
+
     /**
-     * Generate {@link DpsException} from {@link ErrorInfo}.
+     * Create (not throw so not "generate") {@link DpsException} from {@link ErrorInfo}.
      * <p>
      * This method is intended to be used everywhere where we want to translate DPS error message to appropriate
      * exception and throw it. Error message handling occurs in different methods so we avoid code repetition.
@@ -20,7 +27,8 @@ public class DPSExceptionProvider {
      * @param errorInfo object storing error information returned by MCS
      * @return DPSException to be thrown
      */
-    public static DpsException generateException(ErrorInfo errorInfo) {
+    public static DpsException createException(ErrorInfo errorInfo) {
+        LOGGER.error("errorInfo = {}", errorInfo);
 
         if (errorInfo == null) {
             throw new DPSClientException("Null errorInfo passed to generating exception.");
@@ -53,7 +61,14 @@ public class DPSExceptionProvider {
             default:
                 return new DpsException(details); //this will happen only if somebody uses code newly introdued to MscErrorCode
         }
-
     }
+
+    public static DpsException createException(String generalMessage, String particularMessage, Throwable cause) {
+        String message = String.format("%s (%s)", generalMessage, particularMessage);
+        LOGGER.error(message, cause);
+        return new DpsException(message, cause);
+    }
+
+
 }
 
