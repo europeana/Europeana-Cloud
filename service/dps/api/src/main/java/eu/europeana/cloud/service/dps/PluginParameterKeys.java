@@ -67,6 +67,8 @@ public final class PluginParameterKeys {
     public static final String ROOT_LOCATION = "ROOT_LOCATION";
     public static final String SCHEMATRON_LOCATION = "SCHEMATRON_LOCATION";
 
+    public static final String GENERATE_STATS = "GENERATE_STATS";
+
     //----------  OAI-PMH harvesting DPS task  ----
 
 

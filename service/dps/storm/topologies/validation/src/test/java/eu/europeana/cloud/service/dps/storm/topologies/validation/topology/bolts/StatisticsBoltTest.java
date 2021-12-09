@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -23,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -39,23 +37,17 @@ public class StatisticsBoltTest extends CassandraTestBase {
 
     private ValidationStatisticsServiceImpl statisticsService;
 
-
     @Mock(name = "outputCollector")
     private OutputCollector collector;
-
-    @Mock
-    private CassandraTaskInfoDAO taskInfoDAO;
 
     @InjectMocks
     private StatisticsBolt statisticsBolt = new StatisticsBolt(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
 
-
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         statisticsBolt.prepare();
-        statisticsService = ValidationStatisticsServiceImpl.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", ""));
-
+        statisticsService = Mockito.spy(ValidationStatisticsServiceImpl.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "")));
     }
 
     @Test
@@ -94,6 +86,48 @@ public class StatisticsBoltTest extends CassandraTestBase {
         //then
         assertSuccess(2);
         assertDataStoring(generated, generated2);
+    }
+
+    @Test
+    public void shouldNotGenerateStatisticsBecauseOfLackOfTheParameter() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParametersWithoutStatsParam(), new Revision());
+
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
+
+        //then
+        assertSuccess(1);
+        Mockito.verifyNoInteractions(statisticsService);
+    }
+
+    @Test
+    public void shouldNotGenerateStatisticsBecauseOfWrongParameter() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParametersWithWrongStatsParam(), new Revision());
+
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
+
+        //then
+        Mockito.verifyNoInteractions(statisticsService);
+    }
+
+    @Test
+    public void testCountStatisticsFailed() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        fileData[0] = 'X'; // will cause SAXException
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(), new Revision());
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
+        //then
+        assertFailure();
     }
 
     private void assertDataStoring(List<NodeStatistics> generated, List<NodeStatistics> generated2) {
@@ -143,34 +177,33 @@ public class StatisticsBoltTest extends CassandraTestBase {
         Assert.assertTrue(statistics.containsAll(generated));
     }
 
-    @Test
-    public void testCountStatisticsFailed() throws Exception {
-        //given
-        Tuple anchorTuple = mock(TupleImpl.class);
-        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        fileData[0] = 'X'; // will cause SAXException
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(), new Revision());
-        //when
-        statisticsBolt.execute(anchorTuple, tuple);
-        //then
-        assertFailure();
-    }
-
     private void assertSuccess(int times) {
         Mockito.verify(collector, Mockito.times(times)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(collector, Mockito.times(0)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }
 
     private void assertFailure() {
-
-
         Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }
 
-    private HashMap<String, String> prepareStormTaskTupleParameters() throws MalformedURLException {
+    private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        parameters.put(PluginParameterKeys.GENERATE_STATS, "true");
+        return parameters;
+    }
+
+    private HashMap<String, String> prepareStormTaskTupleParametersWithoutStatsParam() {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        return parameters;
+    }
+
+    private HashMap<String, String> prepareStormTaskTupleParametersWithWrongStatsParam() {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        parameters.put(PluginParameterKeys.GENERATE_STATS, "trues");
         return parameters;
     }
 }
