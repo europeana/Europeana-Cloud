@@ -68,7 +68,5 @@ public class DPSExceptionProvider {
         LOGGER.error(message, cause);
         return new DpsException(message, cause);
     }
-
-
 }
 

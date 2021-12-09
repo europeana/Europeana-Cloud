@@ -133,7 +133,7 @@ public class DpsClient implements AutoCloseable {
      * Submits a task for execution in the specified topology.
      */
     public long submitTask(DpsTask task, String topologyName) throws DpsException {
-        URI uri = manageResponse(URI.class, null,
+        URI uri = manageResponse(new RespParams<>(URI.class, Response.Status.CREATED),
                 () -> client.target(dpsUrl)
                         .path(TASKS_URL)
                         .resolveTemplate(TOPOLOGY_NAME, topologyName)
@@ -150,13 +150,13 @@ public class DpsClient implements AutoCloseable {
     public void cleanMetisIndexingDataset(String topologyName, long taskId,
                                           DataSetCleanerParameters dataSetCleanerParameters,
                                           String key, String value) throws DpsException {
-        manageResponse(Void.class, null,
+        manageResponse(new RespParams<>(Void.class),
                 () -> client.target(dpsUrl)
-                .path(TASK_CLEAN_DATASET_URL)
-                .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                .resolveTemplate(TASK_ID, taskId)
-                .request().header(key, value)
-                .post(Entity.json(dataSetCleanerParameters)),
+                        .path(TASK_CLEAN_DATASET_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request().header(key, value)
+                        .post(Entity.json(dataSetCleanerParameters)),
                 "Cleaning a dataset was not successful");
     }
 
@@ -167,7 +167,7 @@ public class DpsClient implements AutoCloseable {
         Form form = new Form();
         form.param("username", username);
 
-        return manageResponse(Response.StatusType.class, null,
+        return manageResponse(new RespParams<>(Response.StatusType.class),
                 () -> client.target(dpsUrl)
                         .path(PERMIT_TOPOLOGY_URL)
                         .resolveTemplate(TOPOLOGY_NAME, topologyName)
@@ -180,13 +180,14 @@ public class DpsClient implements AutoCloseable {
      * Retrieves progress for the specified combination of taskId and topology.
      */
     public TaskInfo getTaskProgress(String topologyName, final long taskId) throws DpsException {
-        return manageResponse(TaskInfo.class, null,
+        return manageResponse(new RespParams<>(TaskInfo.class),
                 () -> client
-                .target(dpsUrl)
-                .path(TASK_PROGRESS_URL)
-                .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                .resolveTemplate(TASK_ID, taskId)
-                .request().get(),
+                        .target(dpsUrl)
+                        .path(TASK_PROGRESS_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request()
+                        .get(),
                 "Task progress cannot be read");
     }
 
@@ -196,7 +197,7 @@ public class DpsClient implements AutoCloseable {
      * @param datasetId dataset identifier
      * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW
      * @return number of elements in the dataset
-     * @throws DpsException
+     * @throws DpsException Common {@link DpsException} if something went wrong
      */
     public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database) throws DpsException {
         return getTotalMetisDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
@@ -212,26 +213,28 @@ public class DpsClient implements AutoCloseable {
      * @throws DpsException
      */
     public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database, TargetIndexingEnvironment environment) throws DpsException {
-        MetisDataset metisDataset = manageResponse(MetisDataset.class, null,
+        MetisDataset metisDataset = manageResponse(new RespParams<>(MetisDataset.class),
                 () -> client
-                .target(dpsUrl)
-                .path(RestInterfaceConstants.METIS_DATASETS)
-                .resolveTemplate("datasetId", datasetId)
-                .queryParam("database", database)
-                .queryParam("altEnv", environment)
-                .request().get(),
+                        .target(dpsUrl)
+                        .path(RestInterfaceConstants.METIS_DATASETS)
+                        .resolveTemplate("datasetId", datasetId)
+                        .queryParam("database", database)
+                        .queryParam("altEnv", environment)
+                        .request()
+                        .get(),
                 "Error while retrieving total metis database records");
         return metisDataset.getSize();
     }
 
     public List<SubTaskInfo> getDetailedTaskReport(final String topologyName, final long taskId) throws DpsException {
-        return manageResponse(null, new GenericType<List<SubTaskInfo>>(){},
+        return manageResponse(new RespParams<>(new GenericType<>(){}),
                 ()-> client
                         .target(dpsUrl)
                         .path(DETAILED_TASK_REPORT_URL)
                         .resolveTemplate(TOPOLOGY_NAME, topologyName)
                         .resolveTemplate(TASK_ID, taskId)
-                        .request().get(),
+                        .request()
+                        .get(),
                 "Error while retrieving detailed task report"
         );
     }
@@ -239,18 +242,21 @@ public class DpsClient implements AutoCloseable {
     public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(
             final String topologyName, final long taskId, int from, int to) throws DpsException {
 
-        return manageResponse(null, new GenericType<List<SubTaskInfo>>(){},
+        return manageResponse(new RespParams<>(new GenericType<>(){}),
                 () -> client
                         .target(dpsUrl)
                         .path(DETAILED_TASK_REPORT_URL)
                         .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                        .resolveTemplate(TASK_ID, taskId).queryParam("from", from).queryParam("to", to)
-                        .request().get(),
+                        .resolveTemplate(TASK_ID, taskId)
+                        .queryParam("from", from)
+                        .queryParam("to", to)
+                        .request()
+                        .get(),
                 "Error while retrieving detailed task report (witch chunks)");
     }
 
     public List<NodeReport> getElementReport(final String topologyName, final long taskId, String elementPath) throws DpsException {
-        return manageResponse(null, new GenericType<List<NodeReport>>(){},
+        return manageResponse(new RespParams<>(new GenericType<>(){}),
                 () -> client
                         .target(dpsUrl)
                         .path(ELEMENT_REPORT)
@@ -263,7 +269,7 @@ public class DpsClient implements AutoCloseable {
 
     public TaskErrorsInfo getTaskErrorsReport(final String topologyName, final long taskId,
                                               final String error, final int idsCount) throws DpsException {
-        return manageResponse(TaskErrorsInfo.class, null,
+        return manageResponse(new RespParams<>(TaskErrorsInfo.class),
                 () -> client
                         .target(dpsUrl)
                         .path(ERRORS_TASK_REPORT_URL)
@@ -277,7 +283,7 @@ public class DpsClient implements AutoCloseable {
 
     public boolean checkIfErrorReportExists(final String topologyName, final long taskId) {
         try {
-            return manageResponse(Boolean.class, null,
+            return manageResponse(new RespParams<>(Boolean.class),
                     () -> client
                             .target(dpsUrl)
                             .path(ERRORS_TASK_REPORT_URL)
@@ -291,7 +297,7 @@ public class DpsClient implements AutoCloseable {
     }
 
     public StatisticsReport getTaskStatisticsReport(final String topologyName, final long taskId) throws DpsException {
-        return manageResponse(StatisticsReport.class, null,
+        return manageResponse(new RespParams<>(StatisticsReport.class),
                 () -> client.target(dpsUrl)
                         .path(STATISTICS_REPORT_URL)
                         .resolveTemplate(TOPOLOGY_NAME, topologyName)
@@ -306,7 +312,7 @@ public class DpsClient implements AutoCloseable {
         if (info == null) {
             return killTask(topologyName, taskId);
         }
-        return manageResponse(String.class, null,
+        return manageResponse(new RespParams<>(String.class),
                 () -> client
                         .target(dpsUrl)
                         .path(KILL_TASK_URL)
@@ -319,7 +325,7 @@ public class DpsClient implements AutoCloseable {
     }
 
     private String killTask(final String topologyName, final long taskId) throws DpsException {
-        return manageResponse(String.class, null,
+        return manageResponse(new RespParams<>(String.class),
                 () -> client
                         .target(dpsUrl)
                         .path(KILL_TASK_URL)
@@ -340,24 +346,24 @@ public class DpsClient implements AutoCloseable {
         return Long.parseLong(elements[elements.length - 1]);
     }
 
-    protected <T> T manageResponse(Class<T> clazz, GenericType<T> genericType, Supplier<Response> responseSupplier, String errorMessage) throws DpsException {
+/*
+    private <T> T manageResponse(Class<T> expectedResultClass, Supplier<Response> responseSupplier, String errorMessage) throws DpsException {
+        return manageResponse(expectedResultClass, null, Response.Status.OK, responseSupplier, errorMessage);
+    }
+
+    private <T> T manageResponse(GenericType<T> genericType, Supplier<Response> responseSupplier, String errorMessage) throws DpsException {
+        return manageResponse(null, genericType, Response.Status.OK, responseSupplier, errorMessage);
+    }
+*/
+
+//    private <T> T manageResponse(Class<T> expectedResultClass, GenericType<T> genericType, Response.Status expectedValidStatus, Supplier<Response> responseSupplier, String errorMessage) throws DpsException {
+    private <T> T manageResponse(RespParams<T> responseParameters, Supplier<Response> responseSupplier, String errorMessage) throws DpsException {
         Response response = responseSupplier.get();
         try {
             response.bufferEntity();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                if (clazz == Void.class) {
-                    return null;
-                } else if (clazz == Boolean.class) {
-                    return (T) Boolean.TRUE;
-                } else if (clazz == URI.class) {
-                    return (T) response.getLocation();
-                } else if (clazz == Response.StatusType.class) {
-                    return (T) response.getStatusInfo();
-                } else if (genericType != null) {
-                    return response.readEntity(genericType);
-                } else {
-                    return response.readEntity(clazz);
-                }
+            if (response.getStatus() == responseParameters.getValidStatus().getStatusCode()) {
+                //return readEntityByClass(expectedResultClass, genericType, response);
+                return readEntityByClass(responseParameters, response);
             } else if (response.getStatus() == HttpURLConnection.HTTP_UNAVAILABLE) {
                 throw DPSExceptionProvider.createException(errorMessage, "Service unavailable", new ServiceUnavailableException());
             } else if (response.getStatus() == HttpURLConnection.HTTP_NOT_FOUND) {
@@ -378,15 +384,74 @@ public class DpsClient implements AutoCloseable {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private <T> T readEntityByClass(RespParams<T> responseParameters, Response response) {
+//    private <T> T readEntityByClass(Class<T> expectedResultClass, GenericType<T> genericType, Response response) {
+        if (responseParameters.getExpectedClass() == Void.class) {
+            return null;
+        } else if (responseParameters.getExpectedClass() == Boolean.class) {
+            return (T) Boolean.TRUE;
+        } else if (responseParameters.getExpectedClass() == URI.class) {
+            return (T) response.getLocation();
+        } else if (responseParameters.getExpectedClass() == Response.StatusType.class) {
+            return (T) response.getStatusInfo();
+        } else if (responseParameters.getGenericType() != null) {
+            return response.readEntity(responseParameters.getGenericType());
+        } else {
+            return response.readEntity(responseParameters.getExpectedClass());
+        }
+    }
+
     private void closeResponse(Response response) {
         if (response != null) {
             response.close();
         }
     }
 
+/*
     @Override
     protected void finalize() throws Throwable {
-        LOGGER.info("'{}.finalize()' called!!!\n{}", getClass().getSimpleName(), Thread.currentThread().getStackTrace());
+        LOGGER.warn("'{}.finalize()' called!!!\n{}", getClass().getSimpleName(), Thread.currentThread().getStackTrace());
         client.close();
     }
+*/
+
+    //@AllArgsConstructor
+    //@Getter
+    public class RespParams<T> {
+        private Class<T> expectedClass = null;
+        private GenericType<T> genericType = null;
+        private Response.Status validStatus = Response.Status.OK;
+
+        public RespParams(Class<T> expectedClass, GenericType<T> genericType, Response.Status validStatus) {
+            this.expectedClass = expectedClass;
+            this.genericType = genericType;
+            this.validStatus = validStatus;
+        }
+
+        public RespParams(Class<T> expectedClass) {
+            this(expectedClass, null, Response.Status.OK);
+        }
+
+        public RespParams(Class<T> expectedClass, Response.Status validStatus) {
+            this(expectedClass, null, validStatus);
+        }
+
+        public RespParams(GenericType<T> genericType) {
+            this(null, genericType, Response.Status.OK);
+        }
+
+        public Class<T> getExpectedClass() {
+            return expectedClass;
+        }
+
+        public GenericType<T> getGenericType() {
+            return genericType;
+        }
+
+        public Response.Status getValidStatus() {
+            return validStatus;
+        }
+    }
+
 }
