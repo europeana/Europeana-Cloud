@@ -199,7 +199,6 @@ public class UISClient implements AutoCloseable {
      * @return The List of local ids associated with the cloud id
      * @throws CloudException The generic cloud exception wrapper
      */
-    @SuppressWarnings("unchecked")
     public ResultSlice<CloudId> getRecordId(String cloudId) throws CloudException {
         return manageResponse(ResultSlice.class, () -> client
                 .target(urlProvider.getBaseUrl())
@@ -218,7 +217,6 @@ public class UISClient implements AutoCloseable {
      * @return The List of Local ids associated with a provider
      * @throws CloudException The generic cloud exception wrapper
      */
-    @SuppressWarnings("unchecked")
     public ResultSlice<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
         return manageResponse(ResultSlice.class, () -> client
                 .target(urlProvider.getBaseUrl())
@@ -258,7 +256,6 @@ public class UISClient implements AutoCloseable {
      * @return A list of record ids associated with the provider
      * @throws CloudException The generic cloud exception wrapper
      */
-    @SuppressWarnings("unchecked")
     public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(String providerId, String startRecordId, int limit) throws CloudException {
         return manageResponse(ResultSlice.class, () -> client
                 .target(urlProvider.getBaseUrl())
@@ -325,6 +322,7 @@ public class UISClient implements AutoCloseable {
      * @return A confirmation that the mapping has been created
      * @throws CloudException The generic cloud exception wrapper
      */
+    @SuppressWarnings("unused")
     public boolean createMapping(String cloudId, String providerId,
                                  String recordId, String key, String value) throws CloudException {
         return manageResponse(Boolean.class, () -> client
@@ -382,7 +380,7 @@ public class UISClient implements AutoCloseable {
      * @param providerId The data provider Id
      * @param dp         The data provider properties
      * @return A URL that points to the data provider
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
     public String createProvider(String providerId, DataProviderProperties dp) throws CloudException {
         return manageResponse(String.class, () -> client
@@ -400,7 +398,7 @@ public class UISClient implements AutoCloseable {
      * @param providerId The provider to update
      * @param dp         The data provider properties
      * @return True if successful, false else
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
     public boolean updateProvider(String providerId, DataProviderProperties dp) throws CloudException {
         return manageResponse(Boolean.class, () -> client
@@ -418,7 +416,7 @@ public class UISClient implements AutoCloseable {
      *
      * @param from The record to start from
      * @return A predefined number of data providers
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
     @SuppressWarnings("unchecked")
     public ResultSlice<DataProvider> getDataProviders(String from) throws CloudException {
@@ -436,7 +434,7 @@ public class UISClient implements AutoCloseable {
      *
      * @param providerId The provider id to retrieve
      * @return The Data provider that corresponds to the selected id
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
     public DataProvider getDataProvider(String providerId) throws CloudException {
         return manageResponse(DataProvider.class, () -> client
@@ -448,6 +446,7 @@ public class UISClient implements AutoCloseable {
         );
     }
 
+    @SuppressWarnings("unchecked")
     protected <T> T manageResponse(Class<T> clazz, Supplier<Response> responseSupplier) throws CloudException {
         Response response = responseSupplier.get();
         try {
@@ -480,7 +479,6 @@ public class UISClient implements AutoCloseable {
      * Client will use provided authorization header for all requests;
      *
      * @param headerValue authorization header value
-     * @return
      */
     public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
@@ -507,7 +505,7 @@ public class UISClient implements AutoCloseable {
 
     @Override
     protected void finalize() throws Throwable {
-        LOGGER.info("'{}.finalize()' called!!!\n{}", getClass().getSimpleName(), Thread.currentThread().getStackTrace());
+        LOGGER.warn("'{}.finalize()' called!!!\n{}", getClass().getSimpleName(), Thread.currentThread().getStackTrace());
         client.close();
     }
 }
