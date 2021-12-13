@@ -21,18 +21,6 @@ public class MCSException extends Exception {
         super(message);
     }
 
-    /**
-     * Constructs a MCSException with the specified detail message.
-     * 
-     * @param message
-     *            the detail message
-     * @param e
-     *            exception
-     */
-    public MCSException(String message, Exception e) {
-        super(message, e);
-    }
-    
      /**
      * Constructs a MCSException with the specified Throwable.
      * 
@@ -41,6 +29,18 @@ public class MCSException extends Exception {
      */
     public MCSException(Throwable cause) {
         super(cause);
+    }
+
+    /**
+     * Constructs a MCSException with the specified detail message.
+     *
+     * @param message
+     *            the detail message
+     * @param throwable
+     *            cause exception or other throwable
+     */
+    public MCSException(String message, Throwable throwable) {
+        super(message, throwable);
     }
     
 }

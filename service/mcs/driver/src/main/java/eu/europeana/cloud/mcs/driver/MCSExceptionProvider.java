@@ -73,6 +73,10 @@ public class MCSExceptionProvider {
             default:
                 return new MCSException(details); //this will happen only if somebody uses code newly introdued to MscErrorCode        
         }
+    }
 
+    public static MCSException createException(String message, Throwable throwable) {
+        //LOGG
+        return new MCSException(message, throwable);
     }
 }

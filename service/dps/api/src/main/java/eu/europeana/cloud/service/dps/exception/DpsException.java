@@ -21,16 +21,6 @@ public class DpsException extends Exception {
         super(message);
     }
 
-    /**
-     * Constructs a DpsException with the specified detail message.
-     * 
-     * @param message the detailed message
-     * @param e  exception
-     */
-    public DpsException(String message, Exception e) {
-        super(message, e);
-    }
-    
      /**
      * Constructs a DpsException with the specified Throwable.
      * 
@@ -40,7 +30,13 @@ public class DpsException extends Exception {
         super(cause);
     }
 
-    public DpsException(String message, Throwable t) {
-        super(message,t);
+    /**
+     * Constructs a DpsException with the specified detail message.
+     *
+     * @param message the detailed message
+     * @param cause throwable object
+     */
+    public DpsException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
