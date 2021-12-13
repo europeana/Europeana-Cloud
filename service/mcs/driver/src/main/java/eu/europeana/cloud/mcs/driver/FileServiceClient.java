@@ -36,11 +36,6 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  */
 public class FileServiceClient extends MCSClient {
 
-    private final Client client = ClientBuilder.newBuilder()
-            .register(JacksonFeature.class)
-            .register(MultiPartFeature.class)
-            .build();
-
     /**
      * Constructs a FileServiceClient
      *
