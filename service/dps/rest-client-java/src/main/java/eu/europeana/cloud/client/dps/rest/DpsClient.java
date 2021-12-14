@@ -1,12 +1,9 @@
 package eu.europeana.cloud.client.dps.rest;
 
-import eu.europeana.cloud.common.model.dps.NodeReport;
-import eu.europeana.cloud.common.model.dps.StatisticsReport;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.RestInterfaceConstants;
 import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
@@ -25,6 +22,8 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -221,6 +220,50 @@ public class DpsClient {
                 return response.readEntity(TaskInfo.class);
             } else {
                 LOGGER.error("Task progress cannot be read");
+                throw handleException(response);
+            }
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    /**
+     * Retrieves number of elements in the Metis dataset
+     *
+     * @param datasetId dataset identifier
+     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW
+     * @return number of elements in the dataset
+     * @throws DpsException
+     */
+    public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database) throws DpsException {
+        return this.getTotalMetisDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
+    }
+
+    /**
+     * Retrieves number of elements in the Metis dataset
+     *
+     * @param datasetId dataset identifier
+     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW {@link TargetIndexingDatabase}
+     * @param environment value indicating which environment will be used. Allowed values are DEFAULT and ALTERNATIVE {@link TargetIndexingEnvironment}. This is temporary solution when there is one eCloud for both test and acceptance Metis environment
+     * @return number of elements in the dataset
+     * @throws DpsException
+     */
+    public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database, TargetIndexingEnvironment environment) throws DpsException {
+        Response response = null;
+
+        try {
+            response = client
+                    .target(dpsUrl)
+                    .path(RestInterfaceConstants.METIS_DATASETS)
+                    .resolveTemplate("datasetId", datasetId)
+                    .queryParam("database", database)
+                    .queryParam("altEnv", environment)
+                    .request().get();
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                MetisDataset metisDataset = response.readEntity(MetisDataset.class);
+                return metisDataset.getSize();
+            } else {
                 throw handleException(response);
             }
         } finally {

@@ -1,18 +1,11 @@
 package eu.europeana.cloud.service.dps.metis.indexing;
 
-import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.service.utils.validation.TargetIndexingEnvironment;
-import eu.europeana.indexing.IndexerFactory;
-import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.exception.SetupRelatedIndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.util.Properties;
 import java.util.stream.Stream;
 
 /**
@@ -20,26 +13,24 @@ import java.util.stream.Stream;
  * <p>
  * Created by pwozniak on 10/2/18
  */
-public class DatasetCleaner {
+public class DatasetCleaner extends IndexWrapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
-    private IndexerFactory indexerFactory;
-    private final Properties properties = new Properties();
-
     private final DataSetCleanerParameters cleanerParameters;
+    private final DatabaseLocation databaseLocation;
 
     public DatasetCleaner(DataSetCleanerParameters cleanerParameters) {
         this.cleanerParameters = cleanerParameters;
         loadProperties();
-        prepareIndexerFactory();
+        databaseLocation = evaluateDatabaseLocation();
     }
 
     public int getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
-        return (int)indexerFactory.getIndexer().countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+        return (int) indexers.get(databaseLocation).countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
     }
 
-    public Stream<String> getRecordIds() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
-        return indexerFactory.getIndexer().getRecordIds(this.cleanerParameters.getDataSetId(),
+    public Stream<String> getRecordIds() {
+        return indexers.get(databaseLocation).getRecordIds(this.cleanerParameters.getDataSetId(),
                 this.cleanerParameters.getCleaningDate());
     }
 
@@ -56,45 +47,18 @@ public class DatasetCleaner {
         }
     }
 
-    private void loadProperties() {
-        try {
-            InputStream input = DatasetCleaner.class.getClassLoader().getResourceAsStream("indexing.properties");
-            properties.load(input);
-        } catch (Exception e) {
-            LOGGER.warn("Unable to read indexing.properties (are you sure that file exists?). Dataset will not  be cleared before indexing.");
-        }
-    }
-
-    private void prepareIndexerFactory() {
-        LOGGER.debug("Preparing IndexerFactory for removing datasets from Solr and Mongo");
-        //
-        boolean altEnv = cleanerParameters.isUsingAltEnv();
-        final String targetIndexingEnv = cleanerParameters.getTargetIndexingEnv();
-        //
-        IndexingSettings indexingSettings = null;
-        try {
-            if (true == altEnv) {
-                IndexingSettingsGenerator s1 = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(targetIndexingEnv))
-                    indexingSettings = s1.generateForPreview();
-                else if (TargetIndexingDatabase.PUBLISH.toString().equals(targetIndexingEnv))
-                    indexingSettings = s1.generateForPublish();
-            } else {
-                IndexingSettingsGenerator s2 = new IndexingSettingsGenerator(properties);
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(targetIndexingEnv))
-                    indexingSettings = s2.generateForPreview();
-                else if (TargetIndexingDatabase.PUBLISH.toString().equals(targetIndexingEnv))
-                    indexingSettings = s2.generateForPublish();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to create indexing factory");
-        }
-        indexerFactory = new IndexerFactory(indexingSettings);
+    private DatabaseLocation evaluateDatabaseLocation() {
+        return evaluateDatabaseLocation(MetisDataSetParameters.builder()
+                .dataSetId(cleanerParameters.getDataSetId())
+                .targetIndexingDatabase(TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv()))
+                .targetIndexingEnvironment(cleanerParameters.isUsingAltEnv() ?
+                        TargetIndexingEnvironment.ALTERNATIVE : TargetIndexingEnvironment.DEFAULT)
+                .build());
     }
 
     private void removeDataSet(String datasetId) throws IndexingException {
         LOGGER.info("Removing data set {} from solr and mongo", datasetId);
-        indexerFactory.getIndexer().removeAll(datasetId, cleanerParameters.getCleaningDate());
+        indexers.get(databaseLocation).removeAll(datasetId, cleanerParameters.getCleaningDate());
         LOGGER.info("Data set removed");
     }
 }

@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>5</version>
+        <version>5.1</version>
     </parent>
 
 
@@ -182,6 +182,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-web-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
                 to avoid data corruption in Cassandra.

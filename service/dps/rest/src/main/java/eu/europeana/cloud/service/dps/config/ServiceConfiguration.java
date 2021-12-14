@@ -10,7 +10,9 @@ import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
+import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
 import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
@@ -24,13 +26,21 @@ import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.web.common.LoggingFilter;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 
@@ -41,12 +51,24 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @PropertySource("classpath:dps.properties")
 @ComponentScan("eu.europeana.cloud.service.dps")
 @EnableAspectJAutoProxy
-public class ServiceConfiguration {
+@EnableAsync
+@EnableScheduling
+public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
 
     public ServiceConfiguration(Environment environment){
         this.environment = environment;
+    }
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor(asyncExecutor());
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoggingFilter());
     }
 
     @Bean
@@ -276,5 +298,25 @@ public class ServiceConfiguration {
         return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), taskDiagnosticInfoDAO(),
                 tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
     }
+
+    @Bean
+    public AsyncTaskExecutor asyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(40);
+        executor.setQueueCapacity(20);
+        executor.setThreadNamePrefix("DPSThreadPool-");
+        return executor;
+    }
+    @Bean
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever){
+        return new MetisDatasetService(datasetStatsRetriever);
+    }
+
+    @Bean
+    public DatasetStatsRetriever DatasetStatsRetriever(){
+        return new DatasetStatsRetriever();
+    }
+
 
 }
