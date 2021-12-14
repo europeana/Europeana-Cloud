@@ -8,13 +8,12 @@ import eu.europeana.cloud.service.mcs.exception.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
-import javax.ws.rs.client.*;
-import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -25,14 +24,16 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.CLIENT_FILE_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
 
 /**
- * Exposes API related to files.
+ * Exposes API related for files.
  */
 public class FileServiceClient extends MCSClient {
 
@@ -56,27 +57,28 @@ public class FileServiceClient extends MCSClient {
     }
 
     public FileServiceClient(String baseUrl, final String authorizationHeader) {
-        this(baseUrl,  authorizationHeader, null, null, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl, authorizationHeader, null, null, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
-     * All parameters constructor used by another one
-     * @param baseUrl URL of the MCS Rest Service
-     * @param authorizationHeader Authorization header - used instead username/password pair
-     * @param username Username to HTTP authorisation  (use together with password)
-     * @param password Password to HTTP authorisation (use together with username)
+     * All parameters' constructor used by another one
+     *
+     * @param baseUrl                URL of the MCS Rest Service
+     * @param authorizationHeader    Authorization header - used instead username/password pair
+     * @param username               Username to HTTP authorisation  (use together with password)
+     * @param password               Password to HTTP authorisation (use together with username)
      * @param connectTimeoutInMillis Timeout for waiting for connecting
-     * @param readTimeoutInMillis Timeout for getting data
+     * @param readTimeoutInMillis    Timeout for getting data
      */
     public FileServiceClient(String baseUrl, final String authorizationHeader,
-                             final String username,  final String password,
+                             final String username, final String password,
                              final int connectTimeoutInMillis, final int readTimeoutInMillis) {
 
         super(baseUrl);
 
         if (authorizationHeader != null) {
             client.register(new ECloudBasicAuthFilter(authorizationHeader));
-        } else if(username != null || password != null) {
+        } else if (username != null || password != null) {
             client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         }
 
@@ -100,25 +102,18 @@ public class FileServiceClient extends MCSClient {
     public InputStream getFile(String cloudId, String representationName,
                                String version, String fileName) throws MCSException, IOException {
 
-        WebTarget target = client
-                .target(baseUrl)
-                .path(CLIENT_FILE_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(FILE_NAME, fileName);
-        Builder requset = target.request();
-
-        Response response = null;
-
-        try {
-            response = requset.get();
-            return handleReadFileResponse(response);
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponseForIO(new ResponseParams<>(InputStream.class), null,
+                () -> client
+                        .target(baseUrl)
+                        .path(CLIENT_FILE_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(FILE_NAME, fileName)
+                        .request()
+                        .get()
+        );
     }
-
 
     /**
      * Function returns file content. By setting range parameter one can retrieve only a part of content.
@@ -128,7 +123,7 @@ public class FileServiceClient extends MCSClient {
      * @param version            version of returned file.
      * @param fileName           name of file.
      * @param range              range of bytes to return. Range header can be found in Hypertext Transfer Protocol HTTP/1.1, section
-     *                           14.35 Range).
+     *                           14.35 Range.
      * @return InputStream returned content.
      * @throws RepresentationNotExistsException when requested representation (or representation version) does not exist.
      * @throws FileNotExistsException           when requested file does not exist.
@@ -137,65 +132,42 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                     on unexpected situations.
      */
     public InputStream getFile(String cloudId, String representationName, String version,
-                               String fileName, String range)  throws MCSException, IOException {
+                               String fileName, String range) throws MCSException, IOException {
 
-        WebTarget target = client
-                .target(baseUrl)
-                .path(CLIENT_FILE_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(FILE_NAME, fileName);
-        Builder request = target.request().header(H_RANGE, range);
-
-        Response response = null;
-
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.PARTIAL_CONTENT.getStatusCode()) {
-                InputStream contentResponse = response.readEntity(InputStream.class);
-                return copiedInputStream(contentResponse);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponseForIO(new ResponseParams<>(InputStream.class, Response.Status.PARTIAL_CONTENT), null,
+                () -> client
+                        .target(baseUrl)
+                        .path(CLIENT_FILE_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(FILE_NAME, fileName)
+                        .request()
+                        .header(H_RANGE, range)
+                        .get()
+        );
     }
 
     /**
      * Function returns file content.
      */
     public InputStream getFile(String fileUrl) throws MCSException, IOException {
-
-        Response response = null;
-
-        try {
-            response = client.target(fileUrl).request().get();
-
-            return handleReadFileResponse(response);
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponseForIO(new ResponseParams<>(InputStream.class), null,
+                () -> client
+                        .target(fileUrl)
+                        .request()
+                        .get()
+        );
     }
 
-    public InputStream getFile(String fileUrl,String key,String value) throws MCSException, IOException {
-
-        Response response = null;
-
-        try {
-            response = client
-                    .target(fileUrl)
-                    .request()
-                    .header(key,value)
-                    .get();
-
-            return handleReadFileResponse(response);
-        } finally {
-            closeResponse(response);
-        }
+    public InputStream getFile(String fileUrl, String key, String value) throws MCSException, IOException {
+        return manageResponseForIO(new ResponseParams<>(InputStream.class), null,
+                () -> client
+                        .target(fileUrl)
+                        .request()
+                        .header(key, value)
+                        .get()
+        );
     }
 
     /**
@@ -217,28 +189,26 @@ public class FileServiceClient extends MCSClient {
     public URI uploadFile(String cloudId, String representationName, String version,
                           InputStream data, String mediaType, String expectedMd5) throws IOException, MCSException {
 
-        Response response = null;
-        FormDataMultiPart multipart = new FormDataMultiPart();
-        try {
-            WebTarget target = client
-                    .target(baseUrl)
-                    .path(FILES_RESOURCE)
-                    .resolveTemplate(CLOUD_ID, cloudId)
-                    .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .resolveTemplate(VERSION, version);
-
-            multipart
+        try(var multiPart = new FormDataMultiPart()) {
+            multiPart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
                     .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-            Builder request = target.request();
-            response = request.post(Entity.entity(multipart, multipart.getMediaType()));
-
-            return handleResponse(expectedMd5, response, Status.CREATED.getStatusCode());
+            return manageResponseForIO(new ResponseParams<>(URI.class, Status.CREATED), expectedMd5,
+                    () -> client
+                            .target(baseUrl)
+                            .path(FILES_RESOURCE)
+                            .resolveTemplate(CLOUD_ID, cloudId)
+                            .resolveTemplate(REPRESENTATION_NAME, representationName)
+                            .resolveTemplate(VERSION, version)
+                            .request()
+                            .post(Entity.entity(multiPart, multiPart.getMediaType()))
+            );
         } finally {
-            closeOpenResources(data, multipart, response);
+            IOUtils.closeQuietly(data);
         }
     }
+
 
     /**
      * Uploads file content without checking checksum.
@@ -257,35 +227,25 @@ public class FileServiceClient extends MCSClient {
     public URI uploadFile(String cloudId, String representationName, String version,
                           InputStream data, String mediaType) throws IOException, MCSException {
 
-        Response response = null;
-        FormDataMultiPart multipart = new FormDataMultiPart();
-        try {
-            WebTarget target = client
-                    .target(baseUrl)
-                    .path(FILES_RESOURCE)
-                    .resolveTemplate(CLOUD_ID, cloudId)
-                    .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .resolveTemplate(VERSION, version);
-
-            multipart
+        try(var multiPart = new FormDataMultiPart()) {
+            multiPart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
                     .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-            Builder request = target.request();
-            response = request.post(Entity.entity(multipart, multipart.getMediaType()));
-
-            if (response.getStatus() == Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-
+            return manageResponse(new ResponseParams<>(URI.class, Status.CREATED),
+                    () -> client
+                            .target(baseUrl)
+                            .path(FILES_RESOURCE)
+                            .resolveTemplate(CLOUD_ID, cloudId)
+                            .resolveTemplate(REPRESENTATION_NAME, representationName)
+                            .resolveTemplate(VERSION, version)
+                            .request()
+                            .post(Entity.entity(multiPart, multiPart.getMediaType()))
+            );
         } finally {
-            closeOpenResources(data, multipart, response);
+            IOUtils.closeQuietly(data);
         }
     }
-
 
     /**
      * Uploads file content without checking checksum.
@@ -303,68 +263,52 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public URI uploadFile(String cloudId, String representationName, String version, String fileName,
-                                InputStream data, String mediaType) throws IOException, MCSException {
+                          InputStream data, String mediaType) throws IOException, MCSException {
 
-        Response response = null;
-        FormDataMultiPart multipart = new FormDataMultiPart();
-        try {
-            WebTarget target = client
-                    .target(baseUrl)
-                    .path(FILES_RESOURCE)
-                    .resolveTemplate(CLOUD_ID, cloudId)
-                    .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .resolveTemplate(VERSION, version);
-
-            multipart
+        try(var multiPart = new FormDataMultiPart()) {
+            multiPart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
                     .field(ParamConstants.F_FILE_NAME, fileName)
                     .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-            Invocation.Builder request = target.request();
-            response = request.post(Entity.entity(multipart, multipart.getMediaType()));
-
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
+            return manageResponse(new ResponseParams<>(URI.class, Status.CREATED),
+                    () -> client
+                            .target(baseUrl)
+                            .path(FILES_RESOURCE)
+                            .resolveTemplate(CLOUD_ID, cloudId)
+                            .resolveTemplate(REPRESENTATION_NAME, representationName)
+                            .resolveTemplate(VERSION, version)
+                            .request()
+                            .post(Entity.entity(multiPart, multiPart.getMediaType()))
+            );
         } finally {
-            closeOpenResources(data, multipart, response);
+            IOUtils.closeQuietly(data);
         }
     }
 
     /**
-     * @deprecated
-     * Uploads file content without checking checksum.
-     *
      * @param versionUrl Path to the version where the file will be uploaded to.
      *                   For example:
      *                   "http://ecloud.eanadev.org:8080/ecloud-service-mcs/records/L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0-11e4-8fe1-00163eefc9c8"
+     * @deprecated Uploads file content without checking checksum. ??
      */
-    @Deprecated
+    @Deprecated(since="ho ho ho ho")
     public URI uploadFile(String versionUrl, InputStream data, String mediaType) throws IOException, MCSException {
-
         final String FILES_SEGMENT = "/files";
 
-        Response response = null;
-        FormDataMultiPart multipart = new FormDataMultiPart();
-        try {
-            multipart
+        try(var multiPart = new FormDataMultiPart()) {
+            multiPart
                     .field(ParamConstants.F_FILE_MIME, mediaType)
                     .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-            response = client.target(versionUrl + FILES_SEGMENT).request().post(Entity.entity(multipart, multipart.getMediaType()));
-
-            if (response.getStatus() == Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-
+            return manageResponse(new ResponseParams<>(URI.class, Status.CREATED),
+                    () -> client
+                            .target(versionUrl + FILES_SEGMENT)
+                            .request()
+                            .post(Entity.entity(multiPart, multiPart.getMediaType()))
+            );
         } finally {
-            closeOpenResources(data, multipart, response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -388,48 +332,33 @@ public class FileServiceClient extends MCSClient {
     public URI modyfiyFile(String cloudId, String representationName, String version,
                            InputStream data, String mediaType, String fileName, String expectedMd5) throws IOException, MCSException {
 
-        Response response = null;
-        FormDataMultiPart multipart = new FormDataMultiPart();
-
         try {
-            WebTarget target = client
-                    .target(baseUrl)
-                    .path(CLIENT_FILE_RESOURCE)
-                    .resolveTemplate(CLOUD_ID, cloudId)
-                    .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .resolveTemplate(VERSION, version)
-                    .resolveTemplate(FILE_NAME, fileName);
-
-            response = target.request().put(Entity.entity(data, mediaType));
-
-            return handleResponse(expectedMd5, response, Status.NO_CONTENT.getStatusCode());
-
+            return manageResponseForIO(new ResponseParams<>(URI.class, Status.NO_CONTENT), expectedMd5,
+                    () -> client
+                            .target(baseUrl)
+                            .path(CLIENT_FILE_RESOURCE)
+                            .resolveTemplate(CLOUD_ID, cloudId)
+                            .resolveTemplate(REPRESENTATION_NAME, representationName)
+                            .resolveTemplate(VERSION, version)
+                            .resolveTemplate(FILE_NAME, fileName)
+                            .request()
+                            .put(Entity.entity(data, mediaType))
+            );
         } finally {
-            closeOpenResources(data, multipart, response);
+            IOUtils.closeQuietly(data);
         }
     }
 
-    public URI modifyFile(String fileUrl, InputStream data, String mediaType) throws IOException, MCSException {
-
-        WebTarget target = client.target(fileUrl);
-
-        FormDataMultiPart multipart = new FormDataMultiPart();
-        Response response = null;
+    public URI modifyFile(String fileUrl, InputStream data, String mediaType) throws MCSException {
         try {
-
-
-            response = target.request().put(Entity.entity(data, mediaType));
-
-            if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-                return response.getLocation();
-
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-
+            return manageResponse(new ResponseParams<>(URI.class, Status.NO_CONTENT),
+                    () -> client
+                            .target(fileUrl)
+                            .request()
+                            .put(Entity.entity(data, mediaType))
+            );
         } finally {
-            closeOpenResources(data, multipart, response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -447,25 +376,17 @@ public class FileServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations.
      */
     public void deleteFile(String cloudId, String representationName, String version, String fileName) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(CLIENT_FILE_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(FILE_NAME, fileName);
-
-        Response response = null;
-        try {
-            response = target.request().delete();
-            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(baseUrl)
+                        .path(CLIENT_FILE_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(FILE_NAME, fileName)
+                        .request()
+                        .delete()
+        );
     }
 
     /**
@@ -511,6 +432,7 @@ public class FileServiceClient extends MCSClient {
      * @param uri Address of file/files
      * @return Map with indexes: CLOUDID, REPRESENTATIONNAME, VERSION, FILENAME(potentially null)
      */
+    @SuppressWarnings("unused")
     public static Map<String, String> parseFileUri(String uri) {
         Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)/files/(.*)");
         Matcher m = p.matcher(uri);
@@ -529,49 +451,41 @@ public class FileServiceClient extends MCSClient {
     }
 
     /**
-     * Client will use provided authorization header for all requests;
-     *
-     * @param authorizationHeader authorization header value
+     * This is equivalent of {@link MCSClient#manageResponse(ResponseParams, Supplier)}
+     * method with MD5 parameter and throwing {@link IOException}
      */
-    public void useAuthorizationHeader(final String authorizationHeader) {
-        client.register(new ECloudBasicAuthFilter(authorizationHeader));
-    }
+    @SuppressWarnings("unchecked")
+    protected <T> T manageResponseForIO(ResponseParams<T> responseParameters, String expectedMd5,
+                                        Supplier<Response> responseSupplier) throws MCSException, IOException {
 
-    public void close() {
-        client.close();
-    }
+        Response response = responseSupplier.get();
+        try {
+            response.bufferEntity();
+            if (responseParameters.isCodeInValidStatus(response.getStatus())) {
+                //Different workflow with given MD5
+                if (expectedMd5 != null && !expectedMd5.equals(response.getEntityTag().getValue())) {
+                    throw new IOException("Incorrect MD5 checksum");
+                }
 
-    private void closeResponse(Response response) {
-        if (response != null) {
-            response.close();
-        }
-    }
-
-    private void closeOpenResources(InputStream data, FormDataMultiPart multipart, Response response) throws IOException {
-        closeResponse(response);
-        IOUtils.closeQuietly(data);
-        multipart.close();
-    }
-
-    private URI handleResponse(String expectedMd5, Response response, int expectedStatusCode) throws IOException, MCSException {
-        if (response.getStatus() == expectedStatusCode) {
-            if (!expectedMd5.equals(response.getEntityTag().getValue())) {
-                throw new IOException("Incorrect MD5 checksum");
+                //Different workflow with expected class setup to InputStream
+                if (responseParameters.getExpectedClass() != InputStream.class) {
+                    return readEntityByClass(responseParameters, response);
+                } else {
+                    return (T) copiedInputStream((InputStream) readEntityByClass(responseParameters, response));
+                }
             }
-            return response.getLocation();
-        } else {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
-        }
-    }
-
-    private InputStream handleReadFileResponse(Response response) throws IOException, MCSException {
-        if (response.getStatus() == Status.OK.getStatusCode()) {
-            InputStream contentResponse = response.readEntity(InputStream.class);
-            return copiedInputStream(contentResponse);
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        } catch (MCSException | DriverException | IOException knownException) {
+            throw knownException; //re-throw just created CloudException
+        } catch (ProcessingException processingException) {
+            String message = String.format("Could not deserialize response with statusCode: %d; message: %s",
+                    response.getStatus(), response.readEntity(String.class));
+            throw MCSExceptionProvider.createException(message, processingException);
+        } catch (Exception otherExceptions) {
+            throw MCSExceptionProvider.createException("Other client error", otherExceptions);
+        } finally {
+            closeResponse(response);
         }
     }
 

@@ -1,18 +1,14 @@
 package eu.europeana.cloud.mcs.driver;
 
-import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
-import javax.ws.rs.client.*;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -27,8 +23,6 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  */
 public class RevisionServiceClient extends MCSClient {
 
-    private final Client client;
-
     /**
      * Constructs a RevisionServiceClient
      *
@@ -41,11 +35,6 @@ public class RevisionServiceClient extends MCSClient {
 
     public RevisionServiceClient(String baseUrl, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
-
-        client = ClientBuilder.newBuilder()
-                .register(JacksonFeature.class)
-                .register(MultiPartFeature.class)
-                .build();
 
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
         this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
@@ -65,18 +54,10 @@ public class RevisionServiceClient extends MCSClient {
 
     public RevisionServiceClient(String baseUrl, final String username, final String password, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
-        client = ClientBuilder.newBuilder()
-                .register(JacksonFeature.class)
-                .register(MultiPartFeature.class)
-                .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build())
-                .build();
 
-        this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
-        this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
-    }
-
-    public void useAuthorizationHeader(final String headerValue) {
-        client.register(new ECloudBasicAuthFilter(headerValue));
+        client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+        client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
+        client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
     }
 
     /**
@@ -94,25 +75,19 @@ public class RevisionServiceClient extends MCSClient {
      */
     public URI addRevision(String cloudId, String representationName, String version, String revisionName,
                            String revisionProviderId, String tag) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REVISION_ADD_WITH_PROVIDER_TAG)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(REVISION_NAME, revisionName)
-                .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                .resolveTemplate(TAG, tag);
-
-        Invocation.Builder request = target.request();
-        Response response = null;
-        try {
-            response = request.post(null);
-            return handleAddRevisionResponse(response);
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client
+                        .target(baseUrl)
+                        .path(REVISION_ADD_WITH_PROVIDER_TAG)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(REVISION_NAME, revisionName)
+                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
+                        .resolveTemplate(TAG, tag)
+                        .request()
+                        .post(null)
+        );
     }
 
     /**
@@ -127,25 +102,18 @@ public class RevisionServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public URI addRevision(String cloudId, String representationName,
-                           String version, Revision revision) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REVISION_ADD)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Invocation.Builder request = target.request();
-        Response response = null;
-        try {
-            response = request.accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-            return handleAddRevisionResponse(response);
-        } finally {
-            closeResponse(response);
-        }
+    public URI addRevision(String cloudId, String representationName, String version, Revision revision) throws MCSException {
+        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client
+                        .target(baseUrl)
+                        .path(REVISION_ADD)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON).post(Entity.json(revision))
+        );
     }
-
 
     /**
      * add a revision
@@ -161,23 +129,18 @@ public class RevisionServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public URI addRevision(String cloudId, String representationName,
-                           String version, Revision revision, String key, String value) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REVISION_ADD)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Invocation.Builder request = target.request().header(key, value);
-        Response response = null;
-        try {
-            response = request.accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-            return handleAddRevisionResponse(response);
-        } finally {
-            closeResponse(response);
-        }
+    public URI addRevision(String cloudId, String representationName, String version, Revision revision, String key, String value) throws MCSException {
+        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client
+                        .target(baseUrl)
+                        .path(REVISION_ADD)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .header(key, value)
+                        .accept(MediaType.APPLICATION_JSON).post(Entity.json(revision))
+                );
     }
 
     /**
@@ -194,32 +157,27 @@ public class RevisionServiceClient extends MCSClient {
      * @throws DriverException                  call to service has not succeeded because of server side error.
      * @throws MCSException                     on unexpected situations.
      */
-    public URI addRevision(
-            String cloudId, String representationName, String version,
-            String revisionName, String revisionProviderId, Set<Tags> tags) throws MCSException {
+    public URI addRevision(String cloudId, String representationName, String version,
+                           String revisionName, String revisionProviderId, Set<Tags> tags) throws MCSException {
 
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REVISION_ADD_WITH_PROVIDER)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(REVISION_NAME, revisionName)
-                .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId);
-        Form tagsForm = new Form();
+        Form form = new Form();
         for (Tags tag : tags) {
-            tagsForm.param(F_TAGS, tag.getTag());
+            form.param(F_TAGS, tag.getTag());
         }
-        Invocation.Builder request = target.request();
-        Response response = null;
-        try {
-            response = request.post(Entity.form(tagsForm));
-            return handleAddRevisionResponse(response);
-        } finally {
-            closeResponse(response);
-        }
-    }
 
+        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client
+                        .target(baseUrl)
+                        .path(REVISION_ADD_WITH_PROVIDER)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(REVISION_NAME, revisionName)
+                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
+                        .request()
+                        .post(Entity.form(form))
+        );
+    }
 
     /**
      * Remove a revision
@@ -230,34 +188,24 @@ public class RevisionServiceClient extends MCSClient {
      * @param revisionName       revision name
      * @param revisionProviderId   revision provider
      * @param revisionTimestamp  revision timestamp
-     * @throws RepresentationNotExistsException
+     * @throws RepresentationNotExistsException throws if given representation not exists
      */
-    public void deleteRevision(
-            String cloudId, String representationName, String version,
-            String revisionName, String revisionProviderId, String revisionTimestamp) throws MCSException {
+    public void deleteRevision(String cloudId, String representationName, String version, String revisionName,
+                               String revisionProviderId, String revisionTimestamp) throws MCSException {
 
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REVISION_DELETE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(REVISION_NAME, revisionName)
-                .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
-
-        Invocation.Builder request = target.request();
-        Response response = null;
-        try {
-            response = request.delete();
-            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
-
+        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+                () -> client
+                        .target(baseUrl)
+                        .path(REVISION_DELETE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(REVISION_NAME, revisionName)
+                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .request()
+                        .delete()
+        );
     }
 
     /**
@@ -271,54 +219,23 @@ public class RevisionServiceClient extends MCSClient {
      * @param revisionTimestamp  revision timestamp
      * @param key                authorisation key
      * @param value              authorisation value
-     * @throws RepresentationNotExistsException
+     * @throws RepresentationNotExistsException throws if given representation not exists
      */
-    public void deleteRevision(
-            String cloudId, String representationName, String version,
-            String revisionName, String revisionProviderId, String revisionTimestamp,
-            String key,String value) throws MCSException {
+    public void deleteRevision(String cloudId, String representationName, String version, String revisionName,
+                               String revisionProviderId, String revisionTimestamp, String key, String value) throws MCSException {
 
-        WebTarget target = client.target(baseUrl)
-                .path(REVISION_DELETE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(REVISION_NAME, revisionName)
-                .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
-
-        Invocation.Builder request = target.request().header(key, value);
-        Response response = null;
-        try {
-            response = request.delete();
-            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
-
+        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+                () -> client.target(baseUrl)
+                        .path(REVISION_DELETE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(REVISION_NAME, revisionName)
+                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .request()
+                        .header(key, value)
+                        .delete()
+        );
     }
-
-
-    public void close() {
-        client.close();
-    }
-
-    private void closeResponse(Response response) {
-        if (response != null) {
-            response.close();
-        }
-    }
-
-    private URI handleAddRevisionResponse(Response response) throws MCSException {
-        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-            return response.getLocation();
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        }
-    }
-
 }
