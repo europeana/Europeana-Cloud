@@ -199,13 +199,7 @@ public class DataSetServiceClient extends MCSClient {
                 return response.getLocation();
             }
 
-            //TODO this does not function correctly,
-            //details are filled with "MessageBodyReader not found for media type=text/html; 
-            //charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, 
-            //genericType=class eu.europeana.cloud.common.response.ErrorInfo."
-            //simple strings like 'adsfd' get entitised correctly
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(response);
         } finally {
             if (response != null) {
                 response.close();
@@ -254,8 +248,7 @@ public class DataSetServiceClient extends MCSClient {
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 return response.readEntity(ResultSlice.class);
             }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(response);
         } finally {
             if (response != null) {
                 response.close();
@@ -338,8 +331,7 @@ public class DataSetServiceClient extends MCSClient {
 
             if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
 
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(response);
             }
         } finally {
             if (response != null) {
@@ -371,8 +363,7 @@ public class DataSetServiceClient extends MCSClient {
 
             if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
 
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(response);
             }
         } finally {
             if (response != null) {
@@ -423,8 +414,7 @@ public class DataSetServiceClient extends MCSClient {
             response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
             if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(response);
             }
 
         } finally {
@@ -488,8 +478,7 @@ public class DataSetServiceClient extends MCSClient {
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
             if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(response);
             }
         } finally {
             if (response != null) {
@@ -497,7 +486,6 @@ public class DataSetServiceClient extends MCSClient {
             }
         }
     }
-
 
     /**
      * Unassigns representation from data set.
@@ -531,8 +519,7 @@ public class DataSetServiceClient extends MCSClient {
             response = target.request().delete();
 
             if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(response);
             }
         } finally {
             closeResponse(response);
@@ -573,8 +560,7 @@ public class DataSetServiceClient extends MCSClient {
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 return response.readEntity(ResultSlice.class).getResults();
             }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(response);
         } finally {
             closeResponse(response);
         }
@@ -617,8 +603,7 @@ public class DataSetServiceClient extends MCSClient {
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 return response.readEntity(ResultSlice.class);
             }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throw MCSExceptionProvider.generateException(response);
         } finally {
             closeResponse(response);
         }
@@ -673,8 +658,7 @@ public class DataSetServiceClient extends MCSClient {
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 return response.readEntity(ResultSlice.class);
             } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
+                throw MCSExceptionProvider.generateException(response);
             }
         } finally {
             if (response != null) {
