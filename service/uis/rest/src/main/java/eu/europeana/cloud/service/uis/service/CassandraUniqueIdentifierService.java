@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +38,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
      *
      * @param cloudIdDao      cloud identifier DAO
      * @param localIdDao      local identifier DAO
-     * @param dataProviderDao
+     * @param dataProviderDao data provider DAO
      */
     public CassandraUniqueIdentifierService(CassandraCloudIdDAO cloudIdDao, CassandraLocalIdDAO localIdDao,
                                             CassandraDataProviderDAO dataProviderDao) {
@@ -122,52 +121,6 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         LOGGER.debug("Prepared id list for cloudId={}, size={}", cloudId, cloudIds.size());
         return cloudIds;
     }
-
-    @Override
-    public List<CloudId> getLocalIdsByProvider(String providerId, String start, int end)
-            throws DatabaseConnectionException, ProviderDoesNotExistException {
-
-        LOGGER.info("getLocalIdsByProvider() providerId='{}', start='{}', end='{}'", providerId, start, end);
-        if (dataProviderDao.getProvider(providerId) == null) {
-            LOGGER.warn("ProviderDoesNotExistException for providerId='{}', start='{}', end='{}'", providerId, start,
-                    end);
-            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
-        }
-        List<CloudId> cloudIds = null;
-        if (start == null) {
-            cloudIds = localIdDao.searchById(providerId);
-        } else {
-            cloudIds = localIdDao.searchByIdWithPagination(start, end, providerId);
-        }
-        List<CloudId> localIds = new ArrayList<>(cloudIds.size());
-        for (CloudId cloudId : cloudIds) {
-            localIds.add(cloudId);
-        }
-        return localIds;
-    }
-
-
-    @Override
-    public List<CloudId> getCloudIdsByProvider(String providerId, String startRecordId, int limit)
-            throws DatabaseConnectionException, ProviderDoesNotExistException {
-
-        LOGGER.info("getCloudIdsByProvider() providerId='{}', startRecordId='{}', end='{}'", providerId, startRecordId, limit);
-        if (dataProviderDao.getProvider(providerId) == null) {
-            LOGGER.warn("ProviderDoesNotExistException for providerId='{}', startRecordId='{}', end='{}'", providerId, startRecordId,
-                    limit);
-            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
-        }
-        if (startRecordId == null) {
-            return localIdDao.searchById(providerId);
-        } else {
-            return localIdDao.searchByIdWithPagination(startRecordId, limit, providerId);
-        }
-    }
-
 
     @Override
     public CloudId createIdMapping(String cloudId, String providerId, String recordId)
@@ -279,7 +232,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
     @Override
     public CloudId createIdMapping(String cloudId, String providerId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
-            ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
+            ProviderDoesNotExistException, CloudIdAlreadyExistException {
         LOGGER.info("createIdMapping() cloudId='{}', providerId='{}'",cloudId, providerId);
         return createIdMapping(cloudId, providerId, IdGenerator.timeEncode(providerId));
     }

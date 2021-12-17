@@ -148,11 +148,6 @@ public class DataProviderAATest extends AbstractSecurityTest {
 			CloudIdAlreadyExistException {
 
 		dataProviderResource.getProvider(PROVIDER_ID);
-		dataProviderResource.getLocalIdsByProvider(PROVIDER_ID, PROVIDER_ID,
-				100);
-		dataProviderResource.getCloudIdsByProvider(PROVIDER_ID, PROVIDER_ID,
-				100);
-
 		dataProvidersResource.getProviders(PROVIDER_ID);
 	}
 
@@ -173,10 +168,6 @@ public class DataProviderAATest extends AbstractSecurityTest {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		dataProviderResource.getProvider(PROVIDER_ID);
-		dataProviderResource.getLocalIdsByProvider(PROVIDER_ID, PROVIDER_ID,
-				100);
-		dataProviderResource.getCloudIdsByProvider(PROVIDER_ID, PROVIDER_ID,
-				100);
 		dataProviderResource.createIdMapping(PROVIDER_ID, CLOUD_ID,
 				RECORD_ID);
 

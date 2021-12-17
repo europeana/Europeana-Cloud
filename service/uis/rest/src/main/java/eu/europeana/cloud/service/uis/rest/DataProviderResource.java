@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.ACLServiceWrapper;
@@ -19,11 +18,6 @@ import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.*;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import java.util.List;
-
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
@@ -35,9 +29,9 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 @RequestMapping("/data-providers/{" + P_PROVIDER + "}")
 public class DataProviderResource {
 
-    private UniqueIdentifierService uniqueIdentifierService;
-    private DataProviderService providerService;
-    private ACLServiceWrapper aclWrapper;
+    private final UniqueIdentifierService uniqueIdentifierService;
+    private final DataProviderService providerService;
+    private final ACLServiceWrapper aclWrapper;
 
     public DataProviderResource(UniqueIdentifierService uniqueIdentifierService,
                                 DataProviderService providerService,
@@ -142,100 +136,6 @@ public class DataProviderResource {
         deleteProviderAcl(dataProviderId);
         return ResponseEntity.ok().build();
     }
-
-
-    /**
-     *
-     * Get the local Identifiers (with their cloud identifiers) for a specific provider identifier with
-     * pagination
-     *
-     * @summary Local identifiers retrieval.
-     *
-     * @param providerId
-     *            <strong>REQUIRED</strong> identifier of provider for which all
-     *            local identifiers will be retrieved
-     * @param from
-     *            from which one local identifier should we start.
-     * @param to
-     *            how many local identifiers should be contained in results
-     *            list. Default is 10000
-     *
-     * @return A list of local Identifiers (with their cloud identifiers)
-     *
-     * @throws DatabaseConnectionException
-     *             database error
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     * @throws RecordDatasetEmptyException
-     *             dataset is empty
-     *
-     */
-    @GetMapping(path = "localIds", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
-    public ResponseEntity<ResultSlice<CloudId>> getLocalIdsByProvider(
-            @PathVariable(P_PROVIDER) String providerId,
-            @RequestParam(value = UISParamConstants.Q_FROM, required = false) String from,
-            @RequestParam(value = UISParamConstants.Q_LIMIT, defaultValue = "10000") int to)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-
-        ResultSlice<CloudId> pList = new ResultSlice<>();
-        pList.setResults(uniqueIdentifierService.getLocalIdsByProvider(providerId, from, to));
-        if (pList.getResults().size() == to) {
-            pList.setNextSlice(pList.getResults().get(to - 1).getId());
-        }
-        return ResponseEntity.ok(pList);
-    }
-
-
-    /**
-     *
-     * Get the cloud identifiers (with their local identifiers) for a specific provider identifier with
-     * pagination
-     *
-     * @summary Cloud identifiers (with their local identifiers) retrieval.
-     *
-     * @param providerId
-     *            <strong>REQUIRED</strong> identifier of provider for which all
-     *            record identifiers will be retrieved
-     * @param from
-     *            from which one <strong>local identifier</strong> should we start.
-     * @param limit
-     *            how many cloud identifiers should be contained in results
-     *            list. Default is 10000. <strong>Respected only if {@code from} parameter is defined.</strong>
-     *
-     * @return List of cloud identifiers (with their local identifiers) for specific provider
-     *
-     * @throws DatabaseConnectionException
-     *             database connection errot
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     * @throws RecordDatasetEmptyException
-     *             record dataset is empty
-     */
-    @GetMapping(path = "cloudIds", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
-    public ResponseEntity<ResultSlice<CloudId>> getCloudIdsByProvider(
-            @PathVariable(P_PROVIDER) String providerId,
-            @RequestParam(value = UISParamConstants.Q_FROM, required = false) String from,
-            @Min(0) @Max(10000) @RequestParam(value = UISParamConstants.Q_LIMIT, defaultValue = "10000") int limit)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-        ResultSlice<CloudId> slice = new ResultSlice<>();
-        final int limitWithNextSlice = limit + 1;
-
-        final List<CloudId> cloudIds = uniqueIdentifierService.getCloudIdsByProvider(providerId, from, limitWithNextSlice);
-
-        if (cloudIds.size() == limitWithNextSlice) {
-            setNextSliceAndRemoveLastElement(slice, limitWithNextSlice, cloudIds);
-        }
-        slice.setResults(cloudIds);
-        return ResponseEntity.ok(slice);
-    }
-
-    private void setNextSliceAndRemoveLastElement(ResultSlice<CloudId> slice, int limitWithNextSlice, List<CloudId> cloudIdsByProvider) {
-        CloudId nextSlice = cloudIdsByProvider.remove(limitWithNextSlice - 1);
-        slice.setNextSlice(nextSlice.getLocalId().getRecordId());
-    }
-
 
     /**
      *

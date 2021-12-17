@@ -27,8 +27,8 @@ import java.net.URISyntaxException;
 @RequestMapping("/data-providers")
 public class DataProvidersResource {
 
-    private DataProviderService providerService;
-	private ACLServiceWrapper aclWrapper;
+    private final DataProviderService providerService;
+	private final ACLServiceWrapper aclWrapper;
 
 	private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
 	private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
