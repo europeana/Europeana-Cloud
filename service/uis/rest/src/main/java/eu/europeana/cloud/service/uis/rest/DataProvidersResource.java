@@ -3,10 +3,10 @@ package eu.europeana.cloud.service.uis.rest;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ import java.net.URISyntaxException;
  *
  */
 @RestController
-@RequestMapping("/data-providers")
+@RequestMapping(RestInterfaceConstants.DATA_PROVIDERS)
 public class DataProvidersResource {
 
     private final DataProviderService providerService;
@@ -44,7 +44,7 @@ public class DataProvidersResource {
      *
 	 * @summary All providers list
 	 *
-     * @param startFrom
+     * @param from
      *            data provider identifier from which returned slice of results will be generated.
 	 *            If not provided then result list will contain data providers from the first one.
 	 *
@@ -52,8 +52,8 @@ public class DataProvidersResource {
      */
     @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
 	public ResultSlice<DataProvider> getProviders(
-            @RequestParam(value = UISParamConstants.Q_FROM,required = false) String startFrom) {
-		return providerService.getProviders(startFrom, NUMBER_OF_ELEMENTS_ON_PAGE);
+            @RequestParam(required = false) String from) {
+		return providerService.getProviders(from, NUMBER_OF_ELEMENTS_ON_PAGE);
 	}
 
     /**
@@ -76,7 +76,7 @@ public class DataProvidersResource {
 	@PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> createProvider(HttpServletRequest servletRequest,
                                                  @RequestBody DataProviderProperties dataProviderProperties,
-                                                 @RequestParam(UISParamConstants.Q_PROVIDER) String providerId)
+                                                 @RequestParam String providerId)
 			throws ProviderAlreadyExistsException, URISyntaxException {
 	DataProvider provider = providerService.createProvider(providerId,
 		dataProviderProperties);
