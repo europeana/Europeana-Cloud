@@ -28,7 +28,6 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -93,7 +92,7 @@ public class DataProviderResourceTest {
         dp.setProperties(properties);
         Mockito.doReturn(dp).when(dataProviderService).updateProvider(providerName, properties);
 
-        mockMvc.perform(put("/data-providers/{" + P_PROVIDER + "}", providerName)
+        mockMvc.perform(put(RestInterfaceConstants.DATA_PROVIDER, providerName)
                 .content(toJson(properties)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
@@ -125,7 +124,7 @@ public class DataProviderResourceTest {
         Mockito.doReturn(dp).when(dataProviderService).getProvider(providerName);
 
         // when you get provider by rest api
-        MvcResult mvcResult = mockMvc.perform(get("/data-providers/{" + P_PROVIDER + "}", providerName).accept(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(get(RestInterfaceConstants.DATA_PROVIDER, providerName).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();
 
         String content = mvcResult.getResponse().getContentAsString();
@@ -149,7 +148,7 @@ public class DataProviderResourceTest {
                                 .getErrorInfo("provident")))
         ).when(dataProviderService).getProvider("provident");
 
-        MvcResult mvcResult = mockMvc.perform(get("/data-providers/{" + P_PROVIDER + "}", "provident").accept(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(get(RestInterfaceConstants.DATA_PROVIDER, "provident").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
         ErrorInfo deleteErrorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
@@ -161,7 +160,7 @@ public class DataProviderResourceTest {
 
     @Test
     public void shouldDeleteProvider() throws Exception {
-        mockMvc.perform(delete("/data-providers/{" + P_PROVIDER + "}", "provident").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete(RestInterfaceConstants.DATA_PROVIDER, "provident").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
@@ -173,12 +172,12 @@ public class DataProviderResourceTest {
         Mockito.doReturn(gid).when(uniqueIdentifierService).createIdMapping(Mockito.anyString(), Mockito.anyString());
         Mockito.doReturn(gid).when(uniqueIdentifierService).createIdMapping(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-        mockMvc.perform(post("/cloudIds")
+        mockMvc.perform(post(RestInterfaceConstants.CLOUD_IDS)
                 .param(UISParamConstants.Q_PROVIDER_ID, "providerId")
                 .param(UISParamConstants.Q_RECORD_ID, "recordId")
                 .accept(MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(post("/data-providers/providerId/cloudIds/" + gid.getId())
+        mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", gid.getId())
                 .param(UISParamConstants.Q_RECORD_ID, "local1")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -199,7 +198,7 @@ public class DataProviderResourceTest {
         Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
                 "cloudId", "providerId", "local1");
 
-        MvcResult mvcResult = mockMvc.perform(post("/data-providers/providerId/cloudIds/cloudId")
+        MvcResult mvcResult = mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", "cloudId")
                 .param(UISParamConstants.Q_RECORD_ID, "local1")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is5xxServerError()).andReturn();
@@ -232,7 +231,7 @@ public class DataProviderResourceTest {
         Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
                 "cloudId", "providerId", "local1");
 
-        MvcResult mvcResult = mockMvc.perform(post("/data-providers/providerId/cloudIds/cloudId")
+        MvcResult mvcResult = mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", "cloudId")
                 .param(UISParamConstants.Q_RECORD_ID, "local1")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
@@ -261,7 +260,7 @@ public class DataProviderResourceTest {
         Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
                 "cloudId", "providerId", "local1");
 
-        MvcResult mvcResult = mockMvc.perform(post("/data-providers/providerId/cloudIds/cloudId")
+        MvcResult mvcResult = mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", "cloudId")
                 .param(UISParamConstants.Q_RECORD_ID, "local1")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError()).andReturn();
@@ -284,12 +283,12 @@ public class DataProviderResourceTest {
         Mockito.reset(uniqueIdentifierService);
         Mockito.when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
 
-        mockMvc.perform(get("/cloudIds")
+        mockMvc.perform(get(RestInterfaceConstants.CLOUD_IDS)
                 .param("providerId", "providerId")
                 .param(UISParamConstants.Q_RECORD_ID, "recordId")
                 .accept(MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(delete("/data-providers/providerId/localIds/recordId"))
+        mockMvc.perform(delete(RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, "providerId", "recordId"))
                 .andExpect(status().isOk());
     }
 
@@ -307,7 +306,7 @@ public class DataProviderResourceTest {
         Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
                 "providerId", "recordId");
 
-        MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(delete(RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, "providerId", "recordId").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is5xxServerError()).andReturn();
 
         ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
@@ -339,7 +338,7 @@ public class DataProviderResourceTest {
         Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
                 "providerId", "recordId");
 
-        MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(delete(RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, "providerId", "recordId").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
         ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
@@ -365,7 +364,7 @@ public class DataProviderResourceTest {
         Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
                 "providerId", "recordId");
 
-        MvcResult mvcResult = mockMvc.perform(delete("/data-providers/providerId/localIds/recordId").accept(MediaType.APPLICATION_JSON))
+        MvcResult mvcResult = mockMvc.perform(delete(RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, "providerId", "recordId").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()).andReturn();
 
         ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
