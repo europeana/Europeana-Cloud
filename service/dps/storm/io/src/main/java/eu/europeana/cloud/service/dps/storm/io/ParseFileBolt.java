@@ -12,14 +12,15 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Tarek on 12/6/2018.
@@ -59,11 +60,9 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 				LOGGER.info("The EDM file has no resource Links ");
                 outputCollector.emit(anchorTuple, tuple.toStormTuple());
 			} else {
-				LOGGER.info("Found {} resources for {}", rdfResourceEntries.size(), stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-				rdfResourceEntries
-						.stream()
-						.map(RdfResourceEntry::getResourceUrl)
-						.forEach(LOGGER::info);
+				LOGGER.info("Found {} resources for {} : {}", rdfResourceEntries.size(),
+						stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER),
+						rdfResourceEntries.stream().map(ToStringBuilder::reflectionToString).collect(Collectors.joining(",")));
 				for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
 					if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId()))
 						break;

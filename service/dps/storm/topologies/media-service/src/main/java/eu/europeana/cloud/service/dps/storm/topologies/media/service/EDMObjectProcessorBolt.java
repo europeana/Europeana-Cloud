@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Calendar;
+import java.util.Set;
 
 public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
@@ -64,7 +65,12 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
             LOGGER.info("Searching for main thumbnail in the resource");
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
-            LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);
+            if (edmObjectResourceEntry != null) {
+                LOGGER.info("Found the following rdfResourceEntry url: {}, urlTypes: {}",
+                        edmObjectResourceEntry.getResourceUrl(),edmObjectResourceEntry.getUrlTypes());
+            }else{
+                LOGGER.warn("Not found resource entry for main thumbnail!");
+            }
             boolean mainThumbnailAvailable = false;
             // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
             //  to collect all the resources instead of just counting them
@@ -72,22 +78,28 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
             if (edmObjectResourceEntry != null) {
                 resourcesToBeProcessed++;
-                LOGGER.info("Performing media extraction for: {}", edmObjectResourceEntry);
+                LOGGER.info("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
                 if (resourceExtractionResult != null) {
-                    LOGGER.info("Extracted the following metadata {}", resourceExtractionResult);
                     StormTaskTuple tuple = null;
+                    Set<String> thumbnailTargetNames = null;
+                    String metadataJson = null;
                     if (resourceExtractionResult.getMetadata() != null) {
                         tuple = new Cloner().deepClone(stormTaskTuple);
-                        tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
-                        mainThumbnailAvailable = !resourceExtractionResult.getMetadata().getThumbnailTargetNames().isEmpty();
+                        metadataJson = gson.toJson(resourceExtractionResult.getMetadata());
+                        tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, metadataJson);
+                        thumbnailTargetNames = resourceExtractionResult.getMetadata().getThumbnailTargetNames();
+                        mainThumbnailAvailable = !thumbnailTargetNames.isEmpty();
                         tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
                     }
-
+                    LOGGER.info("Extracted the following metadata: thumbnailTargetNames: {},  metadata: {}",
+                            thumbnailTargetNames, metadataJson);
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                     if (tuple != null) {
                         outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
                     }
+                } else{
+                    LOGGER.warn("Media extraction of main thumbnail return null.");
                 }
             }
             stormTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));

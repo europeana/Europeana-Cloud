@@ -68,18 +68,22 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                     try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
                         tempEnrichedFile = new TempEnrichedFile();
                         tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
-                        tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream)));
+                        byte[] bytes = IOUtils.toByteArray(stream);
+                        tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(bytes));
+                        LOGGER.info("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
                     }
                 }
                 tempEnrichedFile.addSourceTuple(anchorTuple);
-                if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA) != null) {
-                    EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA));
+                String metadata = stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA);
+                if (metadata != null) {
+                    EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), metadata);
                     tempEnrichedFile.setEnrichedRdf(enrichedRdf);
                 }
                 String cachedErrorMessage = tempEnrichedFile.getExceptions();
                 cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), cachedErrorMessage);
                 tempEnrichedFile.setExceptions(cachedErrorMessage);
-
+                LOGGER.info("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
+                        tempEnrichedFile.getCount()+1, tempEnrichedFile.getExceptions(), metadata);
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
                 String currentException = tempEnrichedFile.getExceptions();
