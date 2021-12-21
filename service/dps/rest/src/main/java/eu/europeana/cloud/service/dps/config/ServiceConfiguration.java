@@ -12,10 +12,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
+import eu.europeana.cloud.service.dps.services.postprocessors.*;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -289,8 +286,21 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), taskDiagnosticInfoDAO(),
-                tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
+        return new PostProcessingService(
+                postProcessorFactory(),
+                taskInfoDAO(),
+                taskDiagnosticInfoDAO(),
+                taskStatusUpdater());
+    }
+
+    @Bean
+    public PostProcessingScheduler postProcessingScheduler(
+            PostProcessingService postProcessingService,
+            TasksByStateDAO tasksByStateDAO,
+            TaskStatusUpdater taskStatusUpdater,
+            String applicationIdentifier
+    ) {
+        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, applicationIdentifier);
     }
 
     @Bean
@@ -306,9 +316,9 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Bean
     public AsyncTaskExecutor asyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
+        executor.setCorePoolSize(40);
         executor.setMaxPoolSize(40);
-        executor.setQueueCapacity(20);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("DPSThreadPool-");
         return executor;
     }
