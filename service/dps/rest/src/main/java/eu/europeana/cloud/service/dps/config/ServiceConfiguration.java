@@ -53,7 +53,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
 
-    public ServiceConfiguration(Environment environment){
+    public ServiceConfiguration(Environment environment) {
         this.environment = environment;
     }
 
@@ -225,9 +225,9 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public FileURLCreator fileURLCreator(){
+    public FileURLCreator fileURLCreator() {
         String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
-        if(machineLocation == null) {
+        if (machineLocation == null) {
             throw new BeanCreationException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
         }
         return new FileURLCreator(machineLocation);
@@ -241,14 +241,14 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public HarvestingPostProcessor harvestingPostProcessor(){
+    public HarvestingPostProcessor harvestingPostProcessor() {
         return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
                 recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater(),
                 taskStatusChecker());
     }
 
     @Bean
-    public IndexingPostProcessor indexingPostProcessor(){
+    public IndexingPostProcessor indexingPostProcessor() {
         return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO(), taskStatusChecker());
     }
 
@@ -270,14 +270,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Bean
     public RevisionServiceClient revisionServiceClient() {
         return new RevisionServiceClient(mcsLocation());
-    }
-
-    private String mcsLocation() {
-        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
-    }
-
-    private String uisLocation() {
-        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
     }
 
     @Bean
@@ -305,12 +297,12 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever){
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever) {
         return new MetisDatasetService(datasetStatsRetriever);
     }
 
     @Bean
-    public DatasetStatsRetriever datasetStatsRetriever(){
+    public DatasetStatsRetriever datasetStatsRetriever() {
         return new DatasetStatsRetriever();
     }
 
@@ -322,5 +314,13 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("DPSThreadPool-");
         return executor;
+    }
+
+    private String mcsLocation() {
+        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
+    }
+
+    private String uisLocation() {
+        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
     }
 }

@@ -22,8 +22,8 @@ public abstract class TaskPostProcessor {
     protected final HarvestedRecordsDAO harvestedRecordsDAO;
 
     protected TaskPostProcessor(TaskStatusChecker taskStatusChecker,
-                             TaskStatusUpdater taskStatusUpdater,
-                             HarvestedRecordsDAO harvestedRecordsDAO) {
+                                TaskStatusUpdater taskStatusUpdater,
+                                HarvestedRecordsDAO harvestedRecordsDAO) {
         this.taskStatusChecker = taskStatusChecker;
         this.taskStatusUpdater = taskStatusUpdater;
         this.harvestedRecordsDAO = harvestedRecordsDAO;
@@ -31,7 +31,6 @@ public abstract class TaskPostProcessor {
 
     /**
      * Executes post processing activity for the provided task
-     *
      */
     public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
         if (taskIsDropped(dpsTask)) {

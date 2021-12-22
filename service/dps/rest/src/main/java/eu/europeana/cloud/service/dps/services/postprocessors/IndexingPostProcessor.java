@@ -27,15 +27,11 @@ import static eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDataba
 
 public class IndexingPostProcessor extends TaskPostProcessor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
-
-    private static final int DELETE_ATTEMPTS = 20;
-
-    private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
-
-    private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
-
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
+    private static final int DELETE_ATTEMPTS = 20;
+    private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
+    private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
 
     public IndexingPostProcessor(TaskStatusUpdater taskStatusUpdater, HarvestedRecordsDAO harvestedRecordsDAO, TaskStatusChecker taskStatusChecker) {
         super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
@@ -58,7 +54,7 @@ public class IndexingPostProcessor extends TaskPostProcessor {
             } else {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");
             }
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             throw new PostProcessingException(
                     String.format("Error while %s post-process given task: taskId=%d. Dataset was not removed correctly. Cause: %s",
                             getClass().getSimpleName(), dpsTask.getTaskId(),
@@ -83,10 +79,10 @@ public class IndexingPostProcessor extends TaskPostProcessor {
         TargetIndexingDatabase indexingDatabase;
         try {
             indexingDatabase = TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv());
-        } catch(IllegalArgumentException | NullPointerException exception) {
+        } catch (IllegalArgumentException | NullPointerException exception) {
             throw new PostProcessingException("Unable to recognize environment: " + cleanerParameters.getTargetIndexingEnv());
         }
-       return cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase, dpsTask);
+        return cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase, dpsTask);
     }
 
     private int cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase, DpsTask dpsTask) {
@@ -106,10 +102,10 @@ public class IndexingPostProcessor extends TaskPostProcessor {
     }
 
     private HarvestedRecord doCleaning(HarvestedRecord harvestedRecord, TargetIndexingDatabase indexingDatabase) {
-        if(indexingDatabase == PREVIEW) {
+        if (indexingDatabase == PREVIEW) {
             harvestedRecord.setPreviewHarvestDate(null);
             harvestedRecord.setPreviewHarvestMd5(null);
-        } else if(indexingDatabase == PUBLISH) {
+        } else if (indexingDatabase == PUBLISH) {
             harvestedRecord.setPublishedHarvestDate(null);
             harvestedRecord.setPublishedHarvestMd5(null);
         }

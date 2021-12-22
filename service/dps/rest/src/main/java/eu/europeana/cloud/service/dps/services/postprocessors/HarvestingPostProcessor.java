@@ -50,7 +50,6 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
  *      </ul>
  *  <li>Change task status to PROCESSED;</li>
  * </ol>
- *
  */
 public class HarvestingPostProcessor extends TaskPostProcessor {
 
@@ -95,7 +94,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
             Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
             int postProcessedRecordsCount = 0;
             while (it.hasNext()) {
-                if(taskIsDropped(dpsTask)){
+                if (taskIsDropped(dpsTask)) {
                     LOGGER.debug("Stopping postprocessing because task {} was dropped", dpsTask.getTaskId());
                     return;
                 }
@@ -116,19 +115,19 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
             }
             taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             throw new PostProcessingException(
                     String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
                             dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
         }
     }
 
-    private boolean isIndexedInSomeEnvironment(HarvestedRecord harvestedRecord) {
-        return (harvestedRecord.getPreviewHarvestDate() != null) || (harvestedRecord.getPublishedHarvestDate() != null);
-    }
-
     public Set<String> getProcessedTopologies() {
         return PROCESSED_TOPOLOGIES;
+    }
+
+    private boolean isIndexedInSomeEnvironment(HarvestedRecord harvestedRecord) {
+        return (harvestedRecord.getPreviewHarvestDate() != null) || (harvestedRecord.getPublishedHarvestDate() != null);
     }
 
     private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
