@@ -21,6 +21,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -51,14 +52,12 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
  * </ol>
  *
  */
-public class HarvestingPostProcessor implements TaskPostProcessor {
+public class HarvestingPostProcessor extends TaskPostProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingPostProcessor.class);
 
     private static final Set<String> PROCESSED_TOPOLOGIES =
             Set.of(TopologiesNames.OAI_TOPOLOGY, TopologiesNames.HTTP_TOPOLOGY);
-
-    private final HarvestedRecordsDAO harvestedRecordsDAO;
 
     private final ProcessedRecordsDAO processedRecordsDAO;
 
@@ -70,26 +69,24 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
 
     private final UISClient uisClient;
 
-    private final TaskStatusUpdater taskStatusUpdater;
-
     public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
                                    ProcessedRecordsDAO processedRecordsDAO,
                                    RecordServiceClient recordServiceClient,
                                    RevisionServiceClient revisionServiceClient,
                                    UISClient uisClient,
                                    DataSetServiceClient dataSetServiceClient,
-                                   TaskStatusUpdater taskStatusUpdater) {
-        this.harvestedRecordsDAO = harvestedRecordsDAO;
+                                   TaskStatusUpdater taskStatusUpdater,
+                                   TaskStatusChecker taskStatusChecker) {
+        super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
         this.processedRecordsDAO = processedRecordsDAO;
         this.recordServiceClient = recordServiceClient;
         this.revisionServiceClient = revisionServiceClient;
         this.uisClient = uisClient;
         this.dataSetServiceClient = dataSetServiceClient;
-        this.taskStatusUpdater = taskStatusUpdater;
     }
 
     @Override
-    public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
+    public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
         try {
             taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
                     "Postprocessing - adding removed records to result revision.");
@@ -98,6 +95,10 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
             Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
             int postProcessedRecordsCount = 0;
             while (it.hasNext()) {
+                if(taskIsDropped(dpsTask)){
+                    LOGGER.debug("Stopping postprocessing because task {} was dropped", dpsTask.getTaskId());
+                    return;
+                }
                 var harvestedRecord = it.next();
                 if (!isIndexedInSomeEnvironment(harvestedRecord)) {
                     harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
@@ -141,7 +142,6 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
             throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
                     + " to task result revision! taskId=" + dpsTask.getTaskId(), e);
         }
-
     }
 
     private Iterator<HarvestedRecord> fetchDeletedRecords(DpsTask task) {
@@ -150,7 +150,6 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
                 harvestedRecordsDAO.findDatasetRecords(task.getParameter(PluginParameterKeys.METIS_DATASET_ID));
         return Iterators.filter(allRecords, theRecord -> theRecord.getLatestHarvestDate().before(harvestDate));
     }
-
 
     private String findCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
         String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
@@ -181,7 +180,6 @@ public class HarvestingPostProcessor implements TaskPostProcessor {
                     AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
         }
     }
-
 
     private void markHarvestedRecordAsProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
         processedRecordsDAO.insert(ProcessedRecord.builder().taskId(dpsTask.getTaskId())

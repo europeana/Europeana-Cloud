@@ -16,6 +16,10 @@ import java.util.Optional;
 import static eu.europeana.cloud.common.model.dps.TaskState.IN_POST_PROCESSING;
 import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
 
+/**
+ * Component responsible for executing postprocessing for the tasks.
+ * It uses Scheduler for that.
+ */
 public class PostProcessingScheduler {
 
     public static final String SCHEDULE_CRON_RULE = "15,45 * * * * *";
