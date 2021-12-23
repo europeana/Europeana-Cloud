@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.Arrays;
+import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.common.model.dps.TaskState.IN_POST_PROCESSING;
 import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
@@ -22,7 +22,6 @@ import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCE
  */
 public class PostProcessingScheduler {
 
-    public static final String SCHEDULE_CRON_RULE = "15,45 * * * * *";
     private static final Logger LOGGER = LoggerFactory.getLogger(PostProcessingScheduler.class);
     private final String applicationId;
 
@@ -42,29 +41,40 @@ public class PostProcessingScheduler {
         this.tasksByStateDAO = tasksByStateDAO;
         this.taskStatusUpdater = taskStatusUpdater;
         this.applicationId = applicationId;
-        LOGGER.info("Post-processing scheduler created with given schedule (cron = '{}')", SCHEDULE_CRON_RULE);
+        LOGGER.info("Post-processing scheduler created.");
     }
 
-    @Scheduled(cron = SCHEDULE_CRON_RULE)
+    @PostConstruct
+    public void init() {
+        LOGGER.debug("Initializing Postprocessing scheduler");
+        resetTasksState();
+    }
+
+
+    @Scheduled(fixedRate = 30_000, initialDelay = 60_000)
     public void execute() {
         try {
-            findTask(Arrays.asList(IN_POST_PROCESSING, READY_FOR_POST_PROCESSING)).ifPresent(postProcessingService::postProcess);
+            findTasksIn(List.of(READY_FOR_POST_PROCESSING)).forEach(postProcessingService::postProcess);
         } catch (TaskRejectedException e) {
             LOGGER.error("Unable to submit the task for postprocessing", e);
             taskStatusUpdater.setTaskDropped(-1, "Unable to postprocess the task because of: " + e.getMessage());
         }
     }
 
-    private Optional<TaskByTaskState> findTask(List<TaskState> states) {
-        LOGGER.info("Looking for tasks in {} state(s)...", states);
-        Optional<TaskByTaskState> result = tasksByStateDAO.findTasksByState(states)
-                .stream().filter(task -> applicationId.equals(task.getApplicationId())).findFirst();
+    public void resetTasksState() {
+        LOGGER.debug("Resetting state of all pending tasks to {}", IN_POST_PROCESSING);
+        findTasksIn(List.of(IN_POST_PROCESSING)).forEach(this::resetTaskState);
+    }
 
-        result.ifPresentOrElse(
-                taskByTaskState -> LOGGER.info("Found task with id = {} to post-process.", taskByTaskState.getId()),
-                () -> LOGGER.info("There are no tasks in {} state(s) on this machine.", states)
-        );
+    private List<TaskByTaskState> findTasksIn(List<TaskState> states) {
+        LOGGER.debug("Looking for tasks in {} state(s)...", states);
+        List<TaskByTaskState> tasksReadyForPostprocessing = tasksByStateDAO.findTasksByState(states)
+                .stream().filter(task -> applicationId.equals(task.getApplicationId())).collect(Collectors.toList());
+        LOGGER.debug("Found tasks for postprocess: {}", tasksReadyForPostprocessing);
+        return tasksReadyForPostprocessing;
+    }
 
-        return result;
+    private void resetTaskState(TaskByTaskState taskByTaskState){
+        taskStatusUpdater.updateState(taskByTaskState.getId(), READY_FOR_POST_PROCESSING, "Reseting task state");
     }
 }
