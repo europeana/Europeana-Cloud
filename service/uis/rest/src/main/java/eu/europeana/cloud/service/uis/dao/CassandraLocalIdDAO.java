@@ -75,9 +75,9 @@ public class CassandraLocalIdDAO {
         }
     }
 
-    public List<CloudId> insert(String... args) throws DatabaseConnectionException {
+    public List<CloudId> insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
         try {
-            dbService.getSession().execute(insertStatement.bind(args[0], args[1], args[2]));
+            dbService.getSession().execute(insertStatement.bind(providerId, recordId, cloudId));
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
@@ -88,10 +88,10 @@ public class CassandraLocalIdDAO {
         List<CloudId> cIds = new ArrayList<>();
         CloudId cId = new CloudId();
         LocalId lId = new LocalId();
-        lId.setProviderId(args[0]);
-        lId.setRecordId(args[1]);
+        lId.setProviderId(providerId);
+        lId.setRecordId(recordId);
         cId.setLocalId(lId);
-        cId.setId(args[2]);
+        cId.setId(cloudId);
         cIds.add(cId);
         return cIds;
     }
