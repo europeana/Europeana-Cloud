@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
+import org.apache.storm.kafka.spout.FirstPollOffsetStrategy;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
 import java.util.Arrays;
@@ -115,7 +116,7 @@ public final class TopologyHelper {
                         .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
                         .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getValue(topologyProperties, MAX_POLL_RECORDS, DEFAULT_MAX_POLL_RECORDS))
                         .setProp(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, getValue(topologyProperties, FETCH_MAX_BYTES, DEFAULT_FETCH_MAX_BYTES))
-                        .setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
+                        .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
         return new ECloudSpout(
                 topologyName,

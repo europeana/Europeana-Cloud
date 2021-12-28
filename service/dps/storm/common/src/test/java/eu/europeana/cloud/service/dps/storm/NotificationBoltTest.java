@@ -471,7 +471,7 @@ public class NotificationBoltTest extends CassandraTestBase {
             processedRecordsDAO.insert(tuple.getTaskId(), recordId, 1, "", "",
                     RecordState.QUEUED.toString(), "", "");
         }
-        Values testValue = tuple.toStormTuple();
+        List<Object> testValue = tuple.toStormTuple();
         TopologyBuilder builder = new TopologyBuilder();
         @SuppressWarnings("unchecked")
         GeneralTopologyContext topologyContext = new GeneralTopologyContext(builder.createTopology(), new Config(), new HashMap(), new HashMap(), new HashMap(), "") {
@@ -480,6 +480,6 @@ public class NotificationBoltTest extends CassandraTestBase {
                 return NotificationTuple.getFields();
             }
         };
-        return new TupleImpl(topologyContext, testValue, 1, "");
+        return new TupleImpl(topologyContext, testValue, "BoltTest", 1, "");
     }
 }

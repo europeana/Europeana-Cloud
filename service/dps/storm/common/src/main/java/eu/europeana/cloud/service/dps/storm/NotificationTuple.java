@@ -6,9 +6,10 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -105,8 +106,8 @@ public class NotificationTuple {
                 (Map<String, Object>) tuple.getValueByField(PARAMETERS_FIELD_NAME));
     }
 
-    public Values toStormTuple() {
-        return new Values(taskId, parameters);
+    public List<Object> toStormTuple() {
+        return Arrays.asList(taskId, parameters);
     }
 
     public static Fields getFields() {
