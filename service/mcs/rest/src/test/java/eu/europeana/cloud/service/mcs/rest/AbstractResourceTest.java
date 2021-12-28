@@ -19,6 +19,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Collections;
+
 import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
@@ -39,9 +41,8 @@ public abstract class AbstractResourceTest {
 
     public static HttpServletRequest mockHttpServletRequest() {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        when(request.getScheme()).thenReturn("http");
-        when(request.getServerName()).thenReturn("localhost");
-        when(request.getServerPort()).thenReturn(80);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
+        when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
         return request;
     }
 

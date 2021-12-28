@@ -23,6 +23,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Collections;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.hamcrest.CoreMatchers.is;
@@ -318,6 +319,8 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     private HttpServletRequest prepareRequestMock(String fileName) {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         when(request.getRequestURI()).thenReturn("/files/" + fileName);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("/files/" + fileName));
+        when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
         return request;
     }
 }
