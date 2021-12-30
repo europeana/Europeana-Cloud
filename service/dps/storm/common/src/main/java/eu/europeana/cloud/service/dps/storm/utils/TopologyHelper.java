@@ -81,7 +81,7 @@ public final class TopologyHelper {
                 getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null) );
 
         config.setMaxSpoutPending(getValue(topologyProperties, MAX_SPOUT_PENDING, DEFAULT_MAX_SPOUT_PENDING));
-
+        config.setFallBackOnJavaSerialization(true);
         return config;
     }
 
