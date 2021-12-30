@@ -74,7 +74,8 @@ public class PostProcessingScheduler {
         return tasksReadyForPostprocessing;
     }
 
-    private void resetTaskState(TaskByTaskState taskByTaskState){
-        taskStatusUpdater.updateState(taskByTaskState.getId(), READY_FOR_POST_PROCESSING, "Reseting task state");
+    private void resetTaskState(TaskByTaskState taskByTaskState) {
+        LOGGER.debug("Resetting state of task {} to {}", taskByTaskState.getId(), IN_POST_PROCESSING);
+        taskStatusUpdater.updateState(taskByTaskState.getId(), READY_FOR_POST_PROCESSING, "Resetting task state");
     }
 }
