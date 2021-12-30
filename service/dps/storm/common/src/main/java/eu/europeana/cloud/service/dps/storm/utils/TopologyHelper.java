@@ -1,7 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsRecordDeserializer;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -10,11 +13,14 @@ import org.apache.storm.kafka.spout.FirstPollOffsetStrategy;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
 import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.*;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static java.lang.Integer.parseInt;
+import static org.apache.storm.Config.TOPOLOGY_KRYO_REGISTER;
 
 /**
  * Created by Tarek on 7/15/2016.
@@ -81,7 +87,10 @@ public final class TopologyHelper {
                 getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null) );
 
         config.setMaxSpoutPending(getValue(topologyProperties, MAX_SPOUT_PENDING, DEFAULT_MAX_SPOUT_PENDING));
-        config.setFallBackOnJavaSerialization(true);
+
+        config.put(TOPOLOGY_KRYO_REGISTER, Arrays.asList(LinkedHashMap.class.getName(),
+                OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
+                DataSetCleanerParameters.class.getName()));
         return config;
     }
 
