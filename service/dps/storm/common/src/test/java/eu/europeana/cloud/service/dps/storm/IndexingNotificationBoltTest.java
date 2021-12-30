@@ -237,7 +237,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
             processedRecordsDAO.insert(tuple.getTaskId(), recordId, 1, "", "",
                     RecordState.QUEUED.toString(), "", "");
         }
-        List<Object> testValue = tuple.toStormTuple();
+        Values testValue = tuple.toStormTuple();
         TopologyBuilder builder = new TopologyBuilder();
         @SuppressWarnings("unchecked")
         GeneralTopologyContext topologyContext = new GeneralTopologyContext(builder.createTopology(), new Config(), new HashMap(), new HashMap(), new HashMap(), "") {
