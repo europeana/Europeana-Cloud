@@ -83,7 +83,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), cachedErrorMessage);
                 tempEnrichedFile.setExceptions(cachedErrorMessage);
                 LOGGER.debug("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
-                        tempEnrichedFile.getCount()+1, tempEnrichedFile.getExceptions(), metadata);
+                        tempEnrichedFile.getCount() + 1, tempEnrichedFile.getExceptions(), metadata);
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
                 String currentException = tempEnrichedFile.getExceptions();

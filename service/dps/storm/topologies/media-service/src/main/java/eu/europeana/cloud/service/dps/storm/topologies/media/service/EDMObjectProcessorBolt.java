@@ -92,7 +92,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                     if (tuple != null) {
                         outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
                     }
-                } else{
+                } else {
                     LOGGER.warn("Media extraction of main thumbnail return null.");
                 }
             }
@@ -128,7 +128,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     }
 
     private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
-        thumbnailUploader.storeThumbnails(stormTaskTuple,exception,resourceExtractionResult);
+        thumbnailUploader.storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
     }
 
     @Override
