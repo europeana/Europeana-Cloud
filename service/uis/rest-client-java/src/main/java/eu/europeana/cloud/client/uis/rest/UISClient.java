@@ -215,7 +215,6 @@ public class UISClient {
      */
     public CloudId getCloudId(String providerId, String recordId, String key, String value)
             throws CloudException {
-
         Response resp = null;
         try {
             resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
@@ -249,124 +248,6 @@ public class UISClient {
             resp = client
                     .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
                     .resolveTemplate(P_CLOUD_ID, cloudId).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
-    }
-
-    /**
-     * Retrieve records associated with a provider.
-     *
-     * @param providerId The provider Id
-     * @return The List of Local ids associated with a provider
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    @SuppressWarnings("unchecked")
-    public ResultSlice<LocalId> getRecordIdsByProvider(String providerId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
-    }
-
-    /**
-     * Retrieve the Cloud ids associated with a provider.
-     *
-     * @param providerId The provider id
-     * @return The list of cloud ids associated with the provider id
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    @SuppressWarnings("unchecked")
-    public ResultSlice<CloudId> getCloudIdsByProvider(String providerId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
-    }
-
-    /**
-     * Retrieve the record ids associated with a provider with pagination.
-     *
-     * @param providerId    The provider id
-     * @param startRecordId The local identifier to start retrieval from
-     * @param limit         The maximum number of records to fetch
-     * @return A list of record ids associated with the provider
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    @SuppressWarnings("unchecked")
-    public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(
-            String providerId, String startRecordId, int limit)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_FROM, startRecordId)
-                    .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
-    }
-
-    /**
-     * Retrieve the cloud ids associated with a provider with pagination.
-     *
-     * @param providerId    The provider id
-     * @param startRecordId The local identifier to start retrieval from
-     * @param limit         The maximum number of records to fetch
-     * @return A list of cloud ids associated with the provider
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    @SuppressWarnings("unchecked")
-    public ResultSlice<CloudId> getCloudIdsByProviderWithPagination(
-            String providerId, String startRecordId, int limit)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_FROM, startRecordId)
-                    .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);

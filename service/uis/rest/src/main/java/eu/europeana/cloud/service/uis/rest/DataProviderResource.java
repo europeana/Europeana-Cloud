@@ -5,11 +5,10 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
 import org.springframework.http.MediaType;
@@ -19,25 +18,17 @@ import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.*;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import java.util.List;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-
 /**
  * Resource for DataProvider.
  *
  * @author
  */
 @RestController
-@RequestMapping("/data-providers/{" + P_PROVIDER + "}")
 public class DataProviderResource {
 
-    private UniqueIdentifierService uniqueIdentifierService;
-    private DataProviderService providerService;
-    private ACLServiceWrapper aclWrapper;
+    private final UniqueIdentifierService uniqueIdentifierService;
+    private final DataProviderService providerService;
+    private final ACLServiceWrapper aclWrapper;
 
     public DataProviderResource(UniqueIdentifierService uniqueIdentifierService,
                                 DataProviderService providerService,
@@ -65,8 +56,8 @@ public class DataProviderResource {
      * @throws ProviderDoesNotExistException
      *             The supplied provider does not exist
      */
-    @GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
-    public DataProvider getProvider(@PathVariable(P_PROVIDER) String providerId)
+    @GetMapping(value = RestInterfaceConstants.DATA_PROVIDER, produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    public DataProvider getProvider(@PathVariable String providerId)
             throws ProviderDoesNotExistException {
         return providerService.getProvider(providerId);
     }
@@ -98,11 +89,11 @@ public class DataProviderResource {
      * @throws ProviderDoesNotExistException
      *             The supplied provider does not exist
      */
-    @PutMapping(consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    @PutMapping(value = RestInterfaceConstants.DATA_PROVIDER, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
     public ResponseEntity<Void> updateProvider(
             @RequestBody DataProviderProperties dataProviderProperties,
-            @PathVariable(P_PROVIDER) String providerId)
+            @PathVariable String providerId)
             throws ProviderDoesNotExistException {
 
         providerService.updateProvider(providerId, dataProviderProperties);
@@ -124,7 +115,7 @@ public class DataProviderResource {
      *
      * @summary Data provider deletion
      *
-     * @param dataProviderId
+     * @param providerId
      *            <strong>REQUIRED</strong> data provider id
      *
      * @return Empty response with http status code indicating whether the
@@ -134,108 +125,14 @@ public class DataProviderResource {
      *             The supplied provider does not exist
      *
      */
-    @DeleteMapping
+    @DeleteMapping(value = RestInterfaceConstants.DATA_PROVIDER)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteProvider(@PathVariable(P_PROVIDER) String dataProviderId)
+    public ResponseEntity<Void> deleteProvider(@PathVariable String providerId)
             throws ProviderDoesNotExistException {
-        providerService.deleteProvider(dataProviderId);
-        deleteProviderAcl(dataProviderId);
+        providerService.deleteProvider(providerId);
+        deleteProviderAcl(providerId);
         return ResponseEntity.ok().build();
     }
-
-
-    /**
-     *
-     * Get the local Identifiers (with their cloud identifiers) for a specific provider identifier with
-     * pagination
-     *
-     * @summary Local identifiers retrieval.
-     *
-     * @param providerId
-     *            <strong>REQUIRED</strong> identifier of provider for which all
-     *            local identifiers will be retrieved
-     * @param from
-     *            from which one local identifier should we start.
-     * @param to
-     *            how many local identifiers should be contained in results
-     *            list. Default is 10000
-     *
-     * @return A list of local Identifiers (with their cloud identifiers)
-     *
-     * @throws DatabaseConnectionException
-     *             database error
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     * @throws RecordDatasetEmptyException
-     *             dataset is empty
-     *
-     */
-    @GetMapping(path = "localIds", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
-    public ResponseEntity<ResultSlice<CloudId>> getLocalIdsByProvider(
-            @PathVariable(P_PROVIDER) String providerId,
-            @RequestParam(value = UISParamConstants.Q_FROM, required = false) String from,
-            @RequestParam(value = UISParamConstants.Q_LIMIT, defaultValue = "10000") int to)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-
-        ResultSlice<CloudId> pList = new ResultSlice<>();
-        pList.setResults(uniqueIdentifierService.getLocalIdsByProvider(providerId, from, to));
-        if (pList.getResults().size() == to) {
-            pList.setNextSlice(pList.getResults().get(to - 1).getId());
-        }
-        return ResponseEntity.ok(pList);
-    }
-
-
-    /**
-     *
-     * Get the cloud identifiers (with their local identifiers) for a specific provider identifier with
-     * pagination
-     *
-     * @summary Cloud identifiers (with their local identifiers) retrieval.
-     *
-     * @param providerId
-     *            <strong>REQUIRED</strong> identifier of provider for which all
-     *            record identifiers will be retrieved
-     * @param from
-     *            from which one <strong>local identifier</strong> should we start.
-     * @param limit
-     *            how many cloud identifiers should be contained in results
-     *            list. Default is 10000. <strong>Respected only if {@code from} parameter is defined.</strong>
-     *
-     * @return List of cloud identifiers (with their local identifiers) for specific provider
-     *
-     * @throws DatabaseConnectionException
-     *             database connection errot
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     * @throws RecordDatasetEmptyException
-     *             record dataset is empty
-     */
-    @GetMapping(path = "cloudIds", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
-    public ResponseEntity<ResultSlice<CloudId>> getCloudIdsByProvider(
-            @PathVariable(P_PROVIDER) String providerId,
-            @RequestParam(value = UISParamConstants.Q_FROM, required = false) String from,
-            @Min(0) @Max(10000) @RequestParam(value = UISParamConstants.Q_LIMIT, defaultValue = "10000") int limit)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-        ResultSlice<CloudId> slice = new ResultSlice<>();
-        final int limitWithNextSlice = limit + 1;
-
-        final List<CloudId> cloudIds = uniqueIdentifierService.getCloudIdsByProvider(providerId, from, limitWithNextSlice);
-
-        if (cloudIds.size() == limitWithNextSlice) {
-            setNextSliceAndRemoveLastElement(slice, limitWithNextSlice, cloudIds);
-        }
-        slice.setResults(cloudIds);
-        return ResponseEntity.ok(slice);
-    }
-
-    private void setNextSliceAndRemoveLastElement(ResultSlice<CloudId> slice, int limitWithNextSlice, List<CloudId> cloudIdsByProvider) {
-        CloudId nextSlice = cloudIdsByProvider.remove(limitWithNextSlice - 1);
-        slice.setNextSlice(nextSlice.getLocalId().getRecordId());
-    }
-
 
     /**
      *
@@ -259,7 +156,7 @@ public class DataProviderResource {
      * @param cloudId
      *            <strong>REQUIRED</strong> cloud identifier for which new
      *            record identifier will be added
-     * @param localId
+     * @param recordId
      *            record identifier which will be bound to selected cloud
      *            identifier. If not specified, random one will be generated
      *
@@ -279,19 +176,19 @@ public class DataProviderResource {
      *             cloud identifier already exist
      *
      */
-    @PostMapping(value = "cloudIds/{" + P_CLOUDID + "}",produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(value = RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
     @PreAuthorize("isAuthenticated()")
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     public ResponseEntity<CloudId> createIdMapping(
-            @PathVariable(P_PROVIDER) String providerId,
-            @PathVariable(P_CLOUDID) String cloudId,
-            @RequestParam(value = UISParamConstants.Q_RECORD_ID, required = false) String localId)
+            @PathVariable String providerId,
+            @PathVariable String cloudId,
+            @RequestParam(required = false) String recordId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
 
         CloudId result = null;
-        if (localId != null) {
-            result = uniqueIdentifierService.createIdMapping(cloudId, providerId, localId);
+        if (recordId != null) {
+            result = uniqueIdentifierService.createIdMapping(cloudId, providerId, recordId);
         } else {
             result = uniqueIdentifierService.createIdMapping(cloudId, providerId);
         }
@@ -334,7 +231,7 @@ public class DataProviderResource {
      *            <strong>REQUIRED</strong> identifier of the provider, owner of
      *            the record
      *
-     * @param localId
+     * @param recordId
      *            <strong>REQUIRED</strong> record identifier which will be
      *            detached from selected provider identifier.
      *
@@ -347,12 +244,12 @@ public class DataProviderResource {
      * @throws RecordIdDoesNotExistException
      *             record does not exist
      */
-    @DeleteMapping(value = "localIds/{" + P_LOCALID + "}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasPermission(#localId.concat('/').concat(#providerId),'" + LOCAL_ID_CLASS_NAME + "', write)")
-    public ResponseEntity<String> removeIdMapping(@PathVariable(P_PROVIDER) String providerId, @PathVariable(P_LOCALID) String localId)
+    @DeleteMapping(value = RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("hasPermission(#recordId.concat('/').concat(#providerId),'" + LOCAL_ID_CLASS_NAME + "', write)")
+    public ResponseEntity<String> removeIdMapping(@PathVariable String providerId, @PathVariable String recordId)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
-        uniqueIdentifierService.removeIdMapping(providerId, localId);
-        deleteLocalIdAcl(localId, providerId);
+        uniqueIdentifierService.removeIdMapping(providerId, recordId);
+        deleteLocalIdAcl(recordId, providerId);
         return ResponseEntity.ok("Mapping marked as deleted");
     }
 
