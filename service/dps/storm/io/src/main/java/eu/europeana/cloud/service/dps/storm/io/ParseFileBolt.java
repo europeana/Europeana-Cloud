@@ -12,7 +12,6 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Tarek on 12/6/2018.
@@ -38,7 +36,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 
 	protected StormTaskTuple createStormTuple(StormTaskTuple stormTaskTuple, RdfResourceEntry rdfResourceEntry, int linksCount) {
 		StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-		LOGGER.info("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
+		LOGGER.debug("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
 		tuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
 		tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(linksCount));
 		tuple.addParameter(PluginParameterKeys.RESOURCE_URL, rdfResourceEntry.getResourceUrl());
@@ -49,7 +47,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 
 	@Override
 	public void execute(Tuple anchorTuple,  StormTaskTuple stormTaskTuple) {
-		LOGGER.info("Starting file parsing");
+		LOGGER.debug("Starting file parsing");
 		Instant processingStartTime = Instant.now();
 		try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
 			byte[] fileContent = IOUtils.toByteArray(stream);
@@ -57,12 +55,12 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 			int linksCount = getLinksCount(stormTaskTuple, rdfResourceEntries.size());
 			if (linksCount == 0) {
 				StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-				LOGGER.info("The EDM file has no resource Links ");
+				LOGGER.debug("The EDM file has no resource Links ");
                 outputCollector.emit(anchorTuple, tuple.toStormTuple());
 			} else {
-				LOGGER.info("Found {} resources for {} : {}", rdfResourceEntries.size(),
+				LOGGER.debug("Found {} resources for {} : {}", rdfResourceEntries.size(),
 						stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER),
-						rdfResourceEntries.stream().map(ToStringBuilder::reflectionToString).collect(Collectors.joining(",")));
+						rdfResourceEntries);
 				for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
 					if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId()))
 						break;

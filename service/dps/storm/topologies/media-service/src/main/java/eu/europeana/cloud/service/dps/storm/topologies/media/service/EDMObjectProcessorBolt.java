@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.Set;
 
 public class EDMObjectProcessorBolt extends ReadFileBolt {
@@ -55,7 +54,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("Starting edm:object processing");
+        LOGGER.debug("Starting edm:object processing");
         Instant processingStartTime = Instant.now();
         StringBuilder exception = new StringBuilder();
 
@@ -63,14 +62,9 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
-            LOGGER.info("Searching for main thumbnail in the resource");
+            LOGGER.debug("Searching for main thumbnail in the resource");
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
-            if (edmObjectResourceEntry != null) {
-                LOGGER.info("Found the following rdfResourceEntry url: {}, urlTypes: {}",
-                        edmObjectResourceEntry.getResourceUrl(),edmObjectResourceEntry.getUrlTypes());
-            }else{
-                LOGGER.warn("Not found resource entry for main thumbnail!");
-            }
+            LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);
             boolean mainThumbnailAvailable = false;
             // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
             //  to collect all the resources instead of just counting them
@@ -78,7 +72,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
 
             if (edmObjectResourceEntry != null) {
                 resourcesToBeProcessed++;
-                LOGGER.info("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
+                LOGGER.debug("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
                 if (resourceExtractionResult != null) {
                     StormTaskTuple tuple = null;
@@ -92,7 +86,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                         mainThumbnailAvailable = !thumbnailTargetNames.isEmpty();
                         tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
                     }
-                    LOGGER.info("Extracted the following metadata: thumbnailTargetNames: {},  metadata: {}",
+                    LOGGER.debug("Extracted the following metadata: thumbnailTargetNames: {},  metadata: {}",
                             thumbnailTargetNames, metadataJson);
                     storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
                     if (tuple != null) {

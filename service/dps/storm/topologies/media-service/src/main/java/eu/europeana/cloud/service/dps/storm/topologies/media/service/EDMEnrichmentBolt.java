@@ -44,7 +44,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("Starting EDM enrichment");
+        LOGGER.debug("Starting EDM enrichment");
         Instant processingStartTime = Instant.now();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
@@ -70,7 +70,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                         tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
                         byte[] bytes = IOUtils.toByteArray(stream);
                         tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(bytes));
-                        LOGGER.info("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
+                        LOGGER.debug("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
                     }
                 }
                 tempEnrichedFile.addSourceTuple(anchorTuple);
@@ -82,7 +82,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 String cachedErrorMessage = tempEnrichedFile.getExceptions();
                 cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), cachedErrorMessage);
                 tempEnrichedFile.setExceptions(cachedErrorMessage);
-                LOGGER.info("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
+                LOGGER.debug("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
                         tempEnrichedFile.getCount()+1, tempEnrichedFile.getExceptions(), metadata);
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
@@ -96,7 +96,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 tempEnrichedFile.increaseCount();
                 if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
                     try {
-                        LOGGER.info("The file was fully enriched and will be send to the next bolt");
+                        LOGGER.debug("The file was fully enriched and will be send to the next bolt");
                         prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
                         cache.remove(file);
                         outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
