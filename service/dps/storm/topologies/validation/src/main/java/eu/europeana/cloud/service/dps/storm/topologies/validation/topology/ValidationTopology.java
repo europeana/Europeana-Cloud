@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.ValidationRevisionWriter;
-import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
@@ -20,6 +19,7 @@ import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
@@ -48,61 +48,52 @@ public class ValidationTopology {
     public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
+        List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
 
         ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
         ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);
 
-        builder.setSpout(SPOUT, eCloudSpout,
-                (getAnInt(KAFKA_SPOUT_PARALLEL)))
-                .setNumTasks(
-                        (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
-
-        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
-                (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
-                .setNumTasks(
-                        (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT, new ShuffleGrouping());
+        TopologyHelper.addSpoutShuffleGrouping(spoutNames,
+                builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
+                        .setNumTasks((getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))));
 
         builder.setBolt(VALIDATION_BOLT, new ValidationBolt(validationProperties),
-                (getAnInt(VALIDATION_BOLT_PARALLEL)))
+                        (getAnInt(VALIDATION_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(VALIDATION_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
         builder.setBolt(STATISTICS_BOLT, new StatisticsBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                        topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                (getAnInt(STATISTICS_BOLT_PARALLEL)))
+                                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                        (getAnInt(STATISTICS_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(STATISTICS_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(VALIDATION_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, validationRevisionWriter,
-                (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
+                        (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(STATISTICS_BOLT, new ShuffleGrouping());
 
-
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                        topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                getAnInt(NOTIFICATION_BOLT_PARALLEL))
-                .setNumTasks(
-                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-                .fieldsGrouping(SPOUT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
+        TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
+                builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                                        topologyProperties.getProperty(CASSANDRA_USERNAME),
+                                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                                getAnInt(NOTIFICATION_BOLT_PARALLEL))
+                        .setNumTasks(
+                                (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
+                        .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
         return builder.createTopology();
     }
 

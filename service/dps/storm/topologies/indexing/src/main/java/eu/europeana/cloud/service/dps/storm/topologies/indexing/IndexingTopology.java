@@ -5,19 +5,18 @@ import eu.europeana.cloud.service.dps.storm.IndexingNotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
@@ -50,49 +49,42 @@ public class IndexingTopology {
         String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
         ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
+        List<String> spoutNames = TopologyHelper.addSpouts(builder,
                 TopologiesNames.INDEXING_TOPOLOGY,
-                topologyProperties,
-                KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+                topologyProperties);
 
-        builder.setSpout(SPOUT, eCloudSpout,
-                getAnInt(KAFKA_SPOUT_PARALLEL))
-                .setNumTasks(getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS));
-
-        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
-                getAnInt(RETRIEVE_FILE_BOLT_PARALLEL))
-                .setNumTasks(getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))
-                .customGrouping(SPOUT, new ShuffleGrouping());
+        TopologyHelper.addSpoutShuffleGrouping(spoutNames,
+                builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, getAnInt(RETRIEVE_FILE_BOLT_PARALLEL))
+                        .setNumTasks(getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)));
 
         builder.setBolt(INDEXING_BOLT, new IndexingBolt(
-                        prepareConnectionDetails(),
-                        indexingProperties,
-                        topologyProperties.getProperty(UIS_URL)),
-                getAnInt(INDEXING_BOLT_PARALLEL))
+                                prepareConnectionDetails(),
+                                indexingProperties,
+                                topologyProperties.getProperty(UIS_URL)),
+                        getAnInt(INDEXING_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(INDEXING_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE),
-                getAnInt(REVISION_WRITER_BOLT_PARALLEL))
+                        getAnInt(REVISION_WRITER_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(INDEXING_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(NOTIFICATION_BOLT, new IndexingNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        getAnInt(CASSANDRA_PORT),
-                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                        topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                getAnInt(NOTIFICATION_BOLT_PARALLEL))
-                .setNumTasks(
-                        getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS))
-                .fieldsGrouping(SPOUT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(INDEXING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
+        TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
+                builder.setBolt(NOTIFICATION_BOLT, new IndexingNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                                        getAnInt(CASSANDRA_PORT),
+                                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                                        topologyProperties.getProperty(CASSANDRA_USERNAME),
+                                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                                getAnInt(NOTIFICATION_BOLT_PARALLEL))
+                        .setNumTasks(
+                                getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS))
+                        .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(INDEXING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
 
         return builder.createTopology();
     }
