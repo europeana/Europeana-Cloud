@@ -34,7 +34,7 @@ public class RetryableMethodExecutor {
                 return callable.call();
             } catch (Exception e) {
                 if (--maxAttempts > 0) {
-                    LOGGER.warn(errorMessage + " Retries Left {} ", maxAttempts, e);
+                    LOGGER.warn("{} - {} Retries Left {} ", errorMessage, e.getMessage(), maxAttempts, e);
                     waitForSpecificTime(sleepTimeBetweenRetriesMs);
                 } else {
                     LOGGER.error(errorMessage);
